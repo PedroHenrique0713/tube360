@@ -22,7 +22,8 @@ from contextlib import asynccontextmanager
 from html import escape
 from itertools import zip_longest
 from pathlib import Path
-from urllib.parse import quote
+from urllib.error import HTTPError
+from urllib.parse import parse_qs, quote, urlparse
 from urllib.request import Request as URLRequest, urlopen
 
 import anyio
@@ -83,14 +84,17 @@ def tr(pt, en, lang=None):
     return pt if (lang or LANGUAGE) == "pt" else en
 
 
-def ydl_options(lang=None, cookies=False, **extra):
+def ydl_options(lang=None, cookies=False, skip_clients=(), **extra):
     lang = lang or LANGUAGE
+    youtube_args = {"lang": [lang]}
+    if skip_clients:
+        youtube_args["player_client"] = ["default", *(f"-{name}" for name in skip_clients)]
     options = {
         "quiet": True, "no_warnings": True, "logger": QuietYDL(),
         "socket_timeout": 15, "retries": 1, "extractor_retries": 1,
         "skip_download": True, "noplaylist": True,
         # O identificador brasileiro aceito pelo extrator é "pt" (não "pt-BR").
-        "extractor_args": {"youtube": {"lang": [lang]}},
+        "extractor_args": {"youtube": youtube_args},
         "http_headers": {"Accept-Language": tr("pt-BR,pt;q=0.9", "en-US,en;q=0.9", lang)},
         "remote_components": ["ejs:github"],
         "cachedir": str(BASE / ".yt-dlp-cache"),
@@ -268,26 +272,62 @@ async def extract_video(url, **options):
     return await extract(url, cookies=True, **options)
 
 
+def source_refused(info, source):
+    """Nome do cliente da API (parâmetro `c` da URL) quando a origem responde 403 a este link."""
+    headers = info["headers"] | source.get("http_headers", {}) | {"Range": "bytes=0-1"}
+    try:
+        with urlopen(URLRequest(source["url"], headers=headers), timeout=8):
+            return None
+    except HTTPError as error:
+        if error.code != 403:
+            return None
+    except OSError:
+        return None
+    return parse_qs(urlparse(source["url"]).query).get("c", [None])[0]
+
+
+def clients_named(api_name):
+    """Clientes do yt-dlp que se apresentam com esse nome (TVHTML5 = tv, tv_samsung...)."""
+    try:
+        from yt_dlp.extractor.youtube._base import INNERTUBE_CLIENTS
+    except ImportError:  # módulo interno: se mudar de lugar, só perde a troca de cliente
+        return []
+    return sorted(name for name, client in INNERTUBE_CLIENTS.items()
+                  if client["INNERTUBE_CONTEXT"]["client"]["clientName"] == api_name)
+
+
 async def resolve_video(video_id):
     async def load():
-        # A mesma resolução (até 720p) atende todas as qualidades e buscas temporais.
-        data = await extract_video(
-            f"https://www.youtube.com/watch?v={video_id}",
-            # H.264 antes: abrir AV1 custa o dobro de CPU (720p, medido num núcleo: 49% contra 26%)
-            format="bestvideo[height<=720][vcodec^=avc1][protocol=https]+bestaudio[protocol=https]"
-                   "/bestvideo[height<=720][protocol=https]+bestaudio[protocol=https]/best[height<=720]/best",
-        )
-        formats = data.get("requested_formats") or [data]
-        video = next((f for f in formats if f.get("vcodec") != "none"), None)
-        audio = next((f for f in formats if f.get("acodec") != "none"), None)
-        if not video or not audio:
-            raise RuntimeError("vídeo ou áudio indisponível")
-        result = {
-            "video": video, "audio": audio,
-            "duration": max(0, int(data.get("duration") or 0)),
-            "title": clean(data.get("title") or video_id),
-            "headers": data.get("http_headers", {}),
-        }
+        skip = []
+        for attempt in range(2):
+            # A mesma resolução (até 720p) atende todas as qualidades e buscas temporais.
+            data = await extract_video(
+                f"https://www.youtube.com/watch?v={video_id}", skip_clients=skip,
+                # H.264 antes: abrir AV1 custa o dobro de CPU (720p, medido num núcleo: 49% contra 26%)
+                format="bestvideo[height<=720][vcodec^=avc1][protocol=https]+bestaudio[protocol=https]"
+                       "/bestvideo[height<=720][protocol=https]+bestaudio[protocol=https]/best[height<=720]/best",
+            )
+            formats = data.get("requested_formats") or [data]
+            video = next((f for f in formats if f.get("vcodec") != "none"), None)
+            audio = next((f for f in formats if f.get("acodec") != "none"), None)
+            if not video or not audio:
+                raise RuntimeError("vídeo ou áudio indisponível")
+            result = {
+                "video": video, "audio": audio,
+                "duration": max(0, int(data.get("duration") or 0)),
+                "title": clean(data.get("title") or video_id),
+                "headers": data.get("http_headers", {}),
+            }
+            if attempt:
+                break
+            # O YouTube às vezes recusa (403) todos os links de um cliente só para certos vídeos (tv_samsung,
+            # 2026-11-22), e o link novo do mesmo cliente volta recusado: refaz a extração sem ele.
+            sources = [video] if video["url"] == audio["url"] else [video, audio]
+            refused = await asyncio.gather(*(asyncio.to_thread(source_refused, result, s) for s in sources))
+            skip = sorted({name for api_name in refused if api_name for name in clients_named(api_name)})
+            if not skip:
+                break
+            LOG.info("vídeo %s: o YouTube recusou o link de %s, extraindo sem esse cliente", video_id, ", ".join(skip))
         remember({"id": video_id, "duration": result["duration"], "title": result["title"],
                   "channel": clean(data.get("channel")), "views": views_text(data.get("view_count"))})
         return result
