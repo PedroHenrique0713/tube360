@@ -535,6 +535,9 @@ class History:
 history = History()
 
 
+COMMAND_TTL = 15  # segundos
+
+
 class Remote:
     def __init__(self):
         self.commands, self.queue = deque(), deque()
@@ -579,6 +582,11 @@ class Remote:
                 self.commands.append({"action": "next"})
         elif not ended:
             self.last_ended = ""
+        # Pedido do celular feito com o app fechado não vale quando o app abre: repetir em sequência tocar, buscar e
+        # pausar velhos abria o vídeo já pausado e o app desistia do Nest (2026-11-22). O console pede a cada ~0,5 s.
+        now = time.monotonic()
+        while self.commands and now - self.commands[0].get("at", now) > COMMAND_TTL:
+            LOG.info("controle: pedido velho do celular descartado (%s)", self.commands.popleft()["action"])
         if not self.commands:
             return "none\n"
         cmd = self.commands.popleft()
@@ -1632,7 +1640,7 @@ async def command(cmd: Command):
     if cmd.action == "queue":
         remote.queue.append(remote.item(cmd.id) | {"t": cmd.t or 0})
     else:
-        remote.commands.append(cmd.model_dump(exclude_none=True))
+        remote.commands.append(cmd.model_dump(exclude_none=True) | {"at": time.monotonic()})
     return {"ok": True}
 
 

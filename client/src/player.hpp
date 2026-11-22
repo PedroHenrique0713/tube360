@@ -318,11 +318,14 @@ struct Player {
     std::snprintf(path, sizeof(path), "/api/nest/play?id=%s&t=%.2f", id.c_str(), startAt);
     net::Response r;
     if (!net::get(srv, path, r, 5000, 1024)) { error = "O servidor não respondeu ao pedido do Nest"; nestFailed = true; state = FAILED; return; }
-    uint64_t erroDesde = 0, pedidoEm = SDL_GetTicks(); bool tocou = false;
+    uint64_t erroDesde = 0, pedidoEm = SDL_GetTicks(), comandoEm = 0; bool tocou = false;
+    int esperado = 0;  // estado que o Xbox pediu e o Nest ainda não mostrou (1 tocando, 2 pausado)
     while (!stop) {
       int c = nestCmd.exchange(0);
       if (c == 1) net::get(srv, "/api/nest/pause", r, 2000, 1024);
       if (c == 2) net::get(srv, "/api/nest/resume", r, 2000, 1024);
+      if (c) { comandoEm = SDL_GetTicks(); esperado = c == 1 ? 2 : 1; }
+      if (c == 2 && !tocou) pedidoEm = SDL_GetTicks();
       double a = SDL_GetTicksNS() / 1e6;
       net::Response pr;
       if (net::get(srv, "/api/nest/pos", pr, 2000, 1024)) {
@@ -344,12 +347,20 @@ struct Player {
         }
         SDL_UnlockMutex(nmu);
         if (st == 1) tocou = true;
+        // Pausado ou retomado no próprio Nest (toque em cima, Google Home): a imagem acompanha. Só depois de vê-lo
+        // tocando este vídeo (logo após o play, o servidor ainda pode mostrar o vídeo anterior pausado). Enquanto o Nest não
+        // mostra o último pedido do Xbox (até 10 s), o estado antigo dele não conta como mudança vinda de fora.
+        if (esperado && (st == esperado || SDL_GetTicks() - comandoEm > 10000)) esperado = 0;
+        if (tocou && !esperado && nestCmd == 0) {
+          if (st == 1 && paused) { paused = false; LOG("nest: retomado no alto-falante, o vídeo segue"); }
+          else if (st == 2 && !paused) { paused = true; LOG("nest: pausado no alto-falante, o vídeo pausa"); }
+        }
         if (st == 4) {
           if (!erroDesde) erroDesde = SDL_GetTicks();
           if (SDL_GetTicks() - erroDesde > 3000) { error = "O Nest não tocou: " + (f.size() > 2 ? f[2] : std::string("sem resposta")); nestFailed = true; state = FAILED; return; }
         } else erroDesde = 0;
-        // nunca começou a tocar: não deixa o vídeo parado esperando
-        if (!tocou && SDL_GetTicks() - pedidoEm > 15000) { error = "O Nest não começou a tocar"; nestFailed = true; state = FAILED; return; }
+        // nunca começou a tocar: não deixa o vídeo parado esperando (pausado no começo não conta; o prazo recomeça ao continuar)
+        if (!tocou && !paused && SDL_GetTicks() - pedidoEm > 15000) { error = "O Nest não começou a tocar"; nestFailed = true; state = FAILED; return; }
       }
       SDL_Delay(200);
     }
