@@ -47,8 +47,10 @@ No TV stick, no smart TV, no browser. Just the Xbox 360 you already have.
 | ![Settings](docs/img/settings.jpg) | ![Sign in with a TV code](docs/img/signin.jpg) |
 | **Sleep timer** | **Cast from the phone** |
 | ![Sleep timer warning](docs/img/sleep-timer.jpg) | ![Cast pairing](docs/img/cast.jpg) |
+| **Like or dislike a video** | **Up next automatically** |
+| ![Rate this video](docs/img/rate.jpg) | ![Up next countdown](docs/img/up-next.jpg) |
 
-<sub>These screenshots come from the PC build of the client, which runs the same code and renderer as the console build. The demo feed is the author's choice: Palmeiras 4×1 Corinthians and Flamengo 0×3 Palmeiras. 🟢⚪ The sign-in code is a placeholder.</sub>
+<sub>These screenshots come from the PC build of the client, which runs the same code and renderer as the console build. The demo feed is the author's choice: Palmeiras 4×1 Corinthians and Flamengo 0×3 Palmeiras. 🟢⚪ The account is a demo one, and the sign-in and Cast codes are placeholders.</sub>
 
 ---
 

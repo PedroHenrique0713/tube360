@@ -47,8 +47,10 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | ![Configurações](docs/img/settings.jpg) | ![Login com código de TV](docs/img/signin.jpg) |
 | **Timer de dormir** | **Transmitir do celular** |
 | ![Aviso do timer](docs/img/sleep-timer.jpg) | ![Pareamento](docs/img/cast.jpg) |
+| **Gostei ou não gostei do vídeo** | **Próximo vídeo automático** |
+| ![Avaliar este vídeo](docs/img/rate.jpg) | ![Contagem para o próximo vídeo](docs/img/up-next.jpg) |
 
-<sub>As telas são do build de PC do cliente, que roda o mesmo código e o mesmo renderizador do build do console, aqui com a interface em inglês. A home de demonstração foi escolha do autor: Palmeiras 4×1 Corinthians e Flamengo 0×3 Palmeiras. 🟢⚪ O código de login é de exemplo.</sub>
+<sub>As telas são do build de PC do cliente, que roda o mesmo código e o mesmo renderizador do build do console, aqui com a interface em inglês. A home de demonstração foi escolha do autor: Palmeiras 4×1 Corinthians e Flamengo 0×3 Palmeiras. 🟢⚪ A conta é de demonstração, e os códigos de login e do Transmitir são de exemplo.</sub>
 
 ---
 
