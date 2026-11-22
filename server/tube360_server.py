@@ -28,6 +28,7 @@ from urllib.request import Request as URLRequest, urlopen
 import anyio
 import uvicorn
 import yt_dlp
+from yt_dlp.plugins import load_all_plugins
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.exception_handlers import request_validation_exception_handler
@@ -664,6 +665,33 @@ class SleepTimer:
 sleep_timer = SleepTimer()
 
 
+async def lid_guard():
+    """Enquanto o Xbox usa o app (até 15 min depois do último contato) ou há timer, fechar a tampa do notebook não o
+    suspende: um monitor desligado no botão costuma sumir do HDMI, e aí o logind suspenderia no meio do vídeo. Fora
+    disso o comportamento normal volta (inibidor do logind, sem senha; o processo morre junto com o serviço)."""
+    hold = None
+    try:
+        while True:
+            busy = sleep_timer.active or bool(remote.last_poll and time.monotonic() - remote.last_poll < 900)
+            if busy and hold is None:
+                with contextlib.suppress(OSError):
+                    hold = await asyncio.create_subprocess_exec(
+                        "systemd-inhibit", "--what=handle-lid-switch", "--who=Tube360", "--mode=block",
+                        "--why=Xbox usando o servidor", "sleep", "infinity",
+                        stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
+                    LOG.info("Tampa: segurando (Xbox em uso ou timer)")
+            elif hold is not None and (not busy or hold.returncode is not None):
+                if hold.returncode is None:
+                    hold.terminate()
+                    await hold.wait()
+                hold = None
+                LOG.info("Tampa: comportamento normal de volta")
+            await asyncio.sleep(10)
+    finally:
+        if hold is not None and hold.returncode is None:
+            hold.terminate()
+
+
 async def prefetch_thumbs(ids, width=320, height=180):
     """Baixa de antemão as miniaturas de uma lista, poucas por vez, para o console achar tudo pronto."""
     slots = asyncio.Semaphore(6)
@@ -787,13 +815,18 @@ async def warm_loop():
 @asynccontextmanager
 async def lifespan(app):
     THUMBS.mkdir(parents=True, exist_ok=True)
+    # plugins do yt-dlp (PO token) carregados uma vez aqui: em paralelo, duas threads registravam o mesmo provedor
+    with contextlib.suppress(Exception):
+        load_all_plugins()
     warm = asyncio.create_task(warm_loop()) if os.environ.get("TUBE360_WARM_CACHE", "1") != "0" else None
     timer = asyncio.create_task(sleep_timer.run())
     fade = asyncio.create_task(sleep_timer.fade_nest())
+    lid = asyncio.create_task(lid_guard())
     yield
     timer.cancel()
     fade.cancel()
-    await asyncio.gather(timer, fade, return_exceptions=True)
+    lid.cancel()
+    await asyncio.gather(timer, fade, lid, return_exceptions=True)
     if warm:
         warm.cancel()
     with anyio.CancelScope(shield=True):

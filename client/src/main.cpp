@@ -953,6 +953,12 @@ int main(int argc, char** argv) {
           gfx::text(g, ui::F_SMALL, txt, pillRight - w + 22, 34, ui::TEXT);
           pillRight -= w + 10;
         };
+        // a contagem do timer entra na fileira de pílulas (sozinha à direita, cobria a legenda do X)
+        if (sleep.active) {
+          std::string value = sleep.end ? tr(K::SleepEnd) : fmtTime(std::ceil(sleepLeft));
+          if (sleep.end && sleepLeft >= 0) value += " · " + fmtTime(std::ceil(sleepLeft));
+          pill(std::string(tr(K::SleepTimer)) + " · " + value, ui::A1);
+        }
         if (!castWho.empty()) pill(tr(K::PhonePrefix) + castWho, rgb(0x34c759));
         if (account.signedIn()) pill(tr(K::AccountPrefix) + account.name, ui::A2);
         float hx3 = hint(g, lx, 32, "X", XX, tr(K::Refresh));
@@ -1149,7 +1155,7 @@ int main(int argc, char** argv) {
       }
     }
 
-    if (sleep.active && (screen == HOME || screen == PLAYER)) {
+    if (sleep.active && screen == PLAYER) {
       std::string value = sleep.end ? tr(K::SleepEnd) : fmtTime(std::ceil(sleepLeft));
       if (sleep.end && sleepLeft >= 0) value += " · " + fmtTime(std::ceil(sleepLeft));
       std::string label = std::string(tr(K::SleepTimer)) + " · " + value;
