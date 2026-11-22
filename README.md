@@ -28,9 +28,10 @@ No TV stick, no smart TV, no browser. Just the Xbox 360 you already have.
 |---|---|
 | 📺 **Native app, not a web page** | C++ with Vulkan (on the Xenos GPU through [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon)) and SDL3. Shows up in Aurora with its own title ID (`0x58545542`), cover, and background. |
 | ⚡ **720p at 30 fps on a 2005 CPU** | The MPEG-1 decoder is split across 4 of the Xenon's hardware threads, slice by slice. Each frame takes ~22 ms, down from ~40 ms on a single thread. |
-| 👤 **Your YouTube account, no phone needed** | Sign in once on the TV with a code at google.com/device, like a smart TV app. Then the console shows your recommendations, subscriptions, continue watching (with the red progress bar) and Watch later. |
+| 👤 **Your YouTube account, no phone needed** | Sign in once on the TV with a code at google.com/device, like a smart TV app. Then the console shows your recommendations, subscriptions, continue watching (with the red progress bar) and Watch later, and what you watch goes to your YouTube history. |
 | 📱 **Cast from the official YouTube app** | Tube360 shows up in the phone's Cast menu like a smart TV. Pair once with a TV code (or let the phone find it on Wi-Fi). Play, pause, seek, volume and "up next" all work from the phone. |
 | 🔊 **Sound on a Google speaker, in sync** | The speaker plays the audio and the console follows its clock, which a microphone test puts within ~20 ms of the speaker's actual sound. If the speaker drops, the sound falls back to the TV on its own. |
+| 👍 **Like, dislike and autoplay** | D-pad ↓ in the player rates the video on your account. When a video ends, the next one YouTube suggests starts after an 8 s countdown (A to watch now, B to cancel). Members-only videos stay out of the grid. |
 | 🌙 **Sleep timer** | 15 min to 2 h, or "end of this video". A warning 60 s before (A for +15 min, B to cancel) while the sound fades out. Then the console turns itself off, and optionally the PC too. |
 | ⚙️ **Settings on the TV** | 3 or 4 videos per row, default quality, sound on the TV or the speaker, speaker sync, English or Portuguese. Button prompts in the Xbox One / Series style. |
 | 🪶 **Light on your PC, or off it** | Idle: ~140 MB RAM and ~0% CPU. Streaming 720p: about three quarters of one CPU core. Runs as a low-priority service, or on [a small VPS or an old Android phone](#run-it-without-your-pc). |
@@ -107,7 +108,7 @@ When a Google Nest or Chromecast is set in `config.json`, the server sends it **
 
 ### Your YouTube account
 
-The account lives in the same Node process as the Cast receiver (`cast/account.mjs`), through [YouTube.js](https://github.com/LuanRT/YouTube.js). Signing in uses the TV flow: the console shows a code, you confirm it at google.com/device, and the token stays on your PC (`~/.cache/tube360/yt-conta.json`, mode 600). A TV sign-in token is only accepted by YouTube's TV client, so feeds are read through it. YouTube refuses to record what you watch from this client, so the console keeps its own history too.
+The account lives in the same Node process as the Cast receiver (`cast/account.mjs`), through [YouTube.js](https://github.com/LuanRT/YouTube.js). Signing in uses the TV flow: the console shows a code, you confirm it at google.com/device, and the token stays on your PC (`~/.cache/tube360/yt-conta.json`, mode 600). A TV sign-in token is only accepted by YouTube's TV client, so feeds are read through it. Recording what you watch needs YouTube's playback tracking, which this library's TV client no longer gets ("The page needs to be reloaded"), so that one call presents itself as a Samsung TV client, the identity yt-dlp's `tv_samsung` uses. The console also keeps its own history.
 
 If YouTube starts answering "Sign in to confirm you're not a bot" for your IP (it happens after a lot of requests), set `cookies_from_browser` in `config.json` to a browser profile where you're logged in to YouTube. The server then uses those cookies **only while YouTube asks for them**, retrying without them every 30 minutes, since a video opens in ~3 s without cookies and ~8 s with them.
 
@@ -163,6 +164,8 @@ node cast/receptor.mjs
 ```bash
 TUBE360_NAME="Living Room TV" tools/install-services.sh
 ```
+
+It also installs `tube360-update.timer`, which keeps yt-dlp up to date: it checks every hour, upgrades about once a day, and only restarts the server while nothing is playing.
 
 ### 4. Console
 
@@ -261,6 +264,7 @@ Button prompts in the app use the Xbox One / Series style.
 | **Player** | A or Menu | Pause / resume |
 | | D-pad ← → | −10 s / +10 s |
 | | D-pad ↑ | Sleep timer |
+| | D-pad ↓ | Like / Dislike |
 | | LB / RB | −1 min / +1 min |
 | | Y | 720p ↔ 480p |
 | | X | Sound on TV ↔ speaker |
@@ -268,6 +272,7 @@ Button prompts in the app use the Xbox One / Series style.
 | | B or View | Back to the grid |
 | **Settings** | D-pad ↑ ↓ / ← → | Choose a row / change its value |
 | | A / B | Open (sign in, sign out) / Back |
+| **Up next** | A / B | Watch now / Cancel |
 | **Sleep warning** | A / B | +15 min / Cancel |
 
 ## Configuration
@@ -331,7 +336,7 @@ tools/           console build and service installer
 ## Roadmap
 
 - [ ] Subtitles
-- [ ] Record what you watch on the console in your YouTube history (YouTube currently refuses it from the TV client)
+- [x] Record what you watch on the console in your YouTube history (v0.2.0)
 - [ ] A test on more Android phones
 
 Pull requests are welcome.

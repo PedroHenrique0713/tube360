@@ -28,9 +28,10 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 |---|---|
 | 📺 **App nativo, não página web** | C++ com Vulkan (na GPU Xenos pelo [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon)) e SDL3. Aparece no Aurora com Title ID próprio (`0x58545542`), capa e fundo. |
 | ⚡ **720p a 30 fps numa CPU de 2005** | O decodificador MPEG-1 é dividido entre 4 threads de hardware do Xenon, fatia por fatia. Cada quadro leva ~22 ms, contra ~40 ms numa thread só. |
-| 👤 **A sua conta do YouTube, sem celular** | Entre uma vez pela TV com um código em google.com/device, como app de smart TV. Depois o console mostra as suas recomendações, inscrições, continuar assistindo (com a barrinha vermelha) e Assistir mais tarde. |
+| 👤 **A sua conta do YouTube, sem celular** | Entre uma vez pela TV com um código em google.com/device, como app de smart TV. Depois o console mostra as suas recomendações, inscrições, continuar assistindo (com a barrinha vermelha) e Assistir mais tarde, e o que você assiste vai para o seu histórico do YouTube. |
 | 📱 **Transmitir pelo app oficial do YouTube** | O Tube360 aparece no menu Transmitir do celular como uma smart TV. Pareie uma vez com o código de TV (ou deixe o celular achar pelo Wi-Fi). Play, pausa, avançar, volume e "a seguir" funcionam pelo celular. |
 | 🔊 **Som na caixa Google, sincronizado** | A caixa toca o áudio e o console segue o relógio dela, que um teste com microfone coloca a ~20 ms do som que sai da caixa. Se a caixa cair, o som volta para a TV sozinho. |
+| 👍 **Gostei, não gostei e próximo automático** | O direcional ↓ no player avalia o vídeo na sua conta. Quando um vídeo acaba, o próximo que o YouTube sugere começa depois de 8 s de contagem (A assiste na hora, B cancela). Vídeos só para membros ficam fora da grade. |
 | 🌙 **Timer de dormir** | De 15 min a 2 h, ou "no fim deste vídeo". Aviso 60 s antes (A para +15 min, B para cancelar) com o som abaixando. Depois o console se desliga sozinho, e o PC também, se você quiser. |
 | ⚙️ **Configurações na TV** | 3 ou 4 vídeos por linha, qualidade padrão, som na TV ou na caixa, sincronia da caixa, português ou inglês. Botões no estilo do Xbox One / Series. |
 | 🪶 **Leve no PC, ou fora dele** | Parado: ~140 MB de RAM e ~0% de CPU. Tocando 720p: uns três quartos de um núcleo. Roda como serviço de prioridade baixa, ou numa [VPS pequena ou num Android velho](#rodar-sem-o-seu-pc). |
@@ -107,7 +108,7 @@ Com um Google Nest ou Chromecast no `config.json`, o servidor manda para ele **s
 
 ### A sua conta do YouTube
 
-A conta roda no mesmo processo Node do receptor de Cast (`cast/account.mjs`), pelo [YouTube.js](https://github.com/LuanRT/YouTube.js). O login usa o fluxo de TV: o console mostra um código, você confirma em google.com/device e o token fica no seu PC (`~/.cache/tube360/yt-conta.json`, modo 600). Token de login de TV só é aceito pelo cliente de TV do YouTube, então as listas vêm por ele. O YouTube não deixa esse cliente gravar o que você assiste, por isso o console guarda o próprio histórico também.
+A conta roda no mesmo processo Node do receptor de Cast (`cast/account.mjs`), pelo [YouTube.js](https://github.com/LuanRT/YouTube.js). O login usa o fluxo de TV: o console mostra um código, você confirma em google.com/device e o token fica no seu PC (`~/.cache/tube360/yt-conta.json`, modo 600). Token de login de TV só é aceito pelo cliente de TV do YouTube, então as listas vêm por ele. Gravar o que você assiste precisa do rastreio de reprodução do YouTube, que o cliente de TV desta biblioteca não recebe mais ("A página precisa ser atualizada"), então essa chamada se apresenta como cliente de TV Samsung, a mesma identidade do `tv_samsung` do yt-dlp. O console guarda o próprio histórico também.
 
 Se o YouTube começar a responder "Faça login para confirmar que você não é um robô" para o seu IP (acontece depois de muitos pedidos), ponha no `config.json` o `cookies_from_browser` apontando para um perfil do navegador logado no YouTube. O servidor usa esses cookies **só enquanto o YouTube pedir**, tentando sem eles de novo a cada 30 minutos, porque sem cookies o vídeo abre em ~3 s e com eles em ~8 s.
 
@@ -163,6 +164,8 @@ node cast/receptor.mjs
 ```bash
 TUBE360_NAME="TV da Sala" tools/install-services.sh
 ```
+
+Ele também instala o `tube360-update.timer`, que mantém o yt-dlp em dia: confere de hora em hora, atualiza mais ou menos uma vez por dia e só reinicia o servidor quando nada está tocando.
 
 ### 4. Console
 
@@ -261,6 +264,7 @@ Os botões aparecem na tela no estilo do Xbox One / Series.
 | **Player** | A ou Menu | Pausar / continuar |
 | | Direcional ← → | −10 s / +10 s |
 | | Direcional ↑ | Timer de dormir |
+| | Direcional ↓ | Gostei / Não gostei |
 | | LB / RB | −1 min / +1 min |
 | | Y | 720p ↔ 480p |
 | | X | Som na TV ↔ na caixa |
@@ -268,6 +272,7 @@ Os botões aparecem na tela no estilo do Xbox One / Series.
 | | B ou View | Voltar à grade |
 | **Configurações** | Direcional ↑ ↓ / ← → | Escolher a linha / trocar o valor |
 | | A / B | Abrir (entrar, sair da conta) / Voltar |
+| **A seguir** | A / B | Assistir agora / Cancelar |
 | **Aviso do timer** | A / B | +15 min / Cancelar |
 
 ## Configuração
@@ -331,7 +336,7 @@ tools/           build do console e instalador dos serviços
 ## Próximos passos
 
 - [ ] Legendas
-- [ ] Gravar no seu histórico do YouTube o que você assiste no console (hoje o YouTube recusa pelo cliente de TV)
+- [x] Gravar no seu histórico do YouTube o que você assiste no console (v0.2.0)
 - [ ] Testar em mais celulares Android
 
 Pull requests são bem-vindos.
