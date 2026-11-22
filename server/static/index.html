@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0d171f">
+  <title>{{BRAND}} · seu controle</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%230d171f'/%3E%3Cpath d='M16 17L46 47M46 17L16 47' stroke='%23b5df91' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <svg class="icons" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-tv" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="14" rx="3"/><path d="M8 22h8M12 18v4"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 4 13 8-13 8Z"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1"/></symbol>
+    <symbol id="i-next" viewBox="0 0 24 24"><path d="m5 5 10 7-10 7ZM19 5v14"/></symbol>
+    <symbol id="i-queue" viewBox="0 0 24 24"><path d="M3 5h15M3 11h10M3 17h7M18 13v8M14 17h8"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="m10 7 3-3a5 5 0 0 1 7 7l-3 3M7 10l-3 3a5 5 0 0 0 7 7l3-3M8 16l8-8"/></symbol>
+  </svg>
+  <div class="shell">
+    <header class="masthead">
+      <a class="brand" href="/" aria-label="{{BRAND}}, início"><span class="brand-mark" aria-hidden="true"><i></i><i></i></span>{{BRAND}}</a>
+      <span class="console-tag"><svg><use href="#i-tv"/></svg> Xbox 360</span>
+    </header>
+    <section class="intro" aria-labelledby="page-title">
+      <div><p class="welcome">Do celular para a tela grande.</p><h1 id="page-title">O que vamos assistir?</h1></div>
+      <form id="search-form" role="search">
+        <label class="sr-only" for="search">Buscar vídeos ou colar link do YouTube</label>
+        <div class="search-box"><svg><use href="#i-search"/></svg><input id="search" name="q" type="search" enterkeyhint="search" placeholder="Buscar ou colar um link" autocomplete="off" maxlength="250"><button type="submit" aria-label="Buscar"><span>Buscar</span><svg><use href="#i-search"/></svg></button></div>
+      </form>
+    </section>
+    <div class="workspace">
+      <aside class="remote" aria-label="Controle da TV">
+        <section class="player" aria-labelledby="player-label">
+          <div class="section-top"><h2 id="player-label">Tocando agora</h2><span id="connection" class="connection">Aguardando console</span></div>
+          <div id="player-empty" class="player-empty"><span class="tv-art"><svg><use href="#i-tv"/></svg><span></span></span><div><h3>A próxima escolha é sua.</h3><p>Encontre um vídeo e toque na TV.</p></div></div>
+          <div id="player-info" class="player-info" hidden><img id="now-thumb" alt="" width="96" height="54"><div><h3 id="now-title"></h3><p id="play-status">Reproduzindo na TV</p></div></div>
+          <div class="timeline"><progress id="progress" max="1" value="0" aria-label="Progresso do vídeo"></progress><div><span id="position">0:00</span><span id="duration">0:00</span></div></div>
+          <div class="transport" aria-label="Reprodução">
+            <button data-action="stop" class="icon-button" aria-label="Parar" title="Parar" disabled><svg><use href="#i-stop"/></svg></button>
+            <button data-action="seek" data-delta="-10" class="skip-button" aria-label="Voltar 10 segundos" disabled><span aria-hidden="true">↶</span><small>10 s</small></button>
+            <button id="toggle-play" data-action="pause" class="main-play" aria-label="Pausar" disabled><svg><use href="#i-pause"/></svg></button>
+            <button data-action="seek" data-delta="10" class="skip-button" aria-label="Avançar 10 segundos" disabled><span aria-hidden="true">↷</span><small>10 s</small></button>
+            <button id="next" data-action="next" class="icon-button" aria-label="Próximo vídeo" title="Próximo vídeo" disabled><svg><use href="#i-next"/></svg></button>
+          </div>
+        </section>
+        <section class="queue" aria-labelledby="queue-label"><div class="section-top"><h2 id="queue-label"><svg><use href="#i-queue"/></svg> A seguir <span id="queue-count">0</span></h2><span class="queue-hint">Sua fila</span></div><ol id="queue-list"></ol><p id="queue-empty">Guarde aqui o que quer ver depois.</p></section>
+      </aside>
+      <main class="discover" id="discover">
+        <nav class="topics" aria-label="Explorar vídeos"><button class="selected" data-query="">Para você</button><button data-query="música brasileira clipe oficial">Música</button><button data-query="games novidades Brasil">Games</button><button data-query="ciência curiosidades Brasil">Ciência</button><button data-query="futebol melhores momentos Brasil">Futebol</button></nav>
+        <div class="feed-heading"><h2 id="feed-title">Para assistir hoje</h2><span id="result-count"></span></div>
+        <p id="feed-message" role="status">Buscando boas escolhas para a sua sessão…</p>
+        <button id="retry" class="secondary" hidden>Tentar novamente</button>
+        <div id="results" class="video-grid" aria-busy="true"></div>
+      </main>
+    </div>
+    <footer>Feito para a sua tela grande.<span>{{BRAND}}</span></footer>
+  </div>
+  <dialog id="video-dialog" aria-labelledby="dialog-title">
+    <button id="close-dialog" class="dialog-close icon-button" aria-label="Fechar ações"><svg><use href="#i-close"/></svg></button>
+    <img id="dialog-thumb" alt="" width="640" height="360">
+    <div class="dialog-body"><p id="dialog-channel"></p><h2 id="dialog-title"></h2><button id="play-video" class="primary"><svg><use href="#i-tv"/></svg>Tocar na TV</button><button id="queue-video" class="secondary"><svg><use href="#i-queue"/></svg>Adicionar à fila</button></div>
+  </dialog>
+  <div id="toast" role="status" aria-live="polite" hidden></div>
+  <noscript>Ative o JavaScript do navegador para usar o controle.</noscript>
+</body>
+</html>

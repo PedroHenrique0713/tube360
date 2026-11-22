@@ -1,0 +1,22 @@
+[Unit]
+Description=Tube360 — server for the Xbox 360 app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=@ROOT@/server/run.sh
+WorkingDirectory=@ROOT@/server
+Restart=on-failure
+RestartSec=5
+KillMode=control-group
+TimeoutStopSec=10
+Environment=PYTHONUNBUFFERED=1
+# Do not compete with whoever is using the PC: low CPU/IO priority and a memory cap
+Nice=10
+CPUWeight=50
+IOSchedulingClass=idle
+MemoryMax=800M
+
+[Install]
+WantedBy=default.target

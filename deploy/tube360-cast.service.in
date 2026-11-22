@@ -1,0 +1,19 @@
+[Unit]
+Description=Tube360 — receiver for "Cast" from the official YouTube app
+After=network-online.target tube360.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=@ROOT@/cast
+ExecStart=@NODE@ receptor.mjs
+Environment=TUBE360_NAME=@NAME@
+Restart=on-failure
+RestartSec=5
+Nice=10
+CPUWeight=30
+IOSchedulingClass=idle
+MemoryMax=300M
+
+[Install]
+WantedBy=default.target

@@ -1,0 +1,20 @@
+# builds
+client/build*/
+client/x360/shaders_bundle.*
+bench/console-decode/build/
+bench/console-decode/media/
+*.xex
+__pycache__/
+# personal / machine-specific (never published)
+.work/
+design/
+server/config.json
+server/.yt-dlp-cache/
+cast/node_modules/
+cast/.node-persist/
+cast/conta.mjs
+**/server.txt
+**/net_log.txt
+**/audio.txt
+**/marca.txt
+*.log
