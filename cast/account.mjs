@@ -13,6 +13,13 @@ const ID = /^[A-Za-z0-9_-]{11}$/;
 const text = (value) => String(value ?? '').replace(/[\x00-\x1f\x7f]+/g, ' ').trim();
 const fail = (status, code) => Object.assign(new Error(code), { status, code });
 Log.setLevel(Log.Level.ERROR);
+// O player do cliente TV desta youtubei.js (7.20250219) recebe "A página precisa ser atualizada", sem o rastreio que grava
+// o histórico. Como TV Samsung, a identidade do tv_samsung do yt-dlp, vem completo (2026-11-22). Só para player e
+// histórico: os feeds seguem na sessão TV normal, cujo layout de tiles o normalizeVideo conhece.
+const SAMSUNG = {
+  clientVersion: '5.20260707', deviceMake: 'Samsung', deviceModel: 'UKS9800', osName: 'Tizen', osVersion: '2.4.0',
+  userAgent: 'Mozilla/5.0 (SMART-TV; Linux; Tizen 2.4.0) AppleWebKit/538.1 (KHTML, like Gecko) Version/2.4.0 TV Safari/538.1',
+};
 
 function language() {
   try { return JSON.parse(fs.readFileSync(CONFIG, 'utf8')).language === 'pt' ? 'pt' : 'en'; }
@@ -249,15 +256,36 @@ export class Account {
     return task;
   }
 
+  // Sessão à parte com a identidade de TV Samsung e as mesmas credenciais, criada no primeiro uso.
+  player(context) {
+    if (context.player) return context.player;
+    context.player = (async () => {
+      const fetcher = (input, init = {}) => {
+        const headers = new Headers(init.headers || input?.headers);
+        if (headers.has('user-agent')) headers.set('user-agent', SAMSUNG.userAgent);
+        return fetch(input, { ...init, headers, signal: AbortSignal.timeout(20000) });
+      };
+      const lang = language();
+      const yt = await Innertube.create({ client_type: ClientType.TV, lang, location: lang === 'pt' ? 'BR' : 'US',
+        retrieve_player: false, enable_session_cache: false, user_agent: SAMSUNG.userAgent, fetch: fetcher });
+      Object.assign(yt.session.context.client, SAMSUNG);
+      await yt.session.signIn(JSON.parse(fs.readFileSync(TOKEN, 'utf8')));
+      return yt;
+    })();
+    const job = context.player;
+    job.catch(() => { if (context.player === job) context.player = null; });
+    return job;
+  }
+
   async watched(id, pos, progressOnly = false) {
     if (this.state !== 'signed_in') throw fail(401, 'signed_out');
     const context = this.current;
     if (!progressOnly || !this.videos.has(id)) {
       if (this.videos.size >= 16) this.videos.delete(this.videos.keys().next().value);
-      const job = context.yt.getBasicInfo(id, { client: 'TV' }).then(async (info) => {
+      const job = this.player(context).then((yt) => yt.getBasicInfo(id, { client: 'TV' })).then(async (info) => {
         if (this.current !== context) throw fail(401, 'signed_out');
         if (!info.page[0].playback_tracking) throw fail(502, 'tracking_unavailable');
-        if (!progressOnly && !(await info.addToWatchHistory(context.yt.session.client_name, context.yt.session.client_version)).ok) throw fail(502, 'history_failed');
+        if (!progressOnly && !(await info.addToWatchHistory('TVHTML5', SAMSUNG.clientVersion)).ok) throw fail(502, 'history_failed');
         return info;
       });
       this.videos.set(id, job);
@@ -265,7 +293,7 @@ export class Account {
     }
     const info = await this.videos.get(id);
     if (this.current !== context) throw fail(401, 'signed_out');
-    if (pos > 0 && !(await info.updateWatchTime(pos, context.yt.session.client_name, context.yt.session.client_version)).ok) throw fail(502, 'progress_failed');
+    if (pos > 0 && !(await info.updateWatchTime(pos, 'TVHTML5', SAMSUNG.clientVersion)).ok) throw fail(502, 'progress_failed');
     this.feeds.delete('history');
     return { ok: true };
   }

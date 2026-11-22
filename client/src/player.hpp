@@ -179,7 +179,13 @@ struct Player {
     if (fd < 0 || r.status != 200) {
       if (fd >= 0) ::close(fd);
       SDL_LockMutex(mu); netErr = true; SDL_BroadcastCondition(cv); SDL_UnlockMutex(mu);
-      error = fd < 0 ? "Sem conexão com o servidor do notebook" : "O servidor não conseguiu abrir este vídeo";
+      std::string why = fd < 0 ? "" : net::header(r, "X-Error");  // motivo que o YouTube deu (membros, privado...)
+      error = fd < 0 ? "Sem conexão com o servidor do notebook"
+            : why == "members" ? "Vídeo só para membros do canal"
+            : why == "private" ? "Vídeo privado"
+            : why == "age" ? "Vídeo com restrição de idade"
+            : why == "unavailable" ? "Vídeo indisponível no YouTube"
+            : "O servidor não conseguiu abrir este vídeo";
       return;
     }
     sock = fd;

@@ -272,6 +272,17 @@ async def extract_video(url, **options):
     return await extract(url, cookies=True, **options)
 
 
+def unplayable_reason(error):
+    """Motivo que o console sabe explicar quando o YouTube nega o vídeo (a mensagem vem em pt ou en)."""
+    text = str(error).lower()
+    for reason, words in (("members", ("membro", "member")), ("private", ("privado", "private video")),
+                          ("age", ("idade", "age-restricted", "confirm your age")),
+                          ("unavailable", ("indisponível", "unavailable", "removido", "removed", "encerrada", "terminated"))):
+        if any(word in text for word in words):
+            return reason
+    return None
+
+
 def source_refused(info, source):
     """Nome do cliente da API (parâmetro `c` da URL) quando a origem responde 403 a este link."""
     headers = info["headers"] | source.get("http_headers", {}) | {"Range": "bytes=0-1"}
@@ -1171,8 +1182,12 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
     for attempt in range(2):
         try:
             info = await resolve_video(video_id)
-        except Exception:
-            raise HTTPException(502, "Não foi possível abrir este vídeo. Tente novamente.") from None
+        except Exception as error:
+            reason = unplayable_reason(error)
+            LOG.info("vídeo %s não abriu (%s): %s", video_id, reason or "erro",
+                     re.sub(r"https?://\S+", "<url>", clean(str(error)))[:200])
+            raise HTTPException(502, "Não foi possível abrir este vídeo. Tente novamente.",
+                                headers={"X-Error": reason} if reason else None) from None
         if await request.is_disconnected():
             raise HTTPException(499, "Conexão encerrada.")
         if info["duration"] and t >= info["duration"]:

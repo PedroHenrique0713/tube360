@@ -72,6 +72,10 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(VideoFailed, "Could not play this video", "Não deu para tocar este vídeo") \
   X(VideoOpenError, "The server could not open this video", "O servidor não conseguiu abrir este vídeo") \
   X(VideoClosed, "The server closed the video connection", "O servidor fechou a conexão do vídeo") \
+  X(VideoMembers, "This video is only for channel members", "Este vídeo é só para membros do canal") \
+  X(VideoPrivate, "This video is private", "Este vídeo é privado") \
+  X(VideoAge, "YouTube asks to confirm your age for this video", "O YouTube pede confirmação de idade para este vídeo") \
+  X(VideoGone, "This video is no longer available on YouTube", "Este vídeo não está mais disponível no YouTube") \
   X(SpeakerError, "The speaker could not start playback", "A caixa não conseguiu começar a tocar") \
   X(PhoneRequest, "Requested from your phone", "Pedido do celular") \
   X(PhoneConnected, "Phone connected: ", "Celular conectado: ") \
@@ -160,6 +164,10 @@ inline Key playerError(const std::string& error) {
   if (error == "Sem conexão com o servidor do notebook") return Key::NoResponse;
   if (error == "O servidor não conseguiu abrir este vídeo") return Key::VideoOpenError;
   if (error == "O vídeo não chegou (o servidor fechou a conexão)") return Key::VideoClosed;
+  if (error == "Vídeo só para membros do canal") return Key::VideoMembers;
+  if (error == "Vídeo privado") return Key::VideoPrivate;
+  if (error == "Vídeo com restrição de idade") return Key::VideoAge;
+  if (error == "Vídeo indisponível no YouTube") return Key::VideoGone;
   if (error.find("Nest") != std::string::npos) return Key::SpeakerError;
   return Key::VideoOpenError;
 }
