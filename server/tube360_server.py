@@ -15,6 +15,7 @@ import threading
 import uuid
 import time
 from collections import deque
+from datetime import datetime, timezone
 from contextlib import asynccontextmanager
 from itertools import zip_longest
 from pathlib import Path
@@ -951,7 +952,10 @@ class Nest:
                     LOG.info("Nest: estado %s (pos %.1f, motivo %s)", st.player_state, float(st.current_time or 0) + self.t0, st.idle_reason)
                     self.last_logged = st.player_state
                 if st.player_state in ("PLAYING", "PAUSED", "BUFFERING") and not took_over:
-                    self.state, self.pos, self.stamp = st.player_state, float(st.current_time or 0), time.monotonic()
+                    # update_status() só pede: st é a última resposta, que pode ter 250 ms. A posição vale para a hora
+                    # em que ela chegou (last_updated), não para agora; carimbar com agora atrasava a imagem.
+                    age = (datetime.now(timezone.utc) - st.last_updated).total_seconds() if st.last_updated else 0.0
+                    self.state, self.pos, self.stamp = st.player_state, float(st.current_time or 0), time.monotonic() - max(0.0, age)
                 elif self.state not in ("LOADING",):
                     self.state = "IDLE"
                     # caiu no meio (Bluetooth ou outro app tomou o Nest, Wi-Fi): toca de novo do ponto em que o Xbox está
@@ -1098,4 +1102,5 @@ async def poll(playing: str = "", pos: float = Query(0, ge=0), dur: float = Quer
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     # h11 respeita o enquadramento por EOF do HTTP/1.0 usado pelo console.
-    uvicorn.run(app, host="0.0.0.0", port=8091, http="h11", access_log=False)
+    # sem o limite, um vídeo aberto segura o desligamento até o systemd matar o processo
+    uvicorn.run(app, host="0.0.0.0", port=8091, http="h11", access_log=False, timeout_graceful_shutdown=3)
