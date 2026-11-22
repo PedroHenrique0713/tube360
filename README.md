@@ -31,7 +31,7 @@ No TV stick, no smart TV, no browser. Just the Xbox 360 you already have.
 | 📱 **Cast from the official YouTube app** | Tube360 shows up in the phone's Cast menu like a smart TV. Pair once with a TV code (or let the phone find it on Wi-Fi). Play, pause, seek, volume and "up next" all work from the phone. |
 | 🔊 **Sound on a Google speaker, in sync** | The speaker plays the audio and the console follows its clock. The lip-sync offset can be tuned live with the triggers. If the speaker drops, the sound falls back to the TV on its own. |
 | ♾️ **Feels like YouTube** | Endless home grid, category chips, search history, thumbnails that load ahead of you, and a side menu. Button prompts in the Xbox One / Series style. |
-| 🪶 **Light on your PC** | Idle: ~140 MB RAM and ~0% CPU. Streaming 720p: ffmpeg uses about 1 thread. It runs as a low-priority systemd user service with a memory cap. |
+| 🪶 **Light on your PC, or off it** | Idle: ~140 MB RAM and ~0% CPU. Streaming 720p: about three quarters of one CPU core. Runs as a low-priority service, or on [a small VPS or an old Android phone](#run-it-without-your-pc). |
 
 ## Screenshots
 
@@ -123,7 +123,7 @@ In a measured 720p run: 150 frames every 5 s, 0 skipped B-frames, 0 clock jumps.
 **PC (on the same network)**
 - Linux. Tested on Fedora. The server is plain Python and should also run on macOS or Windows, but the service scripts are systemd only.
 - Python 3.11+ and `ffmpeg` in `PATH`.
-- Node.js 18+ for the Cast receiver (optional).
+- Node.js 22+. yt-dlp uses it to read YouTube's pages, and the Cast receiver runs on it.
 
 ## Quick start
 
@@ -132,9 +132,9 @@ In a measured 720p run: 150 frames every 5 s, 0 skipped B-frames, 0 clock jumps.
 ```bash
 git clone https://github.com/PedroHenrique0713/tube360.git
 cd tube360
-python -m pip install -r server/requirements.txt
+python3 -m venv .venv && .venv/bin/pip install -r server/requirements.txt
 cp server/config.example.json server/config.json   # edit if you want (see Configuration)
-./server/run.sh                                     # listens on port 8091
+TUBE360_PYTHON=$PWD/.venv/bin/python ./server/run.sh   # listens on port 8091
 ```
 
 Open `http://<your-PC-IP>:8091` on your phone to check it: that is the web remote.
@@ -142,7 +142,7 @@ Open `http://<your-PC-IP>:8091` on your phone to check it: that is the web remot
 ### 2. Cast receiver (optional, for the official YouTube app)
 
 ```bash
-cd cast && npm install && cd ..
+(cd cast && npm install)
 node cast/receptor.mjs
 ```
 
@@ -163,6 +163,71 @@ TUBE360_NAME="Living Room TV" tools/install-services.sh
 
 > [!NOTE]
 > On Linux with firewalld, open the ports: `sudo firewall-cmd --add-port=8091/tcp --add-port=8098/tcp --add-service=ssdp --permanent && sudo firewall-cmd --reload`.
+
+## Run it without your PC
+
+The server doesn't have to be your desktop. Anything that runs Linux and stays on can host it. Measured on one core of an Intel i5-1035G1 laptop, re-encoding 30 s of a 720p football highlight:
+
+| Quality | CPU (one core, in real time) | Memory |
+|---|---|---|
+| 720p | ~73% | ~400 MB for the server and ffmpeg together, ~60 MB for the Cast receiver |
+| 480p | ~52% | same |
+
+### Option A: a small VPS
+
+- **Size:** 2 vCPU and 1 GB of RAM for 720p. 1 vCPU is enough for 480p. 10 GB of disk is plenty.
+- **Traffic:** 720p sends about 2.6 GB per hour of video to your console (≈ 5.7 Mbit/s). Two hours a day comes to about 160 GB a month, which fits the included traffic of most entry-level plans.
+
+On Debian or Ubuntu:
+
+```bash
+sudo apt install -y git ffmpeg python3-venv ufw
+# Node.js 22+ (distro packages are often older): https://nodejs.org/en/download
+git clone https://github.com/PedroHenrique0713/tube360.git && cd tube360
+python3 -m venv .venv && .venv/bin/pip install -r server/requirements.txt
+(cd cast && npm install)
+tools/install-services.sh
+
+# the server has no password: open it only to your home IP
+sudo ufw allow OpenSSH
+sudo ufw allow from <your-home-IP> to any port 8091 proto tcp
+sudo ufw enable
+```
+
+Then put the VPS address in the console's `server.txt` (e.g. `203.0.113.7 8091`).
+
+> [!WARNING]
+> Tube360's server has no login. Anyone who can reach port 8091 can use it and send videos to your console. Keep the firewall rule above, and update it if your home IP changes (check it with `curl ifconfig.me` from home).
+
+What changes on a VPS:
+- **Cast from the official app** works with the TV code, because pairing goes through YouTube's servers. Finding the console on Wi-Fi by itself does not.
+- **The Google speaker doesn't work.** It has to be on the same network as the server.
+- **YouTube may block datacenter IPs** with "Sign in to confirm you're not a bot". If that happens, export a `cookies.txt` from a spare YouTube account ([yt-dlp's guide](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies)), copy it to the VPS and set `"cookies_file": "~/cookies.txt"` in `server/config.json`.
+- Starting and seeking take a little longer, because the video now crosses the internet.
+
+### Option B: an old Android phone
+
+An old phone on the charger can be the server for your living room. This uses [Termux](https://termux.dev) and is **experimental**: it has not been tested across phones yet, so reports are welcome.
+
+1. Install **Termux from [F-Droid](https://f-droid.org/packages/com.termux/)**. The Play Store version is outdated.
+2. In Termux:
+
+   ```bash
+   pkg update && pkg upgrade
+   pkg install git python python-pillow ffmpeg nodejs rust clang binutils
+   export ANDROID_API_LEVEL=$(getprop ro.build.version.sdk)   # needed to build pydantic-core
+   git clone https://github.com/PedroHenrique0713/tube360.git && cd tube360
+   pip install -r server/requirements.txt    # the first run compiles pydantic-core: 10-30 min on an old phone
+   (cd cast && npm install)
+   termux-wake-lock
+   ./server/run.sh & node cast/receptor.mjs &
+   ```
+
+3. In Android's settings, set Termux's battery use to **Unrestricted**, keep the phone plugged in, and give it a fixed IP in your router (DHCP reservation).
+4. Put the phone's IP in the console's `server.txt`.
+5. To start everything after a reboot, install **Termux:Boot** (also from F-Droid) and put the two start commands in a script in `~/.termux/boot/`.
+
+**Start at 480p** (`quality.txt` with `480` next to the `.xex`). The phone re-encodes in real time, and 720p needs about three quarters of a laptop core, which many phone CPUs only reach by spreading the work over several cores. If 480p plays smoothly, try 720p. The Google speaker and Cast by TV code both work, since the phone is on your home network.
 
 ## Controls
 
@@ -207,6 +272,7 @@ Button prompts in the app use the Xbox One / Series style.
 | `warm_queries` | Searches preloaded in the background while the console is in use, so the category chips open instantly. |
 | `nest` | `{"host": "192.168.0.20", "name": "Living Room speaker"}`. Use the IP, because many home networks block mDNS. |
 | `brand` | Name shown on the web remote. |
+| `cookies_file` | Path to a `cookies.txt`, for when YouTube asks to confirm you're not a bot (common on VPS). |
 
 ## Building from source
 

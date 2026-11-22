@@ -12,6 +12,8 @@ RestartSec=5
 KillMode=control-group
 TimeoutStopSec=10
 Environment=PYTHONUNBUFFERED=1
+Environment=TUBE360_PYTHON=@PYTHON@
+Environment=PATH=@PATH@
 # Do not compete with whoever is using the PC: low CPU/IO priority and a memory cap
 Nice=10
 CPUWeight=50

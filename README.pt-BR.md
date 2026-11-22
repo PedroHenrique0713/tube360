@@ -31,7 +31,7 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | 📱 **Transmitir pelo app oficial do YouTube** | O Tube360 aparece no menu Transmitir do celular como uma smart TV. Pareie uma vez com o código de TV (ou deixe o celular achar pelo Wi-Fi). Play, pausa, avançar, volume e "a seguir" funcionam pelo celular. |
 | 🔊 **Som na caixa Google, sincronizado** | A caixa toca o áudio e o console segue o relógio dela. O atraso da boca se ajusta ao vivo nos gatilhos. Se a caixa cair, o som volta para a TV sozinho. |
 | ♾️ **Parece o YouTube** | Home infinita, chips de categoria, buscas recentes, miniaturas que carregam antes de você chegar nelas e menu lateral. Botões desenhados no estilo do Xbox One / Series. |
-| 🪶 **Leve no PC** | Parado: ~140 MB de RAM e ~0% de CPU. Tocando 720p: o ffmpeg usa cerca de 1 thread. Roda como serviço de usuário do systemd, com prioridade baixa e teto de memória. |
+| 🪶 **Leve no PC, ou fora dele** | Parado: ~140 MB de RAM e ~0% de CPU. Tocando 720p: uns três quartos de um núcleo. Roda como serviço de prioridade baixa, ou numa [VPS pequena ou num Android velho](#rodar-sem-o-seu-pc). |
 
 ## Telas
 
@@ -123,7 +123,7 @@ O `cast/receptor.mjs` usa o [yt-cast-receiver](https://github.com/patrickkfkan/y
 **PC (na mesma rede)**
 - Linux. Testado no Fedora. O servidor é Python puro e deve rodar em macOS ou Windows, mas os scripts de serviço são só para systemd.
 - Python 3.11+ e `ffmpeg` no `PATH`.
-- Node.js 18+ para o receptor de Cast (opcional).
+- Node.js 22+. O yt-dlp usa para ler as páginas do YouTube, e o receptor de Cast roda nele.
 
 ## Começo rápido
 
@@ -132,9 +132,9 @@ O `cast/receptor.mjs` usa o [yt-cast-receiver](https://github.com/patrickkfkan/y
 ```bash
 git clone https://github.com/PedroHenrique0713/tube360.git
 cd tube360
-python -m pip install -r server/requirements.txt
+python3 -m venv .venv && .venv/bin/pip install -r server/requirements.txt
 cp server/config.example.json server/config.json   # edite se quiser (veja Configuração)
-./server/run.sh                                     # escuta na porta 8091
+TUBE360_PYTHON=$PWD/.venv/bin/python ./server/run.sh   # escuta na porta 8091
 ```
 
 Abra `http://<IP-do-PC>:8091` no celular para conferir: é o controle pelo navegador.
@@ -142,7 +142,7 @@ Abra `http://<IP-do-PC>:8091` no celular para conferir: é o controle pelo naveg
 ### 2. Receptor de Cast (opcional, para o app oficial do YouTube)
 
 ```bash
-cd cast && npm install && cd ..
+(cd cast && npm install)
 node cast/receptor.mjs
 ```
 
@@ -163,6 +163,71 @@ TUBE360_NAME="TV da Sala" tools/install-services.sh
 
 > [!NOTE]
 > No Linux com firewalld, libere as portas: `sudo firewall-cmd --add-port=8091/tcp --add-port=8098/tcp --add-service=ssdp --permanent && sudo firewall-cmd --reload`.
+
+## Rodar sem o seu PC
+
+O servidor não precisa ser o seu computador. Qualquer coisa com Linux que fique ligada serve. Medido num núcleo de um notebook Intel i5-1035G1, convertendo 30 s de melhores momentos de futebol em 720p:
+
+| Qualidade | CPU (um núcleo, em tempo real) | Memória |
+|---|---|---|
+| 720p | ~73% | ~400 MB para servidor e ffmpeg juntos, ~60 MB para o receptor de Cast |
+| 480p | ~52% | igual |
+
+### Opção A: uma VPS pequena
+
+- **Tamanho:** 2 vCPU e 1 GB de RAM para 720p. 1 vCPU basta para 480p. 10 GB de disco sobram.
+- **Tráfego:** 720p manda uns 2,6 GB por hora de vídeo para o console (≈ 5,7 Mbit/s). Duas horas por dia dão uns 160 GB por mês, o que cabe no tráfego incluído da maioria dos planos de entrada.
+
+No Debian ou Ubuntu:
+
+```bash
+sudo apt install -y git ffmpeg python3-venv ufw
+# Node.js 22+ (o pacote da distro costuma ser mais velho): https://nodejs.org/en/download
+git clone https://github.com/PedroHenrique0713/tube360.git && cd tube360
+python3 -m venv .venv && .venv/bin/pip install -r server/requirements.txt
+(cd cast && npm install)
+tools/install-services.sh
+
+# o servidor não tem senha: libere só para o IP da sua casa
+sudo ufw allow OpenSSH
+sudo ufw allow from <IP-da-sua-casa> to any port 8091 proto tcp
+sudo ufw enable
+```
+
+Depois coloque o endereço da VPS no `server.txt` do console (ex.: `203.0.113.7 8091`).
+
+> [!WARNING]
+> O servidor do Tube360 não tem login. Quem alcançar a porta 8091 consegue usar e mandar vídeo para o seu console. Mantenha a regra de firewall acima e atualize se o IP da sua casa mudar (confira com `curl ifconfig.me` em casa).
+
+O que muda numa VPS:
+- **Transmitir pelo app oficial** funciona com o código de TV, porque o pareamento passa pelos servidores do YouTube. O celular achar o console sozinho pelo Wi-Fi não funciona.
+- **A caixa Google não funciona.** Ela precisa estar na mesma rede do servidor.
+- **O YouTube pode bloquear IP de datacenter** com "Faça login para confirmar que você não é um robô". Se acontecer, exporte um `cookies.txt` de uma conta reserva do YouTube ([guia do yt-dlp](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies)), copie para a VPS e ponha `"cookies_file": "~/cookies.txt"` no `server/config.json`.
+- Começar e avançar o vídeo demora um pouco mais, porque agora ele atravessa a internet.
+
+### Opção B: um celular Android velho
+
+Um celular velho na tomada pode ser o servidor da sala. Isso usa o [Termux](https://termux.dev) e é **experimental**: ainda não foi testado em vários aparelhos, então relatos são bem-vindos.
+
+1. Instale o **Termux pelo [F-Droid](https://f-droid.org/packages/com.termux/)**. A versão da Play Store está desatualizada.
+2. No Termux:
+
+   ```bash
+   pkg update && pkg upgrade
+   pkg install git python python-pillow ffmpeg nodejs rust clang binutils
+   export ANDROID_API_LEVEL=$(getprop ro.build.version.sdk)   # necessário para compilar o pydantic-core
+   git clone https://github.com/PedroHenrique0713/tube360.git && cd tube360
+   pip install -r server/requirements.txt    # a primeira vez compila o pydantic-core: 10 a 30 min num celular velho
+   (cd cast && npm install)
+   termux-wake-lock
+   ./server/run.sh & node cast/receptor.mjs &
+   ```
+
+3. Nas configurações do Android, deixe a bateria do Termux como **Sem restrições**, mantenha o celular na tomada e dê a ele um IP fixo no roteador (reserva de DHCP).
+4. Coloque o IP do celular no `server.txt` do console.
+5. Para tudo ligar sozinho depois de reiniciar, instale o **Termux:Boot** (também no F-Droid) e ponha os dois comandos num script em `~/.termux/boot/`.
+
+**Comece em 480p** (`quality.txt` com `480` ao lado do `.xex`). O celular converte em tempo real, e 720p pede uns três quartos de um núcleo de notebook, coisa que muita CPU de celular só alcança dividindo o trabalho entre vários núcleos. Se 480p rodar liso, tente 720p. A caixa Google e o Transmitir por código de TV funcionam, porque o celular está na rede da sua casa.
 
 ## Controles
 
@@ -207,6 +272,7 @@ Os botões aparecem na tela no estilo do Xbox One / Series.
 | `warm_queries` | Buscas carregadas por trás enquanto o console está em uso, para os chips de categoria abrirem na hora. |
 | `nest` | `{"host": "192.168.0.20", "name": "Caixa da sala"}`. Use o IP, porque muita rede doméstica bloqueia mDNS. |
 | `brand` | Nome mostrado no controle pelo navegador. |
+| `cookies_file` | Caminho de um `cookies.txt`, para quando o YouTube pede para confirmar que você não é um robô (comum em VPS). |
 
 ## Compilar do código
 

@@ -5,6 +5,7 @@ bench/console-decode/build/
 bench/console-decode/media/
 *.xex
 __pycache__/
+.venv/
 # personal / machine-specific (never published)
 .work/
 design/

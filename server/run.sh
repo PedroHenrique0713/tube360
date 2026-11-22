@@ -8,4 +8,4 @@ if [[ -d "$HOME/.nvm/versions/node" ]]; then
     export PATH="$node_dir:$PATH"
   done
 fi
-exec "${TUBE360_PYTHON:-python}" -u tube360_server.py
+exec "${TUBE360_PYTHON:-python3}" -u tube360_server.py

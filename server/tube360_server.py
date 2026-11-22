@@ -40,6 +40,7 @@ BASE = Path(__file__).resolve().parent
 # config.json é seu (fica fora do Git); sem ele, vale o config.example.json
 CONFIG = json.loads(((BASE / "config.json") if (BASE / "config.json").exists() else (BASE / "config.example.json")).read_text(encoding="utf-8"))
 THUMBS = Path.home() / ".cache/tube360/thumbs"
+FFMPEG = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
 ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{11}$")
 LOG = logging.getLogger("tube360")
 SIZES = {720: (1280, 720, "5500k"), 480: (854, 480, "2500k"), 360: (640, 360, "1500k")}
@@ -85,6 +86,9 @@ def ydl_options(**extra):
         options["js_runtimes"] = {"node": {"path": node}}
     if browser := CONFIG.get("cookies_from_browser"):
         options["cookiesfrombrowser"] = (str(browser),)
+    # cookies.txt exportado (VPS sem navegador, quando o YouTube pede "confirme que não é um robô")
+    if cookie_file := CONFIG.get("cookies_file"):
+        options["cookiefile"] = str(Path(cookie_file).expanduser())
     options.update(extra)
     return options
 
@@ -228,7 +232,9 @@ async def resolve_video(video_id):
         # A mesma resolução (até 720p) atende todas as qualidades e buscas temporais.
         data = await extract(
             f"https://www.youtube.com/watch?v={video_id}",
-            format="bestvideo[height<=720][protocol=https]+bestaudio[protocol=https]/best[height<=720]/best",
+            # H.264 antes: abrir AV1 custa o dobro de CPU (720p, medido num núcleo: 49% contra 26%)
+            format="bestvideo[height<=720][vcodec^=avc1][protocol=https]+bestaudio[protocol=https]"
+                   "/bestvideo[height<=720][protocol=https]+bestaudio[protocol=https]/best[height<=720]/best",
         )
         formats = data.get("requested_formats") or [data]
         video = next((f for f in formats if f.get("vcodec") != "none"), None)
@@ -257,7 +263,7 @@ def source_args(info, source, start):
 
 def audio_command(info, start):
     """Só o áudio, em MP3, para o Nest (Google Cast). Começa em `start`, com o tempo do fluxo em zero, como o vídeo."""
-    return ["/usr/bin/ffmpeg", "-hide_banner", "-nostdin", "-loglevel", "repeat+error",
+    return [FFMPEG, "-hide_banner", "-nostdin", "-loglevel", "repeat+error",
             *source_args(info, info["audio"], start), "-map", "0:a:0", "-vn",
             "-af", "aresample=44100,asetpts=PTS-STARTPTS", "-c:a", "libmp3lame", "-b:a", "192k", "-ar", "44100", "-ac", "2",
             "-flush_packets", "1", "-f", "mp3", "pipe:1"]
@@ -265,7 +271,7 @@ def audio_command(info, start):
 
 def ffmpeg_command(info, start, quality, with_audio=True):
     width, height, bitrate = SIZES[quality]
-    cmd = ["/usr/bin/ffmpeg", "-hide_banner", "-nostdin", "-loglevel", "repeat+error"]
+    cmd = [FFMPEG, "-hide_banner", "-nostdin", "-loglevel", "repeat+error"]
     if not with_audio:
         cmd += source_args(info, info["video"], start)
         cmd += ["-map", "0:v:0", "-an",
