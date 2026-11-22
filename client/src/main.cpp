@@ -845,7 +845,8 @@ int main(int argc, char** argv) {
       if (in.hit(Input::B)) screen = HOME;
     } else if (screen == PLAYER) {
       bool any = false;
-      if (in.hit(Input::A) || in.hit(Input::START)) { pl.setPaused(!pl.paused); any = true; }
+      // Carregando, o A não pausa: a pausa ficava invisível atrás do "Carregando" e o vídeo abria parado em 0:00.
+      if ((in.hit(Input::A) || in.hit(Input::START)) && !pl.waiting()) { pl.setPaused(!pl.paused); any = true; }
       double jump = 0;
       if (in.hit(Input::LEFT)) jump = -10;
       if (in.hit(Input::RIGHT)) jump = 10;
