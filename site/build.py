@@ -104,6 +104,9 @@ def main():
     data = get_data(args)
     template = (SRC / "template.html").read_text(encoding="utf-8")
     demo = (SRC / "assets/demo.mp4").is_file()
+    # dist/ is what gets published: start empty so nothing left over (test prints, reports) ever ships
+    if DIST.exists():
+        shutil.rmtree(DIST)
     for lang, route, og_file, locale in (("en", "/", "og-en.png", "en_US"),
                                           ("pt-BR", "/pt-br/", "og-pt-br.png", "pt_BR")):
         translations = json.loads((SRC / "i18n" / f"{lang}.json").read_text(encoding="utf-8"))
@@ -130,9 +133,6 @@ def main():
         output = DIST / route.lstrip("/") / "index.html"
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(render(template, values), encoding="utf-8")
-    # Synchronize only product assets; local proof artifacts can stay in dist/proofs.
-    if (DIST / "assets").exists():
-        shutil.rmtree(DIST / "assets")
     shutil.copytree(SRC / "assets", DIST / "assets")
     for filename in ("style.css", "main.js"):
         shutil.copyfile(SRC / filename, DIST / filename)
