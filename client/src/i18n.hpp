@@ -90,6 +90,19 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(DefaultQuality, "Default quality", "Qualidade padrão") \
   X(Sound, "Sound", "Som") \
   X(SpeakerSync, "Speaker sync", "Sincronia da caixa") \
+  X(SleepTimer, "Sleep timer", "Timer de desligar") \
+  X(SleepTogether, "Also turn off", "Desligar junto") \
+  X(SleepOff, "Off", "Desligado") \
+  X(SleepEnd, "At end of video", "No fim do vídeo") \
+  X(SleepXbox, "Xbox only", "Só o Xbox") \
+  X(SleepNotebook, "Xbox and notebook", "Xbox e notebook") \
+  X(SleepTVHelp, "Samsung TV turns off automatically with 'No Signal Power Off' enabled.", "A TV Samsung desliga sozinha se 'Desligamento sem sinal' estiver ligado.") \
+  X(SleepWarning, "Shutting down in ", "Desligando em ") \
+  X(SleepSeconds, " s", " s") \
+  X(SleepAdd, "+15 min", "+15 min") \
+  X(SleepShuttingDown, "Shutting down…", "Desligando…") \
+  X(SleepError, "Could not update sleep timer. Try again.", "Não deu para alterar o timer. Tente de novo.") \
+  X(SleepApply, "Apply", "Aplicar") \
   X(Language, "Language", "Idioma") \
   X(English, "English", "English") \
   X(Portuguese, "Português", "Português") \

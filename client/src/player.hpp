@@ -81,6 +81,20 @@ struct Player {
 
   // áudio
   SDL_AudioStream* audio = nullptr; bool hasAudio = false;
+  float sleepBase = 1; bool sleepFading = false;
+  void sleepGain(float gain) {
+    if (!audio) return;
+    if (gain < 1 && !sleepFading) {
+      sleepBase = SDL_GetAudioStreamGain(audio); sleepFading = true;
+      LOG("timer: iniciando fade SDL (volume %.3f)", sleepBase);
+    }
+    if (!sleepFading) return;
+    SDL_SetAudioStreamGain(audio, sleepBase * gain);
+    if (gain >= 1) {
+      sleepFading = false;
+      LOG("timer: volume SDL restaurado %.3f", SDL_GetAudioStreamGain(audio));
+    }
+  }
   SDL_AtomicInt audioBaseMs{-1}, pushed{0};  // início do áudio (ms do fluxo) e amostras por canal entregues
   SDL_AtomicInt netBytes{0};   // bytes recebidos desde o último log de 5 s (velocidade real da rede até o Xbox)
   size_t ringMin = SIZE_MAX;   // nível mínimo do anel no intervalo (protegido por mu)

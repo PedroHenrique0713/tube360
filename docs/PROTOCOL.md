@@ -140,6 +140,7 @@ The answer is one line:
 | `none` | nothing to do |
 | `play\t<id>\t<t>\t<title>` | play now (also sent after `ended` when the queue has a next video) |
 | `pause` · `resume` · `stop` | |
+| `desligar` | stop playback, show a two-second shutdown message and power down the Xbox (see Sleep timer). |
 | `seek\t<delta s>` | relative seek, may be negative |
 | `aviso\t<text>` | show a short on-screen message (e.g. "phone connected") |
 
@@ -180,3 +181,67 @@ available bytes without terminating another request's conversion.
 Single byte ranges honor both the start and optional end (`bytes=0-99` returns at most 100 bytes). Unsupported range
 forms are ignored with a full HTTP 200 response. While converting, a partial 206 response uses `*` for the unknown
 total length; the receiver must request subsequent bytes to continue.
+
+## Sleep timer
+
+The server owns one volatile timer. It continues counting without console polls; restarting the server clears it.
+All responses below are `text/plain`, with `Cache-Control: no-store`:
+
+```
+ok\t<off|on>\t<seconds remaining>\t<xbox|xbox_notebook>\t<minutos|fim_do_video>
+```
+
+| Request | Effect |
+|---|---|
+| `GET /api/sleep` | Read the timer. |
+| `GET /api/sleep/set?min=15&what=xbox` | Replace the timer with 15–240 whole minutes. |
+| `GET /api/sleep/set?end=1&what=xbox_notebook` | Bind to the current video's natural `ended` event; 409 if no video is playing. |
+| `GET /api/sleep/set?target_only=1&what=xbox_notebook` | Change the target of a running timer, preserving its deadline (409 during shutdown). |
+| `GET /api/sleep/add?min=15` | Add 15 minutes to the remaining time; end-of-video becomes a minutes timer. 409 without a running timer or known video duration. |
+| `GET /api/sleep/cancel` | Cancel, including a pending notebook shutdown during its grace period. |
+
+`what` defaults to `xbox`. Mutating GETs require `User-Agent: Tube360/1.0` and reject `Origin` / `Sec-Fetch-Site`,
+using the same browser CSRF protection as account actions. Invalid parameters return 400/422; rejected CSRF returns 403.
+These checks do not authenticate LAN clients. `min` and `end=1` are mutually exclusive.
+
+For end-of-video mode, seconds are estimated from the current video's duration and position (including while paused),
+or `-1` if duration is unknown. A connected console's `ended=<bound id>` triggers expiry, overriding queued autoplay;
+the estimate alone never expires the timer while polls continue. If polls stop for 60 seconds and the last estimated
+end has passed, the timer expires too. An unknown duration needs `ended` or cancellation.
+
+At expiry, the server stops active Nest playback, clears queued commands/videos and gives the next console poll the
+priority line **`desligar\n`**. The console stops playback, displays “Shutting down…” for two seconds, then resolves
+`xboxkrnl.exe` ordinal `0x28` and calls `HalReturnToFirmware(5 /* HalPowerDownRoutine */)`. The PC build logs the
+command and exits the app. It never powers down the PC itself.
+
+With `what=xbox_notebook`, the server waits approximately 20 seconds after expiry, logs the action and runs
+`systemctl poweroff` without `--force`. `TUBE360_POWEROFF_CMD` overrides the executable and arguments (parsed with
+`shlex.split`, no shell). Shutdown failures are logged. During those 20 seconds the timer remains `on` with zero
+seconds so the status page can still cancel the notebook shutdown. For `xbox`, expiry immediately changes it to `off`.
+The minutes deadline applies even when the console has been absent for 60 seconds or longer.
+
+The client reads `/api/sleep` on a dedicated worker about every five seconds. Settings offer Off, 15, 30, 45, 60, 90,
+120 minutes and At end of video, plus Xbox only / Xbox and notebook. Only that target preference is saved in
+`settings.txt` as `sleep_what=xbox|xbox_notebook`; the timer itself is never saved by the client. In the player,
+D-pad **↑** opens the timer chooser, **← →** selects, **A** applies and **B** closes.
+
+During the final 60 seconds a card offers **A +15 min** and **B Cancel**, and the SDL stream gradually fades, restoring
+its original gain on cancellation or extension. The server applies the same fade to the Nest through
+`/api/nest/volume?fade=<0..1>` (the existing `?v=<0..100>` is unchanged), retaining its original volume and restoring it
+when the timer is cancelled, extended or stopped. The server also fades when console polls have stopped.
+The TV is not controlled: the UI recommends Samsung's Eco “No Signal Power Off” setting.
+
+The status page shows the timer, target and countdown (or end-of-video mode). Its form posts to
+`POST /api/sleep/cancel`, using the same same-origin `Origin` and fetch-metadata checks as `POST /api/account/login`,
+and redirects to `/` with 303. The page refreshes every 15 seconds.
+
+For isolated tests **only**, `TUBE360_SLEEP_TEST=1` allows positive fractional minutes up to 240 (including a one-minute
+warning test). `TUBE360_SLEEP_TEST_DELAY` can shorten the notebook grace period only in that mode; its default is
+still 20 seconds. Always set `TUBE360_POWEROFF_CMD` to a harmless marker-writing executable for tests. Never test
+shutdown against a real console or the owner's live server. Example (test listener 8094):
+
+```bash
+curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/set?min=1&what=xbox'
+curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/add?min=15'
+curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/cancel'
+```

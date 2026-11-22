@@ -10,6 +10,7 @@ import math
 import os
 import re
 import random
+import shlex
 import shutil
 import socket
 import threading
@@ -513,6 +514,7 @@ class Remote:
                 "pending": len(self.commands), "ended": self.last_ended, "ended_seq": self.ended_seq}
 
     def poll(self, playing, pos, dur, paused, ended):
+        shutting_down = sleep_timer.poll(playing, pos, dur, paused, ended)
         new_session = playing and (playing != self.playing or time.monotonic() - self.last_poll > 6)
         if new_session:
             spawn_background(account_watched(playing))
@@ -524,6 +526,8 @@ class Remote:
         self.playing, self.pos, self.dur, self.paused = playing, pos, dur, bool(paused)
         self.title = self.item(playing)["title"] if playing else ""
         self.last_poll = time.monotonic()
+        if shutting_down:
+            return "desligar\n"
         if playing:
             history.touch(playing, pos, dur)
         if ended and ended != self.last_ended:
@@ -557,6 +561,107 @@ class Remote:
 
 
 remote = Remote()
+
+
+class SleepTimer:
+    """Relógio do servidor; não depende de o console continuar conectado."""
+    def __init__(self):
+        self.active = False
+        self.what, self.mode = "xbox", "minutos"
+        self.deadline, self.poweroff_at = 0.0, 0.0
+        self.video_id = ""
+        self.fired = False
+        self.shutdown = False
+        self.test = os.environ.get("TUBE360_SLEEP_TEST") == "1"
+        self.delay = float(os.environ.get("TUBE360_SLEEP_TEST_DELAY", "20")) if self.test else 20.0
+
+    def remaining(self):
+        if not self.active or self.fired:
+            return 0
+        if self.mode == "fim_do_video" and remote.playing == self.video_id:
+            return max(0, math.ceil(remote.dur - remote.pos)) if remote.dur > 0 else -1
+        return max(0, math.ceil(self.deadline - time.monotonic())) if self.deadline else -1
+
+    def line(self):
+        return f"ok\t{'on' if self.active else 'off'}\t{self.remaining()}\t{self.what}\t{self.mode}\n"
+
+    def cancel(self):
+        self.active = self.fired = self.shutdown = False
+        self.deadline = self.poweroff_at = 0.0
+        self.video_id = ""
+
+    def set(self, minutes, end, what):
+        if end and not remote.playing:
+            raise HTTPException(409, "No video playing.")
+        self.cancel()
+        self.active, self.what = True, what
+        self.mode = "fim_do_video" if end else "minutos"
+        self.video_id = remote.playing if end else ""
+        self.deadline = time.monotonic() + (max(0, remote.dur - remote.pos) if end else minutes * 60)
+        if end and remote.dur <= 0:
+            self.deadline = 0.0
+        LOG.info("Timer: ligado (%s, %s)", self.what, self.mode)
+
+    def expire(self):
+        if not self.active or self.fired:
+            return
+        LOG.info("Timer: vencido; enviando desligar ao Xbox (%s)", self.what)
+        self.fired = self.shutdown = True
+        remote.commands.clear()
+        remote.queue.clear()
+        if nest.active:
+            spawn_background(asyncio.to_thread(nest.command, "stop"))
+        if self.what == "xbox_notebook":
+            self.poweroff_at = time.monotonic() + self.delay
+        else:
+            self.active = False
+
+    def poll(self, playing, pos, dur, paused, ended):
+        if self.active and not self.fired and self.mode == "fim_do_video":
+            if ended == self.video_id:
+                self.expire()
+            elif playing == self.video_id and dur > 0:
+                self.deadline = time.monotonic() + max(0, dur - pos)
+        # Prioridade sobre autoplay e comandos de Cast.
+        if self.shutdown:
+            self.shutdown = False
+            return True
+        return False
+
+    async def run(self):
+        while True:
+            now = time.monotonic()
+            if self.active and not self.fired:
+                gone = not remote.last_poll or now - remote.last_poll >= 60
+                if self.deadline and now >= self.deadline and (self.mode == "minutos" or gone):
+                    self.expire()
+            if self.poweroff_at and now >= self.poweroff_at:
+                self.poweroff_at = 0.0
+                self.active = False
+                LOG.warning("Timer: desligando o notebook agora (%s)", self.what)
+                # Sem shell e sem --force: logind fecha a sessão normalmente.
+                try:
+                    cmd = shlex.split(os.environ.get("TUBE360_POWEROFF_CMD", "systemctl poweroff"))
+                    proc = await asyncio.create_subprocess_exec(*cmd)
+                    code = await proc.wait()
+                    if code:
+                        LOG.error("Timer: poweroff retornou %s", code)
+                except Exception as error:
+                    LOG.error("Timer: poweroff falhou: %s", type(error).__name__)
+            await asyncio.sleep(0.2)
+
+    async def fade_nest(self):
+        try:
+            while True:
+                left = self.remaining()
+                gain = min(1.0, max(0.0, left / 60)) if self.active and not self.fired and 0 <= left <= 60 else 1.0
+                await nest_volume(v=None, fade=gain)
+                await asyncio.sleep(1)
+        finally:
+            await asyncio.to_thread(nest.sleep_volume, 1.0)
+
+
+sleep_timer = SleepTimer()
 
 
 async def prefetch_thumbs(ids, width=320, height=180):
@@ -683,7 +788,12 @@ async def warm_loop():
 async def lifespan(app):
     THUMBS.mkdir(parents=True, exist_ok=True)
     warm = asyncio.create_task(warm_loop()) if os.environ.get("TUBE360_WARM_CACHE", "1") != "0" else None
+    timer = asyncio.create_task(sleep_timer.run())
+    fade = asyncio.create_task(sleep_timer.fade_nest())
     yield
+    timer.cancel()
+    fade.cancel()
+    await asyncio.gather(timer, fade, return_exceptions=True)
     if warm:
         warm.cancel()
     with anyio.CancelScope(shield=True):
@@ -750,10 +860,68 @@ def account_native_request(request):
 
 @app.post("/api/account/login")
 async def account_login_form(request: Request):
+    same_origin_request(request)
+    await account_action("login")
+    return RedirectResponse("/", status_code=303, headers={"Cache-Control": "no-store"})
+
+
+def same_origin_request(request):
     if (request.headers.get("origin") != f"{request.url.scheme}://{request.url.netloc}" or
             request.headers.get("sec-fetch-site", "") not in ("", "same-origin")):
         raise HTTPException(403, "Invalid account request origin.")
-    await account_action("login")
+
+
+def sleep_response():
+    return PlainTextResponse(sleep_timer.line(), headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/sleep", response_class=PlainTextResponse)
+async def sleep_info():
+    return sleep_response()
+
+
+@app.get("/api/sleep/set", response_class=PlainTextResponse)
+async def sleep_set(request: Request, min: float | None = None, end: int = Query(0, ge=0, le=1),
+                    what: Literal["xbox", "xbox_notebook"] = "xbox", target_only: int = Query(0, ge=0, le=1)):
+    account_native_request(request)
+    if target_only:
+        if min is not None or end or not sleep_timer.active or sleep_timer.fired:
+            raise HTTPException(409, "No running sleep timer.")
+        sleep_timer.what = what
+        return sleep_response()
+    if (end and min is not None) or (not end and (min is None or not math.isfinite(min) or
+            not (0 < min <= 240) or (not sleep_timer.test and (min < 15 or not min.is_integer())))):
+        raise HTTPException(400, "Invalid sleep duration.")
+    sleep_timer.set(min, bool(end), what)
+    return sleep_response()
+
+
+@app.get("/api/sleep/add", response_class=PlainTextResponse)
+async def sleep_add(request: Request, min: int = Query(15, ge=15, le=15)):
+    account_native_request(request)
+    if not sleep_timer.active or sleep_timer.fired:
+        raise HTTPException(409, "No running sleep timer.")
+    left = sleep_timer.remaining()
+    if left < 0:
+        raise HTTPException(409, "Unknown video duration.")
+    sleep_timer.mode = "minutos"
+    sleep_timer.deadline = time.monotonic() + min * 60 + left
+    return sleep_response()
+
+
+@app.get("/api/sleep/cancel", response_class=PlainTextResponse)
+async def sleep_cancel(request: Request):
+    account_native_request(request)
+    sleep_timer.cancel()
+    LOG.info("Timer: cancelado")
+    return sleep_response()
+
+
+@app.post("/api/sleep/cancel")
+async def sleep_cancel_form(request: Request):
+    same_origin_request(request)
+    sleep_timer.cancel()
+    LOG.info("Timer: cancelado pela página de status")
     return RedirectResponse("/", status_code=303, headers={"Cache-Control": "no-store"})
 
 
@@ -787,6 +955,16 @@ async def index():
     except OSError:
         pass
     cast = f'<span class="code">{escape(code)}</span>' if code else tr("Receptor indisponível", "Receiver unavailable")
+    left = sleep_timer.remaining()
+    timer_text = tr("Desligado", "Off")
+    timer_form = ""
+    if sleep_timer.active:
+        target = tr("Xbox e notebook", "Xbox and notebook") if sleep_timer.what == "xbox_notebook" else tr("Só o Xbox", "Xbox only")
+        when = tr("No fim do vídeo", "At end of video") if sleep_timer.mode == "fim_do_video" else f"{left // 60}:{left % 60:02d}"
+        if sleep_timer.fired:
+            when = tr("Xbox desligando; notebook em instantes", "Xbox shutting down; notebook shortly")
+        timer_text = f"{target} · {when}"
+        timer_form = '<form method="post" action="/api/sleep/cancel"><button>' + tr("Cancelar timer", "Cancel timer") + '</button></form>'
     html = f'''<!doctype html><html lang="{LANGUAGE}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="15">
 <title>{brand} · Status</title><style>
@@ -799,6 +977,7 @@ button{{margin-top:12px;background:#ff0f3c;color:#fff;border:0;border-radius:7px
 a:focus-visible,button:focus-visible{{outline:2px solid white;outline-offset:4px}}footer{{color:#a5a5b4;font-size:13px;margin-top:24px}}
 </style></head><body><main><header><h1>{brand}</h1><p class="online">● {tr("Servidor no ar", "Server online")}</p></header>
 <section><h2>Xbox 360</h2><p>{contact}</p></section><section><h2>Google Nest</h2><p>{speaker}</p></section>
+<section><h2>{tr("Timer de desligar", "Sleep timer")}</h2><p>{timer_text}</p>{timer_form}</section>
 <section><h2>{tr("Transmitir · código de TV", "Cast · TV code")}</h2><p>{cast}</p></section>
 <section><h2>{tr("Conta do YouTube", "YouTube account")}</h2><p>{account_text}</p>{account_detail}</section>
 <footer>{tr("Esta página atualiza a cada 15 segundos.", "This page refreshes every 15 seconds.")}</footer></main></body></html>'''
@@ -1093,6 +1272,7 @@ class Nest:
         self.ours = False  # o receptor aberto no Nest é o que este servidor abriu
         self.video_id, self.t0, self.host_ip = "", 0.0, ""  # o que está tocando e de que ponto (posição absoluta = t0 + tempo do Nest)
         self.recover_at = 0.0
+        self.sleep_base = None
         threading.Thread(target=self.watch, daemon=True).start()
 
     def connect(self):
@@ -1180,10 +1360,25 @@ class Nest:
     def volume(self, level):
         with self.lock:
             try:
+                if self.sleep_base is not None:
+                    self.sleep_base = level / 100
                 self.connect().set_volume(max(0.0, min(1.0, level / 100)))
             except Exception as error:
                 LOG.warning("Nest volume: %s", error)
                 self.cc = None
+
+    def sleep_volume(self, gain):
+        with self.lock:
+            if self.sleep_base is None and (gain >= 1 or not self.active or self.cc is None):
+                return
+            try:
+                if self.sleep_base is None:
+                    self.sleep_base = float(self.cc.status.volume_level)
+                self.cc.set_volume(self.sleep_base * gain)
+                if gain >= 1:
+                    self.sleep_base = None
+            except Exception as error:
+                LOG.warning("Nest timer volume: %s", type(error).__name__)
 
     def command(self, what):
         with self.lock:
@@ -1304,8 +1499,13 @@ async def nest_pos():
 
 
 @app.get("/api/nest/volume", response_class=PlainTextResponse)
-async def nest_volume(v: float = Query(..., ge=0, le=100)):
-    threading.Thread(target=nest.volume, args=(v,), daemon=True).start()
+async def nest_volume(v: float | None = Query(None, ge=0, le=100), fade: float | None = Query(None, ge=0, le=1)):
+    if fade is not None:
+        await asyncio.to_thread(nest.sleep_volume, fade)
+    elif v is not None:
+        threading.Thread(target=nest.volume, args=(v,), daemon=True).start()
+    else:
+        raise HTTPException(400, "Volume required.")
     return PlainTextResponse("ok\n")
 
 

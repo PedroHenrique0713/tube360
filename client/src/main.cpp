@@ -29,6 +29,7 @@
 #include "player.hpp"
 #include "settings.hpp"
 #include "account.hpp"
+#include "sleep.hpp"
 
 #ifdef __XSDK__
 #include "xsdk/net.h"
@@ -395,6 +396,8 @@ int main(int argc, char** argv) {
   // Conta e pareamento não esperam as buscas do feed.
   Worker control; control.srv = srv; control.hw = 5;
   SDL_Thread* ct = SDL_CreateThread(Worker::main, "conta", &control);
+  Worker sleepWorker; sleepWorker.srv = srv; sleepWorker.hw = 5;
+  SDL_Thread* st = SDL_CreateThread(Worker::main, "timer", &sleepWorker);
   // miniaturas numa fila própria, com 3 threads: não esperam atrás das buscas das categorias
   Worker thumbsWorker; thumbsWorker.srv = srv; thumbsWorker.hw = 5;
   SDL_Thread* tw[3];
@@ -455,6 +458,20 @@ int main(int argc, char** argv) {
     loginPanel = true; loginError = K::None;
     if (account.state != Account::PENDING && !accountBusy) requestAccount("/api/account/login");
     else if (account.state == Account::PENDING) accountAt = 0;
+  };
+
+  SleepState sleep;
+  uint64_t sleepAt = 0, shutdownAt = 0; int sleepPending = 0, sleepChoice = 0; uint64_t sleepRevision = 0;
+  bool sleepPanel = false;
+  const int sleepMinutes[] = {0, 15, 30, 45, 60, 90, 120};
+  auto sleepLabel = [&](int choice) -> std::string {
+    return choice == 0 ? tr(K::SleepOff) : choice == 7 ? tr(K::SleepEnd) : std::to_string(sleepMinutes[choice]) + " min";
+  };
+  auto requestSleep = [&](const std::string& path) { sleepWorker.add({5, path, ++sleepRevision}); sleepPending++; };
+  auto applySleep = [&]() {
+    std::string target = settings.sleepNotebook ? "xbox_notebook" : "xbox";
+    requestSleep(sleepChoice == 0 ? "/api/sleep/cancel" : "/api/sleep/set?what=" + target +
+        (sleepChoice == 7 ? "&end=1" : "&min=" + std::to_string(sleepMinutes[sleepChoice])));
   };
 
   Input in; SDL_Gamepad* pad = nullptr;
@@ -550,6 +567,28 @@ int main(int argc, char** argv) {
     // ---------------------------------------------------------------- resultados do trabalho em segundo plano
     Result r;
     while (thumbsWorker.pop(r)) if (r.kind == 2) thumbs.arrived(std::move(r));
+    while (sleepWorker.pop(r)) {
+      sleepPending--;
+      if (r.feed.error == K::None && sleep.parse(r.feed.title, now)) {
+        if (!sleepPanel && r.stamp == sleepRevision) {
+          sleepChoice = 0;
+          if (sleep.active) {
+            sleepChoice = 7;
+            if (!sleep.end) {
+              sleepChoice = 6;
+              for (int i = 1; i <= 6; i++) if (sleep.seconds <= sleepMinutes[i] * 60) { sleepChoice = i; break; }
+            }
+          }
+        }
+        LOG("timer: %s %.0f s %s", sleep.active ? "on" : "off", sleep.seconds, sleep.end ? "fim_do_video" : "minutos");
+      } else if (r.key != "/api/sleep") { toast = tr(K::SleepError); toastUntil = now + 4000; }
+      sleepAt = now + 5000;
+    }
+    if (!sleepPending && now >= sleepAt && !shutdownAt) requestSleep("/api/sleep");
+    double sleepLeft = sleep.remaining(now, sleep.end && pl.paused);
+    bool sleepWarning = sleep.active && sleepLeft >= 0 && sleepLeft <= 60 && !shutdownAt;
+    double gain = sleepWarning ? std::clamp(sleepLeft / 60, 0.0, 1.0) : 1.0;
+    pl.sleepGain((float)gain);
     while (control.pop(r)) {
       if (r.key == "/api/cast/code") {
         auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
@@ -608,6 +647,11 @@ int main(int argc, char** argv) {
     bool remoteOnline = remote.online;
     SDL_UnlockMutex(remote.mu);
     for (auto& c : cmds) {
+      if (c[0] == "desligar" && !shutdownAt) {
+        LOG("timer: desligar recebido"); stopVideo();
+        shutdownAt = SDL_GetTicks() + 2000; sleepPanel = false;
+      }
+      if (shutdownAt) continue;
       if (c[0] == "aviso" && c.size() >= 2) {
         const std::string pre = i18n::get(i18n::Lang::PT, K::PhoneConnected), en = i18n::get(i18n::Lang::EN, K::PhoneConnected);
         if (c[1].rfind(pre, 0) == 0 || c[1].rfind(en, 0) == 0) {
@@ -638,7 +682,20 @@ int main(int argc, char** argv) {
     if (now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
     if (!accountBusy && now >= accountAt) requestAccount("/api/account");
     const char* keys[] = {tr(K::Keyboard1), tr(K::Keyboard2), tr(K::Keyboard3), tr(K::Keyboard4)};
-    if (loginPanel) {
+    if (shutdownAt) {
+      if (now >= shutdownAt) {
+        if (powerDownXbox()) quit = true;
+        else { shutdownAt = 0; toast = tr(K::SleepError); toastUntil = now + 6000; }
+      }
+    } else if (sleepWarning) {
+      if (in.hit(Input::A) && !sleepPending) requestSleep("/api/sleep/add?min=15");
+      if (in.hit(Input::B) && !sleepPending) requestSleep("/api/sleep/cancel");
+    } else if (sleepPanel) {
+      if (in.hit(Input::LEFT)) sleepChoice = (sleepChoice + 7) % 8;
+      if (in.hit(Input::RIGHT)) sleepChoice = (sleepChoice + 1) % 8;
+      if (in.hit(Input::A) && !sleepPending) { applySleep(); sleepPanel = false; }
+      if (in.hit(Input::B)) sleepPanel = false;
+    } else if (loginPanel) {
       if (in.hit(Input::B)) { loginPanel = false; accountAt = now + 60000; }
       if (in.hit(Input::A) && !accountBusy && loginError != K::None) {
         loginError = K::None;
@@ -651,7 +708,7 @@ int main(int argc, char** argv) {
       if (in.hit(Input::A) || in.hit(Input::B)) phonePanel = false;
     } else if (screen == SETTINGS) {
       if (in.hit(Input::UP) && settingsRow > 0) settingsRow--;
-      if (in.hit(Input::DOWN) && settingsRow < 5) settingsRow++;
+      if (in.hit(Input::DOWN) && settingsRow < 7) settingsRow++;
       int direction = 0;
       if (in.hit(Input::LEFT)) direction = -1;
       if (in.hit(Input::RIGHT)) direction = 1;
@@ -674,6 +731,12 @@ int main(int argc, char** argv) {
         else if (settingsRow == 5) {
           settings.lang = settings.lang == i18n::Lang::EN ? i18n::Lang::PT : i18n::Lang::EN;
           rebuildCats(); scroll = 0; toast.clear();
+        } else if (settingsRow == 6) { sleepChoice = (sleepChoice + direction + 8) % 8; applySleep(); changed = false; }
+        else if (settingsRow == 7) {
+          settings.sleepNotebook = !settings.sleepNotebook;
+          if (sleep.active) {
+            requestSleep(std::string("/api/sleep/set?what=") + (settings.sleepNotebook ? "xbox_notebook" : "xbox") + "&target_only=1");
+          }
         }
         if (changed) saveSettings();
       }
@@ -781,7 +844,8 @@ int main(int argc, char** argv) {
         toast = tr(K::SyncPrefix) + std::to_string(nestOffsetMs) + tr(K::Milliseconds);
         toastUntil = now + 2500; saveSettings(); any = true;
       }
-      if (in.hit(Input::UP) || in.hit(Input::DOWN)) any = true;
+      if (in.hit(Input::UP)) { sleepPanel = true; any = true; }
+      if (in.hit(Input::DOWN)) any = true;
       if (any) overlayUntil = now + 4000;
       if (in.hit(Input::B) || in.hit(Input::BACK)) stopVideo();
       if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
@@ -789,10 +853,12 @@ int main(int argc, char** argv) {
         toast = tr(K::SpeakerFallback); toastUntil = now + 5000;
         startVideo(playing, pl.position(), playerFromRemote);
       }
-      if (pl.state == player::ENDED) {
-        SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
-        stopVideo();
-      }
+
+    }
+    // Fim natural continua sendo informado mesmo com um cartão aberto.
+    if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt) {
+      SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
+      stopVideo();
     }
     in.clear();
     Shelf& cur = inResults ? results : cats[(size_t)cat];
@@ -976,38 +1042,41 @@ int main(int argc, char** argv) {
       gfx::text(g, ui::F_BIG, tr(K::Settings), ui::X0, 42, ui::TEXT);
       gfx::text(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::MUTED);
       gfx::text(g, ui::F_SMALL, tr(K::SavedAutomatically), ui::W - 64, 94, ui::FAINT, 2);
-      const K labels[] = {K::YouTubeAccount, K::VideosPerRow, K::DefaultQuality, K::Sound, K::SpeakerSync, K::Language};
-      for (int i = 0; i < 6; i++) {
-        float x = ui::X0, y = 142 + i * 82, w = ui::W - ui::X0 - 64;
+      const K labels[] = {K::YouTubeAccount, K::VideosPerRow, K::DefaultQuality, K::Sound, K::SpeakerSync, K::Language, K::SleepTimer, K::SleepTogether};
+      for (int i = 0; i < 8; i++) {
+        float x = ui::X0, y = 132 + i * 61, w = ui::W - ui::X0 - 64;
         bool selected = i == settingsRow, disabled = i == 3 && !nestAvailable;
         if (selected) {
-          gfx::shadow(g, x, y + 6, w, 72, 18, 20, 0.45f);
-          gfx::rect(g, x - 2, y - 2, w + 4, 76, ui::alpha(ui::A1, 0.65f), 20);
+          gfx::shadow(g, x, y + 6, w, 53, 18, 20, 0.45f);
+          gfx::rect(g, x - 2, y - 2, w + 4, 57, ui::alpha(ui::A1, 0.65f), 20);
         }
-        gfx::rect(g, x, y, w, 72, selected ? ui::SURFACE2 : ui::SURFACE, 18);
-        if (selected) gfx::vgrad(g, x + 1, y + 19, 4, 34, ui::A1, ui::A2, 2);
-        gfx::text(g, ui::F_CHAN, tr(labels[i]), x + 28, y + (i == 0 || (i == 3 && disabled) ? 13 : 25), disabled ? ui::MUTED : ui::TEXT);
+        gfx::rect(g, x, y, w, 53, selected ? ui::SURFACE2 : ui::SURFACE, 18);
+        if (selected) gfx::vgrad(g, x + 1, y + 13, 4, 27, ui::A1, ui::A2, 2);
+        gfx::text(g, ui::F_CHAN, tr(labels[i]), x + 28, y + (i == 0 || (i == 3 && disabled) ? 6 : 17), disabled ? ui::MUTED : ui::TEXT);
         std::string value;
         if (i == 0) {
           value = !accountKnown && accountBusy ? tr(K::Loading) : account.signedIn() ? tr(K::SignedInAs) + account.name
               : account.state == Account::PENDING ? tr(K::Pending) : tr(K::SignedOut);
-          gfx::text(g, ui::F_SMALL, tr(accountFailed ? K::AccountUnavailable : account.signedIn() ? K::SignOutAction : K::SignInAction), x + 28, y + 40, ui::MUTED);
+          gfx::text(g, ui::F_SMALL, tr(accountFailed ? K::AccountUnavailable : account.signedIn() ? K::SignOutAction : K::SignInAction), x + 28, y + 29, ui::MUTED);
         } else if (i == 1) value = tr(settings.cols == 3 ? K::Three : K::Four);
         else if (i == 2) value = tr(i18n::quality(quality));
         else if (i == 3) {
           value = nestAvailable && nestOut ? nestName : std::string(tr(K::TV));
-          if (disabled) gfx::text(g, ui::F_SMALL, tr(nestChecked ? K::NoSpeaker : K::SpeakerChecking), x + 28, y + 40, ui::FAINT);
+          if (disabled) gfx::text(g, ui::F_SMALL, tr(nestChecked ? K::NoSpeaker : K::SpeakerChecking), x + 28, y + 29, ui::FAINT);
         } else if (i == 4) value = (nestOffsetMs > 0 ? "+" : "") + std::to_string(nestOffsetMs) + tr(K::Milliseconds);
-        else value = tr(settings.lang == i18n::Lang::PT ? K::Portuguese : K::English);
+        else if (i == 5) value = tr(settings.lang == i18n::Lang::PT ? K::Portuguese : K::English);
+        else if (i == 6) value = sleepLabel(sleepChoice);
+        else value = tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox);
         float right = x + w - 54;
-        gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, value, i == 0 ? 480 : 320), right, y + 23, disabled ? ui::FAINT : selected ? ui::A2 : ui::TEXT, 2);
+        gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, value, i == 0 ? 480 : 320), right, y + 15, disabled ? ui::FAINT : selected ? ui::A2 : ui::TEXT, 2);
         if (selected && i > 0 && !disabled) {
           float ax = right - std::min(340.f, gfx::textWidth(g, ui::F_KEY, value)) - 26;
-          gfx::triangle(g, ax, y + 36, ax + 6, y + 31, ax + 6, y + 41, ui::MUTED);
-          gfx::triangle(g, x + w - 24, y + 36, x + w - 30, y + 31, x + w - 30, y + 41, ui::MUTED);
+          gfx::triangle(g, ax, y + 27, ax + 6, y + 22, ax + 6, y + 32, ui::MUTED);
+          gfx::triangle(g, x + w - 24, y + 27, x + w - 30, y + 22, x + w - 30, y + 32, ui::MUTED);
         }
       }
-      gfx::text(g, ui::F_SMALL, settingsRow == 4 ? tr(K::SyncHelp) : tr(K::None), ui::X0, 642, ui::MUTED);
+      gfx::text(g, ui::F_SMALL, tr(K::SleepTVHelp), ui::X0, 630, ui::MUTED);
+      if (settingsRow == 4) gfx::text(g, ui::F_SMALL, tr(K::SyncHelp), ui::X0, 652, ui::FAINT);
       float hx = hint(g, ui::X0, 678, tr(K::BtnVertical), XG, tr(K::ChooseRow));
       hx = hint(g, hx, 678, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
       if (settingsRow == 0) hx = hint(g, hx, 678, "A", XA, tr(K::Open));
@@ -1062,6 +1131,7 @@ int main(int argc, char** argv) {
         hx2 = hint(g, hx2, by + 24, tr(K::BtnHorizontal), XG, tr(K::TenSeconds));
         hx2 = hint(g, hx2, by + 24, "LB RB", XG, tr(K::OneMinute));
         hint(g, hx2, by + 24, "B", XB, tr(K::Back));
+        hint(g, 72, by - 42, "↑", XG, tr(K::SleepTimer));
       }
       if (pl.paused && !pl.waiting()) {
         gfx::rect(g, ui::W / 2 - 52, ui::H / 2 - 52, 104, 104, {0, 0, 0, 0.5f}, 52);
@@ -1079,6 +1149,15 @@ int main(int argc, char** argv) {
       }
     }
 
+    if (sleep.active && (screen == HOME || screen == PLAYER)) {
+      std::string value = sleep.end ? tr(K::SleepEnd) : fmtTime(std::ceil(sleepLeft));
+      if (sleep.end && sleepLeft >= 0) value += " · " + fmtTime(std::ceil(sleepLeft));
+      std::string label = std::string(tr(K::SleepTimer)) + " · " + value;
+      float w = gfx::textWidth(g, ui::F_SMALL, label) + 30, x = ui::W - 64 - w;
+      float y = screen == PLAYER ? 124 : 24;
+      gfx::rect(g, x, y, w, 32, ui::SURFACE2, 16);
+      gfx::text(g, ui::F_SMALL, label, x + 15, y + 7, ui::MUTED);
+    }
     if (phonePanel) {
       gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.72f});
       float pw = 820, ph = 418, px = (ui::W - pw) / 2, py = (ui::H - ph) / 2;
@@ -1136,6 +1215,22 @@ int main(int argc, char** argv) {
       gfx::text(g, ui::F_BODY, shown, ui::W / 2, 36, ui::TEXT, 1);
     }
 
+    if (sleepPanel || sleepWarning || shutdownAt) {
+      gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.65f});
+      float x = 280, y = 242, w = 720;
+      gfx::shadow(g, x, y + 12, w, 226, 24, 32, 0.6f);
+      gfx::rect(g, x, y, w, 226, ui::SURFACE, 24);
+      std::string title = shutdownAt ? tr(K::SleepShuttingDown) : sleepWarning ? std::string(tr(K::SleepWarning)) +
+          std::to_string((int)std::ceil(sleepLeft)) + tr(K::SleepSeconds) : tr(K::SleepTimer);
+      gfx::text(g, ui::F_BIG, title, x + 36, y + 32, ui::TEXT);
+      if (!shutdownAt) {
+        gfx::text(g, ui::F_KEY, sleepWarning ? tr(sleep.notebook ? K::SleepNotebook : K::SleepXbox) : sleepLabel(sleepChoice), x + 36, y + 92, ui::A2);
+        float hx = x + 36;
+        if (!sleepWarning) hx = hint(g, hx, y + 162, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
+        hx = hint(g, hx, y + 162, "A", XA, tr(sleepWarning ? K::SleepAdd : K::SleepApply));
+        hint(g, hx, y + 162, "B", XB, tr(K::Cancel));
+      }
+    }
     bool shoot = shotPath && (int)frame == shotFrame;
     gfx::end(g, shoot ? shotPath : nullptr);
     if (shoot) quit = true;
@@ -1145,6 +1240,8 @@ int main(int argc, char** argv) {
   pl.halt();
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);
   remote.quit = true;
+  SDL_LockMutex(sleepWorker.mu); sleepWorker.quit = true; SDL_SignalCondition(sleepWorker.cv); SDL_UnlockMutex(sleepWorker.mu);
+  SDL_WaitThread(st, nullptr);
   SDL_LockMutex(control.mu); control.quit = true; SDL_SignalCondition(control.cv); SDL_UnlockMutex(control.mu);
   SDL_LockMutex(thumbsWorker.mu); thumbsWorker.quit = true; SDL_BroadcastCondition(thumbsWorker.cv); SDL_UnlockMutex(thumbsWorker.mu);
   SDL_WaitThread(wt, nullptr);
