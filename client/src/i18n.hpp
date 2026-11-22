@@ -72,6 +72,17 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(VideoFailed, "Could not play this video", "Não deu para tocar este vídeo") \
   X(VideoOpenError, "The server could not open this video", "O servidor não conseguiu abrir este vídeo") \
   X(VideoClosed, "The server closed the video connection", "O servidor fechou a conexão do vídeo") \
+  X(Rate, "Rate", "Avaliar") \
+  X(RateTitle, "Rate this video", "Avaliar este vídeo") \
+  X(Like, "Like", "Gostei") \
+  X(Dislike, "Dislike", "Não gostei") \
+  X(Liked, "You liked this video", "Você marcou que gostou") \
+  X(Disliked, "You disliked this video", "Você marcou que não gostou") \
+  X(RatingRemoved, "Rating removed", "Avaliação removida") \
+  X(RateFailed, "Could not save your rating", "Não deu para salvar a avaliação") \
+  X(RateSignIn, "Sign in to YouTube in Settings to rate videos", "Conecte sua conta do YouTube nas configurações para avaliar") \
+  X(UpNextIn, "Up next in ", "A seguir em ") \
+  X(WatchNow, "Watch now", "Assistir agora") \
   X(VideoMembers, "This video is only for channel members", "Este vídeo é só para membros do canal") \
   X(VideoPrivate, "This video is private", "Este vídeo é privado") \
   X(VideoAge, "YouTube asks to confirm your age for this video", "O YouTube pede confirmação de idade para este vídeo") \

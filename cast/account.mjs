@@ -277,12 +277,46 @@ export class Account {
     return job;
   }
 
+  // Sem conta, o "a seguir" sai de uma sessão TV anônima.
+  guest() {
+    if (!this.guestYt) {
+      const lang = language();
+      this.guestYt = Innertube.create({ client_type: ClientType.TV, lang, location: lang === 'pt' ? 'BR' : 'US',
+        retrieve_player: false, enable_session_cache: false });
+      this.guestYt.catch(() => { this.guestYt = null; });
+    }
+    return this.guestYt;
+  }
+
+  // Like do vídeo e o próximo da reprodução automática: a mesma resposta /next que a TV pede ao abrir o vídeo.
+  async watchNext(id) {
+    const signedIn = this.state === 'signed_in';
+    const yt = signedIn ? this.current.yt : await this.guest();
+    const { data } = await yt.actions.execute('/next', { videoId: id, client: 'TV' });
+    const buttons = data.transportControls?.transportControlsRenderer?.buttons || [];
+    const like = signedIn ? buttons.map((b) => b.button?.likeButtonRenderer?.likeStatus).find(Boolean) || '' : '';
+    const next = data.playerOverlays?.playerOverlayRenderer?.autoplay?.playerOverlayAutoplayRenderer;
+    const nextId = next?.videoId;
+    return { like, next: ID.test(nextId || '') && nextId !== id
+      ? { id: nextId, title: label(next.videoTitle) || nextId, channel: label(next.byline) } : null };
+  }
+
+  // interact.like da 16.0.1 manda o alvo como texto e leva 400; a API quer { videoId }.
+  async rate(id, rating) {
+    if (this.state !== 'signed_in') throw fail(401, 'signed_out');
+    const route = { like: '/like/like', dislike: '/like/dislike', none: '/like/removelike' }[rating];
+    if (!route) throw fail(400, 'invalid_rating');
+    const { success } = await this.current.yt.actions.execute(route, { target: { videoId: id }, client: 'TV' });
+    if (!success) throw fail(502, 'rate_failed');
+    return { ok: true, like: { like: 'LIKE', dislike: 'DISLIKE', none: 'INDIFFERENT' }[rating] };
+  }
+
   async watched(id, pos, progressOnly = false) {
     if (this.state !== 'signed_in') throw fail(401, 'signed_out');
     const context = this.current;
     if (!progressOnly || !this.videos.has(id)) {
       if (this.videos.size >= 16) this.videos.delete(this.videos.keys().next().value);
-      const job = this.player(context).then((yt) => yt.getBasicInfo(id, { client: 'TV' })).then(async (info) => {
+      const job = this.player(context).then((yt) => yt.getBasicInfo(id)).then(async (info) => {
         if (this.current !== context) throw fail(401, 'signed_out');
         if (!info.page[0].playback_tracking) throw fail(502, 'tracking_unavailable');
         if (!progressOnly && !(await info.addToWatchHistory('TVHTML5', SAMSUNG.clientVersion)).ok) throw fail(502, 'history_failed');
@@ -331,6 +365,10 @@ export async function startAccountService() {
         if (url.pathname === '/progress' && data.pos === undefined) throw fail(400, 'invalid_video');
         if (!ID.test(data.id || '') || (data.pos !== undefined && (!Number.isFinite(data.pos) || data.pos < 0 || data.pos > 86400 * 30))) throw fail(400, 'invalid_video');
         result = await account.watched(data.id, data.pos || 0, url.pathname === '/progress');
+      } else if (['/next', '/rate'].includes(url.pathname) && req.method === (url.pathname === '/next' ? 'GET' : 'POST')) {
+        const id = url.searchParams.get('id') || '';
+        if (!ID.test(id)) throw fail(400, 'invalid_video');
+        result = url.pathname === '/next' ? await account.watchNext(id) : await account.rate(id, url.searchParams.get('rating'));
       } else throw fail(404, 'not_found');
       res.end(JSON.stringify(result));
     } catch (error) {

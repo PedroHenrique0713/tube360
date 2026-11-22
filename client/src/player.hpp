@@ -326,6 +326,7 @@ struct Player {
     if (!net::get(srv, path, r, 5000, 1024)) { error = "O servidor não respondeu ao pedido do Nest"; nestFailed = true; state = FAILED; return; }
     uint64_t erroDesde = 0, pedidoEm = SDL_GetTicks(), comandoEm = 0; bool tocou = false;
     int esperado = 0;  // estado que o Xbox pediu e o Nest ainda não mostrou (1 tocando, 2 pausado)
+    int ultimo = 0;    // último estado tocando/pausado visto no Nest
     while (!stop) {
       int c = nestCmd.exchange(0);
       if (c == 1) net::get(srv, "/api/nest/pause", r, 2000, 1024);
@@ -353,14 +354,16 @@ struct Player {
         }
         SDL_UnlockMutex(nmu);
         if (st == 1) tocou = true;
-        // Pausado ou retomado no próprio Nest (toque em cima, Google Home): a imagem acompanha. Só depois de vê-lo
-        // tocando este vídeo (logo após o play, o servidor ainda pode mostrar o vídeo anterior pausado). Enquanto o Nest não
-        // mostra o último pedido do Xbox (até 10 s), o estado antigo dele não conta como mudança vinda de fora.
-        if (esperado && (st == esperado || SDL_GetTicks() - comandoEm > 10000)) esperado = 0;
-        if (tocou && !esperado && nestCmd == 0) {
+        // Pedido do Xbox que o Nest não mostrou em 10 s: pede de novo (nunca toma o estado antigo como vontade de fora).
+        if (esperado && st == esperado) esperado = 0;
+        else if (esperado && SDL_GetTicks() - comandoEm > 10000 && nestCmd == 0) nestCmd = esperado == 2 ? 1 : 2;
+        // Pausado ou retomado no próprio Nest (toque em cima, Google Home): o Nest MUDOU de estado sem pedido do Xbox
+        // pendente, depois de já ter tocado este vídeo. A imagem acompanha.
+        if (tocou && !esperado && nestCmd == 0 && ultimo && (st == 1 || st == 2) && st != ultimo) {
           if (st == 1 && paused) { paused = false; LOG("nest: retomado no alto-falante, o vídeo segue"); }
           else if (st == 2 && !paused) { paused = true; LOG("nest: pausado no alto-falante, o vídeo pausa"); }
         }
+        if (st == 1 || st == 2) ultimo = st;
         if (st == 4) {
           if (!erroDesde) erroDesde = SDL_GetTicks();
           if (SDL_GetTicks() - erroDesde > 3000) { error = "O Nest não tocou: " + (f.size() > 2 ? f[2] : std::string("sem resposta")); nestFailed = true; state = FAILED; return; }

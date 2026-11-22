@@ -444,6 +444,8 @@ int main(int argc, char** argv) {
   int keyRow = 0, keyCol = 0; bool keyInRecent = false; int recentSel = 0;
   uint64_t overlayUntil = 0; Screen backTo = HOME; std::string toast; uint64_t toastUntil = 0;
   Video playing; bool playerFromRemote = false;
+  // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
+  std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false;
   int& quality = settings.quality;
   bool& nestOut = settings.nest; int& nestOffsetMs = settings.syncMs;
   auto saveSettings = [&]() {
@@ -486,7 +488,11 @@ int main(int argc, char** argv) {
   if (g.win) SDL_StartTextInput(g.win);
 #endif
   auto startVideo = [&](const Video& v, double t, bool fromRemote) {
-    if (v.id != playing.id) nestSkip = false;
+    if (v.id != playing.id) {
+      nestSkip = false; likeState.clear(); upNext = Video{};
+      control.add({5, "/api/video/" + v.id + "/next", 0});
+    }
+    nextAt = 0; endedSent = false; ratePanel = false;
     playing = v; playerFromRemote = fromRemote;
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
@@ -495,7 +501,7 @@ int main(int argc, char** argv) {
     if (screen != PLAYER) backTo = screen;
     screen = PLAYER; overlayUntil = SDL_GetTicks() + 5000;
   };
-  auto stopVideo = [&]() { pl.halt(); screen = backTo == PLAYER ? HOME : backTo; };
+  auto stopVideo = [&]() { pl.halt(); ratePanel = false; nextAt = 0; screen = backTo == PLAYER ? HOME : backTo; };
   auto backspace = [&]() {
     if (query.empty()) return;
     size_t at = query.size() - 1;
@@ -598,6 +604,19 @@ int main(int argc, char** argv) {
         auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
         nestChecked = true; nestAvailable = f.size() > 1 && f[0] == "ok" && !f[1].empty();
         if (nestAvailable) nestName = f[1];
+      } else if (r.key.rfind("/api/video/", 0) == 0) {
+        auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
+        bool ok = r.feed.error == K::None && !f.empty() && f[0] == "ok";
+        std::string id = r.key.substr(11, 11);
+        if (r.key.find("/rate?") != std::string::npos) {
+          if (ok && f.size() > 1 && id == playing.id) likeState = f[1];
+          toast = tr(!ok ? K::RateFailed : likeState == "LIKE" ? K::Liked : likeState == "DISLIKE" ? K::Disliked : K::RatingRemoved);
+          toastUntil = now + 3000;
+        } else if (ok && id == playing.id && f.size() >= 5) {
+          likeState = f[1];
+          upNext = Video{};
+          if (f[2].size() == 11) { upNext.id = f[2]; upNext.channel = f[3]; upNext.title = f[4]; }
+        }
       } else if (r.key.rfind("/api/account", 0) == 0) {
         accountBusy = false;
         Account next; bool ok = r.feed.error == K::None && next.parse(r.feed.title);
@@ -695,6 +714,21 @@ int main(int argc, char** argv) {
       if (in.hit(Input::RIGHT)) sleepChoice = (sleepChoice + 1) % 8;
       if (in.hit(Input::A) && !sleepPending) { applySleep(); sleepPanel = false; }
       if (in.hit(Input::B)) sleepPanel = false;
+    } else if (ratePanel && (screen != PLAYER || pl.state == player::FAILED)) {
+      ratePanel = false;  // o vídeo parou ou falhou com o painel aberto: o A não pode avaliar por trás da grade
+    } else if (ratePanel) {
+      if (in.hit(Input::LEFT) || in.hit(Input::RIGHT)) rateSel = 1 - rateSel;
+      if (in.hit(Input::A)) {
+        // apertar de novo o que já está marcado desfaz, como no app do YouTube
+        bool same = likeState == (rateSel == 0 ? "LIKE" : "DISLIKE");
+        control.add({5, "/api/video/" + playing.id + "/rate?r=" + (same ? "none" : rateSel == 0 ? "like" : "dislike"), 0});
+        ratePanel = false;
+      }
+      if (in.hit(Input::B) || in.hit(Input::DOWN)) ratePanel = false;
+      overlayUntil = now + 4000;
+    } else if (screen == PLAYER && nextAt) {
+      if (in.hit(Input::A) || in.hit(Input::START)) { Video v = upNext; startVideo(v, 0, false); }
+      else if (in.hit(Input::B) || in.hit(Input::BACK)) { nextAt = 0; stopVideo(); }
     } else if (loginPanel) {
       if (in.hit(Input::B)) { loginPanel = false; accountAt = now + 60000; }
       if (in.hit(Input::A) && !accountBusy && loginError != K::None) {
@@ -845,7 +879,11 @@ int main(int argc, char** argv) {
         toastUntil = now + 2500; saveSettings(); any = true;
       }
       if (in.hit(Input::UP)) { sleepPanel = true; any = true; }
-      if (in.hit(Input::DOWN)) any = true;
+      if (in.hit(Input::DOWN)) {
+        if (account.signedIn()) { ratePanel = true; rateSel = likeState == "DISLIKE" ? 1 : 0; }
+        else { toast = tr(K::RateSignIn); toastUntil = now + 3500; }
+        any = true;
+      }
       if (any) overlayUntil = now + 4000;
       if (in.hit(Input::B) || in.hit(Input::BACK)) stopVideo();
       if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
@@ -857,8 +895,13 @@ int main(int argc, char** argv) {
     }
     // Fim natural continua sendo informado mesmo com um cartão aberto.
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt) {
-      SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
-      stopVideo();
+      if (!endedSent) {
+        SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
+        endedSent = true; ratePanel = false;
+        // Pedido pelo celular: o app do celular escolhe o próximo. Timer "no fim do vídeo": desliga, não emenda.
+        if (!playerFromRemote && !upNext.id.empty() && !(sleep.active && sleep.end)) nextAt = now + 8000;
+        else stopVideo();
+      } else if (nextAt && now >= nextAt) { Video v = upNext; startVideo(v, 0, false); }
     }
     in.clear();
     Shelf& cur = inResults ? results : cats[(size_t)cat];
@@ -1137,7 +1180,42 @@ int main(int argc, char** argv) {
         hx2 = hint(g, hx2, by + 24, tr(K::BtnHorizontal), XG, tr(K::TenSeconds));
         hx2 = hint(g, hx2, by + 24, "LB RB", XG, tr(K::OneMinute));
         hint(g, hx2, by + 24, "B", XB, tr(K::Back));
-        hint(g, 72, by - 42, "↑", XG, tr(K::SleepTimer));
+        float ux = hint(g, 72, by - 42, "↑", XG, tr(K::SleepTimer));
+        hint(g, ux, by - 42, "↓", XG, tr(likeState == "LIKE" ? K::Like : likeState == "DISLIKE" ? K::Dislike : K::Rate));
+      }
+      if (ratePanel) {
+        float w = 560, h = 196, x = (ui::W - w) / 2, y = ui::H - 400;
+        gfx::shadow(g, x, y + 10, w, h, 24, 32, 0.6f);
+        gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
+        gfx::text(g, ui::F_H2, tr(K::RateTitle), x + 32, y + 26, ui::TEXT);
+        for (int i = 0; i < 2; i++) {
+          float bw = 232, bx = x + 32 + i * (bw + 32), bt = y + 76;
+          bool sel = rateSel == i, on = likeState == (i == 0 ? "LIKE" : "DISLIKE");
+          if (sel) gfx::rect(g, bx - 3, bt - 3, bw + 6, 54, ui::alpha(ui::A1, 0.65f), 27);
+          gfx::rect(g, bx, bt, bw, 48, on ? ui::A1 : sel ? ui::SURFACE2 : ui::alpha(rgb(0xffffff), 0.06f), 24);
+          gfx::text(g, ui::F_KEY, tr(i == 0 ? K::Like : K::Dislike), bx + bw / 2, bt + 13, ui::TEXT, 1);
+        }
+        float hx = hint(g, x + 32, y + 150, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
+        hx = hint(g, hx, y + 150, "A", XA, tr(K::SleepApply));
+        hint(g, hx, y + 150, "B", XB, tr(K::Close));
+      }
+      if (nextAt) {
+        gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.6f});
+        float w = 800, h = 300, x = (ui::W - w) / 2, y = (ui::H - h) / 2;
+        gfx::shadow(g, x, y + 12, w, h, 24, 32, 0.6f);
+        gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
+        double left = nextAt > now ? (nextAt - now) / 1000.0 : 0;
+        gfx::text(g, ui::F_SMALL, tr(K::UpNextIn) + std::to_string((int)std::ceil(left)) + " s", x + 32, y + 26, ui::MUTED);
+        gfx::rect(g, x + 32, y + 52, w - 64, 4, {1, 1, 1, 0.12f}, 2);
+        gfx::hgrad(g, x + 32, y + 52, std::max(4.f, (w - 64) * (float)(1 - left / 8.0)), 4, ui::A1, ui::A2, 2);
+        float tw = 256, th = 144, tx = x + 32, ty = y + 74;
+        gfx::rect(g, tx, ty, tw, th, ui::SURFACE2, 12);
+        if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, upNext.id, frame)) gfx::image(g, s->tex, tx, ty, tw, th, 12);
+        float cx = tx + tw + 28, cw = x + w - 32 - cx, cy = ty + 2;
+        for (auto& line : gfx::wrap(g, ui::F_H2, upNext.title, cw, 2)) { gfx::text(g, ui::F_H2, line, cx, cy, ui::TEXT); cy += 30; }
+        if (!upNext.channel.empty()) gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, upNext.channel, cw), cx, cy + 8, ui::MUTED);
+        float hx = hint(g, x + 32, y + h - 52, "A", XA, tr(K::WatchNow));
+        hint(g, hx, y + h - 52, "B", XB, tr(K::Cancel));
       }
       if (pl.paused && !pl.waiting()) {
         gfx::rect(g, ui::W / 2 - 52, ui::H / 2 - 52, 104, 104, {0, 0, 0, 0.5f}, 52);

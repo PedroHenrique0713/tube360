@@ -273,11 +273,18 @@ async def extract_video(url, **options):
 
 
 def unplayable_reason(error):
-    """Motivo que o console sabe explicar quando o YouTube nega o vídeo (a mensagem vem em pt ou en)."""
+    """Motivo que o console sabe explicar quando o YouTube nega o vídeo (a mensagem vem em pt ou en). Só para recusa
+    do próprio YouTube: erro de rede/HTTP (503 "Service Unavailable") e checagem de robô ficam com a mensagem genérica."""
+    if not isinstance(error, (yt_dlp.utils.DownloadError, yt_dlp.utils.ExtractorError)):
+        return None
     text = str(error).lower()
-    for reason, words in (("members", ("membro", "member")), ("private", ("privado", "private video")),
+    if re.search(r"\bbot\b|robô|http error|timed out|tempo esgotado", text):
+        return None
+    for reason, words in (("members", ("membro", "member")), ("private", ("privado", "is private", "private video")),
                           ("age", ("idade", "age-restricted", "confirm your age")),
-                          ("unavailable", ("indisponível", "unavailable", "removido", "removed", "encerrada", "terminated"))):
+                          ("unavailable", ("video unavailable", "vídeo indisponível", "não está mais disponível",
+                                           "no longer available", "has been removed", "foi removido",
+                                           "has been terminated", "foi encerrada"))):
         if any(word in text for word in words):
             return reason
     return None
@@ -307,17 +314,39 @@ def clients_named(api_name):
                   if client["INNERTUBE_CONTEXT"]["client"]["clientName"] == api_name)
 
 
+REFUSED_TTL = 1800  # segundos
+refused_clients = {}  # cliente do yt-dlp -> até quando pular (time.monotonic)
+
+
+def clients_to_skip():
+    now = time.monotonic()
+    return sorted(name for name, until in refused_clients.items() if until > now)
+
+
 async def resolve_video(video_id):
     async def load():
-        skip = []
-        for attempt in range(2):
-            # A mesma resolução (até 720p) atende todas as qualidades e buscas temporais.
-            data = await extract_video(
-                f"https://www.youtube.com/watch?v={video_id}", skip_clients=skip,
-                # H.264 antes: abrir AV1 custa o dobro de CPU (720p, medido num núcleo: 49% contra 26%)
-                format="bestvideo[height<=720][vcodec^=avc1][protocol=https]+bestaudio[protocol=https]"
-                       "/bestvideo[height<=720][protocol=https]+bestaudio[protocol=https]/best[height<=720]/best",
-            )
+        # A recusa costuma valer para muitos vídeos seguidos (3 de 4 em 2026-11-22): extrair de novo a cada vídeo
+        # custava uns 6 s por abertura. O cliente recusado fica de fora por 30 min e depois é testado de novo.
+        skip = clients_to_skip()
+        for attempt in range(3):
+            try:
+                # A mesma resolução (até 720p) atende todas as qualidades e buscas temporais.
+                data = await extract_video(
+                    f"https://www.youtube.com/watch?v={video_id}", skip_clients=skip,
+                    # H.264 antes: abrir AV1 custa o dobro de CPU (720p, medido num núcleo: 49% contra 26%).
+                    # Áudio m4a antes: começar no meio leva 2,5-3,9 s contra 6,4-6,8 s do webm, cujo índice fica no
+                    # fim do arquivo (medido em 2026-11-22); com o som na TV, o vídeo começou em 2,9 s em vez de 7,3 s.
+                    format="bestvideo[height<=720][vcodec^=avc1][protocol=https]+bestaudio[ext=m4a][protocol=https]"
+                           "/bestvideo[height<=720][vcodec^=avc1][protocol=https]+bestaudio[protocol=https]"
+                           "/bestvideo[height<=720][protocol=https]+bestaudio[protocol=https]/best[height<=720]/best",
+                )
+            except Exception:
+                if not skip or attempt == 2:
+                    raise
+                # sem os clientes lembrados pode não sobrar nenhum que sirva: esquece a lista e tenta com todos
+                refused_clients.clear()
+                skip = []
+                continue
             formats = data.get("requested_formats") or [data]
             video = next((f for f in formats if f.get("vcodec") != "none"), None)
             audio = next((f for f in formats if f.get("acodec") != "none"), None)
@@ -329,16 +358,18 @@ async def resolve_video(video_id):
                 "title": clean(data.get("title") or video_id),
                 "headers": data.get("http_headers", {}),
             }
-            if attempt:
-                break
-            # O YouTube às vezes recusa (403) todos os links de um cliente só para certos vídeos (tv_samsung,
-            # 2026-11-22), e o link novo do mesmo cliente volta recusado: refaz a extração sem ele.
+            # O YouTube às vezes recusa (403) todos os links de um cliente (tv_samsung, 2026-11-22), e o link novo do
+            # mesmo cliente volta recusado: refaz a extração sem ele.
             sources = [video] if video["url"] == audio["url"] else [video, audio]
             refused = await asyncio.gather(*(asyncio.to_thread(source_refused, result, s) for s in sources))
-            skip = sorted({name for api_name in refused if api_name for name in clients_named(api_name)})
-            if not skip:
+            new = sorted({name for api_name in refused if api_name for name in clients_named(api_name)} - set(skip))
+            if not new or attempt == 2:
                 break
-            LOG.info("vídeo %s: o YouTube recusou o link de %s, extraindo sem esse cliente", video_id, ", ".join(skip))
+            until = time.monotonic() + REFUSED_TTL
+            for name in new:
+                refused_clients[name] = until
+            skip = sorted(set(skip) | set(new))
+            LOG.info("vídeo %s: o YouTube recusou o link de %s, extraindo sem esse cliente por 30 min", video_id, ", ".join(new))
         remember({"id": video_id, "duration": result["duration"], "title": result["title"],
                   "channel": clean(data.get("channel")), "views": views_text(data.get("view_count"))})
         return result
@@ -589,7 +620,8 @@ class Remote:
             history.touch(ended, dur, dur, finished=True)
             self.last_ended = ended
             self.ended_seq += 1
-            if self.queue:
+            # tocar/parar já pedidos pelo celular valem mais que o avanço automático da fila
+            if self.queue and not any(c["action"] in ("play", "stop") for c in self.commands):
                 self.commands.append({"action": "next"})
         elif not ended:
             self.last_ended = ""
@@ -602,6 +634,9 @@ class Remote:
             return "none\n"
         cmd = self.commands.popleft()
         action = cmd["action"]
+        if action in ("play", "stop"):
+            # um avanço automático pendente não pode desfazer o que o celular acabou de pedir
+            self.commands = deque(c for c in self.commands if c["action"] != "next")
         if action == "next":
             if not self.queue:
                 return "stop\n"
@@ -929,6 +964,32 @@ async def account_action(action):
         return await account_request("/" + action, {})
     except Exception:
         return {"state": "signed_out", "name": "", "code": "", "url": ""}
+
+
+@app.get("/api/video/{video_id}/next", response_class=PlainTextResponse)
+async def video_next(video_id: str):
+    """Like da conta e o próximo da reprodução automática: ok, like, id, canal, título."""
+    valid_id(video_id)
+    try:
+        data = await account_request(f"/next?id={video_id}", timeout=15)
+    except Exception:
+        return PlainTextResponse("erro\n", headers={"Cache-Control": "no-store"})
+    nxt = data.get("next") or {}
+    if nxt.get("id"):
+        valid_id(nxt["id"])
+    fields = [data.get("like", ""), nxt.get("id", ""), nxt.get("channel", ""), nxt.get("title", "")]
+    return PlainTextResponse("ok\t" + "\t".join(clean(v) for v in fields) + "\n", headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/video/{video_id}/rate", response_class=PlainTextResponse)
+async def video_rate(request: Request, video_id: str, r: Literal["like", "dislike", "none"]):
+    account_native_request(request)
+    valid_id(video_id)
+    try:
+        data = await account_request(f"/rate?id={video_id}&rating={r}", {}, timeout=15)
+    except Exception:
+        return PlainTextResponse("erro\n", headers={"Cache-Control": "no-store"})
+    return PlainTextResponse(f"ok\t{clean(data.get('like', ''))}\n", headers={"Cache-Control": "no-store"})
 
 
 @app.get("/api/account/login", response_class=PlainTextResponse)
@@ -1367,6 +1428,7 @@ class Nest:
         self.active = False
         self.ours = False  # o receptor aberto no Nest é o que este servidor abriu
         self.video_id, self.t0, self.host_ip = "", 0.0, ""  # o que está tocando e de que ponto (posição absoluta = t0 + tempo do Nest)
+        self.token = ""  # marca "s=<ms>" da URL do último áudio pedido ao Nest
         self.recover_at = 0.0
         self.sleep_base = None
         threading.Thread(target=self.watch, daemon=True).start()
@@ -1401,7 +1463,7 @@ class Nest:
                 cc = self.connect()
                 LOG.info("Nest: conectado em %.1f s, app %s", time.monotonic() - t0, cc.status.app_id)
                 # Reabre o receptor padrão só se ele não é nosso (Bluetooth, outro app, ou aberto por outro remetente):
-                # aberto sem sessão nossa, o Nest ignora o LOAD calado (medido em 2026-11-21). Se o LOAD não pegar em 6 s,
+                # aberto sem sessão nossa, o Nest ignora o LOAD calado (medido em 2026-11-21). Se o LOAD não pegar em 9 s,
                 # reabre e tenta de novo.
                 for tentativa in (0, 1):
                     if tentativa or not self.ours or cc.status.app_id != self.APP:
@@ -1415,7 +1477,9 @@ class Nest:
                         LOG.info("Nest: receptor aberto em %.1f s", time.monotonic() - t0)
                     mc = cc.media_controller
                     mc.play_media(url, "audio/mpeg", title="YouTube 360")
-                    deadline = time.monotonic() + (12 if tentativa else 6)
+                    # 9 s na primeira: começando no meio, o primeiro áudio leva até ~4 s; com 6 s o LOAD lento era
+                    # tomado por ignorado, o receptor era reaberto e o Nest caía (2026-11-22, 12:46)
+                    deadline = time.monotonic() + (12 if tentativa else 9)
                     while time.monotonic() < deadline:
                         mc.update_status()
                         time.sleep(0.2)
@@ -1524,7 +1588,10 @@ class Nest:
                 if st.player_state != getattr(self, "last_logged", None):
                     LOG.info("Nest: estado %s (pos %.1f, motivo %s)", st.player_state, float(st.current_time or 0) + self.t0, st.idle_reason)
                     self.last_logged = st.player_state
-                if st.player_state in ("PLAYING", "PAUSED", "BUFFERING") and not took_over:
+                # Logo depois do LOAD o Nest ainda informa o som anterior (pausado, por exemplo): o console tomava esse
+                # estado como do vídeo novo. Só vale o status do áudio pedido por último (marca s= única na URL).
+                current = self.token in (st.content_id or "")
+                if st.player_state in ("PLAYING", "PAUSED", "BUFFERING") and not took_over and current:
                     # update_status() só pede: st é a última resposta, que pode ter 250 ms. A posição vale para a hora
                     # em que ela chegou (last_updated), não para agora; carimbar com agora atrasava a imagem.
                     age = (datetime.now(timezone.utc) - st.last_updated).total_seconds() if st.last_updated else 0.0
@@ -1538,7 +1605,9 @@ class Nest:
                         LOG.warning("Nest: sessão caiu (%s); retomando em %.1f s", "outro app" if took_over else st.idle_reason, remote.pos)
                         self.ours = False
                         self.t0 = remote.pos
-                        url = f"http://{self.host_ip}:{PORT}/api/audio/{self.video_id}?t={self.t0:.2f}&s={int(time.time() * 1000)}"
+                        stamp = int(time.time() * 1000)
+                        self.token = f"s={stamp}"
+                        url = f"http://{self.host_ip}:{PORT}/api/audio/{self.video_id}?t={self.t0:.2f}&s={stamp}"
                         threading.Thread(target=self.play, args=(url,), daemon=True).start()
             except Exception:
                 pass
@@ -1573,9 +1642,10 @@ async def nest_play(video_id: str = Query(..., alias="id"), t: float = Query(0, 
     if not host:
         return PlainTextResponse("erro\t" + tr("Nenhum Nest configurado.", "No Nest configured.") + "\n")
     nest.host_ip = lan_ip_towards(host)
-    url = f"http://{nest.host_ip}:{PORT}/api/audio/{video_id}?t={t:.2f}&s={int(time.time() * 1000)}"
+    stamp = int(time.time() * 1000)
+    url = f"http://{nest.host_ip}:{PORT}/api/audio/{video_id}?t={t:.2f}&s={stamp}"
     nest.state, nest.pos, nest.stamp = "LOADING", 0.0, time.monotonic()
-    nest.video_id, nest.t0 = video_id, t
+    nest.video_id, nest.t0, nest.token = video_id, t, f"s={stamp}"
     threading.Thread(target=nest.play, args=(url,), daemon=True).start()
     return PlainTextResponse("ok\n")
 
