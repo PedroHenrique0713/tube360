@@ -668,33 +668,39 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
     if q not in SIZES or not math.isfinite(t):
         raise HTTPException(400, "Qualidade ou posição inválida.")
     ticket = await streams.begin()
-    try:
-        info = await resolve_video(video_id)
-    except Exception:
-        raise HTTPException(502, "Não foi possível abrir este vídeo. Tente novamente.") from None
-    if await request.is_disconnected():
-        raise HTTPException(499, "Conexão encerrada.")
-    if info["duration"] and t >= info["duration"]:
-        raise HTTPException(416, "Posição após o fim do vídeo.")
-    encoder = await streams.start(ticket, ffmpeg_command(info, t, q, with_audio=bool(a)))
-    try:
-        # Só confirmar HTTP 200 depois de receber MPEG; erro de origem vira 502.
-        first_read = asyncio.create_task(encoder.output.get())
-        deadline = time.monotonic() + 40
-        while not first_read.done():
-            if await request.is_disconnected() or time.monotonic() > deadline:
-                raise HTTPException(504, "O vídeo demorou para responder.")
-            await asyncio.wait({first_read}, timeout=0.2)
-        first = first_read.result()
-        if not first:
-            # Uma URL assinada que deixou de funcionar será resolvida de novo na tentativa seguinte.
-            url_cache.values.pop(video_id, None)
-            raise HTTPException(502, "A origem do vídeo não respondeu. Tente novamente.")
-    except BaseException:
-        first_read.cancel()
+    for attempt in range(2):
+        try:
+            info = await resolve_video(video_id)
+        except Exception:
+            raise HTTPException(502, "Não foi possível abrir este vídeo. Tente novamente.") from None
+        if await request.is_disconnected():
+            raise HTTPException(499, "Conexão encerrada.")
+        if info["duration"] and t >= info["duration"]:
+            raise HTTPException(416, "Posição após o fim do vídeo.")
+        encoder = await streams.start(ticket, ffmpeg_command(info, t, q, with_audio=bool(a)))
+        try:
+            # Só confirmar HTTP 200 depois de receber MPEG; erro de origem vira 502.
+            first_read = asyncio.create_task(encoder.output.get())
+            deadline = time.monotonic() + 40
+            while not first_read.done():
+                if await request.is_disconnected() or time.monotonic() > deadline:
+                    raise HTTPException(504, "O vídeo demorou para responder.")
+                await asyncio.wait({first_read}, timeout=0.2)
+            first = first_read.result()
+        except BaseException:
+            first_read.cancel()
+            with anyio.CancelScope(shield=True):
+                await streams.finish(encoder)
+            raise
+        if first:
+            break
+        # A URL assinada foi recusada (o YouTube às vezes responde 403): resolve de novo e tenta mais uma vez.
+        url_cache.values.pop(video_id, None)
         with anyio.CancelScope(shield=True):
             await streams.finish(encoder)
-        raise
+        if attempt:
+            raise HTTPException(502, "A origem do vídeo não respondeu. Tente novamente.")
+        LOG.info("stream %s: a origem recusou, buscando um link novo", video_id)
 
     async def body():
         try:
@@ -722,6 +728,10 @@ async def audio_file(video_id, t):
     key = (video_id, round(t, 2))
     path = AUDIO_DIR / f"{video_id}_{key[1]:.2f}.mp3"
     job = audio_jobs.get(key)
+    if job is None and path.exists() and path.stat().st_size == 0:
+        # conversão anterior morreu sem gravar nada (link recusado): busca um link novo
+        path.unlink(missing_ok=True)
+        url_cache.values.pop(video_id, None)
     if job is None and not path.exists():
         info = await resolve_video(video_id)
         # limpa áudios antigos (cada um tem poucos MB)
