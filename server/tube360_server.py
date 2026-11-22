@@ -81,7 +81,7 @@ def tr(pt, en, lang=None):
     return pt if (lang or LANGUAGE) == "pt" else en
 
 
-def ydl_options(lang=None, **extra):
+def ydl_options(lang=None, cookies=False, **extra):
     lang = lang or LANGUAGE
     options = {
         "quiet": True, "no_warnings": True, "logger": QuietYDL(),
@@ -95,10 +95,13 @@ def ydl_options(lang=None, **extra):
     }
     if node := shutil.which("node"):
         options["js_runtimes"] = {"node": {"path": node}}
-    if browser := CONFIG.get("cookies_from_browser"):
-        options["cookiesfrombrowser"] = (str(browser),)
+    # cookies só quando pedido (resolve_video, quando o YouTube exige login): conta exposta o mínimo possível
+    if cookies and (browser := CONFIG.get("cookies_from_browser")):
+        # "chrome" ou "chrome:<perfil ou caminho do perfil>", como no --cookies-from-browser do yt-dlp
+        name, _, profile = str(browser).partition(":")
+        options["cookiesfrombrowser"] = (name, os.path.expanduser(profile) if profile else None, None, None)
     # cookies.txt exportado (VPS sem navegador, quando o YouTube pede "confirme que não é um robô")
-    if cookie_file := CONFIG.get("cookies_file"):
+    if cookies and (cookie_file := CONFIG.get("cookies_file")):
         options["cookiefile"] = str(Path(cookie_file).expanduser())
     options.update(extra)
     return options
@@ -241,10 +244,32 @@ async def home_videos(fresh=False, lang=None):
     return await home_cache.get(lang, load, stale_ok=True)
 
 
+cookie_only_until = [0.0]  # enquanto o IP estiver na checagem de robô, vai direto com a conta
+
+
+def has_cookies():
+    return bool(CONFIG.get("cookies_from_browser") or CONFIG.get("cookies_file"))
+
+
+async def extract_video(url, **options):
+    """Sem conta primeiro (mais rápido: ~3 s contra ~8 s com cookies). Se o YouTube pedir "confirme que não é um robô"
+    e houver cookies no config, repete com a conta e segue com ela por 30 min antes de tentar sem de novo."""
+    if time.monotonic() >= cookie_only_until[0] or not has_cookies():
+        try:
+            return await extract(url, **options)
+        except Exception as error:
+            text = str(error).lower()  # a mensagem vem no idioma do extrator ("não é um bot", "not a bot")
+            if not has_cookies() or not re.search(r"\bbot\b", text) or not ("login" in text or "sign in" in text):
+                raise
+            cookie_only_until[0] = time.monotonic() + 1800
+            LOG.info("YouTube pediu login (checagem de robô): usando a conta dos cookies por 30 min")
+    return await extract(url, cookies=True, **options)
+
+
 async def resolve_video(video_id):
     async def load():
         # A mesma resolução (até 720p) atende todas as qualidades e buscas temporais.
-        data = await extract(
+        data = await extract_video(
             f"https://www.youtube.com/watch?v={video_id}",
             # H.264 antes: abrir AV1 custa o dobro de CPU (720p, medido num núcleo: 49% contra 26%)
             format="bestvideo[height<=720][vcodec^=avc1][protocol=https]+bestaudio[protocol=https]"
