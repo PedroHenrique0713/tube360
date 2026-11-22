@@ -52,7 +52,8 @@ def get_data(args):
     if not args.offline:
         try:
             release = github("/releases/latest")
-            asset = release["assets"][0]
+            # the release also carries a .7z for the Aurora Homebrew Store; the page offers the .zip
+            asset = next(a for a in release["assets"] if a["name"].endswith(".zip"))
             repo = github("")
             data = valid_data({"tag_name": release["tag_name"],
                                "download_url": asset["browser_download_url"],

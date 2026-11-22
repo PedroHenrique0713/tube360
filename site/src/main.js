@@ -418,7 +418,7 @@
   }
   function applyGithub(data) {
     const release = data?.release;
-    const asset = release?.assets?.[0];
+    const asset = release?.assets?.find?.((a) => typeof a?.name === 'string' && a.name.endsWith('.zip'));
     const url = asset && safeReleaseURL(asset.browser_download_url);
     if (url && typeof release.tag_name === 'string' && release.tag_name.trim() && Number.isInteger(asset.size) && asset.size > 0) {
       const version = release.tag_name.slice(0, 64);
