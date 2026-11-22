@@ -43,6 +43,11 @@ export function normalizeVideo(video, renderer = 'tileRenderer') {
   const meta = video.metadata?.tileMetadataRenderer;
   const overlays = header?.thumbnailOverlays || video.thumbnailOverlays || [];
   const timing = overlays.map((o) => o.thumbnailOverlayTimeStatusRenderer).filter(Boolean);
+  // "Só para membros" vem como selo numa linha de metadados do tile; a conta não abre esses vídeos (yt-dlp: "Seja
+  // membro do canal") e a home ainda os promove como "Destaques do YouTube" (2026-11-22).
+  const lineBadges = (meta?.lines || []).flatMap((line) => (line.lineRenderer?.items || [])
+    .map((i) => i.lineItemRenderer?.badge?.metadataBadgeRenderer?.style).filter(Boolean));
+  if (lineBadges.includes('BADGE_STYLE_TYPE_MEMBERS_ONLY')) return null;
   const badges = video.badges || [];
   if (!ID.test(id || '') || endpoint?.reelWatchEndpoint ||
       endpoint?.commandMetadata?.webCommandMetadata?.url?.includes('/shorts/') ||
