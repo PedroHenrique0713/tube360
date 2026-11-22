@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="{{lang}}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b0e">
+  <meta name="description" content="{{meta_description}}">
+  <title>{{meta_title}}</title>
+  <link rel="canonical" href="{{canonical}}">
+  <link rel="alternate" hreflang="en" href="https://tube360.hypermind.space/">
+  <link rel="alternate" hreflang="pt-BR" href="https://tube360.hypermind.space/pt-br/">
+  <link rel="alternate" hreflang="x-default" href="https://tube360.hypermind.space/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Tube360">
+  <meta property="og:title" content="{{meta_title}}">
+  <meta property="og:description" content="{{meta_description}}">
+  <meta property="og:url" content="{{canonical}}">
+  <meta property="og:locale" content="{{og_locale}}">
+  <meta property="og:locale:alternate" content="{{other_locale}}">
+  <meta property="og:image" content="{{og_image}}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{og_alt}}">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{meta_title}}">
+  <meta name="twitter:description" content="{{meta_description}}">
+  <meta name="twitter:image" content="{{og_image}}">
+  <meta name="twitter:image:alt" content="{{og_alt}}">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/apple-touch-icon.png">
+  <link rel="preload" href="/assets/fonts/inter-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/fonts/inter-700.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/assets/img/home.jpg" as="image">
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>
+  <script id="site-i18n" type="application/json">{{runtime_json}}</script>
+  <script defer src="/main.js"></script>
+</head>
+<body data-github-retry-after="{{github_retry_after}}" data-version="{{version}}" data-download-url="{{download_url}}" data-size="{{size_bytes}}" data-stars="{{stars_raw}}">
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.5l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9Z"/></symbol>
+    <symbol id="i-github" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.86c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.64-1.34-2.22-.26-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.11-.26-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.21 2.39.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.86v2.75c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8v10h-6v-7H9v7H3Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></symbol>
+    <symbol id="i-phone" viewBox="0 0 24 24"><rect x="6" y="3" width="11" height="18" rx="2"/><path d="M10 17h3"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="m9 3-1 3-3 1-2 3 2 2-1 3 3 2 2-1 2 3h4l1-3 3-1 2-3-2-2 1-3-3-2-2 1-2-3Z"/><circle cx="12" cy="11" r="3"/></symbol>
+    <symbol id="i-power" viewBox="0 0 24 24"><path d="M12 2v10M7 5a9 9 0 1 0 10 0"/></symbol>
+    <symbol id="i-controller" viewBox="0 0 24 24"><path d="M7 7h10c3 0 5 8 3 11-1 2-4-2-5-3H9c-1 1-4 5-5 3C2 15 4 7 7 7Z"/><path d="M6 11h5M8.5 8.5v5M16 10h.01M19 12h.01"/></symbol>
+    <symbol id="i-pc" viewBox="0 0 48 48"><rect x="5" y="7" width="38" height="27" rx="2"/><path d="M17 42h14M24 34v8M6 28h36"/></symbol>
+    <symbol id="i-tv" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="29" rx="2"/><path d="m14 43 3-6m17 6-3-6"/></symbol>
+    <symbol id="i-like" viewBox="0 0 24 24"><path d="M8 10 12 3c2 0 3 2 2 5h5c2 0 2 2 1 5l-2 7H8ZM3 10h5v10H3Z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+  </svg>
+  <a class="skip-link" href="#how-it-works">{{skip}}</a>
+  <main>
+    <section id="top" class="hero" aria-labelledby="hero-title">
+      <header class="site-header">
+        <a href="#" class="brand" aria-label="{{home_label}}"><img src="/assets/logo-orbita.svg" width="31" height="31" alt=""><span class="wordmark">Tube<span>360</span></span></a>
+        <nav aria-label="{{navigation}}"><a href="#how-it-works">{{how_link}}</a><a href="#install">{{install_link}}</a><a href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer" aria-label="{{github_label}}"><svg class="icon"><use href="#i-github"/></svg></a><div class="language-switch" role="group" aria-label="{{language_label}}"><a href="/" data-language aria-current="{{en_current}}" lang="en" hreflang="en">EN</a><span aria-hidden="true">|</span><a href="/pt-br/" data-language aria-current="{{pt_current}}" lang="pt-BR" hreflang="pt-BR">PT-BR</a></div></nav>
+      </header>
+      <aside class="language-notice" id="language-notice" aria-label="Idioma" hidden><a href="/pt-br/" data-language lang="pt-BR">Ver em português</a><button id="dismiss-language" type="button" aria-label="Fechar aviso de idioma">×</button></aside>
+      <div class="hero-intro">
+        <h1 id="hero-title">{{hero_title}}</h1>
+        <p>{{hero_description}}</p>
+        <div class="hero-actions">
+          <a class="button button-download" data-download href="{{download_url}}"><svg class="icon"><use href="#i-download"/></svg><span><strong>{{download}}</strong><small data-release data-version="{{version}}" data-size="{{size_bytes}}">{{release_text}}</small></span></a>
+          <a class="button button-github" href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>{{star}}</span><span class="star-count" data-stars="{{stars_raw}}">{{stars_text}}</span></a>
+        </div>
+      </div>
+      <div class="playground">
+        <div class="tv-frame">
+          <div class="tv-screen" id="tv" role="region" aria-label="{{tv_label}}" tabindex="0" aria-describedby="demo-help">
+            <div class="app-native" id="app-native">
+              <div class="app-home" id="home-screen">
+                <div class="app-brand"><img src="/assets/logo-orbita.svg" width="40" height="40" alt=""><span class="wordmark">Tube<span>360</span></span></div>
+                <div class="app-top-actions"><span class="account-badge">{{account_badge}}</span><span><b class="pad-button pad-x">X</b> {{refresh}}</span><span><b class="pad-button pad-y">Y</b> {{search}}</span></div>
+                <div class="app-sidebar" aria-label="{{app_menu}}"><span class="sidebar-icon active"><svg class="icon"><use href="#i-home"/></svg></span><span class="sidebar-icon"><svg class="icon"><use href="#i-search"/></svg></span><span class="sidebar-icon"><svg class="icon"><use href="#i-phone"/></svg></span><span class="sidebar-icon"><svg class="icon"><use href="#i-settings"/></svg></span><span class="sidebar-icon sidebar-power"><svg class="icon"><use href="#i-power"/></svg></span></div>
+                <div class="app-categories" role="group" aria-label="{{categories}}"><button type="button" class="category active" aria-pressed="true">{{for_you}}</button><button type="button" class="category" aria-pressed="false">{{subscriptions}}</button><button type="button" class="category" aria-pressed="false">{{continue_watching}}</button><button type="button" class="category" aria-pressed="false">{{watch_later}}</button><button type="button" class="category" aria-pressed="false">{{music}}</button><button type="button" class="category" aria-pressed="false">{{football}}</button><button type="button" class="category" aria-pressed="false">{{games}}</button><button type="button" class="category" aria-pressed="false">{{podcasts}}</button><button type="button" class="category" aria-pressed="false">{{news}}</button></div><span id="category-more" class="category-more" aria-hidden="true" hidden>›</span><span id="category-previous" class="category-previous" aria-hidden="true" hidden>↔</span>
+                <noscript><img class="no-js-screen" src="/assets/img/home.jpg" width="1280" height="720" alt="{{no_js_alt}}"></noscript><div class="video-grid" id="video-grid" aria-label="{{choose_video}}"></div>
+                <div class="home-continuation" aria-hidden="true"></div>
+              </div>
+              <div class="app-player" id="player-screen" hidden>
+                <img class="player-image" src="/assets/img/player-clean.jpg" alt="{{player_alt}}" width="1280" height="720">
+                <div class="player-top"><p id="player-title">PALMEIRAS 4 X 1 CORINTHIANS | MELHORES MOMENTOS</p></div>
+                <button class="player-toggle" type="button" id="player-toggle" aria-label="{{pause_preview}}"><span class="pause-symbol"></span></button>
+                <div class="player-bottom"><span class="player-preview-note">{{still_note}}</span><div class="progress-track" role="progressbar" aria-label="{{progress}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="player-progress"></div><i class="progress-knob" id="player-knob" aria-hidden="true"></i></div><div class="player-time"><span id="player-time">0:07</span><span>8:07</span></div><div class="player-prompts"><button type="button" data-command="a"><b class="pad-button pad-a">A</b> <span id="pause-label">{{pause}}</span></button><button type="button" data-command="down">{{rating_short}}</button><button type="button" data-command="b"><b class="pad-button pad-b">B</b> {{back}}</button></div></div>
+                <div class="rating-panel" id="rating-panel" role="group" aria-label="{{rating_label}}" hidden><h3>{{rating_title}}</h3><div><button type="button" class="rating-choice selected" data-rating="like">{{like}}</button><button type="button" class="rating-choice" data-rating="dislike">{{dislike}}</button></div><p><span class="rating-change">↔ {{change}}</span><b class="pad-button pad-a">A</b> {{apply}} <b class="pad-button pad-b">B</b> {{close}}</p></div>
+                <div class="up-next" id="up-next" hidden><p>{{up_next}} <strong id="next-count">8</strong> s</p><div class="next-progress" role="progressbar" aria-label="{{up_next_progress}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="next-progress-fill"></i></div><div class="next-content"><div class="next-thumb" role="img" aria-label="{{next_alt}}"></div><div><h3>FLAMENGO 0 X 3 PALMEIRAS | HIGHLIGHTS | 2026 BRASILEIRÃO MATCHDAY 17 | ge.globo</h3><p id="next-channel">ge tv</p></div></div><div class="next-actions"><button type="button" data-command="a"><b class="pad-button pad-a">A</b> {{watch_now}}</button><button type="button" data-command="b"><b class="pad-button pad-b">B</b> {{cancel}}</button></div></div>
+              </div>
+              <div class="app-toast" id="app-toast" hidden></div>
+            </div>
+          </div>
+          <span class="tv-led" aria-hidden="true"></span>
+        </div>
+        <div class="playground-caption"><p id="demo-help"><span class="preview-mark" aria-hidden="true"></span><strong>{{try}}</strong><span class="desktop-help">{{desktop_help}}</span><span class="mobile-help">{{mobile_help}}</span></p><p class="controller-status" id="controller-status"><svg class="icon"><use href="#i-controller"/></svg><span>{{connect_controller}}</span></p><div class="connected-prompts" id="connected-prompts" hidden><span><b class="pad-button pad-a">A</b> {{select}}</span><span><b class="pad-button pad-b">B</b> {{back}}</span><span><b class="pad-button pad-x">X</b> {{refresh}}</span><span><b class="pad-button pad-y">Y</b> {{search}}</span></div></div>
+        <div class="touch-controls" aria-label="{{controls}}"><div class="direction-controls"><button type="button" data-command="left" aria-label="{{left}}">←</button><button type="button" data-command="up" aria-label="{{up}}">↑</button><button type="button" data-command="down" aria-label="{{down}}">↓</button><button type="button" data-command="right" aria-label="{{right}}">→</button></div><button type="button" data-command="a" aria-label="{{a_label}}"><b class="pad-button pad-a">A</b><span>{{watch}}</span></button><button type="button" data-command="b" aria-label="{{b_label}}"><b class="pad-button pad-b">B</b><span>{{back}}</span></button></div>
+        <p class="preview-disclosure">{{disclosure}}</p>
+      </div>
+      <div class="sr-only" id="demo-status" aria-live="polite" aria-atomic="true"></div>
+    </section>
+
+    <section class="how-section section-wrap" id="how-it-works" aria-labelledby="how-title">
+      <div class="section-heading" data-reveal><h2 id="how-title">{{how_title_1}}<br>{{how_title_2}}</h2><p>{{how_description}}</p></div>
+      <div class="signal-flow" data-reveal>
+        <div class="signal-node server-node"><svg class="device-icon"><use href="#i-pc"/></svg><div><h3>{{server}}</h3><p>Python + yt-dlp + ffmpeg</p><span>{{server_node}}</span></div></div>
+        <div class="signal-link"><span>{{network}}</span><div class="signal-wire"><i></i><svg class="icon"><use href="#i-arrow"/></svg></div></div>
+        <div class="signal-node console-node"><svg class="device-icon"><use href="#i-tv"/></svg><div><h3>{{console}}</h3><p>{{native}}</p><span>{{decoding}}</span></div></div>
+      </div>
+      <div class="server-footnote" data-reveal><p><strong>{{footprint}}</strong> {{footprint_description}}</p><p>{{server_options}}</p></div>
+    </section>
+
+    <section class="features-section section-wrap" id="features" aria-labelledby="features-title">
+      <div class="section-heading" data-reveal><h2 id="features-title">{{features_title_1}}<br>{{features_title_2}}</h2><p>{{features_intro_1}}<br>{{features_intro_2}}</p></div>
+      <div class="feature-layout" data-reveal>
+        <div class="feature-options" role="tablist" aria-label="{{features_label}}" aria-orientation="vertical">
+          <button class="feature-option active" type="button" role="tab" aria-selected="true" aria-controls="feature-panel" id="feature-account" data-feature="account"><span>{{account_title}}</span><p>{{account_description}}</p></button>
+          <button class="feature-option" type="button" role="tab" aria-selected="false" aria-controls="feature-panel" id="feature-search" data-feature="search" tabindex="-1"><span>{{search_title}}</span><p>{{search_description}}</p></button>
+          <button class="feature-option" type="button" role="tab" aria-selected="false" aria-controls="feature-panel" id="feature-cast" data-feature="cast" tabindex="-1"><span>{{cast_title}}</span><p>{{cast_description}}</p></button>
+          <button class="feature-option" type="button" role="tab" aria-selected="false" aria-controls="feature-panel" id="feature-sleep" data-feature="sleep" tabindex="-1"><span>{{sleep_title}}</span><p>{{sleep_description}}</p></button>
+        </div>
+        <figure class="feature-visual" id="feature-panel" role="tabpanel" aria-labelledby="feature-account" tabindex="0"><img id="feature-image" src="/assets/img/signin.jpg" width="1280" height="720" alt="{{account_alt}}" loading="lazy"><figcaption><span id="feature-caption">{{account_caption}}</span><span>{{actual_interface}}</span></figcaption></figure>
+      </div>
+      <div class="player-features" data-reveal>
+        <article><img src="/assets/img/rate.jpg" width="1280" height="720" loading="lazy" alt="{{rating_alt}}"><h3>{{player_feature}}</h3><p>{{player_description}}</p></article>
+        <article><img src="/assets/img/up-next.jpg" width="1280" height="720" loading="lazy" alt="{{next_alt_feature}}"><h3>{{next_feature}}</h3><p>{{next_description}}</p></article>
+      </div>
+      <div class="feature-notes" data-reveal><article><h3>{{maintenance_title}}</h3><p>{{maintenance_description}}</p></article><article><h3>{{language_title}}</h3><p>{{language_description}}</p></article></div>
+      <details class="members-example"><summary>{{members_summary}}</summary><img src="/assets/img/members-only.jpg" width="1280" height="720" loading="lazy" alt="{{members_alt}}"></details>
+    </section>
+
+    <section class="install-section section-wrap" id="install" aria-labelledby="install-title">
+      <div class="install-top" data-reveal><div><h2 id="install-title">{{install_title_1}}<br>{{install_title_2}}</h2><p>{{install_intro}}</p></div><div class="requirements" id="requirements"><h3>{{requirements_title}}</h3><ul><li><strong>{{requirements_console}}</strong><span>{{requirements_hacks}}</span></li><li><strong>{{requirements_pc}}</strong><span>{{requirements_software}}</span></li></ul><p>{{requirements_other}}</p></div></div>
+      <ol class="install-steps" data-reveal><li><span class="step-number">1</span><h3>{{step_1}}</h3><p>{{step_1_description}}</p><div class="command-block"><pre><code id="command-1">git clone https://github.com/PedroHenrique0713/tube360.git
+cd tube360
+python3 -m venv .venv
+.venv/bin/pip install -r server/requirements.txt
+cp server/config.example.json server/config.json
+(cd cast &amp;&amp; npm install)</code></pre><button type="button" class="copy-button" data-copy="command-1" aria-label="{{copy_1}}">{{copy}}</button></div><a href="{{readme_url}}" target="_blank" rel="noopener noreferrer">{{setup_guide}} <svg class="icon"><use href="#i-arrow"/></svg></a></li><li><span class="step-number">2</span><h3>{{step_2}}</h3><p>{{step_2_description}}</p><p class="command-help">{{ip_help}}</p><div class="command-block"><pre><code id="command-2">printf '192.168.0.10 8091\n' &gt; server.txt</code></pre><button type="button" class="copy-button" data-copy="command-2" aria-label="{{copy_2}}">{{copy}}</button></div><a data-download href="{{download_url}}">{{download_release}} <svg class="icon"><use href="#i-download"/></svg></a></li><li><span class="step-number">3</span><h3>{{step_3}}</h3><p>{{step_3_description}}</p><div class="command-block"><pre><code id="command-3">tools/install-services.sh</code></pre><button type="button" class="copy-button" data-copy="command-3" aria-label="{{copy_3}}">{{copy}}</button></div><a href="{{readme_url}}" target="_blank" rel="noopener noreferrer">{{console_guide}} <svg class="icon"><use href="#i-arrow"/></svg></a></li></ol>
+    </section>
+
+{{demo_section}}
+
+    <section id="star" class="star-section section-wrap" aria-labelledby="star-title" data-reveal><svg class="large-star" aria-hidden="true"><use href="#i-star"/></svg><div><h2 id="star-title">{{star_title_1}}<br>{{star_title_2}}</h2><p>{{star_description}}</p><a class="button button-github" href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer"><svg class="icon"><use href="#i-star"/></svg>{{give_star}}<span class="star-count" data-stars="{{stars_raw}}">{{stars_text}}</span></a></div></section>
+  <p class="sr-only" id="copy-status" role="status" aria-live="polite"></p></main>
+  <footer id="credits" class="site-footer section-wrap"><div class="footer-top"><a href="#" class="brand" aria-label="{{home_label}}"><img src="/assets/logo-orbita.svg" width="32" height="32" alt=""><span class="wordmark">Tube<span>360</span></span></a><p>{{license}}<br>{{built_by}} <a href="https://github.com/PedroHenrique0713" target="_blank" rel="noopener noreferrer">Pedro Henrique Quadro</a>.</p><a href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer">{{source}} <svg class="icon"><use href="#i-github"/></svg></a></div><p class="credits">{{credits}} <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>, <a href="https://ffmpeg.org/">ffmpeg</a>, <a href="https://github.com/phoboslab/pl_mpeg">pl_mpeg</a>, <a href="https://github.com/xenosworks/vulkan4xenon">vulkan4xenon</a> {{and}} <a href="https://github.com/LuanRT/YouTube.js">YouTube.js</a>{{inspired}} <a href="https://github.com/SamuelTD428/XenosTube">XenosTube (SamuelTD428)</a>.</p><p class="legal">{{legal}}</p></footer>
+</body>
+</html>

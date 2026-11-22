@@ -1,5 +1,6 @@
 # builds
 client/build*/
+site/dist/
 client/x360/shaders_bundle.*
 bench/console-decode/build/
 bench/console-decode/media/
