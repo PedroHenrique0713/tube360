@@ -16,7 +16,7 @@
 > [!TIP]
 > **O Tube360 é grátis e tem licença MIT.** Se ele ressuscitou o seu console, **deixa uma ⭐ no repositório**. É a única coisa que eu peço, e é assim que outras pessoas acham o projeto.
 
-O **Tube360** é um cliente nativo de YouTube para o Xbox 360. É um `.xex` de verdade, que abre pelo Aurora como qualquer jogo. Tem grade no estilo do YouTube, busca com teclado na tela e um player que decodifica **720p a 30 fps na própria CPU do console**. Um servidor pequeno no seu PC faz o trabalho pesado. Dá também para escolher o vídeo **pelo app oficial do YouTube no celular**, com o botão Transmitir de sempre, e mandar o som para uma **caixa Google Nest / Chromecast** enquanto a imagem fica na TV, sincronizada.
+O **Tube360** é um cliente nativo de YouTube para o Xbox 360. É um `.xex` de verdade, que abre pelo Aurora como qualquer jogo. Tem grade no estilo do YouTube, busca com teclado na tela, a sua conta do YouTube e um player que decodifica **720p a 30 fps na própria CPU do console**. Um servidor pequeno no seu PC (ou numa VPS barata, ou num Android velho) faz o trabalho pesado. Dá também para escolher o vídeo **pelo app oficial do YouTube no celular**, com o botão Transmitir de sempre, mandar o som para uma **caixa Google Nest / Chromecast** sincronizada com a imagem e programar um **timer de dormir** que desliga o console (e o PC também, se você quiser).
 
 Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 
@@ -28,9 +28,11 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 |---|---|
 | 📺 **App nativo, não página web** | C++ com Vulkan (na GPU Xenos pelo [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon)) e SDL3. Aparece no Aurora com Title ID próprio (`0x58545542`), capa e fundo. |
 | ⚡ **720p a 30 fps numa CPU de 2005** | O decodificador MPEG-1 é dividido entre 4 threads de hardware do Xenon, fatia por fatia. Cada quadro leva ~22 ms, contra ~40 ms numa thread só. |
+| 👤 **A sua conta do YouTube, sem celular** | Entre uma vez pela TV com um código em google.com/device, como app de smart TV. Depois o console mostra as suas recomendações, inscrições, continuar assistindo (com a barrinha vermelha) e Assistir mais tarde. |
 | 📱 **Transmitir pelo app oficial do YouTube** | O Tube360 aparece no menu Transmitir do celular como uma smart TV. Pareie uma vez com o código de TV (ou deixe o celular achar pelo Wi-Fi). Play, pausa, avançar, volume e "a seguir" funcionam pelo celular. |
-| 🔊 **Som na caixa Google, sincronizado** | A caixa toca o áudio e o console segue o relógio dela. O atraso da boca se ajusta ao vivo nos gatilhos. Se a caixa cair, o som volta para a TV sozinho. |
-| ♾️ **Parece o YouTube** | Home infinita, chips de categoria, buscas recentes, miniaturas que carregam antes de você chegar nelas e menu lateral. Botões desenhados no estilo do Xbox One / Series. |
+| 🔊 **Som na caixa Google, sincronizado** | A caixa toca o áudio e o console segue o relógio dela, que um teste com microfone coloca a ~20 ms do som que sai da caixa. Se a caixa cair, o som volta para a TV sozinho. |
+| 🌙 **Timer de dormir** | De 15 min a 2 h, ou "no fim deste vídeo". Aviso 60 s antes (A para +15 min, B para cancelar) com o som abaixando. Depois o console se desliga sozinho, e o PC também, se você quiser. |
+| ⚙️ **Configurações na TV** | 3 ou 4 vídeos por linha, qualidade padrão, som na TV ou na caixa, sincronia da caixa, português ou inglês. Botões no estilo do Xbox One / Series. |
 | 🪶 **Leve no PC, ou fora dele** | Parado: ~140 MB de RAM e ~0% de CPU. Tocando 720p: uns três quartos de um núcleo. Roda como serviço de prioridade baixa, ou numa [VPS pequena ou num Android velho](#rodar-sem-o-seu-pc). |
 
 ## Telas
@@ -38,14 +40,14 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | Início | Resultados da busca |
 |---|---|
 | ![Grade inicial](docs/img/home.jpg) | ![Resultados](docs/img/search-results.jpg) |
-| **Teclado na tela** | **Player** |
-| ![Teclado](docs/img/search.jpg) | ![Player](docs/img/player.jpg) |
-| **Menu lateral** | **Transmitir do celular** |
-| ![Menu lateral](docs/img/menu.jpg) | ![Pareamento](docs/img/cast.jpg) |
+| **Player** | **Teclado na tela** |
+| ![Player](docs/img/player.jpg) | ![Teclado](docs/img/search.jpg) |
+| **Configurações** | **Entrar no YouTube pela TV** |
+| ![Configurações](docs/img/settings.jpg) | ![Login com código de TV](docs/img/signin.jpg) |
+| **Timer de dormir** | **Transmitir do celular** |
+| ![Aviso do timer](docs/img/sleep-timer.jpg) | ![Pareamento](docs/img/cast.jpg) |
 
-<p align="center"><img src="docs/img/phone-remote.jpg" alt="Controle pelo navegador do celular" width="260"><br><sub>Vem junto também um controle pelo navegador, para celular sem o app do YouTube.</sub></p>
-
-<sub>As telas são do build de PC do cliente, que roda o mesmo código e o mesmo renderizador do build do console. A home de demonstração foi escolha do autor: Palmeiras 4×1 Corinthians e Flamengo 0×3 Palmeiras. 🟢⚪</sub>
+<sub>As telas são do build de PC do cliente, que roda o mesmo código e o mesmo renderizador do build do console, aqui com a interface em inglês. A home de demonstração foi escolha do autor: Palmeiras 4×1 Corinthians e Flamengo 0×3 Palmeiras. 🟢⚪ O código de login é de exemplo.</sub>
 
 ---
 
@@ -55,10 +57,9 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 flowchart LR
     subgraph Celular
         YT["App oficial do YouTube<br/>(botão Transmitir)"]
-        WEB["Controle web<br/>(qualquer navegador)"]
     end
     subgraph PC["Seu PC (mesma rede)"]
-        CAST["cast/<br/>Receptor de Cast (Node)<br/>yt-cast-receiver"]
+        CAST["cast/<br/>Receptor de Cast + conta do YouTube (Node)<br/>yt-cast-receiver · youtubei.js"]
         SRV["server/<br/>FastAPI + yt-dlp + ffmpeg"]
     end
     subgraph X360["Xbox 360"]
@@ -67,9 +68,8 @@ flowchart LR
     NEST["Caixa Google Nest /<br/>Chromecast"]
 
     YT -- "protocolo lounge do YouTube" --> CAST
-    CAST -- "play / pausa / avançar" --> SRV
-    WEB -- "JSON" --> SRV
-    APP -- "consulta a cada 500 ms<br/>listas · miniaturas" --> SRV
+    CAST -- "play / pausa / avançar · suas listas" --> SRV
+    APP -- "consulta a cada 500 ms<br/>listas · miniaturas · configurações" --> SRV
     SRV -- "MPEG-1 + MP2 por HTTP/1.0" --> APP
     SRV -- "MP3 por Google Cast" --> NEST
     APP -. "segue o relógio da caixa" .-> SRV
@@ -77,7 +77,7 @@ flowchart LR
 
 ### Por que MPEG-1?
 
-O Xbox 360 não tem decodificador H.264/VP9 aberto que homebrew possa usar. MPEG-1 é antigo, mas é simples o bastante para decodificar na CPU, e o [pl_mpeg](https://github.com/phoboslab/pl_mpeg) é um decodificador de um arquivo só que compila no toolchain do console sem mudança. Então o PC pega o vídeo do YouTube com o `yt-dlp` e o `ffmpeg` converte na hora. O vídeo começa em poucos segundos e nunca é convertido inteiro antes.
+O Xbox 360 não tem decodificador H.264/VP9 aberto que homebrew possa usar. MPEG-1 é antigo, mas é simples o bastante para decodificar na CPU, e o [pl_mpeg](https://github.com/phoboslab/pl_mpeg) é um decodificador de um arquivo só que compila no toolchain do console sem mudança. Então o PC pega o vídeo do YouTube com o `yt-dlp` (H.264 primeiro, porque abrir AV1 custa o dobro de CPU) e o `ffmpeg` converte na hora. O vídeo começa em poucos segundos e nunca é convertido inteiro antes.
 
 | Qualidade | Tamanho | Bitrate do vídeo | Observação |
 |---|---|---|---|
@@ -101,11 +101,23 @@ Cada thread pesada é presa de propósito. Principal/desenho na HW 0, decodifica
 Com um Google Nest ou Chromecast no `config.json`, o servidor manda para ele **só o áudio**, em MP3 pelo Google Cast. O console recebe **só o vídeo** e usa a caixa como relógio mestre:
 
 - Ele pergunta ao servidor a posição da caixa a cada 200 ms.
-- Respostas que levaram mais de 120 ms são descartadas, porque a oscilação do Wi-Fi faria o relógio pular.
-- Diferenças pequenas entram devagar (5% por amostra). Um salto de verdade só reancora depois de duas amostras seguidas discordarem em mais de 0,5 s.
-- Se a caixa parar de responder, o vídeo segue no relógio do próprio console. Se a caixa falhar, o som volta para a TV e um aviso aparece na tela.
+- O servidor carimba cada posição com a hora em que a resposta da caixa *chegou*. (Carimbar com "agora" deixava a imagem ~214 ms atrás do som: o `update_status()` da `pychromecast` só envia o pedido, então o status lido em seguida é a resposta anterior.) Medido com o microfone do notebook e bipes de 1 kHz: a posição informada fica a ~20 ms do som.
+- Respostas que levaram mais de 120 ms são descartadas, porque a oscilação do Wi-Fi faria o relógio pular. Diferenças pequenas entram devagar; um salto de verdade só reancora depois de duas amostras seguidas discordarem em mais de 0,5 s.
+- Se a caixa falhar, o som volta para a TV e um aviso aparece na tela. LT/RT ajustam a sincronia em 40 ms se a sua TV atrasa a imagem.
 
-Numa medição em 720p: 150 quadros a cada 5 s, 0 quadros B pulados, 0 saltos de relógio.
+### A sua conta do YouTube
+
+A conta roda no mesmo processo Node do receptor de Cast (`cast/account.mjs`), pelo [YouTube.js](https://github.com/LuanRT/YouTube.js). O login usa o fluxo de TV: o console mostra um código, você confirma em google.com/device e o token fica no seu PC (`~/.cache/tube360/yt-conta.json`, modo 600). Token de login de TV só é aceito pelo cliente de TV do YouTube, então as listas vêm por ele. O YouTube não deixa esse cliente gravar o que você assiste, por isso o console guarda o próprio histórico também.
+
+Se o YouTube começar a responder "Faça login para confirmar que você não é um robô" para o seu IP (acontece depois de muitos pedidos), ponha no `config.json` o `cookies_from_browser` apontando para um perfil do navegador logado no YouTube. O servidor usa esses cookies **só enquanto o YouTube pedir**, tentando sem eles de novo a cada 30 minutos, porque sem cookies o vídeo abre em ~3 s e com eles em ~8 s.
+
+### Timer de dormir
+
+O timer mora no servidor, então continua contando mesmo se o console for desligado na mão. Quando vence, o servidor para a caixa e manda `desligar` ao console, que se desliga pelo kernel (`HalReturnToFirmware(HalPowerDownRoutine)`, achado pelo número dentro do `xboxkrnl.exe`). Com "Xbox e PC", o servidor desliga o PC pelo logind 20 s depois, e os programas fecham normalmente.
+
+O Xbox 360 não tem HDMI-CEC, então não consegue desligar a TV. Quase toda TV tem uma opção de "desligar quando não há sinal" (na Samsung: **Sistema → Solução Eco → Desligamento sem sinal**); com ela ligada, a TV apaga alguns minutos depois do console.
+
+Enquanto o console usa o servidor (ou há timer ligado), o servidor também segura a tampa pelo logind: dá para fechar a tampa do notebook e desligar o monitor sem o PC suspender no meio do vídeo.
 
 ### Transmitir pelo app oficial
 
@@ -123,7 +135,7 @@ O `cast/receptor.mjs` usa o [yt-cast-receiver](https://github.com/patrickkfkan/y
 **PC (na mesma rede)**
 - Linux. Testado no Fedora. O servidor é Python puro e deve rodar em macOS ou Windows, mas os scripts de serviço são só para systemd.
 - Python 3.11+ e `ffmpeg` no `PATH`.
-- Node.js 22+. O yt-dlp usa para ler as páginas do YouTube, e o receptor de Cast roda nele.
+- Node.js 22+. O yt-dlp usa para ler as páginas do YouTube, e o receptor de Cast e a conta rodam nele.
 
 ## Começo rápido
 
@@ -137,9 +149,9 @@ cp server/config.example.json server/config.json   # edite se quiser (veja Confi
 TUBE360_PYTHON=$PWD/.venv/bin/python ./server/run.sh   # escuta na porta 8091
 ```
 
-Abra `http://<IP-do-PC>:8091` no celular para conferir: é o controle pelo navegador.
+Abra `http://<IP-do-PC>:8091` no navegador: uma página de status mostra o servidor, o console, o código de TV do Transmitir e a sua conta.
 
-### 2. Receptor de Cast (opcional, para o app oficial do YouTube)
+### 2. Receptor de Cast e conta do YouTube (opcional)
 
 ```bash
 (cd cast && npm install)
@@ -160,6 +172,7 @@ TUBE360_NAME="TV da Sala" tools/install-services.sh
    - `client/assets/inter-300.ttf`, `inter-400.ttf`, `inter-600.ttf`, `inter-700.ttf`
    - um `server.txt` com o IP e a porta do PC, por exemplo `192.168.0.10 8091`
 3. No Aurora, adicione a pasta aos caminhos de busca (ou mande varrer de novo). O Tube360 aparece como jogo.
+4. Para usar a sua conta: **Configurações → Conta do YouTube → A** e digite o código que aparece na TV em google.com/device.
 
 > [!NOTE]
 > No Linux com firewalld, libere as portas: `sudo firewall-cmd --add-port=8091/tcp --add-port=8098/tcp --add-service=ssdp --permanent && sudo firewall-cmd --reload`.
@@ -202,7 +215,8 @@ Depois coloque o endereço da VPS no `server.txt` do console (ex.: `203.0.113.7 
 O que muda numa VPS:
 - **Transmitir pelo app oficial** funciona com o código de TV, porque o pareamento passa pelos servidores do YouTube. O celular achar o console sozinho pelo Wi-Fi não funciona.
 - **A caixa Google não funciona.** Ela precisa estar na mesma rede do servidor.
-- **O YouTube pode bloquear IP de datacenter** com "Faça login para confirmar que você não é um robô". Se acontecer, exporte um `cookies.txt` de uma conta reserva do YouTube ([guia do yt-dlp](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies)), copie para a VPS e ponha `"cookies_file": "~/cookies.txt"` no `server/config.json`.
+- **O timer de dormir só desliga o Xbox**, não o seu PC.
+- **O YouTube costuma pedir login para IP de datacenter** ("confirme que você não é um robô"). Exporte um `cookies.txt` de uma conta reserva do YouTube ([guia do yt-dlp](https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies)), copie para a VPS e ponha `"cookies_file": "~/cookies.txt"` no `server/config.json`.
 - Começar e avançar o vídeo demora um pouco mais, porque agora ele atravessa a internet.
 
 ### Opção B: um celular Android velho
@@ -227,7 +241,7 @@ Um celular velho na tomada pode ser o servidor da sala. Isso usa o [Termux](http
 4. Coloque o IP do celular no `server.txt` do console.
 5. Para tudo ligar sozinho depois de reiniciar, instale o **Termux:Boot** (também no F-Droid) e ponha os dois comandos num script em `~/.termux/boot/`.
 
-**Comece em 480p** (`quality.txt` com `480` ao lado do `.xex`). O celular converte em tempo real, e 720p pede uns três quartos de um núcleo de notebook, coisa que muita CPU de celular só alcança dividindo o trabalho entre vários núcleos. Se 480p rodar liso, tente 720p. A caixa Google e o Transmitir por código de TV funcionam, porque o celular está na rede da sua casa.
+**Comece em 480p** (Configurações → Qualidade padrão). O celular converte em tempo real, e 720p pede uns três quartos de um núcleo de notebook, coisa que muita CPU de celular só alcança dividindo o trabalho entre vários núcleos. Se 480p rodar liso, tente 720p. A caixa Google e o Transmitir por código de TV funcionam, porque o celular está na rede da sua casa.
 
 ## Controles
 
@@ -235,44 +249,50 @@ Os botões aparecem na tela no estilo do Xbox One / Series.
 
 | Onde | Botão | Ação |
 |---|---|---|
-| **Início** | A | Assistir |
-| | X | Atualizar a home |
+| **Início** | A | Assistir (retoma de onde você parou) |
+| | X | Atualizar a lista |
 | | Y | Buscar |
-| | Direcional ← (na primeira coluna) | Menu lateral (Início · Buscar · Celular · Sair) |
-| | Direcional ↑ (na primeira linha) | Chips de categoria |
+| | Direcional ← (na primeira coluna) | Menu lateral (Início · Buscar · Celular · Configurações · Sair) |
+| | Direcional ↑ (na primeira linha) | Chips de categoria e da conta |
 | | View | Voltar ao Aurora |
 | **Busca** | A / X / Y | Digitar / Apagar / Espaço |
 | | Menu | Buscar |
 | | B | Voltar |
 | **Player** | A ou Menu | Pausar / continuar |
 | | Direcional ← → | −10 s / +10 s |
+| | Direcional ↑ | Timer de dormir |
 | | LB / RB | −1 min / +1 min |
 | | Y | 720p ↔ 480p |
 | | X | Som na TV ↔ na caixa |
 | | LT / RT | Sincronia da caixa −40 ms / +40 ms (fica salva) |
 | | B ou View | Voltar à grade |
+| **Configurações** | Direcional ↑ ↓ / ← → | Escolher a linha / trocar o valor |
+| | A / B | Abrir (entrar, sair da conta) / Voltar |
+| **Aviso do timer** | A / B | +15 min / Cancelar |
 
 ## Configuração
 
-**Ao lado do `.xex` no console** (arquivos de texto, todos opcionais menos o `server.txt`):
+**No console**, tudo fica em **Configurações** e é salvo no `settings.txt` ao lado do `.xex` (`lang`, `cols`, `quality`, `sound`, `sync_ms`, `sleep_what`). Outros arquivos ao lado do `.xex`:
 
 | Arquivo | Conteúdo | O que faz |
 |---|---|---|
-| `server.txt` | `192.168.0.10 8091` | Onde está o servidor. |
-| `quality.txt` | `720`, `480` ou `360` | Qualidade padrão. |
-| `audio.txt` | `nest 0` ou `tv 0` | Onde sai o som, mais o ajuste de sincronia da caixa em ms. O app grava sozinho quando você aperta X ou LT/RT. |
+| `server.txt` | `192.168.0.10 8091` | Onde está o servidor (obrigatório). |
 | `marca.txt` | linha 1: um nome; linha 2 (opcional): `retangulo` | Nome e estilo do logo no topo do app. |
 | `net_log.txt` | `192.168.0.10 7400` | Manda o log do app por UDP para o PC (depuração). |
+
+Os antigos `quality.txt` e `audio.txt` ainda são lidos na primeira vez; depois o `settings.txt` assume.
 
 **`server/config.json`** (copie do `config.example.json`):
 
 | Chave | Significado |
 |---|---|
-| `home_queries` | Temas que montam a home. Seis são sorteados a cada atualização. |
+| `language` | `en` ou `pt`: idioma dos títulos das listas, das mensagens e dos dados do YouTube. |
+| `home_queries` | Temas que montam a home quando não há conta. Seis são sorteados a cada atualização. |
 | `warm_queries` | Buscas carregadas por trás enquanto o console está em uso, para os chips de categoria abrirem na hora. |
 | `nest` | `{"host": "192.168.0.20", "name": "Caixa da sala"}`. Use o IP, porque muita rede doméstica bloqueia mDNS. |
-| `brand` | Nome mostrado no controle pelo navegador. |
-| `cookies_file` | Caminho de um `cookies.txt`, para quando o YouTube pede para confirmar que você não é um robô (comum em VPS). |
+| `cookies_from_browser` | ex. `"chrome:~/.config/google-chrome/Default"`. Só é usado quando o YouTube pede login (veja [A sua conta do YouTube](#a-sua-conta-do-youtube)). |
+| `cookies_file` | Mesma ideia com um `cookies.txt` exportado (para VPS sem navegador). |
+| `brand` | Nome mostrado na página de status. |
 
 ## Compilar do código
 
@@ -298,10 +318,11 @@ Os shaders são GLSL, compilados para a GPU Xenos pelo `build_shaders.py` do vul
 ## Organização
 
 ```
-client/          o app do console (C++20): src/main.cpp (interface), gfx.hpp (renderizador 2D em Vulkan), player.hpp (decodificação, A/V, sincronia da caixa)
+client/          o app do console (C++20): src/main.cpp (interface), gfx.hpp (renderizador 2D em Vulkan), player.hpp
+                 (decodificação, A/V, sincronia da caixa), i18n.hpp (inglês/português), settings.hpp, sleep.hpp (desligar)
 client/third_party/pl_mpeg.h   pl_mpeg com as mudanças do Tube360 (fatias em paralelo e pulo de quadro B)
-server/          servidor FastAPI: listas, miniaturas, fluxo do ffmpeg, áudio por Google Cast, controle
-cast/            receptor de Cast para o app oficial do YouTube (Node)
+server/          servidor FastAPI: listas, miniaturas, fluxo do ffmpeg, áudio por Google Cast, timer, página de status
+cast/            receptor de Cast para o app oficial do YouTube e a conta do YouTube (Node)
 bench/           o primeiro teste de decodificação rodado no console
 docs/PROTOCOL.md o protocolo console ⇄ servidor
 tools/           build do console e instalador dos serviços
@@ -309,16 +330,15 @@ tools/           build do console e instalador dos serviços
 
 ## Próximos passos
 
-- [ ] Entrar com a conta do YouTube: histórico, inscrições, Assistir mais tarde
-- [ ] Tela de configurações: 3 ou 4 vídeos por linha, qualidade, som
-- [ ] Interface em inglês (hoje é em português do Brasil)
 - [ ] Legendas
+- [ ] Gravar no seu histórico do YouTube o que você assiste no console (hoje o YouTube recusa pelo cliente de TV)
+- [ ] Testar em mais celulares Android
 
 Pull requests são bem-vindos.
 
 ## Créditos e licença
 
-O Tube360 tem [licença MIT](LICENSE). Você pode usar, mudar e compartilhar. Mantenha o aviso de copyright, ou seja, dê o crédito. As partes de terceiros e as licenças delas estão em [THIRD_PARTY.md](THIRD_PARTY.md). Valeu ao **pl_mpeg**, **yt-dlp**, **yt-cast-receiver**, **FFmpeg**, **PyChromecast** e aos projetos **xsdk / vulkan4xenon / SDL-xenon**, que tornaram possível homebrew moderno no 360.
+O Tube360 tem [licença MIT](LICENSE). Você pode usar, mudar e compartilhar. Mantenha o aviso de copyright, ou seja, dê o crédito. As partes de terceiros e as licenças delas estão em [THIRD_PARTY.md](THIRD_PARTY.md). Valeu ao **pl_mpeg**, **yt-dlp**, **YouTube.js**, **yt-cast-receiver**, **FFmpeg**, **PyChromecast** e aos projetos **xsdk / vulkan4xenon / SDL-xenon**, que tornaram possível homebrew moderno no 360.
 
 Feito por [Pedro Henrique Quadro](https://github.com/PedroHenrique0713).
 
