@@ -13,7 +13,6 @@ server/config.json
 server/.yt-dlp-cache/
 cast/node_modules/
 cast/.node-persist/
-cast/conta.mjs
 **/server.txt
 **/net_log.txt
 **/audio.txt

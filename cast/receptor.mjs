@@ -3,6 +3,7 @@
 // controle remoto do servidor (server/, /api/remote/cmd); o estado volta pelo /api/remote/state (o console informa
 // vídeo, posição, duração e pausa a cada ~0,5 s). Volume vai para o Nest. Sem descoberta automática na rede, o pareamento
 // é pelo código de "Assistir na TV", gravado em ~/.cache/tube360/cast-code.txt (o console mostra no painel Celular).
+import { startAccountService } from './account.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -99,13 +100,14 @@ class XboxPlayer extends Player {
   }
 }
 
+const accountService = await startAccountService();
 const player = new XboxPlayer();
 const receiver = new YouTubeCastReceiver(player, {
   device: { name: process.env.TUBE360_NAME || 'Tube360', screenName: process.env.TUBE360_NAME || 'Tube360', brand: 'Microsoft', model: 'Xbox 360' },
   dial: { port: Number(process.env.YT360_DIAL_PORT || 8098) },
   logLevel: process.env.YT360_LOG === 'debug' ? LOG_LEVELS.DEBUG : LOG_LEVELS.INFO,
 });
-// avisa o servidor, que mostra no Xbox ("Celular conectado: Pedro")
+// avisa o servidor, que mostra no Xbox ("Celular conectado: celular")
 const nome = (sender) => sender.user?.name || sender.name || 'celular';
 const evento = (kind, sender) => fetch(`${API}/api/cast/event`, { method: 'POST', headers: { 'content-type': 'application/json' },
   body: JSON.stringify({ kind, name: nome(sender) }) }).catch(() => {});
@@ -128,4 +130,4 @@ pairing.on('error', (error) => { log('código falhou:', error.message); setTimeo
 pairing.start();
 
 setInterval(() => player.watch().catch((e) => log('watch:', e.message)), 1000);
-for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { pairing.stop(); await receiver.stop().catch(() => {}); process.exit(0); });
+for (const sig of ['SIGINT', 'SIGTERM']) process.on(sig, async () => { accountService.close(); pairing.stop(); await receiver.stop().catch(() => {}); process.exit(0); });

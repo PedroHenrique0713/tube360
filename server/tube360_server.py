@@ -7,6 +7,7 @@ import io
 import json
 import logging
 import math
+import os
 import re
 import random
 import shutil
@@ -17,6 +18,7 @@ import time
 from collections import deque
 from datetime import datetime, timezone
 from contextlib import asynccontextmanager
+from html import escape
 from itertools import zip_longest
 from pathlib import Path
 from urllib.parse import quote
@@ -28,8 +30,7 @@ import yt_dlp
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.exception_handlers import request_validation_exception_handler
-from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse, StreamingResponse
 from PIL import Image, ImageOps
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Literal
@@ -39,7 +40,11 @@ from pychromecast.models import CastInfo, HostServiceInfo
 
 BASE = Path(__file__).resolve().parent
 # config.json é seu (fica fora do Git); sem ele, vale o config.example.json
-CONFIG = json.loads(((BASE / "config.json") if (BASE / "config.json").exists() else (BASE / "config.example.json")).read_text(encoding="utf-8"))
+CONFIG_PATH = Path(os.environ.get("TUBE360_CONFIG", BASE / "config.json"))
+CONFIG = json.loads((CONFIG_PATH if CONFIG_PATH.exists() else BASE / "config.example.json").read_text(encoding="utf-8"))
+LANGUAGE = "pt" if CONFIG.get("language") == "pt" else "en"
+PORT = int(os.environ.get("TUBE360_PORT", "8091"))
+ACCOUNT_URL = os.environ.get("TUBE360_ACCOUNT_URL", "http://127.0.0.1:8099").rstrip("/")
 THUMBS = Path.home() / ".cache/tube360/thumbs"
 FFMPEG = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
 ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{11}$")
@@ -72,14 +77,19 @@ class QuietYDL:
         pass
 
 
-def ydl_options(**extra):
+def tr(pt, en, lang=None):
+    return pt if (lang or LANGUAGE) == "pt" else en
+
+
+def ydl_options(lang=None, **extra):
+    lang = lang or LANGUAGE
     options = {
         "quiet": True, "no_warnings": True, "logger": QuietYDL(),
         "socket_timeout": 15, "retries": 1, "extractor_retries": 1,
         "skip_download": True, "noplaylist": True,
         # O identificador brasileiro aceito pelo extrator é "pt" (não "pt-BR").
-        "extractor_args": {"youtube": {"lang": ["pt"]}},
-        "http_headers": {"Accept-Language": "pt-BR,pt;q=0.9"},
+        "extractor_args": {"youtube": {"lang": [lang]}},
+        "http_headers": {"Accept-Language": tr("pt-BR,pt;q=0.9", "en-US,en;q=0.9", lang)},
         "remote_components": ["ejs:github"],
         "cachedir": str(BASE / ".yt-dlp-cache"),
     }
@@ -130,16 +140,21 @@ class TTLCache:
         return await asyncio.shield(self.pending[key])
 
 
-home_cache = TTLCache(600, 1)
+home_cache = TTLCache(600, 2)
 search_cache = TTLCache(300)
 url_cache = TTLCache(1800)
 thumb_cache = TTLCache(60, 256)
 
 
-def views_text(count):
+def views_text(count, lang=None):
     if count is None:
         return ""
     count = max(0, int(count))
+    if (lang or LANGUAGE) == "en":
+        for divisor, unit in ((1_000_000_000, "B"), (1_000_000, "M"), (1000, "K")):
+            if count >= divisor:
+                return f"{count / divisor:.1f}".removesuffix(".0") + unit + " views"
+        return f"{count} view{'s' if count != 1 else ''}"
     if count >= 1_000_000:
         return f"{count / 1_000_000:.1f}".replace(".", ",") + " mi de visualizações"
     if count >= 1000:
@@ -154,7 +169,7 @@ def remember(item):
     return item
 
 
-def normalize(entry):
+def normalize(entry, lang=None):
     video_id = entry.get("id", "")
     duration = max(0, int(entry.get("duration") or 0))
     url = entry.get("url") or entry.get("webpage_url") or ""
@@ -163,59 +178,57 @@ def normalize(entry):
     return remember({
         "id": video_id, "duration": duration,
         "channel": clean(entry.get("channel") or entry.get("uploader")),
-        "views": views_text(entry.get("view_count")),
+        "views": views_text(entry.get("view_count"), lang),
         "title": clean(entry.get("title") or video_id),
     })
 
 
-async def search_videos(query, count=100):
+async def search_videos(query, count=100, lang=None):
+    lang = lang or LANGUAGE
     async def load():
-        data = await extract(f"ytsearch{count}:{query}", extract_flat="in_playlist")
+        data = await extract(f"ytsearch{count}:{query}", extract_flat="in_playlist", lang=lang)
         items, seen = [], set()
         for entry in data.get("entries", []):
-            item = normalize(entry) if entry else None
+            item = normalize(entry, lang) if entry else None
             if item and item["id"] not in seen:
                 seen.add(item["id"])
                 items.append(item)
         return items
-    return await search_cache.get((query, count), load, stale_ok=True)
+    return await search_cache.get((query, count, lang), load, stale_ok=True)
 
 
-home_extra = []  # páginas a mais da home (rolagem sem fim): buscas de temas sorteados, anexadas sem repetir
+home_extra = {"pt": [], "en": []}  # páginas a mais da home (rolagem sem fim): buscas de temas sorteados, anexadas sem repetir
 
 
-async def home_more(have):
+async def home_more(have, lang=None):
     """Mais vídeos para a home quando o console chega ao fim: 4 temas sorteados, intercalados, sem repetir id."""
-    pool = CONFIG.get("home_queries") or ["música brasileira"]
+    lang = lang or LANGUAGE
+    pool = CONFIG.get("home_queries") or [tr("música brasileira", "music", lang)]
     queries = random.sample(pool, min(4, len(pool)))
-    results = await asyncio.gather(*(search_videos(clean(q), 40) for q in queries), return_exceptions=True)
+    results = await asyncio.gather(*(search_videos(clean(q), 40, lang) for q in queries), return_exceptions=True)
     groups = [r for r in results if isinstance(r, list)]
     seen = set(have)
     for row in zip_longest(*groups):
         for item in row:
             if item and item["id"] not in seen:
-                home_extra.append(item)
+                home_extra[lang].append(item)
                 seen.add(item["id"])
 
 
-async def home_videos(fresh=False):
+async def home_videos(fresh=False, lang=None):
+    lang = lang or LANGUAGE
     if fresh:
-        home_cache.values.pop("home", None)
-        home_extra.clear()
+        home_cache.values.pop(lang, None)
+        home_extra[lang].clear()
 
     async def load():
-        if CONFIG.get("cookies_from_browser"):
-            data = await extract(":ytrec", extract_flat="in_playlist", playlistend=100)
-            groups = [[normalize(e) for e in data.get("entries", []) if e]]
-        else:
-            pool = CONFIG.get("home_queries") or ["música brasileira", "ciência Brasil", "games Brasil"]
-            # a cada carga sorteia parte dos temas: "Atualizar" no console traz vídeos novos de fato
-            queries = random.sample(pool, min(len(pool), 6))
-            results = await asyncio.gather(
-                *(search_videos(clean(q), max(16, math.ceil(100 / len(queries)) * 2)) for q in queries),
-                return_exceptions=True,
-            )
-            groups = [r for r in results if isinstance(r, list)]
+        pool = CONFIG.get("home_queries") or [tr("música brasileira", "music", lang), "science", "games"]
+        queries = random.sample(pool, min(len(pool), 6))
+        results = await asyncio.gather(
+            *(search_videos(clean(q), max(16, math.ceil(100 / len(queries)) * 2), lang) for q in queries),
+            return_exceptions=True,
+        )
+        groups = [r for r in results if isinstance(r, list)]
         items, seen = [], set()
         for row in zip_longest(*groups):
             for item in row:
@@ -225,7 +238,7 @@ async def home_videos(fresh=False):
         if not items:
             raise RuntimeError("feed vazio")
         return items
-    return await home_cache.get("home", load, stale_ok=True)
+    return await home_cache.get(lang, load, stale_ok=True)
 
 
 async def resolve_video(video_id):
@@ -439,6 +452,7 @@ class History:
 
     def save(self):
         self.saved_at = time.monotonic()
+        self.FILE.parent.mkdir(parents=True, exist_ok=True)
         temporary = self.FILE.with_suffix(".tmp")
         temporary.write_text(json.dumps(list(self.items.values()), ensure_ascii=False))
         temporary.replace(self.FILE)
@@ -460,6 +474,7 @@ class Remote:
         self.playing, self.title = "", ""
         self.pos, self.dur, self.paused = 0.0, 0.0, False
         self.last_poll, self.last_ended = 0.0, ""
+        self.watch_stamp = 0.0
         self.ended_seq = 0  # sobe a cada fim natural de vídeo informado pelo console (o receptor de Cast pede o próximo)
 
     def item(self, video_id):
@@ -473,6 +488,14 @@ class Remote:
                 "pending": len(self.commands), "ended": self.last_ended, "ended_seq": self.ended_seq}
 
     def poll(self, playing, pos, dur, paused, ended):
+        new_session = playing and (playing != self.playing or time.monotonic() - self.last_poll > 6)
+        if new_session:
+            spawn_background(account_watched(playing))
+            self.watch_stamp = time.monotonic()
+        if self.playing and self.pos > 0 and (playing != self.playing or ended == self.playing or
+                time.monotonic() - self.watch_stamp >= 30):
+            spawn_background(account_watched(self.playing, self.pos, progress=True))
+            self.watch_stamp = time.monotonic()
         self.playing, self.pos, self.dur, self.paused = playing, pos, dur, bool(paused)
         self.title = self.item(playing)["title"] if playing else ""
         self.last_poll = time.monotonic()
@@ -528,13 +551,88 @@ async def prefetch_thumbs(ids, width=320, height=180):
 
 
 def prefetch_later(items):
-    task = asyncio.create_task(prefetch_thumbs([i["id"] for i in items]))
-    background.add(task)
-    task.add_done_callback(background.discard)
+    spawn_background(prefetch_thumbs([i["id"] for i in items]))
 
 
 background = set()
 last_console = [0.0]  # monotonic do último pedido do console; sem console por 30 min, o aquecimento para
+
+
+def spawn_background(coroutine):
+    task = asyncio.create_task(coroutine)
+    background.add(task)
+    task.add_done_callback(background.discard)
+    return task
+
+
+async def account_request(route, body=None, timeout=25):
+    def work():
+        data = json.dumps(body).encode() if body is not None else None
+        request = URLRequest(ACCOUNT_URL + route, data=data, headers={"Content-Type": "application/json"})
+        with urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read(8 * 1024 * 1024))
+    async with asyncio.timeout(timeout):
+        return await asyncio.to_thread(work)
+
+
+async def account_status():
+    try:
+        return await account_request("/status", timeout=2)
+    except Exception:
+        return {"state": "signed_out", "name": "", "handle": "", "code": "", "url": ""}
+
+
+account_pages = {}
+account_locks = {kind: asyncio.Lock() for kind in ("home", "subs", "history", "later")}
+
+
+async def account_items(kind, offset, n, fresh, identity):
+    # As páginas do YouTube variam de tamanho; offset conta os vídeos já filtrados.
+    async with asyncio.timeout(25), account_locks[kind]:
+        cache = account_pages.get(kind)
+        owner = (identity.get("name"), identity.get("handle"))
+        if not cache or cache["owner"] != owner or time.monotonic() - cache["stamp"] > 300 or (fresh and offset == 0):
+            cache = {"owner": owner, "stamp": time.monotonic(), "items": [], "page": 0, "more": True, "seen": set()}
+            account_pages[kind] = cache
+        while cache["more"] and len(cache["items"]) < offset + n:
+            page = cache["page"]
+            result = await account_request(f"/feed?kind={kind}&page={page}&fresh={int(page == 0)}")
+            for entry in result["items"]:
+                if not ID_PATTERN.fullmatch(entry.get("id", "")) or entry["id"] in cache["seen"]:
+                    continue
+                item = remember({"id": entry["id"], "duration": max(0, int(entry.get("duration") or 0)),
+                    "channel": clean(entry.get("channel")), "title": clean(entry.get("title")),
+                    "views": clean(entry.get("views_text")), "pos": max(0, float(entry.get("pos") or 0))})
+                cache["items"].append(item)
+                cache["seen"].add(item["id"])
+            cache["more"] = bool(result.get("more")) and page < 1000
+            cache["page"] += 1
+        return cache["items"][offset:offset + n]
+
+
+async def account_watched(video_id, pos=0, progress=False):
+    try:
+        if (await account_status())["state"] == "signed_in":
+            await account_request("/progress" if progress else "/watched", {"id": video_id, "pos": pos})
+            account_pages.pop("history", None)
+    except Exception:
+        LOG.warning("Conta: não foi possível registrar %s.", "a posição" if progress else "a reprodução")
+
+
+def localized_views(value, lang):
+    # Os tiles TV vêm no idioma do config; o console pode pedir outro idioma por lista.
+    raw = clean(value).replace("\u00a0", " ")
+    if raw.lower() in ("no views", "nenhuma visualização", "sem visualizações"):
+        return tr("Nenhuma visualização", "No views", lang)
+    match = re.fullmatch(r"([\d.,]+)\s*(K|M|B|mil|mi(?:lhões)?|bilhões)?\s*(?:de\s+)?(?:views?|visualizaç(?:ões|ão))", raw, re.I)
+    if not match:
+        return raw
+    number, unit = match.groups()
+    unit = (unit or "").lower()
+    divisor = {"k": 1000, "mil": 1000, "m": 1000000, "mi": 1000000, "milhões": 1000000,
+               "b": 1000000000, "bilhões": 1000000000}.get(unit, 1)
+    number = number.replace(",", ".") if divisor > 1 else number.replace(",", "").replace(".", "")
+    return views_text(float(number) * divisor, lang)
 
 
 async def warm_loop():
@@ -559,74 +657,191 @@ async def warm_loop():
 @asynccontextmanager
 async def lifespan(app):
     THUMBS.mkdir(parents=True, exist_ok=True)
-    warm = asyncio.create_task(warm_loop())
+    warm = asyncio.create_task(warm_loop()) if os.environ.get("TUBE360_WARM_CACHE", "1") != "0" else None
     yield
-    warm.cancel()
+    if warm:
+        warm.cancel()
     with anyio.CancelScope(shield=True):
         await streams.begin()
+        for job in list(audio_jobs.values()):
+            if job.returncode is None:
+                with contextlib.suppress(ProcessLookupError):
+                    job.terminate()
+        await asyncio.gather(*(job.wait() for job in list(audio_jobs.values())), return_exceptions=True)
+        for task in list(background):
+            task.cancel()
+        await asyncio.gather(*background, return_exceptions=True)
 
 
 app = FastAPI(title="YouTube 360", lifespan=lifespan)
-app.mount("/static", StaticFiles(directory=BASE / "static"), name="static")
 
 
 @app.exception_handler(RequestValidationError)
 async def parameter_error(request: Request, error: RequestValidationError):
     # Mesmo parâmetros inválidos preservam o tipo de erro combinado com o console.
     if request.url.path == "/api/feed":
-        return PlainTextResponse("erro\tParâmetros de feed inválidos.\n")
+        return PlainTextResponse("erro\t" + tr("Parâmetros de feed inválidos.", "Invalid feed parameters.",
+            request.query_params.get("lang") if request.query_params.get("lang") in ("pt", "en") else None) + "\n")
     if request.url.path.startswith("/api/thumb/"):
         return PlainTextResponse("Miniatura indisponível.\n", status_code=404)
     return await request_validation_exception_handler(request, error)
 
 
+def account_line(status):
+    return "ok\t" + "\t".join(clean(status.get(k, "")) for k in ("state", "name", "code", "url")) + "\n"
+
+
+@app.get("/api/account", response_class=PlainTextResponse)
+async def account_info():
+    return PlainTextResponse(account_line(await account_status()), headers={"Cache-Control": "no-store"})
+
+
+async def account_action(action):
+    account_pages.clear()
+    try:
+        return await account_request("/" + action, {})
+    except Exception:
+        return {"state": "signed_out", "name": "", "code": "", "url": ""}
+
+
+@app.get("/api/account/login", response_class=PlainTextResponse)
+async def account_login(request: Request):
+    account_native_request(request)
+    return PlainTextResponse(account_line(await account_action("login")), headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/account/logout", response_class=PlainTextResponse)
+async def account_logout(request: Request):
+    account_native_request(request)
+    return PlainTextResponse(account_line(await account_action("logout")), headers={"Cache-Control": "no-store"})
+
+
+def account_native_request(request):
+    # GET legado do Xbox: formulários/navegações não podem acionar mudanças na conta.
+    if (request.headers.get("user-agent") != "Tube360/1.0" or request.headers.get("origin") or
+            request.headers.get("sec-fetch-site")):
+        raise HTTPException(403, "Native client required.")
+
+
+@app.post("/api/account/login")
+async def account_login_form(request: Request):
+    if (request.headers.get("origin") != f"{request.url.scheme}://{request.url.netloc}" or
+            request.headers.get("sec-fetch-site", "") not in ("", "same-origin")):
+        raise HTTPException(403, "Invalid account request origin.")
+    await account_action("login")
+    return RedirectResponse("/", status_code=303, headers={"Cache-Control": "no-store"})
+
+
 @app.get("/")
 async def index():
-    # nome da marca vem do config.json ("brand"); o padrão é Tube360
-    html = (BASE / "static/index.html").read_text().replace("{{BRAND}}", clean(CONFIG.get("brand") or "Tube360"))
-    return HTMLResponse(html, headers={"Cache-Control": "no-cache"})
+    brand = escape(clean(CONFIG.get("brand") or "Tube360"))
+    status = await account_status()
+    state = status["state"]
+    account_name = escape(status.get("name") or tr("Conta conectada", "Account connected"))
+    account_text = {"signed_out": tr("Sem conta conectada", "Signed out"),
+                    "pending": tr("Aguardando confirmação", "Waiting for confirmation"),
+                    "signed_in": account_name}.get(state, "")
+    account_detail = ""
+    if state == "pending":
+        url = status.get("url", "")
+        if not url.startswith("https://"):
+            url = "https://www.google.com/device"
+        account_detail = f'<p class="code">{escape(status.get("code", ""))}</p><p><a href="{escape(url, quote=True)}">{escape(url)}</a></p>'
+    elif state == "signed_out":
+        account_detail = '<form method="post" action="/api/account/login"><button>' + tr("Conectar YouTube", "Sign in to YouTube") + '</button></form>'
+    age = max(0, int(time.monotonic() - remote.last_poll)) if remote.last_poll else None
+    contact = (tr("Há", "Last seen") + f" {age} s" + tr("", " ago")) if age is not None else tr("Nenhum contato ainda", "No contact yet")
+    if age is not None and age < 5:
+        contact = tr("Conectado agora", "Connected now")
+    cfg = CONFIG.get("nest") or {}
+    speaker = escape(clean(cfg.get("name") or "Nest")) if cfg.get("host") else tr("Não configurado", "Not configured")
+    code = ""
+    try:
+        if time.time() - CAST_CODE.stat().st_mtime < 330:
+            code = clean(CAST_CODE.read_text())
+    except OSError:
+        pass
+    cast = f'<span class="code">{escape(code)}</span>' if code else tr("Receptor indisponível", "Receiver unavailable")
+    html = f'''<!doctype html><html lang="{LANGUAGE}"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="15">
+<title>{brand} · Status</title><style>
+*{{box-sizing:border-box}}body{{margin:0;background:#101014;color:#f5f5f7;font:16px/1.6 system-ui,sans-serif}}
+main{{max-width:680px;margin:7vh auto;padding:24px}}header{{border-bottom:2px solid #ff0f3c;padding-bottom:20px}}
+h1{{font-size:32px;letter-spacing:-1px;margin:0}}h2{{font-size:14px;font-weight:500;color:#a5a5b4;margin:0 0 7px}}
+p{{margin:6px 0}}.online{{color:#ff627f}}section{{padding:23px 0;border-bottom:1px solid #30303a}}
+a{{color:#ff627f;overflow-wrap:anywhere}}.code{{font:600 24px/1.6 ui-monospace,monospace;letter-spacing:2px}}
+button{{margin-top:12px;background:#ff0f3c;color:#fff;border:0;border-radius:7px;padding:12px 18px;font:600 15px system-ui;cursor:pointer}}
+a:focus-visible,button:focus-visible{{outline:2px solid white;outline-offset:4px}}footer{{color:#a5a5b4;font-size:13px;margin-top:24px}}
+</style></head><body><main><header><h1>{brand}</h1><p class="online">● {tr("Servidor no ar", "Server online")}</p></header>
+<section><h2>Xbox 360</h2><p>{contact}</p></section><section><h2>Google Nest</h2><p>{speaker}</p></section>
+<section><h2>{tr("Transmitir · código de TV", "Cast · TV code")}</h2><p>{cast}</p></section>
+<section><h2>{tr("Conta do YouTube", "YouTube account")}</h2><p>{account_text}</p>{account_detail}</section>
+<footer>{tr("Esta página atualiza a cada 15 segundos.", "This page refreshes every 15 seconds.")}</footer></main></body></html>'''
+    return HTMLResponse(html, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/api/feed", response_class=PlainTextResponse)
 async def feed(kind: str = "home", q: str = "", n: int = Query(24, ge=1, le=100), fresh: int = Query(0, ge=0, le=1),
-               offset: int = Query(0, ge=0, le=5000)):
-    if kind == "history":
-        lines = [f"ok\t{min(n, len(history.items))}\tContinuar assistindo"]
-        for e in history.recent(n):
-            when = time.strftime("%d/%m", time.localtime(e["ts"]))
-            lines.append("\t".join([clean(e["id"]), str(int(e.get("dur") or 0)), clean(e.get("channel", "")),
-                                     f"Visto em {when}", clean(e.get("title", e["id"])), f"{e.get('pos', 0):.1f}"]))
-        return PlainTextResponse("\n".join(lines) + "\n")
-    if kind not in ("home", "search") or (kind == "search" and not clean(q)):
-        return PlainTextResponse("erro\tInforme uma busca válida.\n")
+               offset: int = Query(0, ge=0, le=5000), lang: str | None = None):
+    last_console[0] = time.monotonic()
+    lang = lang or LANGUAGE
+    if lang not in ("pt", "en"):
+        return PlainTextResponse("erro\t" + tr("Idioma inválido.", "Invalid language.") + "\n")
+    if kind not in ("home", "search", "subs", "history", "later") or (kind == "search" and not clean(q)):
+        return PlainTextResponse("erro\t" + tr("Informe uma busca válida.", "Enter a valid search.", lang) + "\n")
     query = clean(q)[:250]
+    titles = {"home": tr("Para assistir hoje", "Recommended", lang), "search": tr("Busca: ", "Search: ", lang) + query,
+              "subs": tr("Inscrições", "Subscriptions", lang), "history": tr("Continuar assistindo", "Continue watching", lang),
+              "later": tr("Assistir mais tarde", "Watch later", lang)}
+    items = None
     try:
-        if kind == "search" and fresh:
-            search_cache.values.pop((query, 100), None)
-        if kind == "home":
-            base = await home_videos(bool(fresh))
-            if offset + n > len(base) + len(home_extra):
-                await home_more([i["id"] for i in base] + [i["id"] for i in home_extra])
-            everything = base + home_extra
-        else:
-            count = 100
-            everything = await search_videos(query, count)
-            while offset + n > len(everything) and len(everything) >= count and count < 400:
-                count *= 2
-                everything = await search_videos(query, count)
-        items = everything[offset:offset + n]
-        if fresh and offset == 0:
-            items = random.sample(items, len(items))
+        if kind != "search":
+            status = await account_status()
+            if status["state"] == "signed_in":
+                try:
+                    items = await account_items(kind, offset, n, fresh, status)
+                except Exception:
+                    if kind != "home":
+                        raise
+                    LOG.warning("Conta: home indisponível; usando buscas do config.")
+            else:
+                account_pages.clear()
+                if kind in ("subs", "later"):
+                    return PlainTextResponse("erro\t" + tr("Conecte sua conta do YouTube.", "Sign in to your YouTube account.", lang) + "\n")
+                if kind == "history":
+                    items = []
+                    for entry in history.recent(300)[offset:offset + n]:
+                        when = time.strftime("%d/%m" if lang == "pt" else "%m/%d", time.localtime(entry["ts"]))
+                        items.append({"id": entry["id"], "duration": int(entry.get("dur") or 0),
+                            "channel": entry.get("channel", ""), "views": tr("Visto em ", "Watched on ", lang) + when,
+                            "title": entry.get("title", entry["id"]), "pos": entry.get("pos", 0)})
+        if items is None:
+            if kind == "home":
+                base = await home_videos(bool(fresh), lang)
+                extra = home_extra[lang]
+                if offset + n > len(base) + len(extra):
+                    await home_more([i["id"] for i in base + extra], lang)
+                everything = base + extra
+            else:
+                if fresh:
+                    for key in list(search_cache.values):
+                        if key[0] == query and key[2] == lang:
+                            search_cache.values.pop(key, None)
+                count = 100
+                everything = await search_videos(query, count, lang)
+                while offset + n > len(everything) and len(everything) >= count and count < 400:
+                    count *= 2
+                    everything = await search_videos(query, count, lang)
+            items = everything[offset:offset + n]
     except Exception:
         LOG.warning("Não foi possível carregar o feed %s.", kind)
-        return PlainTextResponse("erro\tNão foi possível consultar o YouTube. Tente novamente.\n")
+        return PlainTextResponse("erro\t" + tr("Não foi possível consultar o YouTube. Tente novamente.", "Could not reach YouTube. Try again.", lang) + "\n")
     prefetch_later(items)
-    title = "Para assistir hoje" if kind == "home" else f"Busca: {query}"
-    lines = [f"ok\t{len(items)}\t{title}"]
-    # 6º campo: onde o Xbox parou neste vídeo (barra de progresso na miniatura), 0 se nunca viu
-    lines += ["\t".join([*(clean(i[k]) for k in ("id", "duration", "channel", "views", "title")), f"{history.position(i['id']):.1f}"])
-              for i in items]
-    return PlainTextResponse("\n".join(lines) + "\n")
+    lines = [f"ok\t{len(items)}\t{titles[kind]}"]
+    for item in items:
+        fields = [item["id"], item["duration"], item["channel"], localized_views(item["views"], lang), item["title"]]
+        lines.append("\t".join([*(clean(v) for v in fields), f"{item.get('pos', history.position(item['id'])):.1f}"]))
+    return PlainTextResponse("\n".join(lines) + "\n", headers={"Cache-Control": "no-store"})
 
 
 def make_thumb(video_id, width, height, path):
@@ -718,94 +933,126 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
 
 
 AUDIO_DIR = Path.home() / ".cache/tube360/audio"
-audio_jobs = {}  # chave (id, t) -> processo ffmpeg gravando o MP3 (mais rápido que o tempo real)
+audio_jobs = {}  # chave (id, t) -> processo ffmpeg gravando o MP3 provisório
+audio_lock = asyncio.Lock()
+
+
+def finish_audio(key, job, path, partial):
+    if audio_jobs.get(key) is not job:
+        return
+    if job.returncode == 0 and partial.exists() and partial.stat().st_size:
+        partial.replace(path)
+    else:
+        partial.unlink(missing_ok=True)
+        url_cache.values.pop(key[0], None)
+    audio_jobs.pop(key, None)
 
 
 async def audio_file(video_id, t):
-    """MP3 do vídeo a partir de t, gravado em arquivo enquanto converte. O Nest pode pedir de novo, em trechos, quantas
-    vezes quiser: um pedido novo não derruba o anterior (antes, cada pedido matava o anterior e o som morria)."""
+    """Só um ffmpeg por trecho. O Nest lê o provisório; só uma conversão completa vira cache."""
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     key = (video_id, round(t, 2))
     path = AUDIO_DIR / f"{video_id}_{key[1]:.2f}.mp3"
-    job = audio_jobs.get(key)
-    if job is None and path.exists() and path.stat().st_size == 0:
-        # conversão anterior morreu sem gravar nada (link recusado): busca um link novo
-        path.unlink(missing_ok=True)
-        url_cache.values.pop(video_id, None)
-    if job is None and not path.exists():
+    partial = path.with_suffix(".part.mp3")
+    async with audio_lock:
+        job = audio_jobs.get(key)
+        if job is not None and job.returncode is not None:
+            finish_audio(key, job, path, partial)
+            job = None
+        if job is not None:
+            return partial, job
+        if partial.exists():
+            # Sobrou de uma interrupção: nunca reaproveitar como arquivo completo.
+            partial.unlink(missing_ok=True)
+            url_cache.values.pop(video_id, None)
+        if path.exists() and path.stat().st_size == 0:
+            path.unlink(missing_ok=True)
+            url_cache.values.pop(video_id, None)
+        if path.exists():
+            return path, None
         info = await resolve_video(video_id)
-        # limpa áudios antigos (cada um tem poucos MB)
-        for old in sorted(AUDIO_DIR.glob("*.mp3"), key=lambda f: f.stat().st_mtime)[:-6]:
-            with contextlib.suppress(OSError):
-                old.unlink()
-        cmd = audio_command(info, t)[:-1] + ["-y", str(path)]
+        active = {f"{i}_{start:.2f}.part.mp3" for i, start in audio_jobs}
+        for old in AUDIO_DIR.glob("*.part.mp3"):
+            if old.name not in active:
+                old.unlink(missing_ok=True)
+        complete = [f for f in AUDIO_DIR.glob("*.mp3") if not f.name.endswith(".part.mp3")]
+        for old in sorted(complete, key=lambda f: f.stat().st_mtime)[:-6]:
+            old.unlink(missing_ok=True)
+        cmd = audio_command(info, t)[:-1] + ["-y", str(partial)]
         job = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
         audio_jobs[key] = job
 
-        async def reap(k=key, j=job):
-            await j.wait()
-            audio_jobs.pop(k, None)
-        task = asyncio.create_task(reap())
-        background.add(task)
-        task.add_done_callback(background.discard)
-    return path, audio_jobs.get(key)
+        async def reap():
+            await job.wait()
+            finish_audio(key, job, path, partial)
+        spawn_background(reap())
+        return partial, job
 
 
 @app.get("/api/audio/{video_id}")
 async def audio(request: Request, video_id: str, t: float = Query(0, ge=0, le=86400 * 30)):
     valid_id(video_id)
+    if not math.isfinite(t):
+        raise HTTPException(400, "Posição inválida.")
     try:
         path, job = await audio_file(video_id, t)
     except Exception:
         raise HTTPException(502, "Não foi possível abrir este áudio.") from None
     start = 0
-    rng = request.headers.get("range", "")
-    m = re.match(r"bytes=(\d+)-", rng)
-    if m:
-        start = int(m.group(1))
+    match = re.fullmatch(r"bytes=(\d+)-(\d*)", request.headers.get("range", ""))
+    if match:
+        start = int(match.group(1))
     LOG.info("áudio do Nest: %s t=%.1f desde o byte %d%s", video_id, t, start, " (convertendo)" if job else "")
     deadline = time.monotonic() + 30
     while not path.exists() or path.stat().st_size <= start:
         if job is None or job.returncode is not None or time.monotonic() > deadline:
             break
         await asyncio.sleep(0.1)
-
-    # Pedido de trecho (Range): responde só o que já foi gravado, com o Content-Range certo; o Nest pede o resto depois.
-    end = None
-    if m:
-        size = path.stat().st_size if path.exists() else 0
-        done = job is None or job.returncode is not None
-        end = max(start, size - 1)
+    # O reap pode ter renomeado entre a chamada e o primeiro byte da resposta.
+    if not path.exists() and path.name.endswith(".part.mp3"):
+        path = path.with_name(path.name.replace(".part.mp3", ".mp3"))
+    try:
+        source = path.open("rb")
+    except OSError:
+        raise HTTPException(502, "Não foi possível abrir este áudio.") from None
+    size = os.fstat(source.fileno()).st_size
+    if not size:
+        source.close()
+        raise HTTPException(502, "Não foi possível abrir este áudio.")
+    if start >= size:
+        source.close()
+        raise HTTPException(416, "Trecho indisponível.", headers={"Content-Range": f"bytes */{size}"})
+    done = job is None or job.returncode is not None
+    end = size - 1 if match else None
+    if match and match.group(2):
+        end = min(end, int(match.group(2)))
+        if end < start:
+            source.close()
+            raise HTTPException(416, "Trecho inválido.", headers={"Content-Range": f"bytes */{size}"})
 
     async def body():
         pos = start
-        with open(path, "rb") as f:
-            f.seek(pos)
+        try:
+            source.seek(pos)
             while True:
                 want = 65536 if end is None else min(65536, end + 1 - pos)
                 if want <= 0:
                     break
-                chunk = f.read(want)
+                chunk = source.read(want)
                 if chunk:
                     pos += len(chunk)
                     yield chunk
                     continue
-                if end is not None:
-                    break
-                running = audio_jobs.get((video_id, round(t, 2)))
-                if running is None or running.returncode is not None:
-                    rest = f.read()
-                    if rest:
-                        yield rest
+                if end is not None or job is None or job.returncode is not None:
                     break
                 await asyncio.sleep(0.2)
+        finally:
+            source.close()
 
     headers = {"Cache-Control": "no-store", "Accept-Ranges": "bytes"}
-    status = 200
-    if m:
-        status = 206
+    if match:
         headers["Content-Range"] = f"bytes {start}-{end}/{size if done else '*'}"
-    return StreamingResponse(body(), status_code=status, media_type="audio/mpeg", headers=headers)
+    return StreamingResponse(body(), status_code=206 if match else 200, media_type="audio/mpeg", headers=headers)
 
 
 class Nest:
@@ -975,7 +1222,7 @@ class Nest:
                         LOG.warning("Nest: sessão caiu (%s); retomando em %.1f s", "outro app" if took_over else st.idle_reason, remote.pos)
                         self.ours = False
                         self.t0 = remote.pos
-                        url = f"http://{self.host_ip}:8091/api/audio/{self.video_id}?t={self.t0:.2f}&s={int(time.time() * 1000)}"
+                        url = f"http://{self.host_ip}:{PORT}/api/audio/{self.video_id}?t={self.t0:.2f}&s={int(time.time() * 1000)}"
                         threading.Thread(target=self.play, args=(url,), daemon=True).start()
             except Exception:
                 pass
@@ -1000,7 +1247,7 @@ def lan_ip_towards(host):
 @app.get("/api/nest/info", response_class=PlainTextResponse)
 async def nest_info():
     cfg = CONFIG.get("nest") or {}
-    return PlainTextResponse(f"ok\t{clean(cfg.get('name', 'Nest'))}\n" if cfg.get("host") else "erro\tNenhum Nest configurado.\n")
+    return PlainTextResponse(f"ok\t{clean(cfg.get('name', 'Nest'))}\n" if cfg.get("host") else "erro\t" + tr("Nenhum Nest configurado.", "No Nest configured.") + "\n")
 
 
 @app.get("/api/nest/play", response_class=PlainTextResponse)
@@ -1008,9 +1255,9 @@ async def nest_play(video_id: str = Query(..., alias="id"), t: float = Query(0, 
     valid_id(video_id)
     host = (CONFIG.get("nest") or {}).get("host")
     if not host:
-        return PlainTextResponse("erro\tNenhum Nest configurado.\n")
+        return PlainTextResponse("erro\t" + tr("Nenhum Nest configurado.", "No Nest configured.") + "\n")
     nest.host_ip = lan_ip_towards(host)
-    url = f"http://{nest.host_ip}:8091/api/audio/{video_id}?t={t:.2f}&s={int(time.time() * 1000)}"
+    url = f"http://{nest.host_ip}:{PORT}/api/audio/{video_id}?t={t:.2f}&s={int(time.time() * 1000)}"
     nest.state, nest.pos, nest.stamp = "LOADING", 0.0, time.monotonic()
     nest.video_id, nest.t0 = video_id, t
     threading.Thread(target=nest.play, args=(url,), daemon=True).start()
@@ -1020,7 +1267,7 @@ async def nest_play(video_id: str = Query(..., alias="id"), t: float = Query(0, 
 @app.get("/api/nest/prepare", response_class=PlainTextResponse)
 async def nest_prepare():
     if not (CONFIG.get("nest") or {}).get("host"):
-        return PlainTextResponse("erro\tNenhum Nest configurado.\n")
+        return PlainTextResponse("erro\t" + tr("Nenhum Nest configurado.", "No Nest configured.") + "\n")
     threading.Thread(target=nest.prepare, daemon=True).start()
     return PlainTextResponse("ok\n")
 
@@ -1053,7 +1300,7 @@ async def cast_event(event: CastEvent):
     """O receptor (cast/receptor.mjs) avisa quando um celular conecta ou sai; o console mostra na tela."""
     name = clean(event.name)[:40] or "celular"
     cast_sender.update(name=name, connected=event.kind == "connect")
-    text = f"Celular conectado: {name}" if event.kind == "connect" else f"{name} desconectou o celular"
+    text = tr(f"Celular conectado: {name}", f"Phone connected: {name}") if event.kind == "connect" else tr(f"{name} desconectou o celular", f"Phone disconnected: {name}")
     remote.commands.append({"action": "aviso", "text": text})
     return PlainTextResponse("ok\n")
 
@@ -1067,7 +1314,7 @@ async def cast_code():
             return PlainTextResponse(f"ok\t{clean(code)}\t{who}\n")
     except OSError:
         pass
-    return PlainTextResponse("erro\tO receptor do YouTube não está ligado.\n")
+    return PlainTextResponse("erro\t" + tr("O receptor do YouTube não está ligado.", "The YouTube receiver is offline.") + "\n")
 
 
 @app.get("/api/nest/{what}", response_class=PlainTextResponse)
@@ -1113,4 +1360,4 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     # h11 respeita o enquadramento por EOF do HTTP/1.0 usado pelo console.
     # sem o limite, um vídeo aberto segura o desligamento até o systemd matar o processo
-    uvicorn.run(app, host="0.0.0.0", port=8091, http="h11", access_log=False, timeout_graceful_shutdown=3)
+    uvicorn.run(app, host="0.0.0.0", port=PORT, http="h11", access_log=False, timeout_graceful_shutdown=3)

@@ -142,7 +142,14 @@ struct Player {
     if (decThread) SDL_WaitThread(decThread, nullptr);
     if (nestThread) SDL_WaitThread(nestThread, nullptr);
     netThread = decThread = nestThread = nullptr;
-    if (nest && stopNest) { net::Response r; net::get(srv, "/api/nest/stop", r, 1500, 1024); }
+    if (nest && stopNest) {
+      // fora da thread principal: com o servidor lento, a tela travava até 1,5 s esperando a resposta
+      auto* s = new net::Server(srv);
+      SDL_Thread* t = SDL_CreateThread([](void* p) -> int {
+        auto* sv = (net::Server*)p; net::Response r; net::get(*sv, "/api/nest/stop", r, 1500, 1024); delete sv; return 0;
+      }, "nest-stop", s);
+      if (t) SDL_DetachThread(t); else delete s;
+    }
     for (auto* f : frames) spare.push_back(f);
     frames.clear();
     if (audio) SDL_ClearAudioStream(audio);

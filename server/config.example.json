@@ -36,5 +36,6 @@
     "host": "",
     "name": "Nest"
   },
-  "brand": "Tube360"
+  "brand": "Tube360",
+  "language": "en"
 }
