@@ -725,9 +725,11 @@ int main(int argc, char** argv) {
           else { nav.queue = std::move(queue.items); nav.nowId.clear(); nav.ownsQueue = true; }
           nav.nowSel = 0; nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
         } else if (r.key.rfind("/api/nav/lyrics?", 0) == 0) {
-          auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
-          nav.lyrics = fields.size() > 1 ? fields[1] : "";
-          nav.lyricLines = nav.lyrics.empty() ? std::vector<std::string>{} : gfx::wrap(g, ui::F_KEY, nav.lyrics, 714, 200); nav.lyricScroll = 0;
+          if (screen == PLAYER && r.key == "/api/nav/lyrics?id=" + playing.id) {
+            auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
+            nav.lyrics = fields.size() > 1 ? fields[1] : "";
+            nav.lyricLines = nav.lyrics.empty() ? std::vector<std::string>{} : gfx::wrap(g, ui::F_KEY, nav.lyrics, 714, 200); nav.lyricScroll = 0;
+          }
         } else if (r.key.find("action=subscribe") != std::string::npos && ok && !nav.pages.empty()) {
           for (auto& p : nav.pages) if (r.key.find("id=" + p.channelId + "&") != std::string::npos && !p.channelId.empty()) p.subscribed = r.key.find("value=1") != std::string::npos;
         } else if (r.key.find("action=later") != std::string::npos && ok) { toast = tr(K::AddedLater); toastUntil = now + 3500; nav.menu = false; }
@@ -791,7 +793,9 @@ int main(int argc, char** argv) {
         Video v; v.id = c[1]; double t = c.size() > 2 ? std::atof(c[2].c_str()) : 0; v.title = c.size() > 3 ? c[3] : "";
         for (auto& c : cats) for (auto& it : c.feed.items) if (it.id == v.id) v = it;
         for (auto& it : results.feed.items) if (it.id == v.id) v = it;
-        startVideo(v, t, true); toast = tr(K::PhoneRequest); toastUntil = now + 2500;
+        bool queueStart = nav.ownsQueue || (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0);
+        startVideo(v, t, true);
+        if (!queueStart) { toast = tr(K::PhoneRequest); toastUntil = now + 2500; }
       } else if (screen == PLAYER) {
         if (c[0] == "pause") pl.setPaused(true);
         else if (c[0] == "resume") { if (pl.live && pl.paused) resumeLive(); else pl.setPaused(false); }
@@ -1039,6 +1043,10 @@ int main(int argc, char** argv) {
       if (in.hit(Input::START)) doSearch(query);
       if (in.hit(Input::B)) screen = searchBack;
     } else if (screen == PLAYER && nav.musicNow) {
+      if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
+        nestSkip = true; toast = tr(K::MusicSpeakerFallback); toastUntil = now + 5000;
+        startVideo(playing, pl.position(), playerFromRemote);
+      }
       if (in.hit(Input::UP) && nav.lyricsOpen && nav.lyricScroll > 0) nav.lyricScroll--;
       if (in.hit(Input::DOWN) && nav.lyricsOpen && nav.lyricScroll + 9 < (int)nav.lyricLines.size()) nav.lyricScroll++;
       if (in.hit(Input::LEFT) && nav.nowSel > 0) nav.nowSel--;

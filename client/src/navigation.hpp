@@ -214,6 +214,7 @@ struct Navigation {
   }
   void prepareNow(gfx::Gfx& g, Video& playing, i18n::Lang lang) {
     if (nowId == playing.id) return;
+    lyricsOpen = false; lyrics.clear(); lyricsId.clear(); lyricLines.clear(); lyricScroll = 0;
     nowId = playing.id; size_t index = 0; const NavItem* current = nullptr;
     for (size_t i = 0; i < queue.size(); i++) if (queue[i].id == playing.id) { current = &queue[i]; index = i; break; }
     if (current) { playing.title = current->title; playing.channel = current->channel; }
