@@ -576,6 +576,7 @@ int main(int argc, char** argv) {
   cast::Receiver phone(assets); phone.enable(true);
   cast::Status phoneStatus; uint64_t phoneStateAt = 0, phonePlaybackSerial = 0;
   float phoneGain = 1;
+  bool endTimerPending = false;
   Thumbs thumbs;
   thumbs.configure(g, thumbsWorker, settings.cols);
   std::vector<Shelf> cats;
@@ -870,6 +871,8 @@ int main(int argc, char** argv) {
     bool sleepWarning = sleep.active && sleepLeft >= 0 && sleepLeft <= 60 && !shutdownAt;
     double gain = sleepWarning ? std::clamp(sleepLeft / 60, 0.0, 1.0) : 1.0;
     pl.sleepGain((float)gain * phoneGain);
+    pl.directSpeaker.fade(gain);
+    if (!sleep.active || !sleep.end) endTimerPending = false;
     while (control.pop(r)) {
       if (r.accountRoute && r.backend != consoleAccount->revision()) continue;
       if (r.key == "/api/nest/info") {
@@ -1000,6 +1003,12 @@ int main(int argc, char** argv) {
       }
       castCode = phoneStatus.code; castWho = phoneStatus.who;
     }
+    bool shutdownCommand = std::any_of(cmds.begin(),cmds.end(),[](const auto& c) { return !c.empty() && c[0] == "desligar"; });
+    bool phonePlay = std::any_of(cmds.begin(),cmds.end(),[](const auto& c) { return c.size() >= 2 && c[0] == "play" && !(c.size() > 4 && c[4] == "navigation"); });
+    if (shutdownCommand && !shutdownAt) {
+      LOG("timer: desligar recebido"); stopVideo();
+      shutdownAt = SDL_GetTicks()+2000; sleepPanel = false;
+    }
     for (auto& c : cmds) {
       if (c.empty()) continue;
       if (c[0] == "desligar" && !shutdownAt) {
@@ -1018,22 +1027,30 @@ int main(int argc, char** argv) {
         continue;
       }
       if (c[0] == "volume" && c.size() >= 3) {
-        phoneGain = c[2] == "1" ? 0 : std::clamp(std::atof(c[1].c_str()) / 100.0, 0.0, 1.0);
+        double level = std::atof(c[1].c_str())/100;
+        if (!std::isfinite(level)) continue;
+        level = std::clamp(level,0.0,1.0);
+        bool muted = c[2] == "1";
+        phoneGain = muted ? 0 : level;
         pl.sleepGain((float)gain * phoneGain);
+        pl.directSpeaker.volume(level,muted);
+        if (nestOut && net::serverEnabled && !pl.directSpeaker.configured())
+          control.add({5,"/api/nest/volume?v="+std::to_string(muted ? 0 : level*100),0});
         LOG("cast: volume %.0f, mudo %s", std::atof(c[1].c_str()), c[2].c_str());
         continue;
       }
       bool queueStart = c[0] == "play" && c.size() > 4 && c[4] == "navigation";
-      if (queueStart && nav.cancelQueue) continue;
+      if (queueStart && (nav.cancelQueue || phonePlay || phonePlaybackSerial)) continue;
       if (c[0] == "play" && c.size() >= 2) {
+        if (endTimerPending) continue;
         Video v; v.id = c[1]; double t = c.size() > 2 ? std::atof(c[2].c_str()) : 0; v.title = c.size() > 3 ? c[3] : "";
         for (auto& c : cats) for (auto& it : c.feed.items) if (it.id == v.id) v = it;
         for (auto& it : results.feed.items) if (it.id == v.id) v = it;
         if (!queueStart) {
-          nav.localQueue = false;
-          nav.ownsQueue = nav.musicSession = nav.musicNow = nav.cancelQueue = false;
-          nav.queue.clear();
-          if (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0) nav.busy = false;
+          bool serverQueue = (nav.ownsQueue && !nav.localQueue) || (nav.busy && nav.actionPath.rfind("/api/nav/play?",0) == 0);
+          nav.clearLocalQueue(); nav.musicSession = nav.musicNow = false; nav.cancelQueue = true;
+          nav.busy = false; nav.actionStamp = ++nav.serial;
+          if (serverQueue) navWorker.add({6,"/api/nav/transport?action=clear",++nav.serial},true);
         }
         phonePlaybackSerial = c.size() > 5 && c[4] == "cast" ? std::strtoull(c[5].c_str(), nullptr, 10) : 0;
         startVideo(v, t, true);
@@ -1175,6 +1192,7 @@ int main(int argc, char** argv) {
             else if (p.subscribed) nav.unsubscribe = true;
             else nav.action(navWorker, "/api/nav/action?action=subscribe&id=" + p.channelId + "&value=1&lang=" + i18n::code(settings.lang));
           } else if (playlist) {
+            phonePlaybackSerial = 0;
             nav.queueStart.clear();
             nav.cancelQueue = false; nav.musicSession = p.music; nav.musicNow = false;
             nav.action(navWorker, "/api/nav/play?kind=" + p.kind + "&id=" + net::urlEncode(p.id) + "&lang=" + i18n::code(settings.lang));
@@ -1205,6 +1223,7 @@ int main(int argc, char** argv) {
           const auto item = p.items[(size_t)p.sel];
           if (item.type == "video") {
             if (playlist && nav.nativePage()) {
+              phonePlaybackSerial = 0;
               nav.queueStart = item.id; nav.cancelQueue = false; nav.musicSession = p.music; nav.musicNow = false;
               nav.action(navWorker,"/api/nav/play?kind="+p.kind+"&id="+net::urlEncode(p.id)+"&lang="+i18n::code(settings.lang));
             } else if (p.music) { openNav("radio", item.id, "", true); nav.page().zone = 0; }
@@ -1489,13 +1508,15 @@ int main(int argc, char** argv) {
       SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
       if (nav.queueIndex+1 < nav.queue.size() && !(sleep.active && sleep.end)) {
         ++nav.queueIndex; startVideo(nav.queue[nav.queueIndex].video(),0,false);
-      } else stopVideo();
+      } else { endTimerPending = sleep.active && sleep.end; stopVideo(); }
     }
     if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && (playerFromRemote || !nextPending || now >= nextDeadline)) {
       if (!endedSent) {
         SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
-        if (phonePlaybackSerial && playerFromRemote) phone.publish({playing.id, pl.position(), pl.duration, 4, phonePlaybackSerial}, playing.id);
+        endTimerPending = sleep.active && sleep.end;
+        if (endTimerPending) LOG("timer: fim de video, aguardando desligar");
+        if (phonePlaybackSerial && playerFromRemote && !endTimerPending) phone.publish({playing.id, pl.position(), pl.duration, 4, phonePlaybackSerial}, playing.id);
         endedSent = true; ratePanel = sleepPanel = false; playerUI.panel = PlayerUI::NONE;
         // Pedido pelo celular: o app do celular escolhe o próximo. Timer "no fim do vídeo": desliga, não emenda.
         if (!playerFromRemote && !upNext.id.empty() && !(sleep.active && sleep.end)) nextAt = now + 8000;
@@ -1516,7 +1537,10 @@ int main(int argc, char** argv) {
     SDL_UnlockMutex(remote.mu);
     if (now >= phoneStateAt) {
       int state = screen != PLAYER ? -1 : (pl.state == player::ENDED || pl.state == player::FAILED) ? 4 : pl.paused ? 2 : pl.state == player::PLAYING ? 1 : 3;
-      phone.publish({screen == PLAYER ? playing.id : "", pl.position(), pl.duration, state, phonePlaybackSerial});
+      auto speaker = pl.directSpeaker.sample();
+      bool speakerVolume = nestOut && pl.directSpeaker.configured() && speaker.volume >= 0;
+      phone.publish({screen == PLAYER ? playing.id : "", pl.position(), pl.duration, state, phonePlaybackSerial,
+                     speakerVolume ? speaker.volume*100 : 100, speakerVolume && speaker.muted});
       phoneStateAt = now + 250;
     }
 

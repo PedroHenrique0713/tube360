@@ -3,6 +3,7 @@
 #include "yt/thread.hpp"
 #include "picojson.h"
 #include <atomic>
+#include <algorithm>
 #include <climits>
 #include <cmath>
 #include <cstdio>
@@ -71,6 +72,8 @@ struct Status {
     State state = UNKNOWN;
     double position = 0, updated = 0, rate = 1;
     bool quiet = true, connected = false;
+    double volume = -1;
+    bool muted = false;
 };
 // O worker sobrevive ao vídeo. Uma saída durante queda de rede continua tentando STOP na navegação.
 class Speaker {
@@ -78,6 +81,8 @@ class Speaker {
         uint64_t generation = 0, command = 0;
         std::string url, key;
         double position = 0, duration = 0;
+        double volume = -1, fade = 1;
+        bool muted = false;
         bool active = false, paused = false;
     } intent;
     Config config;
@@ -119,6 +124,14 @@ public:
     void pause(bool paused) {
         SDL_LockMutex(mutex); intent.paused = paused; ++intent.command; SDL_UnlockMutex(mutex);
     }
+    void volume(double level, bool muted) {
+        if (!mutex || !std::isfinite(level)) return;
+        SDL_LockMutex(mutex); intent.volume = std::clamp(level,0.0,1.0); intent.muted = muted; SDL_UnlockMutex(mutex);
+    }
+    void fade(double gain) {
+        if (!mutex || !std::isfinite(gain)) return;
+        SDL_LockMutex(mutex); intent.fade = std::clamp(gain,0.0,1.0); SDL_UnlockMutex(mutex);
+    }
     void release() {
         if (!mutex) return;
         SDL_LockMutex(mutex);
@@ -148,6 +161,9 @@ private:
         Status view;
         std::string token, ownedUrl, ownedKey, transport, receiverSession;
         double mediaSession = 0, advanced = 0, previousPosition = -1;
+        double baseVolume = -1, sentVolume = -1;
+        bool baseMuted = false, sentMuted = false, fading = false;
+        uint64_t volumeAt = 0;
         bool connected = false, receiverKnown = false, receiverPresent = false, mediaKnown = false;
         bool possible = false, pending = false, acknowledged = false;
         uint64_t generation = 0, command = 0, retryAt = 0, pollAt = 0, receiverAt = 0, pingAt = 0, heardAt = 0, actionAt = 0, stopAt = 0;
@@ -176,13 +192,6 @@ private:
             }
             possible = !token.empty(); view.quiet = !possible;
         }
-        auto quiet = [&]() {
-            possible = false; view.quiet = true; mediaSession = 0; token.clear(); ownedUrl.clear(); ownedKey.clear();
-            std::remove(ownerPath.c_str());
-            if (endpoint.host != config.host || endpoint.port != config.port) {
-                channel.close(); connected = false; endpoint = config; retryAt = 0;
-            }
-        };
         auto send = [&](const std::string& destination, const char* space, Object message, bool tracked = true) {
             int id = 0;
             if (tracked) {
@@ -193,12 +202,33 @@ private:
             if (!channel.send(sender,destination,space,J(message).serialize())) connected = false;
             return id;
         };
+        auto setVolume = [&](double level, bool muted) {
+            send("receiver-0",cast::receiver,{{"type",J(std::string("SET_VOLUME"))},
+                 {"volume",J(Object{{"level",J(level)},{"muted",J(muted)}})}});
+            if (connected) { sentVolume = level; sentMuted = muted; }
+        };
+        auto quiet = [&]() {
+            // O fade é temporário; preserva o volume escolhido pelo celular e o mute original do receptor.
+            if (fading && baseVolume >= 0) {
+                auto goal = wanted();
+                setVolume(goal.volume >= 0 ? goal.volume : baseVolume,goal.volume >= 0 ? goal.muted : baseMuted);
+                fading = false;
+            }
+            possible = false; view.quiet = true; mediaSession = 0; token.clear(); ownedUrl.clear(); ownedKey.clear();
+            std::remove(ownerPath.c_str());
+            if (endpoint.host != config.host || endpoint.port != config.port) {
+                channel.close(); connected = false; endpoint = config; retryAt = 0;
+                baseVolume = sentVolume = -1;
+            }
+        };
         auto mediaCommand = [&](const char* type) {
             return send(transport,cast::media,{{"type",J(std::string(type))},{"mediaSessionId",J(mediaSession)}});
         };
         while (!quit) {
             uint64_t now = SDL_GetTicks();
             Intent goal = wanted();
+            view.volume = goal.volume >= 0 ? goal.volume : baseVolume;
+            view.muted = goal.volume >= 0 ? goal.muted : baseMuted;
             if (goal.generation != generation) {
                 generation = goal.generation; command = goal.command;
                 pending = goal.active; acknowledged = false; actionAt = stopAt = 0;
@@ -214,6 +244,7 @@ private:
                 channel.close(); connected = channel.open(endpoint.host,endpoint.port); retryAt = SDL_GetTicks()+500;
                 if (!connected) continue;
                 receiverKnown = receiverPresent = mediaKnown = false; transport.clear(); receiverSession.clear(); mediaSession = 0;
+                sentVolume = -1;
                 requests.clear(); pollAt = receiverAt = pingAt = 0; heardAt = now;
                 send("receiver-0",cast::connection,{{"type",J(std::string("CONNECT"))},{"origin",J(Object{})}},false);
             }
@@ -222,6 +253,14 @@ private:
             if (now-heardAt > 12000) { connected = false; continue; }
             if (now >= receiverAt) {
                 send("receiver-0",cast::receiver,{{"type",J(std::string("GET_STATUS"))}}); receiverAt = now+2000;
+            }
+            if (receiverKnown && baseVolume >= 0 && (goal.volume >= 0 || goal.fade != 1 || fading) && now >= volumeAt) {
+                double level = (goal.volume >= 0 ? goal.volume : baseVolume)*goal.fade;
+                bool muted = goal.volume >= 0 ? goal.muted : baseMuted;
+                if (std::fabs(level-sentVolume) > .001 || muted != sentMuted) {
+                    setVolume(level,muted); volumeAt = now+120;
+                    fading = goal.fade != 1;
+                }
             }
             if (receiverKnown && !receiverPresent && !possible && goal.active && pending && now-actionAt > 1000) {
                 send("receiver-0",cast::receiver,{{"type",J(std::string("LAUNCH"))},{"appId",J(std::string(cast::app))}}); actionAt = now;
@@ -286,6 +325,12 @@ private:
                 if (type == "PING") send(message.source,cast::heartbeat,{{"type",J(std::string("PONG"))}},false);
             } else if (message.space == cast::connection && type == "CLOSE") connected = false;
             else if (message.space == cast::receiver && message.source == "receiver-0" && type == "RECEIVER_STATUS") {
+                const auto& volume = field(field(json,"status"),"volume");
+                double level = number(volume,"level",-1);
+                if (baseVolume < 0 && level >= 0 && level <= 1) {
+                    baseVolume = level;
+                    const auto& muted = field(volume,"muted"); baseMuted = muted.is<bool>() && muted.get<bool>();
+                }
                 const auto& apps = field(field(json,"status"),"applications");
                 if (!apps.is<Array>()) continue;
                 receiverKnown = true;

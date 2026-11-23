@@ -17,6 +17,8 @@ int main(int argc, char** argv) {
         } else if (command == "pause") speaker.pause(true);
         else if (command == "resume") speaker.pause(false);
         else if (command == "stop") speaker.release();
+        else if (command == "volume") { double level = 0; int muted = 0; input >> level >> muted; speaker.volume(level,muted != 0); }
+        else if (command == "fade") { double gain = 1; input >> gain; speaker.fade(gain); }
         else if (command == "quit") break;
         else if (command != "sample") return 2;
         auto status = speaker.sample();

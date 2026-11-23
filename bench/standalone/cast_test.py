@@ -44,6 +44,8 @@ class Receiver:
         self.position = 0
         self.stamp = time.monotonic()
         self.session = 7
+        self.volume = .42
+        self.muted = False
         self.events = []
         self.errors = []
         self.clients = []
@@ -113,11 +115,15 @@ class Receiver:
             if kind == 'LAUNCH':
                 assert data['appId'] == APP
                 self.launched = True
+            elif kind == 'SET_VOLUME':
+                assert 0 <= data['volume']['level'] <= 1 and isinstance(data['volume']['muted'], bool)
+                self.volume = data['volume']['level']
+                self.muted = data['volume']['muted']
             else:
                 assert kind == 'GET_STATUS'
             apps = [{'appId': APP, 'transportId': 'transport-fixture', 'sessionId': 'app-fixture',
                      'namespaces': [{'name': MEDIA}] if self.namespaces else []}] if self.launched else []
-            self.reply(client, request, {'type': 'RECEIVER_STATUS', 'requestId': rid, 'status': {'applications': apps}})
+            self.reply(client, request, {'type': 'RECEIVER_STATUS', 'requestId': rid, 'status': {'applications': apps, 'volume': {'level': self.volume, 'muted': self.muted}}})
             return
         assert request.namespace == MEDIA and self.launched and request.destination_id == 'transport-fixture'
         if kind == 'LOAD':
@@ -269,6 +275,35 @@ class CastTests(unittest.TestCase):
         self.driver.until(lambda s: s['quiet'])
         self.assertTrue(self.receiver.commands('STOP'))
         self.assertFalse((self.assets/'nest-owner.json').exists())
+
+    def test_phone_volume_mute_and_timer_gain_compose(self):
+        self.play()
+        self.assertEqual(self.receiver.volume, .42)
+        self.driver.command('volume 0.35 0')
+        self.driver.until(lambda _: abs(self.receiver.volume-.35) < .0001)
+        self.driver.command('fade 0.5')
+        self.driver.until(lambda _: abs(self.receiver.volume-.175) < .0001)
+        self.driver.command('volume 0.35 1')
+        self.driver.until(lambda _: self.receiver.muted)
+        self.driver.command('volume 0.7 0')
+        self.driver.until(lambda _: not self.receiver.muted and abs(self.receiver.volume-.35) < .0001)
+        self.driver.command('fade 1')
+        self.driver.until(lambda _: abs(self.receiver.volume-.7) < .0001)
+        self.driver.command('stop')
+        self.driver.until(lambda s: s['quiet'])
+        self.assertAlmostEqual(self.receiver.volume,.7)
+
+    def test_timer_fade_restores_existing_receiver_volume_and_mute(self):
+        self.receiver.muted = True
+        self.play()
+        self.assertEqual(self.receiver.volume,.42)
+        self.driver.command('fade 0.25')
+        self.driver.until(lambda _: abs(self.receiver.volume-.105) < .0001)
+        self.assertTrue(self.receiver.muted)
+        self.driver.command('stop')
+        self.driver.until(lambda s: s['quiet'])
+        self.assertAlmostEqual(self.receiver.volume,.42)
+        self.assertTrue(self.receiver.muted)
 
     def test_sparse_status_preserves_observation_time(self):
         sample = self.play()

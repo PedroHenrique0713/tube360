@@ -60,6 +60,16 @@ void protocol() {
     auto post = mock.calls.back();
     check(post.find("SID=FAKE-SID") != string::npos && post.find("gsessionid=FAKE-GSESSION") != string::npos,"session on state update");
     check(post.find("req0__sc=") != string::npos && post.find("ofs=0") != string::npos,"BrowserChannel payload");
+    lounge.observe({"F14test0002",7,12,1,3});
+    lounge.observe({"F14test0001",0,12,1,0});
+    check(lounge.currentId().empty() && !lounge.needsNext() && !lounge.pop(command),"local navigation releases phone queue");
+    lounge.observe({"",0,0,-1,0,42,false});
+    check(lounge.receive(R"([[7,["getVolume",{}]]])") && lounge.flush(),"report existing Nest volume");
+    check(mock.calls.back().find("_volume=42") != string::npos,"phone slider uses receiver volume");
+    check(lounge.receive(R"([[8,["setVolume",{"volume":"35","muted":"false"}]]])") && lounge.pop(command),"phone volume command");
+    lounge.observe({"",0,0,-1,0,42,false});
+    check(lounge.receive(R"([[9,["getVolume",{}]]])") && lounge.flush(),"volume after old sample");
+    check(mock.calls.back().find("_volume=35") != string::npos,"old player sample cannot regress phone volume");
     check(!lounge.receive(string(100,'[')+string(100,']')),"bound JSON depth");
     check(!lounge.receive("{broken"),"reject malformed JSON");
 }

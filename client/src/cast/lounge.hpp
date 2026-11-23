@@ -26,6 +26,8 @@ struct Playback {
     double position = 0, duration = 0;
     int state = -1; // lounge: -1 idle, 1 playing, 2 paused, 3 loading, 4 stopped
     uint64_t serial = 0;
+    double volume = -1;
+    bool muted = false;
 };
 struct LoungeMessage { string name; Object payload; };
 class Lounge {
@@ -35,6 +37,7 @@ class Lounge {
     uint64_t tokenUntil = 0, serial = 0;
     bool seen = false, autoplay = false, supportsAutoplay = false, muted = false;
     double volume = 100;
+    bool volumeControlled = false;
     Playback actual;
     std::vector<string> queue;
     std::deque<LoungeMessage> outgoing;

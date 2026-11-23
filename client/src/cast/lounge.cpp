@@ -253,7 +253,7 @@ void Lounge::incoming(int seq, const picojson::array& data) {
         double level = number(p,"volume",-1);
         string mute = text(p,"muted");
         if (level >= 0 && level <= 100 && (mute.empty() || mute == "true" || mute == "false")) {
-            volume = level; muted = mute == "true";
+            volume = level; muted = mute == "true"; volumeControlled = true;
             auto value = std::to_string(level);
             commands.push_back({"volume",value,mute == "true" ? "1" : "0"});
             emit("onVolumeChanged", values({{"volume",value},{"muted",mute == "true" ? "true" : "false"}}));
@@ -290,7 +290,16 @@ bool Lounge::flush() {
     offset += n; outgoing.clear(); return true;
 }
 void Lounge::observe(const Playback& p) {
-    if (current.empty() || p.serial != serial) return;
+    if (!volumeControlled && p.volume >= 0 && p.volume <= 100 && (volume != p.volume || muted != p.muted)) {
+        volume = p.volume; muted = p.muted;
+        emit("onVolumeChanged",values({{"volume",std::to_string(volume)},{"muted",muted ? "true" : "false"}}));
+    }
+    if (current.empty()) return;
+    if (seen && !p.serial && !p.id.empty()) {
+        current.clear(); list.clear(); queue.clear(); commands.clear(); actual = {};
+        index = listIndex = -1; seen = false; report(); return;
+    }
+    if (p.serial != serial) return;
     if (p.id == current) {
         bool changed = !seen || p.state != actual.state || p.duration != actual.duration;
         seen = p.state == 1 || p.state == 2 || seen;

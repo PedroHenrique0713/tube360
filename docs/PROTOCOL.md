@@ -163,6 +163,25 @@ The Cast receiver uses this JSON API:
 
 ## Cast from the phone
 
+The native receiver runs with both `server=off` and `server=auto`. It advertises `YouTube 360` through SSDP UDP
+1900 and DIAL TCP 8134 (`/ssdp/device-desc.xml`, `/apps/YouTube`). The Phone panel uses its native lounge TV code.
+Identity files are `cast-device.txt` and `cast-screen.txt`; lounge tokens stay in memory. A phone request starts
+direct playback even when PC reserve is enabled, preserves account history and replaces Music/navigation queues.
+Pending navigation replies and old server navigation play commands cannot take that phone session back.
+
+Sleep expiry has priority over phone and navigation commands. At natural end with an end-of-video timer, the
+client reports the end to the timer and suppresses lounge queue advancement while waiting for shutdown. Local
+navigation can take playback back from the phone; the lounge then clears its previous queue.
+
+Phone volume/mute controls both the TV gain and the direct Nest receiver. The Nest keeps its existing volume until
+a phone volume command or timer fade changes it. Its initial volume is reported to the phone. Timer gain multiplies
+the selected volume, and cancellation/confirmed stop restores that selected level. Volume messages use the Cast v2
+receiver namespace, independently of playback PAUSE/PLAY/SEEK.
+
+Desktop fixtures use `XT_CAST_DISABLE=1` to suppress discovery and lounge traffic when testing other features.
+`cast-test-app` reuses the production main/player/render object, replaces YouTube transports with loopback adapters,
+and restricts discovery to DIAL 8134 and SSDP 1934 on loopback. Production Xbox discovery remains on UDP 1900.
+
 - `GET /api/cast/code` → `ok\t<TV code>\t<connected sender name or empty>`. The console's Phone panel shows it.
   The receiver (`cast/receptor.mjs`) writes a new code to `~/.cache/tube360/cast-code.txt` every 5 minutes.
 - `POST /api/cast/event` with `{"kind": "connect"|"disconnect", "name": str}`. The receiver calls it when a phone
