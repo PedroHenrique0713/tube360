@@ -26,3 +26,4 @@ target_link_libraries(yt-media-test PRIVATE tube360-yt tube360-ffmpeg SDL3::SDL3
 add_executable(nest-test EXCLUDE_FROM_ALL ../bench/standalone/nest_test.cpp)
 target_include_directories(nest-test PRIVATE src third_party)
 target_link_libraries(nest-test PRIVATE tube360-yt SDL3::SDL3)
+include(../tests/cast/test.cmake)

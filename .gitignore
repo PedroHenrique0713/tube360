@@ -25,3 +25,7 @@ cast/.node-persist/
 
 **/yt-console-account.json
 **/yt-console-account.json.tmp
+**/cast-device.txt
+**/cast-device.txt.tmp
+**/cast-screen.txt
+**/cast-screen.txt.tmp
