@@ -126,7 +126,7 @@ unless `a=0`, **one** `mp2` stream.
 - Headers include `X-Duration` in seconds, a percent-encoded `X-Title`, `X-Live: 0|1` and `X-Stream-Id`, an integer scoped to this server process.
 - One stream at a time: a new request ends the previous one. When the console closes the connection, ffmpeg is stopped.
 - Current consoles use `speaker=1` and retain MP2 for failover. A live stream produces the Nest MP3 from the same FFmpeg process. Older consoles can still request video only with `a=0`.
-- Live ignores `t`. The server prefers an HLS rendition with both tracks and starts at its newest complete segment. Broadcast and CDN delay precede that segment. Resume reopens at the edge. The client can drain a small accumulated delay at up to 1.03× on TV. When picture time falls more than 2.5 s behind its opening wall-clock reference, it reopens the live stream, at most once per 20 s.
+- Live ignores `t`. The server prefers an HLS rendition with both tracks and starts at its newest complete segment. Broadcast and CDN delay precede that segment. Resume reopens at the edge. The client can drain a small accumulated delay at up to 1.03× on TV. If presentation stops for over 1.1 s with an empty MPEG ring and less than 50 ms of PCM, the client checks when the last MPEG packet arrived. After 1.35 s of network silence on TV, or 3 s in speaker mode, it can reopen at the edge during the outage. Retries are at least 20 s apart.
 
 ## Remote control
 
@@ -165,13 +165,17 @@ Set in `config.json` as `"nest": {"host": "<IP>", "name": "<name>"}`.
 |---|---|
 | `GET /api/nest/info` | `ok\t<name>` or `erro\t...` |
 | `GET /api/nest/prepare` | wakes the speaker and opens the media receiver ahead of time |
-| `GET /api/nest/play?id=<id>&t=<s>&sid=<X-Stream-Id>` | start at absolute position `t`; seek within the loaded VOD resource when possible |
-| `GET /api/nest/pos?sid=<id>` | `<state>\t<absolute position s>\t<error>`; states include `LOADING`, `PLAYING`, `PAUSED`, `BUFFERING`, `STALE`, `IDLE` and `ERRO` |
+| `GET /api/nest/play?id=<id>&t=<s>&sid=<X-Stream-Id>` | `ok\t<revision>`; start at absolute `t`, using a Cast seek within the current VOD resource when possible |
+| `GET /api/nest/pos?sid=<id>` | `<state>\t<absolute position s>\t<error>\t<revision of gated MP3 reader or 0>`; states include `LOADING`, `PLAYING`, `PAUSED`, `BUFFERING`, `STALE`, `IDLE` and `ERRO` |
+| `GET /api/nest/local?sid=<id>&rev=<revision>` | `WAIT\t<revision>` or `QUIET\t<revision>`. Reserves the TV output and revokes the previous Cast URL. Use the returned quiet revision as `claim` on the next play. |
+| `GET /api/nest/unmute?sid=<id>&rev=<play revision>` | Open the waiting MP3 body after the TV mutes and its device buffer drains. Returns `ok\t<absolute position s>` on a fresh PLAYING reply for that media session, 409 on obsolete ownership or 503 on an unconfirmed start. |
 | `GET /api/nest/pause` · `resume` · `stop` | |
 | `GET /api/nest/volume?v=0..100` | |
 | `GET /api/audio/<id>?t=<s>` | the MP3 the speaker downloads (supports `Range`) |
 
-A receiver status supplies its own update timestamp. The server extrapolates a playing position for at most 1.2 s, then returns `STALE` with the last observation. The Xbox polls roughly every 120 ms and discards samples with a round trip above 120 ms. It keeps a local MP2 stream ready during speaker playback. If the speaker takes more than 1.4 s after the picture is ready, or stops reporting playback, the TV takes over. A confirmed speaker clock disciplines the picture gradually. A persistent large discrepancy triggers a new positioning request to the speaker. A live speaker can restart from a complete MP3 frame in the current video session.
+A receiver status supplies its own update timestamp. The server extrapolates a playing position for at most 1.2 s, then returns `STALE` with the last observation. The Xbox discards normal position samples with a round trip above 120 ms. A server advertising `X-Nest-Handoff: 1` arbitrates the two outputs. A stale speaker clock leaves local PCM muted. If a LOAD could have emitted sound, the server waits for a fresh quiet status after revoking its URL and stopping the receiver. The server records the possible owner on disk before a LOAD so that restarting the process still requires confirmation. A control-channel partition can therefore leave a silent interval after the receiver runs out of buffered MP3.
+
+The player trims or holds the muted PCM queue against the PTS of the displayed frame. It enables the TV when the server has granted it ownership and the local audio clock is within 22 ms of that frame. For a return to the speaker, the console requests a future frame with `play&claim=<quiet revision>`. The Cast receiver can open its unique URL while the TV is playing. The server withholds the MP3 body until the console mutes the TV, waits one output-device period and reaches the selected frame. It then confirms playback of that specific Cast session. A VOD handoff starts with a clip cut at the requested position. A live handoff uses a complete MP3 frame from the current encoder.
 
 The optional `sid` on play, position, pause, resume and stop is the stream ID from the response header. A late stop for an older playback has no effect on a newer speaker session. A fenced or expired play receives 409. Stop revokes the speaker's media URL immediately. The server retries an undelivered Cast stop when the media channel returns and also stops orphaned playback when console polls disappear. Audio already buffered on the receiver can finish during a network partition.
 

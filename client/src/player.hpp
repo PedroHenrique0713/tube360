@@ -100,7 +100,14 @@ struct Player {
   double lastPos = 0;
   int64_t droppedFrames = 0, shownFrames = 0;
 
-  // A TV decodifica o mesmo MP2 também no modo Nest. O som de reserva já está na posição da imagem.
+  // A reserva PCM e a posse da saída são independentes do último relógio recebido do Nest.
+  enum Output { CAST, RELEASING, LOCAL, PRIMING };
+  std::atomic<Output> output{LOCAL};
+  std::atomic<int> trimMs{-1}, cueMs{-1}, wantedOffsetMs{0};
+  std::atomic<bool> armed{false}, mutedForCast{false}, localPlaying{false}, pictureReady{false};
+  uint64_t mutedAt = 0, lastFrameMs = 0;
+  std::atomic<uint32_t> lastPacketMs{0};
+  int deviceMs = 40, outputBytesPerSec = 0, outputFrameBytes = 0;
   bool nest = false, speakerRequested = false; double nestOffset = 0;
   SDL_Thread* nestThread = nullptr; SDL_Mutex* nmu = nullptr;
   int nestState = 0;  // 0 aguardando/obsoleto, 1 tocando, 2 pausado, 3 parado, 4 erro, 5 bufferizando
@@ -111,7 +118,7 @@ struct Player {
   std::atomic<int> speakerPause{0};  // mudança feita no alto-falante, aplicada pela thread da tela
   uint64_t openedMs = 0, readyMs = 0, lastLiveOpen = 0, tuneAt = 0;
   double screenSec = -1, tickMs = 0, liveDebt = 0;
-  bool tracking = false, refill = false;
+  bool tracking = false, refill = false, reservePaused = false;
 
   void init() {
     mu = SDL_CreateMutex(); cv = SDL_CreateCondition(); nmu = SDL_CreateMutex();
@@ -121,7 +128,16 @@ struct Player {
     SDL_AudioSpec spec{SDL_AUDIO_F32, 2, 44100};
     audio = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, &spec, nullptr, nullptr);
     if (!audio) SDL_Log("áudio: %s", SDL_GetError());
-    else normalGain = SDL_GetAudioStreamGain(audio);
+    else {
+      normalGain = SDL_GetAudioStreamGain(audio);
+      SDL_AudioSpec device{};
+      int samples = 0;
+      if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(audio), &device, &samples) && device.freq > 0) {
+        deviceMs = std::max(1, (samples * 1000 + device.freq - 1) / device.freq);
+        outputFrameBytes = SDL_AUDIO_FRAMESIZE(device);
+        outputBytesPerSec = device.freq * outputFrameBytes;
+      }
+    }
   }
 
   static int netMain(void* p) { ((Player*)p)->netLoop(); return 0; }
@@ -137,19 +153,24 @@ struct Player {
     droppedFrames = shownFrames = 0;
     stop = false; paused = false; live = false; state = CONNECTING;
     hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = 0;
-    openedMs = SDL_GetTicks(); masterMs = -1; tracking = refill = false; session = 0; speakerPause = 0; speakerTargetMs = -1;
+    openedMs = SDL_GetTicks(); masterMs = -1; tracking = refill = reservePaused = false; session = 0; speakerPause = 0; speakerTargetMs = -1;
     if (audio) { SDL_PauseAudioStreamDevice(audio); SDL_ClearAudioStream(audio); SDL_SetAudioStreamFrequencyRatio(audio, 1.0f); }
-    tvSound(!speakerRequested);
+    output = speaker ? CAST : RELEASING;
+    trimMs = cueMs = -1; armed = mutedForCast = localPlaying = pictureReady = false;
+    mutedAt = lastFrameMs = 0;
+    tvSound(false);
     nestFailed = false;
     SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
     netThread = SDL_CreateThread(netMain, "rede", this);
     decThread = SDL_CreateThread(decMain, "decod", this);
-    if (speakerRequested) nestThread = SDL_CreateThread(nestMain, "nest", this);
+    nestThread = SDL_CreateThread(nestMain, "nest", this);
   }
 
   void halt(bool stopNest = true) {
     if (!netThread && !decThread) return;
     stop = true;
+    tvSound(false);
+    if (audio) SDL_PauseAudioStreamDevice(audio);
     SDL_LockMutex(mu); SDL_BroadcastCondition(cv);
     if (sock >= 0) ::shutdown(sock, SHUT_RDWR);
     SDL_UnlockMutex(mu);
@@ -204,9 +225,11 @@ struct Player {
     std::string tt = net::header(r, "X-Title");
     if (!tt.empty() && title.empty()) title = net::urlDecode(tt);
     std::string sid = net::header(r, "X-Stream-Id");
+    if (!speakerRequested && net::header(r, "X-Nest-Handoff") != "1") output = LOCAL;
     session = sid.empty() ? -1 : std::atoi(sid.c_str());
     if (state == CONNECTING) state = BUFFERING;
     auto put = [&](const uint8_t* p, size_t n) {
+      lastPacketMs = (uint32_t)SDL_GetTicks();
       SDL_LockMutex(mu);
       while (n > 0 && !stop) {
         while (rcount == ring.size() && !stop) SDL_WaitConditionTimeout(cv, mu, 100);
@@ -275,17 +298,40 @@ struct Player {
       bool did = false;
       // áudio primeiro e até sobrar meio segundo: um quadro de vídeo no 360 leva mais que um bloco de áudio (26 ms)
       double reserve = lastDecodedPts < 0 ? 0.12 : 0.50;
-      for (int k = 0; k < 24 && !audioDone && !stop && audioQueuedSec() < reserve; k++) {
+      int audioBudget = 24;
+      if (live && lastDecodedPts >= 0 && !videoDone) {
+        SDL_LockMutex(mu); bool needsPicture = frames.size() < 2; SDL_UnlockMutex(mu);
+        if (needsPicture) audioBudget = audioQueuedSec() > 0.08 ? 0 : 2;
+      }
+      for (int k = 0; k < audioBudget && !audioDone && !stop && audioQueuedSec() < reserve; k++) {
         plm_samples_t* s = plm_decode_audio(plm);
         if (!s) { if (plm_has_ended(plm)) audioDone = true; break; }
+        SDL_LockAudioStream(audio);
         SDL_PutAudioStreamData(audio, s->interleaved, (int)(s->count * 2 * sizeof(float)));
         SDL_AddAtomicInt(&pushed, (int)s->count);
         if (SDL_GetAtomicInt(&audioBaseMs) < 0) SDL_SetAtomicInt(&audioBaseMs, (int)std::lround(s->time * 1000));
+        SDL_UnlockAudioStream(audio);
         did = true;
+      }
+      // Descartar PCM realmente enfileirado, no formato do dispositivo, somente enquanto a reserva está muda.
+      int trim = trimMs.exchange(-1);
+      if (trim > 0 && outputFrameBytes && hasAudio) {
+        uint8_t discarded[4096];
+        SDL_LockAudioStream(audio);
+        double queued = audioQueuedSec();
+        int bytes = int(std::min(queued, std::max(0.0, trim / 1000.0 - tvClock(0, queued))) * outputBytesPerSec);
+        while (bytes >= outputFrameBytes && !stop) {
+          int n = std::min(bytes, (int)sizeof(discarded)) / outputFrameBytes * outputFrameBytes;
+          int got = SDL_GetAudioStreamData(audio, discarded, n);
+          if (got <= 0) break;
+          bytes -= got;
+        }
+        SDL_UnlockAudioStream(audio);
       }
       // atrasado em relação ao áudio: pula quadros B até alcançar
       double c = masterMs.load() / 1000.0;
-      plm_video_skip_b_frames = (c >= 0 && lastDecodedPts >= 0 && lastDecodedPts < c - (speakerRequested ? 0.12 : 0.04)) ? 1 : 0;
+      bool nearCue = output == PRIMING && std::fabs(lastDecodedPts - cueMs / 1000.0) < 0.4;
+      plm_video_skip_b_frames = (!nearCue && c >= 0 && lastDecodedPts >= 0 && lastDecodedPts < c - (speakerRequested ? 0.12 : 0.04)) ? 1 : 0;
       SDL_LockMutex(mu); bool room = (int)frames.size() < maxFrames; SDL_UnlockMutex(mu);
       if (!videoDone && room) {
         uint64_t t0 = SDL_GetTicksNS();
@@ -330,18 +376,52 @@ struct Player {
     if (stop || state == FAILED) return;
     std::string sid = session > 0 ? "&sid=" + std::to_string(session.load()) : "";
     std::string query = sid.empty() ? "" : "?" + sid.substr(1);
+    if (!speakerRequested && output == LOCAL) return;
+    int revision = 0, claim = 0;
     auto playAt = [&](double pos) {
       char path[180];
-      std::snprintf(path, sizeof(path), "/api/nest/play?id=%s&t=%.2f%s", id.c_str(), pos, sid.c_str());
-      net::Response r; net::get(srv, path, r, 1500, 1024);
+      std::snprintf(path, sizeof(path), "/api/nest/play?id=%s&t=%.3f&claim=%d%s", id.c_str(), pos, claim, sid.c_str());
+      net::Response r;
+      if (!net::get(srv, path, r, 1500, 1024)) { revision = 0; return false; }
+      auto fields = net::split(std::string(r.body.begin(), r.body.end()), '\t');
+      revision = fields.size() > 1 ? std::atoi(fields[1].c_str()) : 0;
+      return fields[0].find("ok") == 0;
     };
-    playAt(live ? 0 : startAt);
-    uint64_t requested = SDL_GetTicks(), cmdAt = 0, stalled = 0, corrected = 0;
-    int expected = 0, last = 0, far = 0;
-    double loadLead = 0.65; bool measuring = true;
+    // O Cast não deve adotar um relógio adiantado enquanto o primeiro MPEG ainda está sendo decodificado.
+    while (speakerRequested && (!pictureReady || SDL_GetTicks() - openedMs < (uint64_t)deviceMs) &&
+           !stop && state != FAILED && state != ENDED) SDL_Delay(10);
+    if (stop || state == FAILED || state == ENDED) return;
+    if (speakerRequested && !playAt(live ? 0 : startAt)) output = RELEASING;
+    uint64_t requested = SDL_GetTicks(), cmdAt = 0, badSince = 0, localSince = 0;
+    int expected = 0, last = 0;
     while (!stop) {
+      uint64_t ms = SDL_GetTicks();
+      if (output == RELEASING) {
+        net::Response r;
+        if (session > 0 && net::get(srv, "/api/nest/local" + query + "&rev=" + std::to_string(revision), r, 1000, 1024)) {
+          auto f = net::split(std::string(r.body.begin(), r.body.end()), '\t');
+          if (f.size() > 1 && f[0] == "QUIET") {
+            claim = std::atoi(f[1].c_str());
+            armed = mutedForCast = false; cueMs = -1;
+            output = LOCAL; localSince = ms; badSince = 0; expected = last = 0;
+            if (!speakerRequested) return;
+          }
+        }
+        SDL_Delay(100); continue;
+      }
+      if (output == LOCAL) {
+        if (!paused && localPlaying && ms - localSince > 1200 && speakerTargetMs >= 0) {
+          // O MP3 da nova URL espera o primeiro GET antes de receber autorização para sair.
+          cueMs = (int)std::lround(std::round((speakerTargetMs + 2000) * 0.030) * (1000.0 / 30));
+          output = PRIMING; armed = mutedForCast = false;
+          requested = ms;
+          if (!playAt((live ? 0 : startAt) + (cueMs - wantedOffsetMs) / 1000.0)) output = RELEASING;
+          last = expected = 0;
+        }
+        SDL_Delay(30); continue;
+      }
       int cmd = nestCmd.exchange(0);
-      if (cmd) {
+      if (cmd && output == CAST) {
         net::Response r;
         net::get(srv, (cmd == 1 ? "/api/nest/pause" : "/api/nest/resume") + query, r, 1000, 1024);
         expected = cmd == 1 ? 2 : 1; cmdAt = SDL_GetTicks();
@@ -350,43 +430,53 @@ struct Player {
       net::Response pr;
       bool ok = net::get(srv, "/api/nest/pos" + query, pr, 900, 1024);
       double b = SDL_GetTicksNS() / 1e6;
+      int st = 0;
+      double sample = 0;
       if (ok && !stop && b - a <= 120) {
         auto f = net::split(std::string(pr.body.begin(), pr.body.end()), '\t');
-        int st = f[0] == "PLAYING" ? 1 : f[0] == "PAUSED" ? 2 : f[0] == "IDLE" ? 3 : f[0] == "ERRO" ? 4 : f[0] == "BUFFERING" ? 5 : 0;
-        double sample = f.size() > 1 ? std::atof(f[1].c_str()) - (live ? 0 : startAt) : 0;
+        st = f[0] == "PLAYING" ? 1 : f[0] == "PAUSED" ? 2 : f[0] == "IDLE" ? 3 : f[0] == "ERRO" ? 4 : f[0] == "BUFFERING" ? 5 : 0;
+        sample = f.size() > 1 ? std::atof(f[1].c_str()) - (live ? 0 : startAt) : 0;
         SDL_LockMutex(nmu);
         nestState = st; nestPos = sample; nestStampMs = (a + b) / 2;
         SDL_UnlockMutex(nmu);
-        if (expected && expected == st) expected = 0;
-        else if (expected && SDL_GetTicks() - cmdAt > 2500 && !nestCmd) nestCmd = expected == 2 ? 1 : 2;
-        else if (!expected && !nestCmd && last && (st == 1 || st == 2) && last != st)
-          speakerPause = st == 2 ? 1 : 2;
-        if (st == 1 || st == 2) last = st;
-
-        if (measuring && st == 1) {
-          loadLead = std::clamp((SDL_GetTicks() - requested) / 1000.0, 0.15, 2.0);
-          measuring = false;
+        if (output == PRIMING && f.size() > 3 && revision && std::atoi(f[3].c_str()) == revision) armed = true;
+      }
+      if (output == PRIMING) {
+        if (mutedForCast && armed) {
+          net::Response r;
+          if (net::get(srv, "/api/nest/unmute" + query + "&rev=" + std::to_string(revision), r, 900, 1024)) {
+            auto f = net::split(std::string(r.body.begin(), r.body.end()), '\t');
+            if (f.size() < 2) { output = RELEASING; continue; }
+            SDL_LockMutex(nmu);
+            nestState = 1; nestPos = std::atof(f[1].c_str()) - (live ? 0 : startAt);
+            nestStampMs = SDL_GetTicksNS() / 1e6;
+            SDL_UnlockMutex(nmu);
+            output = CAST; badSince = 0; last = 1;
+          } else output = RELEASING;
+        } else if (paused || ms - requested > 4000 || speakerTargetMs > cueMs + 40) output = RELEASING;
+      } else {
+        if (st == 1 || st == 2) {
+          if (expected && expected == st) expected = 0;
+          else if (expected && ms - cmdAt > 2500 && !nestCmd) nestCmd = expected == 2 ? 1 : 2;
+          else if (!expected && !nestCmd && last && last != st) speakerPause = st == 2 ? 1 : 2;
+          last = st;
         }
-        int picture = speakerTargetMs.load();
-        // Reconexão distante: reposicionar o receptor, sem recuar ou saltar a imagem.
-        if (st == 1 && picture >= 0 && std::fabs(sample - picture / 1000.0) > 0.55) ++far; else far = 0;
-        uint64_t now = SDL_GetTicks();
-        if (st != 5) stalled = 0; else if (!stalled) stalled = now;
-        bool retry = now - requested > 7000 && (st == 3 || st == 4 || (stalled && now - stalled > 4000));
-        if (!paused && picture >= 0 && (far >= 3 || retry) && (!corrected || now - corrected > 7000)) {
-          corrected = requested = now; stalled = 0; far = 0;
-          measuring = true;
-          playAt((live ? 0.0 : startAt) + picture / 1000.0 + (live ? loadLead : 0.12));
+        bool healthy = st == 2 || (st == 1 && (speakerTargetMs < 0 ||
+            std::fabs(sample - (speakerTargetMs - wantedOffsetMs) / 1000.0) < 0.50));
+        if (healthy) badSince = 0;
+        else if (!badSince) badSince = ms;
+        else if (!paused && ms - badSince > (last ? 800u : 2800u)) {
+          output = RELEASING; claim = 0;
         }
       }
-      SDL_Delay(120);
+      SDL_Delay(output == CAST ? 85 : 15);
     }
   }
 
   double tvClock(double wall, double queued) {
     int base = SDL_GetAtomicInt(&audioBaseMs);
     if (!hasAudio || base < 0) return wall;
-    double played = SDL_GetAtomicInt(&pushed) / 44100.0 - queued - 0.04;
+    double played = SDL_GetAtomicInt(&pushed) / 44100.0 - queued - deviceMs / 1000.0;
     return base / 1000.0 + std::max(0.0, played);
   }
 
@@ -396,10 +486,11 @@ struct Player {
     if (speakerRequested && notifySpeaker) nestCmd = p ? 1 : 2;
     if (audio) {
       if (p) SDL_PauseAudioStreamDevice(audio);
-      else if (firstPts >= 0 && !refill) SDL_ResumeAudioStreamDevice(audio);
+      else if (firstPts >= 0 && !refill && !reservePaused) SDL_ResumeAudioStreamDevice(audio);
     }
     if (p) pausedAt = SDL_GetTicks();
     else if (pausedAt) {
+      lastFrameMs = SDL_GetTicks();
       if (wallStart) pausedTotal += SDL_GetTicks() - std::max(wallStart, pausedAt);
       pausedAt = 0; tickMs = SDL_GetTicksNS() / 1e6;
     }
@@ -410,70 +501,107 @@ struct Player {
     if (external) setPaused(external == 1, false);
     double now = SDL_GetTicksNS() / 1e6;
     uint64_t ms = SDL_GetTicks();
-    if (live && !paused && firstPts >= 0 && ms - lastLiveOpen > 20000 && liveDebt > 2.5) {
+    wantedOffsetMs = (int)std::lround(nestOffset * 1000);
+    bool starved = false;
+    if (live && !paused && lastFrameMs && ms - lastFrameMs > 1100 &&
+        (uint32_t)ms - lastPacketMs.load() > (speakerRequested ? 3000u : 1350u) &&
+        output != PRIMING && (!lastLiveOpen || ms - lastLiveOpen > 20000)) {
+      SDL_LockMutex(mu);
+      starved = !decEnded && rcount == 0 && audioQueuedSec() < 0.05;
+      SDL_UnlockMutex(mu);
+    }
+    if (starved) {
       lastLiveOpen = ms;
-      LOG("live: reabrindo na borda, atraso acumulado %.3f s", liveDebt);
+      LOG("live: reabrindo na borda, sem quadro há %.3f s", (ms - lastFrameMs) / 1000.0);
       start(srv, id, 0, title, 0, quality, speakerRequested);
       return nullptr;
     }
     double speaker = -1;
-    if (speakerRequested) {
+    Output route = output.load();
+    if (speakerRequested && route == CAST) {
       SDL_LockMutex(nmu);
       if (nestState == 1 && now - nestStampMs < 650) speaker = nestPos + (now - nestStampMs) / 1000.0;
       SDL_UnlockMutex(nmu);
     }
     SDL_LockMutex(mu);
     Frame* show = nullptr;
-    if (firstPts < 0 && !paused && !frames.empty() && (frames.size() >= 2 || decEnded) &&
-        (!hasAudio || audioQueuedSec() >= 0.10 || decEnded)) {
+    if (firstPts < 0 && !paused && !frames.empty() && (frames.size() >= (speakerRequested && live ? 6u : 2u) || decEnded) &&
+        (!hasAudio || audioQueuedSec() >= (speakerRequested && live ? 0.20 : 0.10) || decEnded)) {
+      pictureReady = true;
       if (!readyMs) readyMs = ms;
       // Espera inicial limitada. Se o DMR demorar, a TV já tem o áudio deste mesmo stream.
       if (!speakerRequested || speaker >= 0 || ms - readyMs >= 1400) {
         firstPts = frames.front()->pts; wallStart = ms;
         screenSec = speaker >= 0 ? std::max(firstPts, speaker + nestOffset) : firstPts;
-        tickMs = now; tvSound(speaker < 0);
+        tickMs = now;
         if (audio) SDL_ResumeAudioStreamDevice(audio);
       }
     }
     if (firstPts >= 0 && !paused) {
       double wall = firstPts + (ms - wallStart - pausedTotal) / 1000.0;
-      double queued = audioQueuedSec();
-      double tv = tvClock(wall, queued), dt = std::max(0.0, (now - tickMs) / 1000.0);
+      if (audio) SDL_LockAudioStream(audio);
+      double queued = audioQueuedSec(), tv = tvClock(wall, queued);
+      if (audio) SDL_UnlockAudioStream(audio);
+      double dt = std::max(0.0, (now - tickMs) / 1000.0);
       double predicted = screenSec + dt;
-      bool follow = speaker >= 0 && std::fabs(speaker + nestOffset - predicted) < 0.55;
-      if (follow != tracking) {
-        LOG("som: %s, Nest %.3f TV %.3f imagem %.3f", follow ? "Nest" : "TV", speaker, tv, screenSec);
-        tracking = follow;
-      }
-      nest = speaker >= 0;
-      tvSound(!nest);
-      if (hasAudio && !decEnded && !follow && !refill && queued <= 0 && ms - wallStart > 100) {
+      bool follow = speaker >= 0 && route == CAST;
+      bool local = route == LOCAL || route == PRIMING;
+      double cue = cueMs / 1000.0;
+      if (route == PRIMING && (mutedAt || (audible ? tv : predicted) >= cue - deviceMs / 1000.0)) {
+        local = false;
+        if (!mutedAt) mutedAt = ms;
+      } else if (route != PRIMING) mutedAt = 0;
+      if (hasAudio && !decEnded && (!speakerRequested || audible) && !follow && !refill && queued <= 0 && ms - wallStart > 100) {
         SDL_PauseAudioStreamDevice(audio); refill = true;
         LOG("som: fila PCM vazia em %.3f s", screenSec);
       } else if (refill && (follow || queued >= 0.10 || decEnded)) {
-        SDL_ResumeAudioStreamDevice(audio); refill = false;
+        if (!reservePaused) SDL_ResumeAudioStreamDevice(audio);
+        refill = false;
       }
-      double target = follow ? speaker + nestOffset : tv;
+      double target = follow ? speaker + nestOffset : audible ? tv : predicted;
       // Sem saltos na troca de relógio. Na TV sozinha o PCM efetivamente consumido continua sendo o mestre.
       if (!refill)
-        screenSec = speakerRequested ? predicted + std::clamp(target - predicted, -dt * 0.15, dt * 0.15) : tv;
+        screenSec = speakerRequested && !audible ? predicted + std::clamp(target - predicted, -dt * 0.15, dt * 0.15) : tv;
+      if (route == PRIMING && cue >= 0)
+        screenSec = std::min(screenSec, std::max(cue, predicted - dt));
+      if (follow && mutedForCast.exchange(false)) screenSec = std::max(screenSec, speaker + nestOffset);
       tickMs = now; masterMs = (int)std::lround(screenSec * 1000);
-      speakerTargetMs = (int)std::lround((screenSec - (follow ? nestOffset : 0.0)) * 1000);
-      if (ms >= tuneAt && audio && hasAudio) {
-        tuneAt = ms + 120;
-        // O PCM mudo acompanha o Nest. Depois de um underrun na live, a TV recupera até 3% por vez.
-        double ratio = follow ? 1.0 + std::clamp((speaker - tv) * 0.35, -0.07, 0.07)
-                              : 1.0 + (live && liveDebt > 0.15 ? 0.03 : 0.0);
-        SDL_SetAudioStreamFrequencyRatio(audio, (float)ratio);
-      }
+      speakerTargetMs = (int)std::lround(screenSec * 1000);
       while (!frames.empty() && frames.front()->pts <= screenSec + 0.010) {
         if (show) { spare.push_back(show); droppedFrames++; }
         show = frames.front(); frames.pop_front();
       }
+      double display = show ? show->pts : lastPos - (live ? 0 : startAt);
+      bool aligned = std::fabs(tv - display) <= 0.022 && (queued >= 0.10 || decEnded);
+      bool on = local && (!hasAudio || audible || aligned);
+      if (route == PRIMING && armed && mutedAt && ms - mutedAt >= (uint64_t)deviceMs &&
+          std::fabs(lastPos - (live ? 0 : startAt) - cue) < 0.020 && std::fabs(display - cue) < 0.020 && (decEnded || (!frames.empty() &&
+          frames.back()->pts - display >= 0.15 && queued >= 0.18))) mutedForCast = true;
+      if (on != audible || follow != tracking) {
+        LOG("som: %s, Nest %.3f TV %.3f imagem %.3f", on ? "TV" : follow ? "Nest" : "aguardando", speaker, tv, display);
+        tracking = follow;
+      }
+      tvSound(on); localPlaying = on; nest = follow;
+      if (speakerRequested && hasAudio) {
+        if (!on && display - tv > 0.025) trimMs = (int)std::lround(display * 1000);
+        bool hold = !on && tv - display > (reservePaused ? 0.010 : 0.035);
+        if (hold != reservePaused) {
+          reservePaused = hold;
+          if (hold) SDL_PauseAudioStreamDevice(audio);
+          else if (!refill) SDL_ResumeAudioStreamDevice(audio);
+        }
+      }
+      if (ms >= tuneAt && audio && hasAudio) {
+        tuneAt = ms + 120;
+        // O PCM mudo acompanha o Nest. Depois de um underrun na live, a TV recupera até 3% por vez.
+        double ratio = speakerRequested && !on ? 1.0 + std::clamp((display - tv) * 1.2, -0.35, 0.08)
+                              : 1.0 + (live && liveDebt > 0.15 ? 0.03 : 0.0);
+        SDL_SetAudioStreamFrequencyRatio(audio, (float)ratio);
+      }
       if (show) {
         if (!shownFrames) LOG("primeiro quadro: %llu ms, pts %.3f, live %d, som %s", (unsigned long long)(ms - openedMs),
                               show->pts, (int)live.load(), follow ? "Nest" : "TV");
-        shownFrames++; if (state == BUFFERING || state == CONNECTING) state = PLAYING;
+        lastFrameMs = ms; shownFrames++; if (state == BUFFERING || state == CONNECTING) state = PLAYING;
         lastPos = (live ? 0 : startAt) + show->pts;
       }
       if (live) liveDebt = std::max(0.0, wall - lastPos);
