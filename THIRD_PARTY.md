@@ -19,7 +19,7 @@ Tube360 is MIT licensed (see `LICENSE`). It ships or depends on:
 | [xsdk](https://github.com/xenosworks/xsdk), [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon) | Xbox 360 build toolchain (not vendored) | MIT |
 | [SDL-xenon](https://github.com/xenosworks/SDL-xenon) | Xbox SDL port | zlib |
 
-The standalone check title also uses these components.
+The Tube360 title and the standalone check both use these components.
 
 | Component | Where | License or provenance |
 |---|---|---|
@@ -43,13 +43,13 @@ Keep upstream notices. The objects include the compiled shader bundle. Keep the 
 available from the same download location as the binary.
 
 To rebuild, place the pinned archive in `.work/src/`, set the Xbox toolchain paths as described in the README,
-and run `tools/build-ffmpeg-x360.sh scalar` followed by `tools/build-xbox.sh`. To substitute a modified FFmpeg,
-install ABI-compatible static libraries and headers into `.work/ffmpeg-scalar/`, remove the build's old linked
+and run `tools/build-ffmpeg-x360.sh xbox` followed by `tools/build-xbox.sh`. To substitute a modified FFmpeg,
+install ABI-compatible static libraries and headers into `.work/ffmpeg-xbox/`, remove the build's old linked
 executable `client/build-x360/tube360`, and rerun `tools/build-xbox.sh`. CMake relinks and packages the XEX
 with the same title ID. The release also includes the unlinked application objects for relinking without
 recompiling the application. [FFmpeg licensing](https://ffmpeg.org/legal.html) · [LGPL 2.1, section 6](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
 
 The object kit places `main.cpp.obj`, `shaders_bundle.c.obj` and `ffmpeg-libc.c.obj` in `objects/`,
-the matching `xsdk.ld`, `libxsdk.a`, `libSDL3.a` and `libvulkan4xenon.a` in `support/`, and the four FFmpeg
+the matching `xsdk.ld`, `libxsdk.a`, `libSDL3.a` and `libvulkan4xenon.a` in `support/`, along with the matching libtube360-yt, curl, mbedtls, mbedx509, mbedcrypto, everest and p256m static archives, and the four FFmpeg
 archives in `ffmpeg-lib/`. Include the support libraries' licenses. Place `tools/ffmpeg-x360/relink.sh` at the
 kit root. With the matching xsdk and GCC installed, run `FFMPEG_LIB=/path/to/modified/lib ./relink.sh`.

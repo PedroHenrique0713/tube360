@@ -1,6 +1,7 @@
 #include "client.hpp"
 #include "roots.hpp"
 #include <curl/curl.h>
+#include <strings.h>
 
 namespace yt {
 namespace {
@@ -10,6 +11,18 @@ size_t append(char* bytes, size_t count, size_t unit, void* data) {
     if (unit && count > (maxBody - body.size()) / unit) return 0;
     body.append(bytes, count * unit);
     return count * unit;
+}
+size_t header(char* bytes, size_t unit, size_t count, void* data) {
+    size_t n = unit * count;
+    if (n >= 14 && !strncasecmp(bytes, "Content-Range:", 14))
+        static_cast<Response*>(data)->contentRange.assign(bytes + 14, n - 14);
+    if (n >= 10 && !strncasecmp(bytes, "Location:", 9)) {
+        auto& loc = static_cast<Response*>(data)->location;
+        loc.assign(bytes+9,n-9);
+        loc.erase(0,loc.find_first_not_of(" \t"));
+        loc.erase(loc.find_last_not_of("\r\n ") + 1);
+    }
+    return n;
 }
 int progress(void* ptr, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
     return ptr && static_cast<const std::atomic_bool*>(ptr)->load();
@@ -53,6 +66,8 @@ public:
         set(CURLOPT_TIMEOUT_MS, 15000L);
         set(CURLOPT_CONNECTTIMEOUT_MS, 8000L);
         set(CURLOPT_NOSIGNAL, 1L);
+        set(CURLOPT_HEADERFUNCTION, header);
+        set(CURLOPT_HEADERDATA, &res);
         set(CURLOPT_WRITEFUNCTION, append);
         set(CURLOPT_WRITEDATA, &res.body);
         if (cancel) {

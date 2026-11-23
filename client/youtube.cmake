@@ -1,0 +1,6 @@
+set(yt_root "${CMAKE_CURRENT_LIST_DIR}/..")
+execute_process(COMMAND "${yt_root}/tools/build-standalone.sh" sources COMMAND_ERROR_IS_FATAL ANY)
+set(MBEDTLS_SOURCE "${yt_root}/.work/src/mbedtls-3.6.8")
+set(CURL_SOURCE "${yt_root}/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08c5daaa6b4")
+add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src/yt" yt EXCLUDE_FROM_ALL)
+target_link_libraries(tube360 PRIVATE tube360-yt)

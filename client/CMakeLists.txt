@@ -20,3 +20,6 @@ target_include_directories(tube360 PRIVATE ${CMAKE_CURRENT_BINARY_DIR} src third
 target_compile_options(tube360 PRIVATE -O2 -Wall -Wno-missing-field-initializers)
 target_link_libraries(tube360 PRIVATE SDL3::SDL3 Vulkan::Vulkan)
 include(ffmpeg.cmake)
+include(youtube.cmake)
+add_executable(yt-media-test EXCLUDE_FROM_ALL ../bench/standalone/media_test.cpp)
+target_link_libraries(yt-media-test PRIVATE tube360-yt tube360-ffmpeg SDL3::SDL3)

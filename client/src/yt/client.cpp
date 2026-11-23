@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <set>
+#include <cstdio>
+#include <ctime>
 
 namespace yt {
 namespace {
@@ -174,6 +176,19 @@ bool Client::session(const string& id, string& error) {
     auto js=quoted(r.body,"\"jsUrl\":\"");
     if (visitor.empty() || js.size()<2 || js[0]!='/' || js[1]=='/') { visitor.clear(); error="visitor_session_missing"; return false; }
     if (js!=playerJs || !sts) {
+        // Uma revisão do player identifica o JS e o timestamp. Publica o índice por último.
+        const auto& base = cacheBase;
+        if (!cacheBase.empty()) {
+            if (auto* f = std::fopen((base + ".idx").c_str(), "rb")) {
+                char path[4098]{};
+                int cached = 0;
+                if (std::fscanf(f, "%4096s%d", path, &cached) == 2 && path == js && cached > 0) {
+                    playerJs = js; sts = cached;
+                }
+                std::fclose(f);
+                if (sts && playerJs == js) return true;
+            }
+        }
         Request code;
         code.url="https://www.youtube.com"+js;
         code.agent=browserAgent;
@@ -182,6 +197,17 @@ bool Client::session(const string& id, string& error) {
         if (!n && b.error.empty()) n=digitsAfter(b.body,"sts:");
         if (!n) { visitor.clear(); error="signature_timestamp_missing"; return false; }
         sts=n; playerJs=js;
+        if (!cacheBase.empty()) {
+            if (auto* f = std::fopen((base + ".js.tmp").c_str(), "wb")) {
+                bool ok = std::fwrite(b.body.data(), 1, b.body.size(), f) == b.body.size();
+                if (std::fclose(f) == 0 && ok && std::rename((base + ".js.tmp").c_str(), (base + ".js").c_str()) == 0) {
+                    if (auto* index = std::fopen((base + ".idx.tmp").c_str(), "w")) {
+                        ok = std::fprintf(index, "%s\n%d\n", js.c_str(), n) > 0;
+                        if (std::fclose(index) == 0 && ok) std::rename((base + ".idx.tmp").c_str(), (base + ".idx").c_str());
+                    }
+                }
+            }
+        }
     }
     return true;
 }
@@ -221,6 +247,9 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
     if (out.status.empty()) out.status="INVALID_RESPONSE";
     if (out.status!="OK") return out;
     const auto& details = field(j,"videoDetails");
+    out.duration = integer(details, "lengthSeconds");
+    auto& live = field(details, "isLive");
+    out.live = live.is<bool>() && live.get<bool>();
     out.id = str(details,"videoId"); out.title = str(details,"title");
     if (out.id != id) { out.status="INVALID_VIDEO_ID"; return out; }
     const auto& sd=field(j,"streamingData");
@@ -237,6 +266,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
             bool direct = httpsUrl(url);
             const auto& fps = field(f, "fps");
             Format fmt{url,integer(f,"itag"),integer(f,"height"),fps.is<double>() ? fps.get<double>() : 0.0};
+            if (fmt.height == 720 && fmt.fps > 30 && mime.find("avc1") != string::npos) out.highFrameRate720 = true;
             if (mime.find("audio/mp4")==0 && mime.find("mp4a")!=string::npos) {
                 if (offers) {
                     ++offers->aac.listed;
@@ -244,7 +274,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
                 }
                 if (!direct) continue;
                 int rate=integer(f,"bitrate");
-                if (out.audio.url.empty() || rate>audioRate) { out.audio=fmt; audioRate=rate; }
+                if (out.audio.url.empty() || (fmt.itag==140 && out.audio.itag!=140) || (out.audio.itag!=140 && rate>audioRate)) { out.audio=fmt; audioRate=rate; }
             } else if (mime.find("video/mp4")==0 && mime.find("avc1")!=string::npos &&
                 fmt.height>0 && fmt.height<=720 && fmt.fps>0 && fmt.fps<=30 &&
                 integer(f,"width")>0 && integer(f,"width")<=1280) {
@@ -268,6 +298,18 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
     if (out.hls.empty()) {
         if (out.video.url.empty()) out.reason="no_direct_avc";
         else if (!out.muxed && out.audio.url.empty()) out.reason="no_direct_aac";
+    }
+    const auto now = std::time(nullptr);
+    for (const auto* url : {&out.video.url, &out.audio.url, &out.hls}) {
+        auto at = url->find("expire=");
+        if (at == string::npos) at = url->find("/expire/");
+        if (at == string::npos || now <= 0) continue;
+        int64_t expires = std::strtoll(url->c_str()+at+(url->at(at)=='/' ? 8 : 7),nullptr,10);
+        if (expires > 0) {
+            out.expiresAt = out.expiresAt ? std::min(out.expiresAt,expires) : expires;
+            int left = int(std::clamp<int64_t>(expires-now,0,INT_MAX));
+            out.ttl = out.ttl ? std::min(out.ttl,left) : left;
+        }
     }
     const auto& tracks=field(field(j,"captions"),"playerCaptionsTracklistRenderer");
     for (const auto& t : array(field(tracks,"captionTracks"))) {

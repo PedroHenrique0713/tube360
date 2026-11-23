@@ -63,9 +63,10 @@ void playback(Http& h,yt::Client& c,const string& dir) {
     const string fps="\"fps\": 30";
     size_t f=json.find(fps,pos);
     check(f!=string::npos,"720p mutation target");
-    json.replace(f,fps.size(),"\"fps\": 30.5");
+    json.replace(f,fps.size(),"\"fps\": 60");
     h.add(player,"\"clientName\":\"VISIONOS\"",json);
-    check(c.player(id).video.itag==135,"skip frame rates above 30");
+    v=c.player(id);
+    check(v.highFrameRate720 && v.video.itag==135 && v.video.fps==30,"record 720p60 falling back to 480p30");
     const string login=R"({"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Sign in"},"streamingData":{"hlsManifestUrl":"https://media.example/old"}})";
     // Sessão recusada: abre uma nova (o player JS é o mesmo, sem baixar de novo) e tenta uma única vez mais.
     h.add(player,"\"clientName\":\"VISIONOS\"",login);

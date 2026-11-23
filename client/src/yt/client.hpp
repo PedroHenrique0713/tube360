@@ -10,7 +10,7 @@ namespace yt {
 using std::string;
 struct Response {
     long status = 0;
-    string body, error;
+    string body, error, contentRange, location;
 };
 // Pedido com identidade própria: user agent, cabeçalhos extras e os cookies que o worker já recebeu.
 struct Request {
@@ -35,7 +35,9 @@ struct OfferCount {
 struct MediaOffers { OfferCount avc720, avc480, aac; };
 struct Video {
     string id, title, status, reason, hls;
-    int ttl = 0;
+    int ttl = 0, duration = 0;
+    int64_t expiresAt = 0;
+    bool highFrameRate720 = false, live = false;
     Format video, audio;
     bool muxed = false;
     std::vector<Track> captions;
@@ -45,13 +47,13 @@ class Client {
     Transport& net;
     string context;
     // Sessão de visitante (cookies ficam no transporte) e o signatureTimestamp do player JS atual.
-    string visitor, playerJs;
+    string visitor, playerJs, cacheBase;
     int sts = 0;
     bool session(const string& id, string& error);
     Response post(const string& route, const string& fields);
     Page page(const string& route, const string& fields, const string& exclude = {});
 public:
-    explicit Client(Transport& t) : net(t) {}
+    explicit Client(Transport& t, string cache = {}) : net(t), cacheBase(std::move(cache)) {}
     Page home();
     Page search(const string& query);
     Page next(const string& id);
