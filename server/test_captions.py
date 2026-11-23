@@ -53,7 +53,19 @@ ao canal
             {'tStartMs': 5000, 'dDurationMs': 0, 'segs': [{'utf8': 'no duration'}]},
             {'tStartMs': 6000, 'dDurationMs': 1000, 'segs': [{'utf8': '\n'}]},
         ]})
-        self.assertEqual(self.m.caption_cues(raw, 'json3', True), [(1, 4, 'Hello & welcome to the channel')])
+        self.assertEqual(self.m.caption_cues(raw, 'json3', True),
+                         [(1, 2, 'Hello & welcome'), (2, 4, 'to the channel')])
+
+    def test_json3_append_does_not_publish_future_words(self):
+        raw = json.dumps({'events': [
+            {'tStartMs': 1000, 'dDurationMs': 3000, 'segs': [{'utf8': 'Hello'}]},
+            {'tStartMs': 3000, 'dDurationMs': 1000, 'aAppend': 1, 'segs': [{'utf8': ' future'}]},
+        ]})
+        cues = self.m.caption_cues(raw, 'json3', True)
+        self.assertEqual([text for start, end, text in cues if start <= 1.5 < end], ['Hello'])
+        self.assertEqual(cues, [(1, 3, 'Hello'), (3, 4, 'future')])
+        self.assertEqual(self.m.caption_cues(raw, 'json3'),
+                         [(1, 3, 'Hello'), (3, 4, 'Hello future')])
 
     def test_invalid_and_long_cues(self):
         text = ' '.join('palavra' for _ in range(70))

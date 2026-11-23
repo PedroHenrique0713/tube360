@@ -1875,7 +1875,11 @@ def caption_cues(raw, ext, automatic=False):
             end = start + float(event.get("dDurationMs", 0)) / 1000
             if event.get("aAppend") and cues and start <= cues[-1][1]:
                 previous = cues[-1]
-                cues[-1] = (previous[0], max(previous[1], end), previous[2] + text)
+                if text.strip():
+                    # O texto anexado só existe a partir deste evento, não desde o cartão anterior.
+                    cues.append((start, max(previous[1], end), previous[2] + text))
+                else:
+                    cues[-1] = (previous[0], max(previous[1], end), previous[2])
             else:
                 cues.append((start, end, text))
     else:
