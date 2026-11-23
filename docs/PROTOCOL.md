@@ -45,14 +45,14 @@ The console uses only GET requests:
 
 | Request | Response |
 |---|---|
-| `GET /api/account` | `ok\t<state>\t<name>\t<code>\t<url>` |
-| `GET /api/account/login` | Starts TV device-code sign-in; returns the same five fields. Repeated requests while pending return the same code. |
-| `GET /api/account/logout` | Signs out, removes the local token and returns the same five fields. |
+| `GET /api/account` | `ok\t<state>\t<name>\t<code>\t<url>\t<avatar art key>` |
+| `GET /api/account/login` | Starts TV device-code sign-in; returns the same fields. Repeated requests while pending return the same code. |
+| `GET /api/account/logout` | Signs out, removes the local token and returns the same fields. |
 
 `state` is `signed_out`, `pending` or `signed_in`. Empty fields remain present (including trailing TABs).
 `name` is cached from YouTube account info; `code` and `url` are populated only while pending. Confirm the code at
 `https://www.google.com/device` using any browser; a phone is optional. An expired code returns to `signed_out`.
-If the Node account service cannot be reached, all three routes return `ok\tsigned_out\t\t\t`.
+If the Node account service cannot be reached, all three routes return a signed-out state with empty fields.
 Responses use `Cache-Control: no-store`.
 
 The two mutating GET routes require the native console's `User-Agent: Tube360/1.0` and reject browser `Origin` or
@@ -73,7 +73,7 @@ HTTP module: no DIAL advertisement and no Cast pairing code. `TUBE360_ACCOUNT_TO
 
 Local JSON API (for Python, not the console):
 
-- `GET /status` → `{state, name, handle, code, url}`.
+- `GET /status` → `{state, name, handle, code, url, avatar}`.
 - `POST /login` and `POST /logout` → same object.
 - `GET /feed?kind=home|subs|history|later&page=0&fresh=0|1` →
   `{items: [{id, title, channel, duration, views_text, pos}], more: boolean}`. Pages are zero-based, variable-sized,
@@ -264,8 +264,9 @@ curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/cancel'
 
 This section supersedes the earlier player D-pad shortcuts. A hidden control bar consumes the first direction
 solely to reveal the timeline. On the timeline, Left/Right seek 10 seconds and A pauses/resumes. Up focuses the
-options row (Captions, Quality, Sound, Sleep timer, Rate, Go to channel); Left/Right choose an option, A opens it,
-and Down returns to the timeline. B closes one level: panel → options → timeline → hidden bar → leave video.
+options row (Play/Pause, Captions, Quality, Sound, Sleep timer, Rate, Go to channel, and Live when behind).
+Left/Right move focus across both groups. A activates the focused control. Down returns to the timeline.
+B closes one level at a time, from panel to options, timeline, hidden bar and finally out of the video.
 The bar hides after **5 seconds** without interaction on the timeline, including while paused. Options and panels
 hold it open. The next reveal always focuses the timeline. A/Menu, Y, X, LB/RB and LT/RT retain their playback
 functions; View still leaves directly. Modal A applies the focused choice. Seeking, including phone seeking, is
@@ -340,11 +341,12 @@ refresh their rolling window. Guessing an offset from wall time would give incor
 
 Kinds: `channel`, `subscriptions`, `library`, `playlist`, `history`, `later`, `search`, `music`, `music_search`,
 `album`, `artist`, `radio`, `music_playlist`. Channel/artist IDs are `UC…`; album IDs are Music browse IDs;
-playlist IDs accept the `VL` prefix. Music uses a public YTMUSIC session; account lists and channel actions use
-TV credentials. Subscriptions, library, history and Watch later require sign-in in the account service.
+playlist IDs accept the `VL` prefix. Music uses YTMUSIC on the signed-in session when available. Signed-out browsing uses a guest.
+If the paired token is rejected with 401/403 on Music Home, the service requests the same browse ID with the signed-in TV client.
+Account lists and channel actions use TV credentials. Subscriptions, library, history and Watch later require sign-in.
 
 ```
-ok\t<title>\t<subtitle>\t<art key>\t<subscribed 0|1>\t<more 0|1>\t<channel ID>
+ok\t<title>\t<subtitle>\t<art key>\t<subscribed 0|1>\t<more 0|1>\t<channel ID>\t<banner key>\t<history art key>\t<watch later art key>
 <type>\t<id>\t<title>\t<byline>\t<duration s>\t<art key>\t<channel ID>\t<section>
 ```
 
@@ -352,12 +354,17 @@ Item types are `video`, `channel`, `playlist`, `album`, `artist`. Empty fields r
 order and deduplicate within each type. `offset` counts all returned items (including subscription avatars).
 `more` is explicit; short or empty continuation pages do not imply the end. Errors are `erro\t<localized message>`.
 The client keeps parent pages, focus, tab and scroll when opening a child; B pops that page without a network reload.
-Library adds local shortcuts for History and Watch later before the account's playlists/mixes.
+The client requests another page when an avatar-only page has a continuation.
+Library adds History, Watch later and Mixes before account playlists. History uses the most recently watched video.
+For visible playlists and Watch later the artwork worker requests the newest entry when the service offers that sort,
+or the final playable entry in playlist order. A radio uses its first track. Empty or unavailable lists use their
+supplied cover when available. Preview lookup is bounded and shared across thumbnail sizes.
 
 For channel pages, `tab` selects the corresponding TV shelf and that shelf's continuation, excluding Shorts.
 Search `filter`: 0 all, 1 videos, 2 channels. Music search: 0 all, 1 songs, 2 albums, 3 artists.
 For `music`, `q=charts` follows Explore’s Charts endpoint, `q=mixes` selects playlists from the Music home,
-and empty `q` puts playable tracks before collections. Shelf titles retain YouTube's language; subscriber/video/view
+and empty `q` retains the order and shelf headings of Music Home. The client stores the horizontal position per shelf.
+Shelf titles retain YouTube's language; subscriber/video/view
 counts and album labels in page subtitles follow the requested language.
 
 `GET /api/nav/channel?id=<video ID>&lang=…` resolves a video's channel and returns its first channel page.
@@ -388,7 +395,12 @@ letterboxed inside the existing 16:9 GPU slot and cropped using UVs, so it needs
 The shared allocation budget remains `64 * 320 * 180 * 4 = 14,745,600` bytes; actual Vulkan page allocation determines
 the slot count. Now playing reconfigures that same pool to 640×360, reducing its slot count within the same budget;
 returning to browsing restores the configured grid size. There is no second texture pool. Only visible cards,
-visible avatars and the current cover request artwork.
+visible avatars and the current cover request artwork. Channel banners request exactly 1184×160 from the same worker.
+While a banner is visible, its Vulkan allocation is deducted before calculating the number of ordinary thumbnail slots.
+Avatar masks use the same centred texture crop as square covers.
+
+The live player shows a grey LIVE indicator on pause or once the displayed video is a second behind its clock.
+Its additional Live option reopens the same stream at the edge. At the edge the indicator is red.
 
 The native Music screen uses the same negotiated playback stream and decoder, with its own controls and render dispatcher.
 It does not request audio-only playback. B stops and clears the queue, returning to the source page; selecting Show
@@ -396,7 +408,8 @@ video continues the same stream using the existing player UI. B through the play
 to Now playing without stopping that Music session. Lyrics can be scrolled with up/down.
 
 Local JSON account additions: `GET /nav` with `kind,id,q,tab,filter,page,fresh`, returning
-`{title,subtitle,image,channel_id,subscribed,items:[{type,id,title,channel,duration,image,channel_id,section}],more}`;
+`{title,subtitle,image,banner,history_video,later_video,channel_id,subscribed,items:[{type,id,title,channel,duration,image,channel_id,section}],more}`;
+`GET /playlist_preview?id=…` → `{video: videoId or ""}` (signed in);
 `GET /channel_for_video?id=…` → `{id: channelId}`; `POST /nav/action?action=subscribe|later&id=…&value=…` → `{ok:true}`;
 `GET /lyrics?id=…` → `{lyrics}`. Images here are source URLs; Python replaces them with opaque cache keys.
 Navigation caches are bounded to 24 lists and 41 continuation pages per list, expire after five minutes, and are

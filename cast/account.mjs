@@ -107,8 +107,12 @@ function findNodes(data, name) {
   }
   walk(data); return out;
 }
-function thumbnail(data) {
+function thumbnail(data, minWidth = 0) {
   const all = [...findNodes(data, 'thumbnails'), ...findNodes(data, 'sources')].flat().filter((t) => t?.url);
+  if (minWidth && all.length) {
+    const sorted = all.sort((a, b) => a.width - b.width);
+    return (sorted.find((t) => t.width >= minWidth) || sorted.at(-1)).url;
+  }
   return all.filter((t) => t.width <= 1024).sort((a, b) => Math.min(b.width, b.height || b.width) - Math.min(a.width, a.height || a.width))[0]?.url || all[0]?.url || '';
 }
 function browseId(data) { return findNodes(data, 'browseEndpoint').find((v) => CHANNEL_ID.test(v.browseId || ''))?.browseId || ''; }
@@ -125,9 +129,9 @@ export function parseNavigation(data, music = false) {
     const title = label(meta?.title || lockup?.title || v.title || cols[0]);
     const sub = lockup ? (lockup.metadata?.contentMetadataViewModel?.metadataRows || []).flatMap((r) => r.metadataParts || []).map((p) => label(p.text)).join(" · ") : label(v.subtitle || cols[1] || v.shortBylineText || v.longBylineText || v.ownerText);
     const ep = v.onSelectCommand || v.rendererContext?.commandContext?.onTap?.innertubeCommand || v.navigationEndpoint || cols[0]?.runs?.find((r) => r.navigationEndpoint)?.navigationEndpoint || {};
-    const watch = ep.watchEndpoint || v.playlistItemData || {};
+    const watch = ep.watchEndpoint || ep.watchPlaylistEndpoint || v.playlistItemData || {};
     const browse = ep.browseEndpoint || {};
-    const id = v.videoId || (/(PLAYLIST|CHANNEL)/.test(v.contentType || "") ? browse.browseId || v.contentId || watch.playlistId : watch.videoId || browse.browseId || v.playlistId || v.channelId || v.contentId);
+    const id = v.videoId || (/(PLAYLIST|CHANNEL)/.test(v.contentType || "") ? browse.browseId || v.contentId || watch.playlistId : watch.videoId || browse.browseId || v.playlistId || v.channelId || v.contentId || watch.playlistId);
     const base = { id, title: title || id, channel: sub, duration: 0, image: thumbnail(v.header || v.contentImage || v.thumbnailRenderer || v.thumbnail || v),
       channel_id: browseId([cols, v.shortBylineText, v.longBylineText, meta?.lines]), section };
     const artist = cols.flatMap((c) => c?.runs || []).filter((r) => CHANNEL_ID.test(r.navigationEndpoint?.browseEndpoint?.browseId || '')).map((r) => r.text).join(' / ');
@@ -165,17 +169,21 @@ export function parseNavigation(data, music = false) {
         const heading = label(c.title || c.header?.musicCarouselShelfBasicHeaderRenderer?.title || c.headerRenderer?.shelfHeaderRenderer?.avatarLockup?.avatarLockupRenderer?.title);
         walk(c.contents || c.content, heading || section);
       } else if (k === 'continuationCommand' || k === 'nextContinuationData') tokens.push(c.token || c.continuation);
+      else if (k === 'continuations' && music && section) continue;
       else if (!['menu','onLongPressCommand','onFocusCommand','header','thumbnail','navigationEndpoint','onSelectCommand','frameworkUpdates','playerOverlays'].includes(k)) walk(c, section);
     }
   }
   walk(data);
-  return { items, continuation: tokens.find(Boolean) || '' };
+  const outer = music && findNodes(data, 'sectionListRenderer').concat(findNodes(data, 'sectionListContinuation'))
+    .flatMap((v) => v.continuations || []).map((v) => v.nextContinuationData?.continuation).find(Boolean);
+  return { items, continuation: outer || tokens.find(Boolean) || '' };
 }
 
 export class Account {
   state = 'signed_out';
   name = '';
   handle = '';
+  avatar = '';
   code = '';
   url = '';
   current = null;
@@ -185,7 +193,7 @@ export class Account {
   expiry = null;
   loginTask = null;
 
-  status() { return { state: this.state, name: this.name, handle: this.handle, code: this.code, url: this.url }; }
+  status() { return { state: this.state, name: this.name, handle: this.handle, avatar: this.avatar, code: this.code, url: this.url }; }
 
   save(credentials) {
     fs.mkdirSync(path.dirname(TOKEN), { recursive: true, mode: 0o700 });
@@ -200,7 +208,7 @@ export class Account {
     this.current = null;
     clearTimeout(this.expiry);
     this.state = 'signed_out';
-    this.name = this.handle = this.code = this.url = '';
+    this.name = this.handle = this.avatar = this.code = this.url = '';
     this.feeds.clear();
     this.videos.clear();
     this.navigation.clear();
@@ -263,6 +271,7 @@ export class Account {
       if (this.current !== context) return;
       this.name = text(selected?.account_name);
       this.handle = text(selected?.channel_handle);
+      this.avatar = selected?.account_photo?.[0]?.url || '';
     } catch { console.warn('Conta: nome indisponível.'); }
   }
 
@@ -347,7 +356,8 @@ export class Account {
     const privateList = ['subscriptions', 'library', 'history', 'later'].includes(kind) || id === 'WL';
     if (privateList && this.state !== 'signed_in') throw fail(401, 'signed_out');
     const music = ['music','music_search','album','artist','radio','music_playlist'].includes(kind);
-    const yt = !music && this.state === 'signed_in' ? this.current.yt : await this.guest();
+    const signedIn = this.state === 'signed_in';
+    const yt = signedIn ? this.current.yt : await this.guest();
     const owner = this.current;
     const key = JSON.stringify([kind, id, query, tab, filter, this.state]);
     let cache = this.navigation.get(key);
@@ -358,10 +368,10 @@ export class Account {
     }
     const task = cache.task.catch(() => {}).then(async () => {
       while (cache.pages.length <= page) {
-        if (privateList && (owner !== this.current || this.state !== 'signed_in')) throw fail(401, 'signed_out');
+        if ((privateList || signedIn) && (owner !== this.current || this.state !== 'signed_in')) throw fail(401, 'signed_out');
         const previous = cache.pages.at(-1);
         if (previous && !previous.continuation) return { ...cache.header, items: [], more: false };
-        let route = '/browse', args = { client: music ? 'YTMUSIC' : 'TV' };
+        let route = '/browse', args = { client: cache.client || (music ? 'YTMUSIC' : 'TV') };
         if (previous) { args.continuation = previous.continuation; if (kind === 'search' || kind === 'music_search') route = '/search'; else if (kind === 'radio') route = '/next'; }
         else if (kind === 'search' || kind === 'music_search') {
           route = '/search'; args.query = query;
@@ -372,7 +382,17 @@ export class Account {
         else if (kind === 'radio') { route = '/next'; args.videoId = id; args.playlistId = 'RDAMVM' + id; }
         else args.browseId = { subscriptions: 'FEsubscriptions', library: 'FEplaylist_aggregation', history: 'FEhistory', later: 'VLWL',
           music: query === 'charts' ? 'FEmusic_explore' : 'FEmusic_home' }[kind] || (['playlist','music_playlist'].includes(kind) && !id.startsWith('VL') ? 'VL' + id : id);
-        let { data } = await yt.actions.execute(route, args);
+        let data;
+        try {
+          ({ data } = await yt.actions.execute(route, args));
+          if ([401, 403].includes(data.error?.code)) throw fail(data.error.code, 'music_auth');
+        } catch (error) {
+          // Alguns tokens de pareamento só são aceitos com a identidade TV. Mesmo feed e mesma conta.
+          if (!signedIn || previous || args.browseId !== 'FEmusic_home' ||
+              !(error.status === 401 || error.status === 403 || /status code (401|403)\b/.test(error.message))) throw error;
+          ({ data } = await yt.actions.execute(route, { ...args, client: 'TV' }));
+          cache.client = 'TV';
+        }
         if (data.error) throw fail(502, 'youtube_unavailable');
         if (!previous && kind === 'music' && query === 'charts') {
           const endpoint = findNodes(data, 'musicNavigationButtonRenderer').map((v) => v.clickCommand?.browseEndpoint)
@@ -381,10 +401,12 @@ export class Account {
           ({ data } = await yt.actions.execute('/browse', { ...endpoint, client: 'YTMUSIC' }));
         }
         if (!previous && kind === 'channel') {
-          const header = findNodes(data, 'channelHeaderRenderer')[0] || findNodes(data, 'c4TabbedHeaderRenderer')[0] || {};
+          const header = findNodes(data, 'channelHeaderRenderer')[0] || findNodes(data, 'c4TabbedHeaderRenderer')[0] || findNodes(data, 'interactiveTabbedHeaderRenderer')[0] || {};
           const subscribe = findNodes(header, 'subscribeButtonRenderer')[0];
           const subtitle = header.subtitle?.lineRenderer?.items?.map((i) => label(i.lineItemRenderer?.text)).join(' ') || label(header.subscriberCountText);
-          cache.header = { title: label(header.title), subtitle, image: thumbnail(header.avatar), channel_id: id, subscribed: subscribe?.subscribed || false };
+          cache.header = { title: label(header.title), subtitle, image: thumbnail(header.avatar || header.boxArt),
+            banner: thumbnail(header.banner || header.tvBanner || findNodes(data, 'tvBannerRenderer')[0] ||
+              findNodes(data, 'tvSurfaceContentBackgroundRenderer')[0] || data.background, 1184), channel_id: id, subscribed: subscribe?.subscribed || false };
           const pattern = tab === 'live' ? /live|vivo|transmiss/i : tab === 'playlists' ? /playlists/i : /^videos$|^vídeos$|^uploads$/i;
           const shelves = findNodes(data, 'shelfRenderer');
           const shelf = shelves.find((v) => pattern.test(label(v.headerRenderer?.shelfHeaderRenderer?.avatarLockup?.avatarLockupRenderer?.title)));
@@ -397,10 +419,14 @@ export class Account {
           cache.header = { title: label(header.title) || query, subtitle: label(header.subtitle) || (header.metadataLines || []).flatMap((l) => l.lineRenderer?.items || []).map((i) => label(i.lineItemRenderer?.text)).filter(Boolean).join(' '), image: thumbnail(header) };
         }
         const parsed = parseNavigation(data, music);
-        if (kind === 'music') {
-          if (query === 'mixes') parsed.items = parsed.items.filter((v) => v.type === 'playlist');
-          else if (!query) parsed.items.sort((a, b) => (a.type === 'video' ? 0 : 1) - (b.type === 'video' ? 0 : 1));
+        if (!previous && kind === 'library') {
+          // FEplaylist_aggregation não inclui a capa dos dois atalhos fixos.
+          const previews = await Promise.allSettled(['history', 'later'].map((list) => this.feed(list, 0, fresh)));
+          for (const [i, list] of ['history', 'later'].entries())
+            cache.header[list + '_video'] = previews[i].value?.items[0]?.id || '';
         }
+        if (kind === 'music' && query === 'mixes') parsed.items = parsed.items.filter((v) => v.type === 'playlist');
+        if (kind === 'library') parsed.items = parsed.items.filter((v) => v.id !== 'WL' && v.id !== 'VLWL');
         if (kind === 'subscriptions' && !previous && !parsed.items.some((v) => v.type === 'channel')) {
           const channels = await yt.actions.execute('/browse', { browseId: 'FEchannels', client: 'TV' });
           parsed.items.unshift(...parseNavigation(channels.data).items.filter((v) => v.type === 'channel'));
@@ -408,13 +434,46 @@ export class Account {
         const items = parsed.items.filter((v) => { const k = v.type + v.id; if (cache.seen.has(k)) return false; cache.seen.add(k); return true; });
         const continuation = cache.tokens.has(parsed.continuation) ? '' : parsed.continuation;
         if (continuation) cache.tokens.add(continuation);
-        if (privateList && (owner !== this.current || this.state !== 'signed_in')) throw fail(401, 'signed_out');
+        if ((privateList || signedIn) && (owner !== this.current || this.state !== 'signed_in')) throw fail(401, 'signed_out');
         // Limite de páginas evita manter listas inteiras de milhares de itens na RAM do servidor.
         cache.pages.push({ items, continuation: cache.pages.length < 40 ? continuation : '' });
       }
       return { ...cache.header, ...cache.pages[page], more: Boolean(cache.pages[page].continuation) };
     });
     cache.task = task; return task;
+  }
+
+  async playlistPreview(id) {
+    if (this.state !== 'signed_in') throw fail(401, 'signed_out');
+    const owner = this.current, browseId = id.startsWith('VL') ? id : 'VL' + id;
+    const seen = new Set(), until = Date.now() + 7000;
+    let args = { browseId }, newest = false, last = '';
+    while (Date.now() < until && seen.size <= 40) {
+      const { data } = await owner.yt.actions.execute('/browse', { ...args, client: 'TV' });
+      if (owner !== this.current) throw fail(401, 'signed_out');
+      if (data.error) throw fail(502, 'playlist_unavailable');
+      if (!seen.size && !newest) {
+        const sort = findNodes(data, 'sortFilterSubMenuRenderer').flatMap((m) => m.subMenuItems || [])
+          .find((m) => /date added.*newest|adi[cç].*recent/i.test(label(m.title)));
+        const endpoint = sort?.navigationEndpoint || sort?.serviceEndpoint;
+        if (sort?.selected) newest = true;
+        else if (endpoint?.browseEndpoint || endpoint?.continuationCommand?.token) {
+          newest = true;
+          args = endpoint.browseEndpoint ? { browseId, ...endpoint.browseEndpoint } : { continuation: endpoint.continuationCommand.token };
+          continue;
+        }
+      }
+      const parsed = parseNavigation(data);
+      const videos = parsed.items.filter((item) => item.type === 'video');
+      if (videos.length) {
+        if (newest || /^(VL)?RD/.test(id)) return { video: videos[0].id };
+        last = videos.at(-1).id;
+      }
+      if (!parsed.continuation) return { video: last };
+      if (seen.has(parsed.continuation)) break;
+      seen.add(parsed.continuation); args = { continuation: parsed.continuation };
+    }
+    return { video: '' };
   }
 
   async channelForVideo(id) {
@@ -544,6 +603,10 @@ export async function startAccountService() {
             (['channel','artist'].includes(kind) && !CHANNEL_ID.test(id)) || (kind === 'radio' && !ID.test(id)) ||
             (['playlist','music_playlist','album'].includes(kind) && !id) || !['videos','live','playlists'].includes(tab)) throw fail(400, 'invalid_navigation');
         result = await account.navigationPage(kind, id, query, tab, page, url.searchParams.get('fresh') === '1', Math.max(0, Math.min(3, Number(url.searchParams.get('filter')) || 0)));
+      } else if (req.method === 'GET' && url.pathname === '/playlist_preview') {
+        const id = url.searchParams.get('id') || '';
+        if (!NAV_ID.test(id)) throw fail(400, 'invalid_playlist');
+        result = await account.playlistPreview(id);
       } else if (req.method === 'GET' && ['/channel_for_video','/lyrics'].includes(url.pathname)) {
         const id = url.searchParams.get('id') || ''; if (!ID.test(id)) throw fail(400, 'invalid_video');
         result = url.pathname === '/lyrics' ? await account.lyrics(id) : await account.channelForVideo(id);
