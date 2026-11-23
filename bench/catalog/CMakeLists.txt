@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.20)
+project(tube360_catalog CXX)
+set(CMAKE_CXX_STANDARD 20)
+add_executable(catalog-test test.cpp ../../client/src/yt/client.cpp)
+target_include_directories(catalog-test PRIVATE ../../client/src ../../client/third_party)
+target_compile_definitions(catalog-test PRIVATE PICOJSON_USE_LOCALE=0)
+enable_testing()
+add_test(NAME catalog COMMAND catalog-test "${CMAKE_CURRENT_SOURCE_DIR}/fixtures")

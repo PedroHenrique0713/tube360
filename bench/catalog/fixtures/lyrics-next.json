@@ -1,0 +1,27 @@
+{
+  "contents": {
+    "singleColumnMusicWatchNextResultsRenderer": {
+      "tabbedRenderer": {
+        "watchNextTabbedResultsRenderer": {
+          "tabs": [
+            {
+              "tabRenderer": {
+                "title": "Up next"
+              }
+            },
+            {
+              "tabRenderer": {
+                "title": "Lyrics",
+                "endpoint": {
+                  "browseEndpoint": {
+                    "browseId": "MPLYfixture"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

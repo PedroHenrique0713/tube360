@@ -1,0 +1,1883 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/featured",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EghmZWF0dXJlZPIGBAoCMgA%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Início"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/videos",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgZ2aWRlb3PyBgQKAjoA",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Vídeos",
+            "selected": true,
+            "content": {
+              "richGridRenderer": {
+                "contents": [
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/fpQcDQJQLhg/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCJdN_KfjUucGWJ5gd-OyjqihaJVw",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/fpQcDQJQLhg/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBj4PpB5VHGcQS5lb2FF_SuX9o2kw",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "1:23",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animationActivationTargetId": "fpQcDQJQLhg",
+                                          "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                          "lottieData": {
+                                            "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                            "settings": {
+                                              "loop": true,
+                                              "autoplay": true
+                                            }
+                                          },
+                                          "animatedText": "Tocando agora",
+                                          "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                                          "rendererContext": {}
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {},
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Google Antigravity em ação: Criando um guia de campo offline sobre vida selvagem."
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "339 visualizações"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "há 1 hora"
+                                          },
+                                          "accessibilityLabel": "há 1 hora"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " • "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "fpQcDQJQLhg",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=fpQcDQJQLhg",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "fpQcDQJQLhg",
+                                    "params": "0gYjEiEaCQoFcHQtQlIQAiIJCgVwdC1CUhACKgkKBXB0LUJSEAI%3D"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/WN-JK-hMAyg/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAJhnLLkKAOEMN8r84OYtydLxhhJQ",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/WN-JK-hMAyg/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAI60J9ZugKks7qwmpTzIcuUlSAYQ",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "1:08",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animationActivationTargetId": "WN-JK-hMAyg",
+                                          "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                          "lottieData": {
+                                            "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                            "settings": {
+                                              "loop": true,
+                                              "autoplay": true
+                                            }
+                                          },
+                                          "animatedText": "Tocando agora",
+                                          "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                                          "rendererContext": {}
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {},
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Google Antigravity e Gemini 4: Criando um mundo 3D interativo mapeado por MIDI"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "Google for Developers e Google Antigravity"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "35 mil visualizações"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "há 3 dias"
+                                          },
+                                          "accessibilityLabel": "há 3 dias"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " • "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "WN-JK-hMAyg",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=WN-JK-hMAyg",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "WN-JK-hMAyg",
+                                    "params": "0gYjEiEaCQoFcHQtQlIQAiIJCgVwdC1CUhACKgkKBXB0LUJSEAI%3D"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/f2bpv9mFUeE/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCzN7TiZKHcN5wCISaL9nvzqNy5Ig",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/f2bpv9mFUeE/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAgYydkHA1ve-QkpF5U-ngto8jDfw",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "1:08",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animationActivationTargetId": "f2bpv9mFUeE",
+                                          "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                          "lottieData": {
+                                            "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                            "settings": {
+                                              "loop": true,
+                                              "autoplay": true
+                                            }
+                                          },
+                                          "animatedText": "Tocando agora",
+                                          "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                                          "rendererContext": {}
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {},
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Google Antigravity e Gemini 4: Construindo uma groovebox personalizada em um macro pad de US$ 40"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "Google for Developers e Google Antigravity"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "19 mil visualizações"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "há 5 dias"
+                                          },
+                                          "accessibilityLabel": "há 5 dias"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " • "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "f2bpv9mFUeE",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=f2bpv9mFUeE",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "f2bpv9mFUeE",
+                                    "params": "0gYjEiEaCQoFcHQtQlIQAiIJCgVwdC1CUhACKgkKBXB0LUJSEAI%3D"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/aRIFzzr_Mi0/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLAHxzD4AsbzuLq2ESojzKuFAOg0UQ",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/aRIFzzr_Mi0/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLB6LMB27c3m7Nioym_Yg_lYejdV7w",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "5:01",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animationActivationTargetId": "aRIFzzr_Mi0",
+                                          "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                          "lottieData": {
+                                            "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                            "settings": {
+                                              "loop": true,
+                                              "autoplay": true
+                                            }
+                                          },
+                                          "animatedText": "Tocando agora",
+                                          "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                                          "rendererContext": {}
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {},
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "EmbeddingGemma 2: Como funcionam os embeddings nativamente multimodais"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "63 mil visualizações"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "há 6 dias"
+                                          },
+                                          "accessibilityLabel": "há 6 dias"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " • "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "aRIFzzr_Mi0",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=aRIFzzr_Mi0",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "aRIFzzr_Mi0",
+                                    "params": "0gYjEiEaCQoFcHQtQlIQAiIJCgVwdC1CUhACKgkKBXB0LUJSEAI%3D"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/vLAegkGGWrM/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCpVzT4Xytm317YTYdtgUbgiOQ7Uw",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/vLAegkGGWrM/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDzxmIisWsiz6oUmMNPkNecqQuemQ",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "1:03",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animationActivationTargetId": "vLAegkGGWrM",
+                                          "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                          "lottieData": {
+                                            "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                            "settings": {
+                                              "loop": true,
+                                              "autoplay": true
+                                            }
+                                          },
+                                          "animatedText": "Tocando agora",
+                                          "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                                          "rendererContext": {}
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {},
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Criando com Gemini no Google Antigravity"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "Google for Developers e Google Antigravity"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "22 mil visualizações"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "há 11 dias"
+                                          },
+                                          "accessibilityLabel": "há 11 dias"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " • "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "vLAegkGGWrM",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=vLAegkGGWrM&pp=0gcJCTwIAYcqIYzv",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "vLAegkGGWrM",
+                                    "params": "0gYjEiEaCQoFcHQtQlIQAiIJCgVwdC1CUhACKgkKBXB0LUJSEAI%3D",
+                                    "playerParams": "0gcJCTwIAYcqIYzv"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/rsOiZE19RVo/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLDOnu21PdACF8eJ92az2weOy6bkag",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/rsOiZE19RVo/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBVeNclAD-_7WZ7zngupv1xAFOo-Q",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "2:35",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animationActivationTargetId": "rsOiZE19RVo",
+                                          "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                          "lottieData": {
+                                            "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                            "settings": {
+                                              "loop": true,
+                                              "autoplay": true
+                                            }
+                                          },
+                                          "animatedText": "Tocando agora",
+                                          "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                                          "rendererContext": {}
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {},
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Acelere o transporte para ganhar escala com o Google Antigravity"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "Google for Developers e Google Antigravity"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "14 mil visualizações"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "há 3 semanas"
+                                          },
+                                          "accessibilityLabel": "há 3 semanas"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " • "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "rsOiZE19RVo",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=rsOiZE19RVo",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "rsOiZE19RVo",
+                                    "params": "0gYjEiEaCQoFcHQtQlIQAiIJCgVwdC1CUhACKgkKBXB0LUJSEAI%3D"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/ID6vEy94j7c/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLApbFil3OUi_tE7h98bQiUGdaS6EA",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/ID6vEy94j7c/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBTYVLUk8384mWB21Vk7a0qm9KjiQ",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "2:03",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animationActivationTargetId": "ID6vEy94j7c",
+                                          "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                          "lottieData": {
+                                            "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                            "settings": {
+                                              "loop": true,
+                                              "autoplay": true
+                                            }
+                                          },
+                                          "animatedText": "Tocando agora",
+                                          "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                                          "rendererContext": {}
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {},
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Criando visão em tempo real e navegação de borda com Gemini Live"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "Google for Developers e Google Gemini"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "42 mil visualizações"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "há 3 semanas"
+                                          },
+                                          "accessibilityLabel": "há 3 semanas"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " • "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "ID6vEy94j7c",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=ID6vEy94j7c&pp=0gcJCTwIAYcqIYzv",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "ID6vEy94j7c",
+                                    "params": "0gYjEiEaCQoFcHQtQlIQAiIJCgVwdC1CUhACKgkKBXB0LUJSEAI%3D",
+                                    "playerParams": "0gcJCTwIAYcqIYzv"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "lockupViewModel": {
+                          "contentImage": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/pQ_Dnr9Q4k8/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLD28PKgzy0P1nuijA9Dl8tWDVRezw",
+                                    "width": 360,
+                                    "height": 202
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/pQ_Dnr9Q4k8/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBkzpIgv9aML-sMCN1l-8CA5ajL1Q",
+                                    "width": 720,
+                                    "height": 404
+                                  }
+                                ]
+                              },
+                              "overlays": [
+                                {
+                                  "thumbnailBottomOverlayViewModel": {
+                                    "badges": [
+                                      {
+                                        "thumbnailBadgeViewModel": {
+                                          "text": "2:32",
+                                          "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                          "animationActivationTargetId": "pQ_Dnr9Q4k8",
+                                          "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                                          "lottieData": {
+                                            "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                            "settings": {
+                                              "loop": true,
+                                              "autoplay": true
+                                            }
+                                          },
+                                          "animatedText": "Tocando agora",
+                                          "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                                          "rendererContext": {}
+                                        }
+                                      }
+                                    ]
+                                  }
+                                },
+                                {},
+                                {}
+                              ]
+                            }
+                          },
+                          "metadata": {
+                            "lockupMetadataViewModel": {
+                              "title": {
+                                "content": "Dispositivos inteligentes funcionais usando Gemini 4 Argon e Google Antigravity"
+                              },
+                              "metadata": {
+                                "contentMetadataViewModel": {
+                                  "metadataRows": [
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "Google for Developers e Google Gemini"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "metadataParts": [
+                                        {
+                                          "text": {
+                                            "content": "30 mil visualizações"
+                                          }
+                                        },
+                                        {
+                                          "text": {
+                                            "content": "há 3 semanas"
+                                          },
+                                          "accessibilityLabel": "há 3 semanas"
+                                        }
+                                      ]
+                                    }
+                                  ],
+                                  "delimiter": " • "
+                                }
+                              }
+                            }
+                          },
+                          "contentId": "pQ_Dnr9Q4k8",
+                          "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+                          "rendererContext": {
+                            "commandContext": {
+                              "onTap": {
+                                "innertubeCommand": {
+                                  "commandMetadata": {
+                                    "webCommandMetadata": {
+                                      "url": "/watch?v=pQ_Dnr9Q4k8",
+                                      "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                      "rootVe": 3832
+                                    }
+                                  },
+                                  "watchEndpoint": {
+                                    "videoId": "pQ_Dnr9Q4k8",
+                                    "params": "0gYjEiEaCQoFcHQtQlIQAiIJCgVwdC1CUhACKgkKBXB0LUJSEAI%3D"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "continuationItemRenderer": {
+                      "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+                      "continuationEndpoint": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "sendPost": true,
+                            "apiUrl": "/youtubei/v1/browse"
+                          }
+                        },
+                        "continuationCommand": {
+                          "token": "CONT_channel_videos",
+                          "request": "CONTINUATION_REQUEST_TYPE_BROWSE"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "header": {
+                  "chipBarViewModel": {
+                    "chips": [
+                      {
+                        "chipViewModel": {
+                          "text": "Mais recentes",
+                          "selected": true,
+                          "displayType": "CHIP_VIEW_MODEL_DISPLAY_TYPE_UNSPECIFIED",
+                          "tapCommand": {
+                            "innertubeCommand": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "sendPost": true,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "continuationCommand": {
+                                "token": "CONT_channel_videos",
+                                "request": "CONTINUATION_REQUEST_TYPE_BROWSE",
+                                "command": {
+                                  "showReloadUiCommand": {
+                                    "targetId": "6b7b77cd-0000-2c3c-8b22-582429ac55e4"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "accessibilityLabel": "Mais recentes"
+                        }
+                      },
+                      {
+                        "chipViewModel": {
+                          "text": "Em alta",
+                          "selected": false,
+                          "displayType": "CHIP_VIEW_MODEL_DISPLAY_TYPE_UNSPECIFIED",
+                          "tapCommand": {
+                            "innertubeCommand": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "sendPost": true,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "continuationCommand": {
+                                "token": "CONT_channel_videos",
+                                "request": "CONTINUATION_REQUEST_TYPE_BROWSE",
+                                "command": {
+                                  "showReloadUiCommand": {
+                                    "targetId": "6b7b77cd-0000-2c3c-8b22-582429ac55e4"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "accessibilityLabel": "Em alta"
+                        }
+                      },
+                      {
+                        "chipViewModel": {
+                          "text": "Mais antigos",
+                          "selected": false,
+                          "displayType": "CHIP_VIEW_MODEL_DISPLAY_TYPE_UNSPECIFIED",
+                          "tapCommand": {
+                            "innertubeCommand": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "sendPost": true,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "continuationCommand": {
+                                "token": "CONT_channel_videos",
+                                "request": "CONTINUATION_REQUEST_TYPE_BROWSE",
+                                "command": {
+                                  "showReloadUiCommand": {
+                                    "targetId": "6b7b77cd-0000-2c3c-8b22-582429ac55e4"
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "accessibilityLabel": "Mais antigos"
+                        }
+                      }
+                    ]
+                  }
+                },
+                "targetId": "6b7b77cd-0000-2c3c-8b22-582429ac55e4",
+                "style": "RICH_GRID_STYLE_SLIM"
+              }
+            }
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/shorts",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgZzaG9ydHPyBgUKA5oBAA%3D%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Shorts"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/streams",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgdzdHJlYW1z8gYECgJ6AA%3D%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Ao vivo"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/courses",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "Egdjb3Vyc2Vz8gYFCgPCAQA%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Cursos"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/playlists",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EglwbGF5bGlzdHPyBgoKCEIGCgIQaCIA",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Playlists"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/posts",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgVwb3N0c_IGBAoCSgA%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Posts"
+          }
+        },
+        {
+          "expandableTabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/search",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgZzZWFyY2jyBgQKAloA",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Pesquisar",
+            "selected": false
+          }
+        }
+      ]
+    }
+  },
+  "header": {
+    "pageHeaderRenderer": {
+      "pageTitle": "Google for Developers",
+      "content": {
+        "pageHeaderViewModel": {
+          "title": {
+            "dynamicTextViewModel": {
+              "text": {
+                "content": "Google for Developers"
+              },
+              "maxLines": 2,
+              "rendererContext": {}
+            }
+          },
+          "image": {
+            "decoratedAvatarViewModel": {
+              "avatar": {
+                "avatarViewModel": {
+                  "image": {
+                    "sources": [
+                      {
+                        "url": "https://yt3.googleusercontent.com/r99eRlOesQkJe7pOzDY4JazAlhidoVp-0syxBnYjfeHdmUXGa5zOxcozaxKF2oPHg3RkglecZQ=s72-c-k-c0x00ffffff-no-rj",
+                        "width": 72,
+                        "height": 72
+                      },
+                      {
+                        "url": "https://yt3.googleusercontent.com/r99eRlOesQkJe7pOzDY4JazAlhidoVp-0syxBnYjfeHdmUXGa5zOxcozaxKF2oPHg3RkglecZQ=s120-c-k-c0x00ffffff-no-rj",
+                        "width": 120,
+                        "height": 120
+                      },
+                      {
+                        "url": "https://yt3.googleusercontent.com/r99eRlOesQkJe7pOzDY4JazAlhidoVp-0syxBnYjfeHdmUXGa5zOxcozaxKF2oPHg3RkglecZQ=s160-c-k-c0x00ffffff-no-rj",
+                        "width": 160,
+                        "height": 160
+                      }
+                    ],
+                    "processor": {
+                      "borderImageProcessor": {
+                        "circular": true
+                      }
+                    }
+                  },
+                  "avatarImageSize": "AVATAR_SIZE_XL"
+                }
+              }
+            }
+          },
+          "metadata": {
+            "contentMetadataViewModel": {
+              "metadataRows": [
+                {
+                  "metadataParts": [
+                    {
+                      "text": {
+                        "content": "@GoogleDevelopers"
+                      },
+                      "enableTruncation": true
+                    }
+                  ]
+                },
+                {
+                  "metadataParts": [
+                    {
+                      "text": {
+                        "content": "2,69 mi de inscritos"
+                      },
+                      "accessibilityLabel": "2,69 milhões de inscritos"
+                    },
+                    {
+                      "text": {
+                        "content": "6,1 mil vídeos"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "delimiter": "•",
+              "rendererContext": {}
+            }
+          },
+          "actions": {
+            "flexibleActionsViewModel": {
+              "actionsRows": [
+                {
+                  "actions": [
+                    {
+                      "buttonViewModel": {
+                        "title": "Inscrever-se",
+                        "onTap": {
+                          "innertubeCommand": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "ignoreNavigation": true
+                              }
+                            },
+                            "modalEndpoint": {
+                              "modal": {
+                                "modalWithTitleAndButtonRenderer": {
+                                  "title": {
+                                    "simpleText": "Quer se inscrever neste canal?"
+                                  },
+                                  "content": {
+                                    "simpleText": "Faça login para se inscrever neste canal."
+                                  },
+                                  "button": {
+                                    "buttonRenderer": {
+                                      "style": "STYLE_MONO_FILLED",
+                                      "size": "SIZE_DEFAULT",
+                                      "isDisabled": false,
+                                      "text": {
+                                        "simpleText": "Fazer login"
+                                      },
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Dpt%26next%3D%252F%2540GoogleDevelopers%252Fvideos%26continue_action%3DQUlxb01IWlJlckJwLTNHYU9HaE5leFBDWUlKQXxBQnJ0NjltZXRRbDU0STdhX1l2Tll3WXl5alQ1YzdjMVgycWlRRWpOX3JfYkZzYWw4bEJOakpDR2VvU1RIYkNoTmVHdVpCNTc5LVhQLXV5TVpmUmpIRTF3Y2p0WkZWWjZEXzhWVEJkV2RMVG94ZXZWNUdYNXJrcDBnRl9wSTl1eEZxZEZyNFlZNGVXUkt6YWlRaEF4ZnlVQWp1Q0doODJTXzNqQm5QUzItdlI2QVI3Y0pqTVNxOEdzVTRn&hl=pt-BR&ec=66429",
+                                            "webPageType": "WEB_PAGE_TYPE_UNKNOWN",
+                                            "rootVe": 83769
+                                          }
+                                        },
+                                        "signInEndpoint": {
+                                          "nextEndpoint": {
+                                            "commandMetadata": {
+                                              "webCommandMetadata": {
+                                                "url": "/@GoogleDevelopers/videos",
+                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                "rootVe": 3611,
+                                                "apiUrl": "/youtubei/v1/browse"
+                                              }
+                                            },
+                                            "browseEndpoint": {
+                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                              "params": "EgZ2aWRlb3M%3D",
+                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                            }
+                                          },
+                                          "continueAction": "QUlxb01IWlJlckJwLTNHYU9HaE5leFBDWUlKQXxBQnJ0NjltZXRRbDU0STdhX1l2Tll3WXl5alQ1YzdjMVgycWlRRWpOX3JfYkZzYWw4bEJOakpDR2VvU1RIYkNoTmVHdVpCNTc5LVhQLXV5TVpmUmpIRTF3Y2p0WkZWWjZEXzhWVEJkV2RMVG94ZXZWNUdYNXJrcDBnRl9wSTl1eEZxZEZyNFlZNGVXUkt6YWlRaEF4ZnlVQWp1Q0doODJTXzNqQm5QUzItdlI2QVI3Y0pqTVNxOEdzVTRn",
+                                          "idamTag": "66429"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "accessibilityText": "Inscrever-se",
+                        "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                        "isFullWidth": false,
+                        "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                        "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "justifyContent": "FLEXIBLE_ACTIONS_JUSTIFY_CONTENT_START",
+              "minimumRowHeight": 44,
+              "rendererContext": {}
+            }
+          },
+          "description": {
+            "descriptionPreviewViewModel": {
+              "description": {
+                "content": "Welcome to Google for Developers! Subscribe for the latest tools, APIs, and frameworks. Get step-by-step guides for Gemini and Google AI Studio, master modern engineering practices, and discover next-generation builds, to build what’s next with Google for Developers. "
+              },
+              "maxLines": 2,
+              "truncationText": {
+                "content": "…mais"
+              },
+              "alwaysShowTruncationText": true,
+              "rendererContext": {
+                "commandContext": {
+                  "onTap": {
+                    "innertubeCommand": {
+                      "showEngagementPanelEndpoint": {
+                        "engagementPanel": {
+                          "engagementPanelSectionListRenderer": {
+                            "header": {
+                              "engagementPanelTitleHeaderRenderer": {
+                                "title": {
+                                  "simpleText": "Google for Developers"
+                                },
+                                "visibilityButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CLOSE"
+                                    },
+                                    "accessibilityData": {
+                                      "accessibilityData": {
+                                        "label": "Fechar"
+                                      }
+                                    },
+                                    "command": {
+                                      "changeEngagementPanelVisibilityAction": {
+                                        "targetId": "6b7b7799-0000-2c3c-8b22-582429ac55e4",
+                                        "visibility": "ENGAGEMENT_PANEL_VISIBILITY_HIDDEN"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "content": {
+                              "sectionListRenderer": {
+                                "contents": [
+                                  {
+                                    "itemSectionRenderer": {
+                                      "contents": [
+                                        {
+                                          "continuationItemRenderer": {
+                                            "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+                                            "continuationEndpoint": {
+                                              "commandMetadata": {
+                                                "webCommandMetadata": {
+                                                  "sendPost": true,
+                                                  "apiUrl": "/youtubei/v1/browse"
+                                                }
+                                              },
+                                              "continuationCommand": {
+                                                "token": "CONT_channel_videos",
+                                                "request": "CONTINUATION_REQUEST_TYPE_BROWSE"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "sectionIdentifier": "6b7b779a-0000-2c3c-8b22-582429ac55e4",
+                                      "targetId": "6b7b779a-0000-2c3c-8b22-582429ac55e4"
+                                    }
+                                  }
+                                ],
+                                "scrollPaneStyle": {
+                                  "scrollable": true
+                                }
+                              }
+                            },
+                            "targetId": "6b7b7799-0000-2c3c-8b22-582429ac55e4",
+                            "identifier": {
+                              "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                              "tag": "6b7b7799-0000-2c3c-8b22-582429ac55e4"
+                            }
+                          }
+                        },
+                        "identifier": {
+                          "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                          "tag": "6b7b7799-0000-2c3c-8b22-582429ac55e4"
+                        },
+                        "engagementPanelPresentationConfigs": {
+                          "engagementPanelPopupPresentationConfig": {
+                            "popupType": "PANEL_POPUP_TYPE_DIALOG"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "attribution": {
+            "attributionViewModel": {
+              "text": {
+                "content": " LinkedIn",
+                "commandRuns": [
+                  {
+                    "startIndex": 0,
+                    "length": 9,
+                    "onTap": {
+                      "innertubeCommand": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "https://www.youtube.com/redirect?event=channel_header&redir_token=QUlxb01IYU95TlZVRjc4RWhRXzdZLWJZemQ5YXxBQnJ0NjltSEpiSktUQ3RvbjFhaHZGejdONHpKYVNsRkg0YVRGQWUyNmhnS0tEeXJSZGxuZkJ1ZjRXVGJSQ2N6NFlIT3NtZ0JTRjJWUnNVcDFLOGNSeWd2QUZnUWhqVXpBY3dp&q=https%3A%2F%2Fwww.linkedin.com%2Fshowcase%2Fgoogledevelopers%2F",
+                            "webPageType": "WEB_PAGE_TYPE_UNKNOWN",
+                            "rootVe": 83769
+                          }
+                        },
+                        "urlEndpoint": {
+                          "url": "https://www.youtube.com/redirect?event=channel_header&redir_token=QUlxb01IYU95TlZVRjc4RWhRXzdZLWJZemQ5YXxBQnJ0NjltSEpiSktUQ3RvbjFhaHZGejdONHpKYVNsRkg0YVRGQWUyNmhnS0tEeXJSZGxuZkJ1ZjRXVGJSQ2N6NFlIT3NtZ0JTRjJWUnNVcDFLOGNSeWd2QUZnUWhqVXpBY3dp&q=https%3A%2F%2Fwww.linkedin.com%2Fshowcase%2Fgoogledevelopers%2F",
+                          "target": "TARGET_NEW_WINDOW"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "suffix": {
+                "content": "e mais 6 links",
+                "commandRuns": [
+                  {
+                    "startIndex": 0,
+                    "length": 14,
+                    "onTap": {
+                      "innertubeCommand": {
+                        "showEngagementPanelEndpoint": {
+                          "engagementPanel": {
+                            "engagementPanelSectionListRenderer": {
+                              "header": {
+                                "engagementPanelTitleHeaderRenderer": {
+                                  "title": {
+                                    "simpleText": "Google for Developers"
+                                  },
+                                  "visibilityButton": {
+                                    "buttonRenderer": {
+                                      "style": "STYLE_DEFAULT",
+                                      "size": "SIZE_DEFAULT",
+                                      "isDisabled": false,
+                                      "icon": {
+                                        "iconType": "CLOSE"
+                                      },
+                                      "accessibilityData": {
+                                        "accessibilityData": {
+                                          "label": "Fechar"
+                                        }
+                                      },
+                                      "command": {
+                                        "changeEngagementPanelVisibilityAction": {
+                                          "targetId": "6b7b779b-0000-2c3c-8b22-582429ac55e4",
+                                          "visibility": "ENGAGEMENT_PANEL_VISIBILITY_HIDDEN"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "content": {
+                                "sectionListRenderer": {
+                                  "contents": [
+                                    {
+                                      "itemSectionRenderer": {
+                                        "contents": [
+                                          {
+                                            "continuationItemRenderer": {
+                                              "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+                                              "continuationEndpoint": {
+                                                "commandMetadata": {
+                                                  "webCommandMetadata": {
+                                                    "sendPost": true,
+                                                    "apiUrl": "/youtubei/v1/browse"
+                                                  }
+                                                },
+                                                "continuationCommand": {
+                                                  "token": "CONT_channel_videos",
+                                                  "request": "CONTINUATION_REQUEST_TYPE_BROWSE"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        ],
+                                        "sectionIdentifier": "6b7b779c-0000-2c3c-8b22-582429ac55e4",
+                                        "targetId": "6b7b779c-0000-2c3c-8b22-582429ac55e4"
+                                      }
+                                    }
+                                  ],
+                                  "scrollPaneStyle": {
+                                    "scrollable": true
+                                  }
+                                }
+                              },
+                              "targetId": "6b7b779b-0000-2c3c-8b22-582429ac55e4",
+                              "identifier": {
+                                "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                                "tag": "6b7b779b-0000-2c3c-8b22-582429ac55e4"
+                              }
+                            }
+                          },
+                          "identifier": {
+                            "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                            "tag": "6b7b779b-0000-2c3c-8b22-582429ac55e4"
+                          },
+                          "engagementPanelPresentationConfigs": {
+                            "engagementPanelPopupPresentationConfig": {
+                              "popupType": "PANEL_POPUP_TYPE_DIALOG"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "rendererContext": {}
+            }
+          },
+          "banner": {
+            "imageBannerViewModel": {
+              "image": {
+                "sources": [
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w1060-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 1060,
+                    "height": 175
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w1138-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 1138,
+                    "height": 188
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 1707,
+                    "height": 283
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w2120-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 2120,
+                    "height": 351
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w2276-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 2276,
+                    "height": 377
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w2560-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 2560,
+                    "height": 424
+                  }
+                ]
+              },
+              "style": "IMAGE_BANNER_STYLE_INSET",
+              "rendererContext": {}
+            }
+          },
+          "rendererContext": {}
+        }
+      }
+    }
+  },
+  "metadata": {
+    "channelMetadataRenderer": {
+      "title": "Google for Developers",
+      "description": "Welcome to Google for Developers! Subscribe for the latest tools, APIs, and frameworks. Get step-by-step guides for Gemini and Google AI Studio, master modern engineering practices, and discover next-generation builds, to build what’s next with Google for Developers.\n",
+      "rssUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "channelConversionUrl": "https://www.youtube.com/measurement/follow_on/962985656/?backend=innertube&cname=1&cver=2_20261123_00_00&data=backend%3Dinnertube%3Bcname%3D1%3Bcver%3D2_20261123_00_00%3Bptype%3Dcview%3Btype%3Dcview%3Butuid%3D_x5XG1OV2P6uZZ5FSM9Ttw&foc_id=_x5XG1OV2P6uZZ5FSM9Ttw&label=followon_cvisit&ptype=cview&utuid=_x5XG1OV2P6uZZ5FSM9Ttw",
+      "externalId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "keywords": "\"google developers\" developers \"Google developers videos\" \"google developer tutorials\" \"developer tutorials\" \"developer news\" android firebase tensorflow chrome web flutter \"google developer experts\" \"google launchpad\" \"developer updates\" google \"google design\"",
+      "ownerUrls": [
+        "http://www.youtube.com/@GoogleDevelopers"
+      ],
+      "avatar": {
+        "thumbnails": [
+          {
+            "url": "https://yt3.googleusercontent.com/r99eRlOesQkJe7pOzDY4JazAlhidoVp-0syxBnYjfeHdmUXGa5zOxcozaxKF2oPHg3RkglecZQ=s900-c-k-c0x00ffffff-no-rj",
+            "width": 900,
+            "height": 900
+          }
+        ]
+      },
+      "channelUrl": "https://www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "isFamilySafe": true,
+      "availableCountryCodes": [
+        "SD",
+        "GI",
+        "CR",
+        "BF",
+        "NL",
+        "MO",
+        "PE",
+        "SE",
+        "ID",
+        "AR",
+        "RO",
+        "MS",
+        "FJ",
+        "CY",
+        "LY",
+        "VU",
+        "AO",
+        "GB",
+        "LI",
+        "MA",
+        "YT",
+        "GF",
+        "BZ",
+        "GH",
+        "GQ",
+        "NE",
+        "GR",
+        "BG",
+        "EH",
+        "CC",
+        "CD",
+        "TM",
+        "RS",
+        "MT",
+        "NF",
+        "TK",
+        "BB",
+        "AZ",
+        "MH",
+        "KR",
+        "UZ",
+        "JE",
+        "SV",
+        "ST",
+        "HR",
+        "GS",
+        "SH",
+        "BO",
+        "SJ",
+        "MM",
+        "MZ",
+        "CK",
+        "PR",
+        "CZ",
+        "LT",
+        "KW",
+        "IE",
+        "NP",
+        "GA",
+        "GD",
+        "NR",
+        "PN",
+        "HU",
+        "CN",
+        "MX",
+        "PA",
+        "AL",
+        "GL",
+        "MQ",
+        "MV",
+        "MW",
+        "SK",
+        "TL",
+        "FK",
+        "BR",
+        "IN",
+        "AM",
+        "BE",
+        "BY",
+        "RU",
+        "SO",
+        "IO",
+        "AQ",
+        "CA",
+        "MR",
+        "TO",
+        "IS",
+        "TT",
+        "MG",
+        "GW",
+        "BN",
+        "HN",
+        "KY",
+        "DZ",
+        "IQ",
+        "LB",
+        "SZ",
+        "FI",
+        "MC",
+        "RW",
+        "CL",
+        "VA",
+        "ET",
+        "CF",
+        "AG",
+        "IR",
+        "CG",
+        "AU",
+        "DM",
+        "LS",
+        "NC",
+        "BM",
+        "BD",
+        "DE",
+        "FO",
+        "TW",
+        "WF",
+        "SG",
+        "GG",
+        "PS",
+        "UM",
+        "BV",
+        "ZA",
+        "PY",
+        "PH",
+        "BH",
+        "TH",
+        "BT",
+        "CM",
+        "EE",
+        "LC",
+        "DO",
+        "AW",
+        "NG",
+        "SC",
+        "VE",
+        "AE",
+        "TD",
+        "KH",
+        "EC",
+        "GE",
+        "BS",
+        "IL",
+        "MY",
+        "WS",
+        "CO",
+        "TG",
+        "BW",
+        "NO",
+        "CV",
+        "UA",
+        "GP",
+        "GT",
+        "TZ",
+        "MP",
+        "EG",
+        "LK",
+        "KZ",
+        "LR",
+        "LU",
+        "DJ",
+        "SN",
+        "TV",
+        "AS",
+        "DK",
+        "CU",
+        "OM",
+        "PG",
+        "PW",
+        "AF",
+        "AX",
+        "ES",
+        "ER",
+        "IM",
+        "AD",
+        "GM",
+        "LA",
+        "PK",
+        "TJ",
+        "VN",
+        "BA",
+        "SL",
+        "US",
+        "AT",
+        "KN",
+        "KG",
+        "QA",
+        "GY",
+        "KP",
+        "PF",
+        "SX",
+        "TR",
+        "NI",
+        "CI",
+        "PM",
+        "NU",
+        "SM",
+        "MD",
+        "ME",
+        "ZM",
+        "BJ",
+        "LV",
+        "JM",
+        "HM",
+        "IT",
+        "JP",
+        "SY",
+        "ML",
+        "CX",
+        "SI",
+        "MF",
+        "SR",
+        "VC",
+        "SS",
+        "TC",
+        "MK",
+        "UY",
+        "CH",
+        "HK",
+        "VG",
+        "HT",
+        "MN",
+        "KE",
+        "TF",
+        "AI",
+        "PT",
+        "NA",
+        "GN",
+        "YE",
+        "GU",
+        "JO",
+        "PL",
+        "RE",
+        "NZ",
+        "BQ",
+        "UG",
+        "KM",
+        "SA",
+        "BL",
+        "FR",
+        "VI",
+        "SB",
+        "TN",
+        "KI",
+        "ZW",
+        "FM",
+        "CW",
+        "MU",
+        "BI"
+      ],
+      "androidDeepLink": "android-app://com.google.android.youtube/http/www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "androidAppindexingLink": "android-app://com.google.android.youtube/http/www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "iosAppindexingLink": "ios-app://544007664/vnd.youtube/www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "vanityChannelUrl": "http://www.youtube.com/@GoogleDevelopers"
+    }
+  }
+}

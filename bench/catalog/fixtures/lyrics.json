@@ -1,0 +1,19 @@
+{
+  "contents": {
+    "sectionListRenderer": {
+      "contents": [
+        {
+          "musicDescriptionShelfRenderer": {
+            "description": {
+              "runs": [
+                {
+                  "text": "Letra de teste criada para esta prova. A música segue na fila e a tela acompanha."
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  }
+}
