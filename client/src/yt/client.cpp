@@ -293,6 +293,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
         }
     }
     out.muxed = !bestMuxed.url.empty() && (out.audio.url.empty() || bestMuxed.height>=bestAdaptive.height);
+    out.speakerAudio = out.audio;
     out.video = out.muxed ? bestMuxed : bestAdaptive;
     if (out.muxed) out.audio={};
     if (out.hls.empty()) {

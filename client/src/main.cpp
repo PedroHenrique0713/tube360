@@ -467,7 +467,7 @@ int main(int argc, char** argv) {
   loadIcons(g);
 
   gfx::Video videoTex; g.video = &videoTex;
-  player::Player pl; pl.cacheBase = assets + "yt-base"; pl.init();
+  player::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); pl.directSpeaker.init(assets);
   Worker worker; worker.srv = srv;
   SDL_Thread* wt = yt::worker(Worker::main, "trabalho", &worker);
   // Conta e pareamento não esperam as buscas do feed.
@@ -542,10 +542,11 @@ int main(int argc, char** argv) {
   auto saveSettings = [&]() {
     if (!settings.save(assets)) { toast = tr(K::SaveFailed); toastUntil = SDL_GetTicks() + 4000; }
   };
-  std::string nestName = tr(K::Nest); bool nestAvailable = false, nestChecked = false;
+  std::string nestName = pl.directSpeaker.configured() ? pl.directSpeaker.settings().name : tr(K::Nest);
+  bool nestAvailable = pl.directSpeaker.configured(), nestChecked = nestAvailable;
   bool nestSkip = false;  // o Nest falhou neste vídeo: segue com o som da TV até trocar de vídeo ou apertar X
   std::string castCode, castWho; uint64_t castCodeAt = 0;  // castWho: quem está conectado pelo Transmitir  // código de "Assistir na TV" do receptor (cast/receptor.mjs)
-  if (nestOut) control.add({5, "/api/nest/prepare", 0});
+  if (nestOut && !pl.directSpeaker.configured()) control.add({5, "/api/nest/prepare", 0});
   auto requestAccount = [&](const char* path) { control.add({5, path, 0}); accountBusy = true; };
   auto beginLogin = [&]() {
     loginPanel = true; loginError = K::None;
@@ -594,7 +595,7 @@ int main(int argc, char** argv) {
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
     pl.nestOffset = nestOffsetMs / 1000.0;
-    pl.start(srv, v.id, t, v.title, v.dur, quality, net::serverEnabled && nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled);
+    pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
@@ -743,6 +744,7 @@ int main(int argc, char** argv) {
         castCode = f.size() > 1 && f[0] == "ok" ? f[1] : "";
         castWho = f.size() > 2 && f[0] == "ok" ? f[2] : "";
       } else if (r.key == "/api/nest/info") {
+        if (pl.directSpeaker.configured()) continue;
         auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
         nestChecked = true; nestAvailable = f.size() > 1 && f[0] == "ok" && !f[1].empty();
         if (nestAvailable) nestName = f[1];
@@ -888,7 +890,7 @@ int main(int argc, char** argv) {
     // ---------------------------------------------------------------- lógica por tela
     // código de pareamento e quem está conectado pelo Transmitir (o código troca a cada 5 min)
     if (net::serverEnabled && now >= castCodeAt) { control.add({5, "/api/cast/code", 0}); castCodeAt = now + (phonePanel ? 15000 : 30000); }
-    if (net::serverEnabled && now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
+    if (net::serverEnabled && !pl.directSpeaker.configured() && now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
     if (net::serverEnabled && !accountBusy && now >= accountAt) requestAccount("/api/account");
     const char* keys[] = {tr(K::Keyboard1), tr(K::Keyboard2), tr(K::Keyboard3), tr(K::Keyboard4)};
     if (shutdownAt) {
@@ -1072,7 +1074,7 @@ int main(int argc, char** argv) {
           const int values[] = {720, 480, 360}; int i = quality == 720 ? 0 : quality == 480 ? 1 : 2;
           quality = values[(i + direction + 3) % 3];
         } else if (settingsRow == 3) {
-          if (nestAvailable) { nestOut = !nestOut; if (nestOut) control.add({5, "/api/nest/prepare", 0}); }
+          if (nestAvailable) { nestOut = !nestOut; if (nestOut && !pl.directSpeaker.configured()) control.add({5, "/api/nest/prepare", 0}); }
           else changed = false;
         } else if (settingsRow == 4) nestOffsetMs = std::clamp(nestOffsetMs + direction * 40, -2000, 2000);
         else if (settingsRow == 5) {
@@ -1088,7 +1090,7 @@ int main(int argc, char** argv) {
         else if (settingsRow == 8) {
           settings.server = !settings.server; net::serverEnabled = settings.server;
           if (!settings.server) {
-            account = {}; accountKnown = false; nestAvailable = false; castWho.clear(); sleep = {};
+            account = {}; accountKnown = false; nestAvailable = pl.directSpeaker.configured(); castWho.clear(); sleep = {};
             SDL_LockMutex(remote.mu); remote.online = false; remote.cmds.clear(); remote.ended.clear(); SDL_UnlockMutex(remote.mu);
           }
           accountAt = nestInfoAt = castCodeAt = 0; rebuildCats();
@@ -1881,6 +1883,7 @@ int main(int argc, char** argv) {
   }
   captionLoader.stop();
   pl.halt();
+  pl.directSpeaker.shutdown();
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);
   remote.quit = true;
   SDL_LockMutex(sleepWorker.mu); sleepWorker.quit = true; SDL_SignalCondition(sleepWorker.cv); SDL_UnlockMutex(sleepWorker.mu);

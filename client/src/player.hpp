@@ -16,6 +16,7 @@
 #include "pl_mpeg.h"
 #include "h264.hpp"
 #include "yt/media.hpp"
+#include "nest.hpp"
 #ifdef __XSDK__
 #include "xsdk/thread.h"
 #include "xsdk/audio.h"
@@ -66,6 +67,8 @@ struct SlicePool {
 enum State { IDLE, CONNECTING, BUFFERING, PLAYING, ENDED, FAILED };
 
 struct Player {
+  nest::Speaker directSpeaker;
+  std::atomic<bool> castMediaReady{false};
   net::Server srv;
   std::string id, title, error;
   double startAt = 0, duration = 0;
@@ -193,7 +196,8 @@ struct Player {
   void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false) {
     if (vid != id || state == IDLE || quality != q) allowOriginal = true;
     halt(!speaker);
-    direct = tryDirect && !speaker;
+    direct = tryDirect && (!speaker || directSpeaker.configured());
+    castMediaReady = false;
     endLiveReader = false; refreshed = renewing; renew = mediaReady = false; actualHeight = 0;
     if (renewing) validUntil = 0;
     SDL_SetAtomicInt(&netBytes, 0);
@@ -214,9 +218,10 @@ struct Player {
     nestFailed = false;
     SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
     if (direct) {
-      output = LOCAL; original = true;
+      output = speaker || !directSpeaker.sample().quiet ? CAST : LOCAL; original = true;
       decThread = yt::worker(decMain, "youtube", this);
       if (!decThread) state = FAILED;
+      nestThread = yt::worker(nestMain, "nest", this);
       return;
     }
     netThread = SDL_CreateThread(netMain, "rede", this);
@@ -225,10 +230,12 @@ struct Player {
   }
 
   void halt(bool stopNest = true) {
+    stop = true;
+    if (stopNest) directSpeaker.release();
     if (!netThread && !decThread) return;
     uint64_t began = SDL_GetTicks();
     LOG("player: encerrando %s", id.c_str());
-    stop = true; endLiveReader = true;
+    endLiveReader = true;
     tvSound(false);
     if (audio) SDL_PauseAudioStreamDevice(audio);
     SDL_LockMutex(mu); SDL_BroadcastCondition(cv);
@@ -238,8 +245,8 @@ struct Player {
     if (decThread) SDL_WaitThread(decThread, nullptr);
     if (nestThread) SDL_WaitThread(nestThread, nullptr);
     netThread = decThread = nestThread = nullptr;
-    if (speakerRequested && session != 0) previousSession = session.load();
-    if (speakerRequested && stopNest && previousSession) {
+    if (!direct && speakerRequested && session != 0) previousSession = session.load();
+    if (!direct && speakerRequested && stopNest && previousSession) {
       struct Stop { net::Server srv; int sid; };
       auto* request = new Stop{srv, previousSession};
       SDL_Thread* t = SDL_CreateThread([](void* p) -> int {
@@ -306,7 +313,7 @@ struct Player {
     std::string tt = net::header(r, "X-Title");
     if (!tt.empty() && title.empty()) title = net::urlDecode(tt);
     std::string sid = net::header(r, "X-Stream-Id");
-    if (!speakerRequested && net::header(r, "X-Nest-Handoff") != "1") output = LOCAL;
+    if (!speakerRequested && net::header(r, "X-Nest-Handoff") != "1" && directSpeaker.sample().quiet) output = LOCAL;
     original = net::header(r, "X-Video-Codec") == "h264";
     session = sid.empty() ? -1 : std::atoi(sid.c_str());
     if (state == CONNECTING) state = BUFFERING;
@@ -475,9 +482,13 @@ struct Player {
   static int readOriginal(void* user, uint8_t* dst, int size);
   bool putOriginalAudio(h264::Stream& s, int count, double pts);
   void decodeOriginal();
+  void directNestLoop();
 
   void nestLoop() {
     moveToHardwareThread(5);
+    if (direct) { directNestLoop(); return; }
+    directSpeaker.release();
+    while (!stop && !directSpeaker.sample().quiet) SDL_Delay(20);
     while (!stop && state == CONNECTING) SDL_Delay(15);
     if (stop || state == FAILED) return;
     std::string sid = session > 0 ? "&sid=" + std::to_string(session.load()) : "";
@@ -617,7 +628,7 @@ struct Player {
       bool again = renew && !refreshed;
       if (again || net::serverEnabled) {
         LOG("console: %s em %.3f s", again ? "renovando URL" : "reserva no servidor", position());
-        start(srv, id, position(), title, duration, quality, false, again, again);
+        start(srv, id, position(), title, duration, quality, speakerRequested, again, again);
       } else { if (audio) SDL_PauseAudioStreamDevice(audio); error = "console"; state = FAILED; retryConverted = renew = false; }
       return nullptr;
     }
@@ -648,7 +659,7 @@ struct Player {
     Output route = output.load();
     if (speakerRequested && route == CAST) {
       SDL_LockMutex(nmu);
-      if (nestState == 1 && now - nestStampMs < 650) speaker = nestPos + (now - nestStampMs) / 1000.0;
+      if (nestState == 1 && now - nestStampMs < (direct ? 8000 : 650)) speaker = nestPos + (now - nestStampMs) / 1000.0;
       SDL_UnlockMutex(nmu);
     }
     SDL_LockMutex(mu);
@@ -762,3 +773,4 @@ struct Player {
 }  // namespace player
 
 #include "player_h264.hpp"
+#include "player_nest.hpp"
