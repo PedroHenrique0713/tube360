@@ -15,6 +15,7 @@
 #include "http_chunks.hpp"
 #include "pl_mpeg.h"
 #include "h264.hpp"
+#include "yt/media.hpp"
 #ifdef __XSDK__
 #include "xsdk/thread.h"
 #include "xsdk/audio.h"
@@ -83,6 +84,15 @@ struct Player {
   bool decEnded = false;
   std::atomic<bool> original{false}, retryConverted{false};
   std::atomic<bool> allowOriginal{true};
+  bool direct = false, refreshed = false;
+  std::string cacheBase;
+  std::unique_ptr<yt::Transport> transport;
+  std::unique_ptr<yt::Client> youtube;
+  yt::Video media;
+  uint64_t validUntil = 0;
+  int cachedQuality = 0;
+  std::atomic<bool> mediaReady{false}, renew{false};
+  std::atomic<int> actualHeight{0};
   int queueMin = 0;
   uint64_t originalWatch = 0;
   std::atomic<unsigned> pauseChanges{0};
@@ -180,9 +190,13 @@ struct Player {
   static int decMain(void* p) { ((Player*)p)->decLoop(); return 0; }
   static int nestMain(void* p) { ((Player*)p)->nestLoop(); return 0; }
 
-  void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker) {
+  void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false) {
     if (vid != id || state == IDLE || quality != q) allowOriginal = true;
     halt(!speaker);
+    direct = tryDirect && !speaker;
+    endLiveReader = false; refreshed = renewing; renew = mediaReady = false; actualHeight = 0;
+    if (renewing) validUntil = 0;
+    SDL_SetAtomicInt(&netBytes, 0);
     original = retryConverted = false; originalWatch = 0; queueMin = maxFrames;
     speakerRequested = speaker; nest = false;
     srv = s; id = vid; startAt = std::max(0.0, t); title = ttl; duration = dur; quality = q; error.clear();
@@ -199,6 +213,12 @@ struct Player {
     tvSound(false);
     nestFailed = false;
     SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
+    if (direct) {
+      output = LOCAL; original = true;
+      decThread = yt::worker(decMain, "youtube", this);
+      if (!decThread) state = FAILED;
+      return;
+    }
     netThread = SDL_CreateThread(netMain, "rede", this);
     decThread = SDL_CreateThread(decMain, "decod", this);
     nestThread = SDL_CreateThread(nestMain, "nest", this);
@@ -206,7 +226,7 @@ struct Player {
 
   void halt(bool stopNest = true) {
     if (!netThread && !decThread) return;
-    stop = true;
+    stop = true; endLiveReader = true;
     tvSound(false);
     if (audio) SDL_PauseAudioStreamDevice(audio);
     SDL_LockMutex(mu); SDL_BroadcastCondition(cv);
@@ -234,6 +254,22 @@ struct Player {
     frames.clear();
     if (audio) SDL_ClearAudioStream(audio);
     state = IDLE;
+  }
+
+  std::atomic_bool endLiveReader{false};
+  void putBytes(const uint8_t* p, size_t n) {
+    lastPacketMs = (uint32_t)SDL_GetTicks();
+    SDL_LockMutex(mu);
+    while (n > 0 && !stop && !endLiveReader) {
+      while (rcount == ring.size() && !stop && !endLiveReader) SDL_WaitConditionTimeout(cv, mu, 100);
+      if (stop || endLiveReader) break;
+      size_t tail = (rhead + rcount) % ring.size();
+      size_t room = std::min(ring.size() - rcount, ring.size() - tail);
+      size_t k = std::min(room, n);
+      std::memcpy(&ring[tail], p, k); rcount += k; p += k; n -= k; SDL_AddAtomicInt(&netBytes, (int)k);
+      SDL_BroadcastCondition(cv);
+    }
+    SDL_UnlockMutex(mu);
   }
 
   void netLoop() {
@@ -267,19 +303,7 @@ struct Player {
     original = net::header(r, "X-Video-Codec") == "h264";
     session = sid.empty() ? -1 : std::atoi(sid.c_str());
     if (state == CONNECTING) state = BUFFERING;
-    auto put = [&](const uint8_t* p, size_t n) {
-      lastPacketMs = (uint32_t)SDL_GetTicks();
-      SDL_LockMutex(mu);
-      while (n > 0 && !stop) {
-        while (rcount == ring.size() && !stop) SDL_WaitConditionTimeout(cv, mu, 100);
-        size_t tail = (rhead + rcount) % ring.size();
-        size_t room = std::min(ring.size() - rcount, ring.size() - tail);
-        size_t k = std::min(room, n);
-        std::memcpy(&ring[tail], p, k); rcount += k; p += k; n -= k; SDL_AddAtomicInt(&netBytes, (int)k);
-        SDL_BroadcastCondition(cv);
-      }
-      SDL_UnlockMutex(mu);
-    };
+    auto put = [&](const uint8_t* p, size_t n) { putBytes(p,n); };
     std::string encoding = net::header(r, "Transfer-Encoding");
     std::transform(encoding.begin(), encoding.end(), encoding.begin(), [](unsigned char c){ return std::tolower(c); });
     const bool chunked = encoding == "chunked";
@@ -343,6 +367,7 @@ struct Player {
 
   void decLoop() {
     moveToHardwareThread(2);
+    if (direct) { decodeOriginal(); return; }
     SDL_LockMutex(mu);
     while (!rcount && !netEof && !netErr && !stop) SDL_WaitCondition(cv, mu);
     SDL_UnlockMutex(mu);
@@ -419,6 +444,7 @@ struct Player {
   }
 
   void enqueuePlanes(int w, int h, double pts, const uint8_t* const* planes, const int* strides, bool bt709, bool full) {
+    if (actualHeight != h) actualHeight = h;
     SDL_LockMutex(mu);
     Frame* fr = spare.empty() ? new Frame() : spare.back();
     if (!spare.empty()) spare.pop_back();
@@ -575,17 +601,26 @@ struct Player {
     double now = SDL_GetTicksNS() / 1e6;
     uint64_t ms = SDL_GetTicks();
     wantedOffsetMs = (int)std::lround(nestOffset * 1000);
-    if (original && !paused && (state == BUFFERING || state == PLAYING)) {
+    if (refreshed && shownFrames > 150) refreshed = false;
+    if (direct && !paused && (renew || retryConverted)) {
+      bool again = renew && !refreshed;
+      if (again || net::serverEnabled) {
+        LOG("console: %s em %.3f s", again ? "renovando URL" : "reserva no servidor", position());
+        start(srv, id, position(), title, duration, quality, false, again, again);
+      } else { if (audio) SDL_PauseAudioStreamDevice(audio); error = "console"; state = FAILED; retryConverted = renew = false; }
+      return nullptr;
+    }
+    if (original && !direct && !paused && (state == BUFFERING || state == PLAYING)) {
       if (!originalWatch) originalWatch = ms;
       if (retryConverted || ms - std::max(originalWatch, lastFrameMs) > 6500) {
         LOG("decod: H.264 -> MPEG-1 em %.3f s", position());
         allowOriginal = false;
-        start(srv, id, position(), title, duration, quality, speakerRequested);
+        start(srv, id, position(), title, duration, quality, speakerRequested, false);
         return nullptr;
       }
     } else originalWatch = 0;
     bool starved = false;
-    if (live && !paused && lastFrameMs && ms - lastFrameMs > 1100 &&
+    if (!direct && live && !paused && lastFrameMs && ms - lastFrameMs > 1100 &&
         (uint32_t)ms - lastPacketMs.load() > (speakerRequested ? 3000u : 1350u) &&
         output != PRIMING && (!lastLiveOpen || ms - lastLiveOpen > 20000)) {
       SDL_LockMutex(mu);

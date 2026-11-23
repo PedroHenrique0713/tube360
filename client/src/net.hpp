@@ -7,6 +7,7 @@
 #include <sys/time.h>
 #include <unistd.h>
 
+#include <atomic>
 #include <cctype>
 #include <cerrno>
 #include <cstdio>
@@ -19,7 +20,10 @@ namespace net {
 
 struct Server { std::string ip = "0.0.0.0"; int port = 8091; };  // server.txt ao lado do .xex: "<IP do PC> <porta>"
 
+inline std::atomic_bool serverEnabled{true};
+
 inline int connectTo(const Server& s, int timeoutMs) {
+  if (!serverEnabled) return -1;
   int fd = ::socket(AF_INET, SOCK_STREAM, 0);
   if (fd < 0) return -1;
   sockaddr_in a{}; a.sin_family = AF_INET; a.sin_port = htons((uint16_t)s.port);

@@ -58,32 +58,48 @@ struct Stream {
     return r;
   }
 
-  int open(void* user, int (*read)(void*, uint8_t*, int), int threads, bool wantAudio) {
+  int open(void* user, int (*read)(void*, uint8_t*, int), int threads, bool wantAudio, bool wantVideo = true,
+           int64_t (*seek)(void*,int64_t,int) = nullptr) {
     if (!fmt || !pkt || !frame) return AVERROR(ENOMEM);
     auto* buffer = (uint8_t*)av_malloc(32768);
     if (!buffer) return AVERROR(ENOMEM);
-    io = avio_alloc_context(buffer, 32768, 0, user, read, nullptr, nullptr);
+    io = avio_alloc_context(buffer, 32768, 0, user, read, nullptr, seek);
     if (!io) { av_free(buffer); return AVERROR(ENOMEM); }
     fmt->pb = io;
     fmt->flags |= AVFMT_FLAG_CUSTOM_IO;
     // PAT/PMT identificam os codecs. find_stream_info abriria outro H.264 só para sondagem.
-    int r = avformat_open_input(&fmt, nullptr, av_find_input_format("mpegts"), nullptr);
+    int r = avformat_open_input(&fmt, nullptr, av_find_input_format(seek ? "mov" : "mpegts"), nullptr);
     if (r < 0) return r;
     for (unsigned i = 0; i < fmt->nb_streams; i++) {
       auto id = fmt->streams[i]->codecpar->codec_id;
       if (id == AV_CODEC_ID_H264) vi = (int)i;
       if (id == AV_CODEC_ID_AAC) ai = (int)i;
     }
-    if (vi < 0 || (wantAudio && ai < 0)) return AVERROR_STREAM_NOT_FOUND;
-    if ((r = track(vi, AV_CODEC_ID_H264, video, threads)) < 0) return r;
+    if ((wantVideo && vi < 0) || (wantAudio && ai < 0)) return AVERROR_STREAM_NOT_FOUND;
+    if (wantVideo && (r = track(vi, AV_CODEC_ID_H264, video, threads)) < 0) return r;
     return wantAudio ? track(ai, AV_CODEC_ID_AAC, audio, 1) : 0;
+  }
+
+  int openPackedAudio() {
+    if (!fmt || !pkt || !frame) return AVERROR(ENOMEM);
+    auto* stream = avformat_new_stream(fmt,nullptr);
+    if (!stream) return AVERROR(ENOMEM);
+    stream->time_base = {1,90000}; stream->codecpar->codec_id = AV_CODEC_ID_AAC;
+    ai = stream->index;
+    return track(ai,AV_CODEC_ID_AAC,audio,1);
+  }
+
+  int seekTime(double seconds) {
+    if (seconds <= 0) return 0;
+    int index = video ? vi : ai;
+    return av_seek_frame(fmt, index, int64_t(seconds / av_q2d(fmt->streams[index]->time_base)), AVSEEK_FLAG_BACKWARD);
   }
 
   double pts(int stream) const {
     int64_t ts = frame->best_effort_timestamp;
     // Na borda do seek os PTS negativos do pré-roll podem vir módulo 2^33 no TS.
     if (ts == AV_NOPTS_VALUE) return NAN;
-    if (ts > (1LL << 32)) ts -= 1LL << 33;
+    if ((!io || !io->seekable) && ts > (1LL << 32)) ts -= 1LL << 33;
     return ts * av_q2d(fmt->streams[stream]->time_base);
   }
 
