@@ -25,6 +25,7 @@
 #include "image.frag.h"
 #include "text.frag.h"
 #include "video.frag.h"
+#include "island.frag.h"
 #define LOG(...) (std::printf(__VA_ARGS__), std::printf("\n"), std::fflush(stdout))
 #endif
 
@@ -37,7 +38,7 @@ namespace gfx {
 struct Buf { VkBuffer b = VK_NULL_HANDLE; VkDeviceMemory m = VK_NULL_HANDLE; void* map = nullptr; VkDeviceSize size = 0; };
 struct Tex { VkImage img = VK_NULL_HANDLE; VkDeviceMemory mem = VK_NULL_HANDLE; VkImageView view = VK_NULL_HANDLE; VkDescriptorSet set = VK_NULL_HANDLE; int w = 0, h = 0; VkFormat fmt = VK_FORMAT_UNDEFINED; };
 struct Vtx { float x, y, u, v, r, g, b, a; };
-enum Pipe { SHAPE, IMAGE, TEXT, VIDEO };
+enum Pipe { SHAPE, IMAGE, TEXT, VIDEO, ISLAND, PIPE_COUNT };
 struct Cmd { Pipe pipe; VkDescriptorSet set; float params[4]; uint32_t first, count; };
 
 struct Color { float r, g, b, a; };
@@ -58,7 +59,7 @@ struct Gfx {
   VkSurfaceKHR surface; VkSwapchainKHR swap = VK_NULL_HANDLE; VkFormat format; VkExtent2D extent;
   std::vector<VkImage> images; std::vector<VkImageView> views; std::vector<VkFramebuffer> fbs;
   VkRenderPass pass; VkDescriptorSetLayout texLayout, vidLayout; VkPipelineLayout texPL, vidPL;
-  VkPipeline pipes[4]; VkDescriptorPool pool; VkSampler sampler;
+  VkPipeline pipes[PIPE_COUNT]; VkDescriptorPool pool; VkSampler sampler;
   VkCommandPool cmdPool; VkCommandBuffer cbs[2]; VkFence fences[2]; VkSemaphore acqs[2], rends[2];
   Buf vbuf[2]; uint32_t vcap = 80000; VkPhysicalDeviceMemoryProperties memProps;
   int fi = 0; uint32_t img = 0; bool readback = false;
@@ -162,11 +163,13 @@ inline VkPipeline makePipeline(Gfx& g, Pipe which) {
 #ifdef __XSDK__
   VkShaderModule vs = shader(g, ui_vert_spirv, UI_VERT_SPIRV_BYTES);
   VkShaderModule fs = which == SHAPE ? shader(g, shape_frag_spirv, SHAPE_FRAG_SPIRV_BYTES) : which == IMAGE ? shader(g, image_frag_spirv, IMAGE_FRAG_SPIRV_BYTES)
-                    : which == TEXT ? shader(g, text_frag_spirv, TEXT_FRAG_SPIRV_BYTES) : shader(g, video_frag_spirv, VIDEO_FRAG_SPIRV_BYTES);
+                    : which == TEXT ? shader(g, text_frag_spirv, TEXT_FRAG_SPIRV_BYTES) : which == VIDEO ? shader(g, video_frag_spirv, VIDEO_FRAG_SPIRV_BYTES)
+                    : shader(g, island_frag_spirv, ISLAND_FRAG_SPIRV_BYTES);
 #else
   VkShaderModule vs = shader(g, ui_vert, sizeof(ui_vert));
   VkShaderModule fs = which == SHAPE ? shader(g, shape_frag, sizeof(shape_frag)) : which == IMAGE ? shader(g, image_frag, sizeof(image_frag))
-                    : which == TEXT ? shader(g, text_frag, sizeof(text_frag)) : shader(g, video_frag, sizeof(video_frag));
+                    : which == TEXT ? shader(g, text_frag, sizeof(text_frag)) : which == VIDEO ? shader(g, video_frag, sizeof(video_frag))
+                    : shader(g, island_frag, sizeof(island_frag));
 #endif
   VkPipelineShaderStageCreateInfo st[2]{};
   st[0].sType = st[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -193,7 +196,7 @@ inline VkPipeline makePipeline(Gfx& g, Pipe which) {
   VkGraphicsPipelineCreateInfo pi{VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO};
   pi.stageCount = 2; pi.pStages = st; pi.pVertexInputState = &vi; pi.pInputAssemblyState = &ia; pi.pViewportState = &vps; pi.pRasterizationState = &rs;
   pi.pMultisampleState = &ms; pi.pDepthStencilState = &ds; pi.pColorBlendState = &cbs; pi.pDynamicState = &dy;
-  pi.layout = which == VIDEO ? g.vidPL : g.texPL; pi.renderPass = g.pass;
+  pi.layout = (which == VIDEO || which == ISLAND) ? g.vidPL : g.texPL; pi.renderPass = g.pass;
   VkPipeline p; VK(vkCreateGraphicsPipelines(g.dev, VK_NULL_HANDLE, 1, &pi, nullptr, &p));
   vkDestroyShaderModule(g.dev, vs, nullptr); vkDestroyShaderModule(g.dev, fs, nullptr);
   return p;
@@ -410,6 +413,28 @@ inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 
 }
 
 // ---------------------------------------------------------------- vídeo
+// A ilha cabe no quadro de vídeo em 16:9. Em letterbox que corta a ilha, usa a transparência sobre a faixa preta.
+inline void playerIsland(Gfx& g, float x, float w) {
+  constexpr float y = 640, h = 52;
+  Video* v = g.video;
+  if (v && v->ready) {
+    float scale = std::min(1280.f / v->w, 720.f / v->h);
+    float vw = scale * v->w, vh = scale * v->h;
+    float left = (1280 - vw) / 2, top = (720 - vh) / 2;
+    if (x >= left && x + w <= left + vw && y + h <= top + vh) {
+      float p[4] = {w, h, v->fullRange ? 1.f : 0.f, v->bt709 ? 1.f : 0.f};
+      auto corner = [&](float u, float t) -> Vtx {
+        float px = x + u * w, py = y + t * h;
+        return {px, py, u, t, (px - left) / vw, (py - top) / vh, 6.f / vw, 6.f / vh};
+      };
+      Vtx vertices[] = {corner(0,0), corner(1,0), corner(1,1), corner(0,0), corner(1,1), corner(0,1)};
+      push(g, ISLAND, v->set, p, vertices, 6);
+      return;
+    }
+  }
+  rect(g, x, y, w, h, {0,0,0,160.f/255}, h / 2);
+}
+
 inline void videoCreate(Gfx& g, Video& v, int w, int h) {
   v.w = w; v.h = h;
   v.y = makeImage(g, w, h, VK_FORMAT_R8_UNORM, false);
@@ -520,7 +545,7 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
     VkSemaphoreCreateInfo sc{VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO}; VK(vkCreateSemaphore(g.dev, &sc, nullptr, &g.acqs[i])); VK(vkCreateSemaphore(g.dev, &sc, nullptr, &g.rends[i]));
     g.vbuf[i] = makeBuf(g, (VkDeviceSize)g.vcap * sizeof(Vtx), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
   }
-  for (int p = 0; p < 4; p++) g.pipes[p] = makePipeline(g, (Pipe)p);
+  for (int p = 0; p < PIPE_COUNT; p++) g.pipes[p] = makePipeline(g, (Pipe)p);
   g.white = makeImage(g, 4, 4, VK_FORMAT_R8G8B8A8_UNORM, true);
   std::vector<uint8_t> w(64, 255); upload(g, g.white, w.data(), w.size());
   return true;
@@ -558,7 +583,7 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
   float screen[4] = {2.f / g.extent.width, 2.f / g.extent.height, -1, -1};
   int bound = -1; VkDescriptorSet boundSet = VK_NULL_HANDLE;
   for (auto& cmd : g.cmds) {
-    VkPipelineLayout layout = cmd.pipe == VIDEO ? g.vidPL : g.texPL;
+    VkPipelineLayout layout = (cmd.pipe == VIDEO || cmd.pipe == ISLAND) ? g.vidPL : g.texPL;
     if ((int)cmd.pipe != bound) { vkCmdBindPipeline(c, VK_PIPELINE_BIND_POINT_GRAPHICS, g.pipes[cmd.pipe]); bound = (int)cmd.pipe; boundSet = VK_NULL_HANDLE; }
     if (cmd.set != boundSet) { vkCmdBindDescriptorSets(c, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &cmd.set, 0, nullptr); boundSet = cmd.set; }
     float pc[8] = {screen[0], screen[1], screen[2], screen[3], cmd.params[0], cmd.params[1], cmd.params[2], cmd.params[3]};

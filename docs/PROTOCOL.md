@@ -264,8 +264,9 @@ curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/cancel'
 
 This section supersedes the earlier player D-pad shortcuts. A hidden control bar consumes the first direction
 solely to reveal the timeline. On the timeline, Left/Right seek 10 seconds and A pauses/resumes. Up focuses the
-options row (Captions, Quality, Sound, Sleep timer, Rate, Go to channel); Left/Right choose an option, A opens it,
-and Down returns to the timeline. B closes one level: panel → options → timeline → hidden bar → leave video.
+options row (Play/Pause, Captions, Quality, Sound, Sleep timer, Rate, Go to channel, and Live when behind).
+Left/Right move focus across both groups. A activates the focused control. Down returns to the timeline.
+B closes one level at a time, from panel to options, timeline, hidden bar and finally out of the video.
 The bar hides after **5 seconds** without interaction on the timeline, including while paused. Options and panels
 hold it open. The next reveal always focuses the timeline. A/Menu, Y, X, LB/RB and LT/RT retain their playback
 functions; View still leaves directly. Modal A applies the focused choice. Seeking, including phone seeking, is

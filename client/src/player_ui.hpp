@@ -3,7 +3,7 @@
 
 struct PlayerUI {
   enum Panel { NONE, CAPTIONS, QUALITY, SOUND } panel = NONE;
-  enum Option { CC, VIDEO, AUDIO, TIMER, RATE, CHANNEL, EDGE, COUNT };
+  enum Option { TRANSPORT, CC, VIDEO, AUDIO, TIMER, RATE, CHANNEL, EDGE, COUNT };
   uint64_t until = 0;
   bool options = false;
   int selected = TIMER, panelSel = 0, sleepRow = 0;
