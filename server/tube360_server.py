@@ -1046,7 +1046,7 @@ async def parameter_error(request: Request, error: RequestValidationError):
 
 
 def account_line(status):
-    return "ok\t" + "\t".join(clean(status.get(k, "")) for k in ("state", "name", "code", "url")) + "\n"
+    return "ok\t" + "\t".join(clean(status.get(k, "")) for k in ("state", "name", "code", "url")) + "\t" + nav_image(status.get("avatar")) + "\n"
 
 
 @app.get("/api/account", response_class=PlainTextResponse)
@@ -1119,24 +1119,35 @@ async def account_login_form(request: Request):
 import hashlib
 
 nav_images = {}
+preview_cache = TTLCache(300)
+preview_slots = asyncio.Semaphore(3)
 nav_lists = {}
 nav_queue_serial = 0
 NAV_KINDS = ("channel", "subscriptions", "library", "playlist", "history", "later", "search",
              "music", "music_search", "album", "artist", "radio", "music_playlist")
 
 
-def nav_image(url):
+def nav_image(url, banner=False):
     url = str(url or "")
     if url.startswith("//"):
         url = "https:" + url
     parsed = urlparse(url)
     if parsed.scheme != "https" or parsed.hostname not in ("i.ytimg.com", "yt3.ggpht.com", "yt3.googleusercontent.com", "lh3.googleusercontent.com"):
         return ""
-    key = hashlib.sha256(url.encode()).hexdigest()[:24]
-    if len(nav_images) >= 4096:
+    return nav_art_key(("banner:" if banner else "") + url, url)
+
+
+def nav_art_key(identity, source):
+    key = hashlib.sha256(identity.encode()).hexdigest()[:24]
+    if key not in nav_images and len(nav_images) >= 4096:
         nav_images.pop(next(iter(nav_images)))
-    nav_images[key] = url
+    nav_images[key] = source
     return "~" + key
+
+
+def collection_art(playlist, fallback, stamp):
+    # O carimbo da lista invalida também a capa no cache do console ao atualizar a biblioteca.
+    return nav_art_key(f"playlist:{stamp}:{playlist}", (playlist, fallback))
 
 
 async def nav_data(kind, item_id, query, tab, offset, n, fresh=False, filter=0):
@@ -1158,6 +1169,12 @@ async def nav_data(kind, item_id, query, tab, offset, n, fresh=False, filter=0):
             if page == 0:
                 cache["header"] = {k: data.get(k, "") for k in ("title", "subtitle", "channel_id", "subscribed")}
                 cache["header"]["image"] = nav_image(data.get("image"))
+                cache["header"]["banner"] = nav_image(data.get("banner"), banner=True)
+                for field in ("history_video", "later_video"):
+                    video = data.get(field) or ""
+                    cache["header"][field] = video if ID_PATTERN.fullmatch(video) else ""
+                if kind == "library":
+                    cache["header"]["later_video"] = collection_art("WL", cache["header"]["later_video"], cache["at"])
             for entry in data.get("items", []):
                 item_type, entry_id = entry.get("type"), str(entry.get("id", ""))
                 unique = (item_type, entry_id)
@@ -1168,6 +1185,8 @@ async def nav_data(kind, item_id, query, tab, offset, n, fresh=False, filter=0):
                 item = {"type": item_type, "id": entry_id, "title": clean(entry.get("title")), "channel": clean(entry.get("channel")),
                         "duration": max(0, int(entry.get("duration") or 0)), "channel_id": clean(entry.get("channel_id")),
                         "section": clean(entry.get("section")), "image": nav_image(entry.get("image"))}
+                if kind == "library" and item_type == "playlist":
+                    item["image"] = collection_art(entry_id, item["image"], cache["at"])
                 if item_type == "video":
                     remember(item | {"views": ""})
                     if not item["image"] or kind not in ("music", "music_search", "album", "artist", "radio", "music_playlist"):
@@ -1198,7 +1217,8 @@ def nav_subtitle(value, lang):
 
 def nav_response(data, lang=LANGUAGE):
     fields = [data.get("title", ""), nav_subtitle(data.get("subtitle", ""), lang), data.get("image", ""),
-              int(bool(data.get("subscribed"))), int(bool(data.get("more"))), data.get("channel_id", "")]
+              int(bool(data.get("subscribed"))), int(bool(data.get("more"))), data.get("channel_id", ""),
+              data.get("banner", ""), data.get("history_video", ""), data.get("later_video", "")]
     lines = ["ok\t" + "\t".join(clean(v) for v in fields)]
     for item in data.get("items", []):
         item = dict(item)
@@ -1330,7 +1350,7 @@ def nav_make_thumb(key, w, h, path):
             raise HTTPException(404, "Artwork too large.")
         # Mantém o aspecto no slot 16:9 compartilhado; o cliente recorta o quadrado pelo UV.
         side = min(w, h)
-        if source.width / source.height >= 1.4:
+        if (w, h) == (1184, 160) or source.width / source.height >= 1.4:
             thumb = ImageOps.fit(source.convert("RGB"), (w, h), Image.Resampling.LANCZOS)
         else:
             image = ImageOps.fit(source.convert("RGB"), (side, side), Image.Resampling.LANCZOS)
@@ -1343,9 +1363,32 @@ def nav_make_thumb(key, w, h, path):
 
 
 @app.get("/api/thumb/nav/{key}")
-async def navigation_thumb(key: str, w: int = Query(320, ge=1, le=640), h: int = Query(180, ge=1, le=360)):
+async def navigation_thumb(key: str, w: int = Query(320, ge=1, le=1184), h: int = Query(180, ge=1, le=360)):
+    if w > 640 and (w, h) != (1184, 160):
+        raise HTTPException(404, "Invalid artwork size.")
     if not re.fullmatch(r"[a-f0-9]{24}", key):
         raise HTTPException(404, "Invalid artwork.")
+    source = nav_images.get(key)
+    if isinstance(source, tuple):
+        playlist, fallback = source
+
+        async def preview():
+            async with preview_slots:
+                try:
+                    data = await account_request("/playlist_preview?id=" + quote(playlist), timeout=8)
+                    video = data.get("video") or ""
+                    if ID_PATTERN.fullmatch(video):
+                        return video
+                except Exception:
+                    pass
+                return fallback
+
+        art = await preview_cache.get(key, preview)
+        if ID_PATTERN.fullmatch(art):
+            return await thumb(art, w, h)
+        if not art.startswith("~"):
+            raise HTTPException(404, "Empty collection.")
+        key = art[1:]
     path = THUMBS / f"nav_{key}_{w}x{h}.jpg"
     if not path.exists():
         await thumb_cache.get(path.name, lambda: asyncio.to_thread(nav_make_thumb, key, w, h, path))
