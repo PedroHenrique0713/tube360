@@ -1900,6 +1900,11 @@ async def audio(request: Request, video_id: str, t: float = Query(0, ge=0, le=86
                 if chunk:
                     pos += len(chunk)
                     yield chunk
+                    # O gerador só é retomado depois do envio HTTP do bloco. HEAD e a espera no gate não contam.
+                    if token:
+                        with nest.intent:
+                            if nest.token == "s=" + token:
+                                nest.audio_sent_at = time.monotonic()
                     continue
                 if end is not None or job is None or job.returncode is not None:
                     break
@@ -1925,6 +1930,7 @@ class Nest:
     """O alto-falante Google Cast (config.json, "nest": {"host", "name"}). Uma thread consulta a posição a cada 250 ms
     enquanto toca; o console lê a última posição (com o instante em que foi lida) em /api/nest/pos."""
     APP = "CC1AD845"  # Default Media Receiver
+    AUDIO_TIMEOUT = 8.0  # maior que os 4 s de MP3 liberados na partida e a cadência de status de 5 s
 
     def __init__(self):
         self.cc = None
@@ -1939,6 +1945,7 @@ class Nest:
         self.loaded_id = self.stopping_token = ""
         self.target, self.confirmed_revision = 0.0, 0
         self.gated_revision = self.reader_ready = 0
+        self.audio_sent_at = None
         self.until_fast_status = 0.0
         self.local_sid = None
         # O receiver pode conservar áudio mesmo se o processo do notebook reiniciar entre LOAD e STOP.
@@ -2086,6 +2093,7 @@ class Nest:
                         return
                     self.t0, self.loaded_id = base, video_id
                     self.token = "s=" + uuid.uuid4().hex
+                    self.audio_sent_at = None
                     url = f"http://{self.host_ip}:{PORT}/api/audio/{video_id}?t={base:.2f}&{self.token}"
                 for attempt in range(2):
                     if rev != self.revision or not self.receiver(cc, rev, force=bool(attempt)):
@@ -2162,6 +2170,7 @@ class Nest:
                 self.stopping_token = self.token
             self.active, self.want_stop = False, True
             self.video_id, self.token, self.loaded_id = "", "", ""
+            self.audio_sent_at = None
             self.state, self.pos = "IDLE", 0.0
             return self.revision
 
@@ -2322,9 +2331,15 @@ class Nest:
                 rev = self.revision
                 if not self.media_ready(cc):
                     no_receiver_since = no_receiver_since or now
-                    if cc.status and rev == self.revision and (cc.status.app_id not in (None, self.APP)
-                            or cc.status.app_id is None and now - no_receiver_since > 8):
-                        self.state = "IDLE"
+                    replaced = cc.status and cc.status.app_id not in (None, self.APP)
+                    if cc.status and cc.status.app_id is None and now - no_receiver_since > self.AUDIO_TIMEOUT:
+                        no_receiver_since = now
+                        reply = self.fresh_status(cc.socket_client.receiver_controller, 0.45)
+                        replaced = reply.get("type") == "RECEIVER_STATUS" and (reply.get("status") or {}).get("applications") == []
+                    if replaced:
+                        with self.intent:
+                            if rev == self.revision:
+                                self.state = "IDLE"
                     continue
                 no_receiver_since = 0.0
                 mc = cc.media_controller
@@ -2335,11 +2350,15 @@ class Nest:
                 with self.intent:
                     if rev != self.revision or not self.active:
                         continue
-                    if self.matches(st) and st.player_state in ("PLAYING", "PAUSED", "BUFFERING"):
+                    ours = self.matches(st)
+                    if ours and st.player_state in ("PLAYING", "PAUSED", "BUFFERING"):
                         # update_status() só envia o pedido. A posição vale no last_updated da resposta assíncrona.
-                        age = (datetime.now(timezone.utc) - st.last_updated).total_seconds() if st.last_updated else 0.0
-                        self.state, self.pos, self.stamp = st.player_state, float(st.current_time or 0), time.monotonic() - max(0.0, age)
-                    elif self.state != "LOADING" or now - self.requested_at > 3:
+                        pos = float(st.current_time or 0)
+                        if self.state != st.player_state or self.pos != pos:
+                            age = (datetime.now(timezone.utc) - st.last_updated).total_seconds() if st.last_updated else 0.0
+                            self.state, self.pos, self.stamp = st.player_state, pos, time.monotonic() - max(0.0, age)
+                    elif (st.player_state == "IDLE" or st.content_id and not ours) and (
+                            self.state != "LOADING" or now - self.requested_at > 3):
                         self.state = "IDLE"
             except Exception as error:
                 LOG.debug("Nest status: %s", type(error).__name__)
@@ -2349,9 +2368,14 @@ class Nest:
             if self.state == "LOADING":
                 return self.state, self.target
             state, pos, stamp, base = self.state, self.pos, self.stamp, self.t0
-        age = max(0.0, time.monotonic() - stamp)
-        if state in ("PLAYING", "PAUSED", "BUFFERING") and age > 1.2:
-            return "STALE", base + pos
+            sent = self.audio_sent_at
+        now = time.monotonic()
+        age = max(0.0, now - stamp)
+        if state in ("PLAYING", "BUFFERING") and (sent is None or now - sent > self.AUDIO_TIMEOUT):
+            if age > self.AUDIO_TIMEOUT:
+                return "STALLED", base + pos
+            if state == "PLAYING" and age > 1.2:
+                return "STALE", base + pos
         return state, base + pos + (age if state == "PLAYING" else 0.0)
 
 
