@@ -74,10 +74,9 @@ inline void Player::decodeOriginal() {
           auto& p = *source.player;
           moveToHardwareThread(4);
           int result = 0;
+          std::deque<uint64_t> starts;
+          uint64_t written = 0;
           while (!p.stop && !p.endLiveReader && (result = source.file->refill()) >= 0) {
-            if (source.file->segments == 1 || source.file->segments % 3 == 0)
-              LOG("HLS: %u segmentos, %u conexoes novas, transferencia %.2f Mbit/s",
-                  source.file->segments,source.file->connections,source.file->bytes * .008 / std::max<uint64_t>(1,source.file->transferMs));
             if (p.audio && !source.file->sound.empty()) {
               SDL_LockMutex(p.mu);
               while (source.audio.size() >= 3 && !p.stop && !p.endLiveReader) SDL_WaitCondition(p.cv,p.mu);
@@ -87,6 +86,14 @@ inline void Player::decodeOriginal() {
             }
             const auto& bytes = source.file->segment;
             p.putBytes(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size());
+            if (p.endLiveReader) break;
+            starts.push_back(written); written += bytes.size();
+            SDL_LockMutex(p.mu); size_t buffered = p.rcount; SDL_UnlockMutex(p.mu);
+            while (!starts.empty() && starts.front() < written - buffered) starts.pop_front();
+            if (source.file->segments == 1 || source.file->segments % 3 == 0)
+              LOG("HLS: %u segmentos, %u conexoes novas, transferencia %.2f Mbit/s, reserva %u segmentos completos",
+                  source.file->segments,source.file->connections,source.file->bytes * .008 / std::max<uint64_t>(1,source.file->transferMs),
+                  unsigned(starts.size()));
           }
           SDL_LockMutex(p.mu); p.netEof = true; p.netErr = !p.endLiveReader && result < 0 && result != AVERROR_EOF;
           SDL_BroadcastCondition(p.cv); SDL_UnlockMutex(p.mu);

@@ -159,7 +159,7 @@ struct Player {
   std::atomic<bool> nestFailed{false};
   std::atomic<int> speakerPause{0};  // mudança feita no alto-falante, aplicada pela thread da tela
   uint64_t openedMs = 0, readyMs = 0, lastLiveOpen = 0, tuneAt = 0;
-  double screenSec = -1, tickMs = 0, liveDebt = 0;
+  double screenSec = -1, tickMs = 0, liveDebt = 0, nextLiveFrame = 0;
   bool tracking = false, refill = false, reservePaused = false;
 
   void init() {
@@ -204,7 +204,7 @@ struct Player {
     SDL_SetAtomicInt(&audioBaseMs, -1); SDL_SetAtomicInt(&pushed, 0); firstPts = -1; wallStart = 0; pausedAt = 0; pausedTotal = 0; lastPos = startAt;
     droppedFrames = shownFrames = 0;
     stop = false; paused = false; live = false; state = CONNECTING;
-    hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = 0;
+    hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = nextLiveFrame = 0;
     openedMs = SDL_GetTicks(); masterMs = -1; tracking = refill = reservePaused = false; session = 0; speakerPause = 0; speakerTargetMs = -1;
     if (audio) { SDL_PauseAudioStreamDevice(audio); SDL_ClearAudioStream(audio); SDL_SetAudioStreamFrequencyRatio(audio, 1.0f); }
     output = speaker ? CAST : RELEASING;
@@ -697,9 +697,14 @@ struct Player {
       if (follow && mutedForCast.exchange(false)) screenSec = std::max(screenSec, speaker + nestOffset);
       tickMs = now; masterMs = (int)std::lround(screenSec * 1000);
       speakerTargetMs = (int)std::lround(screenSec * 1000);
-      while (!frames.empty() && frames.front()->pts <= screenSec + 0.010) {
+      bool due = !direct || !live || now >= nextLiveFrame;
+      while (due && !frames.empty() && frames.front()->pts <= screenSec + 0.010) {
         if (show) { spare.push_back(show); droppedFrames++; }
         show = frames.front(); frames.pop_front();
+      }
+      if (show && direct && live) {
+        constexpr double period = 1000.0 / 30;
+        nextLiveFrame = (now - nextLiveFrame >= period ? now : nextLiveFrame) + period;
       }
       if (original) {
         queueMin = std::min(queueMin, (int)frames.size());
