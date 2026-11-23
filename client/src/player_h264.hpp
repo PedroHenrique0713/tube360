@@ -251,8 +251,11 @@ inline void Player::decodeOriginal() {
       unsigned epoch = pauseChanges.load();
       bool behind = clock >= 0 && last < clock / 1000.0 - .25;
       bool insufficient = intervalPts >= 0 && last - intervalPts < (now - since) * .00090;
-      bool losing = broadcast && lost - previousLost > 10 && displayRate < std::min(30.0, sourceRate) * .85;
-      slow = !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || losing) ? slow + 1 : 0;
+      double targetRate = sourceRate > 30 ? sourceRate * .5 : sourceRate;
+      // A TV pode ficar sem PCM com a fila de imagem cheia: ambos vêm do mesmo demuxer.
+      bool slowLive = broadcast && displayRate < targetRate * .85 &&
+                      (insufficient || behind || lost - previousLost > 10);
+      slow = !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || slowLive) ? slow + 1 : 0;
       previousShown = shown; previousLost = lost;
       intervalPts = last; pauseEpoch = epoch;
       if (slow >= 2 && (!direct || (net::serverEnabled && (broadcast || avg > 33.34)))) { r = AVERROR(ETIMEDOUT); break; }
