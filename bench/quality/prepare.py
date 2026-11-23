@@ -11,7 +11,8 @@ def ffmpeg(*args):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("directory", type=Path)
-parser.add_argument("--mode", choices=["1080", "60", "live"], default="1080")
+parser.add_argument("--mode", choices=["1080", "60", "live", "both"], default="1080")
+parser.add_argument("--audio-tracks", action="store_true")
 parser.add_argument("--seconds", type=int, default=40)
 args = parser.parse_args()
 args.directory.mkdir(parents=True, exist_ok=True)
@@ -33,9 +34,15 @@ def video(tag, height, fps, name):
 
 
 formats = ([video(137, 1080, 30, "1080.mp4"), video(136, 720, 30, "720.mp4")]
-           if args.mode == "1080" else [video(298, 720, 60, "72060.mp4")])
+           if args.mode in ("1080","both") else [video(298, 720, 60, "72060.mp4")])
+if args.mode=="both": formats.append(video(298,720,60,"72060.mp4"))
 formats.append(dict(itag=140, mimeType='audio/mp4; codecs="mp4a.40.2"', bitrate=128000,
                     url="https://media.example/audio.m4a"))
+if args.audio_tracks:
+    formats[-1]["audioTrack"]=dict(id="en.4",displayName="English (original)",audioIsDefault=False)
+    if not (root/"audio-pt.m4a").exists():
+        ffmpeg("-f","lavfi","-i","sine=frequency=440:sample_rate=44100","-t",str(args.seconds),"-c:a","aac","-b:a","128k","-movflags","+faststart",str(root/"audio-pt.m4a"))
+    formats.append(dict(itag=140,mimeType='audio/mp4; codecs="mp4a.40.2"',bitrate=128000,url="https://media.example/audio-pt.m4a",audioTrack=dict(id="pt.4",displayName="Portuguese (auto-dubbed)",audioIsDefault=True)))
 streaming = dict(expiresInSeconds="3600", adaptiveFormats=formats)
 if args.mode == "live":
     ffmpeg("-i", str(root / "72060.mp4"), "-i", str(root / "audio.m4a"), "-c", "copy", "-f", "hls",

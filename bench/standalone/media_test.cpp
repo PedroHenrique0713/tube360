@@ -61,6 +61,23 @@ void liveQuality() {
     yt::LiveFile live(lists,media,stop);
     check(!live.open(base+"master",720),"respect 720p floor when only 480p exists");
 }
+void profilesAndAudio() {
+    for (bool fast : {false,true}) for (bool dub : {false,true}) {
+        Mock lists,media; std::atomic_bool stop{false}; string base="https://example.com/";
+        string master="#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"a\",LANGUAGE=\"pt\",NAME=\"Portuguese (auto-dubbed)\",DEFAULT=YES,URI=\"pt.m3u8\"\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"a\",LANGUAGE=\"en\",NAME=\"English (original)\",URI=\"en.m3u8\"\n";
+        string attrs="#EXT-X-STREAM-INF:CODECS=\"avc1,mp4a\",RESOLUTION=1280x720,AUDIO=\"a\",FRAME-RATE=";
+        master+=attrs+"30\nnormal.m3u8\n"+attrs+"60\nfast.m3u8\n";
+        string selected=dub ? "pt" : "en", video=fast ? "fast.m3u8" : "normal.m3u8";
+        lists.steps.push_back({base+"master","",{200,master}});
+        lists.steps.push_back({base+video,"",{200,"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:1\nv1\n#EXT-X-ENDLIST\n"}});
+        lists.steps.push_back({base+selected+".m3u8","",{200,"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:1\na1\n#EXT-X-ENDLIST\n"}});
+        media.steps.push_back({base+"v1","",{200,"video"}}); media.steps.push_back({base+"a1","",{200,selected}});
+        yt::LiveFile live(lists,media,stop);
+        check(live.open(base+"master",720,fast,dub ? "pt-auto" : "original"),"HLS profile and language open");
+        check(live.frameRate==(fast ? 60 : 30) && live.audioTracks.size()==2,"HLS keeps requested cadence and track catalog");
+        check(live.refill()==0 && live.sound==selected && live.refill()==AVERROR_EOF,"HLS original overrides default dub; explicit dub selects its own playlist");
+    }
+}
 void playlists() {
     Mock lists, media; std::atomic_bool stop=false;
     string base="https://example.com/", master="#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"aac\",URI=\"a.m3u8\"\n";
@@ -83,4 +100,4 @@ void playlists() {
     check(!packed.begin("ID3") && !packed.begin(string(80,0)),"invalid packed audio tag");
 }
 }
-int main() { ranges(); liveQuality(); playlists(); std::cout<<"Range, seek, redirects, live quality floor, paired reserve and packed audio checks passed\n"; }
+int main() { ranges(); liveQuality(); profilesAndAudio(); playlists(); std::cout<<"Range, seek, redirects, live profiles, audio languages, quality floor, paired reserve and packed audio checks passed\n"; }

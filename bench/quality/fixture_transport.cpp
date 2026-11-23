@@ -6,6 +6,18 @@
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
+#include <dlfcn.h>
+#include <vulkan/vulkan.h>
+
+// Só o executável de prova injeta consumidor lento; o produto liga diretamente ao Vulkan.
+extern "C" VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* info) {
+    static auto present=reinterpret_cast<PFN_vkQueuePresentKHR>(dlsym(RTLD_NEXT,"vkQueuePresentKHR"));
+    static int delay=std::getenv("XT_QUALITY_RENDER_MS") ? std::max(0,std::atoi(std::getenv("XT_QUALITY_RENDER_MS"))) : 0;
+    if (!present) std::abort();
+    VkResult result=present(queue,info);
+    if (delay) SDL_Delay(delay);
+    return result;
+}
 
 namespace yt {
 namespace {
@@ -23,6 +35,7 @@ public:
         if (r.url.find("/base.js")!=string::npos) return {200,"var a={signatureTimestamp:20775};"};
         string dir=std::getenv("XT_QUALITY_FIXTURES") ? std::getenv("XT_QUALITY_FIXTURES") : "";
         if (r.url.find("/youtubei/v1/player?")!=string::npos) {
+            if (std::getenv("XT_QUALITY_SERVER")) return {200,R"({"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"fixture server fallback"}})"};
             std::ifstream f(dir+"/player.json"); std::ostringstream out; out<<f.rdbuf();
             return f ? Response{200,out.str()} : Response{404,"","missing fixture"};
         }

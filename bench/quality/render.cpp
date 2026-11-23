@@ -15,7 +15,8 @@ int main(int argc,char** argv) {
     SDL_Init(SDL_INIT_VIDEO);
     gfx::Gfx g; g.readback=true;
     if (const char* level=std::getenv("XT_QUALITY_GPU")) g.videoMetrics=std::atoi(level);
-    if (!gfx::init(g,1280,720,"quality measurement")) return 2;
+    int output=std::getenv("XT_OUTPUT_HEIGHT") ? std::atoi(std::getenv("XT_OUTPUT_HEIGHT")) : 720;
+    if (!gfx::init(g,output*16/9,output,"quality measurement")) return 2;
     VkPhysicalDeviceProperties device{}; vkGetPhysicalDeviceProperties(g.phys,&device);
     std::printf("measurement device: %s\n",device.deviceName);
     gfx::Video video; g.video=&video; gfx::videoCreate(g,video,w,h); video.bt709=true;
