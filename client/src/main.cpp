@@ -549,7 +549,7 @@ int main(int argc, char** argv) {
     phonePanel = loginPanel = logoutPanel = false;
     pl.nestOffset = nestOffsetMs / 1000.0;
     pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && (!nestChecked || nestAvailable) && !nestSkip);
-    if (screen != PLAYER) backTo = screen;
+    if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
   auto stopVideo = [&]() {
@@ -830,7 +830,6 @@ int main(int argc, char** argv) {
     }
 
     if (screen == PLAYER && nav.musicSession) {
-      nav.musicNow = true;
       nav.prepareNow(g, playing, settings.lang);
     }
     // ---------------------------------------------------------------- lógica por tela
@@ -1124,7 +1123,7 @@ int main(int argc, char** argv) {
         else if (nav.nowSel == 2) {
           nav.lyricsOpen = !nav.lyricsOpen;
           if (nav.lyricsOpen && nav.lyricsId != playing.id && !nav.busy) { nav.lyricsId = playing.id; nav.lyrics.clear(); nav.lyricLines.clear(); nav.action(navWorker, "/api/nav/lyrics?id=" + playing.id); }
-        } else if (nav.nowSel == 3) { nav.musicNow = nav.musicSession = false; }
+        } else if (nav.nowSel == 3) { nav.musicNow = false; }
       }
       if (in.hit(Input::B)) {
         nav.ownsQueue = nav.musicSession = nav.musicNow = false; nav.busy = false; nav.cancelQueue = true;
@@ -1198,7 +1197,11 @@ int main(int argc, char** argv) {
         toastUntil = now + 2500; saveSettings(); any = true;
       }
       if (any) playerUI.touch(now);
-      if (in.hit(Input::BACK) || (in.hit(Input::B) && !playerUI.back(now))) stopVideo();
+      if (in.hit(Input::BACK)) stopVideo();
+      else if (in.hit(Input::B) && !playerUI.back(now)) {
+        if (nav.musicSession) nav.musicNow = true;
+        else stopVideo();
+      }
       if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
         nestSkip = true;
         toast = tr(K::SpeakerFallback); toastUntil = now + 5000;

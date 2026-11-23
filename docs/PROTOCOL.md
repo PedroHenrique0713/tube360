@@ -381,7 +381,8 @@ visible avatars and the current cover request artwork.
 
 The native Music screen uses the existing MPEG stream and decoder, with its own controls and render dispatcher.
 It does not request audio-only playback. B stops and clears the queue, returning to the source page; selecting Show
-video continues the same stream using the existing player UI. Lyrics can be scrolled with up/down.
+video continues the same stream using the existing player UI. B through the player's usual focus levels then returns
+to Now playing without stopping that Music session. Lyrics can be scrolled with up/down.
 
 Local JSON account additions: `GET /nav` with `kind,id,q,tab,filter,page,fresh`, returning
 `{title,subtitle,image,channel_id,subscribed,items:[{type,id,title,channel,duration,image,channel_id,section}],more}`;
