@@ -1540,7 +1540,8 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
         raise HTTPException(400, "Qualidade ou posição inválida.")
     opened = time.monotonic()
     ticket = await streams.begin()
-    for attempt in range(2):
+    refetched = False
+    for _ in range(3):
         try:
             info = await resolve_video(video_id)
         except Exception as error:
@@ -1594,13 +1595,19 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
         if ticket != streams.serial:
             drop_live_audio(video_id, encoder)
             raise HTTPException(409, "Outro vídeo foi solicitado.")
-        # A URL assinada foi recusada (o YouTube às vezes responde 403): resolve de novo e tenta mais uma vez.
-        url_cache.values.pop(video_id, None)
         with anyio.CancelScope(shield=True):
             await streams.finish(encoder)
         drop_live_audio(video_id, encoder)
-        if attempt:
+        # A fonte 1080p passou na sondagem de 2 bytes e foi recusada na leitura: a reserva já resolvida (que também
+        # passou) serve agora e nos próximos pulos deste link. O dict é o mesmo guardado no url_cache.
+        if q == 720 and info.pop("video_hd", None) is not None:
+            LOG.info("stream %s: a fonte maior recusou a leitura, usando a reserva", video_id)
+            continue
+        # A URL assinada foi recusada (o YouTube às vezes responde 403): resolve de novo e tenta mais uma vez.
+        if refetched:
             raise HTTPException(502, "A origem do vídeo não respondeu. Tente novamente.")
+        refetched = True
+        url_cache.values.pop(video_id, None)
         LOG.info("stream %s: a origem recusou, buscando um link novo", video_id)
 
     async def body():
