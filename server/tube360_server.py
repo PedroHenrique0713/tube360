@@ -375,7 +375,7 @@ async def resolve_video(video_id):
                 raise RuntimeError("vídeo ou áudio indisponível")
             result = {
                 "video": video, "audio": audio,
-                "duration": max(0, int(data.get("duration") or 0)),
+                "duration": 0 if data.get("live_status") == "is_live" else max(0, int(data.get("duration") or 0)),
                 "title": clean(data.get("title") or video_id),
                 "headers": data.get("http_headers", {}),
                 "live": data.get("live_status") == "is_live",
@@ -1305,8 +1305,7 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
         encoder.mp3 = mp3
         if mp3:
             live_audio[video_id] = (mp3, encoder.process)
-        elif speaker and not info["live"] and not audio_reachable(video_id, 0, t) and not (
-                nest.loaded_id == video_id and audio_reachable(video_id, nest.t0, t)):
+        elif speaker and not info["live"] and cached_audio_base(video_id, t) is None:
             async def warm_audio():
                 try:
                     await audio_file(video_id, t)
@@ -1389,14 +1388,29 @@ def audio_reachable(video_id, base, target):
         return False
     path = AUDIO_DIR / f"{video_id}_{base:.2f}.mp3"
     # MP3 CBR 192 kbit/s. Reservar dois quadros e o cabeçalho antes da borda que ainda cresce.
-    if path.is_file():
-        return path.stat().st_size > 0
+    try:
+        if path.stat().st_size > 0:
+            return True
+    except FileNotFoundError:
+        pass
     partial = path.with_suffix(".part.mp3")
     try:
         return ((video_id, round(base, 2)) in audio_jobs and
                 partial.stat().st_size >= (target - base) * 24000 + 2048)
     except FileNotFoundError:
         return path.is_file()
+
+
+def cached_audio_base(video_id, target):
+    # Um trecho iniciado em 30 s também serve para abrir em 50 s, mesmo após trocar de vídeo ou reiniciar o servidor.
+    choices = []
+    for path in AUDIO_DIR.glob(f"{video_id}_*.mp3"):
+        match = re.fullmatch(r"(\d+\.\d{2})(?:\.part)?\.mp3", path.name[len(video_id) + 1:])
+        if match:
+            base = float(match[1])
+            if audio_reachable(video_id, base, target):
+                choices.append(base)
+    return min(choices, default=None)
 
 
 async def audio_file(video_id, t):
@@ -1704,8 +1718,10 @@ class Nest:
                     base = round(target * 44100 / 1152) * 1152 / 44100
                 elif reachable:
                     base = old_base
-                elif audio_reachable(video_id, 0, target):
-                    base = 0.0
+                else:
+                    cached = cached_audio_base(video_id, target)
+                    if cached is not None:
+                        base = cached
                 with self.intent:
                     if rev != self.revision:
                         return
@@ -1874,7 +1890,7 @@ class Nest:
                     if self.matches(st) and st.player_state in ("PLAYING", "PAUSED", "BUFFERING"):
                         # update_status() só envia o pedido. A posição vale no last_updated da resposta assíncrona.
                         age = (datetime.now(timezone.utc) - st.last_updated).total_seconds() if st.last_updated else 0.0
-                        self.state, self.pos, self.stamp = st.player_state, float(st.current_time or 0), now - max(0.0, age)
+                        self.state, self.pos, self.stamp = st.player_state, float(st.current_time or 0), time.monotonic() - max(0.0, age)
                     elif self.state != "LOADING" or now - self.requested_at > 3:
                         self.state = "IDLE"
             except Exception as error:
