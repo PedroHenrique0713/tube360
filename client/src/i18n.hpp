@@ -118,6 +118,27 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(SleepShuttingDown, "Shutting down…", "Desligando…") \
   X(SleepError, "Could not update sleep timer. Try again.", "Não deu para alterar o timer. Tente de novo.") \
   X(SleepApply, "Apply", "Aplicar") \
+  X(PlayerOptions, "Options", "Opções") \
+  X(PlayerTimeline, "Timeline", "Trilha do vídeo") \
+  X(PlayerQuality, "Quality", "Qualidade") \
+  X(PlayerChannel, "Go to channel", "Ir para o canal") \
+  X(PlayerChannelPending, "Channel page will be connected in integration", "A página do canal será ligada na integração") \
+  X(PlayerPaused, "Paused", "Pausado") \
+  X(PlayerSeekWait, "Seeking is available after the video starts", "Você pode pular depois que o vídeo começar") \
+  X(PlayerLiveSeek, "Live broadcast: seeking is unavailable", "Transmissão ao vivo: não dá para pular") \
+  X(Captions, "Captions", "Legendas") \
+  X(CaptionsOn, "On", "Ligadas") \
+  X(CaptionsOff, "Off", "Desligadas") \
+  X(CaptionsAuto, "Automatic", "Automáticas") \
+  X(CaptionsManual, "Creator captions", "Do criador") \
+  X(CaptionsLoading, "Finding captions…", "Buscando legendas…") \
+  X(CaptionsNone, "This video has no captions", "Este vídeo não oferece legendas") \
+  X(CaptionsLiveNone, "YouTube has no captions for this live broadcast", "O YouTube não oferece legendas nesta live") \
+  X(CaptionsFailed, "Could not load captions. Press A to retry.", "Não deu para carregar legendas. Aperte A para tentar de novo.") \
+  X(CaptionsLanguage, "Caption language", "Idioma das legendas") \
+  X(PlayerAlsoOff, "Also turn off", "Também desligar") \
+  X(PlayerTimerOn, "Active", "Ativo") \
+  X(CaptionsLiveClock, "Captions for this broadcast are unavailable in the player", "As legendas desta live estão indisponíveis no player") \
   X(Language, "Language", "Idioma") \
   X(English, "English", "English") \
   X(Portuguese, "Português", "Português") \
