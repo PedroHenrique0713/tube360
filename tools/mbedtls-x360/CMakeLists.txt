@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.25)
+project(tube360_tls C)
+set(ENABLE_TESTING OFF CACHE BOOL "")
+set(ENABLE_PROGRAMS OFF CACHE BOOL "")
+set(MBEDTLS_FATAL_WARNINGS OFF CACHE BOOL "")
+set(MBEDTLS_USER_CONFIG_FILE "${CMAKE_CURRENT_SOURCE_DIR}/config.h" CACHE FILEPATH "")
+add_subdirectory("${MBEDTLS_SOURCE}" upstream)
+target_sources(mbedcrypto PRIVATE platform.c)
