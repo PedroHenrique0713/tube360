@@ -110,6 +110,34 @@ class AudioTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(loads[0]['media_info']['duration'], 150)
         self.n.command('stop')
 
+    async def test_reabrir_video_reutiliza_trecho_pronto_com_inicio_nao_zero(self):
+        path = self.path.with_name(f"{self.vid}_30.00.mp3")
+        with path.open("wb") as f:
+            f.truncate(120 * 24000)
+        cc = FakeCast()
+        self.n.cc, self.n.ours = cc, True
+        self.m.CONFIG['nest'] = {'host': '127.0.0.1'}
+        self.m.remote.playing, self.m.remote.last_poll = self.vid, time.monotonic()
+        mc = cc.media_controller
+        loop = asyncio.get_running_loop()
+        loaded = loop.create_future()
+
+        def play(url, mime, **kw):
+            mc.status.content_id, mc.status.media_session_id = url, 42
+            mc.status.player_state = 'PLAYING'
+            loop.call_soon_threadsafe(loaded.set_result, (url, kw))
+
+        mc.play_media = play
+        try:
+            with patch.object(self.m, 'resolve_video', AsyncMock(return_value={'duration': 150, 'live': False})):
+                await self.m.nest_play(self.vid, 50)
+                url, options = await asyncio.wait_for(loaded, 2)
+            self.assertIn('t=30.00&', url)
+            self.assertEqual(options['current_time'], 20)
+            self.assertEqual(options['media_info']['duration'], 120)
+        finally:
+            self.n.command('stop')
+
     async def test_stop_repete_se_o_socket_voltou_antes_do_canal(self):
         cc = FakeCast()
         self.n.cc, self.n.ours = cc, True
