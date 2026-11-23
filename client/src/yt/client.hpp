@@ -22,6 +22,10 @@ struct Card { string id, title; };
 struct Track { string url, language, name; };
 struct Cue { int startMs, durationMs; string text; };
 struct Format { string url; int itag = 0, height = 0; double fps = 0; };
+struct OfferCount {
+    unsigned listed = 0, direct = 0, muxedAac = 0;
+};
+struct MediaOffers { OfferCount avc720, avc480, aac; };
 struct Video {
     string id, title, status, reason, hls;
     int ttl = 0;
@@ -40,7 +44,7 @@ public:
     Page home();
     Page search(const string& query);
     Page next(const string& id);
-    Video player(const string& id, int height = 720);
+    Video player(const string& id, int height = 720, MediaOffers* offers = nullptr);
     bool captions(const Track&, std::vector<Cue>&, string& error);
 };
 

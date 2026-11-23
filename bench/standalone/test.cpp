@@ -40,9 +40,19 @@ string read(const string& path) {
 void playback(Http& h,yt::Client& c,const string& dir) {
     auto json=read(dir+"/player.json");
     h.add(watch,"",html(json));
-    auto v=c.player(id);
+    yt::MediaOffers offers;
+    auto v=c.player(id,720,&offers);
+    check(offers.avc720.direct==1 && offers.avc480.direct==1 && offers.aac.direct==2,"recorded direct offers");
     check(v.status=="OK" && v.id==id && !v.title.empty() && v.ttl==21540,"recorded metadata");
     check(!v.muxed && v.video.itag==136 && v.audio.itag==140 && v.video.fps==30,"recorded AVC 720p and AAC");
+    auto metadataOnly=json;
+    for (size_t i=0; (i=metadataOnly.find("\"url\"",i))!=string::npos; ++i)
+        metadataOnly.replace(i,5,"\"unused\"");
+    h.add(watch,"",html(metadataOnly));
+    v=c.player(id,480,&offers);
+    check(offers.avc720.listed==1 && offers.avc480.listed==1 && offers.aac.listed==2 &&
+        !offers.avc720.direct && !offers.avc480.direct && !offers.aac.direct && v.video.url.empty(),
+        "listed formats without URLs do not qualify");
     h.add(watch,"",html(json));
     check(c.player(id,480).video.itag==135,"480p ceiling");
     size_t pos=json.find("\"itag\": 136");

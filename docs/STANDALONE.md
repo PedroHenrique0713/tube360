@@ -1,6 +1,6 @@
 # Standalone playback on Xbox 360
 
-Native H.264 playback and direct access to YouTube have separate acceptance tests. The local benchmark can settle CPU cost even when YouTube declines public playback. Keep the existing server as a selectable source while both paths are under evaluation. The normal client still speaks the [current protocol](PROTOCOL.md).
+The release target is 720p at 30 displayed frames per second, including 60 fps sources, with the entire feature set running on the console. The PC is an automatic fallback when YouTube blocks console clients. Native H.264 playback and direct media delivery have separate acceptance tests. The normal client still speaks the [current protocol](PROTOCOL.md).
 
 ## Public playback experiment, 23 November 2026
 
@@ -43,39 +43,42 @@ Build the stand-alone check from the repository root:
 tools/build-standalone.sh pc
 .work/standalone-pc/yt-test bench/standalone/fixtures
 .work/standalone-pc/yt-check --live
+.work/standalone-pc/yt-check --media
 flock ~/.cache/tube360-frota-xbox.lock systemd-run --user --scope -q \
   -p MemoryMax=6G -p MemorySwapMax=1G tools/build-standalone.sh xbox
 ```
 
-The PC build uses Python 3 and the openssl CLI for a loopback test that rejects a private CA. The PC live command is optional (at most three requests). A result of 0 requires usable VOD URLs, 1 means search/setup failed, and 2 means metadata lookup produced no usable pair. Offline tests include the redacted VOD response from the measured 720p stream. Signed addresses in that fixture are replaced with `media.example`. Search layouts, captions and OAuth edge cases in the tests are synthetic. For the console, launch `.work/standalone-xbox/yt-check.xex` in a separate folder in Aurora with the console clock set. Read `yt-check.log` next to the executable. Record the three HTTP results, timings, search count, player status, height, fps, audio itag, muxed flag and TTL. The check does not run a decoder. [PC observation](../bench/standalone/fixtures/web-probe.txt) · [Watch response projection](../bench/standalone/fixtures/watch.json)
+The PC build uses Python 3 and the openssl CLI for a loopback test that rejects a private CA. The PC live command is optional (at most three requests). A result of 0 requires usable VOD URLs, 1 means search/setup failed, and 2 means metadata lookup produced no usable pair. Offline tests include the redacted VOD response from the measured 720p stream. Signed addresses in that fixture are replaced with `media.example`. Search layouts, captions and OAuth edge cases in the tests are synthetic. On Xbox, launching `yt-check.xex` without arguments runs the same diagnostic as PC `--media`. It makes two requests, spaced four seconds apart, and counts the AVC 720p30, AVC 480p30 and separate AAC tracks listed in one VOD response. Each line also reports how many carry a direct HTTPS URL. The live response reports HLS availability. Exit 0 means both VOD qualities offer video and audio and the live response offers a manifest; exit 2 indicates a missing source. The check stops at metadata. Inspect `yt-check.log` next to the executable. The earlier search and VOD diagnostic is available with `--live`. [PC observation](../bench/standalone/fixtures/web-probe.txt) · [Watch response projection](../bench/standalone/fixtures/watch.json)
+
+In the second PC run, both public watch pages returned HTTP 200 with player status `OK`. The VOD response listed one 720p30 AVC track, one 480p30 AVC track and four AAC tracks. There were zero direct HTTPS URLs in those entries. The live response had no HLS master. FFmpeg had no inputs for the 10-second VOD or 30-second live checks. The earlier extractor byte samples remain a separate measurement. [Native media check](../bench/standalone/fixtures/web-media.txt)
 
 **Release order and effort** (engineering estimates for one developer after dependencies are available):
 
 1. Qualify the direct source on the console (0.5–1 day). Confirm TLS, DNS and the three-call check. Require delivered video and matching audio bytes before enabling VOD. A working source is the open dependency and its discovery time is unknown.
-2. Connect it to the F6 player on a worker (2–4 days). Exercise separate AVC/AAC ranges, startup, seek and cancellation at 480p30 and 720p30. Measure p95 frame time, underruns and peak memory. Keep the existing server selectable.
+2. Connect it to the F6 player on a worker (2–4 days). Exercise separate AVC/AAC ranges, startup, seek and cancellation at 480p30 and 720p30. Measure p95 frame time, underruns and peak memory. Use the existing server as the automatic fallback for a provider block.
 3. Connect public browse/search/next, thumbnail loading and VOD captions (2–3 days). Keep the render thread polling completed work. Add native continuations, localized source errors and a bounded thumbnail cache.
 4. Qualify live independently (2–4 days once segments are available). Require changing media sequences, decodable segments across refreshed playlists and more than 30 s of synchronized output. A 403 leaves live on the existing server.
 5. Add account storage, revocation and account-specific browse/history/like only after a test grant and authorized media delivery are independently verified (3–5 days). Add the console-only timer separately (0.5–1 day).
 
-First standalone scope is public browsing and qualified VOD with TV audio. Account sync, likes, Music, Nest, phone Cast, live captions, background timers and PC shutdown remain server features at this stage. Music needs its own catalogue, radio/queue and player integration (3–5 days). Native Cast and Nest require separate discovery, receiver/controller and synchronization work; budget a separate prototype for each before estimating a release.
+Public browsing and VOD with TV audio are the first milestone. Full acceptance also requires channels, subscriptions, library, Music, captions, account history and ratings, autoplay, sleep timer, Nest sound and receiving Cast from the phone. The 480p measurement is a diagnostic and a selectable quality. For 720p60 inputs the decoder must deliver 720p30. Profile reference-frame skipping, loop filtering, thread count and VMX on the Xenon.
 
 ## Where each feature would run
 
 | Current feature | Proposed owner | Implementation cost or dependency |
 |---|---|---|
 | Anonymous home and search | Console, with optional server fallback | HTTPS player/browse/search handling, JSON parsing with bounded memory, continuations, language and filtered unavailable videos. Cache results per query. |
-| Recommendations, subscriptions, Watch later | Optional account service initially | These lists require an authenticated TV session. Port the TV browse renderer and continuation handling before moving them to the console. |
+| Recommendations, subscriptions, Watch later | Console account session | These lists require an authenticated TV session. Port the TV browse renderer and continuation handling before moving them to the console. |
 | Thumbnails | Console | Fetch CDN JPEGs on a worker, bound image dimensions and cache size, resize/crop off the draw thread. The current protocol returns ready-sized baseline JPEGs. |
 | VOD, audio to TV, quality and seeking | Console | Resolve video and audio, select measured H.264 and AAC/Opus profiles, retain separate time bases, issue byte ranges for MP4 indexes and keyframes. Decode ahead within a bounded queue. |
 | Live | Console when the source and decode budget qualify | Fetch the master, choose an AVC rendition, start from matching audio/video segments, honor media sequence and discontinuities. Resume at the live edge. Measure segment duration, startup and capture-to-screen lag independently. Keep server conversion for incompatible sources. |
-| TV device-code sign-in and logout | Optional account service | The F7 library provides device-code polling and refresh. Connection to the account UI, revocation and protected token storage remain. Preserve sign-out and anonymous local operation. |
-| History and resume | Local history on console, optional account service for YouTube sync | Save position atomically, send play/watch-time tracking only for the active session. Avoid duplicate starts during retries. |
-| Like/dislike | Optional account service | Requires authenticated mutations and TV client compatibility. Show the confirmed account response. |
-| Up next and autoplay | Console countdown, optional server recommendation | Parse watch-next for public VOD and account-aware recommendations if available. Keep B to cancel. |
+| TV device-code sign-in and logout | Console account session | The F7 library provides device-code polling and refresh. Connection to the account UI, revocation and protected token storage remain. Preserve sign-out and anonymous local operation. |
+| History and resume | Console local history and authenticated YouTube sync | Save position atomically, send play/watch-time tracking only for the active session. Avoid duplicate starts during retries. |
+| Like/dislike | Console account session | Requires authenticated mutations and TV client compatibility. Show the confirmed account response. |
+| Up next and autoplay | Console recommendation and countdown | Parse watch-next for public VOD and account-aware recommendations if available. Keep B to cancel. |
 | Captions | Console proposal | The library fetches a selected timed-text track and parses JSON3 cues. Integrate rendering against the audio clock. Track URLs expire. The integrated server already has a captions endpoint, including a separate live-clock limitation. |
-| Nest and Chromecast speaker | Optional server | Keep Cast discovery/control, media URL serving, transcoding when required, and speaker clock/failover. TV audio is the standalone output. |
-| Send from the phone | Optional server | Keep DIAL discovery, lounge pairing, queue and polling. A native receiver needs a persistent connection, LAN listener, reconnection and protected pairing state. |
-| Sleep timer | Console for Xbox shutdown, optional server for notebook shutdown | Use monotonic deadlines and end-of-video events locally. The server must own a timer that outlives the console or powers down the PC. |
+| Nest and Chromecast speaker | Console | Discover the speaker, send the authorized YouTube audio URL over Cast v2 and synchronize video with the speaker clock. Verify that the Nest itself can fetch that audio. |
+| Send from the phone | Console | Implement SSDP/DIAL advertisement, the YouTube lounge receiver, pairing, queue updates and reconnection. The Xbox is the TV on the LAN. |
+| Sleep timer | Console | Own the deadline, end-of-video trigger, volume fade and Xbox shutdown locally. When a fallback PC is present, it can carry out its own shutdown. |
 | Remote commands, status page and lid inhibitor | Optional server | Expose server-only functions while connected. The console can hold its own settings, local status and playback queue. |
 
 ### Transport and TLS
@@ -94,6 +97,6 @@ On `f5-h264`, the PC target `h264-play` exercises `client/src/h264.hpp`. Audio i
 2. On the decoder worker, copy only visible pixels row-by-row from the Y, Cb and Cr planes into the player's reusable frame storage. Allocate for `w*h + 2*ceil(w/2)*ceil(h/2)`. On a format change recreate the texture at a safe render boundary. Set the shader's limited/full range and BT.601/BT.709 coefficients from the frame. The shader at this branch point assumes limited BT.601.
 3. Preserve the existing SDL output and volume/timer handling. For TV, anchor to audio PTS and subtract queued samples and measured device latency. For Nest, keep the sampled speaker position and token checks. VOD offsets and live discontinuities need a common timestamp origin. Bound the number of decoded reference surfaces before selecting six frame threads on a 512 MiB console.
 4. In the player region of `main.cpp`, retain `gfx::videoStaging` and `videoCommit`, the controls and overlay. Carry color metadata with the queued frame and select the proper shader parameters. Route quality changes and seeks through the new source. Add localized source/quality errors during integration.
-5. Choose 480p30 or 720p30 only after both the local decoder benchmark and playback with audio, upload and network fit the frame budget. Check p95 against 33.37 ms for 29.97 fps and 16.68 ms for 59.94 fps. Measure actual queue underruns, frame drops and live latency on the console. Frame-thread throughput leaves a startup buffer of several pictures.
+5. Qualify 720p30 with audio, upload and network in the frame budget. Test 720p60 input separately with 30 fps presentation. Check p95 against 33.37 ms for 29.97 fps and 16.68 ms for 59.94 fps. Measure actual queue underruns, frame drops and live latency on the console. Frame-thread throughput leaves a startup buffer of several pictures.
 
 The separate decoder benchmark instructions are available with `git show f5-h264:bench/h264-decode/README.md`. The F7 title above checks the network and catalogue paths.

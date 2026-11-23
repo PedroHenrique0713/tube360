@@ -138,7 +138,8 @@ Page Client::home() { return page("browse",member("browseId","FEwhat_to_watch"))
 Page Client::search(const string& query) { return page("search",member("query",query)); }
 Page Client::next(const string& id) { return page("next",member("videoId",id),id); }
 
-Video Client::player(const string& id, int height) {
+Video Client::player(const string& id, int height, MediaOffers* offers) {
+    if (offers) *offers = {};
     J j;
     Video out;
     if (id.size()!=11 || id.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-")!=string::npos) {
@@ -174,15 +175,30 @@ Video Client::player(const string& id, int height) {
         const bool muxed = std::strcmp(key,"formats")==0;
         for (const auto& f : array(field(sd,key))) {
             auto url=str(f,"url"), mime=str(f,"mimeType");
-            if (!httpsUrl(url) || !array(field(f,"drmFamilies")).empty() || f.contains("licenseInfos")) continue;
+            if (!f.is<Object>() || !array(field(f,"drmFamilies")).empty() || f.contains("licenseInfos")) continue;
+            bool direct = httpsUrl(url);
             const auto& fps = field(f, "fps");
             Format fmt{url,integer(f,"itag"),integer(f,"height"),fps.is<double>() ? fps.get<double>() : 0.0};
             if (mime.find("audio/mp4")==0 && mime.find("mp4a")!=string::npos) {
+                if (offers) {
+                    ++offers->aac.listed;
+                    if (direct) ++offers->aac.direct;
+                }
+                if (!direct) continue;
                 int rate=integer(f,"bitrate");
                 if (out.audio.url.empty() || rate>audioRate) { out.audio=fmt; audioRate=rate; }
             } else if (mime.find("video/mp4")==0 && mime.find("avc1")!=string::npos &&
-                fmt.height>0 && fmt.height<=std::min(height,720) && fmt.fps>0 && fmt.fps<=30 &&
+                fmt.height>0 && fmt.height<=720 && fmt.fps>0 && fmt.fps<=30 &&
                 integer(f,"width")>0 && integer(f,"width")<=1280) {
+                if (offers && (fmt.height==720 || fmt.height==480) && fmt.fps>=29.96) {
+                    auto& count = fmt.height==720 ? offers->avc720 : offers->avc480;
+                    ++count.listed;
+                    if (direct) {
+                        ++count.direct;
+                        if (muxed && mime.find("mp4a")!=string::npos) ++count.muxedAac;
+                    }
+                }
+                if (!direct || fmt.height>height) continue;
                 auto& best=muxed ? bestMuxed : bestAdaptive;
                 if (fmt.height>best.height || (fmt.height==best.height && fmt.fps>best.fps)) best=fmt;
             }

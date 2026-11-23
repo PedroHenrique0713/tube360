@@ -25,34 +25,55 @@ struct ProbeTransport : yt::Transport {
         return r;
     }
 };
-void* run(void* result) {
+int media(yt::Client& client) {
+    yt::MediaOffers offers;
+    auto vod = client.player("4p_9OPKgcDE",720,&offers);
+    REPORT("vod status %s ttl_s %d",vod.status.c_str(),vod.ttl);
+    auto report = [&](int height,const yt::OfferCount& video) {
+        REPORT("vod %dp30 avc_listed %u avc_direct %u muxed_aac_direct %u",
+            height,video.listed,video.direct,video.muxedAac);
+        return video.muxedAac || (video.direct && offers.aac.direct);
+    };
+    bool high = report(720,offers.avc720);
+    bool low = report(480,offers.avc480);
+    REPORT("vod aac_listed %u aac_direct %u",offers.aac.listed,offers.aac.direct);
+    auto live = client.player("HvZt-nh9sGg");
+    REPORT("live status %s hls %d ttl_s %d",live.status.c_str(),!live.hls.empty(),live.ttl);
+    return high && low && !live.hls.empty() ? 0 : 2;
+}
+struct Check { bool media; int result=1; };
+void* run(void* arg) {
+    auto& check=*static_cast<Check*>(arg);
     ProbeTransport transport;
     yt::Client client(transport);
+    if (check.media) { check.result=media(client); return nullptr; }
     auto p=client.search("ge tv");
     REPORT("search cards %u status %s",(unsigned)p.cards.size(),p.error.empty()?"OK":p.error.c_str());
     if (p.cards.empty()) return nullptr;
     auto v=client.player("4p_9OPKgcDE");
     REPORT("player status %s height %d fps %.2f audio_itag %d muxed %d hls %d ttl_s %d source %s",
         v.status.c_str(),v.video.height,v.video.fps,v.audio.itag,v.muxed,!v.hls.empty(),v.ttl, v.status=="OK" && !v.reason.empty() ? v.reason.c_str() : "-");
-    *static_cast<int*>(result)=(v.status=="OK" && !v.video.url.empty() && (v.muxed || !v.audio.url.empty())) ? 0 : 2;
+    check.result=(v.status=="OK" && !v.video.url.empty() && (v.muxed || !v.audio.url.empty())) ? 0 : 2;
     return nullptr;
 }
 }
 int main(int argc,char** argv) {
-#ifndef YT_XBOX
-    if (argc!=2 || std::strcmp(argv[1],"--live")) {
-        std::puts("yt-check --live (three anonymous requests at most)");
+    bool inspectMedia = argc==2 && std::strcmp(argv[1],"--media")==0;
+#ifdef YT_XBOX
+    if (argc<=1) inspectMedia=true;
+#endif
+    if (!inspectMedia && !(argc==2 && std::strcmp(argv[1],"--live")==0)) {
+        REPORT("yt-check --media (VOD and live) | --live (search and VOD)");
         return 1;
     }
-#endif
     pthread_t worker;
-    int result=1;
+    Check check{inspectMedia};
     pthread_attr_t attr;
     if (pthread_attr_init(&attr)!=0) return 1;
     int rc=pthread_attr_setstacksize(&attr,512*1024);
-    if (rc==0) rc=pthread_create(&worker,&attr,run,&result);
+    if (rc==0) rc=pthread_create(&worker,&attr,run,&check);
     pthread_attr_destroy(&attr);
     if (rc!=0) return 1;
     pthread_join(worker,nullptr);
-    return result;
+    return check.result;
 }
