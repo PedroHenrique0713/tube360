@@ -1495,6 +1495,8 @@ async def audio(request: Request, video_id: str, t: float = Query(0, ge=0, le=86
     # O reap pode ter renomeado entre a chamada e o primeiro byte da resposta.
     if not path.exists() and path.name.endswith(".part.mp3"):
         path = path.with_name(path.name.replace(".part.mp3", ".mp3"))
+    if token and nest.token != "s=" + token:
+        raise HTTPException(410, "Esta sessão de áudio terminou.")
     try:
         source = path.open("rb")
     except OSError:

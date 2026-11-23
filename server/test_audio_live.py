@@ -249,3 +249,25 @@ class AudioTests(unittest.IsolatedAsyncioTestCase):
         await asyncio.to_thread(self.n.command, 'stop')
         self.assertNotIn('stop', cc.media_controller.calls)
         self.assertFalse(self.n.want_stop)
+
+    async def test_stop_durante_espera_da_range_nao_entrega_bytes_novos(self):
+        partial = self.path.with_suffix('.part.mp3')
+        partial.write_bytes(b'a' * 4096)
+        self.n.token = 's=42'
+        entered, release = asyncio.Event(), asyncio.Event()
+
+        async def waiting(*args):
+            entered.set()
+            await release.wait()
+
+        job = SimpleNamespace(returncode=None)
+        with patch.object(self.m, 'audio_file', AsyncMock(return_value=(partial, job))), \
+                patch.object(self.m.asyncio, 'sleep', waiting):
+            pending = asyncio.create_task(self.get_audio(b'bytes=8192-8292', b's=42'))
+            await asyncio.wait_for(entered.wait(), 1)
+            self.n.stop_intent()
+            partial.write_bytes(b'a' * 12288)
+            release.set()
+            with self.assertRaises(self.m.HTTPException) as err:
+                await pending
+            self.assertEqual(err.exception.status_code, 410)
