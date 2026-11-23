@@ -82,7 +82,7 @@ class SleepTests(unittest.IsolatedAsyncioTestCase):
     async def test_disconnected_console_and_notebook(self):
         self.m.remote.last_poll = time.monotonic() - 61
         self.timer.set(0.001, False, 'xbox_notebook')
-        await self.run_clock(5, self.marker.exists)
+        await self.run_clock(5, lambda: self.marker.exists() and self.marker.read_text() == 'ok')
         self.assertEqual(self.marker.read_text(), 'ok')
 
     async def test_cancel_grace_prevents_poweroff(self):
