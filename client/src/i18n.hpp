@@ -55,6 +55,8 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(Close, "Close", "Fechar") \
   X(Resume, "Resume", "Continuar") \
   X(Pause, "Pause", "Pausar") \
+  X(Original, "original", "original") \
+  X(Converted, "converted", "convertido") \
   X(Q720, "720p", "720p") \
   X(Q480, "480p", "480p") \
   X(Q360, "360p", "360p") \

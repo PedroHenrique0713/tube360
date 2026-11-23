@@ -113,6 +113,17 @@ error: HTTP 404. The server prefetches thumbnails for every list it serves.
 `GET /api/stream/<id>?t=<seconds>&q=720|480|360&a=0|1&speaker=0|1` returns `video/mpeg`: MPEG-PS with **one** `mpeg1video` stream and,
 unless `a=0`, **one** `mp2` stream.
 
+Clients with the FFmpeg decoder can append `&codec=h264`. Read `X-Video-Codec` before opening the decoder.
+The value `h264` selects `video/mp2t` with the source AVC and AAC tracks copied into MPEG-TS (video only for
+`a=0`). All other responses, including older servers with no codec header, use the MPEG-PS path below.
+Original mode needs a matching SDR rendition up to 1280×720 at up to 30 fps and a direct AAC source. Live,
+higher frame rates, incompatible sources and a failed remux use the existing conversion.
+
+The TS clock is relative to the requested position. A seek includes the previous keyframe. Decode the negative
+PTS for reference, discard its pictures and trim negative-time PCM before starting the shared presentation clock.
+The original and converted streams use the same session fencing, Nest MP3, TV audio reserve and captions clock.
+If original decoding fails during playback, reopen at the displayed position without the capability.
+
 | q | size | video |
 |---|---|---|
 | 720 | 1280×720 | 5.5 Mbit/s |
@@ -379,7 +390,7 @@ the slot count. Now playing reconfigures that same pool to 640×360, reducing it
 returning to browsing restores the configured grid size. There is no second texture pool. Only visible cards,
 visible avatars and the current cover request artwork.
 
-The native Music screen uses the existing MPEG stream and decoder, with its own controls and render dispatcher.
+The native Music screen uses the same negotiated playback stream and decoder, with its own controls and render dispatcher.
 It does not request audio-only playback. B stops and clears the queue, returning to the source page; selecting Show
 video continues the same stream using the existing player UI. B through the player's usual focus levels then returns
 to Now playing without stopping that Music session. Lyrics can be scrolled with up/down.

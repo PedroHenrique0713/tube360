@@ -318,6 +318,38 @@ def hd_source(data, video):
     return None
 
 
+def original_sources(data, video, audio):
+    # Uma gravação de 60 fps continua no conversor mesmo se houver uma versão de resolução menor a 30.
+    if (data.get("live_status") == "is_live" or (video.get("fps") or 0) > 30
+            or not (audio.get("acodec") or "").startswith(("mp4a", "aac"))
+            or audio.get("protocol") != "https" or audio.get("has_drm")):
+        return {}
+    result = {}
+    for fmt in [video, *reversed(data.get("formats") or [])]:
+        h, w = fmt.get("height") or 0, fmt.get("width") or 0
+        for q, (width, height, _) in SIZES.items():
+            if (q not in result and 0 < h <= height and 0 < w <= width and (h == height or w == width)
+                    and fmt.get("protocol") == "https" and (fmt.get("vcodec") or "").startswith("avc1")
+                    and 0 < (fmt.get("fps") or 0) <= 30 and fmt.get("dynamic_range") in (None, "SDR")
+                    and not fmt.get("has_drm")):
+                result[q] = fmt
+    return result
+
+
+def remux_command(info, video, start, with_audio):
+    cmd = [FFMPEG, "-hide_banner", "-nostdin", "-loglevel", "repeat+error", *source_args(info, video, start)]
+    separate = with_audio and video["url"] != info["audio"]["url"]
+    if separate:
+        cmd += source_args(info, info["audio"], start)
+    cmd += ["-map", "0:v:0"]
+    if with_audio:
+        cmd += ["-map", "1:a:0" if separate else "0:a:0"]
+    # Um seek copia desde o IDR anterior. O cliente decodifica o pré-roll e apresenta a partir do PTS zero.
+    return cmd + ["-c", "copy", "-bsf:v", "h264_mp4toannexb,dump_extra=freq=keyframe",
+                  "-mpegts_copyts", "1", "-avoid_negative_ts", "disabled", "-muxdelay", "0",
+                  "-flush_packets", "1", "-f", "mpegts", "pipe:1"]
+
+
 def clients_named(api_name):
     """Clientes do yt-dlp que se apresentam com esse nome (TVHTML5 = tv, tv_samsung...)."""
     try:
@@ -386,7 +418,7 @@ async def resolve_video(video_id):
             if not video or not audio:
                 raise RuntimeError("vídeo ou áudio indisponível")
             result = {
-                "video": video, "audio": audio,
+                "video": video, "audio": audio, "original": original_sources(data, video, audio),
                 "duration": 0 if data.get("live_status") == "is_live" else max(0, int(data.get("duration") or 0)),
                 "title": clean(data.get("title") or video_id),
                 "headers": data.get("http_headers", {}),
@@ -1537,14 +1569,15 @@ async def thumb(video_id: str, w: int = Query(320, ge=1, le=1920), h: int = Quer
 
 @app.get("/api/stream/{video_id}")
 async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=86400 * 30), q: int = 720,
-                 a: int = Query(1, ge=0, le=1), speaker: int = Query(0, ge=0, le=1)):
+                 a: int = Query(1, ge=0, le=1), speaker: int = Query(0, ge=0, le=1), codec: str = ""):
     valid_id(video_id)
     if q not in SIZES or not math.isfinite(t):
         raise HTTPException(400, "Qualidade ou posição inválida.")
     opened = time.monotonic()
     ticket = await streams.begin()
     refetched = False
-    for _ in range(3):
+    allow_copy = codec == "h264"
+    while True:
         try:
             info = await resolve_video(video_id)
         except Exception as error:
@@ -1566,7 +1599,10 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
             AUDIO_DIR.mkdir(parents=True, exist_ok=True)
             mp3 = AUDIO_DIR / f"{video_id}_live_{ticket}.part.mp3"
             mp3.unlink(missing_ok=True)
-        encoder = await streams.start(ticket, ffmpeg_command(info, t, q, with_audio=bool(a), mp3=mp3))
+        original = info.get("original", {}).get(q) if allow_copy and not info["live"] else None
+        command = (remux_command(info, original, t, bool(a)) if original else
+                   ffmpeg_command(info, t, q, with_audio=bool(a), mp3=mp3))
+        encoder = await streams.start(ticket, command)
         streams.video_id, streams.info = video_id, info
         encoder.mp3 = mp3
         if mp3:
@@ -1582,11 +1618,16 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
             # Só confirmar HTTP 200 depois de receber MPEG; erro de origem vira 502.
             first_read = asyncio.create_task(encoder.output.get())
             deadline = time.monotonic() + 40
+            first = None
             while not first_read.done():
+                if original and time.monotonic() > deadline:
+                    first_read.cancel()
+                    break
                 if await request.is_disconnected() or time.monotonic() > deadline:
                     raise HTTPException(504, "O vídeo demorou para responder.")
                 await asyncio.wait({first_read}, timeout=0.2)
-            first = first_read.result()
+            else:
+                first = first_read.result()
         except BaseException:
             first_read.cancel()
             with anyio.CancelScope(shield=True):
@@ -1601,6 +1642,10 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
         with anyio.CancelScope(shield=True):
             await streams.finish(encoder)
         drop_live_audio(video_id, encoder)
+        if original:
+            allow_copy = False
+            LOG.info("stream %s: remux sem dados, usando MPEG-1", video_id)
+            continue
         # A fonte 1080p passou na sondagem de 2 bytes e foi recusada na leitura: a reserva já resolvida (que também
         # passou) serve agora e nos próximos pulos deste link. O dict é o mesmo guardado no url_cache.
         if q == 720 and info.pop("video_hd", None) is not None:
@@ -1623,8 +1668,10 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
                 await streams.finish(encoder)
             drop_live_audio(video_id, encoder)
 
-    LOG.info("stream %s sessão %d: primeiro MPEG em %.3f s, live=%d", video_id, ticket, time.monotonic() - opened, info["live"])
-    return StreamingResponse(body(), media_type="video/mpeg", headers={
+    LOG.info("stream %s sessão %d: primeiro %s em %.3f s, live=%d", video_id, ticket,
+             "H.264" if original else "MPEG-1", time.monotonic() - opened, info["live"])
+    return StreamingResponse(body(), media_type="video/mp2t" if original else "video/mpeg", headers={
+        "X-Video-Codec": "h264" if original else "mpeg1",
         "X-Nest-Handoff": "1",
         "X-Stream-Id": str(ticket), "X-Duration": str(info["duration"]), "X-Live": "1" if info["live"] else "0", "X-Title": quote(info["title"], safe=""),
         "Cache-Control": "no-store", "X-Accel-Buffering": "no",

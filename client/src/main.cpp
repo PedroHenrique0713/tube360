@@ -484,6 +484,8 @@ int main(int argc, char** argv) {
   cc::Loader captionLoader; cc::Data captions;
   int captionIndex = -1; std::vector<std::string> captionLines; float captionWidth = 0;
   float captionLineWidths[2]{};
+  const char *lastQuality = nullptr, *lastMode = nullptr;
+  std::string qualityLabel;
   PlayerText optionLabels[PlayerUI::COUNT], optionValues[PlayerUI::COUNT];
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
@@ -1249,6 +1251,7 @@ int main(int argc, char** argv) {
     if (screen == PLAYER) {
       if (player::Frame* f = pl.take()) {
         if (f->w != videoTex.w || f->h != videoTex.h) { if (videoTex.set) gfx::videoDestroy(g, videoTex); gfx::videoCreate(g, videoTex, f->w, f->h); LOG("vídeo %dx%d", f->w, f->h); }
+        videoTex.bt709 = f->bt709; videoTex.fullRange = f->fullRange;
         std::memcpy(gfx::videoStaging(g, videoTex), f->yuv.data(), f->yuv.size()); gfx::videoCommit(g, videoTex);
         pl.recycle(f);
       }
@@ -1502,7 +1505,14 @@ int main(int argc, char** argv) {
         gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, channel, 760), 72, 90, ui::TEXT);
         if (!captions.date.empty()) gfx::text(g, ui::F_SMALL, captions.date, 72, 120, ui::MUTED);
         float statusX = ui::W - 72;
-        gfx::text(g, ui::F_SMALL, tr(i18n::quality(quality)), statusX, 94, ui::TEXT, 2);
+        const char* resolution = tr(i18n::quality(quality));
+        const char* mode = pl.waiting() ? nullptr : tr(pl.original ? K::Original : K::Converted);
+        if (resolution != lastQuality || mode != lastMode) {
+          qualityLabel = resolution;
+          if (mode) { qualityLabel += " · "; qualityLabel += mode; }
+          lastQuality = resolution; lastMode = mode;
+        }
+        gfx::text(g, ui::F_SMALL, qualityLabel, statusX, 94, ui::TEXT, 2);
         gfx::text(g, ui::F_SMALL, pl.nest ? nestName : std::string(tr(K::TV)), statusX, 122, ui::MUTED, 2);
         double pos = pl.position(), dur = pl.duration;
         float bx = 72, by = 620, bw = ui::W - 144;
