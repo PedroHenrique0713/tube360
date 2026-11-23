@@ -31,7 +31,7 @@ inline void moveToHardwareThread(int hw) {
 #endif
 }
 
-struct Frame { double pts = 0; int w = 0, h = 0; bool bt709 = false, fullRange = false; std::vector<uint8_t> yuv; };
+struct Frame { double pts = 0; int w = 0, h = 0, sourceFps = 0; bool bt709 = false, fullRange = false; std::vector<uint8_t> yuv; };
 
 // Ajudantes da decodificação por fatias do pl_mpeg (plm_video_run_parallel): a thread do decodificador roda a faixa 0
 // e cada ajudante roda a sua num núcleo livre do 360 (hardware threads 3, 1 e 4; o decodificador fica na 2 e a tela na 0).
@@ -93,6 +93,8 @@ struct Player {
   int cachedQuality = 0;
   std::atomic<bool> mediaReady{false}, renew{false};
   std::atomic<int> actualHeight{0};
+  std::atomic<int> actualFps{0};
+  int videoMetrics = 0;
   int queueMin = 0;
   uint64_t originalWatch = 0;
   std::atomic<unsigned> pauseChanges{0};
@@ -194,7 +196,7 @@ struct Player {
     if (vid != id || state == IDLE || quality != q) allowOriginal = true;
     halt(!speaker);
     direct = tryDirect && !speaker;
-    endLiveReader = false; refreshed = renewing; renew = mediaReady = false; actualHeight = 0;
+    endLiveReader = false; refreshed = renewing; renew = mediaReady = false; actualHeight = actualFps = 0;
     if (renewing) validUntil = 0;
     SDL_SetAtomicInt(&netBytes, 0);
     original = retryConverted = false; originalWatch = 0; queueMin = maxFrames;
@@ -450,14 +452,13 @@ struct Player {
     enqueuePlanes(f->width, f->height, f->time, planes, strides, false, false);
   }
 
-  void enqueuePlanes(int w, int h, double pts, const uint8_t* const* planes, const int* strides, bool bt709, bool full) {
-    if (actualHeight != h) actualHeight = h;
+  void enqueuePlanes(int w, int h, double pts, const uint8_t* const* planes, const int* strides, bool bt709, bool full, int fps = 0) {
     SDL_LockMutex(mu);
     Frame* fr = spare.empty() ? new Frame() : spare.back();
     if (!spare.empty()) spare.pop_back();
     SDL_UnlockMutex(mu);
     int cw = (w + 1) / 2, ch = (h + 1) / 2;
-    fr->w = w; fr->h = h; fr->pts = pts; fr->bt709 = bt709; fr->fullRange = full;
+    fr->w = w; fr->h = h; fr->pts = pts; fr->bt709 = bt709; fr->fullRange = full; fr->sourceFps = fps;
     fr->yuv.resize((size_t)w * h + 2 * (size_t)cw * ch);
     uint8_t* dst = fr->yuv.data();
     for (int i = 0; i < 3; ++i) {
@@ -738,6 +739,7 @@ struct Player {
         SDL_SetAudioStreamFrequencyRatio(audio, (float)ratio);
       }
       if (show) {
+        actualHeight = show->h; actualFps = show->sourceFps;
         if (!shownFrames) LOG("primeiro quadro: %llu ms, pts %.3f, live %d, som %s", (unsigned long long)(ms - openedMs),
                               show->pts, (int)live.load(), follow ? "Nest" : "TV");
         lastFrameMs = ms; shownFrames++; if (state == BUFFERING || state == CONNECTING) state = PLAYING;

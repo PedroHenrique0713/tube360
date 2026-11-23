@@ -293,14 +293,14 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
                     }
                 }
                 if (!direct || fmt.height>(height>=720 ? 1080 : height) ||
-                    (muxed && mime.find("mp4a")==string::npos)) continue;
+                    (muxed && (fmt.height>720 || mime.find("mp4a")==string::npos))) continue;
                 if (fmt.height<=720 && better(fmt,fallback)) fallback=fmt;
                 auto& best=muxed ? bestMuxed : bestAdaptive;
                 if (better(fmt,best)) best=fmt;
             }
         }
     }
-    out.muxed = !bestMuxed.url.empty() && (out.audio.url.empty() || bestMuxed.height>=bestAdaptive.height);
+    out.muxed = !bestMuxed.url.empty() && (out.audio.url.empty() || !better(bestAdaptive,bestMuxed));
     out.video = out.muxed ? bestMuxed : bestAdaptive;
     if (out.video.height>720) out.fallbackVideo=fallback;
     if (out.muxed) out.audio={};

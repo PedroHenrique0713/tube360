@@ -128,23 +128,28 @@ inline void Player::decodeOriginal() {
   unsigned pauseEpoch = pauseChanges.load();
   int count = 0, slow = 0, packets = 0, decoded = 0, filtered = 0;
   int64_t previousShown = 0, previousLost = 0, phase = AV_NOPTS_VALUE;
-  double sourceRate = broadcast ? broadcast->frameRate : 0;
+  double sourceRate = broadcast ? broadcast->frameRate : direct ? media.video.fps : 0;
+  if (r >= 0 && s.video && sourceRate <= 0) sourceRate = av_q2d(s.fmt->streams[s.vi]->avg_frame_rate);
+  if (!std::isfinite(sourceRate) || sourceRate < 0) sourceRate = 0;
   auto alternate = [&](int64_t pts, AVRational base) {
-    if (sourceRate <= 30 || pts == AV_NOPTS_VALUE || phase == AV_NOPTS_VALUE) return false;
-    return (std::llround((pts - phase) * av_q2d(base) * sourceRate) & 1) != 0;
+    if (sourceRate <= 30.1 || pts == AV_NOPTS_VALUE || phase == AV_NOPTS_VALUE) return false;
+    return h264::dropAt30(std::llround((pts - phase) * av_q2d(base) * sourceRate),sourceRate);
   };
-  uint64_t ns = 0, since = SDL_GetTicks();
+  uint64_t ns = 0, copyNs = 0, since = SDL_GetTicks();
+  double videoSeconds = 0, handoffFloor = -1;
+  bool lowered = false;
   auto decode = [&](h264::Stream& input, AVCodecContext* codec, AVPacket* packet) -> int {
     if (!codec) return 0;
     bool video = codec == s.video;
-    if (video && broadcast && packet) {
+    if (video && packet) {
       ++packets;
       AVRational base = input.fmt->streams[input.vi]->time_base;
       if (packet->duration > 0) {
         double measured = 1.0 / (packet->duration * av_q2d(base));
         if (sourceRate <= 30 && measured > 30.1 && measured <= 60.1) sourceRate = measured;
       }
-      if (phase == AV_NOPTS_VALUE) phase = packet->pts;
+      if (phase == AV_NOPTS_VALUE && packet->pts != AV_NOPTS_VALUE) phase = packet->pts;
+      videoSeconds += packet->duration > 0 ? packet->duration * av_q2d(base) : sourceRate > 0 ? 1 / sourceRate : 0;
       // Um quadro referencial permanece no DPB mesmo quando a TV não precisa exibi-lo.
       codec->skip_frame = alternate(packet->pts, base) ? AVDISCARD_NONREF : AVDISCARD_DEFAULT;
     }
@@ -171,11 +176,11 @@ inline void Player::decodeOriginal() {
         return AVERROR_INVALIDDATA;
       }
       if (video) {
-        if (f->width > 1280 || f->height > 720 || (f->format != AV_PIX_FMT_YUV420P && f->format != AV_PIX_FMT_YUVJ420P))
+        if (f->width > 1920 || f->height > 1080 || (f->format != AV_PIX_FMT_YUV420P && f->format != AV_PIX_FMT_YUVJ420P))
           return AVERROR_INVALIDDATA;
         ++decoded;
-        if (broadcast && (alternate(f->best_effort_timestamp, input.fmt->streams[input.vi]->time_base) ||
-                          (last >= 0 && pts - last < 1.0/30 - 0.00005))) { ++filtered; continue; }
+        if (alternate(f->best_effort_timestamp, input.fmt->streams[input.vi]->time_base) ||
+            (last >= 0 && pts <= last + .00001) || pts < handoffFloor - .00001) { ++filtered; continue; }
         if (pts < -0.0001) continue;
         pts = std::max(0.0, pts);
         SDL_LockMutex(mu);
@@ -185,8 +190,12 @@ inline void Player::decodeOriginal() {
         bool bt709 = f->colorspace == AVCOL_SPC_BT709 || (f->colorspace == AVCOL_SPC_UNSPECIFIED && f->height > 576);
         begin = SDL_GetTicksNS();
         enqueuePlanes(f->width, f->height, pts, f->data, f->linesize, bt709,
-                      f->color_range == AVCOL_RANGE_JPEG || f->format == AV_PIX_FMT_YUVJ420P);
-        ns += SDL_GetTicksNS() - begin; last = pts; count++;
+                      f->color_range == AVCOL_RANGE_JPEG || f->format == AV_PIX_FMT_YUVJ420P, (int)std::lround(sourceRate));
+        copyNs += SDL_GetTicksNS() - begin; last = pts; count++;
+        if (videoMetrics) {
+          SDL_LockMutex(mu); int queued = (int)frames.size(); SDL_UnlockMutex(mu);
+          LOG("decode-quadro: pts %.6f, %dx%d, fonte %.3f fps, fila %d, copia %.3f ms",pts,f->width,f->height,sourceRate,queued,(SDL_GetTicksNS()-begin) / 1e6);
+        }
       } else {
         // Limita AAC adiantado inclusive quando a pessoa deixa um VOD pausado.
         while (!stop && audioQueuedSec() > 2.0) { trimReserve(); SDL_Delay(8); }
@@ -246,20 +255,39 @@ inline void Player::decodeOriginal() {
       LOG("decod: H.264 %dt, %d quadros, %.2f ms/quadro, fila mín %d, perdidos %lld, PCM %.0f ms, rede %.2f Mbit/s",
           threads, count, avg, minimum, lost, audioQueuedSec() * 1000, SDL_SetAtomicInt(&netBytes, 0) * 0.008 / (now - since));
       double displayRate = (shown - previousShown) * 1000.0 / (now - since);
-      if (broadcast) LOG("live: %.1f fps na TV, pacotes %d, decodificados %d, filtrados %d", displayRate, packets, decoded, filtered);
+      LOG("qualidade: %s %dp %.3f fps -> 720p/30, %.1f fps na TV, pacotes %d, decodificados %d, filtrados %d, decode %.1f ms/s de video, copia %.2f ms/quadro, perdidos +%lld",
+          broadcast ? "live" : "VOD", actualHeight.load(), sourceRate, displayRate, packets, decoded, filtered,
+          videoSeconds > 0 ? ns / 1e6 / videoSeconds : 0, count ? copyNs / 1e6 / count : 0, lost - previousLost);
       int clock = masterMs.load();
       unsigned epoch = pauseChanges.load();
       bool behind = clock >= 0 && last < clock / 1000.0 - .25;
       bool insufficient = intervalPts >= 0 && last - intervalPts < (now - since) * .00090;
-      double targetRate = sourceRate > 30 ? sourceRate * .5 : sourceRate;
+      double targetRate = std::min(30.0, sourceRate);
       // A TV pode ficar sem PCM com a fila de imagem cheia: ambos vêm do mesmo demuxer.
       bool slowLive = broadcast && displayRate < targetRate * .85 &&
                       (insufficient || behind || lost - previousLost > 10);
-      slow = !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || slowLive) ? slow + 1 : 0;
+      bool slowUpload = direct && media.video.height > 720 && displayRate < targetRate * .85 && lost - previousLost > 10;
+      slow = !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || slowLive || slowUpload) ? slow + 1 : 0;
       previousShown = shown; previousLost = lost;
       intervalPts = last; pauseEpoch = epoch;
+      // Troca só o vídeo: AAC, relógio e os quadros já prontos continuam na mesma linha do tempo.
+      if (slow >= 2 && direct && !broadcast && media.video.height > 720 && !media.fallbackVideo.url.empty() && !lowered) {
+        lowered = true;
+        handoffFloor = std::max(last, std::max(0, clock) / 1000.0);
+        double resume = origin + handoffFloor;
+        uint64_t began = SDL_GetTicks();
+        LOG("qualidade: fila sustentada sem folga; %dp -> %dp em %.3f, mantendo AAC e fila", media.video.height, media.fallbackVideo.height, resume);
+        s.reset();
+        videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.fallbackVideo.url, &netBytes);
+        r = s.open(videoFile.get(), yt::RangeFile::pull, threads, false, true, yt::RangeFile::seek);
+        if (r >= 0) r = s.seekTime(resume);
+        media.video = media.fallbackVideo; media.fallbackVideo = {}; media.muxed = false;
+        sourceRate = media.video.fps; phase = AV_NOPTS_VALUE;
+        slow = 0; videoEnd = false;
+        LOG("qualidade: video reaberto em %llu ms, resultado %d", (unsigned long long)(SDL_GetTicks() - began), r);
+      }
       if (slow >= 2 && (!direct || (net::serverEnabled && (broadcast || avg > 33.34)))) { r = AVERROR(ETIMEDOUT); break; }
-      since = now; count = packets = decoded = filtered = 0; ns = 0;
+      since = SDL_GetTicks(); count = packets = decoded = filtered = 0; ns = copyNs = 0; videoSeconds = 0;
     }
   }
   if (reader) {

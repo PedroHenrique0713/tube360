@@ -458,6 +458,7 @@ int main(int argc, char** argv) {
   LOG("servidor %s:%d", srv.ip.c_str(), srv.port);
 
   gfx::Gfx g;
+  if (FILE* f = std::fopen((assets + "video-metrics.txt").c_str(),"r")) { std::fscanf(f,"%d",&g.videoMetrics); std::fclose(f); }
   const char* shotPath = std::getenv("XT_SHOT");
   g.readback = shotPath != nullptr;
   if (!gfx::init(g, 1280, 720, "Tube360")) return 1;
@@ -467,7 +468,7 @@ int main(int argc, char** argv) {
   loadIcons(g);
 
   gfx::Video videoTex; g.video = &videoTex;
-  player::Player pl; pl.cacheBase = assets + "yt-base"; pl.init();
+  player::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); pl.videoMetrics = g.videoMetrics;
   Worker worker; worker.srv = srv;
   SDL_Thread* wt = yt::worker(Worker::main, "trabalho", &worker);
   // Conta e pareamento não esperam as buscas do feed.
@@ -530,7 +531,7 @@ int main(int argc, char** argv) {
   cc::Loader captionLoader; cc::Data captions;
   int captionIndex = -1; std::vector<std::string> captionLines; float captionWidth = 0;
   float captionLineWidths[2]{};
-  int lastQuality = -1; const char* lastMode = nullptr;
+  int lastQuality = -1, lastSourceFps = -1; const char* lastMode = nullptr;
   std::string qualityLabel, resolutionLabel;
   PlayerText optionLabels[PlayerUI::COUNT], optionValues[PlayerUI::COUNT];
   std::string captionVideo, captionInterface;
@@ -1331,7 +1332,7 @@ int main(int argc, char** argv) {
       if (player::Frame* f = pl.take()) {
         if (f->w != videoTex.w || f->h != videoTex.h) { if (videoTex.set) gfx::videoDestroy(g, videoTex); gfx::videoCreate(g, videoTex, f->w, f->h); LOG("vídeo %dx%d", f->w, f->h); }
         videoTex.bt709 = f->bt709; videoTex.fullRange = f->fullRange;
-        std::memcpy(gfx::videoStaging(g, videoTex), f->yuv.data(), f->yuv.size()); gfx::videoCommit(g, videoTex);
+        gfx::videoUpload(g, videoTex, f->yuv.data(), f->yuv.size(), f->pts);
         pl.recycle(f);
       }
     }
@@ -1588,11 +1589,15 @@ int main(int argc, char** argv) {
         float statusX = ui::W - 72;
         int resolution = pl.actualHeight.load();
         const char* mode = pl.waiting() ? nullptr : tr(pl.direct ? K::Console : pl.original ? K::ServerOriginal : K::ServerConverted);
-        if (resolution != lastQuality || mode != lastMode) {
+        int sourceFps = pl.actualFps.load();
+        if (resolution != lastQuality || sourceFps != lastSourceFps || mode != lastMode) {
           resolutionLabel = resolution ? std::to_string(resolution) + "p" : "";
+          // As fontes Inter empacotadas não têm o glifo da seta.
+          if (resolution > 720) resolutionLabel += " -> 720p";
+          if (sourceFps > 30) resolutionLabel += std::to_string(sourceFps) + " -> 30";
           qualityLabel = resolutionLabel;
           if (mode) { if (resolution) qualityLabel += " · "; qualityLabel += mode; }
-          lastQuality = resolution; lastMode = mode;
+          lastQuality = resolution; lastSourceFps = sourceFps; lastMode = mode;
         }
         gfx::text(g, ui::F_SMALL, qualityLabel, statusX, 94, ui::TEXT, 2);
         gfx::text(g, ui::F_SMALL, pl.nest ? nestName : std::string(tr(K::TV)), statusX, 122, ui::MUTED, 2);
