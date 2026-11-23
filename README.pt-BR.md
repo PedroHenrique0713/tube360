@@ -33,7 +33,7 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | 🎵 **Música** | Área própria com capas quadradas, escolhas rápidas, Explorar/paradas e mixes, busca de músicas/álbuns/artistas, rádio e Tocando agora com letra quando disponível. |
 | 📱 **Transmitir pelo app oficial do YouTube** | O Tube360 aparece no menu Transmitir do celular como uma smart TV. Pareie uma vez com o código de TV (ou deixe o celular achar pelo Wi-Fi). Play, pausa, avançar, volume e "a seguir" funcionam pelo celular. |
 | 🔊 **Som na caixa Google, sincronizado** | A caixa toca o áudio e o console segue o relógio dela, que um teste com microfone coloca a ~20 ms do som que sai da caixa. Se a caixa cair, o som volta para a TV sozinho. |
-| 👍 **Gostei, não gostei e próximo automático** | O direcional ↓ no player avalia o vídeo na sua conta. Quando um vídeo acaba, o próximo que o YouTube sugere começa depois de 8 s de contagem (A assiste na hora, B cancela). Vídeos só para membros ficam fora da grade. |
+| 👍 **Gostei, não gostei e próximo automático** | Avaliar, na fileira de opções do player, marca gostei ou não gostei na sua conta. Quando um vídeo acaba, o próximo que o YouTube sugere começa depois de 8 s de contagem (A assiste na hora, B cancela). Vídeos só para membros ficam fora da grade. |
 | 🔴 **Lives** | A live abre como qualquer vídeo, perto do ao vivo, com imagem e som do mesmo trecho (na caixa também). Pausar e continuar volta para o ao vivo. |
 | 🌙 **Timer de dormir** | De 15 min a 2 h, ou "no fim deste vídeo". Aviso 60 s antes (A para +15 min, B para cancelar) com o som abaixando. Depois o console se desliga sozinho, e o PC também, se você quiser. |
 | ⚙️ **Configurações na TV** | 3 ou 4 vídeos por linha, qualidade padrão, som na TV ou na caixa, sincronia da caixa, português ou inglês. Botões no estilo do Xbox One / Series. |
@@ -267,14 +267,16 @@ Os botões aparecem na tela no estilo do Xbox One / Series.
 | | Menu | Buscar |
 | | B | Voltar |
 | **Player** | A ou Menu | Pausar / continuar |
-| | Direcional ← → | −10 s / +10 s |
-| | Direcional ↑ | Timer de dormir |
-| | Direcional ↓ | Gostei / Não gostei |
+| | Qualquer direção (barra escondida) | Mostra a barra, com foco na trilha |
+| | Direcional ← → (na trilha) | −10 s / +10 s |
+| | Direcional ↑ (da trilha) | Fileira de opções: legendas, qualidade, som, timer, avaliar, ir para o canal |
+| | A (numa opção) | Abre; ↓ volta para a trilha |
 | | LB / RB | −1 min / +1 min |
 | | Y | 720p ↔ 480p |
 | | X | Som na TV ↔ na caixa |
 | | LT / RT | Sincronia da caixa −40 ms / +40 ms (fica salva) |
-| | B ou View | Voltar à grade |
+| | B | Volta um nível (painel, opções, trilha, barra escondida) e depois sai do vídeo |
+| | View | Voltar à grade |
 | **Configurações** | Direcional ↑ ↓ / ← → | Escolher a linha / trocar o valor |
 | | A / B | Abrir (entrar, sair da conta) / Voltar |
 | **A seguir** | A / B | Assistir agora / Cancelar |

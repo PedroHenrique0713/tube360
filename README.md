@@ -33,7 +33,7 @@ No TV stick, no smart TV, no browser. Just the Xbox 360 you already have.
 | 🎵 **Music** | A dedicated area with square artwork, quick picks, Explore/charts and mixes, song/album/artist search, radio queues, and a Now playing screen with optional lyrics. |
 | 📱 **Cast from the official YouTube app** | Tube360 shows up in the phone's Cast menu like a smart TV. Pair once with a TV code (or let the phone find it on Wi-Fi). Play, pause, seek, volume and "up next" all work from the phone. |
 | 🔊 **Sound on a Google speaker, in sync** | The speaker plays the audio and the console follows its clock, which a microphone test puts within ~20 ms of the speaker's actual sound. If the speaker drops, the sound falls back to the TV on its own. |
-| 👍 **Like, dislike and autoplay** | D-pad ↓ in the player rates the video on your account. When a video ends, the next one YouTube suggests starts after an 8 s countdown (A to watch now, B to cancel). Members-only videos stay out of the grid. |
+| 👍 **Like, dislike and autoplay** | Rate in the player's options row likes or dislikes the video on your account. When a video ends, the next one YouTube suggests starts after an 8 s countdown (A to watch now, B to cancel). Members-only videos stay out of the grid. |
 | 🔴 **Live streams** | A live opens like any video, close to the live edge, with picture and sound from the same segment (on the speaker too). Pausing and resuming jumps back to live. |
 | 🌙 **Sleep timer** | 15 min to 2 h, or "end of this video". A warning 60 s before (A for +15 min, B to cancel) while the sound fades out. Then the console turns itself off, and optionally the PC too. |
 | ⚙️ **Settings on the TV** | 3 or 4 videos per row, default quality, sound on the TV or the speaker, speaker sync, English or Portuguese. Button prompts in the Xbox One / Series style. |
@@ -267,14 +267,16 @@ Button prompts in the app use the Xbox One / Series style.
 | | Menu | Search |
 | | B | Back |
 | **Player** | A or Menu | Pause / resume |
-| | D-pad ← → | −10 s / +10 s |
-| | D-pad ↑ | Sleep timer |
-| | D-pad ↓ | Like / Dislike |
+| | Any direction (bar hidden) | Show the bar, focus on the timeline |
+| | D-pad ← → (on the timeline) | −10 s / +10 s |
+| | D-pad ↑ (from the timeline) | Options row: captions, quality, sound, sleep timer, rate, go to channel |
+| | A (on an option) | Open it; ↓ goes back to the timeline |
 | | LB / RB | −1 min / +1 min |
 | | Y | 720p ↔ 480p |
 | | X | Sound on TV ↔ speaker |
 | | LT / RT | Speaker lip-sync −40 ms / +40 ms (saved) |
-| | B or View | Back to the grid |
+| | B | Back one level (panel, options, timeline, hidden bar), then leave the video |
+| | View | Back to the grid |
 | **Settings** | D-pad ↑ ↓ / ← → | Choose a row / change its value |
 | | A / B | Open (sign in, sign out) / Back |
 | **Up next** | A / B | Watch now / Cancel |
