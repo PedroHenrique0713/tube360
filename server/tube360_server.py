@@ -1476,32 +1476,61 @@ class Nest:
         self.token = ""  # marca "s=<ms>" da URL do último áudio pedido ao Nest
         self.recover_at = 0.0
         self.sleep_base = None
+        self.want_stop = False  # o stop não chegou ao Nest (Wi-Fi caído): o watch repete quando a conexão voltar
         threading.Thread(target=self.watch, daemon=True).start()
 
+    def connected(self):
+        return self.cc is not None and self.cc.socket_client.is_connected
+
+    def drop(self):
+        cc, self.cc = self.cc, None
+        if cc is not None:
+            try:
+                cc.disconnect(timeout=1)
+            except Exception:
+                pass
+
     def connect(self):
-        if self.cc is not None and self.cc.socket_client.is_connected:
-            return self.cc
+        """Um cliente só, que a pychromecast reconecta sozinha depois de queda de Wi-Fi. Trocar o cliente sem desligar
+        o antigo deixava vários vivos ao mesmo tempo (3 heartbeats caindo no mesmo instante, 2026-11-23)."""
+        cc = self.cc
+        if cc is not None and not cc.socket_client.stop.is_set():
+            deadline = time.monotonic() + 4
+            while not cc.socket_client.is_connected and time.monotonic() < deadline:
+                time.sleep(0.1)
+            if cc.socket_client.is_connected:
+                return cc
+        # morto, ou reconectando com espera longa (a pychromecast dobra o intervalo a cada falha): começa de novo
+        self.drop()
         cfg = CONFIG.get("nest") or {}
         host = cfg.get("host")
         if not host:
             raise RuntimeError("Nenhum Nest configurado (config.json, nest.host).")
         info = CastInfo(services={HostServiceInfo(host, 8009)}, uuid=uuid.uuid4(), model_name="Nest",
                         friendly_name=cfg.get("name", "Nest"), host=host, port=8009, cast_type="audio", manufacturer="Google")
-        last = None
-        for tentativa in range(3):
+        cc = pychromecast.get_chromecast_from_cast_info(info, zconf=None, tries=None, retry_wait=1, timeout=6)
+        try:
+            cc.wait(timeout=10)
+        except Exception as error:
             try:
-                cc = pychromecast.get_chromecast_from_cast_info(info, zconf=None, tries=2, timeout=6)
-                cc.wait(timeout=8)
-                self.cc = cc
-                return cc
-            except Exception as error:
-                last = error
-                LOG.warning("Nest: conexão falhou (tentativa %d): %s", tentativa + 1, error)
-                time.sleep(1.5)
-        raise last
+                cc.disconnect(timeout=1)
+            except Exception:
+                pass
+            LOG.warning("Nest: conexão falhou: %s", error)
+            raise
+        self.cc = cc
+        return cc
+
+    def media_ready(self, cc):
+        """O receptor padrão aberto e com o canal de mídia pronto. Sem isso, qualquer pedido do media_controller
+        (update_status inclusive) faz a pychromecast relançar o receptor, e relançar corta o som que está tocando:
+        depois de cada queda de Wi-Fi o laço relançava o app a cada 250 ms (2026-11-23)."""
+        return cc.status is not None and cc.status.app_id == self.APP \
+            and cc.media_controller.namespace in cc.socket_client.app_namespaces
 
     def play(self, url):
         with self.lock:
+            self.want_stop = False
             self.state, self.pos, self.stamp, self.error = "LOADING", 0.0, time.monotonic(), ""
             try:
                 t0 = time.monotonic()
@@ -1538,7 +1567,6 @@ class Nest:
                 self.active = True
             except Exception as error:
                 self.state, self.error = "ERRO", str(error)[:120]
-                self.cc = None
                 LOG.warning("Nest: %s", self.error)
 
     def prepare(self):
@@ -1560,7 +1588,6 @@ class Nest:
                 LOG.info("Nest: preparado em %.1f s", time.monotonic() - t0)
             except Exception as error:
                 LOG.warning("Nest prepare: %s", error)
-                self.cc = None
 
     def volume(self, level):
         with self.lock:
@@ -1570,7 +1597,6 @@ class Nest:
                 self.connect().set_volume(max(0.0, min(1.0, level / 100)))
             except Exception as error:
                 LOG.warning("Nest volume: %s", error)
-                self.cc = None
 
     def sleep_volume(self, gain):
         with self.lock:
@@ -1587,8 +1613,25 @@ class Nest:
 
     def command(self, what):
         with self.lock:
+            if what == "stop":
+                self.active = False
+                self.video_id = ""
+                self.state, self.pos = "IDLE", 0.0
+                if self.cc is None:
+                    self.want_stop = False
+                    return
+                if not self.connected():
+                    # sem esperar a conexão voltar segurando a trava (o próximo vídeo pediria o Nest atrás dela)
+                    self.want_stop = True
+                    LOG.info("Nest: sem conexão para parar; repito quando ela voltar")
+                    return
             try:
                 cc = self.connect()
+                if not self.media_ready(cc):
+                    # outro app no Nest, ou o receptor fechado: não há som nosso; relançar só para parar tocaria nada
+                    if what == "stop":
+                        self.want_stop = False
+                    return
                 mc = cc.media_controller
                 if not mc.status.media_session_id:
                     mc.update_status()  # depois de reiniciar ou retomar, o controle ainda não conhece a sessão do Nest
@@ -1599,17 +1642,20 @@ class Nest:
                     cc.quit_app()  # sem sessão para parar: fecha o receptor, o som para de qualquer jeito
                     self.ours = False
                 if what == "stop":
-                    self.active = False
-                    self.video_id = ""
-                    self.state, self.pos = "IDLE", 0.0
+                    self.want_stop = False
             except Exception as error:
                 LOG.warning("Nest %s: %s", what, error)
-                self.cc = None
+                if what == "stop":
+                    self.want_stop = True
 
     def watch(self):
-        orphan_since = 0.0
+        orphan_since = stop_try = 0.0
         while True:
             time.sleep(0.25)
+            if self.want_stop and self.connected() and time.monotonic() - stop_try > 3 and not self.lock.locked():
+                stop_try = time.monotonic()
+                LOG.info("Nest: conexão de volta; parando o som que ficou tocando")
+                threading.Thread(target=self.command, args=("stop",), daemon=True).start()
             if not self.active or self.cc is None:
                 orphan_since = 0.0
                 continue
@@ -1626,10 +1672,18 @@ class Nest:
             else:
                 orphan_since = 0.0
             try:
-                mc = self.cc.media_controller
-                mc.update_status()
+                cc = self.cc
+                if not cc.socket_client.is_connected or cc.status is None:
+                    continue  # Wi-Fi caiu: o Nest costuma seguir tocando; o console segue no último relógio bom
+                took_over = cc.status.app_id not in (None, self.APP)
+                mc = cc.media_controller
+                if not took_over and not self.media_ready(cc):
+                    continue  # logo depois de reconectar, o canal de mídia ainda não voltou (ver media_ready)
+                if not took_over:
+                    mc.update_status()
                 st = mc.status
-                took_over = self.cc.status.app_id not in (None, self.APP)
+                if st.player_state == "UNKNOWN" and not took_over:
+                    continue  # status zerado pela reconexão: não é IDLE, a resposta do Nest ainda não chegou
                 if st.player_state != getattr(self, "last_logged", None):
                     LOG.info("Nest: estado %s (pos %.1f, motivo %s)", st.player_state, float(st.current_time or 0) + self.t0, st.idle_reason)
                     self.last_logged = st.player_state
