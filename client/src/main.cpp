@@ -32,6 +32,7 @@
 #include "captions.hpp"
 #include "settings.hpp"
 #include "account.hpp"
+#include "yt/console_account.hpp"
 #include "sleep.hpp"
 #include "icons.hpp"
 
@@ -70,8 +71,8 @@ static std::string fmtTime(double s) {
 
 // ---------------------------------------------------------------- trabalho em segundo plano
 // kind: 0 home, 1 busca do usuário, 2 miniatura, 3 categoria, 5 controle/conta.
-struct Job { int kind; std::string a; uint64_t stamp; bool fresh = false; int offset = 0; i18n::Lang lang = i18n::Lang::EN; std::string feedKind; int w = 320, h = 180; bool native = false; std::string query; };
-struct Result { int kind = -1; std::string key; Feed feed; std::vector<uint8_t> rgba; int w = 0, h = 0; uint64_t stamp = 0; int offset = 0; };
+struct Job { int kind; std::string a; uint64_t stamp; bool fresh = false; int offset = 0; i18n::Lang lang = i18n::Lang::EN; std::string feedKind; int w = 320, h = 180; bool native = false; std::string query; uint64_t backend = 0; };
+struct Result { int kind = -1; std::string key; Feed feed; std::vector<uint8_t> rgba; int w = 0, h = 0; uint64_t stamp = 0; int offset = 0; bool localAccount = false, accountRoute = false; uint64_t backend = 0; };
 
 static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
   std::string body(raw.begin(), raw.end());
@@ -89,22 +90,52 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
 }
 
 struct Worker {
-  net::Server srv; SDL_Mutex* mu = SDL_CreateMutex(); SDL_Condition* cv = SDL_CreateCondition();
-  std::deque<Job> jobs; std::deque<Result> results; bool quit = false; int hw = 4;
+  net::Server srv; std::shared_ptr<yt::ConsoleAccount> consoleAccount; SDL_Mutex* mu = SDL_CreateMutex(); SDL_Condition* cv = SDL_CreateCondition();
+  std::deque<Job> jobs; std::deque<Result> results; bool quit = false, finishJobs = false; int hw = 4;
   static int main(void* p) { ((Worker*)p)->loop(); return 0; }
-  void add(Job j, bool front = false) { SDL_LockMutex(mu); if (front) jobs.push_front(j); else jobs.push_back(j); SDL_SignalCondition(cv); SDL_UnlockMutex(mu); }
+  void add(Job j, bool front = false) { if (consoleAccount) j.backend = consoleAccount->revision(); SDL_LockMutex(mu); if (front) jobs.push_front(j); else jobs.push_back(j); SDL_SignalCondition(cv); SDL_UnlockMutex(mu); }
   void loop() {
     player::moveToHardwareThread(hw);
-    auto https = yt::https();
+    auto https = yt::accountTransport();
     yt::Client youtube(*https);
     for (;;) {
       SDL_LockMutex(mu);
       while (jobs.empty() && !quit) SDL_WaitCondition(cv, mu);
-      if (quit) { SDL_UnlockMutex(mu); return; }
+      if (quit && (!finishJobs || jobs.empty())) { SDL_UnlockMutex(mu); return; }
       Job j = jobs.front(); jobs.pop_front();
       SDL_UnlockMutex(mu);
       Result r; r.kind = j.kind; r.key = j.a; r.stamp = j.stamp; r.offset = j.offset;
       net::Response resp;
+      std::string accountPath = j.a;
+      bool feedJob = j.kind == 0 || j.kind == 1 || j.kind == 3;
+      if (feedJob) accountPath = "/api/feed?kind=" + j.feedKind + "&offset=" + std::to_string(j.offset) +
+          "&fresh=" + (j.fresh ? "1" : "0") + "&lang=" + i18n::code(j.lang);
+      bool accountRoute = consoleAccount && yt::ConsoleAccount::supports(accountPath);
+      if (accountRoute && j.backend != consoleAccount->revision()) continue;
+      r.accountRoute = accountRoute; r.backend = j.backend;
+      auto nativeAccount = [&]() {
+        auto path = accountPath;
+        if (path.find("lang=") == std::string::npos) path += (path.find('?') == std::string::npos ? "?lang=" : "&lang=") + std::string(i18n::code(j.lang));
+        auto reply = consoleAccount->request(path);
+        r.localAccount = true; r.backend = consoleAccount->revision();
+        if (reply.ok()) {
+          if (feedJob) {
+            std::vector<uint8_t> raw(reply.body.begin(), reply.body.end()); parseFeed(raw, r.feed);
+            auto header = net::split(reply.body.substr(0, reply.body.find('\n')), '\t');
+            r.feed.more = header.size() > 3 && header[3] == "1";
+          } else r.feed.title = std::move(reply.body);
+        } else if (j.kind == 6) {
+          r.feed.title = std::string("erro\t") + i18n::get(path.find("lang=pt") != std::string::npos ? i18n::Lang::PT : i18n::Lang::EN,
+              reply.error == "signed_out" ? K::AccountRequired : K::ActionFailed) + "\n";
+        } else r.feed.error = K::BadResponse;
+        if (j.kind == 7 && !reply.ok()) LOG("histórico nativo: %s", reply.error.c_str());
+      };
+      if (accountRoute && (!net::serverEnabled || consoleAccount->active()) && !(j.native && feedJob && j.feedKind == "home")) {
+        nativeAccount();
+        if (j.kind == 7) continue;
+        SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu);
+        continue;
+      }
       if (j.native && j.kind != 2) {
         yt::Page page;
         if (j.kind == 5) page = youtube.next(j.a.substr(11,11));
@@ -143,7 +174,13 @@ struct Worker {
       } else {
         std::string size = "?w=" + std::to_string(j.w) + "&h=" + std::to_string(j.h);
         bool native = false;
-        if (j.native && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
+        if (consoleAccount && j.a.rfind("~yt", 0) == 0) {
+          auto url = consoleAccount->pictureUrl(j.a);
+          auto img = url.empty() ? yt::Response{} : https->request(url);
+          native = img.status == 200 && img.error.empty();
+          if (native) resp.body.assign(img.body.begin(), img.body.end());
+        }
+        if (!native && (j.native || !net::serverEnabled || (consoleAccount && consoleAccount->active())) && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
           auto img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg");
           native = img.status == 200 && img.error.empty();
           if (native) resp.body.assign(img.body.begin(), img.body.end());
@@ -151,7 +188,7 @@ struct Worker {
         if (native || net::get(srv, "/api/thumb/" + (j.a[0] == '~' ? "nav/" + j.a.substr(1) : j.a) + size, resp, 10000)) {
           int w, h, n;
           // Não decodifica dimensões arbitrárias recebidas pela rede.
-          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (native ? (w != 320 || h != 180) : (w != j.w || h != j.h))) { w = h = 0; }
+          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (native ? (w <= 0 || h <= 0 || w > 2048 || h > 2048) : (w != j.w || h != j.h))) { w = h = 0; }
           unsigned char* px = w ? stbi_load_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n, 4) : nullptr;
           if (px) {
             r.w = j.w; r.h = j.h;
@@ -164,6 +201,12 @@ struct Worker {
             stbi_image_free(px);
           }
         }
+      }
+      bool safeFallback = feedJob || accountPath == "/api/account" || accountPath == "/api/account/login" ||
+          accountPath.rfind("/api/nav?", 0) == 0 || accountPath.rfind("/api/nav/channel?", 0) == 0 || accountPath.ends_with("/next");
+      if (accountRoute && safeFallback && r.feed.error == K::NoResponse) {
+        consoleAccount->select(true);
+        r.feed = {}; nativeAccount();
       }
       SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu);
     }
@@ -468,18 +511,21 @@ int main(int argc, char** argv) {
 
   gfx::Video videoTex; g.video = &videoTex;
   player::Player pl; pl.cacheBase = assets + "yt-base"; pl.init();
-  Worker worker; worker.srv = srv;
+  auto accountNet = yt::accountTransport();
+  auto consoleAccount = std::make_shared<yt::ConsoleAccount>(*accountNet, assets + "yt-console-account.json");
+  consoleAccount->select(!settings.server);
+  Worker worker; worker.srv = srv; worker.consoleAccount = consoleAccount;
   SDL_Thread* wt = yt::worker(Worker::main, "trabalho", &worker);
   // Conta e pareamento não esperam as buscas do feed.
-  Worker control; control.srv = srv; control.hw = 5;
+  Worker control; control.srv = srv; control.consoleAccount = consoleAccount; control.finishJobs = true; control.hw = 5;
   SDL_Thread* ct = yt::worker(Worker::main, "conta", &control);
-  Worker navWorker; navWorker.srv = srv; navWorker.hw = 5;
+  Worker navWorker; navWorker.srv = srv; navWorker.consoleAccount = consoleAccount; navWorker.hw = 5;
   SDL_Thread* nt = yt::worker(Worker::main, "navegação", &navWorker);
   Navigation nav;
   Worker sleepWorker; sleepWorker.srv = srv; sleepWorker.hw = 5;
   SDL_Thread* st = yt::worker(Worker::main, "timer", &sleepWorker);
   // miniaturas numa fila própria, com 3 threads: não esperam atrás das buscas das categorias
-  Worker thumbsWorker; thumbsWorker.srv = srv; thumbsWorker.hw = 5;
+  Worker thumbsWorker; thumbsWorker.srv = srv; thumbsWorker.consoleAccount = consoleAccount; thumbsWorker.hw = 5;
   SDL_Thread* tw[3];
   for (auto& th : tw) th = yt::worker(Worker::main, "miniaturas", &thumbsWorker);
   Remote remote; remote.srv = srv;
@@ -489,7 +535,7 @@ int main(int argc, char** argv) {
   std::vector<Shelf> cats;
   Shelf results; bool inResults = false; int cat = 0;
   Account account; bool accountBusy = false, accountKnown = false, accountFailed = false;
-  uint64_t accountAt = 0, nestInfoAt = 0, stamp = 0;
+  uint64_t accountAt = 0, nestInfoAt = 0, stamp = 0, accountBackend = consoleAccount->revision();
   auto requestFeed = [&](Shelf& shelf, int kind, bool fresh = false, int offset = 0, bool front = false) {
     if (!offset) { shelf.stamp = ++stamp; shelf.feed.loading = true; shelf.feed.loadingMore = false; shelf.feed.error = K::None; }
     Job j{kind, shelf.query, shelf.stamp, fresh, offset}; j.lang = settings.lang; j.feedKind = shelf.kind;
@@ -546,7 +592,10 @@ int main(int argc, char** argv) {
   bool nestSkip = false;  // o Nest falhou neste vídeo: segue com o som da TV até trocar de vídeo ou apertar X
   std::string castCode, castWho; uint64_t castCodeAt = 0;  // castWho: quem está conectado pelo Transmitir  // código de "Assistir na TV" do receptor (cast/receptor.mjs)
   if (nestOut) control.add({5, "/api/nest/prepare", 0});
-  auto requestAccount = [&](const char* path) { control.add({5, path, 0}); accountBusy = true; };
+  auto requestAccount = [&](const char* path) {
+    Job j{5, path, 0}; j.lang = settings.lang;
+    control.add(j); accountBusy = true;
+  };
   auto beginLogin = [&]() {
     loginPanel = true; loginError = K::None;
     if (account.state != Account::PENDING && !accountBusy) requestAccount("/api/account/login");
@@ -578,8 +627,17 @@ int main(int argc, char** argv) {
   }
   if (g.win) SDL_StartTextInput(g.win);
 #endif
-  auto startVideo = [&](const Video& v, double t, bool fromRemote) {
-    if (!fromRemote && nav.ownsQueue) {
+  bool localQueue = false;
+  uint64_t historyAt = 0; std::string historyVideo; bool historyStarted = false;
+  auto recordHistory = [&]() {
+    if (!account.signedIn() || !consoleAccount->active() || historyVideo.empty() || !historyStarted) return;
+    Job j{7, "/api/account/watched?id=" + historyVideo + "&pos=" + std::to_string(pl.position()) + "&progress=1", 0};
+    control.add(j);
+  };
+  auto startVideo = [&](const Video& v, double t, bool fromRemote, bool fromQueue = false) {
+    if (historyVideo != v.id) { recordHistory(); historyVideo = v.id; historyStarted = false; historyAt = 0; }
+    if (!fromQueue) localQueue = false;
+    if (!fromRemote && nav.ownsQueue && !fromQueue) {
       nav.ownsQueue = nav.musicSession = nav.musicNow = false;
       navWorker.add({6, "/api/nav/transport?action=clear", ++nav.serial}, true);
     }
@@ -587,6 +645,11 @@ int main(int argc, char** argv) {
       nestSkip = false; likeState.clear(); upNext = Video{};
       Job next{5, "/api/video/" + v.id + "/next", 0};
       next.native = !fromRemote && !account.signedIn(); control.add(next, true); nextPending = true;
+      if (fromQueue) {
+        upNext = {};
+        for (size_t i = 0; i + 1 < nav.queue.size(); ++i) if (nav.queue[i].id == v.id) { upNext = nav.queue[i + 1].video(); break; }
+        nextPending = false;
+      }
     }
     if (v.id != playing.id) { captions = {}; captionIndex = -1; captionLines.clear(); captionVideo.clear(); captionLoader.cancel(); }
     nextAt = nextDeadline = 0; endedSent = false; ratePanel = sleepPanel = false; livePaused = false;
@@ -599,6 +662,7 @@ int main(int argc, char** argv) {
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
   auto stopVideo = [&]() {
+    recordHistory(); historyVideo.clear(); historyStarted = false; localQueue = false;
     if (nav.ownsQueue && pl.state != player::ENDED) {
       nav.ownsQueue = nav.musicSession = nav.musicNow = false; nav.busy = false; nav.cancelQueue = true;
       nav.action(navWorker, "/api/nav/transport?action=stop");
@@ -713,6 +777,12 @@ int main(int argc, char** argv) {
     }
 
     // ---------------------------------------------------------------- resultados do trabalho em segundo plano
+    if (accountBackend != consoleAccount->revision()) {
+      accountBackend = consoleAccount->revision();
+      accountBusy = false; accountKnown = false; accountAt = 0; account = {}; rebuildCats();
+      nav.pages.clear(); nav.queue.clear(); nav.busy = false;
+      if (screen == NAV) screen = HOME;
+    }
     Result r;
     while (thumbsWorker.pop(r)) if (r.kind == 2) thumbs.arrived(std::move(r));
     while (sleepWorker.pop(r)) {
@@ -738,6 +808,7 @@ int main(int argc, char** argv) {
     double gain = sleepWarning ? std::clamp(sleepLeft / 60, 0.0, 1.0) : 1.0;
     pl.sleepGain((float)gain);
     while (control.pop(r)) {
+      if (r.accountRoute && r.backend != consoleAccount->revision()) continue;
       if (r.key == "/api/cast/code") {
         auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
         castCode = f.size() > 1 && f[0] == "ok" ? f[1] : "";
@@ -755,9 +826,10 @@ int main(int argc, char** argv) {
           if (ok && f.size() > 1 && id == playing.id) likeState = f[1];
           toast = tr(!ok ? K::RateFailed : likeState == "LIKE" ? K::Liked : likeState == "DISLIKE" ? K::Disliked : K::RatingRemoved);
           toastUntil = now + 3000;
-        } else if (r.feed.direct && id == playing.id && !r.feed.items.empty()) {
+        } else if (!localQueue && r.feed.direct && id == playing.id && !r.feed.items.empty()) {
           upNext = r.feed.items.front();
         } else if (ok && id == playing.id && f.size() >= 5) {
+          if (localQueue) { likeState = f[1]; continue; }
           likeState = f[1];
           upNext = Video{};
           if (f[2].size() == 11) { upNext.id = f[2]; upNext.channel = f[3]; upNext.title = f[4]; }
@@ -788,13 +860,20 @@ int main(int argc, char** argv) {
       }
     }
     while (navWorker.pop(r)) {
+      if (r.accountRoute && r.backend != consoleAccount->revision()) continue;
       if (r.stamp == nav.actionStamp && nav.busy) {
         nav.busy = false;
         bool ok = r.feed.error == K::None && r.feed.title.rfind("ok", 0) == 0;
         if (r.key.rfind("/api/nav/play?", 0) == 0 && ok) {
           NavPage queue; Navigation::parse(r.feed.title, queue);
           if (nav.cancelQueue) { nav.musicSession = nav.musicNow = false; nav.action(navWorker, "/api/nav/transport?action=stop"); }
-          else { nav.queue = std::move(queue.items); nav.nowId.clear(); nav.ownsQueue = true; }
+          else {
+            nav.queue = std::move(queue.items); nav.nowId.clear(); nav.ownsQueue = true;
+            if (r.localAccount && !nav.queue.empty()) {
+              localQueue = true;
+              startVideo(nav.queue.front().video(), 0, false, true);
+            }
+          }
           nav.nowSel = 0; nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
         } else if (r.key.rfind("/api/nav/lyrics?", 0) == 0) {
           if (screen == PLAYER && r.key == "/api/nav/lyrics?id=" + playing.id) {
@@ -819,6 +898,7 @@ int main(int argc, char** argv) {
       }
     }
     while (worker.pop(r)) {
+      if (r.accountRoute && r.backend != consoleAccount->revision()) continue;
       Shelf* target = inResults && r.stamp == results.stamp ? &results : nullptr;
       for (auto& c : cats) if (r.stamp == c.stamp) target = &c;
       if (!target) continue;  // idioma, conta ou busca já mudou
@@ -833,7 +913,7 @@ int main(int argc, char** argv) {
           }
         }
       } else {
-        r.feed.more = !r.feed.direct && r.feed.items.size() >= 24;
+        if (!r.localAccount) r.feed.more = !r.feed.direct && r.feed.items.size() >= 24;
         target->feed = std::move(r.feed);
       }
     }
@@ -889,7 +969,7 @@ int main(int argc, char** argv) {
     // código de pareamento e quem está conectado pelo Transmitir (o código troca a cada 5 min)
     if (net::serverEnabled && now >= castCodeAt) { control.add({5, "/api/cast/code", 0}); castCodeAt = now + (phonePanel ? 15000 : 30000); }
     if (net::serverEnabled && now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
-    if (net::serverEnabled && !accountBusy && now >= accountAt) requestAccount("/api/account");
+    if (!accountBusy && now >= accountAt) requestAccount("/api/account");
     const char* keys[] = {tr(K::Keyboard1), tr(K::Keyboard2), tr(K::Keyboard3), tr(K::Keyboard4)};
     if (shutdownAt) {
       if (now >= shutdownAt) {
@@ -960,7 +1040,7 @@ int main(int argc, char** argv) {
       }
       playerUI.touch(now);
     } else if (screen == PLAYER && nextAt) {
-      if (in.hit(Input::A) || in.hit(Input::START)) { Video v = upNext; startVideo(v, 0, false); }
+      if (in.hit(Input::A) || in.hit(Input::START)) { Video v = upNext; startVideo(v, 0, false, localQueue); }
       else if (in.hit(Input::B) || in.hit(Input::BACK)) { nextAt = 0; stopVideo(); }
     } else if (loginPanel) {
       if (in.hit(Input::B)) { loginPanel = false; accountAt = now + 60000; }
@@ -1087,6 +1167,7 @@ int main(int argc, char** argv) {
         }
         else if (settingsRow == 8) {
           settings.server = !settings.server; net::serverEnabled = settings.server;
+          consoleAccount->select(!settings.server); account = {}; accountKnown = false;
           if (!settings.server) {
             account = {}; accountKnown = false; nestAvailable = false; castWho.clear(); sleep = {};
             SDL_LockMutex(remote.mu); remote.online = false; remote.cmds.clear(); remote.ended.clear(); SDL_UnlockMutex(remote.mu);
@@ -1295,6 +1376,12 @@ int main(int argc, char** argv) {
     // Live retomada pelo próprio Nest (toque em cima, Google Home) também volta para o ao vivo.
     if (screen == PLAYER && pl.live) { if (pl.paused) livePaused = true; else if (livePaused) resumeLive(); }
     else livePaused = false;
+    if (screen == PLAYER && account.signedIn() && consoleAccount->active() &&
+        pl.shownFrames > 0 && (!historyStarted || now >= historyAt)) {
+      Job j{7, "/api/account/watched?id=" + playing.id + "&pos=" + std::to_string(pl.position()) +
+          "&progress=" + (historyStarted ? "1" : "0"), 0};
+      control.add(j); historyStarted = true; historyAt = now + 30000;
+    }
     // Fim natural continua sendo informado mesmo com um cartão aberto.
     if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && (playerFromRemote || !nextPending || now >= nextDeadline)) {
@@ -1304,7 +1391,7 @@ int main(int argc, char** argv) {
         // Pedido pelo celular: o app do celular escolhe o próximo. Timer "no fim do vídeo": desliga, não emenda.
         if (!playerFromRemote && !upNext.id.empty() && !(sleep.active && sleep.end)) nextAt = now + 8000;
         else stopVideo();
-      } else if (nextAt && now >= nextAt) { Video v = upNext; startVideo(v, 0, false); }
+      } else if (nextAt && now >= nextAt) { Video v = upNext; startVideo(v, 0, false, localQueue); }
     }
     if (screen != loggedScreen) {
       LOG("navegacao: %s -> %s", screenNames[loggedScreen], screenNames[screen]);
@@ -1879,6 +1966,7 @@ int main(int argc, char** argv) {
     frame++;
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
+  recordHistory();
   captionLoader.stop();
   pl.halt();
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);
