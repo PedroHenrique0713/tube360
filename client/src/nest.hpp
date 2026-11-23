@@ -141,6 +141,7 @@ public:
 private:
     void run() {
         cast::Connection channel;
+        Config endpoint = config;
         struct Sent { double time; uint64_t generation; };
         std::map<int,Sent> requests;
         Status view;
@@ -152,7 +153,8 @@ private:
         int requestId = 0, barrier = 0, stopBarrier = 0;
         const auto sender = "sender-tube360-" + std::to_string(SDL_GetPerformanceCounter());
         auto journal = [&]() {
-            Object record{{"token",J(token)},{"url",J(ownedUrl)},{"key",J(ownedKey)}};
+            Object record{{"token",J(token)},{"url",J(ownedUrl)},{"key",J(ownedKey)},
+                          {"host",J(endpoint.host)},{"port",J(double(endpoint.port))}};
             auto tmp = ownerPath + ".tmp";
             FILE* file = std::fopen(tmp.c_str(),"w");
             if (!file) return false;
@@ -165,12 +167,20 @@ private:
             std::string bytes; char buffer[2048]; size_t count;
             while (bytes.size() <= 65536 && (count = std::fread(buffer,1,sizeof(buffer),file))) bytes.append(buffer,count);
             std::fclose(file); J saved;
-            if (parse(bytes,saved)) { token = text(saved,"token"); ownedUrl = text(saved,"url"); ownedKey = text(saved,"key"); }
+            if (parse(bytes,saved)) {
+                token = text(saved,"token"); ownedUrl = text(saved,"url"); ownedKey = text(saved,"key");
+                auto host = text(saved,"host");
+                double port = number(saved,"port",config.port);
+                if (!host.empty() && port >= 1 && port <= 65535) { endpoint.host = host; endpoint.port = int(port); }
+            }
             possible = !token.empty(); view.quiet = !possible;
         }
         auto quiet = [&]() {
             possible = false; view.quiet = true; mediaSession = 0; token.clear(); ownedUrl.clear(); ownedKey.clear();
             std::remove(ownerPath.c_str());
+            if (endpoint.host != config.host || endpoint.port != config.port) {
+                channel.close(); connected = false; endpoint = config; retryAt = 0;
+            }
         };
         auto send = [&](const std::string& destination, const char* space, Object message, bool tracked = true) {
             int id = 0;
@@ -200,7 +210,7 @@ private:
             if (!connected) {
                 view.connected = false; publish(view);
                 if (now < retryAt) { SDL_Delay(20); continue; }
-                channel.close(); connected = channel.open(config.host,config.port); retryAt = SDL_GetTicks()+500;
+                channel.close(); connected = channel.open(endpoint.host,endpoint.port); retryAt = SDL_GetTicks()+500;
                 if (!connected) continue;
                 receiverKnown = receiverPresent = mediaKnown = false; transport.clear(); receiverSession.clear(); mediaSession = 0;
                 requests.clear(); pollAt = receiverAt = pingAt = 0; heardAt = now;
@@ -219,7 +229,8 @@ private:
                 send(transport,cast::media,{{"type",J(std::string("GET_STATUS"))}}); pollAt = now+250;
             }
             if (!transport.empty() && mediaKnown && goal.active && pending) {
-                bool seek = possible && mediaSession > 0 && ownedUrl == goal.url && ownedKey == goal.key;
+                bool seek = possible && mediaSession > 0 && ownedUrl == goal.url && ownedKey == goal.key &&
+                            endpoint.host == config.host && endpoint.port == config.port;
                 if (possible && !seek) {
                     if (mediaSession > 0 && now-stopAt >= 500) { mediaCommand("STOP"); stopAt = now; }
                 } else {
