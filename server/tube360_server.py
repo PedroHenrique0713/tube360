@@ -1846,6 +1846,171 @@ async def poll(playing: str = "", pos: float = Query(0, ge=0), dur: float = Quer
                              headers={"Cache-Control": "no-store"})
 
 
+# ---------------------------------------------------------------- F4: legendas e metadados do player
+caption_info_cache = TTLCache(900, 16)
+caption_text_cache = TTLCache(900, 24)
+CAPTION_BYTES = 2 << 20
+
+
+def caption_plain(text):
+    from html import unescape
+    return clean(unescape(re.sub(r"<[^>]*>", "", text)))
+
+
+def caption_time(text):
+    parts = text.replace(",", ".").split(":")
+    value = 0.0
+    for part in parts:
+        value = value * 60 + float(part)
+    return value
+
+
+def caption_cues(raw, ext, automatic=False):
+    """VTT do YouTube repete a linha anterior em janelas sobrepostas; não deduplicar falas distantes."""
+    cues = []
+    if ext == "json3":
+        for event in json.loads(raw).get("events", []):
+            text = "".join(segment.get("utf8", "") for segment in event.get("segs", []))
+            start = float(event.get("tStartMs", 0)) / 1000
+            end = start + float(event.get("dDurationMs", 0)) / 1000
+            if event.get("aAppend") and cues and start <= cues[-1][1]:
+                previous = cues[-1]
+                cues[-1] = (previous[0], max(previous[1], end), previous[2] + text)
+            else:
+                cues.append((start, end, text))
+    else:
+        stamp = r"(?:\d+:)?\d{2}:\d{2}[.,]\d{3}"
+        for block in re.split(r"\n\s*\n", raw.replace("\r", "")):
+            match = re.search(rf"({stamp})\s+-->\s+({stamp})[^\n]*\n([\s\S]*)", block)
+            if match:
+                cues.append((caption_time(match[1]), caption_time(match[2]), match[3]))
+    result, previous_words, previous_end = [], [], -1
+    for start, end, raw_text in sorted(cues):
+        if not math.isfinite(start) or not math.isfinite(end) or start < 0 or end <= start:
+            continue
+        text = caption_plain(raw_text)
+        words = text.split()
+        if not words:
+            continue
+        fresh = words
+        if automatic and start <= previous_end + 0.15:
+            for count in range(min(len(previous_words), len(words)), 0, -1):
+                if previous_words[-count:] == words[:count]:
+                    fresh = words[count:]
+                    break
+        previous_words, previous_end = words, end
+        if not fresh:
+            if result:
+                result[-1] = (result[-1][0], max(result[-1][1], end), result[-1][2])
+            continue
+        text = " ".join(fresh)
+        if result and start < result[-1][1]:
+            result[-1] = (result[-1][0], start, result[-1][2])
+        # Duas linhas legíveis na TV: frases longas viram cartões consecutivos, sem perder palavras.
+        chunks, chunk = [], ""
+        for word in text.split():
+            if chunk and len(chunk) + len(word) + 1 > 100:
+                chunks.append(chunk); chunk = ""
+            chunk += (" " if chunk else "") + word
+        if chunk:
+            chunks.append(chunk)
+        length, offset = sum(len(c) for c in chunks), 0
+        for chunk in chunks:
+            until = offset + len(chunk)
+            result.append((start + (end - start) * offset / length, start + (end - start) * until / length, chunk))
+            offset = until
+    return [cue for cue in result if cue[1] > cue[0]][:20000]
+
+
+def caption_tracks(data):
+    tracks, seen = [], set()
+    for kind, field in (("manual", "subtitles"), ("auto", "automatic_captions")):
+        for code, formats in data.get(field, {}).items():
+            if code in seen or not re.fullmatch(r"[A-Za-z0-9_-]{1,32}", code) or code == "live_chat":
+                continue
+            usable = [f for f in formats if f.get("url") and f.get("ext") in ("json3", "vtt")]
+            if not usable:
+                continue
+            source = min(usable, key=lambda f: f["ext"] != "json3")
+            seen.add(code)
+            tracks.append({"code": code, "name": clean(source.get("name") or code), "kind": kind, "source": source})
+    return tracks[:256]
+
+
+def caption_select(tracks, lang, track=""):
+    if track:
+        return next((t for t in tracks if t["code"] == track), None)
+    # Idioma da interface primeiro; dentro dele, a legenda do criador sempre ganha da automática.
+    # A tradução para o próprio idioma pode receber 429 enquanto a faixa ASR original continua disponível.
+    return min(tracks, key=lambda t: (t["code"].split("-")[0] != lang, t["kind"] != "manual",
+                                      not t["code"].endswith("-orig")), default=None)
+
+
+async def caption_info(video_id, lang):
+    async def load():
+        return await extract_video(f"https://www.youtube.com/watch?v={video_id}", lang=lang,
+                                   skip_download=True, writeautomaticsub=True, ignore_no_formats_error=True)
+    return await caption_info_cache.get((video_id, lang), load)
+
+
+async def caption_download(source, headers):
+    def load():
+        with urlopen(URLRequest(source["url"], headers=headers | source.get("http_headers", {})), timeout=12) as response:
+            raw = response.read(CAPTION_BYTES + 1)
+        if len(raw) > CAPTION_BYTES:
+            raise ValueError("caption size")
+        return raw.decode("utf-8-sig")
+    return await asyncio.to_thread(load)
+
+
+@app.get("/api/captions/{video_id}", response_class=PlainTextResponse)
+async def captions(video_id: str, lang: Literal["pt", "en"] = "en", track: str = ""):
+    valid_id(video_id)
+    if track and not re.fullmatch(r"[A-Za-z0-9_-]{1,32}", track):
+        raise HTTPException(400, "Idioma inválido.")
+    try:
+        async with asyncio.timeout(25):
+            data = await caption_info(video_id, lang)
+            tracks = caption_tracks(data)
+            selected = caption_select(tracks, lang, track)
+            live = data.get("is_live") or data.get("live_status") == "is_live"
+            cues, reason = [], ""
+            if selected and live:
+                # O MPEG da live começa em zero; timedtext conta desde o início da transmissão. Sem a origem
+                # HLS usada pelo player (F1), mostrar essas frases seria fora de sincronia.
+                reason = "live_clock"
+            elif selected:
+                async def load():
+                    source = selected["source"]
+                    raw = await caption_download(source, data.get("http_headers", {}))
+                    return await asyncio.to_thread(caption_cues, raw, source["ext"], selected["kind"] == "auto")
+                cues = await caption_text_cache.get((video_id, selected["code"], selected["kind"]), load)
+                if not cues:
+                    reason = "live_unavailable" if live else "unavailable"
+            else:
+                reason = "language_missing" if track else "live_unavailable" if live else "unavailable"
+    except Exception as error:
+        LOG.info("legendas %s: extração ou download indisponível (%s, HTTP %s)", video_id,
+                 type(error).__name__, getattr(error, "code", "-"))
+        return PlainTextResponse("erro\tfailed\n", headers={"Cache-Control": "no-store"})
+    lines = [f"ok\t{selected['code'] if selected else ''}\t{selected['kind'] if selected else 'none'}\t{int(bool(live))}\t{reason}"]
+    date = str(data.get("upload_date") or "")
+    if re.fullmatch(r"\d{8}", date):
+        date = f"{date[:4]}-{date[4:6]}-{date[6:]}"
+    lines.append("meta\t" + "\t".join(clean(data.get(k)) for k in ("title", "channel")) + "\t" + clean(date) + "\t" + clean(data.get("channel_id")))
+    lines.extend(f"track\t{t['code']}\t{t['name']}\t{t['kind']}" for t in tracks)
+    if not live:
+        for chapter in (data.get("chapters") or [])[:128]:
+            start = chapter.get("start_time", -1)
+            if isinstance(start, (int, float)) and math.isfinite(start) and start >= 0:
+                lines.append(f"chapter\t{start:.3f}\t{clean(chapter.get('title'))}")
+    lines.extend(f"cue\t{start:.3f}\t{end:.3f}\t{text}" for start, end, text in cues)
+    body = "\n".join(lines) + "\n"
+    if len(body.encode("utf-8")) > CAPTION_BYTES:
+        return PlainTextResponse("erro\ttoo_large\n", headers={"Cache-Control": "no-store"})
+    return PlainTextResponse(body, headers={"Cache-Control": "no-store"})
+
+
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
     # h11 respeita o enquadramento por EOF do HTTP/1.0 usado pelo console.
