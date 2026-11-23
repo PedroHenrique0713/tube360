@@ -436,6 +436,20 @@ class CastTests(unittest.TestCase):
         self.driver.until(lambda s: s['quiet'] and not (self.assets/'nest-owner.json').exists())
         self.assertTrue(self.receiver.commands('STOP'))
 
+    def test_long_pause_does_not_count_as_a_playback_stall(self):
+        self.play()
+        self.driver.command('pause')
+        self.driver.until(lambda s: s['state'] == 3)
+        time.sleep(8.2)
+        original = self.receiver.at
+        frozen = original()
+        self.receiver.at = lambda: frozen
+        self.driver.command('resume')
+        self.driver.until(lambda s: s['state'] == 2, timeout=2)
+        time.sleep(.3)
+        self.assertEqual(self.driver.command('sample')['state'], 2)
+        self.receiver.at = original
+
 
 if __name__ == '__main__':
     unittest.main(argv=[sys.argv[0]], verbosity=2)
