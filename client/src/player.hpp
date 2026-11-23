@@ -67,7 +67,7 @@ struct Player {
   double startAt = 0, duration = 0;
   int quality = 720;
   std::atomic<int> state{IDLE};
-  std::atomic<bool> stop{false}, paused{false};
+  std::atomic<bool> stop{false}, paused{false}, live{false};  // live: o servidor mandou X-Live (sem duração nem busca)
 
   // anel rede -> decodificação
   SDL_Mutex* mu = nullptr; SDL_Condition* cv = nullptr;
@@ -138,7 +138,7 @@ struct Player {
     ring.assign(6u << 20, 0); rhead = rcount = 0; netEof = netErr = false; decEnded = false;
     SDL_SetAtomicInt(&audioBaseMs, -1); SDL_SetAtomicInt(&pushed, 0); firstPts = -1; wallStart = 0; pausedAt = 0; pausedTotal = 0; lastPos = startAt;
     droppedFrames = shownFrames = 0;
-    stop = false; paused = false; state = CONNECTING;
+    stop = false; paused = false; live = false; state = CONNECTING;
     if (audio) { SDL_ClearAudioStream(audio); SDL_ResumeAudioStreamDevice(audio); }
     nestFailed = false;
     SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = 0; smValid = false; lastGood = -1; lastGoodMs = 0; nestLostMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
@@ -191,6 +191,7 @@ struct Player {
     sock = fd;
     std::string d = net::header(r, "X-Duration");
     if (!d.empty() && duration <= 0) duration = std::atof(d.c_str());
+    live = net::header(r, "X-Live") == "1";
     std::string tt = net::header(r, "X-Title");
     if (!tt.empty() && title.empty()) title = net::urlDecode(tt);
     if (state == CONNECTING) state = BUFFERING;

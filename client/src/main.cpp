@@ -446,6 +446,7 @@ int main(int argc, char** argv) {
   Video playing; bool playerFromRemote = false;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false;
+  bool livePaused = false;
   int& quality = settings.quality;
   bool& nestOut = settings.nest; int& nestOffsetMs = settings.syncMs;
   auto saveSettings = [&]() {
@@ -492,7 +493,7 @@ int main(int argc, char** argv) {
       nestSkip = false; likeState.clear(); upNext = Video{};
       control.add({5, "/api/video/" + v.id + "/next", 0});
     }
-    nextAt = 0; endedSent = false; ratePanel = false;
+    nextAt = 0; endedSent = false; ratePanel = false; livePaused = false;
     playing = v; playerFromRemote = fromRemote;
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
@@ -502,6 +503,9 @@ int main(int argc, char** argv) {
     screen = PLAYER; overlayUntil = SDL_GetTicks() + 5000;
   };
   auto stopVideo = [&]() { pl.halt(); ratePanel = false; nextAt = 0; screen = backTo == PLAYER ? HOME : backTo; };
+  // Live pausada não continua de onde parou: o ffmpeg do servidor para junto, e a janela de algumas lives no YouTube
+  // tem só 30 s. Continuar abre de novo perto do ao vivo.
+  auto resumeLive = [&]() { livePaused = false; startVideo(playing, 0, playerFromRemote); };
   auto backspace = [&]() {
     if (query.empty()) return;
     size_t at = query.size() - 1;
@@ -688,9 +692,9 @@ int main(int argc, char** argv) {
         startVideo(v, t, true); toast = tr(K::PhoneRequest); toastUntil = now + 2500;
       } else if (screen == PLAYER) {
         if (c[0] == "pause") pl.setPaused(true);
-        else if (c[0] == "resume") pl.setPaused(false);
+        else if (c[0] == "resume") { if (pl.live && pl.paused) resumeLive(); else pl.setPaused(false); }
         else if (c[0] == "stop") stopVideo();
-        else if (c[0] == "seek" && c.size() >= 2) startVideo(playing, std::max(0.0, pl.position() + std::atof(c[1].c_str())), playerFromRemote);
+        else if (c[0] == "seek" && c.size() >= 2 && !pl.live) startVideo(playing, std::max(0.0, pl.position() + std::atof(c[1].c_str())), playerFromRemote);
         overlayUntil = now + 4000;
       }
     }
@@ -846,13 +850,16 @@ int main(int argc, char** argv) {
     } else if (screen == PLAYER) {
       bool any = false;
       // Carregando, o A não pausa: a pausa ficava invisível atrás do "Carregando" e o vídeo abria parado em 0:00.
-      if ((in.hit(Input::A) || in.hit(Input::START)) && !pl.waiting()) { pl.setPaused(!pl.paused); any = true; }
+      if ((in.hit(Input::A) || in.hit(Input::START)) && !pl.waiting()) {
+        if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
+        any = true;
+      }
       double jump = 0;
       if (in.hit(Input::LEFT)) jump = -10;
       if (in.hit(Input::RIGHT)) jump = 10;
       if (in.hit(Input::LB)) jump = -60;
       if (in.hit(Input::RB)) jump = 60;
-      if (jump != 0 && pl.state != player::FAILED) {
+      if (jump != 0 && pl.state != player::FAILED && !pl.live) {
         double to = std::clamp(pl.position() + jump, 0.0, pl.duration > 0 ? std::max(0.0, pl.duration - 3) : 1e9);
         startVideo(playing, to, playerFromRemote); any = true;
       }
@@ -894,6 +901,9 @@ int main(int argc, char** argv) {
       }
 
     }
+    // Live retomada pelo próprio Nest (toque em cima, Google Home) também volta para o ao vivo.
+    if (screen == PLAYER && pl.live) { if (pl.paused) livePaused = true; else if (livePaused) resumeLive(); }
+    else livePaused = false;
     // Fim natural continua sendo informado mesmo com um cartão aberto.
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt) {
       if (!endedSent) {
@@ -1168,18 +1178,27 @@ int main(int argc, char** argv) {
         double pos = pl.position(), dur = pl.duration;
         float bx = 72, by = ui::H - 104, bw = ui::W - 144;
         gfx::rect(g, bx, by, bw, 6, {1, 1, 1, 0.22f}, 3);
-        float frac = dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0;
+        bool live = pl.live;
+        float frac = live ? 1.f : dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0;
         if (frac > 0) gfx::hgrad(g, bx, by, std::max(6.f, bw * frac), 6, ui::A1, ui::A2, 3);
         gfx::rect(g, bx + bw * frac - 14, by - 11, 28, 28, ui::alpha(ui::A2, 0.35f), 14, 6);
         gfx::rect(g, bx + bw * frac - 8, by - 5, 16, 16, rgb(0xffffff), 8);
-        gfx::text(g, ui::F_BODY, fmtTime(pos), bx, by + 22, ui::TEXT);
-        if (dur > 0) gfx::text(g, ui::F_BODY, fmtTime(dur), bx + bw, by + 22, ui::MUTED, 2);
+        if (live) {
+          float lw = gfx::textWidth(g, ui::F_SMALL, tr(K::Live)) + 24;
+          gfx::rect(g, bx, by + 22, lw, 28, ui::A1, 6);
+          gfx::text(g, ui::F_SMALL, tr(K::Live), bx + lw / 2, by + 26, rgb(0xffffff), 1);
+        } else {
+          gfx::text(g, ui::F_BODY, fmtTime(pos), bx, by + 22, ui::TEXT);
+          if (dur > 0) gfx::text(g, ui::F_BODY, fmtTime(dur), bx + bw, by + 22, ui::MUTED, 2);
+        }
         float hx2 = ui::W / 2 - 430;
         hx2 = hint(g, hx2, by + 24, "A", XA, pl.paused ? tr(K::Resume) : tr(K::Pause));
         hx2 = hint(g, hx2, by + 24, "Y", XY, tr(i18n::quality(quality)));
         hx2 = hint(g, hx2, by + 24, "X", XX, (tr(K::SoundPrefix) + (pl.nest ? nestName : std::string(tr(K::TV)))).c_str());
-        hx2 = hint(g, hx2, by + 24, tr(K::BtnHorizontal), XG, tr(K::TenSeconds));
-        hx2 = hint(g, hx2, by + 24, "LB RB", XG, tr(K::OneMinute));
+        if (!live) {
+          hx2 = hint(g, hx2, by + 24, tr(K::BtnHorizontal), XG, tr(K::TenSeconds));
+          hx2 = hint(g, hx2, by + 24, "LB RB", XG, tr(K::OneMinute));
+        }
         hint(g, hx2, by + 24, "B", XB, tr(K::Back));
         float ux = hint(g, 72, by - 42, "↑", XG, tr(K::SleepTimer));
         hint(g, ux, by - 42, "↓", XG, tr(likeState == "LIKE" ? K::Like : likeState == "DISLIKE" ? K::Dislike : K::Rate));

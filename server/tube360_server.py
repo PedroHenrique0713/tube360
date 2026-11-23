@@ -284,7 +284,8 @@ def unplayable_reason(error):
                           ("age", ("idade", "age-restricted", "confirm your age")),
                           ("unavailable", ("video unavailable", "vídeo indisponível", "não está mais disponível",
                                            "no longer available", "has been removed", "foi removido",
-                                           "has been terminated", "foi encerrada"))):
+                                           "has been terminated", "foi encerrada",
+                                           "live stream recording is not available", "gravação dessa transmissão"))):
         if any(word in text for word in words):
             return reason
     return None
@@ -338,7 +339,10 @@ async def resolve_video(video_id):
                     # fim do arquivo (medido em 2026-11-22); com o som na TV, o vídeo começou em 2,9 s em vez de 7,3 s.
                     format="bestvideo[height<=720][vcodec^=avc1][protocol=https]+bestaudio[ext=m4a][protocol=https]"
                            "/bestvideo[height<=720][vcodec^=avc1][protocol=https]+bestaudio[protocol=https]"
-                           "/bestvideo[height<=720][protocol=https]+bestaudio[protocol=https]/best[height<=720]/best",
+                           "/bestvideo[height<=720][protocol=https]+bestaudio[protocol=https]"
+                           # Live só tem HLS (m3u8); nos clientes padrão, com imagem e som separados.
+                           "/bestvideo[height<=720][vcodec^=avc1]+bestaudio/bestvideo[height<=720]+bestaudio"
+                           "/best[height<=720]/best",
                 )
             except Exception:
                 if not skip or attempt == 2:
@@ -347,6 +351,15 @@ async def resolve_video(video_id):
                 refused_clients.clear()
                 skip = []
                 continue
+            if data.get("live_status") == "is_live" and data.get("requested_formats"):
+                # Imagem e som da live em HLS separados começam em segmentos diferentes em ~1 de 3 aberturas (5 s fora
+                # de sincronia, medido em 2026-11-22). O mweb dá os dois no mesmo segmento; sem ele, segue o separado.
+                # (O android_vr também dá, mas os segmentos dele voltam 403 depois de ~30 s.)
+                with contextlib.suppress(Exception):
+                    data = await extract_video(
+                        f"https://www.youtube.com/watch?v={video_id}",
+                        extractor_args={"youtube": {"lang": [LANGUAGE], "player_client": ["mweb"]}},
+                        format="best[height<=720][vcodec^=avc1][acodec!=none]")
             formats = data.get("requested_formats") or [data]
             video = next((f for f in formats if f.get("vcodec") != "none"), None)
             audio = next((f for f in formats if f.get("acodec") != "none"), None)
@@ -357,6 +370,7 @@ async def resolve_video(video_id):
                 "duration": max(0, int(data.get("duration") or 0)),
                 "title": clean(data.get("title") or video_id),
                 "headers": data.get("http_headers", {}),
+                "live": data.get("live_status") == "is_live",
             }
             # O YouTube às vezes recusa (403) todos os links de um cliente (tv_samsung, 2026-11-22), e o link novo do
             # mesmo cliente volta recusado: refaz a extração sem ele.
@@ -381,22 +395,31 @@ def source_args(info, source, start):
     header_text = "".join(f"{clean(k)}: {clean(v)}\r\n" for k, v in headers.items())
     return ["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "3",
             "-reconnect_on_network_error", "1", "-reconnect_on_http_error", "5xx",
-            "-rw_timeout", "15000000", "-headers", header_text, "-ss", str(start), "-i", source["url"]]
+            "-rw_timeout", "15000000", "-headers", header_text,
+            # live começa perto do ao vivo; buscar no HLS dela não faz sentido
+            *([] if info.get("live") else ["-ss", str(start)]), "-i", source["url"]]
+
+
+def mp3_output(stream, target):
+    return ["-map", stream, "-vn", "-af", "aresample=44100,asetpts=PTS-STARTPTS",
+            "-c:a", "libmp3lame", "-b:a", "192k", "-ar", "44100", "-ac", "2", "-flush_packets", "1", "-f", "mp3", target]
 
 
 def audio_command(info, start):
     """Só o áudio, em MP3, para o Nest (Google Cast). Começa em `start`, com o tempo do fluxo em zero, como o vídeo."""
     return [FFMPEG, "-hide_banner", "-nostdin", "-loglevel", "repeat+error",
-            *source_args(info, info["audio"], start), "-map", "0:a:0", "-vn",
-            "-af", "aresample=44100,asetpts=PTS-STARTPTS", "-c:a", "libmp3lame", "-b:a", "192k", "-ar", "44100", "-ac", "2",
-            "-flush_packets", "1", "-f", "mp3", "pipe:1"]
+            *source_args(info, info["audio"], start), *mp3_output("0:a:0", "pipe:1")]
 
 
-def ffmpeg_command(info, start, quality, with_audio=True):
+def ffmpeg_command(info, start, quality, with_audio=True, mp3=None):
+    """`mp3`: arquivo onde o mesmo ffmpeg grava o som do Nest (só na live; ver stream)."""
     width, height, bitrate = SIZES[quality]
     cmd = [FFMPEG, "-hide_banner", "-nostdin", "-loglevel", "repeat+error"]
+    separate = info["video"]["url"] != info["audio"]["url"]
     if not with_audio:
         cmd += source_args(info, info["video"], start)
+        if mp3 and separate:
+            cmd += source_args(info, info["audio"], start)
         cmd += ["-map", "0:v:0", "-an",
                 "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
                          f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black,setsar=1,fps=30,setpts=PTS-STARTPTS",
@@ -404,15 +427,11 @@ def ffmpeg_command(info, start, quality, with_audio=True):
                 "-g", "15", "-bf", "2", "-pix_fmt", "yuv420p", "-threads", "4",
                 "-avoid_negative_ts", "disabled", "-muxdelay", "0.2", "-muxpreload", "0",
                 "-preload", "0", "-packetsize", "2048", "-flush_packets", "1", "-f", "mpeg", "pipe:1"]
+        if mp3:
+            cmd += ["-y", *mp3_output("1:a:0" if separate else "0:a:0", str(mp3))]
         return cmd
-    separate = info["video"]["url"] != info["audio"]["url"]
     for source in ([info["video"], info["audio"]] if separate else [info["video"]]):
-        headers = info["headers"] | source.get("http_headers", {})
-        header_text = "".join(f"{clean(k)}: {clean(v)}\r\n" for k, v in headers.items())
-        cmd += ["-reconnect", "1", "-reconnect_streamed", "1", "-reconnect_delay_max", "3",
-                "-reconnect_on_network_error", "1", "-reconnect_on_http_error", "5xx",
-                "-rw_timeout", "15000000", "-headers", header_text,
-                "-ss", str(start), "-i", source["url"]]
+        cmd += source_args(info, source, start)
     cmd += ["-map", "0:v:0", "-map", "1:a:0" if separate else "0:a:0",
             "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
                      f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black,setsar=1,fps=30,setpts=PTS-STARTPTS",
@@ -1253,7 +1272,16 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
             raise HTTPException(499, "Conexão encerrada.")
         if info["duration"] and t >= info["duration"]:
             raise HTTPException(416, "Posição após o fim do vídeo.")
-        encoder = await streams.start(ticket, ffmpeg_command(info, t, q, with_audio=bool(a)))
+        mp3 = None
+        if info["live"] and not a:
+            # Live com o Nest: o som sai do mesmo ffmpeg da imagem. Dois leitores do HLS podem começar em segmentos
+            # diferentes (5 s cada), e o servidor não teria como alinhar depois.
+            AUDIO_DIR.mkdir(parents=True, exist_ok=True)
+            mp3 = AUDIO_DIR / f"{video_id}_live.part.mp3"
+            mp3.unlink(missing_ok=True)
+        encoder = await streams.start(ticket, ffmpeg_command(info, t, q, with_audio=bool(a), mp3=mp3))
+        if mp3:
+            live_audio[video_id] = (mp3, encoder.process)
         try:
             # Só confirmar HTTP 200 depois de receber MPEG; erro de origem vira 502.
             first_read = asyncio.create_task(encoder.output.get())
@@ -1267,6 +1295,7 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
             first_read.cancel()
             with anyio.CancelScope(shield=True):
                 await streams.finish(encoder)
+            drop_live_audio(video_id, encoder)
             raise
         if first:
             break
@@ -1274,6 +1303,7 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
         url_cache.values.pop(video_id, None)
         with anyio.CancelScope(shield=True):
             await streams.finish(encoder)
+        drop_live_audio(video_id, encoder)
         if attempt:
             raise HTTPException(502, "A origem do vídeo não respondeu. Tente novamente.")
         LOG.info("stream %s: a origem recusou, buscando um link novo", video_id)
@@ -1286,9 +1316,10 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
         finally:
             with anyio.CancelScope(shield=True):
                 await streams.finish(encoder)
+            drop_live_audio(video_id, encoder)
 
     return StreamingResponse(body(), media_type="video/mpeg", headers={
-        "X-Duration": str(info["duration"]), "X-Title": quote(info["title"], safe=""),
+        "X-Duration": str(info["duration"]), "X-Live": "1" if info["live"] else "0", "X-Title": quote(info["title"], safe=""),
         "Cache-Control": "no-store", "X-Accel-Buffering": "no",
     })
 
@@ -1296,6 +1327,14 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
 AUDIO_DIR = Path.home() / ".cache/tube360/audio"
 audio_jobs = {}  # chave (id, t) -> processo ffmpeg gravando o MP3 provisório
 audio_lock = asyncio.Lock()
+live_audio = {}  # id -> (MP3, processo): na live, o ffmpeg da imagem grava o som do Nest (ver stream)
+
+
+def drop_live_audio(video_id, encoder):
+    entry = live_audio.get(video_id)
+    if entry and entry[1] is encoder.process:
+        live_audio.pop(video_id, None)
+        entry[0].unlink(missing_ok=True)  # o Nest que ainda lê segue até o fim do que já foi gravado
 
 
 def finish_audio(key, job, path, partial):
@@ -1311,6 +1350,9 @@ def finish_audio(key, job, path, partial):
 
 async def audio_file(video_id, t):
     """Só um ffmpeg por trecho. O Nest lê o provisório; só uma conversão completa vira cache."""
+    live = live_audio.get(video_id)
+    if live and live[1].returncode is None:
+        return live
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     key = (video_id, round(t, 2))
     path = AUDIO_DIR / f"{video_id}_{key[1]:.2f}.mp3"
@@ -1332,7 +1374,10 @@ async def audio_file(video_id, t):
         if path.exists():
             return path, None
         info = await resolve_video(video_id)
-        active = {f"{i}_{start:.2f}.part.mp3" for i, start in audio_jobs}
+        if info["live"]:
+            # um leitor à parte começaria noutro segmento e viraria cache de um trecho velho
+            raise RuntimeError("live sem a imagem aberta no console")
+        active = {f"{i}_{start:.2f}.part.mp3" for i, start in audio_jobs} | {p.name for p, _ in live_audio.values()}
         for old in AUDIO_DIR.glob("*.part.mp3"):
             if old.name not in active:
                 old.unlink(missing_ok=True)
