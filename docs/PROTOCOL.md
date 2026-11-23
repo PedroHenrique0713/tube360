@@ -110,7 +110,7 @@ error: HTTP 404. The server prefetches thumbnails for every list it serves.
 
 ## Video
 
-`GET /api/stream/<id>?t=<seconds>&q=720|480|360&a=0|1` returns `video/mpeg`: MPEG-PS with **one** `mpeg1video` stream and,
+`GET /api/stream/<id>?t=<seconds>&q=720|480|360&a=0|1&speaker=0|1` returns `video/mpeg`: MPEG-PS with **one** `mpeg1video` stream and,
 unless `a=0`, **one** `mp2` stream.
 
 | q | size | video |
@@ -123,9 +123,10 @@ unless `a=0`, **one** `mp2` stream.
   192 kbit/s.
 - Starts at `t` (fast seek) and streams while it converts: the first byte arrives in a few seconds.
 - Timestamps start at 0. The console adds `t`.
-- Extra headers: `X-Duration: <s>` and `X-Title: <percent-encoded title>`.
+- Headers include `X-Duration` in seconds, a percent-encoded `X-Title`, `X-Live: 0|1` and `X-Stream-Id`, an integer scoped to this server process.
 - One stream at a time: a new request ends the previous one. When the console closes the connection, ffmpeg is stopped.
-- `a=0` is used in speaker mode, when the sound goes to a Google Cast speaker instead.
+- Current consoles use `speaker=1` and retain MP2 for failover. A live stream produces the Nest MP3 from the same FFmpeg process. Older consoles can still request video only with `a=0`.
+- Live ignores `t`. The server prefers an HLS rendition with both tracks and starts at its newest complete segment. Broadcast and CDN delay precede that segment. Resume reopens at the edge. The client can drain a small accumulated delay at up to 1.03× on TV. When picture time falls more than 2.5 s behind its opening wall-clock reference, it reopens the live stream, at most once per 20 s.
 
 ## Remote control
 
@@ -164,23 +165,21 @@ Set in `config.json` as `"nest": {"host": "<IP>", "name": "<name>"}`.
 |---|---|
 | `GET /api/nest/info` | `ok\t<name>` or `erro\t...` |
 | `GET /api/nest/prepare` | wakes the speaker and opens the media receiver ahead of time |
-| `GET /api/nest/play?id=<id>&t=<s>` | the speaker starts playing the audio of `id` from `t` |
-| `GET /api/nest/pos` | `<state>\t<absolute position s>\t<error>`; state is `PLAYING`, `PAUSED`, `BUFFERING`, `IDLE`… |
+| `GET /api/nest/play?id=<id>&t=<s>&sid=<X-Stream-Id>` | start at absolute position `t`; seek within the loaded VOD resource when possible |
+| `GET /api/nest/pos?sid=<id>` | `<state>\t<absolute position s>\t<error>`; states include `LOADING`, `PLAYING`, `PAUSED`, `BUFFERING`, `STALE`, `IDLE` and `ERRO` |
 | `GET /api/nest/pause` · `resume` · `stop` | |
 | `GET /api/nest/volume?v=0..100` | |
 | `GET /api/audio/<id>?t=<s>` | the MP3 the speaker downloads (supports `Range`) |
 
-The console polls `/api/nest/pos` every 200 ms and follows that clock (see "Sound on a Google speaker" in the README). The
-server also stops the speaker on its own if the console stops polling or leaves the video, so the sound never keeps
-playing alone.
+A receiver status supplies its own update timestamp. The server extrapolates a playing position for at most 1.2 s, then returns `STALE` with the last observation. The Xbox polls roughly every 120 ms and discards samples with a round trip above 120 ms. It keeps a local MP2 stream ready during speaker playback. If the speaker takes more than 1.4 s after the picture is ready, or stops reporting playback, the TV takes over. A confirmed speaker clock disciplines the picture gradually. A persistent large discrepancy triggers a new positioning request to the speaker. A live speaker can restart from a complete MP3 frame in the current video session.
 
-MP3 cache safety: conversion writes `<id>_<t>.part.mp3` and the speaker can read that growing file. Only ffmpeg exit
-code 0 with a nonempty file promotes it atomically to `<id>_<t>.mp3`. Failed conversions and abandoned provisional
-files are discarded and regenerated. A preexisting empty final file is also discarded. Range requests read the
-available bytes without terminating another request's conversion.
-Single byte ranges honor both the start and optional end (`bytes=0-99` returns at most 100 bytes). Unsupported range
-forms are ignored with a full HTTP 200 response. While converting, a partial 206 response uses `*` for the unknown
-total length; the receiver must request subsequent bytes to continue.
+The optional `sid` on play, position, pause, resume and stop is the stream ID from the response header. A late stop for an older playback has no effect on a newer speaker session. A fenced or expired play receives 409. Stop revokes the speaker's media URL immediately. The server retries an undelivered Cast stop when the media channel returns and also stops orphaned playback when console polls disappear. Audio already buffered on the receiver can finish during a network partition.
+
+VOD uses Cast `BUFFERED` with the known remaining duration. A seek to converted audio in the currently loaded resource preserves its URL and Cast media session. If the destination precedes that resource, lies beyond the converted prefix, or the receiver does not confirm SEEK, the server can LOAD an appropriate MP3. Live uses Cast `LIVE` and a session-specific provisional file. After a pause it starts again at the live edge.
+
+**MP3 downloads.** Conversion writes `<id>_<t>.part.mp3`. A successful conversion with a nonempty output promotes it atomically to `<id>_<t>.mp3`. Failed and abandoned outputs are regenerated. A complete target supports `HEAD` with length and byte-range GETs with a known total. For a growing file, an initial `bytes=0-` receives a continuous 200 response. Other single ranges receive 206 with the available extent and `*` for an unknown total. Unsupported range forms receive 200. Positions beyond the available data can receive 416.
+
+Cast URLs carry an opaque `s`. A revoked URL receives 410. Small fixed ranges and completed unscoped downloads include Content-Length. A larger session-bound GET streams until EOF or revocation. A 206 still reports Content-Range. Delivery allows four seconds for startup or a range entrance and about 1.5 s ahead of the confirmed clock in steady playback, using the 192 kbit/s MP3 rate.
 
 ## Sleep timer
 

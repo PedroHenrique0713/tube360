@@ -513,8 +513,8 @@ int main(int argc, char** argv) {
     playing = v; playerFromRemote = fromRemote;
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
-    pl.nest = nestOut && (!nestChecked || nestAvailable) && !nestSkip; pl.nestOffset = nestOffsetMs / 1000.0;
-    pl.start(srv, v.id, t, v.title, v.dur, quality);
+    pl.nestOffset = nestOffsetMs / 1000.0;
+    pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && (!nestChecked || nestAvailable) && !nestSkip);
     if (screen != PLAYER) backTo = screen;
     screen = PLAYER; overlayUntil = SDL_GetTicks() + 5000;
   };
@@ -889,7 +889,6 @@ int main(int argc, char** argv) {
         else {
           if (nestSkip && nestOut) nestSkip = false;
           else nestOut = !nestOut;
-          if (!nestOut) control.add({5, "/api/nest/stop", 0});
           startVideo(playing, pl.position(), playerFromRemote);
           toast = tr(K::SoundPrefix) + (nestOut ? nestName : std::string(tr(K::TV)));
           saveSettings();
