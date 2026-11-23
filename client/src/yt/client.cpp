@@ -256,7 +256,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
     out.ttl=integer(sd,"expiresInSeconds");
     auto hls=str(sd,"hlsManifestUrl");
     if (httpsUrl(hls)) out.hls=std::move(hls);
-    int audioRate=0;
+    int audioRate=0, audioRank=-1;
     Format bestAdaptive, bestMuxed, fallback;
     auto better = [](const Format& candidate, const Format& best) {
         if (candidate.height != best.height) return candidate.height > best.height;
@@ -279,7 +279,13 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
                 }
                 if (!direct) continue;
                 int rate=integer(f,"bitrate");
-                if (out.audio.url.empty() || (fmt.itag==140 && out.audio.itag!=140) || (out.audio.itag!=140 && rate>audioRate)) { out.audio=fmt; audioRate=rate; }
+                // Vídeo com dublagem automática traz uma faixa 140 por idioma, todas com o mesmo bitrate: sem isto saía
+                // uma dublagem qualquer. Vale a original; sem marca, a padrão; depois a 140 e o bitrate.
+                const auto& track=field(f,"audioTrack");
+                const bool original=str(track,"displayName").find("original")!=string::npos;
+                const auto& isDefault=field(track,"audioIsDefault");
+                int rank=(original ? 4 : 0) + (isDefault.is<bool>() && isDefault.get<bool>() ? 2 : 0) + (fmt.itag==140 ? 1 : 0);
+                if (out.audio.url.empty() || rank>audioRank || (rank==audioRank && rate>audioRate)) { out.audio=fmt; audioRate=rate; audioRank=rank; }
             } else if (mime.find("video/mp4")==0 && mime.find("avc1")!=string::npos &&
                 fmt.height>0 && fmt.height<=1080 && fmt.fps>0 && fmt.fps<=60.1 &&
                 (fmt.height<=720 || fmt.fps<=30.1) &&
