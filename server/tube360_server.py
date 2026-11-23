@@ -1353,6 +1353,7 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
 
     LOG.info("stream %s sessão %d: primeiro MPEG em %.3f s, live=%d", video_id, ticket, time.monotonic() - opened, info["live"])
     return StreamingResponse(body(), media_type="video/mpeg", headers={
+        "X-Nest-Handoff": "1",
         "X-Stream-Id": str(ticket), "X-Duration": str(info["duration"]), "X-Live": "1" if info["live"] else "0", "X-Title": quote(info["title"], safe=""),
         "Cache-Control": "no-store", "X-Accel-Buffering": "no",
     })
@@ -1449,7 +1450,15 @@ async def audio_file(video_id, t):
         complete = [f for f in AUDIO_DIR.glob("*.mp3") if not f.name.endswith(".part.mp3")]
         for old in sorted(complete, key=lambda f: f.stat().st_mtime)[:-6]:
             old.unlink(missing_ok=True)
-        cmd = audio_command(info, t)[:-1] + ["-y", str(partial)]
+        cmd = audio_command(info, t)[:-1]
+        if nest.gated_revision and t > 0:
+            base = cached_audio_base(video_id, t)
+            if base is not None and base < t:
+                cached = AUDIO_DIR / f"{video_id}_{base:.2f}.mp3"
+                if cached.is_file():
+                    cmd = [FFMPEG, "-hide_banner", "-loglevel", "error", "-ss", f"{t - base:.3f}",
+                           "-i", str(cached), *mp3_output("0:a:0", "pipe:1")[:-1]]
+        cmd += ["-y", str(partial)]
         job = await asyncio.create_subprocess_exec(*cmd, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL)
         audio_jobs[key] = job
 
@@ -1486,7 +1495,8 @@ async def audio(request: Request, video_id: str, t: float = Query(0, ge=0, le=86
     estimate = round(cut * 1152 / 44100 * 24000)
     LOG.info("áudio do Nest: %s t=%.1f desde o byte %d%s", video_id, t, start, " (convertendo)" if job else "")
     deadline = time.monotonic() + 30
-    while not path.exists() or path.stat().st_size <= estimate + start + (1300 if cut else 0):
+    reserve = 12000 if token and nest.gated_revision and start == 0 else 0
+    while not path.exists() or path.stat().st_size <= estimate + start + max(reserve, 1300 if cut else 0):
         if token and nest.token != "s=" + token:
             raise HTTPException(410, "Esta sessão de áudio terminou.")
         if job is None or job.returncode is not None or time.monotonic() > deadline:
@@ -1538,11 +1548,18 @@ async def audio(request: Request, video_id: str, t: float = Query(0, ge=0, le=86
     length = (end + 1 if match else size) - start
     # Uma sessão pode acabar ainda durante o GET. Só prometer um comprimento fixo se pudermos entregá-lo inteiro.
     head = request.scope.get("method") == "HEAD"
-    fixed = (done or match is not None) and (head or not token or length <= 8192)
+    fixed = (done or match is not None) and (head or not token or length <= 8192 and not nest.gated_revision)
 
     async def body():
         pos = start
         try:
+            if token and nest.gated_revision and nest.token == "s=" + token:
+                gate = nest.gated_revision
+                nest.reader_ready = gate
+                while nest.gated_revision == gate and nest.revision == gate and nest.token == "s=" + token:
+                    await asyncio.sleep(0.01)
+                if nest.token != "s=" + token or nest.revision != gate:
+                    return
             source.seek(origin + pos)
             while fixed or not token or nest.token == "s=" + token:
                 want = 8192 if pos == start else 32768
@@ -1602,12 +1619,26 @@ class Nest:
         self.revision, self.sid, self.closed_sid, self.requested_at = 0, None, 0, 0.0
         self.loaded_id = self.stopping_token = ""
         self.target, self.confirmed_revision = 0.0, 0
+        self.gated_revision = self.reader_ready = 0
+        self.until_fast_status = 0.0
+        self.local_sid = None
+        # O receiver pode conservar áudio mesmo se o processo do notebook reiniciar entre LOAD e STOP.
+        self.owner_file = AUDIO_DIR.parent / f"nest-{PORT}.json"
+        self.may_sound = False
+        if self.owner_file.exists():
+            try:
+                owner = json.loads(self.owner_file.read_text())
+                if owner["host"] == (CONFIG.get("nest") or {}).get("host"):
+                    self.stopping_token, self.may_sound = owner["token"], True
+            except (OSError, ValueError, KeyError, TypeError):
+                self.may_sound = True
         self.sleep_base = None
         self.want_stop = False  # o stop não chegou ao Nest (Wi-Fi caído): o watch repete quando a conexão voltar
         threading.Thread(target=self.watch, daemon=True).start()
 
     def connected(self):
-        return self.cc is not None and self.cc.socket_client.is_connected
+        cc = self.cc
+        return cc is not None and cc.socket_client.is_connected
 
     def drop(self):
         cc, self.cc = self.cc, None
@@ -1635,7 +1666,7 @@ class Nest:
             raise RuntimeError("Nenhum Nest configurado (config.json, nest.host).")
         info = CastInfo(services={HostServiceInfo(host, 8009)}, uuid=uuid.uuid4(), model_name="Nest",
                         friendly_name=cfg.get("name", "Nest"), host=host, port=8009, cast_type="audio", manufacturer="Google")
-        cc = pychromecast.get_chromecast_from_cast_info(info, zconf=None, tries=None, retry_wait=1, timeout=6)
+        cc = pychromecast.get_chromecast_from_cast_info(info, zconf=None, tries=None, retry_wait=0.7, timeout=6)
         try:
             cc.wait(timeout=10)
         except Exception as error:
@@ -1652,15 +1683,17 @@ class Nest:
         """O receptor padrão aberto e com o canal de mídia pronto. Sem isso, qualquer pedido do media_controller
         (update_status inclusive) faz a pychromecast relançar o receptor, e relançar corta o som que está tocando:
         depois de cada queda de Wi-Fi o laço relançava o app a cada 250 ms (2026-11-23)."""
-        return cc.status is not None and cc.status.app_id == self.APP \
+        return cc is not None and cc.status is not None and cc.status.app_id == self.APP \
             and cc.media_controller.namespace in cc.socket_client.app_namespaces
 
     def matches(self, st):
         return bool(self.token and parse_qs(urlparse(st.content_id or "").query).get("s") == [self.token[2:]])
 
-    def request_play(self, video_id, target, duration, live, host_ip, sid):
+    def request_play(self, video_id, target, duration, live, host_ip, sid, gated=False):
         with self.intent:
             self.revision += 1
+            self.gated_revision = self.revision if gated else 0
+            self.reader_ready = 0
             self.video_id, self.sid, self.host_ip, self.target = video_id, sid, host_ip, target
             self.want_stop, self.active = False, True
             self.state, self.pos, self.error, self.requested_at = "LOADING", 0.0, "", time.monotonic()
@@ -1695,7 +1728,7 @@ class Nest:
                 mc = cc.media_controller
                 old_base = self.t0
                 reachable = not live and self.loaded_id == video_id and audio_reachable(video_id, old_base, target)
-                if reachable and self.media_ready(cc) and self.matches(mc.status) and mc.status.media_session_id:
+                if rev != self.gated_revision and reachable and self.media_ready(cc) and self.matches(mc.status) and mc.status.media_session_id:
                     started = time.monotonic()
                     try:
                         if rev != self.revision:
@@ -1720,6 +1753,9 @@ class Nest:
                 if live:
                     # Após uma queda só o leitor MP3 entra mais adiante no mesmo stream da imagem.
                     base = round(target * 44100 / 1152) * 1152 / 44100
+                elif rev == self.gated_revision:
+                    # A retomada começa no byte zero de um MP3 já recortado no ponto de troca.
+                    base = target
                 elif reachable:
                     base = old_base
                 else:
@@ -1742,6 +1778,11 @@ class Nest:
                         opts["current_time"] = target - base
                         if duration > base:
                             opts["media_info"] = {"duration": duration - base}
+                    self.owner_file.parent.mkdir(parents=True, exist_ok=True)
+                    pending = self.owner_file.with_suffix(".tmp")
+                    pending.write_text(json.dumps({"host": (CONFIG.get("nest") or {}).get("host"), "token": self.token}))
+                    pending.replace(self.owner_file)
+                    self.may_sound = True
                     mc.play_media(url, "audio/mpeg", title="YouTube 360", stream_type="LIVE" if live else "BUFFERED", **opts)
                     deadline = time.monotonic() + (12 if attempt else 9)
                     while rev == self.revision and time.monotonic() < deadline:
@@ -1790,11 +1831,13 @@ class Nest:
             except Exception as error:
                 LOG.warning("Nest timer volume: %s", type(error).__name__)
 
-    def stop_intent(self, sid=None):
+    def stop_intent(self, sid=None, closing=True):
         with self.intent:
             if sid is not None and sid != self.sid and sid != streams.serial:
                 return None
-            self.closed_sid = max(self.closed_sid, sid or self.sid or 0)
+            if closing:
+                self.closed_sid = max(self.closed_sid, sid or self.sid or 0)
+            self.gated_revision = self.reader_ready = 0
             self.revision += 1
             if self.token:
                 self.stopping_token = self.token
@@ -1849,15 +1892,96 @@ class Nest:
             except Exception as error:
                 LOG.warning("Nest %s: %s", what, error)
 
+    @staticmethod
+    def fresh_status(controller, timeout):
+        received = threading.Event()
+        replies = []
+
+        def answer(ok, data):
+            if ok and isinstance(data, dict):
+                replies.append(data)
+            received.set()
+
+        try:
+            controller.update_status(callback_function=answer)
+        except Exception:
+            return {}
+        return replies[0] if received.wait(timeout) and replies else {}
+
+    def started_position(self, rev):
+        # O cache periódico pode continuar em BUFFERING depois que a primeira amostra já tocou.
+        deadline = time.monotonic() + 0.65
+        with self.lock:
+            while rev == self.revision and time.monotonic() < deadline and self.connected() and self.media_ready(self.cc):
+                mc = self.cc.media_controller
+                sent = time.monotonic()
+                reply = self.fresh_status(mc, 0.1)
+                now = time.monotonic()
+                if reply.get("type") == "MEDIA_STATUS" and now - sent < 0.12 and self.matches(mc.status):
+                    for st in reply.get("status") or []:
+                        if st.get("playerState") != "PLAYING" or st.get("mediaSessionId") != mc.status.media_session_id:
+                            continue
+                        pos = st.get("currentTime")
+                        if not isinstance(pos, (float, int)) or not math.isfinite(pos):
+                            continue
+                        with self.intent:
+                            if rev != self.revision:
+                                return None
+                            self.state, self.pos, self.stamp = "PLAYING", pos, (sent + now) / 2
+                            return self.t0 + pos + now - self.stamp
+                time.sleep(0.01)
+        return None
+
+    def confirm_quiet(self, rev):
+        # Serializar com LOAD: até um LOAD que perdeu a resposta pode estar tocando.
+        with self.lock:
+            if rev != self.revision:
+                return False
+            if not self.may_sound:
+                self.want_stop = False
+                return True
+            if not self.connected():
+                if self.cc and not self.cc.socket_client.stop.is_set():
+                    return False
+                try:
+                    self.connect()
+                except Exception:
+                    return False
+            cc = self.cc
+            if self.media_ready(cc):
+                reply = self.fresh_status(cc.media_controller, 0.45)
+                media = reply.get("status")
+                if reply.get("type") != "MEDIA_STATUS" or not isinstance(media, list):
+                    return False
+                quiet = all(isinstance(st, dict) and st.get("playerState") == "IDLE" for st in media)
+            else:
+                reply = self.fresh_status(cc.socket_client.receiver_controller, 0.45)
+                status = reply.get("status")
+                quiet = reply.get("type") == "RECEIVER_STATUS" and isinstance(status, dict) and status.get("applications") == []
+            if rev != self.revision:
+                return False
+            if not quiet:
+                if self.stopping_token:
+                    self.want_stop = True
+                return False
+            self.want_stop = self.may_sound = False
+            self.stopping_token = ""
+            with contextlib.suppress(OSError):
+                self.owner_file.unlink(missing_ok=True)
+            return True
+
     def watch(self):
         orphan_since = stop_try = no_receiver_since = 0.0
+        stop_channel_ready = False
         while True:
-            time.sleep(0.20)
+            time.sleep(0.025 if time.monotonic() < self.until_fast_status else 0.20)
             now = time.monotonic()
             retry = self.connected() or self.stopping_token and (not self.cc or self.cc.socket_client.stop.is_set())
-            if self.want_stop and retry and now - stop_try > 1 and not self.lock.locked():
+            ready = self.want_stop and self.connected() and self.media_ready(self.cc)
+            if self.want_stop and retry and (now - stop_try > 1 or ready and not stop_channel_ready) and not self.lock.locked():
                 stop_try = now
                 threading.Thread(target=self.command, args=("stop", self.revision), daemon=True).start()
+            stop_channel_ready = ready
             if not self.active:
                 orphan_since = 0.0
                 continue
@@ -1929,7 +2053,7 @@ async def nest_info():
 
 @app.get("/api/nest/play", response_class=PlainTextResponse)
 async def nest_play(video_id: str = Query(..., alias="id"), t: float = Query(0, ge=0, le=86400 * 30),
-                    sid: int | None = None):
+                    sid: int | None = None, claim: int = 0):
     valid_id(video_id)
     host = (CONFIG.get("nest") or {}).get("host")
     if not host:
@@ -1943,8 +2067,44 @@ async def nest_play(video_id: str = Query(..., alias="id"), t: float = Query(0, 
         info = streams.info
     if info["live"] and sid is None:
         t = 0.0  # clientes antigos mandam a posição anterior ao reabrir a live
-    nest.request_play(video_id, t, info["duration"], info["live"], lan_ip_towards(host), sid)
-    return PlainTextResponse("ok\n")
+    if nest.local_sid is not None and nest.local_sid == streams.serial:
+        if (sid != nest.local_sid or not claim or claim != nest.revision or nest.active
+                or nest.may_sound or nest.want_stop):
+            raise HTTPException(409, "A TV está com o áudio desta sessão.")
+    elif claim:
+        raise HTTPException(409, "Esta autorização de áudio expirou.")
+    nest.request_play(video_id, t, info["duration"], info["live"], lan_ip_towards(host), sid, gated=bool(claim))
+    return PlainTextResponse(f"ok\t{nest.revision}\n")
+
+
+@app.get("/api/nest/local", response_class=PlainTextResponse)
+async def nest_local(sid: int, rev: int = 0):
+    if sid != streams.serial or sid <= nest.closed_sid:
+        raise HTTPException(409, "Esta sessão de vídeo terminou.")
+    if nest.local_sid != sid or nest.gated_revision:
+        if rev and rev != nest.revision:
+            raise HTTPException(409, "Esta troca de áudio terminou.")
+        nest.local_sid = sid
+        stop_rev = nest.stop_intent(sid, closing=False)
+        threading.Thread(target=nest.command, args=("stop", stop_rev), daemon=True).start()
+    current = nest.revision
+    quiet = not nest.lock.locked() and await asyncio.to_thread(nest.confirm_quiet, current)
+    if current != nest.revision or sid != nest.local_sid:
+        raise HTTPException(409, "Esta troca de áudio terminou.")
+    return PlainTextResponse(f"{'QUIET' if quiet else 'WAIT'}\t{current}\n")
+
+
+@app.get("/api/nest/unmute", response_class=PlainTextResponse)
+async def nest_unmute(sid: int, rev: int):
+    if sid != streams.serial or sid != nest.sid or rev != nest.revision or rev != nest.reader_ready:
+        raise HTTPException(409, "Esta troca de áudio terminou.")
+    nest.until_fast_status = time.monotonic() + 1.5
+    nest.local_sid = None
+    nest.gated_revision = 0
+    pos = await asyncio.to_thread(nest.started_position, rev)
+    if pos is None:
+        raise HTTPException(503, "O Nest não confirmou o início.")
+    return PlainTextResponse(f"ok\t{pos:.4f}\n")
 
 
 @app.get("/api/nest/prepare", response_class=PlainTextResponse)
@@ -1958,7 +2118,8 @@ async def nest_prepare():
 @app.get("/api/nest/pos", response_class=PlainTextResponse)
 async def nest_pos(sid: int | None = None):
     state, pos = nest.position() if sid is None or sid == nest.sid else ("IDLE", 0.0)
-    return PlainTextResponse(f"{state}\t{pos:.3f}\t{clean(nest.error)}\n")
+    armed = nest.reader_ready if nest.reader_ready == nest.gated_revision else 0
+    return PlainTextResponse(f"{state}\t{pos:.3f}\t{clean(nest.error)}\t{armed}\n")
 
 
 @app.get("/api/nest/volume", response_class=PlainTextResponse)

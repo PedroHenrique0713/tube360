@@ -271,3 +271,114 @@ class AudioTests(unittest.IsolatedAsyncioTestCase):
             with self.assertRaises(self.m.HTTPException) as err:
                 await pending
             self.assertEqual(err.exception.status_code, 410)
+
+    async def test_tv_exige_status_novo_de_silencio_e_reserva_a_sessao(self):
+        cc = FakeCast()
+        self.n.cc, self.n.ours, self.n.may_sound = cc, True, True
+        self.n.sid = self.m.streams.serial = 7
+        self.m.streams.video_id = self.vid
+        self.m.streams.info = {"duration": 150, "live": False}
+        self.m.CONFIG['nest'] = {'host': '127.0.0.1'}
+        self.n.token = 's=antiga'
+        mc = cc.media_controller
+        mc.status.content_id, mc.status.media_session_id = 'http://x/?s=antiga', 42
+        mc.status.player_state = 'IDLE'
+        state = 'BUFFERING'
+        mc.update_status = lambda *, callback_function: callback_function(
+            True, {'type': 'MEDIA_STATUS', 'status': [{'playerState': state}]})
+        self.assertTrue((await self.m.nest_local(7)).body.startswith(b'WAIT'))
+        for _ in range(50):
+            if not self.n.want_stop:
+                break
+            await asyncio.sleep(.01)
+        self.assertTrue((await self.m.nest_local(7)).body.startswith(b'WAIT'))
+        self.assertIn('stop', mc.calls)
+        state = 'IDLE'
+        response = await self.m.nest_local(7)
+        grant = int(response.body.split(b'\t')[1])
+        self.assertTrue(response.body.startswith(b'QUIET'))
+        for invalid in (0, grant - 1):
+            with self.assertRaises(self.m.HTTPException) as caught:
+                await self.m.nest_play(self.vid, 3, sid=7, claim=invalid)
+            self.assertEqual(caught.exception.status_code, 409)
+        with patch.object(self.n, 'play'):
+            await self.m.nest_play(self.vid, 3, sid=7, claim=grant)
+            self.assertEqual(self.n.gated_revision, self.n.revision)
+            with self.assertRaises(self.m.HTTPException):
+                await self.m.nest_play(self.vid, 3, sid=7, claim=grant)
+            with self.assertRaises(self.m.HTTPException):
+                await self.m.nest_play(self.vid, 3, sid=7)
+        self.n.command('stop')
+
+    async def test_mp3_aguarda_a_tv_e_descarta_o_primeiro_bloco_se_revogado(self):
+        self.path.write_bytes(b'x' * 24000)
+        self.n.sid = self.m.streams.serial = 7
+        for revoke in (False, True):
+            rev = self.n.revision + 1
+            self.n.token, self.n.revision, self.n.gated_revision = 's=42', rev, rev
+            self.n.reader_ready = 0
+            res = await self.get_audio(b'bytes=0-511', b's=42')
+            iterator = res.body_iterator
+            first = asyncio.create_task(anext(iterator))
+            await asyncio.sleep(0)
+            self.assertEqual(self.n.reader_ready, rev)
+            self.assertFalse(first.done())
+            with self.assertRaises(self.m.HTTPException):
+                await self.m.nest_unmute(7, rev - 1)
+            self.assertFalse(first.done())
+            if revoke:
+                self.n.stop_intent(7)
+                with self.assertRaises(StopAsyncIteration):
+                    await asyncio.wait_for(first, 1)
+            else:
+                with patch.object(self.n, 'started_position', return_value=3.125):
+                    resp = await self.m.nest_unmute(7, rev)
+                self.assertEqual(resp.body, b'ok\t3.1250\n')
+                self.assertEqual(await asyncio.wait_for(first, 1), b'x' * 512)
+                await iterator.aclose()
+
+    async def test_retomada_confirma_playing_somente_da_sessao_atual(self):
+        cc = FakeCast()
+        self.n.cc, self.n.ours = cc, True
+        self.n.token, self.n.t0, self.n.revision = 's=42', 12.5, 5
+        mc = cc.media_controller
+        mc.status.content_id, mc.status.media_session_id = 'http://x/?s=42', 18
+        answers = iter(((87, 'PLAYING', 5.0), (18, 'BUFFERING', 0.0), (18, 'PLAYING', 0.012)))
+
+        def update(*, callback_function):
+            session, state, pos = next(answers)
+            callback_function(True, {'type': 'MEDIA_STATUS', 'status': [
+                {'mediaSessionId': session, 'playerState': state, 'currentTime': pos}]})
+        mc.update_status = update
+        pos = await asyncio.to_thread(self.n.started_position, 5)
+        self.assertAlmostEqual(pos, 12.512, delta=0.01)
+        self.assertEqual(self.n.state, 'PLAYING')
+        self.assertEqual(self.n.pos, 0.012)
+
+    async def test_reinicio_nao_declara_silencio_com_load_anterior(self):
+        self.m.CONFIG['nest'] = {'host': '127.0.0.1'}
+        self.n.owner_file.write_text('{"host":"127.0.0.1","token":"s=antiga"}')
+        novo = self.m.Nest()
+        self.assertEqual(novo.stopping_token, 's=antiga')
+        cc = FakeCast()
+        novo.cc = cc
+        cc.drop_wifi()
+        self.assertFalse(novo.confirm_quiet(novo.revision))
+        self.assertTrue(novo.owner_file.exists())
+        cc.socket_client.is_connected = True
+        cc.socket_client.app_namespaces = [cc.media_controller.namespace]
+        cc.media_controller.update_status = lambda *, callback_function: callback_function(True, {'type':'MEDIA_STATUS', 'status':[]})
+        self.assertTrue(novo.confirm_quiet(novo.revision))
+        self.assertFalse(novo.owner_file.exists())
+
+    async def test_receptor_ja_encerrado_confirma_silencio_com_stop_pendente(self):
+        cc = FakeCast()
+        cc.status.app_id = None
+        cc.socket_client.app_namespaces = []
+        cc.socket_client.receiver_controller = SimpleNamespace(update_status=lambda *, callback_function:
+            callback_function(True, {'type':'RECEIVER_STATUS', 'status':{'applications':[]}}))
+        self.n.cc, self.n.may_sound, self.n.want_stop = cc, True, True
+        self.n.stopping_token = 's=anterior'
+        self.assertTrue(self.n.confirm_quiet(self.n.revision))
+        self.assertFalse(self.n.want_stop)
+        self.assertEqual(cc.launches, 0)
