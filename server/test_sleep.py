@@ -45,10 +45,15 @@ class SleepTests(unittest.IsolatedAsyncioTestCase):
         await asyncio.gather(*self.m.background, return_exceptions=True)
         self.env.stop()
 
-    async def run_clock(self, seconds=0.5):
+    async def run_clock(self, seconds=0.5, until=None):
         task = asyncio.create_task(self.timer.run())
         try:
-            await asyncio.sleep(seconds)
+            if until is None:
+                await asyncio.sleep(seconds)
+            else:
+                async with asyncio.timeout(seconds):
+                    while not until():
+                        await asyncio.sleep(0.01)
         finally:
             task.cancel()
             await asyncio.gather(task, return_exceptions=True)
@@ -77,7 +82,7 @@ class SleepTests(unittest.IsolatedAsyncioTestCase):
     async def test_disconnected_console_and_notebook(self):
         self.m.remote.last_poll = time.monotonic() - 61
         self.timer.set(0.001, False, 'xbox_notebook')
-        await self.run_clock()
+        await self.run_clock(5, self.marker.exists)
         self.assertEqual(self.marker.read_text(), 'ok')
 
     async def test_cancel_grace_prevents_poweroff(self):

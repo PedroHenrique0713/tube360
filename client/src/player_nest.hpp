@@ -27,7 +27,7 @@ inline void Player::directNestLoop() {
   }
   while (!stop && (!pictureReady || !deviceDrained())) SDL_Delay(10);
   if (stop) return;
-  uint64_t generation = directSpeaker.play(audioUrl,id,startAt,media.duration);
+  uint64_t generation = directSpeaker.play(audioUrl,id,startAt,media.duration,!paused);
   uint64_t requested = SDL_GetTicks(), localSince = 0, lastAttempt = requested;
   bool starting = false;
   int last = 0, expected = 0;

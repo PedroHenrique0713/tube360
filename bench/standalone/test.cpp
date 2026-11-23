@@ -109,11 +109,13 @@ void audioProfiles(Http& h,yt::Client& c) {
         check(v.video.itag==(mode==1 ? 298 : 137),"saved playback profile selects 720p60 or 1080p30");
         check(v.audio.url=="https://media.example/en" && v.selectedAudio=="en-original","27f6785: original beats default automatic dub");
         check(v.audioTracks.size()==2 && !v.muxed,"audio catalog has both independent languages");
+        check(v.speakerAudio.url==v.audio.url,"native Nest uses original audio in each video profile");
     }
     for (const auto& choice : {string("pt-auto"),string("pt-BR-auto"),string("lang:pt"),string("lang:ja")}) {
         h.add(player,"\"clientName\":\"VISIONOS\"",reply);
         auto v=c.player(id,720,nullptr,1,choice);
         check(v.audio.url==(choice=="lang:ja" ? "https://media.example/en" : "https://media.example/pt"),"explicit dub or interface language; unavailable language keeps original");
+        check(v.speakerAudio.url==v.audio.url,"native Nest follows explicit and interface audio selection");
     }
 }
 void browse(Http& h,yt::Client& c) {
