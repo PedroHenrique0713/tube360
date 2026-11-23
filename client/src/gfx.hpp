@@ -17,6 +17,7 @@
 #ifdef __XSDK__
 #include "xsdk/log.h"
 #include "shaders_bundle.h"
+extern "C" int tube360_set_output(int height);
 #define LOG(...) xsdk_log_write(__VA_ARGS__)
 #else
 #include <SDL3/SDL_vulkan.h>
@@ -56,6 +57,7 @@ struct Video {
 };
 
 struct Gfx {
+  float scale = 1;
   VkInstance inst; VkPhysicalDevice phys; VkDevice dev; VkQueue queue; uint32_t family = 0;
   VkSurfaceKHR surface; VkSwapchainKHR swap = VK_NULL_HANDLE; VkFormat format; VkExtent2D extent;
   std::vector<VkImage> images; std::vector<VkImageView> views; std::vector<VkFramebuffer> fbs;
@@ -223,7 +225,13 @@ inline VkSurfaceKHR displaySurface(Gfx& g) {
 // ---------------------------------------------------------------- fonte (stb_truetype, atlas de um canal)
 struct FontSpec { const char* file; float px; };
 inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec>& specs) {
-  const int AW = 1024, AH = 2048;
+  if (g.atlas.img) {
+    vkDeviceWaitIdle(g.dev);
+    vkDestroyImageView(g.dev,g.atlas.view,nullptr); vkDestroyImage(g.dev,g.atlas.img,nullptr); vkFreeMemory(g.dev,g.atlas.mem,nullptr);
+    vkFreeDescriptorSets(g.dev,g.pool,1,&g.atlas.set); g.atlas={};
+  }
+  g.fonts.clear();
+  const int AW = 2048, AH = g.scale > 1 ? 4096 : 2048;
   std::vector<unsigned char> pix((size_t)AW * AH, 0);
   stbtt_pack_context pc;
   if (!stbtt_PackBegin(&pc, pix.data(), AW, AH, 0, 1, nullptr)) return false;
@@ -245,11 +253,11 @@ inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec
     for (auto& r : ranges) {
       int n = r[1] - r[0] + 1;
       std::vector<stbtt_packedchar> pcs((size_t)n);
-      stbtt_PackFontRange(&pc, data.data(), 0, s.px, r[0], n, pcs.data());
+      if (!stbtt_PackFontRange(&pc, data.data(), 0, s.px * g.scale, r[0], n, pcs.data())) { stbtt_PackEnd(&pc); LOG("atlas de fontes cheio"); return false; }
       for (int i = 0; i < n; i++) {
         auto& q = pcs[(size_t)i];
         if (q.x1 == 0 && q.y1 == 0 && q.xadvance == 0) continue;
-        font.glyphs[(uint32_t)(r[0] + i)] = {q.xoff, q.yoff, q.xoff2, q.yoff2, q.x0 / (float)AW, q.y0 / (float)AH, q.x1 / (float)AW, q.y1 / (float)AH, q.xadvance};
+        font.glyphs[(uint32_t)(r[0] + i)] = {q.xoff / g.scale, q.yoff / g.scale, q.xoff2 / g.scale, q.yoff2 / g.scale, q.x0 / (float)AW, q.y0 / (float)AH, q.x1 / (float)AW, q.y1 / (float)AH, q.xadvance / g.scale};
       }
     }
     g.fonts.push_back(std::move(font));
@@ -321,7 +329,8 @@ inline void push(Gfx& g, Pipe p, VkDescriptorSet set, const float params[4], con
   bool merge = !g.cmds.empty() && g.cmds.back().pipe == p && g.cmds.back().set == set && std::memcmp(g.cmds.back().params, params, 16) == 0
                && g.cmds.back().first + g.cmds.back().count == g.verts.size();
   if (!merge) { Cmd c{p, set, {params[0], params[1], params[2], params[3]}, (uint32_t)g.verts.size(), 0}; g.cmds.push_back(c); }
-  g.verts.insert(g.verts.end(), v, v + n); g.cmds.back().count += (uint32_t)n;
+  for (int i=0;i<n;++i) { Vtx pixel=v[i]; pixel.x*=g.scale; pixel.y*=g.scale; g.verts.push_back(pixel); }
+  g.cmds.back().count += (uint32_t)n;
 }
 
 inline void quad(Gfx& g, Pipe p, VkDescriptorSet set, const float params[4], float x, float y, float w, float h, Color c, float u0 = 0, float v0 = 0, float u1 = 1, float v1 = 1) {
@@ -377,7 +386,7 @@ inline float text(Gfx& g, int font, const std::string& s, float x, float y, Colo
   for (size_t i = 0; i < s.size();) {
     const Glyph* gl = glyph(f, utf8(s, i));
     if (!gl) continue;
-    if (gl->x1 > gl->x0) quad(g, TEXT, g.atlas.set, p, pen + gl->x0, base + gl->y0, gl->x1 - gl->x0, gl->y1 - gl->y0, c, gl->u0, gl->v0, gl->u1, gl->v1);
+    if (gl->x1 > gl->x0) quad(g, TEXT, g.atlas.set, p, std::round((pen + gl->x0)*g.scale)/g.scale, std::round((base + gl->y0)*g.scale)/g.scale, gl->x1 - gl->x0, gl->y1 - gl->y0, c, gl->u0, gl->v0, gl->u1, gl->v1);
     pen += gl->adv + track;
   }
   return pen - start - (pen > start ? track : 0);
@@ -416,8 +425,8 @@ inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 
                 full ? 1.f : 255.f / 219.f, full ? 0.f : 16.f / 255.f};
   // Os dois coeficientes do verde usam a cor constante dos vértices. A matriz já chega pronta ao Xenos.
   // Quatro amostras bilineares só na luma ao reduzir; a crominância 4:2:0 já tem resolução menor que a saída.
-  g.videoFilter[0] = g.video->w > w + 1 ? .375f / g.video->w : 0;
-  g.videoFilter[1] = g.video->h > h + 1 ? .375f / g.video->h : 0;
+  g.videoFilter[0] = g.video->w > w * g.scale + 1 ? .375f / g.video->w : 0;
+  g.videoFilter[1] = g.video->h > h * g.scale + 1 ? .375f / g.video->h : 0;
   quad(g, VIDEO, g.video->set, p, x, y, w, h, {(hd ? .187324f : .344136f) * c, (hd ? .468124f : .714136f) * c, 0, alpha});
 }
 
@@ -459,6 +468,7 @@ inline void videoUpload(Gfx& g, Video& v, const void* bytes, size_t size, double
 inline void makeSwapchain(Gfx& g, int w, int h) {
   VkSurfaceCapabilitiesKHR caps; VK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g.phys, g.surface, &caps));
   g.extent = caps.currentExtent.width != UINT32_MAX ? caps.currentExtent : VkExtent2D{(uint32_t)w, (uint32_t)h};
+  g.scale = g.extent.height / 720.f;
   uint32_t n = 0; vkGetPhysicalDeviceSurfaceFormatsKHR(g.phys, g.surface, &n, nullptr);
   std::vector<VkSurfaceFormatKHR> fmts(n); vkGetPhysicalDeviceSurfaceFormatsKHR(g.phys, g.surface, &n, fmts.data());
   g.format = fmts[0].format; for (auto& f : fmts) if (f.format == VK_FORMAT_B8G8R8A8_UNORM) g.format = f.format;
@@ -488,6 +498,10 @@ inline void makeSwapchain(Gfx& g, int w, int h) {
 }
 
 inline bool init(Gfx& g, int W, int H, const char* title) {
+#ifdef __XSDK__
+  int requested=H; H=tube360_set_output(H); W=H*16/9;
+  LOG("saida: solicitada %dp, framebuffer %dx%d; 1080p requer painel/HDMI 1080p progressivo",requested,W,H);
+#endif
   VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO}; app.pApplicationName = title; app.apiVersion = VK_API_VERSION_1_0;
   VkInstanceCreateInfo ici{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}; ici.pApplicationInfo = &app;
 #ifdef __XSDK__
@@ -555,6 +569,24 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   g.white = makeImage(g, 4, 4, VK_FORMAT_R8G8B8A8_UNORM, true);
   std::vector<uint8_t> w(64, 255); upload(g, g.white, w.data(), w.size());
   return true;
+}
+
+inline void output(Gfx& g, int height) {
+  vkDeviceWaitIdle(g.dev);
+  for (VkPipeline& p : g.pipes) vkDestroyPipeline(g.dev,p,nullptr);
+  for (auto fb : g.fbs) vkDestroyFramebuffer(g.dev,fb,nullptr);
+  for (auto view : g.views) vkDestroyImageView(g.dev,view,nullptr);
+  vkDestroyRenderPass(g.dev,g.pass,nullptr); vkDestroySwapchainKHR(g.dev,g.swap,nullptr);
+#ifdef __XSDK__
+  height=tube360_set_output(height);
+  vkDestroySurfaceKHR(g.inst,g.surface,nullptr); g.surface=displaySurface(g);
+#else
+  SDL_SetWindowSize(g.win,height*16/9,height);
+#endif
+  makeSwapchain(g,height*16/9,height);
+  for (int p=0;p<4;++p) g.pipes[p]=makePipeline(g,(Pipe)p);
+  for (auto& sample : g.samples) sample.pending=false;
+  LOG("saida: framebuffer %ux%u, escala UI %.2f",g.extent.width,g.extent.height,g.scale);
 }
 
 inline void begin(Gfx& g) {
@@ -638,7 +670,7 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
     uint64_t presentation = SDL_GetTicksNS() - beganPresent, now = SDL_GetTicks();
     g.submitNs += submission; g.presentNs += presentation;
     if (g.videoMetrics) LOG("render-quadro: pts %.6f, submit-CPU %.3f ms, present-CPU %.3f ms",g.video->pts,submission / 1e6,presentation / 1e6);
-    if (now - g.uploadAt >= 5000 && g.uploadCount) {
+    if (now - g.uploadAt >= 1000 && g.uploadCount) {
       LOG("upload: %dx%d, %llu quadros, %.2f MB/s, staging %.3f ms/quadro, max %.3f ms, submit-CPU %.3f ms, present-CPU %.3f ms, GPU %s",
           g.video->w,g.video->h,(unsigned long long)g.uploadCount,g.uploadBytes / 1000.0 / (now - g.uploadAt),
           g.uploadNs / 1e6 / g.uploadCount,g.uploadMaxNs / 1e6,g.submitNs / 1e6 / g.uploadCount,g.presentNs / 1e6 / g.uploadCount,

@@ -6,8 +6,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "client/third_party/phosphor"
-ICONS = ["thumbs-up-fill", "thumbs-up-bold", "thumbs-down-fill", "thumbs-down-bold"]
-SIZES = [48, 24]
+ICONS = ["thumbs-up-fill", "thumbs-up-bold", "thumbs-down-fill", "thumbs-down-bold", "translate-bold"]
+SIZES = [48, 24, 72, 36]
 
 width, height = max(SIZES) * len(ICONS), sum(SIZES)
 atlas = bytearray(width * height)
@@ -28,7 +28,7 @@ lines = ", ".join(str(b) for b in atlas)
 #pragma once
 namespace icons {{
 // Ordem das colunas: {", ".join(ICONS)}. Linhas: {" e ".join(f"{s} px" for s in SIZES)}.
-enum {{ THUMB_UP_FILL, THUMB_UP, THUMB_DOWN_FILL, THUMB_DOWN }};
+enum {{ THUMB_UP_FILL, THUMB_UP, THUMB_DOWN_FILL, THUMB_DOWN, TRANSLATE }};
 constexpr int W = {width}, H = {height}, CELL = {max(SIZES)};
 constexpr int SIZES[] = {{{", ".join(map(str, SIZES))}}};
 static const unsigned char ALPHA[W * H] = {{{lines}}};
