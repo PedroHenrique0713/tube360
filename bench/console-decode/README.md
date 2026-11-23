@@ -1,13 +1,13 @@
 # Decoder benchmark
 
-`ytspike` is the original Xbox-only network and single-thread decoder test. `decode-quality` measures the player’s four-thread MPEG-1 decoder on the same MPEG-PS files on PC and Xbox. It loads one file at a time into RAM, disables audio decoding and leaves B-frame skipping off. The file limit is 64 MiB.
+`ytspike` is the original Xbox-only network and single-thread decoder test. `decode-quality` measures the player’s four-thread MPEG-1 decoder on the same MPEG-PS files on PC and Xbox. It loads the test files into RAM, disables audio decoding and leaves B-frame skipping off. The paired mode alternates blocks of 15 pictures in ABBA order so both encodes experience similar CPU load and clock speeds. The file limit is 64 MiB.
 
 ## PC
 
 ```sh
 cmake -S bench/console-decode -B bench/console-decode/build -DCMAKE_BUILD_TYPE=Release
 cmake --build bench/console-decode/build --target decode-quality
-bench/console-decode/build/decode-quality before.mpg after.mpg after.mpg before.mpg
+bench/console-decode/build/decode-quality --pair before.mpg after.mpg
 ```
 
 Use the same scene, start time, duration and frame rate for both files. Compare `frames` and `mean_ms` on the `decode` lines. `p95_ms` and `max_ms` show slow frames. The additional PC `cpu_ms` is CPU time summed over the decoder threads per output frame.
