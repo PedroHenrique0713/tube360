@@ -245,3 +245,67 @@ curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/set?min=1&what=xbox'
 curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/add?min=15'
 curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/cancel'
 ```
+
+## Navigation: channels, library and Music (F3)
+
+`GET /api/nav?kind=<kind>&id=<browse ID>&q=<query>&tab=videos|live|playlists&filter=0..3&offset=0&n=24&fresh=0&lang=pt|en`
+
+Kinds: `channel`, `subscriptions`, `library`, `playlist`, `history`, `later`, `search`, `music`, `music_search`,
+`album`, `artist`, `radio`, `music_playlist`. Channel/artist IDs are `UC…`; album IDs are Music browse IDs;
+playlist IDs accept the `VL` prefix. Music uses a public YTMUSIC session; account lists and channel actions use
+TV credentials. Subscriptions, library, history and Watch later require sign-in in the account service.
+
+```
+ok\t<title>\t<subtitle>\t<art key>\t<subscribed 0|1>\t<more 0|1>\t<channel ID>
+<type>\t<id>\t<title>\t<byline>\t<duration s>\t<art key>\t<channel ID>\t<section>
+```
+
+Item types are `video`, `channel`, `playlist`, `album`, `artist`. Empty fields remain present. Lists keep YouTube's
+order and deduplicate within each type. `offset` counts all returned items (including subscription avatars).
+`more` is explicit; short or empty continuation pages do not imply the end. Errors are `erro\t<localized message>`.
+The client keeps parent pages, focus, tab and scroll when opening a child; B pops that page without a network reload.
+Library adds local shortcuts for History and Watch later before the account's playlists/mixes.
+
+For channel pages, `tab` selects the corresponding TV shelf and that shelf's continuation, excluding Shorts.
+Search `filter`: 0 all, 1 videos, 2 channels. Music search: 0 all, 1 songs, 2 albums, 3 artists.
+For `music`, `q=charts` follows Explore’s Charts endpoint, `q=mixes` selects playlists from the Music home,
+and empty `q` puts playable tracks before collections. Shelf titles and metadata retain YouTube's language.
+
+`GET /api/nav/channel?id=<video ID>&lang=…` resolves a video's channel and returns its first channel page.
+The card's Menu button opens channel / Watch later / radio actions without changing X or Y.
+
+Mutating native GETs below require exactly `User-Agent: Tube360/1.0` and reject `Origin` / `Sec-Fetch-Site`, as account
+and timer actions do. These checks prevent browser CSRF; they do not authenticate LAN clients.
+
+- `/api/nav/action?action=subscribe&id=<channel ID>&value=0|1&lang=…`: explicit target state; unsubscribe requires
+  confirmation on the console. `/api/nav/action?action=later&id=<video ID>` saves to the account's Watch later.
+  Success is `ok\n`; failure is `erro\t<message>`. No success is shown before YouTube confirms the action.
+- `/api/nav/play?kind=playlist|album|radio|music_playlist|later&id=…&start=0&lang=…`: loads up to 256 playable items,
+  then atomically replaces `remote.queue`, queues the first `play`, and returns the navigation response containing
+  those playable items. `start` indexes playable videos, not collection cards. A failed load preserves the old queue.
+  The existing console `ended` poll advances this queue; these starts use the remote path to suppress local autoplay.
+- `/api/nav/transport?action=next|stop|clear`: queue transport. Stop clears queued videos and pending play/next/stop commands. Clear does that without stopping the current stream.
+- `/api/nav/lyrics?id=<video ID>`: `ok\t<plain lyrics or empty>`. Lyrics are optional, unsynchronized, and may be
+  unavailable without Premium. A failed lyrics request does not interrupt playback.
+
+Artwork keys prefixed `~` use `GET /api/thumb/nav/<key without ~>?w=320&h=180` (or 384×216). They are baseline JPEGs
+in the same disk directory and request cache as video thumbnails. Only allowlisted YouTube image hosts supplied by
+the account service are accepted; the client cannot submit a URL, and redirects are refused. Square artwork is
+letterboxed inside the existing 16:9 GPU slot and cropped using UVs, so it needs no additional GPU cache or textures.
+The shared allocation budget remains `64 * 320 * 180 * 4 = 14,745,600` bytes; actual Vulkan page allocation determines
+the slot count. Only visible cards, visible avatars and the current cover request artwork.
+
+The native Music screen uses the existing MPEG stream and decoder, with its own controls and render dispatcher.
+It does not request audio-only playback. B stops and clears the queue, returning to the source page; selecting Show
+video continues the same stream using the existing player UI. Lyrics can be scrolled with up/down.
+
+Local JSON account additions: `GET /nav` with `kind,id,q,tab,filter,page,fresh`, returning
+`{title,subtitle,image,channel_id,subscribed,items:[{type,id,title,channel,duration,image,channel_id,section}],more}`;
+`GET /channel_for_video?id=…` → `{id: channelId}`; `POST /nav/action?action=subscribe|later&id=…&value=…` → `{ok:true}`;
+`GET /lyrics?id=…` → `{lyrics}`. Images here are source URLs; Python replaces them with opaque cache keys.
+Navigation caches are bounded to 24 lists and 41 continuation pages per list, expire after five minutes, and are
+separated by account identity. An account reset or successful action invalidates the relevant account cache.
+
+PC capture helpers (no console effect): `XT_NAV`, `XT_NAV_ID`, `XT_NAV_QUERY`, `XT_MUSIC=1` select a starting navigation
+page. `XT_SHOT_MS` takes a screenshot after wall-clock milliseconds; `XT_KEYS_MS` spaces scripted keys by wall-clock
+milliseconds. The original frame-based helpers remain available, with `S` added for Menu.

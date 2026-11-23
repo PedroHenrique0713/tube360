@@ -1037,6 +1037,208 @@ async def account_login_form(request: Request):
     return RedirectResponse("/", status_code=303, headers={"Cache-Control": "no-store"})
 
 
+# ---------------------------------------------------------------- F3: canais, biblioteca e Música
+# URLs de arte vêm só do serviço local; o console recebe uma chave do cache, nunca uma URL.
+import hashlib
+
+nav_images = {}
+nav_lists = {}
+NAV_KINDS = ("channel", "subscriptions", "library", "playlist", "history", "later", "search",
+             "music", "music_search", "album", "artist", "radio", "music_playlist")
+
+
+def nav_image(url):
+    url = str(url or "")
+    if url.startswith("//"):
+        url = "https:" + url
+    parsed = urlparse(url)
+    if parsed.scheme != "https" or parsed.hostname not in ("i.ytimg.com", "yt3.ggpht.com", "yt3.googleusercontent.com", "lh3.googleusercontent.com"):
+        return ""
+    key = hashlib.sha256(url.encode()).hexdigest()[:24]
+    if len(nav_images) >= 4096:
+        nav_images.pop(next(iter(nav_images)))
+    nav_images[key] = url
+    return "~" + key
+
+
+async def nav_data(kind, item_id, query, tab, offset, n, fresh=False, filter=0):
+    identity = await account_status()
+    if (kind in ("subscriptions", "library", "later") or item_id == "WL") and identity["state"] != "signed_in":
+        raise HTTPException(401, "signed_out")
+    key = (kind, item_id, query, tab, filter, identity.get("state"), identity.get("name"), identity.get("handle"))
+    cache = nav_lists.get(key)
+    if not cache or time.monotonic() - cache["at"] > 300 or (fresh and not offset):
+        if len(nav_lists) >= 24:
+            nav_lists.pop(next(iter(nav_lists)))
+        cache = {"at": time.monotonic(), "items": [], "more": True, "page": 0, "seen": set(), "header": {}, "lock": asyncio.Lock()}
+        nav_lists[key] = cache
+    async with asyncio.timeout(25), cache["lock"]:
+        while cache["more"] and len(cache["items"]) < offset + n and cache["page"] <= 40:
+            page = cache["page"]
+            route = f"/nav?kind={kind}&id={quote(item_id)}&q={quote(query)}&tab={tab}&page={page}&fresh={int(fresh and page == 0)}&filter={filter}"
+            data = await account_request(route)
+            if page == 0:
+                cache["header"] = {k: data.get(k, "") for k in ("title", "subtitle", "channel_id", "subscribed")}
+                cache["header"]["image"] = nav_image(data.get("image"))
+            for entry in data.get("items", []):
+                item_type, entry_id = entry.get("type"), str(entry.get("id", ""))
+                unique = (item_type, entry_id)
+                if item_type not in ("video", "channel", "playlist", "album", "artist") or not re.fullmatch(r"[A-Za-z0-9_-]{2,160}", entry_id) or unique in cache["seen"]:
+                    continue
+                if item_type == "video" and not ID_PATTERN.fullmatch(entry_id):
+                    continue
+                item = {"type": item_type, "id": entry_id, "title": clean(entry.get("title")), "channel": clean(entry.get("channel")),
+                        "duration": max(0, int(entry.get("duration") or 0)), "channel_id": clean(entry.get("channel_id")),
+                        "section": clean(entry.get("section")), "image": nav_image(entry.get("image"))}
+                if item_type == "video":
+                    remember(item | {"views": ""})
+                    if not item["image"] or kind not in ("music", "music_search", "album", "artist", "radio", "music_playlist"):
+                        item["image"] = entry_id
+                cache["seen"].add(unique)
+                cache["items"].append(item)
+            cache["more"] = bool(data.get("more")) and page < 40
+            cache["page"] += 1
+        return cache["header"] | {"items": cache["items"][offset:offset + n],
+                                   "more": cache["more"] or offset + n < len(cache["items"])}
+
+
+def nav_response(data):
+    fields = [data.get("title", ""), data.get("subtitle", ""), data.get("image", ""),
+              int(bool(data.get("subscribed"))), int(bool(data.get("more"))), data.get("channel_id", "")]
+    lines = ["ok\t" + "\t".join(clean(v) for v in fields)]
+    for item in data.get("items", []):
+        lines.append("\t".join(clean(item.get(k, "")) for k in
+                     ("type", "id", "title", "channel", "duration", "image", "channel_id", "section")))
+    return PlainTextResponse("\n".join(lines) + "\n", headers={"Cache-Control": "no-store"})
+
+
+def nav_error(error, lang):
+    signed_out = getattr(error, "status_code", 0) == 401 or getattr(error, "code", 0) == 401
+    message = tr("Conecte sua conta do YouTube em Configurações.", "Sign in to YouTube in Settings.", lang) if signed_out else tr(
+        "Não foi possível consultar o YouTube. Aperte X para tentar novamente.", "Could not reach YouTube. Press X to retry.", lang)
+    return PlainTextResponse("erro\t" + message + "\n", headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/nav", response_class=PlainTextResponse)
+async def navigation(kind: str, id: str = "", q: str = Query("", max_length=200), tab: Literal["videos", "live", "playlists"] = "videos",
+                     offset: int = Query(0, ge=0, le=2000), n: int = Query(24, ge=1, le=100), fresh: bool = False,
+                     lang: Literal["pt", "en"] = LANGUAGE, filter: int = Query(0, ge=0, le=3)):
+    if kind not in NAV_KINDS or (id and not re.fullmatch(r"[A-Za-z0-9_-]{2,160}", id)):
+        raise HTTPException(400, "Invalid navigation.")
+    try:
+        return nav_response(await nav_data(kind, id, q, tab, offset, n, fresh, filter))
+    except Exception as error:
+        return nav_error(error, lang)
+
+
+@app.get("/api/nav/channel", response_class=PlainTextResponse)
+async def navigation_channel(id: str, lang: Literal["pt", "en"] = LANGUAGE):
+    valid_id(id)
+    try:
+        data = await account_request("/channel_for_video?id=" + id)
+        return nav_response(await nav_data("channel", data["id"], "", "videos", 0, 24))
+    except Exception as error:
+        return nav_error(error, lang)
+
+
+@app.get("/api/nav/action", response_class=PlainTextResponse)
+async def navigation_action(request: Request, action: Literal["subscribe", "later"], id: str, value: bool = True,
+                            lang: Literal["pt", "en"] = LANGUAGE):
+    account_native_request(request)
+    if not re.fullmatch(r"UC[A-Za-z0-9_-]{22}" if action == "subscribe" else r"[A-Za-z0-9_-]{11}", id):
+        raise HTTPException(400, "Invalid item.")
+    try:
+        await account_request(f"/nav/action?action={action}&id={id}&value={int(value)}", {})
+        nav_lists.clear()
+        account_pages.pop("subs" if action == "subscribe" else "later", None)
+        return PlainTextResponse("ok\n", headers={"Cache-Control": "no-store"})
+    except Exception as error:
+        return nav_error(error, lang)
+
+
+@app.get("/api/nav/play", response_class=PlainTextResponse)
+async def navigation_play(request: Request, kind: Literal["playlist", "album", "radio", "music_playlist", "later"], id: str = "",
+                          start: int = Query(0, ge=0, le=255), lang: Literal["pt", "en"] = LANGUAGE):
+    account_native_request(request)
+    if id and not re.fullmatch(r"[A-Za-z0-9_-]{2,160}", id):
+        raise HTTPException(400, "Invalid item.")
+    try:
+        # Só substitui a fila depois que a nova lista carregou inteira até o limite do Cast.
+        data = await nav_data(kind, id, "", "videos", 0, 256)
+        items = [v for v in data["items"] if v["type"] == "video"][start:]
+        if not items:
+            raise HTTPException(404, "Empty playlist.")
+        remote.queue.clear()
+        remote.queue.extend(v | {"t": 0} for v in items[1:])
+        remote.commands = deque(c for c in remote.commands if c["action"] not in ("play", "next", "stop", "pause", "resume", "seek"))
+        remote.commands.append({"action": "play", "id": items[0]["id"], "t": 0, "at": time.monotonic()})
+        return nav_response(data | {"items": items})
+    except Exception as error:
+        return nav_error(error, lang)
+
+
+@app.get("/api/nav/transport", response_class=PlainTextResponse)
+async def navigation_transport(request: Request, action: Literal["next", "stop", "clear"]):
+    account_native_request(request)
+    if action in ("stop", "clear"):
+        remote.queue.clear()
+        remote.commands = deque(c for c in remote.commands if c["action"] not in ("play", "next", "stop", "pause", "resume", "seek"))
+    if len(remote.commands) >= 256:
+        raise HTTPException(429, "Queue full.")
+    if action != "clear":
+        remote.commands.append({"action": action, "at": time.monotonic()})
+    return PlainTextResponse("ok\n", headers={"Cache-Control": "no-store"})
+
+
+@app.get("/api/nav/lyrics", response_class=PlainTextResponse)
+async def navigation_lyrics(id: str):
+    valid_id(id)
+    try:
+        data = await account_request("/lyrics?id=" + id, timeout=15)
+        lyrics = clean(data.get("lyrics"))[:12000]
+    except Exception:
+        lyrics = ""
+    return PlainTextResponse("ok\t" + lyrics + "\n", headers={"Cache-Control": "no-store"})
+
+
+def nav_make_thumb(key, w, h, path):
+    url = nav_images.get(key)
+    if not url:
+        raise HTTPException(404, "Unknown artwork.")
+    # Sem redirecionamento para outra origem; a lista de hosts é validada a cada salto.
+    import urllib.request
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            return None
+    with urllib.request.build_opener(NoRedirect).open(URLRequest(url, headers={"User-Agent": "Tube360/1.0"}), timeout=12) as response:
+        data = response.read(4 * 1024 * 1024)
+    with Image.open(io.BytesIO(data)) as source:
+        if source.width * source.height > 16_000_000:
+            raise HTTPException(404, "Artwork too large.")
+        # Mantém o aspecto no slot 16:9 compartilhado; o cliente recorta o quadrado pelo UV.
+        side = min(w, h)
+        if source.width / source.height >= 1.4:
+            thumb = ImageOps.fit(source.convert("RGB"), (w, h), Image.Resampling.LANCZOS)
+        else:
+            image = ImageOps.fit(source.convert("RGB"), (side, side), Image.Resampling.LANCZOS)
+            thumb = Image.new("RGB", (w, h))
+            thumb.paste(image, ((w - side) // 2, (h - side) // 2))
+        temporary = path.with_suffix(".tmp")
+        thumb.save(temporary, format="JPEG", quality=85, progressive=False)
+        temporary.replace(path)
+    return path
+
+
+@app.get("/api/thumb/nav/{key}")
+async def navigation_thumb(key: str, w: int = Query(320, ge=1, le=384), h: int = Query(180, ge=1, le=216)):
+    if not re.fullmatch(r"[a-f0-9]{24}", key):
+        raise HTTPException(404, "Invalid artwork.")
+    path = THUMBS / f"nav_{key}_{w}x{h}.jpg"
+    if not path.exists():
+        await thumb_cache.get(path.name, lambda: asyncio.to_thread(nav_make_thumb, key, w, h, path))
+    return FileResponse(path, media_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+
+
 def same_origin_request(request):
     if (request.headers.get("origin") != f"{request.url.scheme}://{request.url.netloc}" or
             request.headers.get("sec-fetch-site", "") not in ("", "same-origin")):

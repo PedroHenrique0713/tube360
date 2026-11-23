@@ -92,6 +92,86 @@ export function parseTVFeed(data) {
   return { items, continuation: continuations[0]?.token || '' };
 }
 
+// Navegação usa renderers de conteúdo: nunca extrai vídeos escondidos em menus ou previews.
+const NAV_ID = /^[A-Za-z0-9_-]{2,160}$/;
+const CHANNEL_ID = /^UC[A-Za-z0-9_-]{22}$/;
+function findNodes(data, name) {
+  const out = [];
+  function walk(v) {
+    if (!v || typeof v !== 'object') return;
+    if (Array.isArray(v)) { v.forEach(walk); return; }
+    for (const [k, c] of Object.entries(v)) {
+      if (k === name) out.push(c);
+      else if (!['menu', 'onLongPressCommand', 'onFocusCommand', 'frameworkUpdates'].includes(k)) walk(c);
+    }
+  }
+  walk(data); return out;
+}
+function thumbnail(data) {
+  const all = [...findNodes(data, 'thumbnails'), ...findNodes(data, 'sources')].flat().filter((t) => t?.url);
+  return all.find((t) => t.width >= 200 && t.width <= 600)?.url || all.filter((t) => t.width <= 600).sort((a, b) => b.width - a.width)[0]?.url || all[0]?.url || '';
+}
+function browseId(data) { return findNodes(data, 'browseEndpoint').find((v) => CHANNEL_ID.test(v.browseId || ''))?.browseId || ''; }
+export function parseNavigation(data, music = false) {
+  const items = [], tokens = [], seen = new Set();
+  function add(item) {
+    if (!item || !NAV_ID.test(item.id || '') || seen.has(item.type + item.id)) return;
+    seen.add(item.type + item.id); items.push(item);
+  }
+  function render(v, key, section) {
+    const meta = v.metadata?.tileMetadataRenderer;
+    const lockup = v.metadata?.lockupMetadataViewModel;
+    const cols = (v.flexColumns || []).map((c) => c.musicResponsiveListItemFlexColumnRenderer?.text);
+    const title = label(meta?.title || lockup?.title || v.title || cols[0]);
+    const sub = lockup ? (lockup.metadata?.contentMetadataViewModel?.metadataRows || []).flatMap((r) => r.metadataParts || []).map((p) => label(p.text)).join(" · ") : label(v.subtitle || cols[1] || v.shortBylineText || v.longBylineText || v.ownerText);
+    const ep = v.onSelectCommand || v.rendererContext?.commandContext?.onTap?.innertubeCommand || v.navigationEndpoint || cols[0]?.runs?.find((r) => r.navigationEndpoint)?.navigationEndpoint || {};
+    const watch = ep.watchEndpoint || v.playlistItemData || {};
+    const browse = ep.browseEndpoint || {};
+    const id = v.videoId || (/(PLAYLIST|CHANNEL)/.test(v.contentType || "") ? browse.browseId || v.contentId || watch.playlistId : watch.videoId || browse.browseId || v.playlistId || v.channelId || v.contentId);
+    const base = { id, title: title || id, channel: sub, duration: 0, image: thumbnail(v.header || v.contentImage || v.thumbnailRenderer || v.thumbnail || v),
+      channel_id: browseId([cols, v.shortBylineText, v.longBylineText, meta?.lines]), section };
+    const artist = cols.flatMap((c) => c?.runs || []).filter((r) => CHANNEL_ID.test(r.navigationEndpoint?.browseEndpoint?.browseId || '')).map((r) => r.text).join(' / ');
+    if (music && artist) base.channel = artist;
+    if (/PLAYLIST/.test(v.contentType || '')) { add({ ...base, type: 'playlist' }); }
+    else if (/CHANNEL/.test(v.contentType || '')) { add({ ...base, type: music ? 'artist' : 'channel' }); }
+    else if (key === 'tileRenderer' && v.contentType === 'TILE_CONTENT_TYPE_VIDEO') {
+      const normal = normalizeVideo(v, key);
+      const timing = v.header?.tileHeaderRenderer?.thumbnailOverlays || [];
+      const live = timing.some((o) => /LIVE/.test(o.thumbnailOverlayTimeStatusRenderer?.style || ''));
+      if (normal) add({ ...base, ...normal, channel: music ? base.channel || normal.channel : normal.channel, type: 'video' });
+      else if (live && !ep.reelWatchEndpoint && !v.isUpcoming) add({ ...base, type: 'video' });
+    } else if (['videoRenderer', 'gridVideoRenderer', 'playlistVideoRenderer', 'playlistPanelVideoRenderer'].includes(key)) {
+      const normal = normalizeVideo(v, key);
+      if (normal) add({ ...base, ...normal, channel: music ? base.channel || normal.channel : normal.channel, type: 'video' });
+    } else if (ID.test(id || '') && !ep.reelWatchEndpoint) {
+      const duration = seconds(label(v.lengthText)) || [...cols, ...(v.fixedColumns || []).map((c) => c.musicResponsiveListItemFixedColumnRenderer?.text)]
+        .map((c) => label(c).split(' • ').map(seconds).find(Boolean)).find(Boolean) || 0;
+      add({ ...base, duration, type: 'video' });
+    } else {
+      const page = browse.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType || '';
+      const type = /ALBUM/.test(page) ? 'album' : /ARTIST|USER_CHANNEL/.test(page) ? 'artist' :
+        CHANNEL_ID.test(id || '') ? (music ? 'artist' : 'channel') : /PLAYLIST/.test(page) || /^(VL|PL|RD|OLAK)/.test(id || '') ? 'playlist' : '';
+      if (type) add({ ...base, type });
+    }
+  }
+  function walk(v, section = '') {
+    if (!v || typeof v !== 'object') return;
+    if (Array.isArray(v)) { v.forEach((c) => walk(c, section)); return; }
+    for (const [k, c] of Object.entries(v)) {
+      if (['tileRenderer','videoRenderer','gridVideoRenderer','playlistVideoRenderer','playlistPanelVideoRenderer',
+        'lockupViewModel','channelRenderer','gridChannelRenderer','playlistRenderer','gridPlaylistRenderer','musicTwoRowItemRenderer','musicResponsiveListItemRenderer'].includes(k)) render(c, k, section);
+      else if (k === 'tabRenderer') { if (c.selected || (music && !('selected' in c))) walk(c.content, section); }
+      else if (['musicCarouselShelfRenderer','musicShelfRenderer','shelfRenderer'].includes(k)) {
+        const heading = label(c.title || c.header?.musicCarouselShelfBasicHeaderRenderer?.title || c.headerRenderer?.shelfHeaderRenderer?.avatarLockup?.avatarLockupRenderer?.title);
+        walk(c.contents || c.content, heading || section);
+      } else if (k === 'continuationCommand' || k === 'nextContinuationData') tokens.push(c.token || c.continuation);
+      else if (!['menu','onLongPressCommand','onFocusCommand','header','thumbnail','navigationEndpoint','onSelectCommand','frameworkUpdates','playerOverlays'].includes(k)) walk(c, section);
+    }
+  }
+  walk(data);
+  return { items, continuation: tokens.find(Boolean) || '' };
+}
+
 export class Account {
   state = 'signed_out';
   name = '';
@@ -101,6 +181,7 @@ export class Account {
   current = null;
   feeds = new Map();
   videos = new Map();
+  navigation = new Map();
   expiry = null;
   loginTask = null;
 
@@ -122,6 +203,7 @@ export class Account {
     this.name = this.handle = this.code = this.url = '';
     this.feeds.clear();
     this.videos.clear();
+    this.navigation.clear();
   }
 
   async client() {
@@ -261,6 +343,106 @@ export class Account {
     return task;
   }
 
+  async navigationPage(kind, id, query, tab, page, fresh = false, filter = 0) {
+    const privateList = ['subscriptions', 'library', 'history', 'later'].includes(kind) || id === 'WL';
+    if (privateList && this.state !== 'signed_in') throw fail(401, 'signed_out');
+    const music = ['music','music_search','album','artist','radio','music_playlist'].includes(kind);
+    const yt = !music && this.state === 'signed_in' ? this.current.yt : await this.guest();
+    const owner = this.current;
+    const key = JSON.stringify([kind, id, query, tab, filter, this.state]);
+    let cache = this.navigation.get(key);
+    if (!cache || (page === 0 && (fresh || Date.now() - cache.created > 300000))) {
+      if (this.navigation.size >= 24) this.navigation.delete(this.navigation.keys().next().value);
+      cache = { pages: [], seen: new Set(), tokens: new Set(), created: Date.now(), task: Promise.resolve(), header: {} };
+      this.navigation.set(key, cache);
+    }
+    const task = cache.task.catch(() => {}).then(async () => {
+      while (cache.pages.length <= page) {
+        if (privateList && (owner !== this.current || this.state !== 'signed_in')) throw fail(401, 'signed_out');
+        const previous = cache.pages.at(-1);
+        if (previous && !previous.continuation) return { ...cache.header, items: [], more: false };
+        let route = '/browse', args = { client: music ? 'YTMUSIC' : 'TV' };
+        if (previous) { args.continuation = previous.continuation; if (kind === 'search' || kind === 'music_search') route = '/search'; else if (kind === 'radio') route = '/next'; }
+        else if (kind === 'search' || kind === 'music_search') {
+          route = '/search'; args.query = query;
+          // Mesmo protobuf SearchFilter da biblioteca 16.0.1: tipo em filters.type ou musicSearchType.
+          if (filter) args.params = encodeURIComponent(Buffer.from(kind === 'search' ? [18,2,16,filter] :
+            [18,5,138,1,2,({1:8,2:24,3:32})[filter],1]).toString('base64'));
+        }
+        else if (kind === 'radio') { route = '/next'; args.videoId = id; args.playlistId = 'RDAMVM' + id; }
+        else args.browseId = { subscriptions: 'FEsubscriptions', library: 'FEplaylist_aggregation', history: 'FEhistory', later: 'VLWL',
+          music: query === 'charts' ? 'FEmusic_explore' : 'FEmusic_home' }[kind] || (['playlist','music_playlist'].includes(kind) && !id.startsWith('VL') ? 'VL' + id : id);
+        let { data } = await yt.actions.execute(route, args);
+        if (data.error) throw fail(502, 'youtube_unavailable');
+        if (!previous && kind === 'music' && query === 'charts') {
+          const endpoint = findNodes(data, 'musicNavigationButtonRenderer').map((v) => v.clickCommand?.browseEndpoint)
+            .find((v) => v?.browseId === 'FEmusic_charts');
+          if (!endpoint) throw fail(502, 'charts_unavailable');
+          ({ data } = await yt.actions.execute('/browse', { ...endpoint, client: 'YTMUSIC' }));
+        }
+        if (!previous && kind === 'channel') {
+          const header = findNodes(data, 'channelHeaderRenderer')[0] || findNodes(data, 'c4TabbedHeaderRenderer')[0] || {};
+          const subscribe = findNodes(header, 'subscribeButtonRenderer')[0];
+          const subtitle = header.subtitle?.lineRenderer?.items?.map((i) => label(i.lineItemRenderer?.text)).join(' ') || label(header.subscriberCountText);
+          cache.header = { title: label(header.title), subtitle, image: thumbnail(header.avatar), channel_id: id, subscribed: subscribe?.subscribed || false };
+          const pattern = tab === 'live' ? /live|vivo|transmiss/i : tab === 'playlists' ? /playlists/i : /^videos$|^vídeos$|^uploads$/i;
+          const shelves = findNodes(data, 'shelfRenderer');
+          const shelf = shelves.find((v) => pattern.test(label(v.headerRenderer?.shelfHeaderRenderer?.avatarLockup?.avatarLockupRenderer?.title)));
+          // A TV devolve a página inteira mesmo com params da aba; a continuação da prateleira é o que pagina só a aba.
+          data = shelf ? { shelfRenderer: shelf } : { contents: [] };
+        }
+        if (!previous && !cache.header.title) {
+          const header = findNodes(data, 'musicDetailHeaderRenderer')[0] || findNodes(data, 'musicResponsiveHeaderRenderer')[0] ||
+            findNodes(data, 'musicImmersiveHeaderRenderer')[0] || findNodes(data, 'musicVisualHeaderRenderer')[0] || findNodes(data, 'playlistHeaderRenderer')[0] || findNodes(data, 'overlayPanelHeaderRenderer')[0] || {};
+          cache.header = { title: label(header.title) || query, subtitle: label(header.subtitle) || (header.metadataLines || []).flatMap((l) => l.lineRenderer?.items || []).map((i) => label(i.lineItemRenderer?.text)).filter(Boolean).join(' '), image: thumbnail(header) };
+        }
+        const parsed = parseNavigation(data, music);
+        if (kind === 'music') {
+          if (query === 'mixes') parsed.items = parsed.items.filter((v) => v.type === 'playlist');
+          else if (!query) parsed.items.sort((a, b) => (a.type === 'video' ? 0 : 1) - (b.type === 'video' ? 0 : 1));
+        }
+        if (kind === 'subscriptions' && !previous && !parsed.items.some((v) => v.type === 'channel')) {
+          const channels = await yt.actions.execute('/browse', { browseId: 'FEchannels', client: 'TV' });
+          parsed.items.unshift(...parseNavigation(channels.data).items.filter((v) => v.type === 'channel'));
+        }
+        const items = parsed.items.filter((v) => { const k = v.type + v.id; if (cache.seen.has(k)) return false; cache.seen.add(k); return true; });
+        const continuation = cache.tokens.has(parsed.continuation) ? '' : parsed.continuation;
+        if (continuation) cache.tokens.add(continuation);
+        if (privateList && (owner !== this.current || this.state !== 'signed_in')) throw fail(401, 'signed_out');
+        // Limite de páginas evita manter listas inteiras de milhares de itens na RAM do servidor.
+        cache.pages.push({ items, continuation: cache.pages.length < 40 ? continuation : '' });
+      }
+      return { ...cache.header, ...cache.pages[page], more: Boolean(cache.pages[page].continuation) };
+    });
+    cache.task = task; return task;
+  }
+
+  async channelForVideo(id) {
+    const yt = this.state === 'signed_in' ? await this.player(this.current) : await this.guest();
+    const channel = this.state === 'signed_in' ? (await yt.getBasicInfo(id)).basic_info.channel_id :
+      (await yt.actions.execute('/player', { videoId: id, client: 'TV' })).data.videoDetails?.channelId;
+    if (!CHANNEL_ID.test(channel || '')) throw fail(502, 'channel_unavailable');
+    return { id: channel };
+  }
+
+  async navigationAction(action, id, value) {
+    if (this.state !== 'signed_in') throw fail(401, 'signed_out');
+    const yt = this.current.yt;
+    let response;
+    if (action === 'subscribe') response = await yt.actions.execute(value ? '/subscription/subscribe' : '/subscription/unsubscribe',
+      { channelIds: [id], params: value ? 'EgIIAhgA' : 'CgIIAhgA', client: 'TV' });
+    else response = await yt.actions.execute('/browse/edit_playlist', { playlistId: 'WL', actions: [{ action: 'ACTION_ADD_VIDEO', addedVideoId: id }], client: 'TV' });
+    if (!response.success || response.data?.error) throw fail(502, 'action_failed');
+    this.navigation.clear(); this.feeds.delete(action === 'subscribe' ? 'subs' : 'later');
+    return { ok: true };
+  }
+
+  async lyrics(id) {
+    const yt = await this.guest();
+    try { const result = await yt.music.getLyrics(id); return { lyrics: text(result?.description?.toString()) }; }
+    catch { return { lyrics: '' }; }
+  }
+
   // Sessão à parte com a identidade de TV Samsung e as mesmas credenciais, criada no primeiro uso.
   player(context) {
     if (context.player) return context.player;
@@ -287,7 +469,7 @@ export class Account {
     if (!this.guestYt) {
       const lang = language();
       this.guestYt = Innertube.create({ client_type: ClientType.TV, lang, location: lang === 'pt' ? 'BR' : 'US',
-        retrieve_player: false, enable_session_cache: false });
+        retrieve_player: false, enable_session_cache: false, fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(20000) }) });
       this.guestYt.catch(() => { this.guestYt = null; });
     }
     return this.guestYt;
@@ -353,6 +535,23 @@ export async function startAccountService() {
       if (req.method === 'GET' && url.pathname === '/status') result = account.status();
       else if (req.method === 'POST' && url.pathname === '/login') result = await account.login();
       else if (req.method === 'POST' && url.pathname === '/logout') result = await account.logout();
+      else if (req.method === 'GET' && url.pathname === '/nav') {
+        const kind = url.searchParams.get('kind') || '', id = url.searchParams.get('id') || '';
+        const query = text(url.searchParams.get('q')).slice(0, 200), tab = url.searchParams.get('tab') || 'videos';
+        const page = Number(url.searchParams.get('page') || 0);
+        if (!['channel','subscriptions','library','playlist','history','later','search','music','music_search','album','artist','radio','music_playlist'].includes(kind) ||
+            !Number.isInteger(page) || page < 0 || page > 40 || (id && !NAV_ID.test(id)) ||
+            (['channel','artist'].includes(kind) && !CHANNEL_ID.test(id)) || (kind === 'radio' && !ID.test(id)) ||
+            (['playlist','music_playlist','album'].includes(kind) && !id) || !['videos','live','playlists'].includes(tab)) throw fail(400, 'invalid_navigation');
+        result = await account.navigationPage(kind, id, query, tab, page, url.searchParams.get('fresh') === '1', Math.max(0, Math.min(3, Number(url.searchParams.get('filter')) || 0)));
+      } else if (req.method === 'GET' && ['/channel_for_video','/lyrics'].includes(url.pathname)) {
+        const id = url.searchParams.get('id') || ''; if (!ID.test(id)) throw fail(400, 'invalid_video');
+        result = url.pathname === '/lyrics' ? await account.lyrics(id) : await account.channelForVideo(id);
+      } else if (req.method === 'POST' && url.pathname === '/nav/action') {
+        const action = url.searchParams.get('action'), id = url.searchParams.get('id') || '';
+        if (!(action === 'subscribe' ? CHANNEL_ID.test(id) : action === 'later' && ID.test(id))) throw fail(400, 'invalid_action');
+        result = await account.navigationAction(action, id, url.searchParams.get('value') === '1');
+      }
       else if (req.method === 'GET' && url.pathname === '/feed') {
         const kind = url.searchParams.get('kind') || 'home';
         const page = Number(url.searchParams.get('page') || 0);
