@@ -69,6 +69,61 @@ class AudioTests(unittest.IsolatedAsyncioTestCase):
         state, pos = self.n.position()
         self.assertEqual((state, pos), ('STALE', 15.0))
 
+    async def test_status_a_cada_cinco_segundos_com_mp3_continuo(self):
+        self.path.write_bytes(b'x' * (16 * 24000))
+        self.n.token, self.n.state, self.n.t0 = 's=42', 'PLAYING', 0.0
+        amostras = []
+        with patch.object(self.m, 'time', wraps=time) as clock:
+            for tick in range(60):
+                t = tick / 4
+                clock.monotonic.return_value = 100 + t
+                if tick % 20 == 0:
+                    self.n.stamp, self.n.pos = 100 + t, t
+                start = tick * 6000
+                res = await self.get_audio(f'bytes={start}-{start + 5999}'.encode(), b's=42')
+                self.assertEqual(sum([len(chunk) async for chunk in res.body_iterator]), 6000)
+                amostras.append(self.n.position())
+        invalidas = [i / 4 for i, (state, _) in enumerate(amostras) if state != 'PLAYING']
+        self.assertEqual(invalidas, [], f'{len(invalidas)}/60 amostras sem relógio')
+        self.assertEqual([p for _, p in amostras], [i / 4 for i in range(60)])
+
+    async def test_leitura_interrompida_vence_mas_pausa_e_idle_prevalecem(self):
+        self.path.write_bytes(b'x' * 4096)
+        self.n.token, self.n.state, self.n.stamp = 's=42', 'PLAYING', 100.0
+        with patch.object(self.m, 'time', wraps=time) as clock:
+            clock.monotonic.return_value = 105
+            res = await self.get_audio(b'bytes=0-4095', b's=42')
+            self.assertEqual(sum([len(chunk) async for chunk in res.body_iterator]), 4096)
+            clock.monotonic.return_value = 112.9
+            state, pos = self.n.position()
+            self.assertEqual(state, 'PLAYING')
+            self.assertAlmostEqual(pos, 12.9)
+            clock.monotonic.return_value = 113.1
+            head = Request({"type": "http", "method": "HEAD", "query_string": b"s=42", "headers": []})
+            self.assertEqual((await self.m.audio(head, self.vid, 0.0)).body, b'')
+            publico = await self.get_audio(b'bytes=0-4095')
+            self.assertEqual(sum([len(chunk) async for chunk in publico.body_iterator]), 4096)
+            self.assertEqual(self.n.position()[0], 'STALLED')
+            self.n.state = 'BUFFERING'
+            self.assertEqual(self.n.position()[0], 'STALLED')
+            self.n.state = 'PAUSED'
+            self.assertEqual(self.n.position(), ('PAUSED', 0.0))
+            self.n.state = 'IDLE'
+            self.assertEqual(self.n.position(), ('IDLE', 0.0))
+
+    async def test_entrega_atrasada_de_url_revogada_nao_confirma_novo_load(self):
+        self.path.write_bytes(b'x' * 20000)
+        self.n.token, self.n.state, self.n.stamp = 's=antiga', 'PLAYING', 100.0
+        with patch.object(self.m, 'time', wraps=time) as clock:
+            clock.monotonic.return_value = 100
+            res = await self.get_audio(b'bytes=0-', b's=antiga')
+            self.assertTrue(await anext(res.body_iterator))
+            self.n.stop_intent()
+            self.n.token, self.n.state, self.n.stamp = 's=nova', 'PLAYING', 100.0
+            clock.monotonic.return_value = 109
+            self.assertEqual([b async for b in res.body_iterator], [])
+            self.assertEqual(self.n.position()[0], 'STALLED')
+
     async def test_seek_no_mesmo_receptor_para_10_e_60_segundos(self):
         partial = self.path.with_suffix(".part.mp3")
         with partial.open("wb") as f:
