@@ -125,8 +125,8 @@ int main(int argc, char** argv) {
   check(c.handle("/api/nav/lyrics?id=F12audio001&lang=pt").find("Letra de teste") != string::npos,"lyrics endpoint discovery");
   check(!c.setToken("invalid\r\nheader"),"token rejects header injection");
   check(c.setToken("fixture-token"),"token accepted");
-  h.add(music,"",read(dir,"music-context.html"));
-  h.add(music,browse,read(dir,"music-home.json"),{{"browseId",J(string("FEmusic_home"))}},true);
+  h.add(web,"sw.js_data",read(dir,"tv-session.txt"));
+  h.add(web,browse+"&alt=json",read(dir,"music-home.json"),{{"browseId",J(string("FEmusic_home"))}},true);
   check(!c.browse(request("music")).items.empty(),"account change invalidates cache");
   for (int refusal : {401,403}) {
     Http rejected; Client guest(rejected);

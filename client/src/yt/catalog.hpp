@@ -267,9 +267,9 @@ inline bool supported(const string& path) {
 }
 class Client {
   Transport& net;
-  struct Context { J data; string version, visitor; } web, music;
+  struct Context { J data; string version, visitor; } web, music, accountMusic;
   string token, language = "en";
-  bool tokenRejected = false;
+  bool tokenRejected = false, musicTokenRejected = false;
 public:
   string authError; // último motivo de recusa do token (vazio se aceito)
 private:
@@ -305,7 +305,64 @@ private:
     c.version = str(client,"clientVersion"); c.visitor = str(client,"visitorData");
     return c.version.empty() ? "version_missing" : "";
   }
+  string bootstrapAccountMusic() {
+    if (!accountMusic.version.empty()) return {};
+    Request r; r.url = "https://www.youtube.com/sw.js_data"; r.agent = agent;
+    // A sessão OAuth não herda os cookies da navegação pública no mesmo transporte.
+    r.headers = {"Accept: */*","Accept-Language: " + language,"Referer: https://www.youtube.com/sw.js","Cookie: PREF=tz=UTC;"};
+    auto res = net.send(r);
+    if (res.status != 200 || !res.error.empty()) return "session_unavailable";
+    J data;
+    if (res.body.compare(0,4,")]}'") != 0 || !parse("{\"data\":"+res.body.substr(4)+"}",data)) return "invalid_context";
+    auto at = [](const J& v, size_t i) -> const J& { static const J nil; const auto& a = array(v); return i < a.size() ? a[i] : nil; };
+    const auto& device = at(at(at(at(get(data,"data"),0),2),0),0);
+    string visitor = str(at(device,13));
+    if (!device.is<Array>() || visitor.empty() || visitor.size() > 8192 ||
+        !std::all_of(visitor.begin(),visitor.end(),[](unsigned char c) { return c > 32 && c < 127; })) return "invalid_context";
+    Object client{{"hl",J(language)},{"gl",J(string(language == "pt" ? "BR" : "US"))},
+      {"screenDensityFloat",J(1.0)},{"screenHeightPoints",J(1440.0)},
+      {"screenPixelDensity",J(1.0)},{"screenWidthPoints",J(2560.0)},{"visitorData",at(device,13)},
+      {"clientName",J(string("WEB_REMIX"))},{"clientVersion",J(string("1.20250219.01.00"))},
+      {"userAgent",J(string(agent))},
+      {"platform",J(string("DESKTOP"))},{"clientFormFactor",J(string("UNKNOWN_FORM_FACTOR"))},
+      {"userInterfaceTheme",J(string("USER_INTERFACE_THEME_LIGHT"))},{"timeZone",J(str(at(device,79)).empty() ? string("UTC") : str(at(device,79)))},
+      {"originalUrl",J(string("https://www.youtube.com"))},{"utcOffsetMinutes",J(0.0)},
+      {"memoryTotalKbytes",J(string("8000000"))},
+      {"mainAppWebInfo",J(Object{{"graftUrl",J(string("https://www.youtube.com"))},
+        {"pwaInstallabilityStatus",J(string("PWA_INSTALLABILITY_STATUS_UNKNOWN"))},
+        {"webDisplayMode",J(string("WEB_DISPLAY_MODE_BROWSER"))},{"isWebNativeShareAvailable",J(true)}})}};
+    // Campos opcionais ficam ausentes, como no JSON.stringify da youtubei.js 16.0.1.
+    for (auto field : {std::pair<const char*,size_t>{"remoteHost",3},{"osName",17},{"osVersion",18},
+        {"deviceMake",11},{"deviceModel",12},{"browserName",86},{"browserVersion",87},
+        {"rolloutToken",107},{"deviceExperimentId",103}})
+      if (field.second < array(device).size()) client[field.first] = at(device,field.second);
+    accountMusic.data = J(Object{{"client",J(client)},
+      {"user",J(Object{{"enableSafetyMode",J(false)},{"lockedSafetyMode",J(false)}})},
+      {"request",J(Object{{"useSsl",J(true)},{"internalExperimentFlags",J(Array{})}})}});
+    accountMusic.version = str(J(client),"clientVersion"); accountMusic.visitor = visitor;
+    return {};
+  }
   string post(bool isMusic, const string& route, Object args, J& out) {
+    if (isMusic && !token.empty() && !musicTokenRejected) {
+      auto e = bootstrapAccountMusic(); if (!e.empty()) return e;
+      auto context = accountMusic.data.get<Object>();
+      auto client = get(accountMusic.data,"client").get<Object>();
+      client["hl"] = J(language); client["gl"] = J(string(language == "pt" ? "BR" : "US")); context["client"] = J(client);
+      Object payload = args; payload["context"] = J(context); payload["isAudioOnly"] = J(true);
+      Request r; r.url = "https://www.youtube.com/youtubei/v1/"+route+"?prettyPrint=false&alt=json";
+      r.body = J(payload).serialize(); r.agent = agent;
+      // Cookie: vazio seleciona o handle sem pote do transporte, preservando a sessão pública.
+      r.headers = {"Accept: */*","Accept-Language: *","Origin: https://www.youtube.com","Cookie:",
+        "X-Youtube-Client-Name: 67","X-Youtube-Client-Version: " + accountMusic.version,
+        "Authorization: Bearer " + token};
+      r.headers.push_back("X-Goog-Visitor-Id: " + accountMusic.visitor);
+      auto res = net.send(r);
+      if (res.status != 401 && res.status != 403) {
+        auto e = error(res,out); if (e.empty()) authError.clear(); return e;
+      }
+      musicTokenRejected = true; authError = route + " HTTP " + std::to_string(res.status);
+      // A reserva pública precisa reconstruir URL, contexto e cabeçalhos, além de retirar o token.
+    }
     auto e = bootstrap(isMusic); if (!e.empty()) return e;
     auto& c = isMusic ? music : web;
     auto context = c.data.get<Object>();
@@ -316,7 +373,7 @@ private:
     Request r; r.url = origin + "/youtubei/v1/" + route + "?prettyPrint=false"; r.body = J(args).serialize(); r.agent = agent;
     r.headers = {"Origin: " + origin,"X-Youtube-Client-Name: " + string(isMusic ? "67" : "1"),"X-Youtube-Client-Version: " + c.version};
     if (!c.visitor.empty() && c.visitor.find_first_of("\r\n") == string::npos) r.headers.push_back("X-Goog-Visitor-Id: " + c.visitor);
-    bool authorized = !token.empty() && !tokenRejected;
+    bool authorized = !isMusic && !token.empty() && !tokenRejected;
     if (authorized) r.headers.push_back("Authorization: Bearer " + token);
     auto res = net.send(r);
     if (authorized && (res.status == 401 || res.status == 403)) {
@@ -356,8 +413,8 @@ public:
   explicit Client(Transport& transport) : net(transport) {}
   // Chamar no worker de navegação ao receber/renovar/remover o token da F11.
   bool setToken(const string& access) {
-    if (access.size() > 8192 || access.find_first_of("\r\n\t ") != string::npos) return false;
-    if (token != access) { token = access; tokenRejected = false; authError.clear(); lists.clear(); web = {}; music = {}; }
+    if (access.size() > 8192 || !std::all_of(access.begin(),access.end(),[](unsigned char c) { return c > 32 && c < 127; })) return false;
+    if (token != access) { token = access; tokenRejected = musicTokenRejected = false; authError.clear(); lists.clear(); web = {}; music = {}; accountMusic = {}; }
     return true;
   }
   Page browse(const std::map<string,string>& q) {

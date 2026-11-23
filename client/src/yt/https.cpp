@@ -32,13 +32,17 @@ int progress(void* ptr, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
 }
 class Https final : public Transport {
     CURL* easy = nullptr;
+    CURL* explicitCookies = nullptr;
     const std::atomic_bool* cancel;
 public:
     explicit Https(const std::atomic_bool* flag) : cancel(flag) {
         static const auto init = curl_global_init(CURL_GLOBAL_DEFAULT);
         if (init == CURLE_OK) easy = curl_easy_init();
     }
-    ~Https() override { if (easy) curl_easy_cleanup(easy); }
+    ~Https() override {
+        if (explicitCookies) curl_easy_cleanup(explicitCookies);
+        if (easy) curl_easy_cleanup(easy);
+    }
     Response request(const string& url, const string& body, bool form) override {
         Request r; r.url = url; r.body = body; r.form = form;
         return send(r);
@@ -50,12 +54,18 @@ public:
         Response res;
         if (!easy) { res.error = "tls_init"; return res; }
         if (cancel && cancel->load()) { res.error = "cancelled"; return res; }
-        curl_easy_reset(easy); // Mantém DNS, sessões TLS e conexões do mesmo worker.
+        bool customCookies = false;
+        for (const auto& h : r.headers) if (!strncasecmp(h.c_str(),"Cookie:",7)) customCookies = true;
+        // O curl-xenon ainda envia o pote com Cookie: explícito, até vazio. Outro handle não cria esse pote.
+        if (customCookies && !explicitCookies) explicitCookies = curl_easy_init();
+        CURL* handle = customCookies ? explicitCookies : easy;
+        if (!handle) { res.error = "tls_init"; return res; }
+        curl_easy_reset(handle); // Mantém DNS, sessões TLS e conexões do mesmo worker e identidade.
         curl_blob ca{const_cast<char*>(ytRoots), sizeof(ytRoots), CURL_BLOB_NOCOPY};
         curl_slist* headers = nullptr;
         CURLcode setup = CURLE_OK;
         auto set = [&](auto option, auto value) {
-            if (setup == CURLE_OK) setup = curl_easy_setopt(easy, option, value);
+            if (setup == CURLE_OK) setup = curl_easy_setopt(handle, option, value);
         };
         set(CURLOPT_URL, url.c_str());
         set(CURLOPT_PROTOCOLS_STR, "https");
@@ -65,7 +75,7 @@ public:
         set(CURLOPT_HTTP_VERSION, long(CURL_HTTP_VERSION_1_1));
         set(CURLOPT_USERAGENT, r.agent.empty() ? "Tube360/1.0" : r.agent.c_str());
         // Pote de cookies em memória; o reset do handle não apaga os cookies. Sem cookies no libcurl, segue sem eles.
-        curl_easy_setopt(easy, CURLOPT_COOKIEFILE, "");
+        if (!customCookies) curl_easy_setopt(handle, CURLOPT_COOKIEFILE, "");
         set(CURLOPT_TIMEOUT_MS, 15000L);
         set(CURLOPT_CONNECTTIMEOUT_MS, 8000L);
         set(CURLOPT_NOSIGNAL, 1L);
@@ -93,9 +103,9 @@ public:
             set(CURLOPT_POSTFIELDS, body.data());
             set(CURLOPT_POSTFIELDSIZE, static_cast<long>(body.size()));
         }
-        auto rc = setup == CURLE_OK ? curl_easy_perform(easy) : setup;
-        curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &res.status);
-        curl_easy_getinfo(easy, CURLINFO_NUM_CONNECTS, &res.newConnections);
+        auto rc = setup == CURLE_OK ? curl_easy_perform(handle) : setup;
+        curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &res.status);
+        curl_easy_getinfo(handle, CURLINFO_NUM_CONNECTS, &res.newConnections);
         curl_slist_free_all(headers);
         if (rc != CURLE_OK) {
             res.body.clear();

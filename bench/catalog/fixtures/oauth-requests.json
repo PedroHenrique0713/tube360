@@ -1,0 +1,587 @@
+{
+  "library": "youtubei.js 16.0.1",
+  "bootstrap": [
+    {
+      "url": "https://www.youtube.com/sw.js_data",
+      "method": "GET",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "pt",
+        "cookie": "PREF=tz=UTC;VISITOR_INFO1_LIVE=fixture0123;",
+        "referer": "https://www.youtube.com/sw.js",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+      }
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/config?prettyPrint=false",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "pt",
+        "origin": "https://www.youtube.com",
+        "referer": "https://www.youtube.com",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+        "x-origin": "https://www.youtube.com",
+        "x-youtube-client-version": "7.20250219.14.00"
+      },
+      "body": {
+        "context": {
+          "client": {
+            "hl": "pt",
+            "gl": "BR",
+            "remoteHost": "203.0.113.16",
+            "screenDensityFloat": 1,
+            "screenHeightPoints": 1440,
+            "screenPixelDensity": 1,
+            "screenWidthPoints": 2560,
+            "visitorData": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+            "clientName": "TVHTML5",
+            "clientVersion": "7.20250219.14.00",
+            "osName": "X11",
+            "osVersion": "",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "platform": "DESKTOP",
+            "clientFormFactor": "UNKNOWN_FORM_FACTOR",
+            "userInterfaceTheme": "USER_INTERFACE_THEME_LIGHT",
+            "timeZone": "UTC",
+            "originalUrl": "https://www.youtube.com",
+            "deviceMake": "",
+            "deviceModel": "",
+            "browserName": "Chrome",
+            "browserVersion": "150.0.0.0",
+            "utcOffsetMinutes": 0,
+            "memoryTotalKbytes": "8000000",
+            "rolloutToken": "fixture-rollout",
+            "deviceExperimentId": "fixture-device-experiment",
+            "mainAppWebInfo": {
+              "graftUrl": "https://www.youtube.com",
+              "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_UNKNOWN",
+              "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
+              "isWebNativeShareAvailable": true
+            },
+            "configInfo": {
+              "appInstallData": "fixture-app-install"
+            }
+          },
+          "user": {
+            "enableSafetyMode": false,
+            "lockedSafetyMode": false
+          },
+          "request": {
+            "useSsl": true,
+            "internalExperimentFlags": []
+          }
+        }
+      }
+    }
+  ],
+  "requests": [
+    {
+      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "*",
+        "authorization": "Bearer fixture-token",
+        "content-type": "application/json",
+        "origin": "https://www.youtube.com",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+        "x-youtube-client-name": "67",
+        "x-youtube-client-version": "1.20250219.01.00"
+      },
+      "body": {
+        "browseId": "FEmusic_home",
+        "isAudioOnly": true,
+        "context": {
+          "client": {
+            "hl": "pt",
+            "gl": "BR",
+            "remoteHost": "203.0.113.16",
+            "screenDensityFloat": 1,
+            "screenHeightPoints": 1440,
+            "screenPixelDensity": 1,
+            "screenWidthPoints": 2560,
+            "visitorData": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+            "clientName": "WEB_REMIX",
+            "clientVersion": "1.20250219.01.00",
+            "osName": "X11",
+            "osVersion": "",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "platform": "DESKTOP",
+            "clientFormFactor": "UNKNOWN_FORM_FACTOR",
+            "userInterfaceTheme": "USER_INTERFACE_THEME_LIGHT",
+            "timeZone": "UTC",
+            "originalUrl": "https://www.youtube.com",
+            "deviceMake": "",
+            "deviceModel": "",
+            "browserName": "Chrome",
+            "browserVersion": "150.0.0.0",
+            "utcOffsetMinutes": 0,
+            "memoryTotalKbytes": "8000000",
+            "rolloutToken": "fixture-rollout",
+            "deviceExperimentId": "fixture-device-experiment",
+            "mainAppWebInfo": {
+              "graftUrl": "https://www.youtube.com",
+              "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_UNKNOWN",
+              "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
+              "isWebNativeShareAvailable": true
+            }
+          },
+          "user": {
+            "enableSafetyMode": false,
+            "lockedSafetyMode": false
+          },
+          "request": {
+            "useSsl": true,
+            "internalExperimentFlags": []
+          }
+        }
+      }
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "*",
+        "authorization": "Bearer fixture-token",
+        "content-type": "application/json",
+        "origin": "https://www.youtube.com",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+        "x-youtube-client-name": "67",
+        "x-youtube-client-version": "1.20250219.01.00"
+      },
+      "body": {
+        "continuation": "CONT_music_home",
+        "isAudioOnly": true,
+        "context": {
+          "client": {
+            "hl": "pt",
+            "gl": "BR",
+            "remoteHost": "203.0.113.16",
+            "screenDensityFloat": 1,
+            "screenHeightPoints": 1440,
+            "screenPixelDensity": 1,
+            "screenWidthPoints": 2560,
+            "visitorData": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+            "clientName": "WEB_REMIX",
+            "clientVersion": "1.20250219.01.00",
+            "osName": "X11",
+            "osVersion": "",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "platform": "DESKTOP",
+            "clientFormFactor": "UNKNOWN_FORM_FACTOR",
+            "userInterfaceTheme": "USER_INTERFACE_THEME_LIGHT",
+            "timeZone": "UTC",
+            "originalUrl": "https://www.youtube.com",
+            "deviceMake": "",
+            "deviceModel": "",
+            "browserName": "Chrome",
+            "browserVersion": "150.0.0.0",
+            "utcOffsetMinutes": 0,
+            "memoryTotalKbytes": "8000000",
+            "rolloutToken": "fixture-rollout",
+            "deviceExperimentId": "fixture-device-experiment",
+            "mainAppWebInfo": {
+              "graftUrl": "https://www.youtube.com",
+              "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_UNKNOWN",
+              "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
+              "isWebNativeShareAvailable": true
+            }
+          },
+          "user": {
+            "enableSafetyMode": false,
+            "lockedSafetyMode": false
+          },
+          "request": {
+            "useSsl": true,
+            "internalExperimentFlags": []
+          }
+        }
+      }
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "*",
+        "authorization": "Bearer fixture-token",
+        "content-type": "application/json",
+        "origin": "https://www.youtube.com",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+        "x-youtube-client-name": "67",
+        "x-youtube-client-version": "1.20250219.01.00"
+      },
+      "body": {
+        "browseId": "FEmusic_explore",
+        "isAudioOnly": true,
+        "context": {
+          "client": {
+            "hl": "pt",
+            "gl": "BR",
+            "remoteHost": "203.0.113.16",
+            "screenDensityFloat": 1,
+            "screenHeightPoints": 1440,
+            "screenPixelDensity": 1,
+            "screenWidthPoints": 2560,
+            "visitorData": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+            "clientName": "WEB_REMIX",
+            "clientVersion": "1.20250219.01.00",
+            "osName": "X11",
+            "osVersion": "",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "platform": "DESKTOP",
+            "clientFormFactor": "UNKNOWN_FORM_FACTOR",
+            "userInterfaceTheme": "USER_INTERFACE_THEME_LIGHT",
+            "timeZone": "UTC",
+            "originalUrl": "https://www.youtube.com",
+            "deviceMake": "",
+            "deviceModel": "",
+            "browserName": "Chrome",
+            "browserVersion": "150.0.0.0",
+            "utcOffsetMinutes": 0,
+            "memoryTotalKbytes": "8000000",
+            "rolloutToken": "fixture-rollout",
+            "deviceExperimentId": "fixture-device-experiment",
+            "mainAppWebInfo": {
+              "graftUrl": "https://www.youtube.com",
+              "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_UNKNOWN",
+              "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
+              "isWebNativeShareAvailable": true
+            }
+          },
+          "user": {
+            "enableSafetyMode": false,
+            "lockedSafetyMode": false
+          },
+          "request": {
+            "useSsl": true,
+            "internalExperimentFlags": []
+          }
+        }
+      }
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "*",
+        "authorization": "Bearer fixture-token",
+        "content-type": "application/json",
+        "origin": "https://www.youtube.com",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+        "x-youtube-client-name": "67",
+        "x-youtube-client-version": "1.20250219.01.00"
+      },
+      "body": {
+        "browseId": "FEmusic_charts",
+        "params": "sgYPRkVtdXNpY19leHBsb3Jl",
+        "isAudioOnly": true,
+        "context": {
+          "client": {
+            "hl": "pt",
+            "gl": "BR",
+            "remoteHost": "203.0.113.16",
+            "screenDensityFloat": 1,
+            "screenHeightPoints": 1440,
+            "screenPixelDensity": 1,
+            "screenWidthPoints": 2560,
+            "visitorData": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+            "clientName": "WEB_REMIX",
+            "clientVersion": "1.20250219.01.00",
+            "osName": "X11",
+            "osVersion": "",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "platform": "DESKTOP",
+            "clientFormFactor": "UNKNOWN_FORM_FACTOR",
+            "userInterfaceTheme": "USER_INTERFACE_THEME_LIGHT",
+            "timeZone": "UTC",
+            "originalUrl": "https://www.youtube.com",
+            "deviceMake": "",
+            "deviceModel": "",
+            "browserName": "Chrome",
+            "browserVersion": "150.0.0.0",
+            "utcOffsetMinutes": 0,
+            "memoryTotalKbytes": "8000000",
+            "rolloutToken": "fixture-rollout",
+            "deviceExperimentId": "fixture-device-experiment",
+            "mainAppWebInfo": {
+              "graftUrl": "https://www.youtube.com",
+              "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_UNKNOWN",
+              "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
+              "isWebNativeShareAvailable": true
+            }
+          },
+          "user": {
+            "enableSafetyMode": false,
+            "lockedSafetyMode": false
+          },
+          "request": {
+            "useSsl": true,
+            "internalExperimentFlags": []
+          }
+        }
+      }
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/search?prettyPrint=false&alt=json",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "*",
+        "authorization": "Bearer fixture-token",
+        "content-type": "application/json",
+        "origin": "https://www.youtube.com",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+        "x-youtube-client-name": "67",
+        "x-youtube-client-version": "1.20250219.01.00"
+      },
+      "body": {
+        "query": "jazz instrumental",
+        "isAudioOnly": true,
+        "context": {
+          "client": {
+            "hl": "pt",
+            "gl": "BR",
+            "remoteHost": "203.0.113.16",
+            "screenDensityFloat": 1,
+            "screenHeightPoints": 1440,
+            "screenPixelDensity": 1,
+            "screenWidthPoints": 2560,
+            "visitorData": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+            "clientName": "WEB_REMIX",
+            "clientVersion": "1.20250219.01.00",
+            "osName": "X11",
+            "osVersion": "",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "platform": "DESKTOP",
+            "clientFormFactor": "UNKNOWN_FORM_FACTOR",
+            "userInterfaceTheme": "USER_INTERFACE_THEME_LIGHT",
+            "timeZone": "UTC",
+            "originalUrl": "https://www.youtube.com",
+            "deviceMake": "",
+            "deviceModel": "",
+            "browserName": "Chrome",
+            "browserVersion": "150.0.0.0",
+            "utcOffsetMinutes": 0,
+            "memoryTotalKbytes": "8000000",
+            "rolloutToken": "fixture-rollout",
+            "deviceExperimentId": "fixture-device-experiment",
+            "mainAppWebInfo": {
+              "graftUrl": "https://www.youtube.com",
+              "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_UNKNOWN",
+              "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
+              "isWebNativeShareAvailable": true
+            }
+          },
+          "user": {
+            "enableSafetyMode": false,
+            "lockedSafetyMode": false
+          },
+          "request": {
+            "useSsl": true,
+            "internalExperimentFlags": []
+          }
+        }
+      }
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/next?prettyPrint=false&alt=json",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "*",
+        "authorization": "Bearer fixture-token",
+        "content-type": "application/json",
+        "origin": "https://www.youtube.com",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+        "x-youtube-client-name": "67",
+        "x-youtube-client-version": "1.20250219.01.00"
+      },
+      "body": {
+        "videoId": "F12audio001",
+        "playlistId": "RDAMVMF12audio001",
+        "isAudioOnly": true,
+        "context": {
+          "client": {
+            "hl": "pt",
+            "gl": "BR",
+            "remoteHost": "203.0.113.16",
+            "screenDensityFloat": 1,
+            "screenHeightPoints": 1440,
+            "screenPixelDensity": 1,
+            "screenWidthPoints": 2560,
+            "visitorData": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+            "clientName": "WEB_REMIX",
+            "clientVersion": "1.20250219.01.00",
+            "osName": "X11",
+            "osVersion": "",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "platform": "DESKTOP",
+            "clientFormFactor": "UNKNOWN_FORM_FACTOR",
+            "userInterfaceTheme": "USER_INTERFACE_THEME_LIGHT",
+            "timeZone": "UTC",
+            "originalUrl": "https://www.youtube.com",
+            "deviceMake": "",
+            "deviceModel": "",
+            "browserName": "Chrome",
+            "browserVersion": "150.0.0.0",
+            "utcOffsetMinutes": 0,
+            "memoryTotalKbytes": "8000000",
+            "rolloutToken": "fixture-rollout",
+            "deviceExperimentId": "fixture-device-experiment",
+            "mainAppWebInfo": {
+              "graftUrl": "https://www.youtube.com",
+              "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_UNKNOWN",
+              "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
+              "isWebNativeShareAvailable": true
+            }
+          },
+          "user": {
+            "enableSafetyMode": false,
+            "lockedSafetyMode": false
+          },
+          "request": {
+            "useSsl": true,
+            "internalExperimentFlags": []
+          }
+        }
+      }
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/next?prettyPrint=false&alt=json",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "*",
+        "authorization": "Bearer fixture-token",
+        "content-type": "application/json",
+        "origin": "https://www.youtube.com",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+        "x-youtube-client-name": "67",
+        "x-youtube-client-version": "1.20250219.01.00"
+      },
+      "body": {
+        "videoId": "F12audio001",
+        "isAudioOnly": true,
+        "context": {
+          "client": {
+            "hl": "pt",
+            "gl": "BR",
+            "remoteHost": "203.0.113.16",
+            "screenDensityFloat": 1,
+            "screenHeightPoints": 1440,
+            "screenPixelDensity": 1,
+            "screenWidthPoints": 2560,
+            "visitorData": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+            "clientName": "WEB_REMIX",
+            "clientVersion": "1.20250219.01.00",
+            "osName": "X11",
+            "osVersion": "",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "platform": "DESKTOP",
+            "clientFormFactor": "UNKNOWN_FORM_FACTOR",
+            "userInterfaceTheme": "USER_INTERFACE_THEME_LIGHT",
+            "timeZone": "UTC",
+            "originalUrl": "https://www.youtube.com",
+            "deviceMake": "",
+            "deviceModel": "",
+            "browserName": "Chrome",
+            "browserVersion": "150.0.0.0",
+            "utcOffsetMinutes": 0,
+            "memoryTotalKbytes": "8000000",
+            "rolloutToken": "fixture-rollout",
+            "deviceExperimentId": "fixture-device-experiment",
+            "mainAppWebInfo": {
+              "graftUrl": "https://www.youtube.com",
+              "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_UNKNOWN",
+              "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
+              "isWebNativeShareAvailable": true
+            }
+          },
+          "user": {
+            "enableSafetyMode": false,
+            "lockedSafetyMode": false
+          },
+          "request": {
+            "useSsl": true,
+            "internalExperimentFlags": []
+          }
+        }
+      }
+    },
+    {
+      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "method": "POST",
+      "headers": {
+        "accept": "*/*",
+        "accept-language": "*",
+        "authorization": "Bearer fixture-token",
+        "content-type": "application/json",
+        "origin": "https://www.youtube.com",
+        "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+        "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+        "x-youtube-client-name": "67",
+        "x-youtube-client-version": "1.20250219.01.00"
+      },
+      "body": {
+        "browseId": "MPLYfixture",
+        "isAudioOnly": true,
+        "context": {
+          "client": {
+            "hl": "pt",
+            "gl": "BR",
+            "remoteHost": "203.0.113.16",
+            "screenDensityFloat": 1,
+            "screenHeightPoints": 1440,
+            "screenPixelDensity": 1,
+            "screenWidthPoints": 2560,
+            "visitorData": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
+            "clientName": "WEB_REMIX",
+            "clientVersion": "1.20250219.01.00",
+            "osName": "X11",
+            "osVersion": "",
+            "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+            "platform": "DESKTOP",
+            "clientFormFactor": "UNKNOWN_FORM_FACTOR",
+            "userInterfaceTheme": "USER_INTERFACE_THEME_LIGHT",
+            "timeZone": "UTC",
+            "originalUrl": "https://www.youtube.com",
+            "deviceMake": "",
+            "deviceModel": "",
+            "browserName": "Chrome",
+            "browserVersion": "150.0.0.0",
+            "utcOffsetMinutes": 0,
+            "memoryTotalKbytes": "8000000",
+            "rolloutToken": "fixture-rollout",
+            "deviceExperimentId": "fixture-device-experiment",
+            "mainAppWebInfo": {
+              "graftUrl": "https://www.youtube.com",
+              "pwaInstallabilityStatus": "PWA_INSTALLABILITY_STATUS_UNKNOWN",
+              "webDisplayMode": "WEB_DISPLAY_MODE_BROWSER",
+              "isWebNativeShareAvailable": true
+            }
+          },
+          "user": {
+            "enableSafetyMode": false,
+            "lockedSafetyMode": false
+          },
+          "request": {
+            "useSsl": true,
+            "internalExperimentFlags": []
+          }
+        }
+      }
+    }
+  ]
+}

@@ -6,3 +6,7 @@ target_include_directories(catalog-test PRIVATE ../../client/src ../../client/th
 target_compile_definitions(catalog-test PRIVATE PICOJSON_USE_LOCALE=0)
 enable_testing()
 add_test(NAME catalog COMMAND catalog-test "${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
+add_executable(catalog-oauth-test oauth-test.cpp)
+target_include_directories(catalog-oauth-test PRIVATE ../../client/src ../../client/third_party)
+target_compile_definitions(catalog-oauth-test PRIVATE PICOJSON_USE_LOCALE=0)
+add_test(NAME catalog-oauth COMMAND catalog-oauth-test "${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
