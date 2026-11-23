@@ -1406,7 +1406,7 @@ int main(int argc, char** argv) {
       wordmark(g, ui::X0, 22, 1, ui::BG);
       {
         float hw = 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Refresh)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Search)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::MoreOptions));
-        float lx = ui::W - (account.signedIn() && !account.avatar.empty() ? 88 : 32) - hw, pillRight = lx - 18;
+        float lx = ui::W - 88 - hw, pillRight = lx - 18;
         auto pill = [&](const std::string& label, Color color) {
           std::string txt = gfx::ellipsize(g, ui::F_SMALL, label, 218);
           float w = gfx::textWidth(g, ui::F_SMALL, txt) + 32;
