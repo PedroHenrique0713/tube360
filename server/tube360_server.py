@@ -1043,6 +1043,7 @@ import hashlib
 
 nav_images = {}
 nav_lists = {}
+nav_queue_serial = 0
 NAV_KINDS = ("channel", "subscriptions", "library", "playlist", "history", "later", "search",
              "music", "music_search", "album", "artist", "radio", "music_playlist")
 
@@ -1159,15 +1160,20 @@ async def navigation_action(request: Request, action: Literal["subscribe", "late
 @app.get("/api/nav/play", response_class=PlainTextResponse)
 async def navigation_play(request: Request, kind: Literal["playlist", "album", "radio", "music_playlist", "later"], id: str = "",
                           start: int = Query(0, ge=0, le=255), lang: Literal["pt", "en"] = LANGUAGE):
+    global nav_queue_serial
     account_native_request(request)
     if id and not re.fullmatch(r"[A-Za-z0-9_-]{2,160}", id):
         raise HTTPException(400, "Invalid item.")
+    nav_queue_serial += 1
+    serial = nav_queue_serial
     try:
         # Só substitui a fila depois que a nova lista carregou inteira até o limite do Cast.
         data = await nav_data(kind, id, "", "videos", 0, 256)
         items = [v for v in data["items"] if v["type"] == "video"][start:]
         if not items:
             raise HTTPException(404, "Empty playlist.")
+        if serial != nav_queue_serial:
+            return PlainTextResponse("erro\t" + tr("Reprodução cancelada.", "Playback cancelled.", lang) + "\n", headers={"Cache-Control": "no-store"})
         remote.queue.clear()
         remote.queue.extend(v | {"t": 0} for v in items[1:])
         remote.commands = deque(c for c in remote.commands if c["action"] not in ("play", "next", "stop", "pause", "resume", "seek"))
@@ -1179,8 +1185,10 @@ async def navigation_play(request: Request, kind: Literal["playlist", "album", "
 
 @app.get("/api/nav/transport", response_class=PlainTextResponse)
 async def navigation_transport(request: Request, action: Literal["next", "stop", "clear"]):
+    global nav_queue_serial
     account_native_request(request)
     if action in ("stop", "clear"):
+        nav_queue_serial += 1
         remote.queue.clear()
         remote.commands = deque(c for c in remote.commands if c["action"] not in ("play", "next", "stop", "pause", "resume", "seek"))
     if len(remote.commands) >= 256:
