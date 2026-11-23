@@ -11,7 +11,7 @@ target_include_directories(tube360 PRIVATE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CUR
   ${V4X}/include ${V4X}/third_party/vulkan-headers/include)
 target_link_libraries(tube360 PRIVATE ${V4X}/build/libvulkan4xenon.a SDL3::SDL3-static)
 set_property(TARGET tube360 APPEND PROPERTY LINK_DEPENDS ${V4X}/build/libvulkan4xenon.a)
-target_sources(tube360 PRIVATE ffmpeg-libc.c)
+target_sources(tube360 PRIVATE ffmpeg-libc.c player-fault.c)
 target_link_options(tube360 PRIVATE -Wl,--wrap=pthread_create)
 include(../ffmpeg.cmake)
 include(../youtube.cmake)

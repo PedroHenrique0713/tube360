@@ -37,6 +37,7 @@
 
 #ifdef __XSDK__
 #include "xsdk/net.h"
+extern "C" void install_player_fault_handler();
 // XAM começa com recepção de 16 KB por socket; 63 KB segura o fluxo de vídeo com folga (xsdk/net.h).
 extern "C" const XsdkNetworkLimits xsdk_network_limits = {32, 8, 63, 16};
 #endif
@@ -224,7 +225,7 @@ struct Thumbs {
     if (it != byId.end()) { Slot& s = slots[(size_t)it->second]; s.used = frame; return &s; }
     auto retry = retryAt.find(id);
     if (retry != retryAt.end() && retry->second > SDL_GetTicks()) return nullptr;
-    if (!waiting.count(id) && waiting.size() < 24) {
+    if (!waiting.count(id) && waiting.size() < 8) {
       Job j{2, id, generation}; j.native = direct; j.w = width; j.h = height; w.add(j); waiting[id] = Result{};
     }
     return nullptr;
@@ -429,6 +430,7 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
 int main(int argc, char** argv) {
   (void)argc; (void)argv;
 #ifdef __XSDK__
+  install_player_fault_handler();
   if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_EVENTS | SDL_INIT_AUDIO)) { LOG("SDL: %s", SDL_GetError()); return 1; }
   std::string assets = "";
 #else
@@ -601,7 +603,9 @@ int main(int argc, char** argv) {
       nav.ownsQueue = nav.musicSession = nav.musicNow = false; nav.busy = false; nav.cancelQueue = true;
       nav.action(navWorker, "/api/nav/transport?action=stop");
     }
-    pl.halt(); ratePanel = sleepPanel = false; playerUI.panel = PlayerUI::NONE; playerUI.options = false; nextAt = 0;
+    pl.halt();
+    if (videoTex.set) { gfx::videoDestroy(g, videoTex); videoTex = {}; }
+    ratePanel = sleepPanel = false; playerUI.panel = PlayerUI::NONE; playerUI.options = false; nextAt = 0;
     screen = backTo == PLAYER ? HOME : backTo; };
   // Live pausada não continua de onde parou: o ffmpeg do servidor para junto, e a janela de algumas lives no YouTube
   // tem só 30 s. Continuar abre de novo perto do ao vivo.
@@ -1107,7 +1111,7 @@ int main(int argc, char** argv) {
     } else if (screen == HOME) {
       Shelf& cur = inResults ? results : cats[(size_t)cat];
       if (!cur.feed.items.empty()) cur.sel = std::clamp(cur.sel, 0, (int)cur.feed.items.size() - 1);
-      int n = (int)cur.feed.items.size();
+      int n = (int)cur.feed.items.size(), previousSel = cur.sel;
       if (zone == 1 && !inResults) {
         if (in.hit(Input::LEFT)) { if (cat > 0) { cat--; scroll = 0; } else { railFocus = true; railSel = 0; } }
         if (in.hit(Input::RIGHT) && cat + 1 < (int)cats.size()) { cat++; scroll = 0; }
@@ -1131,6 +1135,7 @@ int main(int argc, char** argv) {
           startVideo(v, v.dur > 0 && v.pos >= v.dur ? 0 : v.pos, false);
         }
       }
+      if (cur.sel != previousSel) LOG("home: categoria %d, foco %d/%d", cat, cur.sel + 1, n);
       if (in.hit(Input::START) && n && zone == 0) { const auto& v = cur.feed.items[(size_t)cur.sel]; nav.menuItem = {"video",v.id,v.title,v.channel,v.id,"","",v.dur}; nav.menuSel = 0; nav.menu = true; }
       if (in.hit(Input::Y)) openSearch();
       if (in.hit(Input::X)) {

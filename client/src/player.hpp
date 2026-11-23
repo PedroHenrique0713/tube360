@@ -226,6 +226,8 @@ struct Player {
 
   void halt(bool stopNest = true) {
     if (!netThread && !decThread) return;
+    uint64_t began = SDL_GetTicks();
+    LOG("player: encerrando %s", id.c_str());
     stop = true; endLiveReader = true;
     tvSound(false);
     if (audio) SDL_PauseAudioStreamDevice(audio);
@@ -250,8 +252,13 @@ struct Player {
       if (t) SDL_DetachThread(t); else delete request;
       previousSession = 0;
     }
-    for (auto* f : frames) spare.push_back(f);
-    frames.clear();
+    size_t bytes = ring.capacity();
+    for (auto* f : frames) { bytes += f->yuv.capacity(); delete f; }
+    for (auto* f : spare) { bytes += f->yuv.capacity(); delete f; }
+    frames.clear(); spare.clear();
+    std::vector<uint8_t>().swap(ring);
+    LOG("player: fim %s, buffers %u KiB liberados, %llu ms", id.c_str(), (unsigned)(bytes >> 10),
+        (unsigned long long)(SDL_GetTicks() - began));
     if (audio) SDL_ClearAudioStream(audio);
     state = IDLE;
   }
