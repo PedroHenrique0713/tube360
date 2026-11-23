@@ -8,6 +8,7 @@ extern "C" {
 }
 #include <algorithm>
 #include <cstdio>
+#include <deque>
 #include <cstring>
 #include <cmath>
 #include <map>
@@ -16,8 +17,10 @@ extern "C" {
 namespace yt {
 inline Response mediaGet(Transport& net, string& url, std::vector<string> headers = {}) {
     Request req; req.url = url; req.headers = std::move(headers);
+    long connections = 0;
     for (int hop = 0; ; hop++) {
         auto r = net.send(req);
+        connections += r.newConnections; r.newConnections = connections;
         if (r.status < 300 || r.status > 399 || hop == 3 || !r.error.empty()) return r;
         const auto& next = r.location;
         auto slash = next.find('/', 8);
@@ -110,7 +113,8 @@ inline string attribute(const string& line, const string& name) {
     return line.substr(at, line.find(',', at) - at);
 }
 struct LiveFile {
-    Transport& net;
+    Transport& lists;
+    Transport& media;
     const std::atomic_bool& stop;
     string playlist, audioPlaylist, segment, sound;
     struct List {
@@ -118,26 +122,40 @@ struct LiveFile {
         std::vector<string> urls;
         bool ended = false;
         int64_t last() const { return first + int64_t(urls.size()) - 1; }
-    } video, audio;
-
-    int64_t sequence = -1;
-    long status = 0;
+    };
+    struct Pair { string video, audio; };
+    static constexpr int reserve = 3;
+    std::deque<Pair> pending;
+    SDL_Mutex* mu = SDL_CreateMutex();
+    SDL_Condition* cv = SDL_CreateCondition();
+    SDL_Thread* planner = nullptr;
+    std::atomic_bool closing{false};
+    int finished = 0;
+    std::atomic_long status{0};
     int height = 0, delay = 1000;
     double frameRate = 0;
+    unsigned segments = 0, connections = 0;
+    uint64_t bytes = 0, transferMs = 0;
 
-    bool fetch(string url, string& body) {
-        auto r = mediaGet(net,url);
-        status = r.status;
-        if (status != 200 || !r.error.empty()) return false;
+    LiveFile(Transport& playlists, Transport& segments, const std::atomic_bool& cancel)
+        : lists(playlists), media(segments), stop(cancel) {}
+    ~LiveFile() {
+        closing = true;
+        if (planner) { SDL_LockMutex(mu); SDL_BroadcastCondition(cv); SDL_UnlockMutex(mu); SDL_WaitThread(planner,nullptr); }
+        SDL_DestroyCondition(cv); SDL_DestroyMutex(mu);
+    }
+    bool fetch(Transport& connection, string url, string& body) {
+        auto r = mediaGet(connection,url);
+        if (r.status != 200 || !r.error.empty()) { if (r.status == 403) status = 403; return false; }
+        if (&connection == &media) connections += r.newConnections;
         body = std::move(r.body);
-
         return true;
     }
     bool open(const string& url, int ceiling) {
         string master, attrs, group;
         int bestRank = 0;
         std::map<string,string> groups;
-        if (!fetch(url, master) || !master.starts_with("#EXTM3U")) return false;
+        if (!mu || !cv || !fetch(lists,url, master) || !master.starts_with("#EXTM3U")) return false;
         for (auto& line : net::split(master, '\n')) {
             if (line.starts_with("#EXT-X-MEDIA:") && attribute(line,"TYPE") == "AUDIO")
                 groups[attribute(line,"GROUP-ID")] = hlsUrl(url, attribute(line,"URI"));
@@ -161,11 +179,18 @@ struct LiveFile {
             }
         }
         audioPlaylist = groups[group];
-        return !playlist.empty() && (group.empty() || !audioPlaylist.empty());
+        if (playlist.empty() || (!group.empty() && audioPlaylist.empty())) return false;
+        planner = yt::worker([](void* p) {
+            auto& f = *static_cast<LiveFile*>(p);
+            int result = f.plan();
+            SDL_LockMutex(f.mu); f.finished = result; SDL_BroadcastCondition(f.cv); SDL_UnlockMutex(f.mu);
+            return 0;
+        }, "playlists", this);
+        return planner != nullptr;
     }
     bool update(const string& url, List& list) {
         string body;
-        if (!fetch(url,body) || !body.starts_with("#EXTM3U")) return false;
+        if (!fetch(lists,url,body) || !body.starts_with("#EXTM3U")) return false;
         list = {};
         for (const auto& line : net::split(body,'\n')) {
             if (line.starts_with("#EXT-X-MEDIA-SEQUENCE:")) list.first = std::strtoll(line.c_str()+22,nullptr,10);
@@ -176,10 +201,12 @@ struct LiveFile {
         }
         return !list.urls.empty();
     }
-    int refill() {
+    int plan() {
+        List video, audio;
         bool paired = !audioPlaylist.empty();
+        int64_t sequence = -1;
         uint64_t since = SDL_GetTicks();
-        while (!stop) {
+        while (!stop && !closing) {
             if (sequence < 0 || sequence > video.last()) {
                 if (video.ended) return AVERROR_EOF;
                 if (!update(playlist,video)) return AVERROR(EIO);
@@ -188,19 +215,40 @@ struct LiveFile {
                 if (audio.ended) return AVERROR_EOF;
                 if (!update(audioPlaylist,audio)) return AVERROR(EIO);
             }
+            int64_t first = paired ? std::max(video.first,audio.first) : video.first;
             int64_t edge = paired ? std::min(video.last(),audio.last()) : video.last();
-            if (sequence < 0) sequence = edge;
-            if (sequence < video.first || (paired && sequence < audio.first)) return AVERROR_INVALIDDATA;
+            if (sequence < 0) sequence = std::max(first,edge - reserve + 1);
+            if (sequence < first) return AVERROR_INVALIDDATA;
             if (sequence <= edge) {
-                if (!fetch(video.urls[sequence-video.first],segment) || segment.empty()) return AVERROR(EIO);
-                if (paired && (!fetch(audio.urls[sequence-audio.first],sound) || sound.empty())) return AVERROR(EIO);
-                ++sequence; return 0;
+                SDL_LockMutex(mu);
+                while (pending.size() >= reserve && !stop && !closing) SDL_WaitConditionTimeout(cv,mu,100);
+                if (!stop && !closing) pending.push_back({video.urls[sequence-video.first],paired ? audio.urls[sequence-audio.first] : ""});
+                SDL_BroadcastCondition(cv); SDL_UnlockMutex(mu);
+                ++sequence; since = SDL_GetTicks();
+            } else {
+                if (SDL_GetTicks()-since > 20000) return AVERROR(ETIMEDOUT);
+                for (int i=0; i<delay && !stop && !closing; i+=50) SDL_Delay(50);
             }
-            if (SDL_GetTicks()-since > 20000) return AVERROR(ETIMEDOUT);
-            for (int i=0; i<delay && !stop; i+=50) SDL_Delay(50);
         }
         return AVERROR_EXIT;
     }
+    int refill() {
+        SDL_LockMutex(mu);
+        while (pending.empty() && !finished && !stop) SDL_WaitConditionTimeout(cv,mu,100);
+        if (stop || pending.empty()) {
+            int r = stop ? AVERROR_EXIT : finished;
+            SDL_UnlockMutex(mu); return r;
+        }
+        auto pair = std::move(pending.front()); pending.pop_front();
+        SDL_SignalCondition(cv); SDL_UnlockMutex(mu);
+        uint64_t start = SDL_GetTicks();
+        if (!fetch(media,pair.video,segment) || segment.empty()) return AVERROR(EIO);
+        if (!pair.audio.empty() && (!fetch(media,pair.audio,sound) || sound.empty())) return AVERROR(EIO);
+        transferMs += SDL_GetTicks() - start;
+        bytes += segment.size()+sound.size(); ++segments;
+        return 0;
+    }
+
 };
 
 // HLS Packed Audio: PRIV fixa a origem MPEG de 90 kHz e cada quadro ADTS informa sua própria duração.

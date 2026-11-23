@@ -11,6 +11,7 @@ using std::string;
 struct Response {
     long status = 0;
     string body, error, contentRange, location;
+    long newConnections = 0;
 };
 // Pedido com identidade própria: user agent, cabeçalhos extras e os cookies que o worker já recebeu.
 struct Request {

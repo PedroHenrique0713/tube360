@@ -609,6 +609,10 @@ struct Player {
     uint64_t ms = SDL_GetTicks();
     wantedOffsetMs = (int)std::lround(nestOffset * 1000);
     if (refreshed && shownFrames > 150) refreshed = false;
+    if (direct && live && net::serverEnabled && !paused && (state == BUFFERING || state == PLAYING)) {
+      if (!originalWatch) originalWatch = ms;
+      if (ms - std::max(originalWatch,lastFrameMs) > 15000) retryConverted = true;
+    }
     if (direct && !paused && (renew || retryConverted)) {
       bool again = renew && !refreshed;
       if (again || net::serverEnabled) {
@@ -625,7 +629,7 @@ struct Player {
         start(srv, id, position(), title, duration, quality, speakerRequested, false);
         return nullptr;
       }
-    } else originalWatch = 0;
+    } else if (!direct || !live || paused) originalWatch = 0;
     bool starved = false;
     if (!direct && live && !paused && lastFrameMs && ms - lastFrameMs > 1100 &&
         (uint32_t)ms - lastPacketMs.load() > (speakerRequested ? 3000u : 1350u) &&

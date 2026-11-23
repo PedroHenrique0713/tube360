@@ -40,22 +40,23 @@ void ranges() {
     check(corrupt.read(out,1)<0 && corrupt.read(out,1)<0,"reject shifted 206 without looping");
 }
 void playlists() {
-    Mock m; std::atomic_bool stop=false;
+    Mock lists, media; std::atomic_bool stop=false;
     string base="https://example.com/", master="#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"aac\",URI=\"a.m3u8\"\n";
     string attrs="#EXT-X-STREAM-INF:CODECS=\"avc1.4d401f,mp4a.40.2\",RESOLUTION=1280x720,AUDIO=\"aac\",FRAME-RATE=";
     master+=attrs+"60\nfast.m3u8\n"+attrs+"30\nv.m3u8\n";
-    m.steps.push_back({base+"master","",{200,master}});
-    m.steps.push_back({base+"v.m3u8","",{200,"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:21\nv21\nv22\nv23\n"}});
-    m.steps.push_back({base+"a.m3u8","",{200,"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:20\na20\na21\na22\n"}});
-    m.steps.push_back({base+"v22","",{200,"video"}});
-    m.steps.push_back({base+"a22","",{200,"audio"}});
-    m.steps.push_back({base+"a.m3u8","",{200,"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:22\na22\na23\n"}});
-    m.steps.push_back({base+"v23","",{200,"video23"}});
-    m.steps.push_back({base+"a23","",{200,"audio23"}});
-    yt::LiveFile live{m,stop};
-    check(live.open(base+"master",720) && live.height==720 && live.frameRate==30,"prefer 30 fps");
-    check(live.refill()==0 && live.sequence==23 && live.sound=="audio","newest shared segment");
-    check(live.refill()==0 && live.sequence==24 && live.sound=="audio23" && m.steps.empty(),"advance once");
+    lists.steps.push_back({base+"master","",{200,master}});
+    lists.steps.push_back({base+"v.m3u8","",{200,"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:20\nv20\nv21\nv22\nv23\nv24\n#EXT-X-ENDLIST\n"}});
+    lists.steps.push_back({base+"a.m3u8","",{200,"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:19\na19\na20\na21\na22\na23\n"}});
+    lists.steps.push_back({base+"a.m3u8","",{200,"#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:23\na23\na24\n#EXT-X-ENDLIST\n"}});
+    for (int i=21; i<=24; ++i) for (auto track : {"v","a"}) {
+        string name=track+std::to_string(i);
+        media.steps.push_back({base+name,"",{200,name}});
+    }
+    yt::LiveFile live{lists,media,stop};
+    check(live.open(base+"master",720) && live.frameRate==30,"prefer 720p30");
+    for (int i=21; i<=24; ++i)
+        check(live.refill()==0 && live.sound=="a"+std::to_string(i) && live.segment=="v"+std::to_string(i),"paired reserve and refresh");
+    check(live.refill()==AVERROR_EOF && lists.steps.empty() && media.steps.empty(),"clean end of both playlists");
     yt::PackedAudio packed;
     check(!packed.begin("ID3") && !packed.begin(string(80,0)),"invalid packed audio tag");
 }

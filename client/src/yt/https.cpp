@@ -92,6 +92,7 @@ public:
         }
         auto rc = setup == CURLE_OK ? curl_easy_perform(easy) : setup;
         curl_easy_getinfo(easy, CURLINFO_RESPONSE_CODE, &res.status);
+        curl_easy_getinfo(easy, CURLINFO_NUM_CONNECTS, &res.newConnections);
         curl_slist_free_all(headers);
         if (rc != CURLE_OK) {
             res.body.clear();

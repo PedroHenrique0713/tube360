@@ -38,7 +38,7 @@ inline void Player::decodeOriginal() {
 #endif
   h264::Stream s, separate;
   std::unique_ptr<yt::RangeFile> videoFile, audioFile;
-  std::unique_ptr<yt::Transport> liveTransport;
+  std::unique_ptr<yt::Transport> liveTransport, playlistTransport;
   std::unique_ptr<yt::LiveFile> broadcast;
   struct LiveInput { Player* player; yt::LiveFile* file; std::deque<std::string> audio; } source{this,nullptr,{}};
   yt::PackedAudio packed;
@@ -64,7 +64,8 @@ inline void Player::decodeOriginal() {
     mediaReady = true;
     if (live) {
       liveTransport = yt::https(&endLiveReader);
-      broadcast = std::make_unique<yt::LiveFile>(yt::LiveFile{*liveTransport, endLiveReader});
+      playlistTransport = yt::https(&endLiveReader);
+      broadcast = std::make_unique<yt::LiveFile>(*playlistTransport, *liveTransport, endLiveReader);
       if (!broadcast->open(media.hls, quality)) r = AVERROR_INVALIDDATA;
       else {
         source.file = broadcast.get();
@@ -74,6 +75,9 @@ inline void Player::decodeOriginal() {
           moveToHardwareThread(4);
           int result = 0;
           while (!p.stop && !p.endLiveReader && (result = source.file->refill()) >= 0) {
+            if (source.file->segments == 1 || source.file->segments % 3 == 0)
+              LOG("HLS: %u segmentos, %u conexoes novas, transferencia %.2f Mbit/s",
+                  source.file->segments,source.file->connections,source.file->bytes * .008 / std::max<uint64_t>(1,source.file->transferMs));
             if (p.audio && !source.file->sound.empty()) {
               SDL_LockMutex(p.mu);
               while (source.audio.size() >= 3 && !p.stop && !p.endLiveReader) SDL_WaitCondition(p.cv,p.mu);
@@ -84,7 +88,7 @@ inline void Player::decodeOriginal() {
             const auto& bytes = source.file->segment;
             p.putBytes(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size());
           }
-          SDL_LockMutex(p.mu); p.netEof = true; p.netErr = result < 0 && result != AVERROR_EOF;
+          SDL_LockMutex(p.mu); p.netEof = true; p.netErr = !p.endLiveReader && result < 0 && result != AVERROR_EOF;
           SDL_BroadcastCondition(p.cv); SDL_UnlockMutex(p.mu);
           return 0;
         }, "hls", &source);
@@ -113,7 +117,7 @@ inline void Player::decodeOriginal() {
     LOG("console: %s %dp, itags %d/%d, início %.3f", live ? "HLS" : "MP4", actualHeight.load(), media.video.itag, media.audio.itag, startAt);
   } else r = s.open(this, readOriginal, threads, audio != nullptr);
   hasAudio = (s.audio || separate.audio) && r >= 0;
-  double last = -1, intervalPts = -1;
+  double last = -1, intervalPts = -1, nextAudioPts = NAN;
   unsigned pauseEpoch = pauseChanges.load();
   int count = 0, slow = 0, packets = 0, decoded = 0, filtered = 0;
   int64_t previousShown = 0, previousLost = 0, phase = AV_NOPTS_VALUE;
@@ -149,10 +153,16 @@ inline void Player::decodeOriginal() {
       if (err < 0) return err;
       AVFrame* f = input.frame;
       double pts = input.pts(video ? input.vi : input.ai);
+      // Um PES pode carregar vários AAC com PTS só no primeiro quadro.
+      if (!video && !std::isfinite(pts)) pts = nextAudioPts;
+      if (!video && f->sample_rate > 0) nextAudioPts = pts + double(f->nb_samples) / f->sample_rate;
       if (!std::isfinite(origin)) origin = pts;
       pts -= origin;
       if (live && direct) pts = std::remainder(pts, double(1LL<<33)/90000);
-      if (!std::isfinite(pts) || f->decode_error_flags) return AVERROR_INVALIDDATA;
+      if (!std::isfinite(pts) || f->decode_error_flags) {
+        LOG("decod: quadro %s invalido, pts %.3f, flags %d", video ? "AVC" : "AAC", pts, f->decode_error_flags);
+        return AVERROR_INVALIDDATA;
+      }
       if (video) {
         if (f->width > 1280 || f->height > 720 || (f->format != AV_PIX_FMT_YUV420P && f->format != AV_PIX_FMT_YUVJ420P))
           return AVERROR_INVALIDDATA;
@@ -182,12 +192,19 @@ inline void Player::decodeOriginal() {
   bool videoEnd = false, audioEnd = !separate.audio;
   while (r >= 0 && !stop) {
     bool readAudio = !audioEnd && (videoEnd || audioQueuedSec() < 0.65);
+    if (readAudio && broadcast && !videoEnd && packed.cursor == packed.bytes.size()) {
+      SDL_LockMutex(mu);
+      // O produtor pode estar enchendo o anel de vídeo antes de chegar ao próximo AAC.
+      if (source.audio.empty() && rcount) readAudio = false;
+      SDL_UnlockMutex(mu);
+    }
     h264::Stream& input = readAudio ? separate : s;
     if (direct && (media.ttl || media.expiresAt) && SDL_GetTicks() >= validUntil) { r = AVERROR(ETIMEDOUT); break; }
     if (readAudio && broadcast) {
       if (packed.cursor == packed.bytes.size()) {
         SDL_LockMutex(mu);
-        while (source.audio.empty() && !stop && !netEof) SDL_WaitCondition(cv,mu);
+        while (source.audio.empty() && !stop && !netEof && (videoEnd || !rcount)) SDL_WaitCondition(cv,mu);
+        if (source.audio.empty() && !videoEnd && rcount && !stop) { SDL_UnlockMutex(mu); continue; }
         if (source.audio.empty()) r = netErr ? AVERROR(EIO) : AVERROR_EOF;
         else {
           auto segment = std::move(source.audio.front()); source.audio.pop_front();
@@ -239,7 +256,7 @@ inline void Player::decodeOriginal() {
     endLiveReader = true;
     SDL_LockMutex(mu); SDL_BroadcastCondition(cv); SDL_UnlockMutex(mu);
     SDL_WaitThread(reader,nullptr);
-    if (netErr) r = AVERROR(EIO);
+    if (netErr && r >= 0) r = AVERROR(EIO);
   }
   if (stop) return;
   if (direct && (((media.ttl || media.expiresAt) && SDL_GetTicks() >= validUntil) || (videoFile && videoFile->status == 403) || (audioFile && audioFile->status == 403) ||
