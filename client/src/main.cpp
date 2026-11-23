@@ -165,24 +165,48 @@ struct Thumbs {
   std::vector<Slot> slots; std::map<std::string, int> byId; std::map<std::string, Result> waiting;
   static constexpr size_t budgetBytes = 64u * 320 * 180 * 4;
   int maxSlots = 64, width = 320, height = 180; uint64_t generation = 1;
+  static constexpr int bannerWidth = 1184, bannerHeight = 160;
+  Slot bannerSlot;
+  size_t bannerBytes = 0;
+  std::map<std::string, uint64_t> retryAt;
+  static size_t allocation(gfx::Gfx& g, const gfx::Tex& tex) {
+    VkMemoryRequirements req; vkGetImageMemoryRequirements(g.dev, tex.img, &req);
+#ifdef __XSDK__
+    return (req.size + 65535u) & ~size_t(65535u);
+#else
+    return req.size;
+#endif
+  }
+  static void release(gfx::Gfx& g, Slot& s) {
+    vkFreeDescriptorSets(g.dev, g.pool, 1, &s.tex.set);
+    vkDestroyImageView(g.dev, s.tex.view, nullptr); vkDestroyImage(g.dev, s.tex.img, nullptr); vkFreeMemory(g.dev, s.tex.mem, nullptr);
+  }
   size_t slotBytes = 0, peakPending = 0;
-  void configure(gfx::Gfx& g, Worker& worker, int cols, bool cover = false) {
+  void configure(gfx::Gfx& g, Worker& worker, int cols, bool cover = false, bool banner = false) {
     int w = cover ? 640 : cols == 3 ? 384 : 320, h = cover ? 360 : cols == 3 ? 216 : 180;
-    if (w == width && h == height) return;
+    if (w == width && h == height && banner == bool(bannerBytes)) return;
     vkDeviceWaitIdle(g.dev);
-    for (auto& s : slots) {
-      vkFreeDescriptorSets(g.dev, g.pool, 1, &s.tex.set);
-      vkDestroyImageView(g.dev, s.tex.view, nullptr); vkDestroyImage(g.dev, s.tex.img, nullptr); vkFreeMemory(g.dev, s.tex.mem, nullptr);
+    for (auto& s : slots) release(g, s);
+    if (bannerBytes) { release(g, bannerSlot); bannerSlot = {}; bannerBytes = 0; }
+    if (banner) {
+      bannerSlot.tex = gfx::makeImage(g, bannerWidth, bannerHeight, VK_FORMAT_R8G8B8A8_UNORM, true);
+      bannerBytes = allocation(g, bannerSlot.tex);
     }
-    slots.clear(); byId.clear(); waiting.clear(); generation++;
+    slots.clear(); byId.clear(); waiting.clear(); retryAt.clear(); generation++;
     width = w; height = h; maxSlots = 64; slotBytes = peakPending = 0;
     SDL_LockMutex(worker.mu); worker.jobs.clear(); worker.results.clear(); SDL_UnlockMutex(worker.mu);
   }
-  const Slot* get(Worker& w, const std::string& id, uint64_t frame) {
+  const Slot* get(Worker& w, const std::string& id, uint64_t frame, bool banner = false) {
+    if (banner && bannerSlot.id == id) return &bannerSlot;
     auto it = byId.find(id);
     if (it != byId.end()) { Slot& s = slots[(size_t)it->second]; s.used = frame; return &s; }
+    auto failed = retryAt.find(id);
+    if (failed != retryAt.end()) {
+      if (SDL_GetTicks() < failed->second) return nullptr;
+      retryAt.erase(failed);
+    }
     if (!waiting.count(id) && waiting.size() < 24) {
-      Job j{2, id, generation}; j.w = width; j.h = height; w.add(j); waiting[id] = Result{};
+      Job j{2, id, generation}; j.w = banner ? bannerWidth : width; j.h = banner ? bannerHeight : height; w.add(j); waiting[id] = Result{};
     }
     return nullptr;
   }
@@ -196,19 +220,21 @@ struct Thumbs {
     for (auto it = waiting.begin(); it != waiting.end() && budget > 0;) {
       Result& r = it->second;
       if (r.kind != 2) { ++it; continue; }
-      if (r.rgba.empty() || r.w != width || r.h != height) { it = waiting.erase(it); continue; }
+      if (!r.rgba.empty() && r.w == bannerWidth && r.h == bannerHeight && bannerBytes) {
+        gfx::upload(g, bannerSlot.tex, r.rgba.data(), r.rgba.size());
+        bannerSlot.id = r.key; it = waiting.erase(it); budget--; continue;
+      }
+      if (r.rgba.empty() || r.w != width || r.h != height) {
+        if (retryAt.size() >= 64) retryAt.erase(retryAt.begin());
+        retryAt[r.key] = SDL_GetTicks() + 30000; it = waiting.erase(it); continue;
+      }
       int idx;
       if ((int)slots.size() < maxSlots) {
         slots.push_back({}); idx = (int)slots.size() - 1;
         slots[(size_t)idx].tex = gfx::makeImage(g, width, height, VK_FORMAT_R8G8B8A8_UNORM, true);
         if (!slotBytes) {
-          VkMemoryRequirements req; vkGetImageMemoryRequirements(g.dev, slots[(size_t)idx].tex.img, &req);
-          slotBytes = (size_t)req.size;
-#ifdef __XSDK__
-          // xsdk_gpu_alloc reserva páginas físicas de 64 KiB, além do requisito Vulkan.
-          slotBytes = (slotBytes + 65535u) & ~size_t(65535u);
-#endif
-          maxSlots = std::min(64, (int)(budgetBytes / slotBytes));
+          slotBytes = allocation(g, slots[(size_t)idx].tex);
+          maxSlots = std::min(64, (int)((budgetBytes - bannerBytes) / slotBytes));
           LOG("miniaturas %dx%d: RGBA %u, alocação %u bytes/vaga, limite %d vagas = %u bytes", width, height,
               (unsigned)(width * height * 4), (unsigned)slotBytes, maxSlots, (unsigned)(maxSlots * slotBytes));
         }
@@ -443,6 +469,8 @@ int main(int argc, char** argv) {
   thumbs.configure(g, thumbsWorker, settings.cols);
   std::vector<Shelf> cats;
   Shelf results; bool inResults = false; int cat = 0;
+  std::string accountLabel;
+  float accountWidth = 0;
   Account account; bool accountBusy = false, accountKnown = false, accountFailed = false;
   uint64_t accountAt = 0, nestInfoAt = 0, stamp = 0;
   auto requestFeed = [&](Shelf& shelf, int kind, bool fresh = false, int offset = 0, bool front = false) {
@@ -569,6 +597,13 @@ int main(int argc, char** argv) {
     size_t at = query.size() - 1;
     while (at > 0 && ((unsigned char)query[at] & 0xC0) == 0x80) at--;
     query.resize(at);
+  };
+  auto railPage = [&]() {
+    if (screen == NAV && !nav.pages.empty()) {
+      const auto& root = nav.pages.front();
+      return root.music ? 4 : root.kind == "subscriptions" ? 2 : root.kind == "library" ? 3 : root.kind == "search" ? 1 : 0;
+    }
+    return screen == SETTINGS ? 6 : screen == SEARCH || inResults ? 1 : 0;
   };
   auto openNav = [&](const std::string& kind, const std::string& id = "", const std::string& q = "", bool music = false) {
     if (screen != NAV) { navReturn = screen == SEARCH ? searchBack : screen; navReturnRail = railFocus; nav.pages.clear(); }
@@ -716,6 +751,8 @@ int main(int argc, char** argv) {
         Account next; bool ok = r.feed.error == K::None && next.parse(r.feed.title);
         if (ok) {
           bool changed = account.signedIn() != next.signedIn();
+          accountLabel = gfx::ellipsize(g, ui::F_SMALL, next.name, 160);
+          accountWidth = gfx::textWidth(g, ui::F_SMALL, accountLabel);
           account = next; accountKnown = true; accountFailed = false;
           if (changed) {
             rebuildCats(); scroll = 0;
@@ -840,6 +877,10 @@ int main(int argc, char** argv) {
     if (now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
     if (!accountBusy && now >= accountAt) requestAccount("/api/account");
     const char* keys[] = {tr(K::Keyboard1), tr(K::Keyboard2), tr(K::Keyboard3), tr(K::Keyboard4)};
+    bool behindLive = screen == PLAYER && pl.live && (pl.paused || (pl.shownFrames &&
+        (pl.liveDebt >= 1.0 || (pl.lastFrameMs && now > pl.lastFrameMs + 1000))));
+    int optionCount = behindLive ? PlayerUI::COUNT : PlayerUI::EDGE;
+    if (playerUI.selected >= optionCount) playerUI.selected = PlayerUI::CHANNEL;
     if (shutdownAt) {
       if (now >= shutdownAt) {
         if (powerDownXbox()) quit = true;
@@ -943,7 +984,7 @@ int main(int argc, char** argv) {
         nav.unsubscribe = false;
         nav.action(navWorker, "/api/nav/action?action=subscribe&id=" + nav.page().channelId + "&value=0&lang=" + i18n::code(settings.lang));
       }
-    } else if (screen == NAV && !nav.pages.empty()) {
+    } else if (screen == NAV && !railFocus && !nav.pages.empty()) {
       auto& p = nav.page(); uint64_t currentPage = p.stamp;
       bool channel = p.kind == "channel";
       bool playlist = p.kind == "playlist" || p.kind == "music_playlist" || p.kind == "album" || p.kind == "radio" || p.kind == "later";
@@ -951,7 +992,10 @@ int main(int argc, char** argv) {
       int count = (int)p.items.size();
       if (count) p.sel = std::clamp(p.sel, 0, count - 1);
       bool left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), up = in.hit(Input::UP), down = in.hit(Input::DOWN), a = in.hit(Input::A);
-      if (p.zone == 0) {
+      bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.sel % 4 == 0;
+      if (left && (p.zone == 0 || (p.zone == 1 && p.tabSel == 0) || (p.zone == 2 && p.channelSel == 0) || (p.zone == 3 && firstColumn))) {
+        railFocus = true; railSel = railPage();
+      } else if (p.zone == 0) {
         if (down) p.zone = tabs ? 1 : !p.channels.empty() ? 2 : 3;
         if (a && !p.loading && !nav.busy) {
           if (channel) {
@@ -980,10 +1024,20 @@ int main(int argc, char** argv) {
         if (down) p.zone = 3;
         if (a && !p.channels.empty()) { const auto id = p.channels[(size_t)p.channelSel].id; openNav("channel", id); }
       } else {
-        if (left && p.sel % 4 > 0) p.sel--;
-        if (right && p.sel % 4 < 3 && p.sel + 1 < count) p.sel++;
-        if (up) { if (p.sel >= 4) p.sel -= 4; else p.zone = !p.channels.empty() ? 2 : tabs ? 1 : channel || playlist ? 0 : 3; }
-        if (down) { if (p.sel + 4 < count) p.sel += 4; else if (count) p.sel = count - 1; }
+        if (p.musicHome() && !p.shelves.empty()) {
+          auto& shelf = p.shelves[p.shelf];
+          if (left && p.sel > shelf.first) shelf.selected--;
+          if (right && p.sel + 1 < shelf.end) shelf.selected++;
+          if (up && p.shelf == 0) p.zone = 1;
+          else if (up) p.shelf--;
+          if (down && p.shelf + 1 < (int)p.shelves.size()) p.shelf++;
+          p.sel = p.shelves[p.shelf].selected;
+        } else {
+          if (left && p.sel % 4 > 0) p.sel--;
+          if (right && p.sel % 4 < 3 && p.sel + 1 < count) p.sel++;
+          if (up) { if (p.sel >= 4) p.sel -= 4; else p.zone = !p.channels.empty() ? 2 : tabs ? 1 : channel || playlist ? 0 : 3; }
+          if (down) { if (p.sel + 4 < count) p.sel += 4; else if (count) p.sel = count - 1; }
+        }
         if (a && count) {
           const auto item = p.items[(size_t)p.sel];
           if (item.type == "video") {
@@ -994,7 +1048,11 @@ int main(int argc, char** argv) {
           else openNav(item.type == "playlist" && p.music ? "music_playlist" : item.type, item.id, "", p.music);
         }
         if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::START) && count && p.items[(size_t)p.sel].type == "video") { nav.menuItem = p.items[(size_t)p.sel]; nav.menuSel = 0; nav.menu = true; }
-        if (screen == NAV && nav.page().stamp == currentPage && count && p.sel >= count - 8 && p.more && !p.loading) nav.load(navWorker, settings.lang, false, true);
+      }
+      if (screen == NAV && nav.page().stamp == currentPage && p.more && !p.loading) {
+        bool needPage = p.sel >= count - 8 || (p.zone == 2 && p.channelSel >= (int)p.channels.size() - 4);
+        if (p.musicHome()) needPage |= p.shelf + 3 >= (int)p.shelves.size();
+        if (needPage) nav.load(navWorker, settings.lang, false, true);
       }
       if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::X)) { nav.page().sel = 0; nav.page().scroll = 0; nav.load(navWorker, settings.lang, true); }
       if (in.hit(Input::Y)) openSearch();
@@ -1037,13 +1095,14 @@ int main(int argc, char** argv) {
         if (changed) saveSettings();
       }
       if (in.hit(Input::B)) { screen = HOME; railFocus = true; railSel = 6; }
-    } else if (screen == HOME && railFocus) {
+    } else if ((screen == HOME || screen == NAV || screen == SEARCH) && railFocus) {
       if (in.hit(Input::UP) && railSel > 0) railSel--;
       if (in.hit(Input::DOWN) && railSel < 7) railSel++;
       if (in.hit(Input::RIGHT) || in.hit(Input::B)) railFocus = false;
       if (in.hit(Input::A)) {
+        if (screen != HOME && railSel >= 2 && railSel <= 4) { goHome(); railFocus = true; }
         if (railSel == 0) goHome();
-        else if (railSel == 1) openSearch();
+        else if (railSel == 1) { if (screen == SEARCH) railFocus = false; else openSearch(); }
         else if (railSel == 2) openNav("subscriptions");
         else if (railSel == 3) openNav("library");
         else if (railSel == 4) openNav("music", "", "", true);
@@ -1095,7 +1154,7 @@ int main(int argc, char** argv) {
         int cols = keyRow < 4 ? 10 : 3;
         if (in.hit(Input::UP) && keyRow > 0) { if (keyRow == 4) keyCol = keyCol * 3 + 1; keyRow--; }
         if (in.hit(Input::DOWN) && keyRow < 4) { keyRow++; if (keyRow == 4) keyCol = std::min(2, keyCol / 4); }
-        if (in.hit(Input::LEFT)) { if (keyCol > 0) keyCol--; else { screen = searchBack; railFocus = screen == HOME; railSel = 1; } }
+        if (in.hit(Input::LEFT)) { if (keyCol > 0) keyCol--; else { railFocus = true; railSel = 1; } }
         if (in.hit(Input::RIGHT)) { if (keyCol + 1 < cols) keyCol++; else if (!recent.empty()) { keyInRecent = true; recentSel = 0; } }
         if (in.hit(Input::A)) {
           if (keyRow < 4) {
@@ -1136,7 +1195,7 @@ int main(int argc, char** argv) {
       int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
       int vertical = in.hit(Input::UP) ? 1 : in.hit(Input::DOWN) ? -1 : 0;
       double jump = 0;
-      if (horizontal || vertical) { jump = playerUI.direction(now, horizontal, vertical) * 10; any = true; }
+      if (horizontal || vertical) { jump = playerUI.direction(now, horizontal, vertical, optionCount) * 10; any = true; }
       if (in.hit(Input::LB)) jump = -60;
       if (in.hit(Input::RB)) jump = 60;
       if (jump != 0) {
@@ -1165,6 +1224,8 @@ int main(int argc, char** argv) {
           playerUI.panel = PlayerUI::QUALITY; playerUI.panelSel = quality == 720 ? 0 : quality == 480 ? 1 : 2;
         } else if (playerUI.selected == PlayerUI::AUDIO) {
           playerUI.panel = PlayerUI::SOUND; playerUI.panelSel = pl.nest ? 1 : 0;
+        } else if (playerUI.selected == PlayerUI::EDGE) {
+          LOG("live: retorno manual à borda"); resumeLive();
         } else openPlayerChannel(captions.channelId, playing.id);
         any = true;
       }
@@ -1245,7 +1306,8 @@ int main(int argc, char** argv) {
     railOpen += ((railFocus ? 1.f : 0.f) - railOpen) * 0.25f;
 
     // ---------------------------------------------------------------- quadro do vídeo
-    thumbs.configure(g, thumbsWorker, settings.cols, screen == PLAYER && nav.musicNow);
+    thumbs.configure(g, thumbsWorker, settings.cols, screen == PLAYER && nav.musicNow,
+                     screen == NAV && !nav.pages.empty() && !nav.page().banner.empty());
     gfx::begin(g);
     gfx::rect(g, 0, 0, ui::W, ui::H, ui::BG);
     if (screen == PLAYER) {
@@ -1333,7 +1395,14 @@ int main(int argc, char** argv) {
           pill(std::string(tr(K::SleepTimer)) + " · " + value, ui::A1);
         }
         if (!castWho.empty()) pill(tr(K::PhonePrefix) + castWho, rgb(0x34c759));
-        if (account.signedIn()) pill(tr(K::AccountPrefix) + account.name, ui::A2);
+        if (account.signedIn()) {
+          float x = std::max(360.f, pillRight - accountWidth - 46);
+          if (x + 36 <= pillRight) {
+            Navigation::artwork(g, thumbs, thumbsWorker, account.avatar, frame, x, 24, 36, 36, true, true);
+            if (account.avatar.empty()) icon(g, 7, x + 18, 42, ui::MUTED, ui::SURFACE2);
+            if (x + 46 + accountWidth <= pillRight + 1) gfx::text(g, ui::F_SMALL, accountLabel, x + 46, 32, ui::TEXT);
+          }
+        }
         float hx3 = hint(g, lx, 32, "X", XX, tr(K::Refresh));
         float hx4 = hint(g, hx3, 32, "Y", XY, tr(K::Search));
         hint(g, hx4, 32, "Menu", XG, tr(K::MoreOptions));
@@ -1463,7 +1532,7 @@ int main(int argc, char** argv) {
       hint(g, hx, 678, "B", XB, tr(K::Back));
     }
 
-    if (screen == NAV) nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang);
+    if (screen == NAV) nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus);
 
     if (screen == HOME || screen == SEARCH || screen == SETTINGS || screen == NAV) {
       // barra lateral: ícones; com foco, abre com os nomes
@@ -1473,7 +1542,7 @@ int main(int argc, char** argv) {
         gfx::hgrad(g, rw - 1, 0, 200, ui::H, ui::alpha(ui::BG, 0.96f * railOpen), ui::alpha(ui::BG, 0));
       }
       const char* names[] = {tr(K::Home), tr(K::Search), tr(K::Subscriptions), tr(K::Library), tr(K::Music), tr(K::Phone), tr(K::Settings), tr(K::Exit)};
-      int page = screen == SETTINGS ? 6 : screen == SEARCH || inResults ? 1 : screen == NAV && !nav.pages.empty() ? nav.page().music ? 4 : nav.pages.front().kind == "subscriptions" ? 2 : nav.pages.front().kind == "library" ? 3 : 0 : 0;
+      int page = railPage();
       for (int i = 0; i < 8; i++) {
         float y = 142 + i * 68;
         bool f = railFocus && railSel == i, act = i == page;
@@ -1530,8 +1599,8 @@ int main(int argc, char** argv) {
         if (trackFocus) gfx::rect(g, bx + bw * frac - 13, by - 10, 26, 26, ui::alpha(ui::A2, 0.4f), 13);
         gfx::rect(g, bx + bw * frac - 7, by - 4, 14, 14, trackFocus ? ui::TEXT : ui::A2, 7);
         if (live) {
-          gfx::rect(g, bx, by + 22, 9, 9, ui::A1, 4.5f);
-          gfx::text(g, ui::F_SMALL, tr(K::Live), bx + 19, by + 17, ui::TEXT);
+          gfx::rect(g, bx, by + 22, 9, 9, behindLive ? ui::MUTED : ui::A1, 4.5f);
+          gfx::text(g, ui::F_SMALL, tr(K::Live), bx + 19, by + 17, behindLive ? ui::MUTED : ui::A1);
         } else {
           gfx::text(g, ui::F_SMALL, fmtTime(pos), bx, by + 17, ui::TEXT);
           if (dur > 0) gfx::text(g, ui::F_SMALL, fmtTime(dur), bx + bw, by + 17, ui::MUTED, 2);
@@ -1539,9 +1608,9 @@ int main(int argc, char** argv) {
           for (const auto& c : captions.chapters) if (c.start <= pos) chapter = &c;
           if (chapter) gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, chapter->title, 800), ui::W / 2, by + 17, ui::TEXT, 1);
         }
-        const K labels[] = {K::Captions, K::PlayerQuality, K::Sound, K::SleepTimer, K::Rate, K::PlayerChannel};
-        float optionW = (bw - 5 * 12) / 6;
-        for (int i = 0; i < PlayerUI::COUNT; i++) {
+        const K labels[] = {K::Captions, K::PlayerQuality, K::Sound, K::SleepTimer, K::Rate, K::PlayerChannel, K::ChannelLive};
+        float optionW = (bw - (optionCount - 1) * 12) / optionCount;
+        for (int i = 0; i < optionCount; i++) {
           float ox = bx + i * (optionW + 12), oy = 518;
           bool focused = playerUI.options && playerUI.selected == i;
           bool disabled = i == PlayerUI::CC && !captionLoader.loading && !captions.failed && (captions.live || captions.tracks.empty());
@@ -1556,7 +1625,7 @@ int main(int argc, char** argv) {
           else if (i == PlayerUI::AUDIO) value = pl.nest ? nestName.c_str() : tr(K::TV);
           else if (i == PlayerUI::TIMER) value = tr(sleep.active ? K::PlayerTimerOn : K::SleepOff);
           else if (i == PlayerUI::RATE) value = tr(likeState == "LIKE" ? K::Liked : likeState == "DISLIKE" ? K::Disliked : K::Open);
-          else value = tr(K::Open);
+          else value = tr(i == PlayerUI::EDGE ? K::GoLive : K::Open);
           auto& detail = optionValues[i]; detail.update(g, ui::F_TINY, value, optionW - 20);
           gfx::text(g, ui::F_TINY, detail.text, ox + (optionW - detail.width) / 2, oy + 35, focused ? ui::A2 : ui::MUTED);
         }
@@ -1791,7 +1860,8 @@ int main(int argc, char** argv) {
     gfx::end(g, shoot ? shotPath : nullptr);
     if (shoot) {
       LOG("captura: frame %llu, tempo %llu ms, tela %d, vídeo %s, posição %.2f", (unsigned long long)frame, (unsigned long long)(now - runStart), (int)screen, playing.id.c_str(), pl.position());
-      if (screen == NAV && !nav.pages.empty()) LOG("captura navegação: %s sel=%d canal=%d zona=%d pilha=%u", nav.page().kind.c_str(), nav.page().sel, nav.page().channelSel, nav.page().zone, (unsigned)nav.pages.size());
+      if (screen == NAV && !nav.pages.empty()) LOG("captura navegação: %s sel=%d canal=%d zona=%d pilha=%u menu=%d prateleira=%d",
+          nav.page().kind.c_str(), nav.page().sel, nav.page().channelSel, nav.page().zone, (unsigned)nav.pages.size(), railFocus, nav.page().shelf);
       quit = true;
     }
     frame++;
@@ -1812,7 +1882,7 @@ int main(int argc, char** argv) {
   for (auto* th : tw) SDL_WaitThread(th, nullptr);
   SDL_WaitThread(rt, nullptr);
   vkDeviceWaitIdle(g.dev);
-  LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes), (unsigned)thumbs.peakPending);
+  LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes + thumbs.bannerBytes), (unsigned)thumbs.peakPending);
   LOG("%s saindo", brandName.c_str());
   SDL_Quit();
   return 0;

@@ -341,8 +341,8 @@ inline void rect(Gfx& g, float x, float y, float w, float h, Color c, float radi
 inline void shadow(Gfx& g, float x, float y, float w, float h, float radius, float blur, float alpha) {
   rect(g, x, y, w, h, {0, 0, 0, alpha}, radius, blur);
 }
-inline void image(Gfx& g, const Tex& t, float x, float y, float w, float h, float radius = 0, Color tint = {1, 1, 1, 1}) {
-  float p[4] = {w, h, radius, 1};
+inline void image(Gfx& g, const Tex& t, float x, float y, float w, float h, float radius = 0, Color tint = {1, 1, 1, 1}, float cropX = 1) {
+  float p[4] = {w, h, radius, cropX};
   quad(g, IMAGE, t.set, p, x, y, w, h, tint);
 }
 // Recorte (u0,v0)-(u1,v1) de uma textura, sem cantos arredondados (ícones do atlas).

@@ -211,6 +211,7 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(MusicIntro, "Your next favourite sound.", "Seu próximo som favorito.") \
   X(QueueLimit, "Playlists play up to 256 tracks.", "As playlists tocam até 256 faixas.") \
   X(SubscribeConfirm, "Unsubscribe from this channel?", "Cancelar a inscrição neste canal?") \
+  X(GoLive, "Jump to live", "Ir para o ao vivo") \
   X(ChannelLive, "Live", "Ao vivo") \
   X(MusicSpeakerFallback, "Speaker did not respond: sound on the TV.", "A caixa não respondeu: som na TV.") \
   X(BtnA, "A", "A") X(BtnB, "B", "B") X(BtnX, "X", "X") X(BtnY, "Y", "Y") \

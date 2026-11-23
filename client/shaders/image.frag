@@ -15,6 +15,6 @@ void main() {
   vec2 q = abs(p) - (size * 0.5 - vec2(r));
   float d = length(max(q, vec2(0.0))) + min(max(q.x, q.y), 0.0) - r;
   float inside = clamp(0.5 - d, 0.0, 1.0);
-  vec4 c = texture(tex, vUv) * vColor;
+  vec4 c = texture(tex, vec2(0.5 + (vUv.x - 0.5) * draw.params.w, vUv.y)) * vColor;
   outColor = vec4(c.rgb, c.a * inside);
 }
