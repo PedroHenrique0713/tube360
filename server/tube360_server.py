@@ -1207,7 +1207,14 @@ async def navigation_transport(request: Request, action: Literal["next", "stop",
         remote.commands = deque(c for c in remote.commands if c["action"] not in ("play", "next", "stop", "pause", "resume", "seek"))
     if len(remote.commands) >= 256:
         raise HTTPException(429, "Queue full.")
-    if action != "clear":
+    if action == "next":
+        # Um play pendente impede que o mesmo poll acrescente outro avanço pelo fim natural.
+        if remote.queue:
+            item = remote.queue.popleft()
+            remote.commands.append({"action": "play", "id": item["id"], "t": item.get("t", 0), "at": time.monotonic()})
+        else:
+            remote.commands.append({"action": "stop", "at": time.monotonic()})
+    elif action != "clear":
         remote.commands.append({"action": action, "at": time.monotonic()})
     return PlainTextResponse("ok\n", headers={"Cache-Control": "no-store"})
 
