@@ -663,6 +663,8 @@ int main(int argc, char** argv) {
     std::fclose(f);
   }
 
+  Screen loggedScreen = HOME;
+  const char* screenNames[] = {"Home", "Busca", "Player", "Ajustes", "Navegacao"};
   while (!quit) {
     uint64_t now = SDL_GetTicks();
     SDL_Event e;
@@ -1303,6 +1305,10 @@ int main(int argc, char** argv) {
         if (!playerFromRemote && !upNext.id.empty() && !(sleep.active && sleep.end)) nextAt = now + 8000;
         else stopVideo();
       } else if (nextAt && now >= nextAt) { Video v = upNext; startVideo(v, 0, false); }
+    }
+    if (screen != loggedScreen) {
+      LOG("navegacao: %s -> %s", screenNames[loggedScreen], screenNames[screen]);
+      loggedScreen = screen;
     }
     in.clear();
     Shelf& cur = inResults ? results : cats[(size_t)cat];
