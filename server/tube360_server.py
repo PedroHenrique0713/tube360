@@ -2446,6 +2446,10 @@ async def nest_command(what: Literal["pause", "resume", "stop"], sid: int | None
 
 @app.post("/api/remote/cmd")
 async def command(cmd: Command):
+    global nav_queue_serial
+    if cmd.action in ("play", "stop"):
+        # O celular assumiu: uma playlist da navegação que ainda carrega não pode tocar por cima depois
+        nav_queue_serial += 1
     if cmd.action in ("play", "queue"):
         valid_id(cmd.id or "")
     if cmd.action == "seek" and cmd.t is None and cmd.delta is None:
