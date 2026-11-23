@@ -291,10 +291,10 @@ def unplayable_reason(error):
     return None
 
 
-def source_status(info, source):
+def source_status(info, source, timeout=8):
     headers = info["headers"] | source.get("http_headers", {}) | {"Range": "bytes=0-1"}
     try:
-        with urlopen(URLRequest(source["url"], headers=headers), timeout=8) as response:
+        with urlopen(URLRequest(source["url"], headers=headers), timeout=timeout) as response:
             return response.status
     except HTTPError as error:
         return error.code
@@ -388,8 +388,11 @@ async def resolve_video(video_id):
             # mesmo cliente volta recusado: refaz a extração sem ele.
             sources = [video] if video["url"] == audio["url"] else [video, audio]
             hd = hd_source(data, video)
-            probes = sources + ([hd] if hd else [])
-            statuses = await asyncio.gather(*(asyncio.to_thread(source_status, result, s) for s in probes))
+            probes = [asyncio.to_thread(source_status, result, source) for source in sources]
+            if hd:
+                # A fonte maior é opcional: uma CDN lenta não deve reter a reserva pronta por oito segundos.
+                probes.append(asyncio.to_thread(source_status, result, hd, timeout=2))
+            statuses = await asyncio.gather(*probes)
             if hd and statuses[-1] in (200, 206):
                 result["video_hd"] = hd
             refused = [parse_qs(urlparse(s["url"]).query).get("c", [None])[0]
