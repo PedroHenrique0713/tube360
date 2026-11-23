@@ -291,18 +291,30 @@ def unplayable_reason(error):
     return None
 
 
-def source_refused(info, source):
-    """Nome do cliente da API (parâmetro `c` da URL) quando a origem responde 403 a este link."""
+def source_status(info, source):
     headers = info["headers"] | source.get("http_headers", {}) | {"Range": "bytes=0-1"}
     try:
-        with urlopen(URLRequest(source["url"], headers=headers), timeout=8):
-            return None
+        with urlopen(URLRequest(source["url"], headers=headers), timeout=8) as response:
+            return response.status
     except HTTPError as error:
-        if error.code != 403:
-            return None
+        return error.code
     except OSError:
         return None
-    return parse_qs(urlparse(source["url"]).query).get("c", [None])[0]
+
+
+def hd_source(data, video):
+    # O yt-dlp já ordenou os formatos por preferência. A live precisa do seu segmento HLS com áudio.
+    if data.get("live_status") == "is_live":
+        return None
+    for fmt in reversed(data.get("formats") or []):
+        height, width = fmt.get("height") or 0, fmt.get("width") or 0
+        if (fmt.get("protocol") == "https" and (fmt.get("vcodec") or "").startswith("avc1")
+                and not fmt.get("has_drm") and fmt.get("dynamic_range") in (None, "SDR")
+                and 0 < (fmt.get("fps") or 0) <= 30
+                and (video.get("height") or 0) < height <= 1080 and 0 < width <= 1920
+                and (width > 1280 or height > 720)):
+            return fmt
+    return None
 
 
 def clients_named(api_name):
@@ -331,7 +343,7 @@ async def resolve_video(video_id):
         skip = clients_to_skip()
         for attempt in range(3):
             try:
-                # A mesma resolução (até 720p) atende todas as qualidades e buscas temporais.
+                # Esse formato também serve de reserva quando a fonte de 1080p não abre.
                 data = await extract_video(
                     f"https://www.youtube.com/watch?v={video_id}", skip_clients=skip,
                     # H.264 antes: abrir AV1 custa o dobro de CPU (720p, medido num núcleo: 49% contra 26%).
@@ -375,7 +387,13 @@ async def resolve_video(video_id):
             # O YouTube às vezes recusa (403) todos os links de um cliente (tv_samsung, 2026-11-22), e o link novo do
             # mesmo cliente volta recusado: refaz a extração sem ele.
             sources = [video] if video["url"] == audio["url"] else [video, audio]
-            refused = await asyncio.gather(*(asyncio.to_thread(source_refused, result, s) for s in sources))
+            hd = hd_source(data, video)
+            probes = sources + ([hd] if hd else [])
+            statuses = await asyncio.gather(*(asyncio.to_thread(source_status, result, s) for s in probes))
+            if hd and statuses[-1] in (200, 206):
+                result["video_hd"] = hd
+            refused = [parse_qs(urlparse(s["url"]).query).get("c", [None])[0]
+                       for s, status in zip(sources, statuses) if status == 403]
             new = sorted({name for api_name in refused if api_name for name in clients_named(api_name)} - set(skip))
             if not new or attempt == 2:
                 break
@@ -411,34 +429,37 @@ def audio_command(info, start):
             *source_args(info, info["audio"], start), *mp3_output("0:a:0", "pipe:1")]
 
 
+def video_encode_args(quality):
+    width, height, bitrate = SIZES[quality]
+    # Fontes de 50/60 fps: descartar os quadros antes da escala poupa trabalho no notebook.
+    filters = (f"fps=30,scale={width}:{height}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
+               f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black,setsar=1,setpts=PTS-STARTPTS")
+    return ["-vf", filters, "-c:v", "mpeg1video", "-b:v", bitrate, "-maxrate", bitrate, "-bufsize", "2048k",
+            "-g", "30" if quality == 720 else "15", "-bf", "2", "-pix_fmt", "yuv420p", "-threads", "4"]
+
+
 def ffmpeg_command(info, start, quality, with_audio=True, mp3=None):
     """`mp3`: arquivo onde o mesmo ffmpeg grava o som do Nest (só na live; ver stream)."""
-    width, height, bitrate = SIZES[quality]
+    video = info.get("video_hd", info["video"]) if quality == 720 else info["video"]
     cmd = [FFMPEG, "-hide_banner", "-nostdin", "-loglevel", "repeat+error"]
-    separate = info["video"]["url"] != info["audio"]["url"]
+    separate = video["url"] != info["audio"]["url"]
     if not with_audio:
-        cmd += source_args(info, info["video"], start)
+        cmd += source_args(info, video, start)
         if mp3 and separate:
             cmd += source_args(info, info["audio"], start)
         cmd += ["-map", "0:v:0", "-an",
-                "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
-                         f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black,setsar=1,fps=30,setpts=PTS-STARTPTS",
-                "-c:v", "mpeg1video", "-b:v", bitrate, "-maxrate", bitrate, "-bufsize", "2048k",
-                "-g", "15", "-bf", "2", "-pix_fmt", "yuv420p", "-threads", "4",
+                *video_encode_args(quality),
                 "-avoid_negative_ts", "disabled", "-muxdelay", "0.2", "-muxpreload", "0",
                 "-preload", "0", "-packetsize", "2048", "-flush_packets", "1", "-f", "mpeg", "pipe:1"]
         if mp3:
             cmd += ["-y", *mp3_output("1:a:0" if separate else "0:a:0", str(mp3))]
         return cmd
-    for source in ([info["video"], info["audio"]] if separate else [info["video"]]):
+    for source in ([video, info["audio"]] if separate else [video]):
         cmd += source_args(info, source, start)
     cmd += ["-map", "0:v:0", "-map", "1:a:0" if separate else "0:a:0",
-            "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease:force_divisible_by=2,"
-                     f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2:black,setsar=1,fps=30,setpts=PTS-STARTPTS",
+            *video_encode_args(quality),
             # O encoder MP2 tem 481 amostras de atraso; compensar mantém seu PTS inicial em zero.
             "-af", "aresample=44100,asetpts=PTS-STARTPTS+481/44100/TB",
-            "-c:v", "mpeg1video", "-b:v", bitrate, "-maxrate", bitrate, "-bufsize", "2048k",
-            "-g", "15", "-bf", "2", "-pix_fmt", "yuv420p", "-threads", "4",
             "-c:a", "mp2", "-ar", "44100", "-ac", "2", "-b:a", "192k",
             # Sem a correção automática, o muxer não soma ~0,53 s aos timestamps.
             # DTS negativo do primeiro quadro é normal com B-frames; PTS começa em zero.
