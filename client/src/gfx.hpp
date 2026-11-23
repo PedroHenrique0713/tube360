@@ -51,6 +51,8 @@ struct Video {
   Tex y, cb, cr; VkDescriptorSet set = VK_NULL_HANDLE; Buf staging[2]; int w = 0, h = 0; bool ready = false;
   bool bt709 = false, fullRange = false;
   bool pending[2] = {false, false};
+  double pts = 0;
+  uint64_t copiedNs = 0;
 };
 
 struct Gfx {
@@ -65,8 +67,15 @@ struct Gfx {
   std::vector<Vtx> verts; std::vector<Cmd> cmds;
   Tex white, atlas; std::vector<Font> fonts;
   Video* video = nullptr;
+  float videoFilter[2] = {};
   SDL_Window* win = nullptr;
   float clip[4] = {-1e9f, -1e9f, 1e9f, 1e9f};
+  int videoMetrics = 0;
+  VkQueryPool videoQueries = VK_NULL_HANDLE;
+  double timestampNs = 0;
+  uint64_t timestampMask = UINT64_MAX;
+  struct VideoSample { bool pending = false; double pts = 0, copyMs = 0; int w = 0, h = 0; } samples[2];
+  uint64_t uploadAt = 0, uploadCount = 0, uploadBytes = 0, uploadNs = 0, uploadMaxNs = 0, submitNs = 0, presentNs = 0;
 };
 
 inline uint32_t memType(Gfx& g, uint32_t bits, VkMemoryPropertyFlags want) {
@@ -406,6 +415,9 @@ inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 
   float p[4] = {(hd ? 1.5748f : 1.402f) * c, (hd ? 1.8556f : 1.772f) * c,
                 full ? 1.f : 255.f / 219.f, full ? 0.f : 16.f / 255.f};
   // Os dois coeficientes do verde usam a cor constante dos vértices. A matriz já chega pronta ao Xenos.
+  // Quatro amostras bilineares só na luma ao reduzir; a crominância 4:2:0 já tem resolução menor que a saída.
+  g.videoFilter[0] = g.video->w > w + 1 ? .375f / g.video->w : 0;
+  g.videoFilter[1] = g.video->h > h + 1 ? .375f / g.video->h : 0;
   quad(g, VIDEO, g.video->set, p, x, y, w, h, {(hd ? .187324f : .344136f) * c, (hd ? .468124f : .714136f) * c, 0, alpha});
 }
 
@@ -432,6 +444,16 @@ inline void videoDestroy(Gfx& g, Video& v) {
 // Ponteiro para o staging do quadro da vez: o app escreve Y, Cb e Cr colados e chama videoCommit.
 inline uint8_t* videoStaging(Gfx& g, Video& v) { return (uint8_t*)v.staging[g.fi].map; }
 inline void videoCommit(Gfx& g, Video& v) { v.pending[g.fi] = true; v.ready = true; }
+inline void videoUpload(Gfx& g, Video& v, const void* bytes, size_t size, double pts) {
+  uint64_t began = SDL_GetTicksNS();
+  std::memcpy(videoStaging(g,v), bytes, size);
+  v.copiedNs = SDL_GetTicksNS() - began; v.pts = pts;
+  ++g.uploadCount; g.uploadBytes += size; g.uploadNs += v.copiedNs; g.uploadMaxNs = std::max(g.uploadMaxNs,v.copiedNs);
+  uint64_t now = SDL_GetTicks();
+  if (!g.uploadAt) g.uploadAt = now;
+  if (g.videoMetrics) LOG("upload-quadro: pts %.6f, %dx%d, %u bytes, staging %.3f ms",pts,v.w,v.h,(unsigned)size,v.copiedNs / 1e6);
+  videoCommit(g,v);
+}
 
 // ---------------------------------------------------------------- setup e quadro
 inline void makeSwapchain(Gfx& g, int w, int h) {
@@ -493,6 +515,15 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   const char* devExt[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   VkDeviceCreateInfo dci{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO}; dci.queueCreateInfoCount = 1; dci.pQueueCreateInfos = &qi; dci.enabledExtensionCount = 1; dci.ppEnabledExtensionNames = devExt;
   VK(vkCreateDevice(g.phys, &dci, nullptr, &g.dev)); vkGetDeviceQueue(g.dev, g.family, 0, &g.queue);
+  if (g.videoMetrics >= 2 && fams[g.family].timestampValidBits) {
+    VkPhysicalDeviceProperties props{}; vkGetPhysicalDeviceProperties(g.phys,&props);
+    g.timestampNs = props.limits.timestampPeriod;
+    unsigned bits = fams[g.family].timestampValidBits;
+    g.timestampMask = bits >= 64 ? UINT64_MAX : (uint64_t(1) << bits) - 1;
+    VkQueryPoolCreateInfo q{VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO}; q.queryType = VK_QUERY_TYPE_TIMESTAMP; q.queryCount = 6;
+    if (vkCreateQueryPool(g.dev,&q,nullptr,&g.videoQueries) != VK_SUCCESS) g.videoQueries = VK_NULL_HANDLE;
+    LOG("sonda GPU: %s, periodo %.3f ns; comparar com sonda desligada",g.videoQueries ? "ativa" : "indisponivel",g.timestampNs);
+  }
   makeSwapchain(g, W, H);
   LOG("tela %ux%u", g.extent.width, g.extent.height);
   VkDescriptorSetLayoutBinding tb{0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr};
@@ -504,7 +535,7 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   VkPushConstantRange pcr{VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 32};
   VkPipelineLayoutCreateInfo pl{VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO}; pl.setLayoutCount = 1; pl.pSetLayouts = &g.texLayout; pl.pushConstantRangeCount = 1; pl.pPushConstantRanges = &pcr;
   VK(vkCreatePipelineLayout(g.dev, &pl, nullptr, &g.texPL));
-  pl.pSetLayouts = &g.vidLayout; VK(vkCreatePipelineLayout(g.dev, &pl, nullptr, &g.vidPL));
+  pcr.size = 48; pl.pSetLayouts = &g.vidLayout; VK(vkCreatePipelineLayout(g.dev, &pl, nullptr, &g.vidPL));
   VkDescriptorPoolSize ps{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 600};
   VkDescriptorPoolCreateInfo dp{VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO}; dp.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT; dp.maxSets = 300; dp.poolSizeCount = 1; dp.pPoolSizes = &ps;
   VK(vkCreateDescriptorPool(g.dev, &dp, nullptr, &g.pool));
@@ -527,7 +558,17 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
 }
 
 inline void begin(Gfx& g) {
+  uint64_t began = SDL_GetTicksNS();
   VK(vkWaitForFences(g.dev, 1, &g.fences[g.fi], VK_TRUE, UINT64_MAX));
+  auto& sample = g.samples[g.fi];
+  if (sample.pending) {
+    uint64_t stamps[3]{};
+    if (vkGetQueryPoolResults(g.dev,g.videoQueries,g.fi * 3,3,sizeof(stamps),stamps,sizeof(uint64_t),VK_QUERY_RESULT_64_BIT) == VK_SUCCESS)
+      LOG("gpu-quadro: pts %.6f, %dx%d, upload %.3f ms, desenho %.3f ms, total %.3f ms, espera-fence %.3f ms",sample.pts,sample.w,sample.h,
+          ((stamps[1]-stamps[0]) & g.timestampMask) * g.timestampNs / 1e6,((stamps[2]-stamps[1]) & g.timestampMask) * g.timestampNs / 1e6,
+          ((stamps[2]-stamps[0]) & g.timestampMask) * g.timestampNs / 1e6,(SDL_GetTicksNS()-began) / 1e6);
+    sample.pending = false;
+  }
   g.verts.clear(); g.cmds.clear();
 }
 
@@ -538,6 +579,14 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
   VkCommandBuffer c = g.cbs[g.fi];
   VK(vkResetCommandBuffer(c, 0));
   VkCommandBufferBeginInfo bi{VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO}; VK(vkBeginCommandBuffer(c, &bi));
+  bool uploaded = g.video && g.video->pending[g.fi];
+  bool measure = g.videoQueries && uploaded;
+  uint32_t query = g.fi * 3;
+  if (measure) {
+    vkCmdResetQueryPool(c,g.videoQueries,query,3);
+    vkCmdWriteTimestamp(c,VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,g.videoQueries,query);
+    g.samples[g.fi] = {true,g.video->pts,g.video->copiedNs / 1e6,g.video->w,g.video->h};
+  }
   if (g.video && g.video->pending[g.fi]) {
     Video& v = *g.video; v.pending[g.fi] = false;
     VkDeviceSize off = 0;
@@ -549,6 +598,7 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
       off += (VkDeviceSize)t->w * t->h;
     }
   }
+  if (measure) vkCmdWriteTimestamp(c,VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,g.videoQueries,query+1);
   if (!g.verts.empty()) std::memcpy(g.vbuf[g.fi].map, g.verts.data(), g.verts.size() * sizeof(Vtx));
   VkClearValue clear{}; clear.color = {{0.055f, 0.055f, 0.063f, 1}};
   VkRenderPassBeginInfo rb{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO}; rb.renderPass = g.pass; rb.framebuffer = g.fbs[g.img]; rb.renderArea = {{0, 0}, g.extent}; rb.clearValueCount = 1; rb.pClearValues = &clear;
@@ -561,11 +611,12 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
     VkPipelineLayout layout = cmd.pipe == VIDEO ? g.vidPL : g.texPL;
     if ((int)cmd.pipe != bound) { vkCmdBindPipeline(c, VK_PIPELINE_BIND_POINT_GRAPHICS, g.pipes[cmd.pipe]); bound = (int)cmd.pipe; boundSet = VK_NULL_HANDLE; }
     if (cmd.set != boundSet) { vkCmdBindDescriptorSets(c, VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, 1, &cmd.set, 0, nullptr); boundSet = cmd.set; }
-    float pc[8] = {screen[0], screen[1], screen[2], screen[3], cmd.params[0], cmd.params[1], cmd.params[2], cmd.params[3]};
-    vkCmdPushConstants(c, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, 32, pc);
+    float pc[12] = {screen[0], screen[1], screen[2], screen[3], cmd.params[0], cmd.params[1], cmd.params[2], cmd.params[3],g.videoFilter[0],g.videoFilter[1],0,0};
+    vkCmdPushConstants(c, layout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, cmd.pipe == VIDEO ? 48 : 32, pc);
     vkCmdDraw(c, cmd.count, 1, cmd.first, 0);
   }
   vkCmdEndRenderPass(c);
+  if (measure) vkCmdWriteTimestamp(c,VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,g.videoQueries,query+2);
   Buf shot;
   if (shotPath && g.readback) {
     shot = makeBuf(g, (VkDeviceSize)g.extent.width * g.extent.height * 4, VK_BUFFER_USAGE_TRANSFER_DST_BIT);
@@ -578,9 +629,23 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
   VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
   VkSubmitInfo si{VK_STRUCTURE_TYPE_SUBMIT_INFO}; si.waitSemaphoreCount = 1; si.pWaitSemaphores = &g.acqs[g.fi]; si.pWaitDstStageMask = &waitStage;
   si.commandBufferCount = 1; si.pCommandBuffers = &c; si.signalSemaphoreCount = 1; si.pSignalSemaphores = &g.rends[g.fi];
+  uint64_t beganSubmit = SDL_GetTicksNS();
   VK(vkQueueSubmit(g.queue, 1, &si, g.fences[g.fi]));
+  uint64_t submission = SDL_GetTicksNS() - beganSubmit, beganPresent = SDL_GetTicksNS();
   VkPresentInfoKHR pi{VK_STRUCTURE_TYPE_PRESENT_INFO_KHR}; pi.waitSemaphoreCount = 1; pi.pWaitSemaphores = &g.rends[g.fi]; pi.swapchainCount = 1; pi.pSwapchains = &g.swap; pi.pImageIndices = &g.img;
   vkQueuePresentKHR(g.queue, &pi);
+  if (uploaded) {
+    uint64_t presentation = SDL_GetTicksNS() - beganPresent, now = SDL_GetTicks();
+    g.submitNs += submission; g.presentNs += presentation;
+    if (g.videoMetrics) LOG("render-quadro: pts %.6f, submit-CPU %.3f ms, present-CPU %.3f ms",g.video->pts,submission / 1e6,presentation / 1e6);
+    if (now - g.uploadAt >= 5000 && g.uploadCount) {
+      LOG("upload: %dx%d, %llu quadros, %.2f MB/s, staging %.3f ms/quadro, max %.3f ms, submit-CPU %.3f ms, present-CPU %.3f ms, GPU %s",
+          g.video->w,g.video->h,(unsigned long long)g.uploadCount,g.uploadBytes / 1000.0 / (now - g.uploadAt),
+          g.uploadNs / 1e6 / g.uploadCount,g.uploadMaxNs / 1e6,g.submitNs / 1e6 / g.uploadCount,g.presentNs / 1e6 / g.uploadCount,
+          g.videoQueries ? "timestamps ligados" : "sem sonda");
+      g.uploadAt = now; g.uploadCount = g.uploadBytes = g.uploadNs = g.uploadMaxNs = g.submitNs = g.presentNs = 0;
+    }
+  }
   if (shot.b) {
     VK(vkWaitForFences(g.dev, 1, &g.fences[g.fi], VK_TRUE, UINT64_MAX));
     if (FILE* f = std::fopen(shotPath, "wb")) {
