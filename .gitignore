@@ -19,3 +19,6 @@ cast/.node-persist/
 **/audio.txt
 **/marca.txt
 *.log
+
+**/yt-console-account.json
+**/yt-console-account.json.tmp
