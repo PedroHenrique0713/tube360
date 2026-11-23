@@ -119,7 +119,7 @@ unless `a=0`, **one** `mp2` stream.
 | 480 | 854×480 | 2.5 Mbit/s |
 | 360 | 640×360 | 1.5 Mbit/s |
 
-- Always a constant 30 fps, GOP 15, 2 B-frames. Black bars if the source is not 16:9. Audio: MP2, 44.1 kHz stereo,
+- Always a constant 30 fps, 2 B-frames; GOP of at most 30 at 720p and 15 at 480p/360p. Black bars if the source is not 16:9. Audio: MP2, 44.1 kHz stereo,
   192 kbit/s.
 - Starts at `t` (fast seek) and streams while it converts: the first byte arrives in a few seconds.
 - Timestamps start at 0. The console adds `t`.
@@ -249,7 +249,7 @@ curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/add?min=15'
 curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/cancel'
 ```
 
-## Player focus and captions (F4)
+## Player focus and captions
 
 This section supersedes the earlier player D-pad shortcuts. A hidden control bar consumes the first direction
 solely to reveal the timeline. On the timeline, Left/Right seek 10 seconds and A pauses/resumes. Up focuses the
@@ -265,8 +265,8 @@ A on the time row applies; A on the target row changes the saved preference. Bot
 `Settings::sleepNotebook`, saved as `sleep_what`. Changing a running timer's target calls the existing
 `/api/sleep/set?target_only=1&what=…`, preserving the deadline. B returns to the options row.
 
-`openPlayerChannel(channelId, videoId)` in `main.cpp` is the explicit integration hook for F3's channel page. Until
-integration it logs the IDs and displays a localized message; it does not navigate away or interrupt playback.
+**Go to channel** closes the video and opens the channel page (by channel ID, or resolved from the video when the
+ID is unknown).
 
 ### GET /api/captions/{video_id}?lang=pt|en&track=<optional track code>
 
@@ -314,7 +314,7 @@ A translucent dark box shows at most two lines, above the options/bar
 while visible and near the bottom otherwise. Modal panels suppress captions, loading, pause and error overlays.
 The preferences are `captions=on|off` (default off) and `caption_lang=<code>` (empty follows interface language).
 
-### Live caption limitation to resolve with F1
+### Live captions
 
 YouTube live timedtext may use seconds since the broadcast began, while the current MPEG stream starts at zero.
 The current Player/stream API provides no shared HLS origin or mapping for these two clocks. For a live with
@@ -323,7 +323,7 @@ localized explanation. A live without tracks uses `live_unavailable`. **Live CC 
 YouTube offers a track. Integration must expose the MPEG-to-broadcast timestamp origin, then map live cues and
 refresh their rolling window. Guessing an offset from wall time would give incorrect captions.
 
-## Navigation: channels, library and Music (F3)
+## Navigation: channels, library and Music
 
 `GET /api/nav?kind=<kind>&id=<browse ID>&q=<query>&tab=videos|live|playlists&filter=0..3&offset=0&n=24&fresh=0&lang=pt|en`
 

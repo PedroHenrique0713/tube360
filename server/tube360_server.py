@@ -1079,7 +1079,7 @@ async def account_login_form(request: Request):
     return RedirectResponse("/", status_code=303, headers={"Cache-Control": "no-store"})
 
 
-# ---------------------------------------------------------------- F3: canais, biblioteca e Música
+# ---------------------------------------------------------------- canais, biblioteca e Música
 # URLs de arte vêm só do serviço local; o console recebe uma chave do cache, nunca uma URL.
 import hashlib
 
@@ -2481,7 +2481,7 @@ async def poll(playing: str = "", pos: float = Query(0, ge=0), dur: float = Quer
                              headers={"Cache-Control": "no-store"})
 
 
-# ---------------------------------------------------------------- F4: legendas e metadados do player
+# ---------------------------------------------------------------- legendas e metadados do player
 caption_info_cache = TTLCache(900, 16)
 caption_text_cache = TTLCache(900, 24)
 CAPTION_BYTES = 2 << 20
@@ -2616,7 +2616,7 @@ async def captions(video_id: str, lang: Literal["pt", "en"] = "en", track: str =
             cues, reason = [], ""
             if selected and live:
                 # O MPEG da live começa em zero; timedtext conta desde o início da transmissão. Sem a origem
-                # HLS usada pelo player (F1), mostrar essas frases seria fora de sincronia.
+                # HLS usada pelo player, mostrar essas frases seria fora de sincronia.
                 reason = "live_clock"
             elif selected:
                 async def load():
