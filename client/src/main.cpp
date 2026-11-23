@@ -30,6 +30,7 @@
 #include "settings.hpp"
 #include "account.hpp"
 #include "sleep.hpp"
+#include "icons.hpp"
 
 #ifdef __XSDK__
 #include "xsdk/net.h"
@@ -313,6 +314,20 @@ static float wordmark(gfx::Gfx& g, float x, float y, float a, Color bg) {
   return d + 14 + w + 12 + w2;
 }
 
+// Ícones do Phosphor (icons.hpp): atlas branco com o alfa do SVG, tingido na hora. big = 48 px, senão 24 px; desenhados
+// no tamanho exato do atlas e em pixel inteiro, para não borrar.
+static gfx::Tex iconTex;
+static void loadIcons(gfx::Gfx& g) {
+  std::vector<unsigned char> rgba((size_t)icons::W * icons::H * 4, 255);
+  for (int i = 0; i < icons::W * icons::H; i++) rgba[(size_t)i * 4 + 3] = icons::ALPHA[i];
+  iconTex = gfx::makeImage(g, icons::W, icons::H, VK_FORMAT_R8G8B8A8_UNORM, true);
+  gfx::upload(g, iconTex, rgba.data(), rgba.size());
+}
+static void glyph(gfx::Gfx& g, int which, bool big, float x, float y, Color c) {
+  const float s = (float)icons::SIZES[big ? 0 : 1], u = (float)(which * icons::CELL), v = big ? 0.f : (float)icons::SIZES[0];
+  gfx::imagePart(g, iconTex, std::round(x), std::round(y), s, s, u / icons::W, v / icons::H, (u + s) / icons::W, (v + s) / icons::H, c);
+}
+
 // Ícones desenhados com formas (24 px), centrados em (cx, cy).
 static void icon(gfx::Gfx& g, int which, float cx, float cy, Color c, Color bg) {
   if (which == 0) {  // início: casa
@@ -388,6 +403,7 @@ int main(int argc, char** argv) {
   if (!gfx::loadFonts(g, assets, {{"inter-400.ttf", 19}, {"inter-400.ttf", 16}, {"inter-600.ttf", 17}, {"inter-600.ttf", 23},
                                   {"inter-700.ttf", 27}, {"inter-700.ttf", 34}, {"inter-600.ttf", 22}, {"inter-700.ttf", 13},
                                   {"inter-700.ttf", 42}, {"inter-600.ttf", 18}, {"inter-300.ttf", 27}, {"inter-700.ttf", 58}})) { LOG("fontes não carregaram"); return 1; }
+  loadIcons(g);
 
   gfx::Video videoTex; g.video = &videoTex;
   player::Player pl; pl.init();
@@ -1201,23 +1217,28 @@ int main(int argc, char** argv) {
         }
         hint(g, hx2, by + 24, "B", XB, tr(K::Back));
         float ux = hint(g, 72, by - 42, "↑", XG, tr(K::SleepTimer));
-        hint(g, ux, by - 42, "↓", XG, tr(likeState == "LIKE" ? K::Like : likeState == "DISLIKE" ? K::Dislike : K::Rate));
+        float rx = hint(g, ux, by - 42, "↓", XG, tr(K::Rate));
+        if (likeState == "LIKE" || likeState == "DISLIKE")  // a avaliação já dada, como o joinha aceso do YouTube
+          glyph(g, likeState == "LIKE" ? icons::THUMB_UP_FILL : icons::THUMB_DOWN_FILL, false, rx - 22, by - 42, ui::TEXT);
       }
       if (ratePanel) {
-        float w = 560, h = 196, x = (ui::W - w) / 2, y = ui::H - 400;
+        // dois botões redondos com o joinha, como no YouTube: aceso (cheio, na cor de destaque) o que está marcado
+        float w = 560, h = 252, x = (ui::W - w) / 2, y = ui::H - 456;
         gfx::shadow(g, x, y + 10, w, h, 24, 32, 0.6f);
         gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
         gfx::text(g, ui::F_H2, tr(K::RateTitle), x + 32, y + 26, ui::TEXT);
+        const float d = 96, gap = 56;
         for (int i = 0; i < 2; i++) {
-          float bw = 232, bx = x + 32 + i * (bw + 32), bt = y + 76;
+          float bx = x + w / 2 + (i == 0 ? -gap / 2 - d : gap / 2), bt = y + 78;
           bool sel = rateSel == i, on = likeState == (i == 0 ? "LIKE" : "DISLIKE");
-          if (sel) gfx::rect(g, bx - 3, bt - 3, bw + 6, 54, ui::alpha(ui::A1, 0.65f), 27);
-          gfx::rect(g, bx, bt, bw, 48, on ? ui::A1 : sel ? ui::SURFACE2 : ui::alpha(rgb(0xffffff), 0.06f), 24);
-          gfx::text(g, ui::F_KEY, tr(i == 0 ? K::Like : K::Dislike), bx + bw / 2, bt + 13, ui::TEXT, 1);
+          if (sel) gfx::rect(g, bx - 4, bt - 4, d + 8, d + 8, ui::alpha(rgb(0xffffff), 0.9f), d / 2 + 4);
+          gfx::rect(g, bx, bt, d, d, on ? ui::A1 : sel ? ui::SURFACE2 : ui::alpha(rgb(0xffffff), 0.08f), d / 2);
+          int which = i == 0 ? (on ? icons::THUMB_UP_FILL : icons::THUMB_UP) : (on ? icons::THUMB_DOWN_FILL : icons::THUMB_DOWN);
+          glyph(g, which, true, bx + (d - 48) / 2, bt + (d - 48) / 2, on || sel ? rgb(0xffffff) : ui::MUTED);
         }
-        float hx = hint(g, x + 32, y + 150, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
-        hx = hint(g, hx, y + 150, "A", XA, tr(K::SleepApply));
-        hint(g, hx, y + 150, "B", XB, tr(K::Close));
+        float hx = hint(g, x + 32, y + 206, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
+        hx = hint(g, hx, y + 206, "A", XA, tr(K::SleepApply));
+        hint(g, hx, y + 206, "B", XB, tr(K::Close));
       }
       if (nextAt) {
         gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.6f});

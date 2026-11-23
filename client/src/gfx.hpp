@@ -344,6 +344,11 @@ inline void image(Gfx& g, const Tex& t, float x, float y, float w, float h, floa
   float p[4] = {w, h, radius, 1};
   quad(g, IMAGE, t.set, p, x, y, w, h, tint);
 }
+// Recorte (u0,v0)-(u1,v1) de uma textura, sem cantos arredondados (ícones do atlas).
+inline void imagePart(Gfx& g, const Tex& t, float x, float y, float w, float h, float u0, float v0, float u1, float v1, Color tint) {
+  float p[4] = {w, h, 0, 1};
+  quad(g, IMAGE, t.set, p, x, y, w, h, tint, u0, v0, u1, v1);
+}
 inline void triangle(Gfx& g, float x0, float y0, float x1, float y1, float x2, float y2, Color c) {
   // shape.frag com raio 0 e tamanho enorme: a distância fica negativa em todo o triângulo (cor cheia)
   float p[4] = {1e6f, 1e6f, 0, 1};
