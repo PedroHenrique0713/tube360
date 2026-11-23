@@ -1112,6 +1112,8 @@ def nav_subtitle(value, lang):
         if scale is not None:
             number += ((" mil", " mi", " bi") if lang == "pt" else ("K", "M", "B"))[scale]
         key = 0 if label.lower().startswith(("subscr", "inscri")) else 1 if label.lower().startswith(("view", "visualiza")) else 2
+        if scale is None and float(number.replace(",", ".")) == 1:
+            return number + " " + (("inscrito", "visualização", "vídeo") if lang == "pt" else ("subscriber", "view", "video"))[key]
         return number + " " + (("inscritos", "visualizações", "vídeos") if lang == "pt" else ("subscribers", "views", "videos"))[key]
     value = re.sub(r"(\d+(?:[.,]\d+)?)\s*(K|M|B|mil|mi|bi)?\s+(?:de\s+)?(subscribers?|inscritos?|views?|visualizações|videos?|vídeos?)\b", count, clean(value), flags=re.I)
     return re.sub(r"^(Album|Álbum)(?=\s*[•·])", tr("Álbum", "Album", lang), value, flags=re.I)
