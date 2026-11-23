@@ -30,8 +30,9 @@ struct Http : yt::Transport {
 const string web="https://www.youtube.com/";
 const string api=web+"youtubei/v1/";
 const string id="4p_9OPKgcDE";
-const string watch=web+"watch?v="+id;
-string html(const string& json) {return "<script>var ytInitialPlayerResponse = "+json+";</script>";}
+const string watch=web+"watch?v="+id+"&bpctr=9999999999&has_verified=1";
+const string player=api+"player?prettyPrint=false";
+const string session=R"(<script>ytcfg.set({"VISITOR_DATA":"Cgtmaxture","jsUrl":"\/s\/player\/fixture\/base.js"})</script>)";
 string read(const string& path) {
     std::ifstream f(path);
     check(bool(f),"fixture exists");
@@ -39,7 +40,10 @@ string read(const string& path) {
 }
 void playback(Http& h,yt::Client& c,const string& dir) {
     auto json=read(dir+"/player.json");
-    h.add(watch,"",html(json));
+    // Primeira reprodução: sessão de visitante (página + player JS) e o pedido VISIONOS com o signatureTimestamp.
+    h.add(watch,"",session);
+    h.add(web+"s/player/fixture/base.js","","var a={signatureTimestamp:20775};");
+    h.add(player,"\"signatureTimestamp\":20775",json);
     yt::MediaOffers offers;
     auto v=c.player(id,720,&offers);
     check(offers.avc720.direct==1 && offers.avc480.direct==1 && offers.aac.direct==2,"recorded direct offers");
@@ -48,32 +52,36 @@ void playback(Http& h,yt::Client& c,const string& dir) {
     auto metadataOnly=json;
     for (size_t i=0; (i=metadataOnly.find("\"url\"",i))!=string::npos; ++i)
         metadataOnly.replace(i,5,"\"unused\"");
-    h.add(watch,"",html(metadataOnly));
+    h.add(player,"\"clientName\":\"VISIONOS\"",metadataOnly);
     v=c.player(id,480,&offers);
     check(offers.avc720.listed==1 && offers.avc480.listed==1 && offers.aac.listed==2 &&
         !offers.avc720.direct && !offers.avc480.direct && !offers.aac.direct && v.video.url.empty(),
         "listed formats without URLs do not qualify");
-    h.add(watch,"",html(json));
+    h.add(player,"\"videoId\":\"4p_9OPKgcDE\"",json);
     check(c.player(id,480).video.itag==135,"480p ceiling");
     size_t pos=json.find("\"itag\": 136");
     const string fps="\"fps\": 30";
     size_t f=json.find(fps,pos);
     check(f!=string::npos,"720p mutation target");
     json.replace(f,fps.size(),"\"fps\": 30.5");
-    h.add(watch,"",html(json));
+    h.add(player,"\"clientName\":\"VISIONOS\"",json);
     check(c.player(id).video.itag==135,"skip frame rates above 30");
-    h.add(watch,"",html(R"({"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Sign in"},"streamingData":{"hlsManifestUrl":"https://media.example/old"}})"));
+    const string login=R"({"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Sign in"},"streamingData":{"hlsManifestUrl":"https://media.example/old"}})";
+    // Sessão recusada: abre uma nova (o player JS é o mesmo, sem baixar de novo) e tenta uma única vez mais.
+    h.add(player,"\"clientName\":\"VISIONOS\"",login);
+    h.add(watch,"",session);
+    h.add(player,"\"clientName\":\"VISIONOS\"",login);
     v=c.player(id);
-    check(v.status=="LOGIN_REQUIRED" && v.hls.empty() && v.video.url.empty(),"challenge stops playback");
-    h.add(watch,"","{}");
-    check(c.player(id).status=="ERROR","missing player response");
+    check(v.status=="LOGIN_REQUIRED" && v.hls.empty() && v.video.url.empty(),"challenge stops playback after one new session");
+    h.add(player,"\"clientName\":\"VISIONOS\"","oops",503);
+    check(c.player(id).status=="ERROR","player failure");
     check(c.player("bad").status=="INVALID_VIDEO_ID","bad ID locally rejected");
     const string onlyFast=R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"adaptiveFormats":[{"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":60,"url":"https://media.example/fast"}]}})";
-    h.add(watch,"",html(onlyFast));
+    h.add(player,"\"clientName\":\"VISIONOS\"",onlyFast);
     v=c.player(id);
     check(v.status=="OK" && v.video.url.empty() && v.reason=="no_direct_avc","60 fps only is unavailable");
     auto muxed=json.substr(0,json.find("\"adaptiveFormats\""))+json.substr(json.find("\"formats\":"));
-    h.add(watch,"",html(muxed));
+    h.add(player,"\"clientName\":\"VISIONOS\"",muxed);
     v=c.player(id);
     check(v.video.itag==18 && v.muxed && v.audio.url.empty(),"muxed fallback without AAC input");
 }
@@ -95,7 +103,7 @@ void browse(Http& h,yt::Client& c) {
 }
 void captions(Http& h,yt::Client& c) {
     const string base=web+"api/timedtext?v=example";
-    h.add(watch,"",html(R"({"videoDetails":{"videoId":"4p_9OPKgcDE"},"playabilityStatus":{"status":"OK"},"streamingData":{"hlsManifestUrl":"https://media.example/live"},"captions":{"playerCaptionsTracklistRenderer":{"captionTracks":[{"languageCode":"pt","name":{"simpleText":"Português"},"baseUrl":"https://www.youtube.com/api/timedtext?v=example&fmt=srv3"}]}}})"));
+    h.add(player,"\"clientName\":\"VISIONOS\"",R"({"videoDetails":{"videoId":"4p_9OPKgcDE"},"playabilityStatus":{"status":"OK"},"streamingData":{"hlsManifestUrl":"https://media.example/live"},"captions":{"playerCaptionsTracklistRenderer":{"captionTracks":[{"languageCode":"pt","name":{"simpleText":"Português"},"baseUrl":"https://www.youtube.com/api/timedtext?v=example&fmt=srv3"}]}}})");
     auto v=c.player(id);
     check(!v.hls.empty() && v.captions.size()==1 && v.captions[0].language=="pt","manifest and caption tracks");
     h.add(base+"&fmt=json3","","{\"events\":[{\"tStartMs\":120,\"dDurationMs\":700,\"segs\":[{\"utf8\":\"olá\"},{\"utf8\":\" mundo\"}]}]}");

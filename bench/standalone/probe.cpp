@@ -1,6 +1,7 @@
 #include "yt/client.hpp"
 #include <chrono>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <pthread.h>
 #include <ctime>
@@ -16,10 +17,15 @@ struct ProbeTransport : yt::Transport {
     std::unique_ptr<yt::Transport> net=yt::https();
     unsigned count=0;
     yt::Response request(const yt::string& url,const yt::string& body,bool form) override {
-        if (count>=3) return {0,{},"request_limit"};
-        if (count++) { timespec delay{4,0}; nanosleep(&delay,nullptr); }
+        yt::Request r; r.url=url; r.body=body; r.form=form;
+        return send(r);
+    }
+    // Sessão de visitante + player JS + player: até 6 pedidos espaçados no total.
+    yt::Response send(const yt::Request& q) override {
+        if (count>=6) return {0,{},"request_limit"};
+        if (count++) { timespec delay{2,0}; nanosleep(&delay,nullptr); }
         auto start=std::chrono::steady_clock::now();
-        auto r=net->request(url,body,form);
+        auto r=net->send(q);
         auto ms=std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()-start).count();
         REPORT("request %u HTTP %ld bytes %u elapsed_ms %ld",count,r.status,(unsigned)r.body.size(),(long)ms);
         return r;
@@ -28,7 +34,14 @@ struct ProbeTransport : yt::Transport {
 int media(yt::Client& client) {
     yt::MediaOffers offers;
     auto vod = client.player("4p_9OPKgcDE",720,&offers);
-    REPORT("vod status %s ttl_s %d",vod.status.c_str(),vod.ttl);
+    REPORT("vod status %s reason %s ttl_s %d video_itag %d audio_itag %d",vod.status.c_str(),vod.reason.c_str(),vod.ttl,vod.video.itag,vod.audio.itag);
+#ifndef YT_XBOX
+    // Só no PC: os links resolvidos vão para um arquivo fora do repositório, para o ffmpeg conferir.
+    if (const char* path=std::getenv("YT_URLS")) if (FILE* f=std::fopen(path,"w")) {
+        std::fprintf(f,"%s\n%s\n",vod.video.url.c_str(),vod.audio.url.c_str());
+        std::fclose(f);
+    }
+#endif
     auto report = [&](int height,const yt::OfferCount& video) {
         REPORT("vod %dp30 avc_listed %u avc_direct %u muxed_aac_direct %u",
             height,video.listed,video.direct,video.muxedAac);
@@ -39,6 +52,12 @@ int media(yt::Client& client) {
     REPORT("vod aac_listed %u aac_direct %u",offers.aac.listed,offers.aac.direct);
     auto live = client.player("HvZt-nh9sGg");
     REPORT("live status %s hls %d ttl_s %d",live.status.c_str(),!live.hls.empty(),live.ttl);
+#ifndef YT_XBOX
+    if (const char* path=std::getenv("YT_URLS")) if (FILE* f=std::fopen(path,"a")) {
+        std::fprintf(f,"%s\n",live.hls.c_str());
+        std::fclose(f);
+    }
+#endif
     return high && low && !live.hls.empty() ? 0 : 2;
 }
 struct Check { bool media; int result=1; };

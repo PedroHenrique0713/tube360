@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <climits>
 #include <cstdlib>
+#include <cstring>
 #include <set>
 
 namespace yt {
@@ -138,6 +139,53 @@ Page Client::home() { return page("browse",member("browseId","FEwhat_to_watch"))
 Page Client::search(const string& query) { return page("search",member("query",query)); }
 Page Client::next(const string& id) { return page("next",member("videoId",id),id); }
 
+namespace {
+const char* const browserAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
+const char* const visionAgent="Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15";
+// Valor de "chave":"valor" no HTML do YouTube, com as barras escapadas desfeitas.
+string quoted(const string& html, const string& key) {
+    auto pos=html.find(key);
+    if (pos==string::npos) return {};
+    pos+=key.size();
+    auto end=html.find('"',pos);
+    if (end==string::npos || end-pos>4096) return {};
+    string v=html.substr(pos,end-pos);
+    for (size_t i; (i=v.find("\\/"))!=string::npos;) v.erase(i,1);
+    return v;
+}
+int digitsAfter(const string& s, const char* key) {
+    auto pos=s.find(key);
+    if (pos==string::npos) return 0;
+    pos+=std::strlen(key);
+    int n=0;
+    while (pos<s.size() && s[pos]>='0' && s[pos]<='9' && n<100000000) n=n*10+(s[pos++]-'0');
+    return n;
+}
+}
+bool Client::session(const string& id, string& error) {
+    if (!visitor.empty() && sts) return true;
+    Request page;
+    page.url="https://www.youtube.com/watch?v="+id+"&bpctr=9999999999&has_verified=1";
+    page.agent=browserAgent;
+    page.headers={"Accept-Language: en-us,en;q=0.5"};
+    auto r=net.send(page);
+    if (!r.error.empty() || r.status!=200) { error=!r.error.empty() ? r.error : "HTTP "+std::to_string(r.status); return false; }
+    visitor=quoted(r.body,"\"VISITOR_DATA\":\"");
+    auto js=quoted(r.body,"\"jsUrl\":\"");
+    if (visitor.empty() || js.size()<2 || js[0]!='/' || js[1]=='/') { visitor.clear(); error="visitor_session_missing"; return false; }
+    if (js!=playerJs || !sts) {
+        Request code;
+        code.url="https://www.youtube.com"+js;
+        code.agent=browserAgent;
+        auto b=net.send(code);
+        int n=b.error.empty() && b.status==200 ? digitsAfter(b.body,"signatureTimestamp:") : 0;
+        if (!n && b.error.empty()) n=digitsAfter(b.body,"sts:");
+        if (!n) { visitor.clear(); error="signature_timestamp_missing"; return false; }
+        sts=n; playerJs=js;
+    }
+    return true;
+}
+
 Video Client::player(const string& id, int height, MediaOffers* offers) {
     if (offers) *offers = {};
     J j;
@@ -146,15 +194,25 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
         out.status="INVALID_VIDEO_ID";
         return out;
     }
-    // A página pública já inclui a resposta InnerTube do player. Uma única leitura por vídeo.
-    auto r = net.request("https://www.youtube.com/watch?v="+id);
-    if (!r.error.empty() || r.status!=200) out.reason = !r.error.empty() ? r.error : "HTTP "+std::to_string(r.status);
-    else {
-        const string marker="ytInitialPlayerResponse =";
-        auto pos=r.body.find(marker);
-        auto begin=pos==string::npos ? string::npos : r.body.find_first_not_of(" \t\r\n",pos+marker.size());
-        auto end=objectEnd(r.body,begin);
-        if (end==string::npos || !parse(r.body.substr(begin,end-begin),j)) out.reason="missing_player_response";
+    // O cliente VISIONOS recebe links prontos (sem decifrar JavaScript) quando o pedido leva a sessão de visitante
+    // da página do vídeo: cookies, X-Goog-Visitor-Id e o signatureTimestamp do player JS. É o mesmo pedido que o
+    // yt-dlp do servidor faz (medido em 2026-11-23: itag 136 direto deste IP, sem login nem PO token).
+    for (int attempt=0; attempt<2; ++attempt) {
+        if (!session(id,out.reason)) break;
+        Request q;
+        q.url="https://www.youtube.com/youtubei/v1/player?prettyPrint=false";
+        q.agent=visionAgent;
+        q.headers={"X-Youtube-Client-Name: 101","X-Youtube-Client-Version: 1.02","Origin: https://www.youtube.com",
+                   "X-Goog-Visitor-Id: "+visitor};
+        q.body="{\"context\":{\"client\":{\"clientName\":\"VISIONOS\",\"clientVersion\":\"1.02\","
+               "\"deviceMake\":\"Apple\",\"deviceModel\":\"RealityDevice17,1\",\"userAgent\":"+J(string(visionAgent)).serialize()+","
+               "\"osName\":\"visionOS\",\"osVersion\":\"26.5.23O471\",\"hl\":\"en\",\"timeZone\":\"UTC\",\"utcOffsetMinutes\":0}},"
+               +member("videoId",id)+",\"playbackContext\":{\"contentPlaybackContext\":{\"html5Preference\":\"HTML5_PREF_WANTS\","
+               "\"signatureTimestamp\":"+std::to_string(sts)+"}},\"contentCheckOk\":true,\"racyCheckOk\":true}";
+        j=J();
+        out.reason=content(net.send(q),j);
+        if (!out.reason.empty() || attempt || str(field(j,"playabilityStatus"),"status")!="LOGIN_REQUIRED") break;
+        visitor.clear(); // sessão recusada: abre uma nova uma única vez
     }
     if (!out.reason.empty()) { out.status="ERROR"; return out; }
     const auto& p = field(j,"playabilityStatus");

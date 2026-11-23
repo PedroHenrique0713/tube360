@@ -12,9 +12,16 @@ struct Response {
     long status = 0;
     string body, error;
 };
+// Pedido com identidade própria: user agent, cabeçalhos extras e os cookies que o worker já recebeu.
+struct Request {
+    string url, body, agent;
+    bool form = false;
+    std::vector<string> headers;
+};
 struct Transport {
     virtual ~Transport() = default;
     virtual Response request(const string& url, const string& body = {}, bool form = false) = 0;
+    virtual Response send(const Request& r) { return request(r.url, r.body, r.form); }
 };
 std::unique_ptr<Transport> https(const std::atomic_bool* cancel = nullptr);
 
@@ -37,6 +44,10 @@ struct Page { std::vector<Card> cards; string error; };
 class Client {
     Transport& net;
     string context;
+    // Sessão de visitante (cookies ficam no transporte) e o signatureTimestamp do player JS atual.
+    string visitor, playerJs;
+    int sts = 0;
+    bool session(const string& id, string& error);
     Response post(const string& route, const string& fields);
     Page page(const string& route, const string& fields, const string& exclude = {});
 public:

@@ -4,7 +4,7 @@
 
 namespace yt {
 namespace {
-constexpr size_t maxBody = 3 * 1024 * 1024;
+constexpr size_t maxBody = 6 * 1024 * 1024; // o base.js do player passa de 3 MB
 size_t append(char* bytes, size_t count, size_t unit, void* data) {
     auto& body = *static_cast<string*>(data);
     if (unit && count > (maxBody - body.size()) / unit) return 0;
@@ -24,6 +24,13 @@ public:
     }
     ~Https() override { if (easy) curl_easy_cleanup(easy); }
     Response request(const string& url, const string& body, bool form) override {
+        Request r; r.url = url; r.body = body; r.form = form;
+        return send(r);
+    }
+    Response send(const Request& r) override {
+        const string& url = r.url;
+        const string& body = r.body;
+        const bool form = r.form;
         Response res;
         if (!easy) { res.error = "tls_init"; return res; }
         if (cancel && cancel->load()) { res.error = "cancelled"; return res; }
@@ -40,7 +47,9 @@ public:
         set(CURLOPT_SSL_VERIFYHOST, 2L);
         set(CURLOPT_SSL_VERIFYPEER, 1L);
         set(CURLOPT_HTTP_VERSION, long(CURL_HTTP_VERSION_1_1));
-        set(CURLOPT_USERAGENT, "Tube360/1.0");
+        set(CURLOPT_USERAGENT, r.agent.empty() ? "Tube360/1.0" : r.agent.c_str());
+        // Pote de cookies em memória; o reset do handle não apaga os cookies. Sem cookies no libcurl, segue sem eles.
+        curl_easy_setopt(easy, CURLOPT_COOKIEFILE, "");
         set(CURLOPT_TIMEOUT_MS, 15000L);
         set(CURLOPT_CONNECTTIMEOUT_MS, 8000L);
         set(CURLOPT_NOSIGNAL, 1L);
@@ -51,10 +60,18 @@ public:
             set(CURLOPT_XFERINFOFUNCTION, progress);
             set(CURLOPT_XFERINFODATA, cancel);
         }
+        for (const auto& h : r.headers) {
+            auto next = curl_slist_append(headers, h.c_str());
+            if (!next) { curl_slist_free_all(headers); res.error = "memory"; return res; }
+            headers = next;
+        }
         if (!body.empty()) {
-            headers = curl_slist_append(nullptr, form ? "Content-Type: application/x-www-form-urlencoded" : "Content-Type: application/json");
-            if (!headers) { res.error = "memory"; return res; }
-            set(CURLOPT_HTTPHEADER, headers);
+            auto next = curl_slist_append(headers, form ? "Content-Type: application/x-www-form-urlencoded" : "Content-Type: application/json");
+            if (!next) { curl_slist_free_all(headers); res.error = "memory"; return res; }
+            headers = next;
+        }
+        if (headers) set(CURLOPT_HTTPHEADER, headers);
+        if (!body.empty()) {
             set(CURLOPT_POSTFIELDS, body.data());
             set(CURLOPT_POSTFIELDSIZE, static_cast<long>(body.size()));
         }
