@@ -27,13 +27,13 @@ class FakeMedia:
             self.cast.launches += 1
         self.calls.append("update_status")
 
-    def stop(self):
+    def stop(self, timeout=None):
         self.calls.append("stop")
 
-    def pause(self):
+    def pause(self, timeout=None):
         self.calls.append("pause")
 
-    def play(self):
+    def play(self, timeout=None):
         self.calls.append("play")
 
 
@@ -48,7 +48,7 @@ class FakeCast:
     def disconnect(self, timeout=None):
         self.disconnected = True
 
-    def quit_app(self):
+    def quit_app(self, timeout=None):
         pass
 
     def drop_wifi(self):
