@@ -2,6 +2,9 @@
 #include "roots.hpp"
 #include <curl/curl.h>
 #include <strings.h>
+#ifndef __XSDK__
+#include "replay.hpp"
+#endif
 
 namespace yt {
 namespace {
@@ -103,6 +106,9 @@ public:
 };
 }
 std::unique_ptr<Transport> https(const std::atomic_bool* cancel) {
+#ifndef __XSDK__
+    if (const char* directory = std::getenv("XT_YT_REPLAY")) return std::make_unique<Replay>(directory);
+#endif
     return std::make_unique<Https>(cancel);
 }
 }

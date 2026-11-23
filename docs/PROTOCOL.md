@@ -405,3 +405,51 @@ separated by account identity. An account reset or successful action invalidates
 PC capture helpers (no console effect): `XT_NAV`, `XT_NAV_ID`, `XT_NAV_QUERY`, `XT_MUSIC=1` select a starting navigation
 page. `XT_SHOT_MS` takes a screenshot after wall-clock milliseconds; `XT_KEYS_MS` spaces scripted keys by wall-clock
 milliseconds. The original frame-based helpers remain available, with `S` added for Menu.
+
+### Direct Cast from the console
+
+A console using the native YouTube player can configure its own speaker through `nest.txt` beside
+`settings.txt`. The first line contains the host and optional Cast TLS port (default 8009). The second
+line contains the display name. For example, a LAN configuration can contain the following lines.
+
+```text
+192.168.101.41 8009
+Teste Eliot
+```
+
+This makes the existing Sound setting available with `server=off`. The native player retains the
+selected AAC/m4a audio offer even when the displayed MP4 already contains audio. It passes that
+unchanged signed URL to the Default Media Receiver (`CC1AD845`) using Cast v2 TLS and protobuf.
+The channel implements CONNECT, PING/PONG, receiver/media GET_STATUS, LAUNCH, LOAD, SEEK,
+PAUSE, PLAY and STOP. A seek within the same URL retains the Cast media session. A new resource
+waits for the previous playback to stop. Discovery currently uses the configured host.
+
+Each LOAD carries an ownership token in `media.customData.tube360`. Clock samples require that token, the exact loaded content URL
+or an already verified media session. Command request IDs fence older clock replies across seeks.
+The observation time advances only when an accepted MEDIA_STATUS contains `currentTime`. Fast
+request/reply pairs use their midpoint (120 ms maximum round trip). Unsolicited status uses receipt
+time. The picture extrapolates PLAYING observations and keeps the local PCM reserve muted. Eight
+seconds without a new clock or position progress requests release. BUFFERING also requires progress.
+A missing media namespace during reconnection waits for a complete receiver status.
+
+The TV takes over after a fresh status confirms IDLE/empty media or an empty application list.
+A timeout by itself retains the mute. Returning to the speaker preloads with `autoplay=false`,
+then waits for the selected frame and for the TV device queue to drain before issuing PLAY.
+
+The client writes `nest-owner.json` before LOAD. Leaving the video keeps the Cast worker alive to
+retry STOP during navigation. Application shutdown waits up to 1.8 s for quiet confirmation and
+retains an unfinished journal for the next launch. With an unreachable speaker and a direct YouTube
+URL, audio can continue after the application exits. That URL cannot be revoked by the console.
+The implementation sends no volume commands.
+
+Direct live HLS playback currently uses TV sound after speaker release. The native HLS reader's
+zero-based video PTS and the receiver's event-relative `currentTime` need a verified common origin
+before independent YouTube HLS playback can use the Nest clock.
+
+The desktop-only `XT_YT_REPLAY=<directory>` replaces YouTube responses with sanitized local
+fixtures. `bench/standalone/cast_e2e.py <repo>` prepares synthetic
+720p30 AVC/AAC media, drives the desktop app with `server=off`, serves AAC over local HTTPS on
+8233, exercises a TLS/protobuf Cast receiver and writes captures under `.work/provas/`.
+Run `python3 bench/standalone/cast_test.py client/build/nest-test` for channel, ownership and recovery
+tests after building the `nest-test` target. The Python tests use the installed pychromecast protobuf
+binding and OpenSSL to create a temporary certificate.

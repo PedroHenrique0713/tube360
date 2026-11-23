@@ -17,6 +17,9 @@ cast/.node-persist/
 **/server.txt
 **/net_log.txt
 **/audio.txt
+**/nest.txt
+**/nest-owner.json
+**/nest-owner.json.tmp
 **/marca.txt
 *.log
 

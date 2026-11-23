@@ -60,6 +60,7 @@ inline void Player::decodeOriginal() {
       LOG("console: player %s", media.status.c_str()); retryConverted = true; return;
     }
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
+    castMediaReady = true;
     state = BUFFERING;
     mediaReady = true;
     if (live) {

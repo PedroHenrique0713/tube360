@@ -20,7 +20,7 @@ add_subdirectory("${CURL_SOURCE}" curl)
 file(READ "${root}/client/src/yt/gts.pem" roots)
 configure_file("${root}/bench/standalone/roots.hpp.in" roots.hpp @ONLY)
 add_library(tube360-yt STATIC "${root}/client/src/yt/https.cpp" "${root}/client/src/yt/client.cpp"
-  "${root}/client/src/yt/console_account.cpp" "${root}/client/src/yt/account_transport.cpp")
+  "${root}/client/src/yt/console_account.cpp" "${root}/client/src/yt/account_transport.cpp" "${root}/client/src/yt/cast.cpp")
 target_compile_features(tube360-yt PUBLIC cxx_std_17)
 target_include_directories(tube360-yt PUBLIC "${root}/client/src" PRIVATE "${root}/client/third_party" "${CMAKE_CURRENT_BINARY_DIR}")
 target_compile_definitions(tube360-yt PRIVATE PICOJSON_USE_LOCALE=0)
