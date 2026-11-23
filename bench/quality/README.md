@@ -10,17 +10,24 @@ cmake --build client/build -j3 --target tube360-quality-fixture video-quality-te
 client/build/yt-contract-test bench/standalone/fixtures
 client/build/yt-media-test
 client/build/h264-cadence-test
+cmake --build client/build -j3 --target player-state-test
+client/build/player-state-test
 
 mkdir -p .work/quality/assets .work/quality/home .work/quality/proofs
 cp client/assets/inter-*.ttf .work/quality/assets/
 printf 'lang=pt\nquality=720\nsound=tv\nserver=off\n' > .work/quality/assets/settings.txt
 printf 'video_mode=1080p30\noutput_height=1080\naudio_preference=original\n' >> .work/quality/assets/settings.txt
 python3 bench/quality/prepare.py .work/quality/media --mode both --audio-tracks
-HOME="$PWD/.work/quality/home" SDL_VIDEO_DRIVER=offscreen SDL_AUDIO_DRIVER=dummy \
+HOME="$PWD/.work/quality/home" SDL_VIDEO_DRIVER=offscreen SDL_AUDIO_DRIVER=dummy XT_CAST_DISABLE=1 \
   XT_ASSETS="$PWD/.work/quality/assets" XT_QUALITY_FIXTURES="$PWD/.work/quality/media" \
   XT_PLAY=4p_9OPKgcDE XT_SHOT="$PWD/.work/quality/proofs/player.ppm" XT_SHOT_MS=8000 \
   XT_KEYS_MS=1000 XT_KEYS=......R client/build/tube360-quality-fixture
 ```
+
+`PYTHONUSERBASE=/home/pedrohenriquequadro/.local ~/.pyenv/versions/3.12.7/bin/python3 bench/quality/console_e2e.py .work/quality`
+exercita conta e catálogo gravados, Home/Música/canal/player nas duas saídas, áudio original/dublado no Nest
+TLS falso e troca pausada com imagem, posição e volume preservados. Requer a mídia `both --audio-tracks`
+em `.work/quality/media`. Nomes de casos opcionais após o diretório permitem repetir uma prova.
 
 Repita com `video_mode=720p60` e com `prepare.py --mode live`. Exercite cada fonte com `output_height=720` e `1080`.
 Para a troca automática de fonte, volte a `--mode both` e `video_mode=1080p30`,

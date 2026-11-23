@@ -97,17 +97,17 @@ try:
     # OAuth aguarda 5 s e a UI consulta o estado a cada 3 s; deixe passar os dois ciclos.
     # Depois de entrar, volta ao menu e abre a Música com o token recém-obtido.
     log, account, music = run('account-login-music', 12.8, expected='fixture-access', XT_SCREEN='settings', XT_KEYS='A.........................BUUA')
-    assert '/o/oauth2/token' in account and 'authorized_fixture' in music
+    assert '/o/oauth2/token' in account and 'authorized_fixture' in music and 'navegação music:' in log
     log, account, _ = run('account-home', 5, token=True)
     assert '/account/accounts_list' in account and '/youtubei/v1/browse' in account
     log, account, _ = run('account-library', token=True, XT_NAV='library')
     assert '/youtubei/v1/browse' in account
-    log, account, music = run('account-refresh-music', token=True, expired=True, XT_NAV='music', XT_MUSIC='1')
-    assert '/o/oauth2/token' in account and 'authorized_fixture' in music
+    log, account, music = run('account-refresh-music', 4, token=True, expired=True, XT_NAV='music', XT_MUSIC='1')
+    assert '/o/oauth2/token' in account and 'authorized_fixture' in music and 'navegação music:' in log
     # Sai em Configurações, volta ao menu e abre Music como visitante.
     log, account, music = run('account-logout-music', 3.5, token=True, expected='', XT_SCREEN='settings', XT_KEYS='AABUUA')
     assert '/o/oauth2/revoke' in account
-    assert 'authorized_fixture' in music and 'rejected_fixture' not in music
+    assert 'authorized_fixture' in music and 'rejected_fixture' not in music and 'navegação music:' in log
     assert not (proof / 'account-logout-music/yt-console-account.json').exists()
     log, account, _ = run('account-playlist', 9.5, token=True, XT_NAV='playlist', XT_NAV_ID='PLfixture', XT_KEYS='UA')
     assert 'primeiro quadro' in log and '/api/stats/' in account

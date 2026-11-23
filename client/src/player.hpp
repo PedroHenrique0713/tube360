@@ -685,7 +685,8 @@ struct Player {
     Output route = output.load();
     if (speakerRequested && route == CAST) {
       SDL_LockMutex(nmu);
-      if (nestState == 1 && now - nestStampMs < (direct ? 8000 : 650)) speaker = nestPos + (now - nestStampMs) / 1000.0;
+      if ((nestState == 1 || (paused && nestState == 2)) && now - nestStampMs < (direct ? 8000 : 650))
+        speaker = nestPos + (!paused && nestState == 1 ? (now - nestStampMs) / 1000.0 : 0);
       SDL_UnlockMutex(nmu);
     }
     SDL_LockMutex(mu);
@@ -699,7 +700,11 @@ struct Player {
         firstPts = frames.front()->pts; wallStart = ms;
         screenSec = speaker >= 0 ? std::max(firstPts, speaker + nestOffset) : firstPts;
         tickMs = now;
-        if (paused) { show=frames.front(); frames.pop_front(); SDL_BroadcastCondition(cv); }
+        if (paused) {
+          show=frames.front(); frames.pop_front();
+          nest=tracking=speakerRequested && speaker>=0;
+          SDL_BroadcastCondition(cv);
+        }
         else if (audio) SDL_ResumeAudioStreamDevice(audio);
       }
     }

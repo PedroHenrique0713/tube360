@@ -4,6 +4,7 @@ import array
 import http.server
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import ssl
@@ -130,6 +131,9 @@ def run(name, height, seconds=5.5, preference='original', speaker=False, **confi
     size = subprocess.check_output(['identify', '-format', '%wx%h', str(work/(name+'.png'))], text=True)
     assert size == ('1920x1080' if height == 1080 else '1280x720'), size
     text = (work/(name+'.log')).read_text()
+    if name.startswith(("home-", "music-", "channel-")):
+        match = re.search(r"miniaturas: (\d+) bytes GPU", text)
+        assert match and int(match[1]) > 0, "catalog capture has no loaded thumbnails: "+name
     if config.get('XT_PLAY'):
         assert 'primeiro quadro' in text and '1080p' in text, text[-1500:]
     if nest:
@@ -139,6 +143,8 @@ def run(name, height, seconds=5.5, preference='original', speaker=False, **confi
         paths = [load['media']['contentId'].rsplit('/', 1)[1] for load in loads]
         if 'paused' in name:
             assert paths == ['audio.m4a', 'audio-pt.m4a'], paths
+            assert text.count('primeiro quadro') == 2, 'paused audio switch did not display its picture'
+            assert 'som Nest' in text.rsplit('primeiro quadro:', 1)[1], 'paused Nest clock was not retained'
             assert loads[1]['autoplay'] is False, 'paused track change started the Nest'
             assert loads[1]['currentTime'] > .3, 'track change lost the position'
             assert abs(nest.position-loads[1]['currentTime']) < .2, 'Nest advanced while paused'
@@ -154,13 +160,13 @@ def run(name, height, seconds=5.5, preference='original', speaker=False, **confi
 
 try:
     for height in (720, 1080):
-        run(f'home-{height}', height)
+        run(f'home-{height}', height, seconds=9)
         run(f'music-{height}', height, XT_NAV='music', XT_MUSIC='1')
         run(f'channel-{height}', height, XT_NAV='channel', XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw')
         run(f'player-row-{height}', height, seconds=4.5, XT_PLAY='4p_9OPKgcDE', XT_KEYS='......U')
         run(f'settings-{height}', height, seconds=6.5, XT_SCREEN='settings', XT_KEYS='DDDDDDDDDD')
     run('nest-audio-roundtrip', 1080, seconds=9, speaker=True, XT_PLAY='4p_9OPKgcDE', XT_KEYS='..ULADA..AUA')
-    run('nest-paused-audio', 1080, seconds=7, speaker=True, XT_PLAY='4p_9OPKgcDE', XT_KEYS='..AULADA')
+    run('nest-paused-audio', 1080, seconds=13, speaker=True, XT_PLAY='4p_9OPKgcDE', XT_KEYS='........AULADA')
     run('nest-music-interface', 720, seconds=5, preference='interface', speaker=True,
         XT_NAV='radio', XT_NAV_ID='F12audio001', XT_MUSIC='1', XT_KEYS='UA')
     (work/'results.json').write_text(json.dumps(results, indent=2))
