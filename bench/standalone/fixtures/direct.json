@@ -1,0 +1,30 @@
+[
+  {
+    "video": "4p_9OPKgcDE",
+    "kind": "vod",
+    "utc": "2026-11-23T19:05:36.525095+00:00",
+    "client": "ANDROID_VR",
+    "version": "1.65.10",
+    "http": 200,
+    "playability": {
+      "status": "LOGIN_REQUIRED",
+      "reason": "Sign in to confirm you\u2019re not a bot"
+    },
+    "ttl": null,
+    "hls": false
+  },
+  {
+    "video": "HvZt-nh9sGg",
+    "kind": "live",
+    "utc": "2026-11-23T19:05:36.779706+00:00",
+    "client": "ANDROID_VR",
+    "version": "1.65.10",
+    "http": 200,
+    "playability": {
+      "status": "LOGIN_REQUIRED",
+      "reason": "Sign in to confirm you\u2019re not a bot"
+    },
+    "ttl": null,
+    "hls": false
+  }
+]
