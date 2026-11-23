@@ -92,8 +92,7 @@ inline void Player::decodeOriginal() {
       }
       if (r >= 0 && audio && !broadcast->audioPlaylist.empty()) r = separate.openPackedAudio();
       actualHeight = broadcast->height;
-      if (quality >= 720 && broadcast->highRate720 && broadcast->height > 0 && broadcast->height < 720)
-        LOG("console: live %s tem 720p60, selecionado %dp",id.c_str(),broadcast->height);
+      if (r >= 0) LOG("console: live %s, master %dp %.3f fps", id.c_str(), broadcast->height, broadcast->frameRate);
       origin = NAN;
     } else {
       videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.video.url, &netBytes);
@@ -116,11 +115,28 @@ inline void Player::decodeOriginal() {
   hasAudio = (s.audio || separate.audio) && r >= 0;
   double last = -1, intervalPts = -1;
   unsigned pauseEpoch = pauseChanges.load();
-  int count = 0, slow = 0;
+  int count = 0, slow = 0, packets = 0, decoded = 0, filtered = 0;
+  int64_t previousShown = 0, previousLost = 0, phase = AV_NOPTS_VALUE;
+  double sourceRate = broadcast ? broadcast->frameRate : 0;
+  auto alternate = [&](int64_t pts, AVRational base) {
+    if (sourceRate <= 30 || pts == AV_NOPTS_VALUE || phase == AV_NOPTS_VALUE) return false;
+    return (std::llround((pts - phase) * av_q2d(base) * sourceRate) & 1) != 0;
+  };
   uint64_t ns = 0, since = SDL_GetTicks();
   auto decode = [&](h264::Stream& input, AVCodecContext* codec, AVPacket* packet) -> int {
     if (!codec) return 0;
     bool video = codec == s.video;
+    if (video && broadcast && packet) {
+      ++packets;
+      AVRational base = input.fmt->streams[input.vi]->time_base;
+      if (packet->duration > 0) {
+        double measured = 1.0 / (packet->duration * av_q2d(base));
+        if (sourceRate <= 30 && measured > 30.1 && measured <= 60.1) sourceRate = measured;
+      }
+      if (phase == AV_NOPTS_VALUE) phase = packet->pts;
+      // Um quadro referencial permanece no DPB mesmo quando a TV não precisa exibi-lo.
+      codec->skip_frame = alternate(packet->pts, base) ? AVDISCARD_NONREF : AVDISCARD_DEFAULT;
+    }
     uint64_t begin = SDL_GetTicksNS();
     int err = avcodec_send_packet(codec, packet);
     if (video) ns += SDL_GetTicksNS() - begin;
@@ -140,6 +156,9 @@ inline void Player::decodeOriginal() {
       if (video) {
         if (f->width > 1280 || f->height > 720 || (f->format != AV_PIX_FMT_YUV420P && f->format != AV_PIX_FMT_YUVJ420P))
           return AVERROR_INVALIDDATA;
+        ++decoded;
+        if (broadcast && (alternate(f->best_effort_timestamp, input.fmt->streams[input.vi]->time_base) ||
+                          (last >= 0 && pts - last < 1.0/30 - 0.00005))) { ++filtered; continue; }
         if (pts < -0.0001) continue;
         pts = std::max(0.0, pts);
         SDL_LockMutex(mu);
@@ -197,19 +216,23 @@ inline void Player::decodeOriginal() {
     uint64_t now = SDL_GetTicks();
     if (now - since >= 5000) {
       SDL_LockMutex(mu);
-      int minimum = queueMin; queueMin = (int)frames.size(); long long lost = droppedFrames;
+      int minimum = queueMin; queueMin = (int)frames.size(); long long lost = droppedFrames, shown = shownFrames;
       SDL_UnlockMutex(mu);
       double avg = count ? ns / 1e6 / count : 0.0;
       LOG("decod: H.264 %dt, %d quadros, %.2f ms/quadro, fila mín %d, perdidos %lld, PCM %.0f ms, rede %.2f Mbit/s",
           threads, count, avg, minimum, lost, audioQueuedSec() * 1000, SDL_SetAtomicInt(&netBytes, 0) * 0.008 / (now - since));
+      double displayRate = (shown - previousShown) * 1000.0 / (now - since);
+      if (broadcast) LOG("live: %.1f fps na TV, pacotes %d, decodificados %d, filtrados %d", displayRate, packets, decoded, filtered);
       int clock = masterMs.load();
       unsigned epoch = pauseChanges.load();
       bool behind = clock >= 0 && last < clock / 1000.0 - .25;
       bool insufficient = intervalPts >= 0 && last - intervalPts < (now - since) * .00090;
-      slow = !paused && pauseEpoch == epoch && minimum < 2 && (behind || insufficient) ? slow + 1 : 0;
+      bool losing = broadcast && lost - previousLost > 10 && displayRate < std::min(30.0, sourceRate) * .85;
+      slow = !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || losing) ? slow + 1 : 0;
+      previousShown = shown; previousLost = lost;
       intervalPts = last; pauseEpoch = epoch;
-      if (slow >= 2 && (!direct || (net::serverEnabled && avg > 33.34))) { r = AVERROR(ETIMEDOUT); break; }
-      since = now; count = 0; ns = 0;
+      if (slow >= 2 && (!direct || (net::serverEnabled && (broadcast || avg > 33.34)))) { r = AVERROR(ETIMEDOUT); break; }
+      since = now; count = packets = decoded = filtered = 0; ns = 0;
     }
   }
   if (reader) {

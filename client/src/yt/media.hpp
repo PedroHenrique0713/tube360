@@ -123,7 +123,7 @@ struct LiveFile {
     int64_t sequence = -1;
     long status = 0;
     int height = 0, delay = 1000;
-    bool highRate720 = false;
+    double frameRate = 0;
 
     bool fetch(string url, string& body) {
         auto r = mediaGet(net,url);
@@ -135,6 +135,7 @@ struct LiveFile {
     }
     bool open(const string& url, int ceiling) {
         string master, attrs, group;
+        int bestRank = 0;
         std::map<string,string> groups;
         if (!fetch(url, master) || !master.starts_with("#EXTM3U")) return false;
         for (auto& line : net::split(master, '\n')) {
@@ -148,10 +149,13 @@ struct LiveFile {
                 // Os itags HLS 93–95 têm teto de 30 fps mesmo nos manifestos sem FRAME-RATE.
                 bool legacy = line.find("/itag/93/") != string::npos || line.find("/itag/94/") != string::npos || line.find("/itag/95/") != string::npos;
                 std::sscanf(attribute(attrs,"RESOLUTION").c_str(), "%dx%d", &w, &h);
-                if (h == 720 && fps > 30 && codecs.find("avc1") != string::npos) highRate720 = true;
-                if (w > 0 && w <= 1280 && h <= ceiling && h > height && ((fps > 0 && fps <= 30) || (fps == 0 && legacy)) &&
+                int rank = fps > 0 && fps <= 30 ? 3 : fps == 0 && legacy ? 2 : 1;
+                if (w > 0 && w <= 1280 && h > 0 && h <= ceiling && (ceiling < 720 || h == 720) &&
+                    std::isfinite(fps) && fps >= 0 && fps <= 60.01 &&
+                    (rank > bestRank || (rank == bestRank && h > height)) &&
                     codecs.find("avc1") != string::npos && codecs.find("mp4a") != string::npos) {
                     playlist = hlsUrl(url, line); height = h; group = attribute(attrs,"AUDIO");
+                    frameRate = fps; bestRank = rank;
                 }
                 attrs.clear();
             }

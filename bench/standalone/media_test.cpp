@@ -53,7 +53,7 @@ void playlists() {
     m.steps.push_back({base+"v23","",{200,"video23"}});
     m.steps.push_back({base+"a23","",{200,"audio23"}});
     yt::LiveFile live{m,stop};
-    check(live.open(base+"master",720) && live.height==720 && live.highRate720,"prefer 30 fps");
+    check(live.open(base+"master",720) && live.height==720 && live.frameRate==30,"prefer 30 fps");
     check(live.refill()==0 && live.sequence==23 && live.sound=="audio","newest shared segment");
     check(live.refill()==0 && live.sequence==24 && live.sound=="audio23" && m.steps.empty(),"advance once");
     yt::PackedAudio packed;
