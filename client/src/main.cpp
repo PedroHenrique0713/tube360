@@ -34,6 +34,7 @@
 #include "account.hpp"
 #include "sleep.hpp"
 #include "icons.hpp"
+#include "cast/receiver.hpp"
 
 #ifdef __XSDK__
 #include "xsdk/net.h"
@@ -484,6 +485,9 @@ int main(int argc, char** argv) {
   for (auto& th : tw) th = yt::worker(Worker::main, "miniaturas", &thumbsWorker);
   Remote remote; remote.srv = srv;
   SDL_Thread* rt = SDL_CreateThread(Remote::main, "controle", &remote);
+  cast::Receiver phone(assets); phone.enable(!settings.server);
+  cast::Status phoneStatus; uint64_t phoneStateAt = 0, phonePlaybackSerial = 0;
+  float phoneGain = 1;
   Thumbs thumbs;
   thumbs.configure(g, thumbsWorker, settings.cols);
   std::vector<Shelf> cats;
@@ -579,6 +583,7 @@ int main(int argc, char** argv) {
   if (g.win) SDL_StartTextInput(g.win);
 #endif
   auto startVideo = [&](const Video& v, double t, bool fromRemote) {
+    if (!fromRemote) phonePlaybackSerial = 0;
     if (!fromRemote && nav.ownsQueue) {
       nav.ownsQueue = nav.musicSession = nav.musicNow = false;
       navWorker.add({6, "/api/nav/transport?action=clear", ++nav.serial}, true);
@@ -736,7 +741,7 @@ int main(int argc, char** argv) {
     double sleepLeft = sleep.remaining(now, sleep.end && pl.paused);
     bool sleepWarning = sleep.active && sleepLeft >= 0 && sleepLeft <= 60 && !shutdownAt;
     double gain = sleepWarning ? std::clamp(sleepLeft / 60, 0.0, 1.0) : 1.0;
-    pl.sleepGain((float)gain);
+    pl.sleepGain((float)gain * phoneGain);
     while (control.pop(r)) {
       if (r.key == "/api/cast/code") {
         auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
@@ -844,7 +849,17 @@ int main(int argc, char** argv) {
     std::deque<std::vector<std::string>> cmds; cmds.swap(remote.cmds);
     bool remoteOnline = remote.online;
     SDL_UnlockMutex(remote.mu);
+    if (!net::serverEnabled) {
+      phone.drain(cmds, phoneStatus);
+      remoteOnline = phoneStatus.online;
+      if (castWho != phoneStatus.who) {
+        toast = phoneStatus.who.empty() ? tr(K::PhoneDisconnected) : tr(K::PhoneConnected) + phoneStatus.who;
+        toastUntil = now + 5000;
+      }
+      castCode = phoneStatus.code; castWho = phoneStatus.who;
+    }
     for (auto& c : cmds) {
+      if (c.empty()) continue;
       if (c[0] == "desligar" && !shutdownAt) {
         LOG("timer: desligar recebido"); stopVideo();
         shutdownAt = SDL_GetTicks() + 2000; sleepPanel = false;
@@ -860,6 +875,12 @@ int main(int argc, char** argv) {
         toastUntil = now + 5000;
         continue;
       }
+      if (c[0] == "volume" && c.size() >= 3) {
+        phoneGain = c[2] == "1" ? 0 : std::clamp(std::atof(c[1].c_str()) / 100.0, 0.0, 1.0);
+        pl.sleepGain((float)gain * phoneGain);
+        LOG("cast: volume %.0f, mudo %s", std::atof(c[1].c_str()), c[2].c_str());
+        continue;
+      }
       bool queueStart = c[0] == "play" && c.size() > 4 && c[4] == "navigation";
       if (queueStart && nav.cancelQueue) continue;
       if (c[0] == "play" && c.size() >= 2) {
@@ -871,7 +892,9 @@ int main(int argc, char** argv) {
           nav.queue.clear();
           if (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0) nav.busy = false;
         }
+        phonePlaybackSerial = c.size() > 5 && c[4] == "cast" ? std::strtoull(c[5].c_str(), nullptr, 10) : 0;
         startVideo(v, t, true);
+        LOG("cast: play %s em %.2f, servidor %s", v.id.c_str(), t, net::serverEnabled ? "auto" : "off");
         if (!queueStart) { toast = tr(K::PhoneRequest); toastUntil = now + 2500; }
       } else if (screen == PLAYER) {
         if (c[0] == "pause") pl.setPaused(true);
@@ -1087,6 +1110,7 @@ int main(int argc, char** argv) {
         }
         else if (settingsRow == 8) {
           settings.server = !settings.server; net::serverEnabled = settings.server;
+          phone.enable(!settings.server); phoneGain = 1; castCode.clear(); castWho.clear();
           if (!settings.server) {
             account = {}; accountKnown = false; nestAvailable = false; castWho.clear(); sleep = {};
             SDL_LockMutex(remote.mu); remote.online = false; remote.cmds.clear(); remote.ended.clear(); SDL_UnlockMutex(remote.mu);
@@ -1300,6 +1324,7 @@ int main(int argc, char** argv) {
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && (playerFromRemote || !nextPending || now >= nextDeadline)) {
       if (!endedSent) {
         SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
+        if (!net::serverEnabled && playerFromRemote) phone.publish({playing.id, pl.position(), pl.duration, 4, phonePlaybackSerial}, playing.id);
         endedSent = true; ratePanel = sleepPanel = false; playerUI.panel = PlayerUI::NONE;
         // Pedido pelo celular: o app do celular escolhe o próximo. Timer "no fim do vídeo": desliga, não emenda.
         if (!playerFromRemote && !upNext.id.empty() && !(sleep.active && sleep.end)) nextAt = now + 8000;
@@ -1318,6 +1343,11 @@ int main(int argc, char** argv) {
     SDL_LockMutex(remote.mu);
     remote.playing = screen == PLAYER ? playing.id : ""; remote.pos = pl.position(); remote.dur = pl.duration; remote.paused = pl.paused;
     SDL_UnlockMutex(remote.mu);
+    if (!net::serverEnabled && now >= phoneStateAt) {
+      int state = screen != PLAYER ? -1 : (pl.state == player::ENDED || pl.state == player::FAILED) ? 4 : pl.paused ? 2 : pl.state == player::PLAYING ? 1 : 3;
+      phone.publish({screen == PLAYER ? playing.id : "", pl.position(), pl.duration, state, phonePlaybackSerial});
+      phoneStateAt = now + 250;
+    }
 
     if (focusVid && screen == HOME) { if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, focusVid->id, frame, cur.feed.direct)) ambientWant = s->avg; }
     ambient = ui::mix(ambient, ambientWant, 0.06f);
@@ -1790,7 +1820,7 @@ int main(int argc, char** argv) {
       icon(g, 2, px + 56, py + 60, ui::TEXT, ui::SURFACE);
       gfx::text(g, ui::F_BIG, tr(K::CastTitle), px + 92, py + 40, ui::TEXT);
       float ty = py + 104;
-      for (auto& line : gfx::wrap(g, ui::F_BODY, tr(K::CastChoose) + brandName + ".", pw - 96, 2)) {
+      for (auto& line : gfx::wrap(g, ui::F_BODY, tr(K::CastChoose) + (net::serverEnabled ? brandName : std::string("YouTube 360")) + ".", pw - 96, 2)) {
         gfx::text(g, ui::F_BODY, line, px + 48, ty, ui::TEXT); ty += 25;
       }
       for (auto& line : gfx::wrap(g, ui::F_SMALL, tr(K::CastPath), pw - 96, 2)) {
@@ -1800,7 +1830,7 @@ int main(int argc, char** argv) {
       else gfx::text(g, ui::F_BODY, tr(K::CastLoading), px + 48, py + 208, ui::FAINT);
       gfx::text(g, ui::F_SMALL, tr(K::CastRemember), px + 48, py + 264, ui::MUTED);
       gfx::rect(g, px + 48, py + 300, pw - 96, 1, ui::alpha(rgb(0xffffff), 0.08f));
-      gfx::text(g, ui::F_SMALL, !castWho.empty() ? tr(K::PhoneConnected) + castWho : std::string(tr(remoteOnline ? K::NoPhone : K::ServerOffline)),
+      gfx::text(g, ui::F_SMALL, !castWho.empty() ? tr(K::PhoneConnected) + castWho : std::string(tr(remoteOnline ? K::NoPhone : net::serverEnabled ? K::ServerOffline : K::CastOffline)),
                 px + 48, py + 320, !castWho.empty() ? rgb(0x34c759) : ui::FAINT);
       float hx = hint(g, px + 48, py + 366, "A", XA, tr(K::Close));
       hint(g, hx, py + 366, "B", XB, tr(K::Back));
@@ -1879,6 +1909,7 @@ int main(int argc, char** argv) {
     frame++;
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
+  phone.stop();
   captionLoader.stop();
   pl.halt();
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);

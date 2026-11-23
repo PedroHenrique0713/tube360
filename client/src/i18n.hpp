@@ -103,7 +103,8 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(CastTitle, "Cast from your phone", "Transmitir do celular") \
   X(CastChoose, "In the YouTube app, tap Cast and choose ", "No app do YouTube, toque em Transmitir e escolha ") \
   X(CastPath, "Or: your profile > Settings > Watch on TV > Enter TV code", "Ou: sua foto > Configurações > Assistir na TV > Inserir código da TV") \
-  X(CastLoading, "Getting the TV code… Keep the Cast receiver running.", "Buscando o código… Mantenha o receptor do servidor ligado.") \
+  X(CastOffline, "Cast is unavailable. Check the network connection.", "Transmitir indisponível. Verifique a conexão de rede.") \
+  X(CastLoading, "Getting the TV code…", "Buscando o código…") \
   X(CastRemember, "The code changes every 5 minutes. Pair once and your phone remembers this TV.", "O código muda a cada 5 minutos. Pareie uma vez e o celular lembra desta TV.") \
   X(NoPhone, "No phone connected yet.", "Nenhum celular conectado ainda.") \
   X(ServerOffline, "The server is offline right now.", "Sem conexão com o servidor agora.") \

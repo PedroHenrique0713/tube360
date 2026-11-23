@@ -19,3 +19,7 @@ cast/.node-persist/
 **/audio.txt
 **/marca.txt
 *.log
+**/cast-device.txt
+**/cast-device.txt.tmp
+**/cast-screen.txt
+**/cast-screen.txt.tmp
