@@ -1,4 +1,5 @@
 #include "yt/console_account.hpp"
+#include "yt/catalog.hpp"
 #include "picojson.h"
 #include <cstdlib>
 #include <deque>
@@ -57,6 +58,7 @@ void login(const string& path) {
     f.add("/s/tv/fixture/base.js","",R"(var a={clientId:"fake-client",clientSecret:"fake-secret"};)");
     f.add("/o/oauth2/device/code","youtube-paid-content",R"({"device_code":"fake-device","user_code":"TEST-F11","verification_url":"https://www.google.com/device","expires_in":90,"interval":5})");
     auto r=a.request("/api/account/login",1000,10);
+    check(a.accessToken().empty() && a.tokenRevision()==0,"pending login does not expose credentials");
     check(r.ok() && r.body.find("pending\t\tTEST-F11")!=string::npos,"TV device login shown");
     auto& start=f.sent.back(); J body;
     check(picojson::parse(body,start.body).empty() && body.get("device_model").get<string>()=="ytlr::","TV device model");
@@ -71,6 +73,7 @@ void login(const string& path) {
     f.add("/account/accounts_list",R"("clientName":"TVHTML5")",R"({"contents":[{"accountItem":{"accountName":{"simpleText":"Outra"},"isSelected":false}},{"accountItem":{"accountName":{"simpleText":"Conta F11"},"isSelected":true}}]})",200,"fake-a");
     r=a.request("/api/account",1015,25);
     check(r.ok() && r.body.find("signed_in\tConta F11")!=string::npos,"login completed with selected identity");
+    check(a.accessToken()=="fake-a" && a.tokenRevision()==1,"completed login publishes Music token");
     J saved; check(picojson::parse(saved,read(path)).empty(),"persisted JSON");
     check(saved.get("expires_at").get<double>()==4615,"expiry persisted as wall clock");
     struct stat info{}; check(stat(path.c_str(),&info)==0 && (info.st_mode&0777)==0600,"token file private");
@@ -83,6 +86,7 @@ void refresh(const string& path) {
     f.add("/account/accounts_list",R"("clientName":"TVHTML5")",R"({"contents":[]})",200,"fake-b");
     check(a.request("/api/account",1000,10).ok(),"restore and refresh");
     check(read(path).find("fake-b")!=string::npos && read(path).find("fake-r")!=string::npos,"refreshed token persisted preserving refresh");
+    check(a.accessToken()=="fake-b","refresh publishes new Music access token");
     seed(path,1001); Fake retry; yt::ConsoleAccount b(retry,path);
     retry.add("/o/oauth2/token","",R"({})",503);
     check(!b.request("/api/account",1000,10).ok(),"transient refresh fails visibly");
@@ -91,6 +95,7 @@ void refresh(const string& path) {
     retry.add("/o/oauth2/token","",R"({"error":"invalid_grant"})",400);
     auto r=b.request("/api/account",1031,41);
     check(r.ok() && r.body.find("signed_out")!=string::npos && access(path.c_str(),F_OK)!=0,"revocation clears token and session");
+    check(b.accessToken().empty(),"revocation removes Music credentials");
 }
 string tile(const string& id,const string& title) {
     return R"({"tileRenderer":{"contentType":"TILE_CONTENT_TYPE_VIDEO","contentId":")"+id+R"(","onSelectCommand":{"watchEndpoint":{"videoId":")"+id+R"("}},"metadata":{"tileMetadataRenderer":{"title":{"simpleText":")"+title+R"("},"lines":[]}},"header":{"tileHeaderRenderer":{"thumbnailOverlays":[{"thumbnailOverlayTimeStatusRenderer":{"text":{"simpleText":"10:00"},"style":"DEFAULT"}},{"thumbnailOverlayResumePlaybackRenderer":{"percentDurationWatched":50}}]}}}})";
@@ -176,11 +181,36 @@ void history(const string& path) {
     check(a.request("/api/account/watched?id=video000002",1030,40).error=="tracking_unavailable","tracking origin allowlist");
     check(f.steps.empty(),"history exchanges consumed");
 }
+void music(const string& path) {
+    seed(path,1100); Fake f; yt::ConsoleAccount a(f,path); yt::catalog::Client catalog(f);
+    auto browse=[&](const string& bearer) {
+        f.add("https://music.youtube.com/","",R"({"INNERTUBE_CONTEXT":{"client":{"clientName":"WEB_REMIX","clientVersion":"fixture"}}})");
+        f.add("https://music.youtube.com/youtubei/v1/browse",R"("browseId":"FEmusic_home")",R"({"contents":{}})",200,bearer);
+        check(catalog.setToken(a.accessToken()),"account token accepted by Music");
+        check(catalog.browse({{"kind","music"}}).error.empty(),"account Music Home loads");
+        bool authorized=false;
+        for (auto& h:f.sent.back().headers) authorized |= h.compare(0,14,"Authorization:")==0;
+        check(authorized==!bearer.empty(),"Music bearer removed when signed out");
+    };
+    f.add("/account/accounts_list","","{}",200,"fake-a");
+    check(a.request("/api/account",1000,10).ok(),"restore Music account");
+    browse("fake-a");
+    auto revision=a.tokenRevision(), sent=f.sent.size();
+    check(a.request("/api/account",1001,11).ok() && a.tokenRevision()==revision,"unchanged account keeps token revision");
+    check(catalog.browse({{"kind","music"}}).error.empty() && f.sent.size()==sent,"unchanged Music token retains cache");
+    f.add("/o/oauth2/token","refresh_token",R"({"access_token":"fake-b","expires_in":3600,"token_type":"Bearer"})");
+    check(a.request("/api/account",1050,60).ok() && a.tokenRevision()>revision,"refresh advances Music revision");
+    browse("fake-b");
+    f.add("/o/oauth2/revoke","token=fake-r","{}");
+    check(a.request("/api/account/logout",1051,61).ok() && a.accessToken().empty(),"logout clears Music token");
+    browse("");
+    check(f.steps.empty(),"Music reloads session and Home after refresh and logout");
+}
 int main(int argc,char** argv) {
     if (argc!=2) return 1;
     string path=string(argv[1])+"/test-token.json";
     unlink(path.c_str());
-    login(path); refresh(path); feeds(path); concurrency(path); actions(path); history(path);
+    login(path); refresh(path); feeds(path); concurrency(path); actions(path); history(path); music(path);
     unlink(path.c_str());
     std::cout<<checks<<" checks passed\n";
 }

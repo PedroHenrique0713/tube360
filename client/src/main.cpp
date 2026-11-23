@@ -72,8 +72,8 @@ static std::string fmtTime(double s) {
 
 // ---------------------------------------------------------------- trabalho em segundo plano
 // kind: 0 home, 1 busca do usuário, 2 miniatura, 3 categoria, 5 controle/conta.
-struct Job { int kind; std::string a; uint64_t stamp; bool fresh = false; int offset = 0; i18n::Lang lang = i18n::Lang::EN; std::string feedKind; int w = 320, h = 180; bool native = false; std::string query; uint64_t backend = 0; };
-struct Result { int kind = -1; std::string key; Feed feed; std::vector<uint8_t> rgba; int w = 0, h = 0; uint64_t stamp = 0; int offset = 0; bool localAccount = false, accountRoute = false, catalog = false; uint64_t backend = 0; };
+struct Job { int kind; std::string a; uint64_t stamp; bool fresh = false; int offset = 0; i18n::Lang lang = i18n::Lang::EN; std::string feedKind; int w = 320, h = 180; bool native = false; std::string query; uint64_t backend = 0, catalogBackend = 0; };
+struct Result { int kind = -1; std::string key; Feed feed; std::vector<uint8_t> rgba; int w = 0, h = 0; uint64_t stamp = 0; int offset = 0; bool localAccount = false, accountRoute = false, catalog = false, catalogRoute = false; uint64_t backend = 0, catalogBackend = 0; };
 
 static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
   std::string body(raw.begin(), raw.end());
@@ -94,12 +94,15 @@ struct Worker {
   net::Server srv; std::shared_ptr<yt::ConsoleAccount> consoleAccount; SDL_Mutex* mu = SDL_CreateMutex(); SDL_Condition* cv = SDL_CreateCondition();
   std::deque<Job> jobs; std::deque<Result> results; bool quit = false, finishJobs = false; int hw = 4;
   std::string musicToken;
+  std::atomic_uint64_t musicRevision{0};
   bool setMusicToken(const std::string& access) {
     if (access.size() > 8192 || access.find_first_of("\r\n\t ") != std::string::npos) return false;
-    SDL_LockMutex(mu); musicToken = access; SDL_UnlockMutex(mu); return true;
+    SDL_LockMutex(mu);
+    if (musicToken != access) { musicToken = access; musicRevision.fetch_add(1); }
+    SDL_UnlockMutex(mu); return true;
   }
   static int main(void* p) { ((Worker*)p)->loop(); return 0; }
-  void add(Job j, bool front = false) { if (consoleAccount) j.backend = consoleAccount->revision(); SDL_LockMutex(mu); if (front) jobs.push_front(j); else jobs.push_back(j); SDL_SignalCondition(cv); SDL_UnlockMutex(mu); }
+  void add(Job j, bool front = false) { if (consoleAccount) j.backend = consoleAccount->revision(); SDL_LockMutex(mu); j.catalogBackend = musicRevision.load(); if (front) jobs.push_front(j); else jobs.push_back(j); SDL_SignalCondition(cv); SDL_UnlockMutex(mu); }
   void loop() {
     player::moveToHardwareThread(hw);
     auto https = yt::catalog::transport();
@@ -115,6 +118,9 @@ struct Worker {
       Result r; r.kind = j.kind; r.key = j.a; r.stamp = j.stamp; r.offset = j.offset;
       net::Response resp;
       if (j.kind == 6 && yt::catalog::supported(j.a)) {
+        if (j.catalogBackend != musicRevision.load() || (consoleAccount && j.backend != consoleAccount->revision())) continue;
+        r.catalogRoute = true; r.catalogBackend = j.catalogBackend;
+        r.backend = j.backend;
         catalog.setToken(access);
         r.feed.title = catalog.handle(j.a);
         if (r.feed.title.rfind("ok\t",0) == 0) r.catalog = true;
@@ -743,6 +749,22 @@ int main(int argc, char** argv) {
     openNav(searchMusic ? "music_search" : "search", "", q, searchMusic);
   };
   auto goHome = [&]() { nav.pages.clear(); nav.musicSession = false; inResults = false; zone = 0; scroll = 0; railFocus = false; screen = HOME; };
+  uint64_t musicTokenRevision = ~uint64_t(0);
+  bool musicAccountActive = false;
+  std::string musicAccess;
+  auto syncMusicToken = [&]() {
+    auto revision = consoleAccount->tokenRevision(); bool active = consoleAccount->active();
+    if (revision == musicTokenRevision && active == musicAccountActive) return;
+    musicTokenRevision = revision; musicAccountActive = active;
+    auto access = active ? consoleAccount->accessToken() : std::string{};
+    if (access == musicAccess) return;
+    musicAccess = std::move(access); navWorker.setMusicToken(musicAccess);
+    nav.busy = false; nav.actionStamp = ++nav.serial; nav.cancelQueue = false;
+    if (!nav.pages.empty()) {
+      auto page = nav.page(); nav.pages.clear();
+      nav.open(navWorker, settings.lang, page.kind, page.id, page.query, page.music);
+    }
+  };
   if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; startVideo(v, 0, false); }
 #ifndef __XSDK__
   if (const char* q = std::getenv("XT_QUERY")) doSearch(q);
@@ -816,6 +838,7 @@ int main(int argc, char** argv) {
       nav.pages.clear(); nav.queue.clear(); nav.busy = false;
       if (screen == NAV) screen = HOME;
     }
+    syncMusicToken();
     Result r;
     while (thumbsWorker.pop(r)) if (r.kind == 2) thumbs.arrived(std::move(r));
     while (sleepWorker.pop(r)) {
@@ -893,8 +916,10 @@ int main(int argc, char** argv) {
         }
       }
     }
+    syncMusicToken();
     while (navWorker.pop(r)) {
       if (r.accountRoute && r.backend != consoleAccount->revision()) continue;
+      if (r.catalogRoute && (r.catalogBackend != navWorker.musicRevision.load() || r.backend != consoleAccount->revision())) continue;
       if (r.stamp == nav.actionStamp && nav.busy) {
         nav.busy = false;
         bool ok = r.feed.error == K::None && r.feed.title.rfind("ok", 0) == 0;
@@ -1434,7 +1459,7 @@ int main(int argc, char** argv) {
     if (screen == PLAYER && pl.live) { if (pl.paused) livePaused = true; else if (livePaused) resumeLive(); }
     else livePaused = false;
     if (screen == PLAYER && account.signedIn() && consoleAccount->active() &&
-        pl.shownFrames > 0 && (!historyStarted || now >= historyAt)) {
+        (pl.shownFrames > 0 || (pl.playingAudio && pl.firstPts >= 0)) && (!historyStarted || now >= historyAt)) {
       Job j{7, "/api/account/watched?id=" + playing.id + "&pos=" + std::to_string(pl.position()) +
           "&progress=" + (historyStarted ? "1" : "0"), 0};
       control.add(j); historyStarted = true; historyAt = now + 30000;

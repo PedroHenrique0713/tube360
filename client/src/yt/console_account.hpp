@@ -21,6 +21,9 @@ public:
     static bool supports(const string& path);
     AccountReply request(const string& path, int64_t wall = 0, int64_t monotonic = -1);
     string pictureUrl(const string& key);
+    // Snapshot sem rede nem o mutex das requisições: pode ser lido pelo desenho.
+    string accessToken();
+    uint64_t tokenRevision() const;
     void select(bool console) { if (selected.exchange(console) != console) generation.fetch_add(1); }
     uint64_t revision() const { return generation.load(); }
     bool active() const { return selected.load(); }

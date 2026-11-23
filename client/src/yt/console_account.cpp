@@ -300,6 +300,9 @@ struct ConsoleAccount::Impl {
     Transport& net;
     TVOAuth oauth;
     std::mutex mutex;
+    std::mutex tokenMutex;
+    string publishedToken;
+    std::atomic_uint64_t tokenGeneration{0};
     string path, clientId, secret, version="7.20250219.14.00", visitor, name;
     DeviceCode code;
     Tokens tokens;
@@ -636,6 +639,14 @@ bool ConsoleAccount::supports(const string& path) {
 AccountReply ConsoleAccount::request(const string& path,int64_t wall,int64_t monotonic) {
     std::lock_guard<std::mutex> lock(impl->mutex);
     auto& s=*impl;
+    struct Publish {
+        Impl& s;
+        ~Publish() {
+            std::lock_guard<std::mutex> lock(s.tokenMutex);
+            auto token=s.wall<s.tokens.expires ? s.tokens.access : string{};
+            if (token!=s.publishedToken) { s.publishedToken=std::move(token); s.tokenGeneration.fetch_add(1); }
+        }
+    } publish{s};
     s.wall=wall ? wall : std::time(nullptr);
     s.monotonic=monotonic>=0 ? monotonic : std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     s.load();
@@ -703,4 +714,9 @@ string ConsoleAccount::pictureUrl(const string& key) {
     auto found=impl->images.find(key);
     return found==impl->images.end() ? string{} : found->second;
 }
+string ConsoleAccount::accessToken() {
+    std::lock_guard<std::mutex> lock(impl->tokenMutex);
+    return impl->publishedToken;
+}
+uint64_t ConsoleAccount::tokenRevision() const { return impl->tokenGeneration.load(); }
 }

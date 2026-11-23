@@ -40,6 +40,6 @@ cmake -S "$root/bench/standalone" -B "$build" -DCMAKE_BUILD_TYPE=Release \
     "-DMBEDTLS_SOURCE=$src/$mbed" "-DCURL_SOURCE=$src/curl-xenon-$rev" "${args[@]}"
 cmake --build "$build" --parallel "${JOBS:-3}" --target yt-check
 if [[ "$target" == pc ]]; then
-    cmake --build "$build" --parallel "${JOBS:-3}" --target yt-test
+    cmake --build "$build" --parallel "${JOBS:-3}" --target yt-test yt-account-test
     ctest --test-dir "$build" --output-on-failure
 fi
