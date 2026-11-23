@@ -136,7 +136,7 @@ struct Navigation {
     }
     bool tabs = channel || p.kind == "music" || p.kind == "search" || p.kind == "music_search";
     if (tabs) {
-      const K channelTabs[] = {K::Videos,K::Live,K::Playlists};
+      const K channelTabs[] = {K::Videos,K::ChannelLive,K::Playlists};
       const K musicTabs[] = {K::QuickPicks,K::Charts,K::Mixes};
       const K searchTabs[] = {K::AllResults,K::Videos,K::Channel};
       const K songTabs[] = {K::AllResults,K::Songs,K::Albums,K::Artists};
@@ -188,7 +188,6 @@ struct Navigation {
     }
     gfx::rect(g, 96, 656, 1184, 64, ui::BG);
     if (p.loading) { spinner(g, 1188, 146, 12, now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), 936, 130, ui::MUTED); }
-    if (!p.error.empty() && !p.items.empty()) gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, p.error, 1030), 136, 620, ui::A2);
     float hx = hint(g, 136, 676, "A", XA, tr(p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open));
     hx = hint(g, hx, 676, "B", XB, tr(K::Back));
     hx = hint(g, hx, 676, "X", XX, tr(K::Refresh));

@@ -465,7 +465,7 @@ int main(int argc, char** argv) {
   rebuildCats();
 
   enum Screen { HOME, SEARCH, PLAYER, SETTINGS, NAV } screen = HOME;
-  Screen navReturn = HOME, searchBack = HOME; bool searchMusic = false;
+  Screen navReturn = HOME, searchBack = HOME; bool searchMusic = false, navReturnRail = false;
   int zone = 0;  // 0 grade, 1 categorias
   float scroll = 0; static float selAnim[600] = {};
   bool railFocus = false; int railSel = 0; float railOpen = 0;
@@ -555,16 +555,16 @@ int main(int argc, char** argv) {
     query.resize(at);
   };
   auto openNav = [&](const std::string& kind, const std::string& id = "", const std::string& q = "", bool music = false) {
-    if (screen != NAV) { navReturn = screen == SEARCH ? searchBack : screen; nav.pages.clear(); }
+    if (screen != NAV) { navReturn = screen == SEARCH ? searchBack : screen; navReturnRail = railFocus; nav.pages.clear(); }
     nav.open(navWorker, settings.lang, kind, id, q, music); screen = NAV; railFocus = false;
   };
   auto openChannelForVideo = [&](const std::string& id) {
-    if (screen != NAV) { navReturn = screen; nav.pages.clear(); }
+    if (screen != NAV) { navReturn = screen; navReturnRail = railFocus; nav.pages.clear(); }
     nav.channelFromVideo(navWorker, settings.lang, id); screen = NAV; railFocus = false;
   };
   auto navBack = [&]() {
     if (!nav.pages.empty()) nav.pages.pop_back();
-    if (nav.pages.empty()) { screen = navReturn; if (screen == SEARCH || screen == PLAYER) screen = HOME; }
+    if (nav.pages.empty()) { screen = navReturn; if (screen == SEARCH || screen == PLAYER) screen = HOME; railFocus = screen == HOME && navReturnRail; }
     else screen = NAV;
   };
   auto openSearch = [&]() {
@@ -737,7 +737,12 @@ int main(int argc, char** argv) {
           auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
           toast = fields.size() > 1 ? fields[1] : tr(K::ActionFailed); toastUntil = now + 4500;
         }
-      } else nav.arrived(r, g, settings.lang);
+      } else {
+        nav.arrived(r, g, settings.lang);
+        if (screen == NAV && !nav.pages.empty() && nav.page().stamp == r.stamp && !nav.page().items.empty() && !nav.page().error.empty()) {
+          toast = nav.page().error; toastUntil = now + 4500;
+        }
+      }
     }
     while (worker.pop(r)) {
       Shelf* target = inResults && r.stamp == results.stamp ? &results : nullptr;
@@ -1200,7 +1205,7 @@ int main(int argc, char** argv) {
       gfx::vgrad(g, 0, 118, ui::W, 36, ui::BG, ui::alpha(ui::BG, 0));
       wordmark(g, ui::X0, 22, 1, ui::BG);
       {
-        float hw = 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Refresh)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Search));
+        float hw = 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Refresh)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Search)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::MoreOptions));
         float lx = ui::W - 64 - hw, pillRight = lx - 18;
         auto pill = [&](const std::string& label, Color color) {
           std::string txt = gfx::ellipsize(g, ui::F_SMALL, label, 218);
@@ -1219,8 +1224,8 @@ int main(int argc, char** argv) {
         if (!castWho.empty()) pill(tr(K::PhonePrefix) + castWho, rgb(0x34c759));
         if (account.signedIn()) pill(tr(K::AccountPrefix) + account.name, ui::A2);
         float hx3 = hint(g, lx, 32, "X", XX, tr(K::Refresh));
-        hint(g, hx3, 32, "Y", XY, tr(K::Search));
-        hint(g, 1010, 678, "Menu", XG, tr(K::MoreOptions));
+        float hx4 = hint(g, hx3, 32, "Y", XY, tr(K::Search));
+        hint(g, hx4, 32, "Menu", XG, tr(K::MoreOptions));
       }
       if (inResults) {
         gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, cur.feed.title, 760), ui::X0, 78, ui::TEXT);

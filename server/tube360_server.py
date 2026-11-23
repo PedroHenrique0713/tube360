@@ -1103,8 +1103,22 @@ async def nav_data(kind, item_id, query, tab, offset, n, fresh=False, filter=0):
                                    "more": cache["more"] or offset + n < len(cache["items"])}
 
 
-def nav_response(data):
-    fields = [data.get("title", ""), data.get("subtitle", ""), data.get("image", ""),
+def nav_subtitle(value, lang):
+    def count(match):
+        number, scale, label = match.groups()
+        scale = (scale or "").strip().lower()
+        scale = {"k": 0, "mil": 0, "m": 1, "mi": 1, "b": 2, "bi": 2}.get(scale)
+        number = number.replace(".", ",") if lang == "pt" else number.replace(",", ".")
+        if scale is not None:
+            number += ((" mil", " mi", " bi") if lang == "pt" else ("K", "M", "B"))[scale]
+        key = 0 if label.lower().startswith(("subscr", "inscri")) else 1 if label.lower().startswith(("view", "visualiza")) else 2
+        return number + " " + (("inscritos", "visualizações", "vídeos") if lang == "pt" else ("subscribers", "views", "videos"))[key]
+    value = re.sub(r"(\d+(?:[.,]\d+)?)\s*(K|M|B|mil|mi|bi)?\s+(?:de\s+)?(subscribers?|inscritos?|views?|visualizações|videos?|vídeos?)\b", count, clean(value), flags=re.I)
+    return re.sub(r"^(Album|Álbum)(?=\s*[•·])", tr("Álbum", "Album", lang), value, flags=re.I)
+
+
+def nav_response(data, lang=LANGUAGE):
+    fields = [data.get("title", ""), nav_subtitle(data.get("subtitle", ""), lang), data.get("image", ""),
               int(bool(data.get("subscribed"))), int(bool(data.get("more"))), data.get("channel_id", "")]
     lines = ["ok\t" + "\t".join(clean(v) for v in fields)]
     for item in data.get("items", []):
@@ -1127,7 +1141,7 @@ async def navigation(kind: str, id: str = "", q: str = Query("", max_length=200)
     if kind not in NAV_KINDS or (id and not re.fullmatch(r"[A-Za-z0-9_-]{2,160}", id)):
         raise HTTPException(400, "Invalid navigation.")
     try:
-        return nav_response(await nav_data(kind, id, q, tab, offset, n, fresh, filter))
+        return nav_response(await nav_data(kind, id, q, tab, offset, n, fresh, filter), lang)
     except Exception as error:
         return nav_error(error, lang)
 
@@ -1137,7 +1151,7 @@ async def navigation_channel(id: str, lang: Literal["pt", "en"] = LANGUAGE):
     valid_id(id)
     try:
         data = await account_request("/channel_for_video?id=" + id)
-        return nav_response(await nav_data("channel", data["id"], "", "videos", 0, 24))
+        return nav_response(await nav_data("channel", data["id"], "", "videos", 0, 24), lang)
     except Exception as error:
         return nav_error(error, lang)
 
@@ -1178,7 +1192,7 @@ async def navigation_play(request: Request, kind: Literal["playlist", "album", "
         remote.queue.extend(v | {"t": 0} for v in items[1:])
         remote.commands = deque(c for c in remote.commands if c["action"] not in ("play", "next", "stop", "pause", "resume", "seek"))
         remote.commands.append({"action": "play", "id": items[0]["id"], "t": 0, "at": time.monotonic()})
-        return nav_response(data | {"items": items})
+        return nav_response(data | {"items": items}, lang)
     except Exception as error:
         return nav_error(error, lang)
 
