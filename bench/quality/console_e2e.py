@@ -75,6 +75,12 @@ for video in ('4p_9OPKgcDE', 'F12audio001', 'F12audio002', 'F12audio003'):
             {'url': 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false', 'fields': {'videoId': video}, 'file': filename}])
 (replay/'responses.json').write_text(json.dumps(manifest))
 accounts = ROOT/'bench/account/fixtures'
+# Antes do snapshot da conta, o app pode pedir a Home pública. Grave também essa partida.
+account_rules = json.loads((accounts/'responses.json').read_text())
+public_home = next(rule['json'] for rule in account_rules if 'WEB' in rule.get('contains', ''))
+(replay/'home-public.json').write_text(json.dumps(public_home))
+manifest['requests'].append({'url': 'https://www.youtube.com/youtubei/v1/browse?prettyPrint=false',
+    'fields': {'browseId': 'FEwhat_to_watch'}, 'file': 'home-public.json'})
 for index in range(1, 9):
     manifest['requests'].append({'url': f'https://i.ytimg.com/vi/video{index:06}/mqdefault.jpg', 'file': 'art.png'})
 (replay/'responses.json').write_text(json.dumps(manifest))
@@ -95,6 +101,8 @@ def run(name, height, seconds=5.5, preference='original', speaker=False, **confi
     (assets/'yt-console-account.json').write_text(json.dumps({'access_token': 'fixture-access',
         'refresh_token': 'fixture-refresh', 'expires_at': int(time.time())+3600,
         'client': {'client_id': 'fixture-tv-client', 'client_secret': 'fixture-tv-secret'}, 'name': 'Conta integrada F15'}))
+    for suffix in ('-account.tsv', '-music.tsv'):
+        (work/(name+suffix)).unlink(missing_ok=True)
     nest = Receiver(cert, key) if speaker else None
     downloads = []
     if nest:
