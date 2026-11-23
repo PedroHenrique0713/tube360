@@ -39,6 +39,28 @@ void ranges() {
     yt::RangeFile corrupt(std::move(bad),url,&received);
     check(corrupt.read(out,1)<0 && corrupt.read(out,1)<0,"reject shifted 206 without looping");
 }
+void liveQuality() {
+    string base = "https://example.com/", header = "#EXTM3U\n";
+    string variant = "#EXT-X-STREAM-INF:CODECS=\"avc1,mp4a\",RESOLUTION=";
+    string low = variant+"854x480,FRAME-RATE=30\nlow.m3u8\n";
+    string fast = variant+"1280x720,FRAME-RATE=59.94\nhigh.m3u8\n";
+    for (int ceiling : {480,720}) {
+        Mock lists, media;
+        std::atomic_bool stop{false};
+        string selected = ceiling==480 ? "low.m3u8" : "high.m3u8";
+        lists.steps.push_back({base+"master","",{200,header+low+fast}});
+        lists.steps.push_back({base+selected,"",{200,header+"seg.ts\n#EXT-X-ENDLIST\n"}});
+        media.steps.push_back({base+"seg.ts","",{200,"ts"}});
+        yt::LiveFile live(lists,media,stop);
+        check(live.open(base+"master",ceiling) && live.height==ceiling,"respect selected quality");
+        check(live.frameRate==(ceiling==480 ? 30 : 59.94),"fractional frame rate");
+        check(live.refill()==0 && live.refill()==AVERROR_EOF,"consume selected variant");
+    }
+    Mock lists, media; std::atomic_bool stop{false};
+    lists.steps.push_back({base+"master","",{200,header+low}});
+    yt::LiveFile live(lists,media,stop);
+    check(!live.open(base+"master",720),"respect 720p floor when only 480p exists");
+}
 void playlists() {
     Mock lists, media; std::atomic_bool stop=false;
     string base="https://example.com/", master="#EXTM3U\n#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"aac\",URI=\"a.m3u8\"\n";
@@ -61,4 +83,4 @@ void playlists() {
     check(!packed.begin("ID3") && !packed.begin(string(80,0)),"invalid packed audio tag");
 }
 }
-int main() { ranges(); playlists(); std::cout<<"Range, seek, redirects, paired live edge and packed audio checks passed\n"; }
+int main() { ranges(); liveQuality(); playlists(); std::cout<<"Range, seek, redirects, live quality floor, paired reserve and packed audio checks passed\n"; }
