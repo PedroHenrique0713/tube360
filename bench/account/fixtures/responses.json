@@ -1,0 +1,2745 @@
+[
+  {
+    "url": "/youtubei/v1/browse?",
+    "contains": "\"clientName\":\"WEB\"",
+    "json": {
+      "contents": [
+        {
+          "videoRenderer": {
+            "videoId": "video000001",
+            "title": {
+              "simpleText": "Viagem de trem pela serra"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000002",
+            "title": {
+              "simpleText": "Como funciona um motor elétrico"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000003",
+            "title": {
+              "simpleText": "Café, música e uma tarde tranquila"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000004",
+            "title": {
+              "simpleText": "Explorando as estradas do Brasil"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000005",
+            "title": {
+              "simpleText": "Tecnologia no dia a dia"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000006",
+            "title": {
+              "simpleText": "Uma volta pela cidade"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000007",
+            "title": {
+              "simpleText": "Receitas para o fim de semana"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000008",
+            "title": {
+              "simpleText": "Os caminhos da fotografia"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/youtubei/v1/search?",
+    "json": {
+      "contents": [
+        {
+          "videoRenderer": {
+            "videoId": "video000001",
+            "title": {
+              "simpleText": "Viagem de trem pela serra"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000002",
+            "title": {
+              "simpleText": "Como funciona um motor elétrico"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000003",
+            "title": {
+              "simpleText": "Café, música e uma tarde tranquila"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000004",
+            "title": {
+              "simpleText": "Explorando as estradas do Brasil"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000005",
+            "title": {
+              "simpleText": "Tecnologia no dia a dia"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000006",
+            "title": {
+              "simpleText": "Uma volta pela cidade"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000007",
+            "title": {
+              "simpleText": "Receitas para o fim de semana"
+            }
+          }
+        },
+        {
+          "videoRenderer": {
+            "videoId": "video000008",
+            "title": {
+              "simpleText": "Os caminhos da fotografia"
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/s/tv/fixture/base.js",
+    "contains": "",
+    "status": 200,
+    "body": "var a={clientId:\"fixture-tv-client\",clientSecret:\"fixture-tv-secret\"};"
+  },
+  {
+    "url": "/tv",
+    "contains": "",
+    "status": 200,
+    "body": "<script>ytcfg.set({\"INNERTUBE_CLIENT_VERSION\":\"7.20250219.14.00\"})</script><script id=\"base-js\" src=\"/s/tv/fixture/base.js\"></script>"
+  },
+  {
+    "url": "/o/oauth2/device/code",
+    "contains": "",
+    "status": 200,
+    "json": {
+      "device_code": "fixture-device",
+      "user_code": "F11-TESTE",
+      "verification_url": "https://www.google.com/device",
+      "interval": 5,
+      "expires_in": 600
+    }
+  },
+  {
+    "url": "/o/oauth2/token",
+    "contains": "",
+    "status": 200,
+    "json": {
+      "access_token": "fixture-access",
+      "refresh_token": "fixture-refresh",
+      "token_type": "Bearer",
+      "expires_in": 3600
+    }
+  },
+  {
+    "url": "/o/oauth2/revoke",
+    "contains": "",
+    "status": 200,
+    "json": {}
+  },
+  {
+    "url": "/account/accounts_list",
+    "contains": "",
+    "status": 200,
+    "json": {
+      "contents": [
+        {
+          "accountItem": {
+            "accountName": {
+              "simpleText": "Conta de demonstração"
+            },
+            "isSelected": true
+          }
+        }
+      ]
+    },
+    "authorization": "fixture-access"
+  },
+  {
+    "url": "/youtubei/v1/browse?",
+    "contains": "\"browseId\":\"FEwhat_to_watch\"",
+    "status": 200,
+    "json": {
+      "contents": [
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000001",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000001"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Viagem de trem pela serra"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000002",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000002"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Como funciona um motor elétrico"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000003",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000003"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Café, música e uma tarde tranquila"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000004",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000004"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Explorando as estradas do Brasil"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000005",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000005"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Tecnologia no dia a dia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000006",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000006"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Uma volta pela cidade"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000007",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000007"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Receitas para o fim de semana"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000008",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000008"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Os caminhos da fotografia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/youtubei/v1/browse?",
+    "contains": "\"browseId\":\"FEsubscriptions\"",
+    "status": 200,
+    "json": {
+      "contents": [
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000001",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000001"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Viagem de trem pela serra"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000002",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000002"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Como funciona um motor elétrico"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000003",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000003"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Café, música e uma tarde tranquila"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000004",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000004"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Explorando as estradas do Brasil"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/youtubei/v1/browse?",
+    "contains": "\"browseId\":\"FEchannels\"",
+    "status": 200,
+    "json": {
+      "contents": [
+        {
+          "channelRenderer": {
+            "channelId": "UC0000000000000000000001",
+            "title": {
+              "simpleText": "Canal F11"
+            },
+            "thumbnail": {
+              "thumbnails": [
+                {
+                  "url": "https://yt3.ggpht.com/fixture-avatar",
+                  "width": 96,
+                  "height": 96
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/youtubei/v1/browse?",
+    "contains": "\"browseId\":\"FEhistory\"",
+    "status": 200,
+    "json": {
+      "contents": [
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000001",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000001"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Viagem de trem pela serra"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000002",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000002"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Como funciona um motor elétrico"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000003",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000003"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Café, música e uma tarde tranquila"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000004",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000004"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Explorando as estradas do Brasil"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/youtubei/v1/browse?",
+    "contains": "\"browseId\":\"VLWL\"",
+    "status": 200,
+    "json": {
+      "contents": [
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000005",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000005"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Tecnologia no dia a dia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000006",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000006"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Uma volta pela cidade"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000007",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000007"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Receitas para o fim de semana"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000008",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000008"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Os caminhos da fotografia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/youtubei/v1/browse?",
+    "contains": "\"browseId\":\"FEplaylist_aggregation\"",
+    "status": 200,
+    "json": {
+      "contents": [
+        {
+          "gridPlaylistRenderer": {
+            "playlistId": "PLfixture",
+            "title": {
+              "simpleText": "Viagens e descobertas"
+            },
+            "shortBylineText": {
+              "simpleText": "Conta de demonstração"
+            },
+            "thumbnail": {
+              "thumbnails": [
+                {
+                  "url": "https://i.ytimg.com/vi/video000001/mqdefault.jpg",
+                  "width": 320,
+                  "height": 180
+                }
+              ]
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_PLAYLIST",
+            "contentId": "RDfixture",
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Meu mix de viagens"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/youtubei/v1/browse?",
+    "contains": "\"browseId\":\"VLPLfixture\"",
+    "status": 200,
+    "json": {
+      "contents": [
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000001",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000001"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Viagem de trem pela serra"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000002",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000002"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Como funciona um motor elétrico"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000003",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000003"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Café, música e uma tarde tranquila"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000004",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000004"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Explorando as estradas do Brasil"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000005",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000005"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Tecnologia no dia a dia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000006",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000006"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Uma volta pela cidade"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000007",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000007"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Receitas para o fim de semana"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000008",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000008"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Os caminhos da fotografia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/youtubei/v1/browse?",
+    "contains": "\"browseId\":\"UC0000000000000000000001\"",
+    "status": 200,
+    "json": {
+      "contents": [
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000001",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000001"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Viagem de trem pela serra"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000002",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000002"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Como funciona um motor elétrico"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000003",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000003"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Café, música e uma tarde tranquila"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000004",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000004"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Explorando as estradas do Brasil"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000005",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000005"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Tecnologia no dia a dia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000006",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000006"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Uma volta pela cidade"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000007",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000007"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Receitas para o fim de semana"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000008",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000008"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Os caminhos da fotografia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ],
+      "header": {
+        "channelHeaderRenderer": {
+          "title": {
+            "simpleText": "Canal F11"
+          },
+          "subscribeButton": {
+            "subscribeButtonRenderer": {
+              "subscribed": false
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "url": "/youtubei/v1/next?",
+    "contains": "",
+    "status": 200,
+    "json": {
+      "transportControls": {
+        "transportControlsRenderer": {
+          "buttons": [
+            {
+              "button": {
+                "likeButtonRenderer": {
+                  "likeStatus": "LIKE"
+                }
+              }
+            }
+          ]
+        }
+      },
+      "playerOverlays": {
+        "playerOverlayRenderer": {
+          "autoplay": {
+            "playerOverlayAutoplayRenderer": {
+              "videoId": "video000002",
+              "videoTitle": {
+                "simpleText": "Próximo vídeo de demonstração"
+              }
+            }
+          }
+        }
+      },
+      "contents": [
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000001",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000001"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Viagem de trem pela serra"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000002",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000002"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Como funciona um motor elétrico"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000003",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000003"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Café, música e uma tarde tranquila"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000004",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000004"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Explorando as estradas do Brasil"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000005",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000005"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Tecnologia no dia a dia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000006",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000006"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Uma volta pela cidade"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000007",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000007"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Receitas para o fim de semana"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "tileRenderer": {
+            "contentType": "TILE_CONTENT_TYPE_VIDEO",
+            "contentId": "video000008",
+            "onSelectCommand": {
+              "watchEndpoint": {
+                "videoId": "video000008"
+              }
+            },
+            "metadata": {
+              "tileMetadataRenderer": {
+                "title": {
+                  "simpleText": "Os caminhos da fotografia"
+                },
+                "lines": [
+                  {
+                    "lineRenderer": {
+                      "items": [
+                        {
+                          "lineItemRenderer": {
+                            "text": {
+                              "simpleText": "Canal de demonstração"
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            "header": {
+              "tileHeaderRenderer": {
+                "thumbnailOverlays": [
+                  {
+                    "thumbnailOverlayTimeStatusRenderer": {
+                      "text": {
+                        "simpleText": "10:00"
+                      },
+                      "style": "DEFAULT"
+                    }
+                  },
+                  {
+                    "thumbnailOverlayResumePlaybackRenderer": {
+                      "percentDurationWatched": 35
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "url": "/youtubei/v1/player?",
+    "contains": "",
+    "status": 200,
+    "json": {
+      "videoDetails": {
+        "channelId": "UC0000000000000000000001"
+      },
+      "playbackTracking": {
+        "videostatsPlaybackUrl": {
+          "baseUrl": "https://www.youtube.com/api/stats/playback?ei=fixture"
+        },
+        "videostatsWatchtimeUrl": {
+          "baseUrl": "https://www.youtube.com/api/stats/watchtime?ei=fixture"
+        }
+      }
+    }
+  },
+  {
+    "url": "/youtubei/v1/like/like",
+    "contains": "",
+    "status": 200,
+    "json": {},
+    "authorization": "fixture-access"
+  },
+  {
+    "url": "/youtubei/v1/like/dislike",
+    "contains": "",
+    "status": 200,
+    "json": {},
+    "authorization": "fixture-access"
+  },
+  {
+    "url": "/youtubei/v1/like/removelike",
+    "contains": "",
+    "status": 200,
+    "json": {},
+    "authorization": "fixture-access"
+  },
+  {
+    "url": "/youtubei/v1/subscription/subscribe",
+    "contains": "",
+    "status": 200,
+    "json": {},
+    "authorization": "fixture-access"
+  },
+  {
+    "url": "/youtubei/v1/subscription/unsubscribe",
+    "contains": "",
+    "status": 200,
+    "json": {},
+    "authorization": "fixture-access"
+  },
+  {
+    "url": "/youtubei/v1/browse/edit_playlist",
+    "contains": "",
+    "status": 200,
+    "json": {},
+    "authorization": "fixture-access"
+  },
+  {
+    "url": "/api/stats/",
+    "contains": "",
+    "status": 204,
+    "body": "",
+    "authorization": "fixture-access"
+  },
+  {
+    "url": "https://i.ytimg.com/",
+    "contains": "",
+    "status": 200,
+    "file": "thumb.png"
+  },
+  {
+    "url": "https://yt3.ggpht.com/",
+    "contains": "",
+    "status": 200,
+    "file": "thumb.png"
+  },
+  {
+    "url": "https://www.youtube.com/",
+    "contains": "",
+    "status": 200,
+    "body": "<script>ytcfg.set({\"INNERTUBE_CONTEXT\":{\"client\":{\"clientName\":\"WEB\",\"clientVersion\":\"fixture\"}}})</script>"
+  }
+]
