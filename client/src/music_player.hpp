@@ -35,11 +35,15 @@ struct Player : player::Player {
   std::atomic<double> audioTail{0};
 
   void start(const net::Server& server, const std::string& video, double at, const std::string& name, double length,
-             int height, bool speaker, bool tryDirect = true) {
+             int height, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}) {
     halt(!speaker);
     playingAudio = audioOnly;
     serverAudio = !tryDirect || (speaker && !directSpeaker.configured());
-    if (!playingAudio) { player::Player::start(server,video,at,name,length,height,speaker,tryDirect); return; }
+    if (!playingAudio) { player::Player::start(server,video,at,name,length,height,speaker,tryDirect,renewing,mode,track); return; }
+    if (mode >= 0) videoMode = mode;
+    if (!track.empty()) audioSelection = track; else if (video != id) audioSelection = "original";
+    audioTracks.clear(); selectedAudio.clear(); tracksReady = false; adapted = false;
+    presentFps = playback::rate(videoMode); actualFps = 0;
     srv = server; id = video; startAt = std::max(0.0,at); lastPos = startAt; title = name; duration = length; quality = height;
     stop = false; paused = false; live = false; direct = !serverAudio; original = !serverAudio; state = player::CONNECTING;
     speakerRequested = speaker; nest = false; nestFailed = false; renew = retryConverted = mediaReady = false;
@@ -77,9 +81,10 @@ struct Player : player::Player {
     uint64_t decoded = 0, work = 0;
     int result = 0;
     for (int attempt = 0; attempt < 2 && !stop; ++attempt) {
-      media = client.player(id,quality);
+      media = client.player(id,quality,nullptr,videoMode,audioSelection);
       if (stop) return;
       if (media.status != "OK" || media.audio.url.empty()) { audioFailure = AVERROR_STREAM_NOT_FOUND; return; }
+      if (!attempt) { audioTracks = media.audioTracks; selectedAudio = media.selectedAudio; tracksReady = true; }
       mediaReady = true; castMediaReady = true;
       yt::RangeFile file(yt::catalog::transport(&stop),media.audio.url,&netBytes);
       h264::Stream stream;

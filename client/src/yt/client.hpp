@@ -30,6 +30,14 @@ struct Card { string id, title; };
 struct Track { string url, language, name; };
 struct Cue { int startMs, durationMs; string text; };
 struct Format { string url; int itag = 0, height = 0; double fps = 0; };
+struct AudioTrack {
+    string code, language, name;
+    bool original = false, automatic = false, preferred = false;
+    Format format;
+};
+inline string audioCode(const string& language, bool original, bool automatic) {
+    return (language.empty() ? "und" : language) + (original ? "-original" : automatic ? "-auto" : "-dub");
+}
 struct OfferCount {
     unsigned listed = 0, direct = 0, muxedAac = 0;
 };
@@ -39,7 +47,9 @@ struct Video {
     int ttl = 0, duration = 0;
     int64_t expiresAt = 0;
     bool highFrameRate720 = false, live = false;
-    Format video, audio, speakerAudio;
+    Format video, audio, speakerAudio, fallbackVideo;
+    std::vector<AudioTrack> audioTracks;
+    string selectedAudio;
     bool muxed = false;
     std::vector<Track> captions;
 };
@@ -58,7 +68,7 @@ public:
     Page home();
     Page search(const string& query);
     Page next(const string& id);
-    Video player(const string& id, int height = 720, MediaOffers* offers = nullptr);
+    Video player(const string& id, int height = 720, MediaOffers* offers = nullptr, int mode = 0, const string& audio = "original");
     bool captions(const Track&, std::vector<Cue>&, string& error);
 };
 

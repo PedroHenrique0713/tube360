@@ -134,6 +134,8 @@ struct LiveFile {
     std::atomic_long status{0};
     int height = 0, delay = 1000;
     double frameRate = 0;
+    std::vector<AudioTrack> audioTracks;
+    string selectedAudio;
     unsigned segments = 0, connections = 0;
     uint64_t bytes = 0, transferMs = 0;
 
@@ -151,14 +153,20 @@ struct LiveFile {
         body = std::move(r.body);
         return true;
     }
-    bool open(const string& url, int ceiling) {
+    bool open(const string& url, int ceiling, bool preferFast = false, const string& audioChoice = "original") {
         string master, attrs, group;
         int bestRank = 0;
         std::map<string,string> groups;
+        std::map<string,std::vector<AudioTrack>> tracks;
         if (!mu || !cv || !fetch(lists,url, master) || !master.starts_with("#EXTM3U")) return false;
         for (auto& line : net::split(master, '\n')) {
-            if (line.starts_with("#EXT-X-MEDIA:") && attribute(line,"TYPE") == "AUDIO")
+            if (line.starts_with("#EXT-X-MEDIA:") && attribute(line,"TYPE") == "AUDIO") {
                 groups[attribute(line,"GROUP-ID")] = hlsUrl(url, attribute(line,"URI"));
+                string language=attribute(line,"LANGUAGE"),name=attribute(line,"NAME"),lower=name;
+                std::transform(lower.begin(),lower.end(),lower.begin(),[](unsigned char c){ return char(std::tolower(c)); });
+                bool original=lower.find("original")!=string::npos, automatic=lower.find("auto")!=string::npos;
+                tracks[attribute(line,"GROUP-ID")].push_back({audioCode(language,original,automatic),language,name,original,automatic,attribute(line,"DEFAULT")=="YES",{groups[attribute(line,"GROUP-ID")]}});
+            }
             if (line.starts_with("#EXT-X-STREAM-INF:")) attrs = line;
             else if (!attrs.empty() && !line.empty() && line.front() != '#') {
                 int w = 0, h = 0;
@@ -167,7 +175,7 @@ struct LiveFile {
                 // Os itags HLS 93–95 têm teto de 30 fps mesmo nos manifestos sem FRAME-RATE.
                 bool legacy = line.find("/itag/93/") != string::npos || line.find("/itag/94/") != string::npos || line.find("/itag/95/") != string::npos;
                 std::sscanf(attribute(attrs,"RESOLUTION").c_str(), "%dx%d", &w, &h);
-                int rank = fps > 0 && fps <= 30 ? 3 : fps == 0 && legacy ? 2 : 1;
+                int rank = preferFast && fps>30 ? 4 : fps > 0 && fps <= 30 ? 3 : fps == 0 && legacy ? 2 : 1;
                 if (w > 0 && w <= 1280 && h > 0 && h <= ceiling && (ceiling < 720 || h == 720) &&
                     std::isfinite(fps) && fps >= 0 && fps <= 60.01 &&
                     (rank > bestRank || (rank == bestRank && h > height)) &&
@@ -179,6 +187,15 @@ struct LiveFile {
             }
         }
         audioPlaylist = groups[group];
+        audioTracks=tracks[group];
+        if (!audioTracks.empty()) {
+            const AudioTrack* chosen=&audioTracks.front();
+            for (const auto& track : audioTracks) if (track.preferred) { chosen=&track; break; }
+            for (const auto& track : audioTracks) if (track.original) { chosen=&track; break; }
+            string wanted=audioChoice.starts_with("lang:") ? audioChoice.substr(5) : audioChoice=="original" ? "" : audioChoice.substr(0,audioChoice.rfind('-'));
+            for (const auto& track : audioTracks) if (track.code==audioChoice || (!wanted.empty() && track.language.substr(0,track.language.find('-'))==wanted.substr(0,wanted.find('-')))) { chosen=&track; break; }
+            audioPlaylist=chosen->format.url; selectedAudio=chosen->code;
+        }
         if (playlist.empty() || (!group.empty() && audioPlaylist.empty())) return false;
         planner = yt::worker([](void* p) {
             auto& f = *static_cast<LiveFile*>(p);

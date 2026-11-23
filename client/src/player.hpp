@@ -15,6 +15,7 @@
 #include "http_chunks.hpp"
 #include "pl_mpeg.h"
 #include "h264.hpp"
+#include "playback_mode.hpp"
 #include "yt/media.hpp"
 #include "nest.hpp"
 #ifdef __XSDK__
@@ -32,7 +33,7 @@ inline void moveToHardwareThread(int hw) {
 #endif
 }
 
-struct Frame { double pts = 0; int w = 0, h = 0; bool bt709 = false, fullRange = false; std::vector<uint8_t> yuv; };
+struct Frame { double pts = 0; int w = 0, h = 0, sourceFps = 0; bool bt709 = false, fullRange = false; std::vector<uint8_t> yuv; };
 
 // Ajudantes da decodificação por fatias do pl_mpeg (plm_video_run_parallel): a thread do decodificador roda a faixa 0
 // e cada ajudante roda a sua num núcleo livre do 360 (hardware threads 3, 1 e 4; o decodificador fica na 2 e a tela na 0).
@@ -73,6 +74,13 @@ struct Player {
   std::string id, title, error;
   double startAt = 0, duration = 0;
   int quality = 720;
+  int videoMode = playback::AUTO, cachedVideoMode = -1;
+  std::string audioSelection = "original", cachedAudio;
+  std::vector<yt::AudioTrack> audioTracks;
+  std::string selectedAudio;
+  std::atomic<bool> tracksReady{false}, adapted{false};
+  std::atomic<int> presentFps{30};
+  double sourceFpsHint = 0;
   std::atomic<int> state{IDLE};
   std::atomic<bool> stop{false}, paused{false}, live{false};  // live: o servidor mandou X-Live (sem duração nem busca)
 
@@ -96,6 +104,8 @@ struct Player {
   int cachedQuality = 0;
   std::atomic<bool> mediaReady{false}, renew{false};
   std::atomic<int> actualHeight{0};
+  std::atomic<int> actualFps{0};
+  int videoMetrics = 0;
   int queueMin = 0;
   uint64_t originalWatch = 0;
   std::atomic<unsigned> pauseChanges{0};
@@ -153,6 +163,7 @@ struct Player {
   uint64_t mutedAt = 0, lastFrameMs = 0;
   std::atomic<uint32_t> lastPacketMs{0};
   int deviceMs = 40, outputBytesPerSec = 0, outputFrameBytes = 0;
+  double clockStepMs=24, tvSample=-1, tvSampleAt=0;
   bool nest = false, speakerRequested = false; double nestOffset = 0;
   SDL_Thread* nestThread = nullptr; SDL_Mutex* nmu = nullptr;
   int nestState = 0;  // 0 aguardando/obsoleto, 1 tocando, 2 pausado, 3 parado, 4 erro, 5 bufferizando
@@ -179,6 +190,7 @@ struct Player {
       int samples = 0;
       if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(audio), &device, &samples) && device.freq > 0) {
         deviceMs = std::max(1, (samples * 1000 + device.freq - 1) / device.freq);
+        clockStepMs=std::max(1.0,samples*1000.0/device.freq);
 #ifdef __XSDK__
         // SDL informa 256 amostras por chamada; o driver xsdk abre a fila com a profundidade padrão.
         deviceMs = (XSDK_AUDIO_FRAMES_AHEAD_DEFAULT * XSDK_AUDIO_FRAME_SAMPLES * 1000 + XSDK_AUDIO_RATE_HZ / 2) / XSDK_AUDIO_RATE_HZ;
@@ -193,12 +205,17 @@ struct Player {
   static int decMain(void* p) { ((Player*)p)->decLoop(); return 0; }
   static int nestMain(void* p) { ((Player*)p)->nestLoop(); return 0; }
 
-  void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false) {
+  void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}) {
     if (vid != id || state == IDLE || quality != q) allowOriginal = true;
     halt(!speaker);
+    if (mode >= 0) videoMode=mode;
+    if (!track.empty()) audioSelection=track;
+    else if (vid != id) audioSelection="original";
+    audioTracks.clear(); selectedAudio.clear(); tracksReady=false; adapted=false;
+    presentFps=playback::rate(videoMode); sourceFpsHint=0;
     direct = tryDirect && (!speaker || directSpeaker.configured());
     castMediaReady = false;
-    endLiveReader = false; refreshed = renewing; renew = mediaReady = false; actualHeight = 0;
+    endLiveReader = false; refreshed = renewing; renew = mediaReady = false; actualHeight = actualFps = 0;
     if (renewing) validUntil = 0;
     SDL_SetAtomicInt(&netBytes, 0);
     original = retryConverted = false; originalWatch = 0; queueMin = maxFrames;
@@ -207,6 +224,7 @@ struct Player {
     ring.assign(6u << 20, 0); rhead = rcount = 0; netEof = netErr = false; decEnded = false;
     SDL_SetAtomicInt(&audioBaseMs, -1); SDL_SetAtomicInt(&pushed, 0); firstPts = -1; wallStart = 0; pausedAt = 0; pausedTotal = 0; lastPos = startAt;
     droppedFrames = shownFrames = 0;
+    tvSample=-1;tvSampleAt=0;
     stop = false; paused = false; live = false; state = CONNECTING;
     hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = nextLiveFrame = 0;
     openedMs = SDL_GetTicks(); masterMs = -1; tracking = refill = reservePaused = false; session = 0; speakerPause = 0; speakerTargetMs = -1;
@@ -289,8 +307,9 @@ struct Player {
   void netLoop() {
     moveToHardwareThread(4);
     net::Response r; std::vector<uint8_t> extra;
-    char path[256];
-    std::snprintf(path, sizeof(path), "/api/stream/%s?t=%.2f&q=%d%s%s", id.c_str(), startAt, quality, allowOriginal ? "&codec=h264" : "", speakerRequested ? "&speaker=1" : "");
+    char path[512];
+    int requested=allowOriginal && videoMode==playback::DETAIL ? 1080 : quality;
+    std::snprintf(path, sizeof(path), "/api/stream/%s?t=%.2f&q=%d%s%s&mode=%s&audio=%s", id.c_str(), startAt, requested, allowOriginal ? "&codec=h264" : "", speakerRequested ? "&speaker=1" : "", videoMode==playback::FAST ? "720p60" : videoMode==playback::DETAIL ? "1080p30" : "auto",net::urlEncode(audioSelection).c_str());
     int fd = net::connectTo(srv, 20000);
     SDL_LockMutex(mu); sock = fd; SDL_UnlockMutex(mu);
     if (stop || fd < 0 || !net::readGet(fd, srv, path, r, extra) || r.status != 200) {
@@ -315,6 +334,13 @@ struct Player {
     std::string sid = net::header(r, "X-Stream-Id");
     if (!speakerRequested && net::header(r, "X-Nest-Handoff") != "1" && directSpeaker.sample().quiet) output = LOCAL;
     original = net::header(r, "X-Video-Codec") == "h264";
+    sourceFpsHint=std::atof(net::header(r,"X-Source-Fps").c_str());
+    selectedAudio=net::urlDecode(net::header(r,"X-Audio-Track"));
+    for (auto& line : net::split(net::urlDecode(net::header(r,"X-Audio-Tracks")),'\n')) {
+      auto f=net::split(line,'\t');
+      if (f.size()==5) audioTracks.push_back({f[0],f[1],f[2],f[3]=="1",f[4]=="1",false,{}});
+    }
+    tracksReady=true;
     session = sid.empty() ? -1 : std::atoi(sid.c_str());
     if (state == CONNECTING) state = BUFFERING;
     auto put = [&](const uint8_t* p, size_t n) { putBytes(p,n); };
@@ -457,14 +483,13 @@ struct Player {
     enqueuePlanes(f->width, f->height, f->time, planes, strides, false, false);
   }
 
-  void enqueuePlanes(int w, int h, double pts, const uint8_t* const* planes, const int* strides, bool bt709, bool full) {
-    if (actualHeight != h) actualHeight = h;
+  void enqueuePlanes(int w, int h, double pts, const uint8_t* const* planes, const int* strides, bool bt709, bool full, int fps = 0) {
     SDL_LockMutex(mu);
     Frame* fr = spare.empty() ? new Frame() : spare.back();
     if (!spare.empty()) spare.pop_back();
     SDL_UnlockMutex(mu);
     int cw = (w + 1) / 2, ch = (h + 1) / 2;
-    fr->w = w; fr->h = h; fr->pts = pts; fr->bt709 = bt709; fr->fullRange = full;
+    fr->w = w; fr->h = h; fr->pts = pts; fr->bt709 = bt709; fr->fullRange = full; fr->sourceFps = fps;
     fr->yuv.resize((size_t)w * h + 2 * (size_t)cw * ch);
     uint8_t* dst = fr->yuv.data();
     for (int i = 0; i < 3; ++i) {
@@ -497,9 +522,9 @@ struct Player {
     int revision = 0, claim = 0;
     auto playAt = [&](double pos) {
       char path[180];
-      std::snprintf(path, sizeof(path), "/api/nest/play?id=%s&t=%.3f&claim=%d%s", id.c_str(), pos, claim, sid.c_str());
+        std::snprintf(path, sizeof(path), "/api/nest/play?id=%s&t=%.3f&claim=%d%s", id.c_str(), pos, claim, sid.c_str());
       net::Response r;
-      if (!net::get(srv, path, r, 1500, 1024)) { revision = 0; return false; }
+      if (!net::get(srv, std::string(path)+"&audio="+net::urlEncode(audioSelection), r, 1500, 1024)) { revision = 0; return false; }
       auto fields = net::split(std::string(r.body.begin(), r.body.end()), '\t');
       revision = fields.size() > 1 ? std::atoi(fields[1].c_str()) : 0;
       return fields[0].find("ok") == 0;
@@ -600,6 +625,7 @@ struct Player {
   void setPaused(bool p, bool notifySpeaker = true) {
     if (p == paused) return;
     paused = p; ++pauseChanges;
+    tvSample=-1;tvSampleAt=0;
     if (speakerRequested && notifySpeaker) nestCmd = p ? 1 : 2;
     if (audio) {
       if (p) SDL_PauseAudioStreamDevice(audio);
@@ -664,7 +690,7 @@ struct Player {
     }
     SDL_LockMutex(mu);
     Frame* show = nullptr;
-    if (firstPts < 0 && !paused && !frames.empty() && (frames.size() >= (original || (speakerRequested && live) ? 6u : 2u) || decEnded) &&
+    if (firstPts < 0 && !frames.empty() && (frames.size() >= (original || (speakerRequested && live) ? 6u : 2u) || decEnded) &&
         (!hasAudio || audioQueuedSec() >= (speakerRequested && live ? 0.20 : 0.10) || decEnded)) {
       pictureReady = true;
       if (!readyMs) readyMs = ms;
@@ -673,7 +699,8 @@ struct Player {
         firstPts = frames.front()->pts; wallStart = ms;
         screenSec = speaker >= 0 ? std::max(firstPts, speaker + nestOffset) : firstPts;
         tickMs = now;
-        if (audio) SDL_ResumeAudioStreamDevice(audio);
+        if (paused) { show=frames.front(); frames.pop_front(); SDL_BroadcastCondition(cv); }
+        else if (audio) SDL_ResumeAudioStreamDevice(audio);
       }
     }
     if (firstPts >= 0 && !paused) {
@@ -681,6 +708,11 @@ struct Player {
       if (audio) SDL_LockAudioStream(audio);
       double queued = audioQueuedSec(), tv = tvClock(wall, queued);
       if (audio) SDL_UnlockAudioStream(audio);
+      // SDL entrega o consumo em blocos. Entre callbacks, o mesmo bloco continua saindo no dispositivo.
+      if (!speakerRequested && hasAudio && queued>0 && !refill && tv>firstPts+.0001) {
+        if (tvSampleAt<=0 || std::fabs(tv-tvSample)>.000001) { tvSample=tv;tvSampleAt=now; }
+        tv+=std::min(std::max(0.0,now-tvSampleAt),clockStepMs)/1000.0;
+      }
       double dt = std::max(0.0, (now - tickMs) / 1000.0);
       double predicted = screenSec + dt;
       // O último PCM já foi entregue ao dispositivo. Apresenta também a cauda do vídeo até o último PTS.
@@ -708,14 +740,9 @@ struct Player {
       if (follow && mutedForCast.exchange(false)) screenSec = std::max(screenSec, speaker + nestOffset);
       tickMs = now; masterMs = (int)std::lround(screenSec * 1000);
       speakerTargetMs = (int)std::lround(screenSec * 1000);
-      bool due = !direct || !live || now >= nextLiveFrame;
-      while (due && !frames.empty() && frames.front()->pts <= screenSec + 0.010) {
+      while (!frames.empty() && frames.front()->pts <= screenSec + 0.010) {
         if (show) { spare.push_back(show); droppedFrames++; }
         show = frames.front(); frames.pop_front();
-      }
-      if (show && direct && live) {
-        constexpr double period = 1000.0 / 30;
-        nextLiveFrame = (now - nextLiveFrame >= period ? now : nextLiveFrame) + period;
       }
       if (original) {
         queueMin = std::min(queueMin, (int)frames.size());
@@ -748,13 +775,14 @@ struct Player {
                               : 1.0 + (live && liveDebt > 0.15 ? 0.03 : 0.0);
         SDL_SetAudioStreamFrequencyRatio(audio, (float)ratio);
       }
-      if (show) {
-        if (!shownFrames) LOG("primeiro quadro: %llu ms, pts %.3f, live %d, som %s", (unsigned long long)(ms - openedMs),
-                              show->pts, (int)live.load(), follow ? "Nest" : "TV");
-        lastFrameMs = ms; shownFrames++; if (state == BUFFERING || state == CONNECTING) state = PLAYING;
-        lastPos = (live ? 0 : startAt) + show->pts;
-      }
       if (live) liveDebt = std::max(0.0, wall - lastPos);
+    }
+    if (show) {
+      actualHeight = show->h; actualFps = show->sourceFps;
+      if (!shownFrames) LOG("primeiro quadro: %llu ms, pts %.3f, live %d, som %s", (unsigned long long)(ms - openedMs),
+                            show->pts, (int)live.load(), tracking ? "Nest" : "TV");
+      lastFrameMs = ms; shownFrames++; if (state == BUFFERING || state == CONNECTING) state = PLAYING;
+      lastPos = (live ? 0 : startAt) + show->pts;
     }
     if (speakerRequested && audio && !hasAudio && firstPts >= 0 && speaker < 0 && ms - readyMs > 3500) {
       nestFailed = true; state = FAILED;  // servidor antigo sem MP2 de reserva

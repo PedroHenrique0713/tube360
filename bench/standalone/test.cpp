@@ -48,7 +48,7 @@ void playback(Http& h,yt::Client& c,const string& dir) {
     auto v=c.player(id,720,&offers);
     check(offers.avc720.direct==1 && offers.avc480.direct==1 && offers.aac.direct==2,"recorded direct offers");
     check(v.status=="OK" && v.id==id && !v.title.empty() && v.ttl==21540,"recorded metadata");
-    check(!v.muxed && v.video.itag==136 && v.audio.itag==140 && v.video.fps==30,"recorded AVC 720p and AAC");
+    check(!v.muxed && v.video.itag==137 && v.fallbackVideo.itag==136 && v.audio.itag==140 && v.video.fps==30,"1080p30 with 720p fallback and AAC");
     auto metadataOnly=json;
     for (size_t i=0; (i=metadataOnly.find("\"url\"",i))!=string::npos; ++i)
         metadataOnly.replace(i,5,"\"unused\"");
@@ -66,7 +66,14 @@ void playback(Http& h,yt::Client& c,const string& dir) {
     json.replace(f,fps.size(),"\"fps\": 60");
     h.add(player,"\"clientName\":\"VISIONOS\"",json);
     v=c.player(id);
-    check(v.highFrameRate720 && v.video.itag==135 && v.video.fps==30,"record 720p60 falling back to 480p30");
+    check(v.highFrameRate720 && v.video.itag==137 && v.fallbackVideo.itag==136 && v.fallbackVideo.fps==60,"1080p30 keeps a 720p60 fallback");
+    auto tooFast=json;
+    size_t full=tooFast.find("\"fps\": 30",tooFast.find("\"itag\": 137"));
+    check(full!=string::npos,"1080p mutation target");
+    tooFast.replace(full,9,"\"fps\": 60");
+    h.add(player,"\"clientName\":\"VISIONOS\"",tooFast);
+    v=c.player(id);
+    check(v.video.itag==136 && v.video.fps==60,"720p60 beats 480p30; 1080p60 is excluded");
     const string login=R"({"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Sign in"},"streamingData":{"hlsManifestUrl":"https://media.example/old"}})";
     // Sessão recusada: abre uma nova (o player JS é o mesmo, sem baixar de novo) e tenta uma única vez mais.
     h.add(player,"\"clientName\":\"VISIONOS\"",login);
@@ -80,11 +87,34 @@ void playback(Http& h,yt::Client& c,const string& dir) {
     const string onlyFast=R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"adaptiveFormats":[{"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":60,"url":"https://media.example/fast"}]}})";
     h.add(player,"\"clientName\":\"VISIONOS\"",onlyFast);
     v=c.player(id);
-    check(v.status=="OK" && v.video.url.empty() && v.reason=="no_direct_avc","60 fps only is unavailable");
+    check(v.status=="OK" && v.video.itag==298 && v.reason=="no_direct_aac","60 fps qualifies but still requires AAC");
+    const string bothRates=R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"adaptiveFormats":[{"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":59.94,"url":"https://media.example/fast"},{"itag":136,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":29.97,"url":"https://media.example/normal"}]}})";
+    h.add(player,"\"clientName\":\"VISIONOS\"",bothRates);
+    check(c.player(id).video.itag==136,"720p30 avoids needless 60 fps decoding when both exist");
     auto muxed=json.substr(0,json.find("\"adaptiveFormats\""))+json.substr(json.find("\"formats\":"));
     h.add(player,"\"clientName\":\"VISIONOS\"",muxed);
     v=c.player(id);
     check(v.video.itag==18 && v.muxed && v.audio.url.empty(),"muxed fallback without AAC input");
+}
+void audioProfiles(Http& h,yt::Client& c) {
+    const string reply=R"json({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"adaptiveFormats":[
+      {"itag":137,"mimeType":"video/mp4; codecs=\"avc1\"","width":1920,"height":1080,"fps":30,"url":"https://media.example/1080"},
+      {"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":60,"url":"https://media.example/72060"},
+      {"itag":136,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":30,"url":"https://media.example/72030"},
+      {"itag":140,"mimeType":"audio/mp4; codecs=\"mp4a\"","bitrate":128000,"audioTrack":{"id":"pt.4","displayName":"Portuguese (auto-dubbed)","audioIsDefault":true},"url":"https://media.example/pt"},
+      {"itag":140,"mimeType":"audio/mp4; codecs=\"mp4a\"","bitrate":128000,"audioTrack":{"id":"en.4","displayName":"English (original)","audioIsDefault":false},"url":"https://media.example/en"}]}})json";
+    for (int mode : {0,1,2}) {
+        h.add(player,"\"clientName\":\"VISIONOS\"",reply);
+        auto v=c.player(id,720,nullptr,mode);
+        check(v.video.itag==(mode==1 ? 298 : 137),"saved playback profile selects 720p60 or 1080p30");
+        check(v.audio.url=="https://media.example/en" && v.selectedAudio=="en-original","27f6785: original beats default automatic dub");
+        check(v.audioTracks.size()==2 && !v.muxed,"audio catalog has both independent languages");
+    }
+    for (const auto& choice : {string("pt-auto"),string("pt-BR-auto"),string("lang:pt"),string("lang:ja")}) {
+        h.add(player,"\"clientName\":\"VISIONOS\"",reply);
+        auto v=c.player(id,720,nullptr,1,choice);
+        check(v.audio.url==(choice=="lang:ja" ? "https://media.example/en" : "https://media.example/pt"),"explicit dub or interface language; unavailable language keeps original");
+    }
 }
 void browse(Http& h,yt::Client& c) {
     h.add(web,"",R"(<script>ytcfg.set({"INNERTUBE_CONTEXT":{"client":{"clientName":"WEB","clientVersion":"fixture"}}})</script>)");
@@ -151,7 +181,7 @@ int main(int argc,char** argv) {
     auto plain=net->request("http://127.0.0.1:0/");
     check(plain.status==0 && !plain.error.empty(),"reject cleartext HTTP");
     Http h; yt::Client c(h);
-    playback(h,c,argv[1]); browse(h,c); captions(h,c); login(h);
+    playback(h,c,argv[1]); audioProfiles(h,c); browse(h,c); captions(h,c); login(h);
     check(h.steps.empty(),"all expected exchanges exercised");
     std::cout << checks << " checks passed\n";
 }

@@ -32,6 +32,7 @@
 #include "player_text.hpp"
 #include "captions.hpp"
 #include "settings.hpp"
+#include "audio_track_label.hpp"
 #include "account.hpp"
 #include "yt/console_account.hpp"
 #include "sleep.hpp"
@@ -461,8 +462,10 @@ static void loadIcons(gfx::Gfx& g) {
   gfx::upload(g, iconTex, rgba.data(), rgba.size());
 }
 static void glyph(gfx::Gfx& g, int which, bool big, float x, float y, Color c) {
-  const float s = (float)icons::SIZES[big ? 0 : 1], u = (float)(which * icons::CELL), v = big ? 0.f : (float)icons::SIZES[0];
-  gfx::imagePart(g, iconTex, std::round(x), std::round(y), s, s, u / icons::W, v / icons::H, (u + s) / icons::W, (v + s) / icons::H, c);
+  int row=(g.scale > 1 ? 2 : 0) + (big ? 0 : 1), top=0;
+  for (int i=0;i<row;++i) top+=icons::SIZES[i];
+  const float s = (float)icons::SIZES[row], u = (float)(which * icons::CELL), v = (float)top;
+  gfx::imagePart(g, iconTex, std::round(x), std::round(y), s / g.scale, s / g.scale, u / icons::W, v / icons::H, (u + s) / icons::W, (v + s) / icons::H, c);
 }
 
 // Ícones desenhados com formas (24 px), centrados em (cx, cy).
@@ -545,16 +548,18 @@ int main(int argc, char** argv) {
   LOG("servidor %s:%d", srv.ip.c_str(), srv.port);
 
   gfx::Gfx g;
+  if (FILE* f = std::fopen((assets + "video-metrics.txt").c_str(),"r")) { std::fscanf(f,"%d",&g.videoMetrics); std::fclose(f); }
   const char* shotPath = std::getenv("XT_SHOT");
   g.readback = shotPath != nullptr;
-  if (!gfx::init(g, 1280, 720, "Tube360")) return 1;
-  if (!gfx::loadFonts(g, assets, {{"inter-400.ttf", 19}, {"inter-400.ttf", 16}, {"inter-600.ttf", 17}, {"inter-600.ttf", 23},
+  if (!gfx::init(g, settings.outputHeight*16/9, settings.outputHeight, "Tube360")) return 1;
+  const std::vector<gfx::FontSpec> fontSpecs={{"inter-400.ttf", 19}, {"inter-400.ttf", 16}, {"inter-600.ttf", 17}, {"inter-600.ttf", 23},
                                   {"inter-700.ttf", 27}, {"inter-700.ttf", 34}, {"inter-600.ttf", 22}, {"inter-700.ttf", 13},
-                                  {"inter-700.ttf", 42}, {"inter-600.ttf", 18}, {"inter-300.ttf", 27}, {"inter-700.ttf", 58}})) { LOG("fontes não carregaram"); return 1; }
+                                  {"inter-700.ttf", 42}, {"inter-600.ttf", 18}, {"inter-300.ttf", 27}, {"inter-700.ttf", 58}};
+  if (!gfx::loadFonts(g, assets, fontSpecs)) { LOG("fontes não carregaram"); return 1; }
   loadIcons(g);
 
   gfx::Video videoTex; g.video = &videoTex;
-  music::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); pl.directSpeaker.init(assets);
+  music::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); pl.videoMetrics = g.videoMetrics; pl.directSpeaker.init(assets);
   auto accountNet = yt::accountTransport();
   auto consoleAccount = std::make_shared<yt::ConsoleAccount>(*accountNet, assets + "yt-console-account.json");
   consoleAccount->select(!settings.server);
@@ -624,14 +629,19 @@ int main(int argc, char** argv) {
   cc::Loader captionLoader; cc::Data captions;
   int captionIndex = -1; std::vector<std::string> captionLines; float captionWidth = 0;
   float captionLineWidths[2]{};
-  int lastQuality = -1; const char* lastMode = nullptr;
+  int lastQuality = -1, lastSourceFps = -1, lastTargetFps=-1, lastOutput=-1; const char* lastMode = nullptr;
   std::string qualityLabel, resolutionLabel;
+  std::vector<yt::AudioTrack> audioTracks;
+  std::vector<std::string> trackLabels;
+  std::string selectedAudio, selectedTrackLabel;
+  i18n::Lang trackLang=settings.lang;
   PlayerText optionLabels[PlayerUI::COUNT], optionValues[PlayerUI::COUNT];
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false; uint64_t nextDeadline = 0; bool nextPending = false;
   bool livePaused = false;
   int& quality = settings.quality;
+  quality=720;
   bool& nestOut = settings.nest; int& nestOffsetMs = settings.syncMs;
   auto saveSettings = [&]() {
     if (!settings.save(assets)) { toast = tr(K::SaveFailed); toastUntil = SDL_GetTicks() + 4000; }
@@ -682,7 +692,8 @@ int main(int argc, char** argv) {
     Job j{7, "/api/account/watched?id=" + historyVideo + "&pos=" + std::to_string(pl.position()) + "&progress=1", 0};
     control.add(j);
   };
-  auto startVideo = [&](const Video& v, double t, bool fromRemote) {
+  auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
+    if (track.empty()) track=v.id==playing.id ? pl.audioSelection : settings.originalAudio ? "original" : std::string("lang:")+i18n::code(settings.lang);
     if (!fromRemote) phonePlaybackSerial = 0;
     if (historyVideo != v.id) { recordHistory(); historyVideo = v.id; historyStarted = false; historyAt = 0; }
     if (!fromRemote && nav.ownsQueue && !nav.localQueue) {
@@ -697,6 +708,7 @@ int main(int argc, char** argv) {
       } else nextPending = false;
     }
     if (v.id != playing.id) { captions = {}; captionIndex = -1; captionLines.clear(); captionVideo.clear(); captionLoader.cancel(); }
+    if (v.id != playing.id) { audioTracks.clear(); trackLabels.clear(); selectedTrackLabel.clear(); playerUI.tracks=false; }
     nextAt = nextDeadline = 0; endedSent = false; ratePanel = sleepPanel = false; livePaused = false;
     playing = v; playerFromRemote = fromRemote;
     videoTex.ready = false;
@@ -704,7 +716,7 @@ int main(int argc, char** argv) {
     pl.nestOffset = nestOffsetMs / 1000.0;
     if (screen != PLAYER) nav.musicNow = nav.musicSession;
     pl.audioOnly = nav.musicSession && nav.musicNow;
-    pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0);
+    pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
@@ -1125,14 +1137,20 @@ int main(int argc, char** argv) {
           captions.cues.clear(); captionIndex = -1; captionLines.clear();
         }
       } else {
-        int count = playerUI.panel == PlayerUI::QUALITY ? 3 : 2;
+        int count = playerUI.panel == PlayerUI::QUALITY ? 3 : playerUI.panel==PlayerUI::TRACKS ? (int)audioTracks.size() : 2;
         if (in.hit(Input::UP) || in.hit(Input::LEFT)) playerUI.panelSel = (playerUI.panelSel + count - 1) % count;
         if (in.hit(Input::DOWN) || in.hit(Input::RIGHT)) playerUI.panelSel = (playerUI.panelSel + 1) % count;
         if (in.hit(Input::A)) {
           bool change = false;
           if (playerUI.panel == PlayerUI::QUALITY) {
-            int q = playerUI.panelSel == 0 ? 720 : playerUI.panelSel == 1 ? 480 : 360;
-            change = q != quality; quality = q;
+            change = playerUI.panelSel != settings.videoMode; settings.videoMode=playerUI.panelSel;
+          } else if (playerUI.panel==PlayerUI::TRACKS && playerUI.panelSel < (int)audioTracks.size()) {
+            bool wasPaused=pl.paused;
+            std::string track=audioTracks[playerUI.panelSel].code;
+            double position=pl.position();
+            startVideo(playing,pl.live ? 0 : position,playerFromRemote,track);
+            if (wasPaused) pl.setPaused(true);
+            LOG("audio: faixa %s em %.3f s",track.c_str(),position);
           } else if (!playerUI.panelSel || nestAvailable) {
             bool speaker = playerUI.panelSel == 1;
             change = speaker != pl.nest; nestOut = speaker; nestSkip = false;
@@ -1244,7 +1262,7 @@ int main(int argc, char** argv) {
       }
     } else if (screen == SETTINGS) {
       if (in.hit(Input::UP) && settingsRow > 0) settingsRow--;
-      if (in.hit(Input::DOWN) && settingsRow < 8) settingsRow++;
+      if (in.hit(Input::DOWN) && settingsRow < 10) settingsRow++;
       int direction = 0;
       if (in.hit(Input::LEFT)) direction = -1;
       if (in.hit(Input::RIGHT)) direction = 1;
@@ -1258,8 +1276,7 @@ int main(int argc, char** argv) {
           settings.cols = settings.cols == 4 ? 3 : 4;
           thumbs.configure(g, thumbsWorker, settings.cols); scroll = 0;
         } else if (settingsRow == 2) {
-          const int values[] = {720, 480, 360}; int i = quality == 720 ? 0 : quality == 480 ? 1 : 2;
-          quality = values[(i + direction + 3) % 3];
+          settings.videoMode=(settings.videoMode+direction+playback::COUNT)%playback::COUNT;
         } else if (settingsRow == 3) {
           if (nestAvailable) { nestOut = !nestOut; if (nestOut && !pl.directSpeaker.configured()) control.add({5, "/api/nest/prepare", 0}); }
           else changed = false;
@@ -1283,6 +1300,15 @@ int main(int argc, char** argv) {
           }
           accountAt = nestInfoAt = 0; rebuildCats();
         }
+        else if (settingsRow == 9) {
+          settings.outputHeight=settings.outputHeight==1080 ? 720 : 1080;
+          gfx::output(g,settings.outputHeight);
+          if (!gfx::loadFonts(g,assets,fontSpecs)) { LOG("fontes não carregaram"); quit=true; }
+          for (auto& value : optionLabels) value=PlayerText{};
+          for (auto& value : optionValues) value=PlayerText{};
+          if ((int)g.extent.height != settings.outputHeight) { toast=tr(K::Display1080Help); toastUntil=now+6000; }
+        }
+        else if (settingsRow == 10) settings.originalAudio=!settings.originalAudio;
         if (changed) saveSettings();
       }
       if (in.hit(Input::B)) { screen = HOME; railFocus = true; railSel = 6; }
@@ -1424,9 +1450,12 @@ int main(int argc, char** argv) {
         } else if (playerUI.selected == PlayerUI::CC) {
           if (captions.failed || captionLoader.loading || (!captions.live && !captions.tracks.empty())) playerUI.panel = PlayerUI::CAPTIONS;
         } else if (playerUI.selected == PlayerUI::VIDEO) {
-          playerUI.panel = PlayerUI::QUALITY; playerUI.panelSel = quality == 720 ? 0 : quality == 480 ? 1 : 2;
+          playerUI.panel = PlayerUI::QUALITY; playerUI.panelSel = settings.videoMode;
         } else if (playerUI.selected == PlayerUI::AUDIO) {
           playerUI.panel = PlayerUI::SOUND; playerUI.panelSel = pl.nest ? 1 : 0;
+        } else if (playerUI.selected == PlayerUI::TRACK && audioTracks.size()>1) {
+          playerUI.panel=PlayerUI::TRACKS;
+          for (int i=0;i<(int)audioTracks.size();++i) if (audioTracks[i].code==selectedAudio) playerUI.panelSel=i;
         } else openPlayerChannel(captions.channelId, playing.id);
         any = true;
       }
@@ -1438,9 +1467,9 @@ int main(int argc, char** argv) {
       }
       if (in.hit(Input::Y) && pl.state != player::FAILED) {
         bool row = playerUI.options;
-        quality = quality == 720 ? 480 : quality == 480 ? 360 : 720;
+        settings.videoMode=(settings.videoMode+1)%playback::COUNT;
         startVideo(playing, pl.position(), playerFromRemote); playerUI.options = row;
-        toast = std::string(tr(K::QualityPrefix)) + tr(i18n::quality(quality)); toastUntil = now + 2500; saveSettings(); any = true;
+        toast = std::string(tr(K::QualityPrefix)) + tr(videoModeLabel(settings.videoMode)); toastUntil = now + 2500; saveSettings(); any = true;
       }
       if (in.hit(Input::X)) {
         if (!nestAvailable) toast = tr(K::NoSpeaker);
@@ -1476,6 +1505,12 @@ int main(int argc, char** argv) {
 
     }
     if (screen == PLAYER) {
+      bool newTracks=pl.tracksReady.exchange(false);
+      if (newTracks) { audioTracks=pl.audioTracks; selectedAudio=pl.selectedAudio; playerUI.tracks=audioTracks.size()>1; }
+      if (newTracks || trackLang!=settings.lang) {
+        trackLabels.clear(); selectedTrackLabel.clear(); trackLang=settings.lang;
+        for (const auto& track : audioTracks) { trackLabels.push_back(audioTrackLabel(track,settings.lang)); if (track.code==selectedAudio) selectedTrackLabel=trackLabels.back(); }
+      }
       if (pl.direct && pl.mediaReady.exchange(false)) {
         if (pl.title.empty()) pl.title = pl.media.title;
         pl.duration = pl.media.duration;
@@ -1557,7 +1592,7 @@ int main(int argc, char** argv) {
       if (player::Frame* f = pl.take()) {
         if (f->w != videoTex.w || f->h != videoTex.h) { if (videoTex.set) gfx::videoDestroy(g, videoTex); gfx::videoCreate(g, videoTex, f->w, f->h); LOG("vídeo %dx%d", f->w, f->h); }
         videoTex.bt709 = f->bt709; videoTex.fullRange = f->fullRange;
-        std::memcpy(gfx::videoStaging(g, videoTex), f->yuv.data(), f->yuv.size()); gfx::videoCommit(g, videoTex);
+        gfx::videoUpload(g, videoTex, f->yuv.data(), f->yuv.size(), f->pts);
         pl.recycle(f);
       }
     }
@@ -1728,9 +1763,10 @@ int main(int argc, char** argv) {
       gfx::text(g, ui::F_BIG, tr(K::Settings), ui::X0, 42, ui::TEXT);
       gfx::text(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::MUTED);
       gfx::text(g, ui::F_SMALL, tr(K::SavedAutomatically), ui::W - 64, 94, ui::FAINT, 2);
-      const K labels[] = {K::YouTubeAccount, K::VideosPerRow, K::DefaultQuality, K::Sound, K::SpeakerSync, K::Language, K::SleepTimer, K::SleepTogether, K::ServerMode};
-      for (int i = 0; i < 9; i++) {
-        float x = ui::X0, y = 122 + i * 55, w = ui::W - ui::X0 - 64;
+      const K labels[] = {K::YouTubeAccount, K::VideosPerRow, K::DefaultQuality, K::Sound, K::SpeakerSync, K::Language, K::SleepTimer, K::SleepTogether, K::ServerMode,K::DisplayOutput,K::AudioPreference};
+      int first=std::clamp(settingsRow-6,0,3);
+      for (int i = first; i < std::min(11,first+8); i++) {
+        float x = ui::X0, y = 122 + (i-first) * 59, w = ui::W - ui::X0 - 64;
         bool selected = i == settingsRow, disabled = i == 3 && !nestAvailable;
         if (selected) {
           gfx::shadow(g, x, y + 6, w, 53, 18, 20, 0.45f);
@@ -1745,7 +1781,7 @@ int main(int argc, char** argv) {
               : account.state == Account::PENDING ? tr(K::Pending) : tr(K::SignedOut);
           gfx::text(g, ui::F_SMALL, tr(accountFailed ? K::AccountUnavailable : account.signedIn() ? K::SignOutAction : K::SignInAction), x + 28, y + 29, ui::MUTED);
         } else if (i == 1) value = tr(settings.cols == 3 ? K::Three : K::Four);
-        else if (i == 2) value = tr(i18n::quality(quality));
+        else if (i == 2) value = tr(videoModeLabel(settings.videoMode));
         else if (i == 3) {
           value = nestAvailable && nestOut ? nestName : std::string(tr(K::TV));
           if (disabled) gfx::text(g, ui::F_SMALL, tr(nestChecked ? K::NoSpeaker : K::SpeakerChecking), x + 28, y + 29, ui::FAINT);
@@ -1753,9 +1789,11 @@ int main(int argc, char** argv) {
         else if (i == 5) value = tr(settings.lang == i18n::Lang::PT ? K::Portuguese : K::English);
         else if (i == 6) value = sleepLabel(sleepChoice);
         else if (i == 7) value = tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox);
-        else value = tr(settings.server ? K::Automatic : K::SleepOff);
+        else if (i==8) value = tr(settings.server ? K::Automatic : K::SleepOff);
+        else if (i==9) value=std::to_string(g.extent.height)+"p";
+        else value=tr(settings.originalAudio ? K::AudioAlwaysOriginal : K::AudioInterface);
         float right = x + w - 54;
-        gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, value, i == 0 ? 480 : 320), right, y + 15, disabled ? ui::FAINT : selected ? ui::A2 : ui::TEXT, 2);
+        gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, value, i == 0 || i==10 ? 520 : 320), right, y + 15, disabled ? ui::FAINT : selected ? ui::A2 : ui::TEXT, 2);
         if (selected && i > 0 && !disabled) {
           float ax = right - std::min(340.f, gfx::textWidth(g, ui::F_KEY, value)) - 26;
           gfx::triangle(g, ax, y + 27, ax + 6, y + 22, ax + 6, y + 32, ui::MUTED);
@@ -1763,6 +1801,7 @@ int main(int argc, char** argv) {
         }
       }
       gfx::text(g, ui::F_SMALL, tr(K::SleepTVHelp), ui::X0, 630, ui::MUTED);
+      if (settingsRow==9) gfx::text(g,ui::F_SMALL,tr(K::Display1080Help),ui::X0,652,ui::FAINT);
       if (settingsRow == 4) gfx::text(g, ui::F_SMALL, tr(K::SyncHelp), ui::X0, 652, ui::FAINT);
       float hx = hint(g, ui::X0, 678, tr(K::BtnVertical), XG, tr(K::ChooseRow));
       hx = hint(g, hx, 678, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
@@ -1814,14 +1853,22 @@ int main(int argc, char** argv) {
         float statusX = ui::W - 72;
         int resolution = pl.actualHeight.load();
         const char* mode = pl.waiting() ? nullptr : tr(pl.direct ? K::Console : pl.original ? K::ServerOriginal : K::ServerConverted);
-        if (resolution != lastQuality || mode != lastMode) {
+        int sourceFps = pl.actualFps.load();
+        int targetFps=std::min(sourceFps,pl.presentFps.load());
+        if (resolution != lastQuality || sourceFps != lastSourceFps || targetFps != lastTargetFps || lastOutput!=(int)g.extent.height || mode != lastMode) {
           resolutionLabel = resolution ? std::to_string(resolution) + "p" : "";
+          // As fontes Inter empacotadas não têm o glifo da seta.
+          if (sourceFps) resolutionLabel += std::to_string(sourceFps);
+          if (sourceFps > targetFps) resolutionLabel += " -> "+std::to_string(targetFps)+" fps";
           qualityLabel = resolutionLabel;
+          qualityLabel += " · "+std::to_string(g.extent.height)+"p";
           if (mode) { if (resolution) qualityLabel += " · "; qualityLabel += mode; }
-          lastQuality = resolution; lastMode = mode;
+          lastQuality = resolution; lastSourceFps = sourceFps; lastMode = mode;
+          lastTargetFps=targetFps; lastOutput=(int)g.extent.height;
         }
         gfx::text(g, ui::F_SMALL, qualityLabel, statusX, 94, ui::TEXT, 2);
         gfx::text(g, ui::F_SMALL, pl.nest ? nestName : std::string(tr(K::TV)), statusX, 122, ui::MUTED, 2);
+        if (pl.adapted) gfx::text(g,ui::F_TINY,tr(K::VideoAdjusted),statusX,149,ui::MUTED,2);
         double pos = pl.position(), dur = pl.duration;
         float bx = 72, by = 620, bw = ui::W - 144;
         bool trackFocus = !playerUI.options && !panelOpen;
@@ -1847,10 +1894,12 @@ int main(int argc, char** argv) {
           for (const auto& c : captions.chapters) if (c.start <= pos) chapter = &c;
           if (chapter) gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, chapter->title, 800), ui::W / 2, by + 17, ui::TEXT, 1);
         }
-        const K labels[] = {K::Captions, K::PlayerQuality, K::Sound, K::SleepTimer, K::Rate, K::PlayerChannel};
-        float optionW = (bw - 5 * 12) / 6;
+        const K labels[] = {K::Captions, K::PlayerQuality, K::Sound,K::AudioTrack, K::SleepTimer, K::Rate, K::PlayerChannel};
+        int visible=PlayerUI::COUNT-(playerUI.tracks ? 0 : 1), slot=0;
+        float optionW = (bw - (visible-1) * 12) / visible;
         for (int i = 0; i < PlayerUI::COUNT; i++) {
-          float ox = bx + i * (optionW + 12), oy = 518;
+          if (i==PlayerUI::TRACK && !playerUI.tracks) continue;
+          float ox = bx + slot++ * (optionW + 12), oy = 518;
           bool focused = playerUI.options && playerUI.selected == i;
           bool disabled = i == PlayerUI::CC && !captionLoader.loading && !captions.failed && (captions.live || captions.tracks.empty());
           if (focused) gfx::rect(g, ox - 3, oy - 3, optionW + 6, 68, ui::TEXT, 15);
@@ -1858,10 +1907,12 @@ int main(int argc, char** argv) {
           if (focused) gfx::hgrad(g, ox + 14, oy + 56, optionW - 28, 3, ui::A1, ui::A2, 1.5f);
           auto& label = optionLabels[i]; label.update(g, ui::F_CARD, tr(labels[i]), optionW - 20);
           gfx::text(g, ui::F_CARD, label.text, ox + (optionW - label.width) / 2, oy + 10, disabled ? ui::FAINT : ui::TEXT);
+          if (i==PlayerUI::TRACK) glyph(g,icons::TRANSLATE,false,ox+9,oy+7,ui::MUTED);
           const char* value = "";
           if (i == PlayerUI::CC) value = tr(captionLoader.loading ? K::Loading : settings.captions && !disabled ? K::CaptionsOn : K::CaptionsOff);
           else if (i == PlayerUI::VIDEO) value = resolution ? resolutionLabel.c_str() : tr(i18n::quality(quality));
           else if (i == PlayerUI::AUDIO) value = pl.nest ? nestName.c_str() : tr(K::TV);
+          else if (i == PlayerUI::TRACK) value=selectedTrackLabel.c_str();
           else if (i == PlayerUI::TIMER) value = tr(sleep.active ? K::PlayerTimerOn : K::SleepOff);
           else if (i == PlayerUI::RATE) value = tr(likeState == "LIKE" ? K::Liked : likeState == "DISLIKE" ? K::Disliked : K::Open);
           else value = tr(K::Open);
@@ -1904,18 +1955,19 @@ int main(int argc, char** argv) {
         }
       }
       if (playerUI.panel != PlayerUI::NONE) {
-        float w = 720, h = 330, x = (ui::W - w) / 2, y = 190;
+        float w = 720, h = playerUI.panel==PlayerUI::TRACKS ? 430 : 330, x = (ui::W - w) / 2, y = playerUI.panel==PlayerUI::TRACKS ? 140 : 190;
         gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.55f});
         gfx::shadow(g, x, y + 10, w, h, 24, 32, 0.6f);
         gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
         bool ccPanel = playerUI.panel == PlayerUI::CAPTIONS;
-        gfx::text(g, ui::F_BIG, tr(ccPanel ? K::Captions : playerUI.panel == PlayerUI::QUALITY ? K::PlayerQuality : K::Sound), x + 36, y + 28, ui::TEXT);
+        gfx::text(g, ui::F_BIG, tr(ccPanel ? K::Captions : playerUI.panel == PlayerUI::QUALITY ? K::PlayerQuality : playerUI.panel==PlayerUI::TRACKS ? K::AudioTrack : K::Sound), x + 36, y + 28, ui::TEXT);
         if (ccPanel && (captionLoader.loading || captions.failed || captions.tracks.empty())) {
           gfx::text(g, ui::F_BODY, tr(captionLoader.loading ? K::CaptionsLoading : captions.failed ? K::CaptionsFailed : captions.reason == "live_clock" ? K::CaptionsLiveClock : pl.live ? K::CaptionsLiveNone : K::CaptionsNone), x + 36, y + 110, ui::MUTED);
         } else {
-          int count = ccPanel ? 2 : playerUI.panel == PlayerUI::QUALITY ? 3 : 2;
-          for (int i = 0; i < count; i++) {
-            float ry = y + 90 + i * 58;
+          int count = ccPanel ? 2 : playerUI.panel == PlayerUI::QUALITY ? 3 : playerUI.panel==PlayerUI::TRACKS ? (int)audioTracks.size() : 2;
+          int first=playerUI.panel==PlayerUI::TRACKS ? std::max(0,playerUI.panelSel-3) : 0;
+          for (int i = first; i < std::min(count,first+4); i++) {
+            float ry = y + 90 + (i-first) * 58;
             bool focused = playerUI.panelSel == i;
             bool disabled = playerUI.panel == PlayerUI::SOUND && i == 1 && !nestAvailable;
             gfx::rect(g, x + 30, ry, w - 60, 50, focused ? ui::TEXT : ui::SURFACE2, 10);
@@ -1925,7 +1977,8 @@ int main(int argc, char** argv) {
               label = tr(K::CaptionsLanguage);
               for (const auto& track : captions.tracks) if (track.code == captions.selected)
                 label = track.name + " · " + tr(track.automatic ? K::CaptionsAuto : K::CaptionsManual);
-            } else if (playerUI.panel == PlayerUI::QUALITY) label = tr(i18n::quality(i == 0 ? 720 : i == 1 ? 480 : 360));
+            } else if (playerUI.panel == PlayerUI::QUALITY) label = tr(videoModeLabel(i));
+            else if (playerUI.panel==PlayerUI::TRACKS) label=trackLabels[i];
             else label = i ? nestName : tr(K::TV);
             gfx::text(g, ui::F_BODY, gfx::ellipsize(g, ui::F_BODY, label, w - 132), x + 50, ry + 14, disabled ? ui::FAINT : focused ? ui::INK : ui::TEXT);
           }

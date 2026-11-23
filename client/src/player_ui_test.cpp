@@ -50,6 +50,13 @@ int main() {
   loaded.captions = false; loaded.sleepNotebook = false; assert(loaded.save(root.string() + "/"));
   settings.load(root.string() + "/");
   assert(!settings.captions && !settings.sleepNotebook);
+  settings.videoMode=playback::FAST; settings.outputHeight=1080; settings.originalAudio=false;
+  assert(settings.save(root.string()+"/")); loaded.load(root.string()+"/");
+  assert(loaded.videoMode==playback::FAST && loaded.outputHeight==1080 && !loaded.originalAudio);
+  ui.tracks=false; ui.selected=PlayerUI::AUDIO; ui.options=true; ui.direction(80000,1,0);
+  assert(ui.selected==PlayerUI::TIMER);
+  ui.tracks=true; ui.selected=PlayerUI::AUDIO; ui.direction(80001,1,0);
+  assert(ui.selected==PlayerUI::TRACK);
   std::filesystem::remove_all(root);
   std::cout << "settings: CC language, on/off and shared sleep target persisted OK\n";
 }

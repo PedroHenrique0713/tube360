@@ -9,6 +9,11 @@ extern "C" {
 }
 
 namespace h264 {
+inline bool dropAt30(int64_t frame, double rate) {
+  if (rate <= 30.1 || !std::isfinite(rate)) return false;
+  if (rate >= 59 && rate <= 60.1) return (frame & 1) != 0;
+  return std::floor(frame * 30 / rate + .00001) == std::floor((frame - 1) * 30 / rate + .00001);
+}
 #ifdef __XSDK__
 extern "C" void ffmpeg_workers(int active);
 #else
@@ -29,7 +34,7 @@ struct Stream {
   Stream(const Stream&) = delete;
   Stream& operator=(const Stream&) = delete;
   int vi = -1, ai = -1;
-  ~Stream() {
+  void close() {
     av_channel_layout_uninit(&layout);
     swr_free(&swr);
     av_frame_free(&frame); av_packet_free(&pkt);
@@ -37,6 +42,13 @@ struct Stream {
     avformat_close_input(&fmt);
     if (io) av_freep(&io->buffer);
     avio_context_free(&io);
+    vi = ai = -1; inputRate = 0; inputFormat = -1;
+  }
+  ~Stream() { close(); }
+
+  void reset() {
+    close();
+    fmt = avformat_alloc_context(); pkt = av_packet_alloc(); frame = av_frame_alloc();
   }
 
   int track(int index, AVCodecID id, AVCodecContext*& ctx, int threads) {
@@ -51,7 +63,7 @@ struct Stream {
     ctx->pkt_timebase = stream->time_base;
     ctx->thread_count = threads;
     ctx->thread_type = FF_THREAD_FRAME;
-    ctx->max_pixels = 1280 * 736;  // H.264 pode completar o último macrobloco.
+    ctx->max_pixels = 1920 * 1088;  // 1080p completa o último macrobloco; a saída da TV permanece 720p.
     ffmpeg_workers(id == AV_CODEC_ID_H264);
     r = avcodec_open2(ctx, codec, nullptr);
     ffmpeg_workers(0);
