@@ -15,6 +15,7 @@
 #include "pl_mpeg.h"
 #ifdef __XSDK__
 #include "xsdk/thread.h"
+#include "xsdk/audio.h"
 #endif
 
 namespace player {
@@ -82,7 +83,23 @@ struct Player {
   // áudio
   SDL_AudioStream* audio = nullptr; std::atomic<bool> hasAudio{false};
   float normalGain = 1, fadeGain = 1;
-  bool audible = true;
+  std::atomic<bool> audible{true};
+#ifdef __XSDK__
+  std::atomic<bool> drainingDriver{false};
+  std::atomic<uint32_t> playedAtMute{0};
+#endif
+  bool deviceDrained() {
+#ifdef __XSDK__
+    if (drainingDriver) {
+      XsdkAudioStats stats{};
+      xsdk_audio_stats(&stats);
+      // Oito blocos na fila, um em mixagem e o último entregue ao kernel. Só played avança com um bloco real.
+      if (stats.played - playedAtMute.load() < XSDK_AUDIO_FRAMES_AHEAD_DEFAULT + 2) return false;
+      drainingDriver = false;
+    }
+#endif
+    return !audible;
+  }
   void sleepGain(float gain) {
     if (gain == fadeGain) return;
     fadeGain = gain;
@@ -90,8 +107,16 @@ struct Player {
   }
   void tvSound(bool on) {
     if (audible == on) return;
+    if (audio && !SDL_SetAudioStreamGain(audio, on ? normalGain * fadeGain : 0.0f)) return;
+#ifdef __XSDK__
+    if (!on && audio && firstPts >= 0) {
+      XsdkAudioStats stats{};
+      xsdk_audio_stats(&stats);
+      playedAtMute = stats.played;
+      drainingDriver = true;
+    }
+#endif
     audible = on;
-    if (audio) SDL_SetAudioStreamGain(audio, on ? normalGain * fadeGain : 0.0f);
   }
   SDL_AtomicInt audioBaseMs{-1}, pushed{0};  // início do áudio (ms do fluxo) e amostras por canal entregues
   SDL_AtomicInt netBytes{0};   // bytes recebidos desde o último log de 5 s (velocidade real da rede até o Xbox)
@@ -134,6 +159,10 @@ struct Player {
       int samples = 0;
       if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(audio), &device, &samples) && device.freq > 0) {
         deviceMs = std::max(1, (samples * 1000 + device.freq - 1) / device.freq);
+#ifdef __XSDK__
+        // SDL informa 256 amostras por chamada; o driver xsdk abre a fila com a profundidade padrão.
+        deviceMs = (XSDK_AUDIO_FRAMES_AHEAD_DEFAULT * XSDK_AUDIO_FRAME_SAMPLES * 1000 + XSDK_AUDIO_RATE_HZ / 2) / XSDK_AUDIO_RATE_HZ;
+#endif
         outputFrameBytes = SDL_AUDIO_FRAMESIZE(device);
         outputBytesPerSec = device.freq * outputFrameBytes;
       }
@@ -388,7 +417,7 @@ struct Player {
       return fields[0].find("ok") == 0;
     };
     // O Cast não deve adotar um relógio adiantado enquanto o primeiro MPEG ainda está sendo decodificado.
-    while (speakerRequested && (!pictureReady || SDL_GetTicks() - openedMs < (uint64_t)deviceMs) &&
+    while (speakerRequested && (!pictureReady || SDL_GetTicks() - openedMs < (uint64_t)deviceMs || !deviceDrained()) &&
            !stop && state != FAILED && state != ENDED) SDL_Delay(10);
     if (stop || state == FAILED || state == ENDED) return;
     if (speakerRequested && !playAt(live ? 0 : startAt)) output = RELEASING;
@@ -574,14 +603,14 @@ struct Player {
       double display = show ? show->pts : lastPos - (live ? 0 : startAt);
       bool aligned = std::fabs(tv - display) <= 0.022 && (queued >= 0.10 || decEnded);
       bool on = local && (!hasAudio || audible || aligned);
-      if (route == PRIMING && armed && mutedAt && ms - mutedAt >= (uint64_t)deviceMs &&
+      if (route == PRIMING && armed && mutedAt && ms - mutedAt >= (uint64_t)deviceMs && deviceDrained() &&
           std::fabs(lastPos - (live ? 0 : startAt) - cue) < 0.020 && std::fabs(display - cue) < 0.020 && (decEnded || (!frames.empty() &&
           frames.back()->pts - display >= 0.15 && queued >= 0.18))) mutedForCast = true;
       if (on != audible || follow != tracking) {
         LOG("som: %s, Nest %.3f TV %.3f imagem %.3f", on ? "TV" : follow ? "Nest" : "aguardando", speaker, tv, display);
         tracking = follow;
       }
-      tvSound(on); localPlaying = on; nest = follow;
+      tvSound(on); localPlaying = audible.load(); nest = follow;
       if (speakerRequested && hasAudio) {
         if (!on && display - tv > 0.025) trimMs = (int)std::lround(display * 1000);
         bool hold = !on && tv - display > (reservePaused ? 0.010 : 0.035);
