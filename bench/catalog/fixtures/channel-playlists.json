@@ -1,0 +1,2504 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/featured",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EghmZWF0dXJlZPIGBAoCMgA%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Início"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/videos",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgZ2aWRlb3PyBgQKAjoA",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Vídeos"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/shorts",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgZzaG9ydHPyBgUKA5oBAA%3D%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Shorts"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/streams",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgdzdHJlYW1z8gYECgJ6AA%3D%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Ao vivo"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/courses",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "Egdjb3Vyc2Vz8gYFCgPCAQA%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Cursos"
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/playlists",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EglwbGF5bGlzdHPyBgoKCEIGCgIQaCIA",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Playlists",
+            "selected": true,
+            "content": {
+              "sectionListRenderer": {
+                "contents": [
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "gridRenderer": {
+                            "items": [
+                              {
+                                "lockupViewModel": {
+                                  "contentImage": {
+                                    "collectionThumbnailViewModel": {
+                                      "primaryThumbnail": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/cv8tEbKtEvk/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDLaYNQzLpe1wdZasw6pY6MdMhmfQ",
+                                                "width": 480,
+                                                "height": 270
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailOverlayBadgeViewModel": {
+                                                "thumbnailBadges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "icon": {
+                                                        "sources": [
+                                                          {
+                                                            "clientResource": {
+                                                              "imageName": "PLAYLISTS"
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      "text": "11 vídeos",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "backgroundColor": {
+                                                        "lightTheme": 3355443,
+                                                        "darkTheme": 3355443
+                                                      }
+                                                    }
+                                                  }
+                                                ],
+                                                "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                                              }
+                                            },
+                                            {}
+                                          ],
+                                          "backgroundColor": {
+                                            "lightTheme": 4408131,
+                                            "darkTheme": 4408131
+                                          }
+                                        }
+                                      },
+                                      "stackColor": {
+                                        "lightTheme": 10066329,
+                                        "darkTheme": 9211020
+                                      }
+                                    }
+                                  },
+                                  "metadata": {
+                                    "lockupMetadataViewModel": {
+                                      "title": {
+                                        "content": "Building with Gemini"
+                                      },
+                                      "metadata": {
+                                        "contentMetadataViewModel": {
+                                          "metadataRows": [
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Playlist",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 8,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/@GoogleDevelopers",
+                                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                                "rootVe": 3611,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Ver playlist completa",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 21,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/playlist?list=PLRPUpQa70I6A",
+                                                                "webPageType": "WEB_PAGE_TYPE_PLAYLIST",
+                                                                "rootVe": 5754,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "VLPLRPUpQa70I6A"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "delimiter": " • "
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "contentId": "PLRPUpQa70I6A",
+                                  "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+                                  "itemPlayback": {
+                                    "inlinePlayerData": {
+                                      "onSelect": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=cv8tEbKtEvk&list=PLRPUpQa70I6A&pp=0gcJCX0DOCosWNin",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "cv8tEbKtEvk",
+                                            "playlistId": "PLRPUpQa70I6A",
+                                            "params": "OAI%3D",
+                                            "playerParams": "0gcJCX0DOCosWNin"
+                                          }
+                                        }
+                                      },
+                                      "onVisible": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=cv8tEbKtEvk&list=PLRPUpQa70I6A&pp=YAHIAQHwBAD4BACiBhUBAym6i9LNXnzQ1MzZqhphJWHppWQ%3D",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "cv8tEbKtEvk",
+                                            "playlistId": "PLRPUpQa70I6A",
+                                            "playerParams": "YAHIAQHwBAD4BACiBhUBAym6i9LNXnzQ1MzZqhphJWHppWQ%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=cv8tEbKtEvk&list=PLRPUpQa70I6A",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "cv8tEbKtEvk",
+                                            "playlistId": "PLRPUpQa70I6A",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "lockupViewModel": {
+                                  "contentImage": {
+                                    "collectionThumbnailViewModel": {
+                                      "primaryThumbnail": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/nRLZqaNOrwQ/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAlF2scKjGc5Lt1NEzsY8enL_hVtg",
+                                                "width": 480,
+                                                "height": 270
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailOverlayBadgeViewModel": {
+                                                "thumbnailBadges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "icon": {
+                                                        "sources": [
+                                                          {
+                                                            "clientResource": {
+                                                              "imageName": "PLAYLISTS"
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      "text": "16 vídeos",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "backgroundColor": {
+                                                        "lightTheme": 926515,
+                                                        "darkTheme": 926515
+                                                      }
+                                                    }
+                                                  }
+                                                ],
+                                                "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                                              }
+                                            },
+                                            {}
+                                          ],
+                                          "backgroundColor": {
+                                            "lightTheme": 1588569,
+                                            "darkTheme": 1588569
+                                          }
+                                        }
+                                      },
+                                      "stackColor": {
+                                        "lightTheme": 7046553,
+                                        "darkTheme": 7767955
+                                      }
+                                    }
+                                  },
+                                  "metadata": {
+                                    "lockupMetadataViewModel": {
+                                      "title": {
+                                        "content": "I/O Connect Berlin ‘26"
+                                      },
+                                      "metadata": {
+                                        "contentMetadataViewModel": {
+                                          "metadataRows": [
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Playlist",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 8,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/@GoogleDevelopers",
+                                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                                "rootVe": 3611,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Ver playlist completa",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 21,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/playlist?list=PLGt_37JTBZn4",
+                                                                "webPageType": "WEB_PAGE_TYPE_PLAYLIST",
+                                                                "rootVe": 5754,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "VLPLGt_37JTBZn4"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "delimiter": " • "
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "contentId": "PLGt_37JTBZn4",
+                                  "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+                                  "itemPlayback": {
+                                    "inlinePlayerData": {
+                                      "onSelect": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=nRLZqaNOrwQ&list=PLGt_37JTBZn4",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "nRLZqaNOrwQ",
+                                            "playlistId": "PLGt_37JTBZn4",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      },
+                                      "onVisible": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=nRLZqaNOrwQ&list=PLGt_37JTBZn4&pp=YAHIAQHwBAD4BACiBhUBAym6i9XowvfotvN0J3cRI45ptU0%3D",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "nRLZqaNOrwQ",
+                                            "playlistId": "PLGt_37JTBZn4",
+                                            "playerParams": "YAHIAQHwBAD4BACiBhUBAym6i9XowvfotvN0J3cRI45ptU0%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=nRLZqaNOrwQ&list=PLGt_37JTBZn4",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "nRLZqaNOrwQ",
+                                            "playlistId": "PLGt_37JTBZn4",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "lockupViewModel": {
+                                  "contentImage": {
+                                    "collectionThumbnailViewModel": {
+                                      "primaryThumbnail": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/pLwB_63yUBY/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDKgtvMZyXNNhiAOLRRjAoirDy8eQ",
+                                                "width": 480,
+                                                "height": 270
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailOverlayBadgeViewModel": {
+                                                "thumbnailBadges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "icon": {
+                                                        "sources": [
+                                                          {
+                                                            "clientResource": {
+                                                              "imageName": "PLAYLISTS"
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      "text": "6 vídeos",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "backgroundColor": {
+                                                        "lightTheme": 465971,
+                                                        "darkTheme": 465971
+                                                      }
+                                                    }
+                                                  }
+                                                ],
+                                                "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                                              }
+                                            },
+                                            {}
+                                          ],
+                                          "backgroundColor": {
+                                            "lightTheme": 864857,
+                                            "darkTheme": 864857
+                                          }
+                                        }
+                                      },
+                                      "stackColor": {
+                                        "lightTheme": 7045529,
+                                        "darkTheme": 7767187
+                                      }
+                                    }
+                                  },
+                                  "metadata": {
+                                    "lockupMetadataViewModel": {
+                                      "title": {
+                                        "content": "Gemma Playground Series"
+                                      },
+                                      "metadata": {
+                                        "contentMetadataViewModel": {
+                                          "metadataRows": [
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Playlist",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 8,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/@GoogleDevelopers",
+                                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                                "rootVe": 3611,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Ver playlist completa",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 21,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/playlist?list=PLfBVJoq9fmco",
+                                                                "webPageType": "WEB_PAGE_TYPE_PLAYLIST",
+                                                                "rootVe": 5754,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "VLPLfBVJoq9fmco"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "delimiter": " • "
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "contentId": "PLfBVJoq9fmco",
+                                  "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+                                  "itemPlayback": {
+                                    "inlinePlayerData": {
+                                      "onSelect": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=pLwB_63yUBY&list=PLfBVJoq9fmco",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "pLwB_63yUBY",
+                                            "playlistId": "PLfBVJoq9fmco",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      },
+                                      "onVisible": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=pLwB_63yUBY&list=PLfBVJoq9fmco&pp=YAHIAQHwBAD4BACiBhUBAym6iyAIuOZS_cKndUYkg0OT3cg%3D",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "pLwB_63yUBY",
+                                            "playlistId": "PLfBVJoq9fmco",
+                                            "playerParams": "YAHIAQHwBAD4BACiBhUBAym6iyAIuOZS_cKndUYkg0OT3cg%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=pLwB_63yUBY&list=PLfBVJoq9fmco",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "pLwB_63yUBY",
+                                            "playlistId": "PLfBVJoq9fmco",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "lockupViewModel": {
+                                  "contentImage": {
+                                    "collectionThumbnailViewModel": {
+                                      "primaryThumbnail": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/wYSncx9zLIU/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLA_x96t2vPCdDa11NFfkL79naXaDg",
+                                                "width": 480,
+                                                "height": 270
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailOverlayBadgeViewModel": {
+                                                "thumbnailBadges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "icon": {
+                                                        "sources": [
+                                                          {
+                                                            "clientResource": {
+                                                              "imageName": "PLAYLISTS"
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      "text": "14 vídeos",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "backgroundColor": {
+                                                        "lightTheme": 3355443,
+                                                        "darkTheme": 3355443
+                                                      }
+                                                    }
+                                                  }
+                                                ],
+                                                "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                                              }
+                                            },
+                                            {}
+                                          ],
+                                          "backgroundColor": {
+                                            "lightTheme": 4144959,
+                                            "darkTheme": 4144959
+                                          }
+                                        }
+                                      },
+                                      "stackColor": {
+                                        "lightTheme": 10066329,
+                                        "darkTheme": 9211020
+                                      }
+                                    }
+                                  },
+                                  "metadata": {
+                                    "lockupMetadataViewModel": {
+                                      "title": {
+                                        "content": "Google I/O 2026 Keynotes"
+                                      },
+                                      "metadata": {
+                                        "contentMetadataViewModel": {
+                                          "metadataRows": [
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Playlist",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 8,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/@GoogleDevelopers",
+                                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                                "rootVe": 3611,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Ver playlist completa",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 21,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/playlist?list=PLOU2XLYxmsIIAOskSyap13n9W-xOt_GP5",
+                                                                "webPageType": "WEB_PAGE_TYPE_PLAYLIST",
+                                                                "rootVe": 5754,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "VLPLOU2XLYxmsIIAOskSyap13n9W-xOt_GP5"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "delimiter": " • "
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "contentId": "PLOU2XLYxmsIIAOskSyap13n9W-xOt_GP5",
+                                  "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+                                  "itemPlayback": {
+                                    "inlinePlayerData": {
+                                      "onSelect": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=wYSncx9zLIU&list=PLOU2XLYxmsIIAOskSyap13n9W-xOt_GP5",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "wYSncx9zLIU",
+                                            "playlistId": "PLOU2XLYxmsIIAOskSyap13n9W-xOt_GP5",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      },
+                                      "onVisible": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=wYSncx9zLIU&list=PLOU2XLYxmsIIAOskSyap13n9W-xOt_GP5&pp=YAHIAQHwBAD4BACiBhUBAym6i6OUBY4FTm50wLx39Imnyr7SBwkJawE4KixY2Kc%3D",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "wYSncx9zLIU",
+                                            "playlistId": "PLOU2XLYxmsIIAOskSyap13n9W-xOt_GP5",
+                                            "playerParams": "YAHIAQHwBAD4BACiBhUBAym6i6OUBY4FTm50wLx39Imnyr7SBwkJawE4KixY2Kc%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=wYSncx9zLIU&list=PLOU2XLYxmsIIAOskSyap13n9W-xOt_GP5",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "wYSncx9zLIU",
+                                            "playlistId": "PLOU2XLYxmsIIAOskSyap13n9W-xOt_GP5",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "lockupViewModel": {
+                                  "contentImage": {
+                                    "collectionThumbnailViewModel": {
+                                      "primaryThumbnail": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/aqmpZocmR8o/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAwH7CAWPjeDwcud5rISahtOx4V9A",
+                                                "width": 480,
+                                                "height": 270
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailOverlayBadgeViewModel": {
+                                                "thumbnailBadges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "icon": {
+                                                        "sources": [
+                                                          {
+                                                            "clientResource": {
+                                                              "imageName": "PLAYLISTS"
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      "text": "8 vídeos",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "backgroundColor": {
+                                                        "lightTheme": 2107187,
+                                                        "darkTheme": 2107187
+                                                      }
+                                                    }
+                                                  }
+                                                ],
+                                                "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                                              }
+                                            },
+                                            {}
+                                          ],
+                                          "backgroundColor": {
+                                            "lightTheme": 2633791,
+                                            "darkTheme": 2633791
+                                          }
+                                        }
+                                      },
+                                      "stackColor": {
+                                        "lightTheme": 7043993,
+                                        "darkTheme": 7766419
+                                      }
+                                    }
+                                  },
+                                  "metadata": {
+                                    "lockupMetadataViewModel": {
+                                      "title": {
+                                        "content": "Google I/O 2026 Recaps"
+                                      },
+                                      "metadata": {
+                                        "contentMetadataViewModel": {
+                                          "metadataRows": [
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Playlist",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 8,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/@GoogleDevelopers",
+                                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                                "rootVe": 3611,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Ver playlist completa",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 21,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/playlist?list=PLOU2XLYxmsILVF9qmspC4i4R0t3o64HSx",
+                                                                "webPageType": "WEB_PAGE_TYPE_PLAYLIST",
+                                                                "rootVe": 5754,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "VLPLOU2XLYxmsILVF9qmspC4i4R0t3o64HSx"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "delimiter": " • "
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "contentId": "PLOU2XLYxmsILVF9qmspC4i4R0t3o64HSx",
+                                  "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+                                  "itemPlayback": {
+                                    "inlinePlayerData": {
+                                      "onSelect": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=aqmpZocmR8o&list=PLOU2XLYxmsILVF9qmspC4i4R0t3o64HSx",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "aqmpZocmR8o",
+                                            "playlistId": "PLOU2XLYxmsILVF9qmspC4i4R0t3o64HSx",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      },
+                                      "onVisible": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=aqmpZocmR8o&list=PLOU2XLYxmsILVF9qmspC4i4R0t3o64HSx&pp=YAHIAQHwBAD4BACiBhUBAym6i_x7HOAgIe57Pcl-aKvM18Q%3D",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "aqmpZocmR8o",
+                                            "playlistId": "PLOU2XLYxmsILVF9qmspC4i4R0t3o64HSx",
+                                            "playerParams": "YAHIAQHwBAD4BACiBhUBAym6i_x7HOAgIe57Pcl-aKvM18Q%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=aqmpZocmR8o&list=PLOU2XLYxmsILVF9qmspC4i4R0t3o64HSx&pp=0gcJCX0DOCosWNin",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "aqmpZocmR8o",
+                                            "playlistId": "PLOU2XLYxmsILVF9qmspC4i4R0t3o64HSx",
+                                            "params": "OAI%3D",
+                                            "playerParams": "0gcJCX0DOCosWNin"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "lockupViewModel": {
+                                  "contentImage": {
+                                    "collectionThumbnailViewModel": {
+                                      "primaryThumbnail": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/wYSncx9zLIU/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLA_x96t2vPCdDa11NFfkL79naXaDg",
+                                                "width": 480,
+                                                "height": 270
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailOverlayBadgeViewModel": {
+                                                "thumbnailBadges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "icon": {
+                                                        "sources": [
+                                                          {
+                                                            "clientResource": {
+                                                              "imageName": "PLAYLISTS"
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      "text": "68 vídeos",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "backgroundColor": {
+                                                        "lightTheme": 3355443,
+                                                        "darkTheme": 3355443
+                                                      }
+                                                    }
+                                                  }
+                                                ],
+                                                "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                                              }
+                                            },
+                                            {}
+                                          ],
+                                          "backgroundColor": {
+                                            "lightTheme": 4144959,
+                                            "darkTheme": 4144959
+                                          }
+                                        }
+                                      },
+                                      "stackColor": {
+                                        "lightTheme": 10066329,
+                                        "darkTheme": 9211020
+                                      }
+                                    }
+                                  },
+                                  "metadata": {
+                                    "lockupMetadataViewModel": {
+                                      "title": {
+                                        "content": "Google I/O 2026 - All sessions"
+                                      },
+                                      "metadata": {
+                                        "contentMetadataViewModel": {
+                                          "metadataRows": [
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Playlist",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 8,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/@GoogleDevelopers",
+                                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                                "rootVe": 3611,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Ver playlist completa",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 21,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/playlist?list=PLOU2XLYxmsIJ6IFQouiKfM169TVOKx6Ej",
+                                                                "webPageType": "WEB_PAGE_TYPE_PLAYLIST",
+                                                                "rootVe": 5754,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "VLPLOU2XLYxmsIJ6IFQouiKfM169TVOKx6Ej"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "delimiter": " • "
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "contentId": "PLOU2XLYxmsIJ6IFQouiKfM169TVOKx6Ej",
+                                  "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+                                  "itemPlayback": {
+                                    "inlinePlayerData": {
+                                      "onSelect": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=wYSncx9zLIU&list=PLOU2XLYxmsIJ6IFQouiKfM169TVOKx6Ej&pp=0gcJCZAGa94AFGB0",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "wYSncx9zLIU",
+                                            "playlistId": "PLOU2XLYxmsIJ6IFQouiKfM169TVOKx6Ej",
+                                            "params": "OAI%3D",
+                                            "playerParams": "0gcJCZAGa94AFGB0"
+                                          }
+                                        }
+                                      },
+                                      "onVisible": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=wYSncx9zLIU&list=PLOU2XLYxmsIJ6IFQouiKfM169TVOKx6Ej&pp=YAHIAQHwBAD4BACiBhUBAym6i6OUBY4FTm50wLx39Imnyr4%3D",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "wYSncx9zLIU",
+                                            "playlistId": "PLOU2XLYxmsIJ6IFQouiKfM169TVOKx6Ej",
+                                            "playerParams": "YAHIAQHwBAD4BACiBhUBAym6i6OUBY4FTm50wLx39Imnyr4%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=wYSncx9zLIU&list=PLOU2XLYxmsIJ6IFQouiKfM169TVOKx6Ej",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "wYSncx9zLIU",
+                                            "playlistId": "PLOU2XLYxmsIJ6IFQouiKfM169TVOKx6Ej",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "lockupViewModel": {
+                                  "contentImage": {
+                                    "collectionThumbnailViewModel": {
+                                      "primaryThumbnail": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/2n41YjR5QfU/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLBxBvfHStzI9-7w1XgpRgHITX8l5Q",
+                                                "width": 480,
+                                                "height": 270
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailOverlayBadgeViewModel": {
+                                                "thumbnailBadges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "icon": {
+                                                        "sources": [
+                                                          {
+                                                            "clientResource": {
+                                                              "imageName": "PLAYLISTS"
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      "text": "4 vídeos",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "backgroundColor": {
+                                                        "lightTheme": 1320484,
+                                                        "darkTheme": 1320484
+                                                      }
+                                                    }
+                                                  }
+                                                ],
+                                                "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                                              }
+                                            },
+                                            {}
+                                          ],
+                                          "backgroundColor": {
+                                            "lightTheme": 2244412,
+                                            "darkTheme": 2244412
+                                          }
+                                        }
+                                      },
+                                      "stackColor": {
+                                        "lightTheme": 7051668,
+                                        "darkTheme": 7376009
+                                      }
+                                    }
+                                  },
+                                  "metadata": {
+                                    "lockupMetadataViewModel": {
+                                      "title": {
+                                        "content": "Professional Development at Google I/O 2026"
+                                      },
+                                      "metadata": {
+                                        "contentMetadataViewModel": {
+                                          "metadataRows": [
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Playlist",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 8,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/@GoogleDevelopers",
+                                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                                "rootVe": 3611,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Ver playlist completa",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 21,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/playlist?list=PLOU2XLYxmsIJp39MsvkeWYYNwMso-HeNT",
+                                                                "webPageType": "WEB_PAGE_TYPE_PLAYLIST",
+                                                                "rootVe": 5754,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "VLPLOU2XLYxmsIJp39MsvkeWYYNwMso-HeNT"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "delimiter": " • "
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "contentId": "PLOU2XLYxmsIJp39MsvkeWYYNwMso-HeNT",
+                                  "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+                                  "itemPlayback": {
+                                    "inlinePlayerData": {
+                                      "onSelect": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=2n41YjR5QfU&list=PLOU2XLYxmsIJp39MsvkeWYYNwMso-HeNT",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "2n41YjR5QfU",
+                                            "playlistId": "PLOU2XLYxmsIJp39MsvkeWYYNwMso-HeNT",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      },
+                                      "onVisible": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=2n41YjR5QfU&list=PLOU2XLYxmsIJp39MsvkeWYYNwMso-HeNT&pp=YAHIAQHwBAD4BACiBhUBAym6ixRJ-Mu-oVd27GYdPzwIHIE%3D",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "2n41YjR5QfU",
+                                            "playlistId": "PLOU2XLYxmsIJp39MsvkeWYYNwMso-HeNT",
+                                            "playerParams": "YAHIAQHwBAD4BACiBhUBAym6ixRJ-Mu-oVd27GYdPzwIHIE%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=2n41YjR5QfU&list=PLOU2XLYxmsIJp39MsvkeWYYNwMso-HeNT",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "2n41YjR5QfU",
+                                            "playlistId": "PLOU2XLYxmsIJp39MsvkeWYYNwMso-HeNT",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "lockupViewModel": {
+                                  "contentImage": {
+                                    "collectionThumbnailViewModel": {
+                                      "primaryThumbnail": {
+                                        "thumbnailViewModel": {
+                                          "image": {
+                                            "sources": [
+                                              {
+                                                "url": "https://i.ytimg.com/vi/9C20esBUf-Q/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLB5w0uAQ1omy8BigPQXdTYYqZXCvw",
+                                                "width": 480,
+                                                "height": 270
+                                              }
+                                            ]
+                                          },
+                                          "overlays": [
+                                            {
+                                              "thumbnailOverlayBadgeViewModel": {
+                                                "thumbnailBadges": [
+                                                  {
+                                                    "thumbnailBadgeViewModel": {
+                                                      "icon": {
+                                                        "sources": [
+                                                          {
+                                                            "clientResource": {
+                                                              "imageName": "PLAYLISTS"
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      "text": "6 vídeos",
+                                                      "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                                                      "backgroundColor": {
+                                                        "lightTheme": 3355443,
+                                                        "darkTheme": 3355443
+                                                      }
+                                                    }
+                                                  }
+                                                ],
+                                                "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                                              }
+                                            },
+                                            {}
+                                          ],
+                                          "backgroundColor": {
+                                            "lightTheme": 4013373,
+                                            "darkTheme": 4013373
+                                          }
+                                        }
+                                      },
+                                      "stackColor": {
+                                        "lightTheme": 10066329,
+                                        "darkTheme": 9211020
+                                      }
+                                    }
+                                  },
+                                  "metadata": {
+                                    "lockupMetadataViewModel": {
+                                      "title": {
+                                        "content": "Dialogues at Google I/O 2026"
+                                      },
+                                      "metadata": {
+                                        "contentMetadataViewModel": {
+                                          "metadataRows": [
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Playlist",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 8,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/@GoogleDevelopers",
+                                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                                "rootVe": 3611,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            },
+                                            {
+                                              "metadataParts": [
+                                                {
+                                                  "text": {
+                                                    "content": "Ver playlist completa",
+                                                    "commandRuns": [
+                                                      {
+                                                        "startIndex": 0,
+                                                        "length": 21,
+                                                        "onTap": {
+                                                          "innertubeCommand": {
+                                                            "commandMetadata": {
+                                                              "webCommandMetadata": {
+                                                                "url": "/playlist?list=PLOU2XLYxmsIJuxYe1znksQlhLJ4w8GKCu",
+                                                                "webPageType": "WEB_PAGE_TYPE_PLAYLIST",
+                                                                "rootVe": 5754,
+                                                                "apiUrl": "/youtubei/v1/browse"
+                                                              }
+                                                            },
+                                                            "browseEndpoint": {
+                                                              "browseId": "VLPLOU2XLYxmsIJuxYe1znksQlhLJ4w8GKCu"
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          ],
+                                          "delimiter": " • "
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "contentId": "PLOU2XLYxmsIJuxYe1znksQlhLJ4w8GKCu",
+                                  "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+                                  "itemPlayback": {
+                                    "inlinePlayerData": {
+                                      "onSelect": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=9C20esBUf-Q&list=PLOU2XLYxmsIJuxYe1znksQlhLJ4w8GKCu",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "9C20esBUf-Q",
+                                            "playlistId": "PLOU2XLYxmsIJuxYe1znksQlhLJ4w8GKCu",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      },
+                                      "onVisible": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=9C20esBUf-Q&list=PLOU2XLYxmsIJuxYe1znksQlhLJ4w8GKCu&pp=YAHIAQHwBAD4BACiBhUBAym6i4j5FypRwVFePbqWA1MiHGE%3D",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "9C20esBUf-Q",
+                                            "playlistId": "PLOU2XLYxmsIJuxYe1znksQlhLJ4w8GKCu",
+                                            "playerParams": "YAHIAQHwBAD4BACiBhUBAym6i4j5FypRwVFePbqWA1MiHGE%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "rendererContext": {
+                                    "commandContext": {
+                                      "onTap": {
+                                        "innertubeCommand": {
+                                          "commandMetadata": {
+                                            "webCommandMetadata": {
+                                              "url": "/watch?v=9C20esBUf-Q&list=PLOU2XLYxmsIJuxYe1znksQlhLJ4w8GKCu",
+                                              "webPageType": "WEB_PAGE_TYPE_WATCH",
+                                              "rootVe": 3832
+                                            }
+                                          },
+                                          "watchEndpoint": {
+                                            "videoId": "9C20esBUf-Q",
+                                            "playlistId": "PLOU2XLYxmsIJuxYe1znksQlhLJ4w8GKCu",
+                                            "params": "OAI%3D"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "continuationItemRenderer": {
+                                  "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+                                  "continuationEndpoint": {
+                                    "commandMetadata": {
+                                      "webCommandMetadata": {
+                                        "sendPost": true,
+                                        "apiUrl": "/youtubei/v1/browse"
+                                      }
+                                    },
+                                    "continuationCommand": {
+                                      "token": "CONT_channel_playlists",
+                                      "request": "CONTINUATION_REQUEST_TYPE_BROWSE"
+                                    }
+                                  }
+                                }
+                              }
+                            ],
+                            "targetId": "browse-feedUC_x5XG1OV2P6uZZ5FSM9Ttwplaylists104"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "subMenu": {
+                  "channelSubMenuRenderer": {
+                    "sortSetting": {
+                      "sortFilterSubMenuRenderer": {
+                        "subMenuItems": [
+                          {
+                            "title": "Data de inclusão (mais recente)",
+                            "selected": true,
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@GoogleDevelopers/playlists?view=1&sort=dd&flow=grid",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                "params": "EglwbGF5bGlzdHMYAyABMAHyBgQKAkIA",
+                                "canonicalBaseUrl": "/@GoogleDevelopers"
+                              }
+                            }
+                          },
+                          {
+                            "title": "Último vídeo adicionado",
+                            "selected": false,
+                            "navigationEndpoint": {
+                              "commandMetadata": {
+                                "webCommandMetadata": {
+                                  "url": "/@GoogleDevelopers/playlists?view=1&sort=lad&flow=grid",
+                                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                  "rootVe": 3611,
+                                  "apiUrl": "/youtubei/v1/browse"
+                                }
+                              },
+                              "browseEndpoint": {
+                                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                "params": "EglwbGF5bGlzdHMYBCABMAHyBgQKAkIA",
+                                "canonicalBaseUrl": "/@GoogleDevelopers"
+                              }
+                            }
+                          }
+                        ],
+                        "title": "Ordenar por",
+                        "icon": {
+                          "iconType": "SORT"
+                        }
+                      }
+                    }
+                  }
+                },
+                "targetId": "browse-feedUC_x5XG1OV2P6uZZ5FSM9Ttwplaylists",
+                "disablePullToRefresh": true
+              }
+            }
+          }
+        },
+        {
+          "tabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/posts",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgVwb3N0c_IGBAoCSgA%3D",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Posts"
+          }
+        },
+        {
+          "expandableTabRenderer": {
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/search",
+                  "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                  "rootVe": 3611,
+                  "apiUrl": "/youtubei/v1/browse"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "EgZzZWFyY2jyBgQKAloA",
+                "canonicalBaseUrl": "/@GoogleDevelopers"
+              }
+            },
+            "title": "Pesquisar",
+            "selected": false
+          }
+        }
+      ]
+    }
+  },
+  "header": {
+    "pageHeaderRenderer": {
+      "pageTitle": "Google for Developers",
+      "content": {
+        "pageHeaderViewModel": {
+          "title": {
+            "dynamicTextViewModel": {
+              "text": {
+                "content": "Google for Developers"
+              },
+              "maxLines": 2,
+              "rendererContext": {}
+            }
+          },
+          "image": {
+            "decoratedAvatarViewModel": {
+              "avatar": {
+                "avatarViewModel": {
+                  "image": {
+                    "sources": [
+                      {
+                        "url": "https://yt3.googleusercontent.com/r99eRlOesQkJe7pOzDY4JazAlhidoVp-0syxBnYjfeHdmUXGa5zOxcozaxKF2oPHg3RkglecZQ=s72-c-k-c0x00ffffff-no-rj",
+                        "width": 72,
+                        "height": 72
+                      },
+                      {
+                        "url": "https://yt3.googleusercontent.com/r99eRlOesQkJe7pOzDY4JazAlhidoVp-0syxBnYjfeHdmUXGa5zOxcozaxKF2oPHg3RkglecZQ=s120-c-k-c0x00ffffff-no-rj",
+                        "width": 120,
+                        "height": 120
+                      },
+                      {
+                        "url": "https://yt3.googleusercontent.com/r99eRlOesQkJe7pOzDY4JazAlhidoVp-0syxBnYjfeHdmUXGa5zOxcozaxKF2oPHg3RkglecZQ=s160-c-k-c0x00ffffff-no-rj",
+                        "width": 160,
+                        "height": 160
+                      }
+                    ],
+                    "processor": {
+                      "borderImageProcessor": {
+                        "circular": true
+                      }
+                    }
+                  },
+                  "avatarImageSize": "AVATAR_SIZE_XL"
+                }
+              }
+            }
+          },
+          "metadata": {
+            "contentMetadataViewModel": {
+              "metadataRows": [
+                {
+                  "metadataParts": [
+                    {
+                      "text": {
+                        "content": "@GoogleDevelopers"
+                      },
+                      "enableTruncation": true
+                    }
+                  ]
+                },
+                {
+                  "metadataParts": [
+                    {
+                      "text": {
+                        "content": "2,69 mi de inscritos"
+                      },
+                      "accessibilityLabel": "2,69 milhões de inscritos"
+                    },
+                    {
+                      "text": {
+                        "content": "6,1 mil vídeos"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "delimiter": "•",
+              "rendererContext": {}
+            }
+          },
+          "actions": {
+            "flexibleActionsViewModel": {
+              "actionsRows": [
+                {
+                  "actions": [
+                    {
+                      "buttonViewModel": {
+                        "title": "Inscrever-se",
+                        "onTap": {
+                          "innertubeCommand": {
+                            "commandMetadata": {
+                              "webCommandMetadata": {
+                                "ignoreNavigation": true
+                              }
+                            },
+                            "modalEndpoint": {
+                              "modal": {
+                                "modalWithTitleAndButtonRenderer": {
+                                  "title": {
+                                    "simpleText": "Quer se inscrever neste canal?"
+                                  },
+                                  "content": {
+                                    "simpleText": "Faça login para se inscrever neste canal."
+                                  },
+                                  "button": {
+                                    "buttonRenderer": {
+                                      "style": "STYLE_MONO_FILLED",
+                                      "size": "SIZE_DEFAULT",
+                                      "isDisabled": false,
+                                      "text": {
+                                        "simpleText": "Fazer login"
+                                      },
+                                      "navigationEndpoint": {
+                                        "commandMetadata": {
+                                          "webCommandMetadata": {
+                                            "url": "https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Dpt%26next%3D%252F%2540GoogleDevelopers%252Fplaylists%26continue_action%3DQUlxb01IYkJRNTZfY2k1a2RiSnJ2LVlvS21nOHxBQnJ0NjluRmNmeHJzYV9kLVRvU1BFZk0teE8talRqSkx1Uk1RYWRPSkQ4dFNTM3BTNThHNHRYM1hBMmc1bUh1a3NaV2lRSV9hSTJYMjR2UTIwazBqTExLMFRjel9kOTVqZ1hiVGt5VzA0Y3hTNFNRbVNZbVQwcHdpZDVlYkFJUkpHT0dDZnJyUHpkUk9yZmtjeHp6RUE5Nnl6Y0t4TDhyNVg3ZW1wY3NRVWZqR09JOHUzbEpjSkkyMGtR&hl=pt-BR&ec=66429",
+                                            "webPageType": "WEB_PAGE_TYPE_UNKNOWN",
+                                            "rootVe": 83769
+                                          }
+                                        },
+                                        "signInEndpoint": {
+                                          "nextEndpoint": {
+                                            "commandMetadata": {
+                                              "webCommandMetadata": {
+                                                "url": "/@GoogleDevelopers/playlists",
+                                                "webPageType": "WEB_PAGE_TYPE_CHANNEL",
+                                                "rootVe": 3611,
+                                                "apiUrl": "/youtubei/v1/browse"
+                                              }
+                                            },
+                                            "browseEndpoint": {
+                                              "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                                              "params": "EglwbGF5bGlzdHM%3D",
+                                              "canonicalBaseUrl": "/@GoogleDevelopers"
+                                            }
+                                          },
+                                          "continueAction": "QUlxb01IYkJRNTZfY2k1a2RiSnJ2LVlvS21nOHxBQnJ0NjluRmNmeHJzYV9kLVRvU1BFZk0teE8talRqSkx1Uk1RYWRPSkQ4dFNTM3BTNThHNHRYM1hBMmc1bUh1a3NaV2lRSV9hSTJYMjR2UTIwazBqTExLMFRjel9kOTVqZ1hiVGt5VzA0Y3hTNFNRbVNZbVQwcHdpZDVlYkFJUkpHT0dDZnJyUHpkUk9yZmtjeHp6RUE5Nnl6Y0t4TDhyNVg3ZW1wY3NRVWZqR09JOHUzbEpjSkkyMGtR",
+                                          "idamTag": "66429"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "accessibilityText": "Inscrever-se",
+                        "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                        "isFullWidth": false,
+                        "type": "BUTTON_VIEW_MODEL_TYPE_FILLED",
+                        "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                        "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+                      }
+                    }
+                  ]
+                }
+              ],
+              "justifyContent": "FLEXIBLE_ACTIONS_JUSTIFY_CONTENT_START",
+              "minimumRowHeight": 44,
+              "rendererContext": {}
+            }
+          },
+          "description": {
+            "descriptionPreviewViewModel": {
+              "description": {
+                "content": "Welcome to Google for Developers! Subscribe for the latest tools, APIs, and frameworks. Get step-by-step guides for Gemini and Google AI Studio, master modern engineering practices, and discover next-generation builds, to build what’s next with Google for Developers. "
+              },
+              "maxLines": 2,
+              "truncationText": {
+                "content": "…mais"
+              },
+              "alwaysShowTruncationText": true,
+              "rendererContext": {
+                "commandContext": {
+                  "onTap": {
+                    "innertubeCommand": {
+                      "showEngagementPanelEndpoint": {
+                        "engagementPanel": {
+                          "engagementPanelSectionListRenderer": {
+                            "header": {
+                              "engagementPanelTitleHeaderRenderer": {
+                                "title": {
+                                  "simpleText": "Google for Developers"
+                                },
+                                "visibilityButton": {
+                                  "buttonRenderer": {
+                                    "style": "STYLE_DEFAULT",
+                                    "size": "SIZE_DEFAULT",
+                                    "isDisabled": false,
+                                    "icon": {
+                                      "iconType": "CLOSE"
+                                    },
+                                    "accessibilityData": {
+                                      "accessibilityData": {
+                                        "label": "Fechar"
+                                      }
+                                    },
+                                    "command": {
+                                      "changeEngagementPanelVisibilityAction": {
+                                        "targetId": "6b684182-0000-24db-8f5f-d4f547f5088c",
+                                        "visibility": "ENGAGEMENT_PANEL_VISIBILITY_HIDDEN"
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "content": {
+                              "sectionListRenderer": {
+                                "contents": [
+                                  {
+                                    "itemSectionRenderer": {
+                                      "contents": [
+                                        {
+                                          "continuationItemRenderer": {
+                                            "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+                                            "continuationEndpoint": {
+                                              "commandMetadata": {
+                                                "webCommandMetadata": {
+                                                  "sendPost": true,
+                                                  "apiUrl": "/youtubei/v1/browse"
+                                                }
+                                              },
+                                              "continuationCommand": {
+                                                "token": "CONT_channel_playlists",
+                                                "request": "CONTINUATION_REQUEST_TYPE_BROWSE"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ],
+                                      "sectionIdentifier": "6b684183-0000-24db-8f5f-d4f547f5088c",
+                                      "targetId": "6b684183-0000-24db-8f5f-d4f547f5088c"
+                                    }
+                                  }
+                                ],
+                                "scrollPaneStyle": {
+                                  "scrollable": true
+                                }
+                              }
+                            },
+                            "targetId": "6b684182-0000-24db-8f5f-d4f547f5088c",
+                            "identifier": {
+                              "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                              "tag": "6b684182-0000-24db-8f5f-d4f547f5088c"
+                            }
+                          }
+                        },
+                        "identifier": {
+                          "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                          "tag": "6b684182-0000-24db-8f5f-d4f547f5088c"
+                        },
+                        "engagementPanelPresentationConfigs": {
+                          "engagementPanelPopupPresentationConfig": {
+                            "popupType": "PANEL_POPUP_TYPE_DIALOG"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "attribution": {
+            "attributionViewModel": {
+              "text": {
+                "content": " LinkedIn",
+                "commandRuns": [
+                  {
+                    "startIndex": 0,
+                    "length": 9,
+                    "onTap": {
+                      "innertubeCommand": {
+                        "commandMetadata": {
+                          "webCommandMetadata": {
+                            "url": "https://www.youtube.com/redirect?event=channel_header&redir_token=QUlxb01IYTQ2Zmttb2JXU2hMUHVEMkdHNnBGUXxBQnJ0NjltY1FDczE5cElGcU5OOTJvSE1XaGJqLWVDeGxPSTVwQTQxbXY0VTdwQjFhSXRxLTZVZXo3eHlsWTJGcmthTHV5MXVFZHA3Nkxqem4tYzNIVkRMTURUMXAzQkRBWTBy&q=https%3A%2F%2Fwww.linkedin.com%2Fshowcase%2Fgoogledevelopers%2F",
+                            "webPageType": "WEB_PAGE_TYPE_UNKNOWN",
+                            "rootVe": 83769
+                          }
+                        },
+                        "urlEndpoint": {
+                          "url": "https://www.youtube.com/redirect?event=channel_header&redir_token=QUlxb01IYTQ2Zmttb2JXU2hMUHVEMkdHNnBGUXxBQnJ0NjltY1FDczE5cElGcU5OOTJvSE1XaGJqLWVDeGxPSTVwQTQxbXY0VTdwQjFhSXRxLTZVZXo3eHlsWTJGcmthTHV5MXVFZHA3Nkxqem4tYzNIVkRMTURUMXAzQkRBWTBy&q=https%3A%2F%2Fwww.linkedin.com%2Fshowcase%2Fgoogledevelopers%2F",
+                          "target": "TARGET_NEW_WINDOW"
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "suffix": {
+                "content": "e mais 6 links",
+                "commandRuns": [
+                  {
+                    "startIndex": 0,
+                    "length": 14,
+                    "onTap": {
+                      "innertubeCommand": {
+                        "showEngagementPanelEndpoint": {
+                          "engagementPanel": {
+                            "engagementPanelSectionListRenderer": {
+                              "header": {
+                                "engagementPanelTitleHeaderRenderer": {
+                                  "title": {
+                                    "simpleText": "Google for Developers"
+                                  },
+                                  "visibilityButton": {
+                                    "buttonRenderer": {
+                                      "style": "STYLE_DEFAULT",
+                                      "size": "SIZE_DEFAULT",
+                                      "isDisabled": false,
+                                      "icon": {
+                                        "iconType": "CLOSE"
+                                      },
+                                      "accessibilityData": {
+                                        "accessibilityData": {
+                                          "label": "Fechar"
+                                        }
+                                      },
+                                      "command": {
+                                        "changeEngagementPanelVisibilityAction": {
+                                          "targetId": "6b684184-0000-24db-8f5f-d4f547f5088c",
+                                          "visibility": "ENGAGEMENT_PANEL_VISIBILITY_HIDDEN"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "content": {
+                                "sectionListRenderer": {
+                                  "contents": [
+                                    {
+                                      "itemSectionRenderer": {
+                                        "contents": [
+                                          {
+                                            "continuationItemRenderer": {
+                                              "trigger": "CONTINUATION_TRIGGER_ON_ITEM_SHOWN",
+                                              "continuationEndpoint": {
+                                                "commandMetadata": {
+                                                  "webCommandMetadata": {
+                                                    "sendPost": true,
+                                                    "apiUrl": "/youtubei/v1/browse"
+                                                  }
+                                                },
+                                                "continuationCommand": {
+                                                  "token": "CONT_channel_playlists",
+                                                  "request": "CONTINUATION_REQUEST_TYPE_BROWSE"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        ],
+                                        "sectionIdentifier": "6b684185-0000-24db-8f5f-d4f547f5088c",
+                                        "targetId": "6b684185-0000-24db-8f5f-d4f547f5088c"
+                                      }
+                                    }
+                                  ],
+                                  "scrollPaneStyle": {
+                                    "scrollable": true
+                                  }
+                                }
+                              },
+                              "targetId": "6b684184-0000-24db-8f5f-d4f547f5088c",
+                              "identifier": {
+                                "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                                "tag": "6b684184-0000-24db-8f5f-d4f547f5088c"
+                              }
+                            }
+                          },
+                          "identifier": {
+                            "surface": "ENGAGEMENT_PANEL_SURFACE_BROWSE",
+                            "tag": "6b684184-0000-24db-8f5f-d4f547f5088c"
+                          },
+                          "engagementPanelPresentationConfigs": {
+                            "engagementPanelPopupPresentationConfig": {
+                              "popupType": "PANEL_POPUP_TYPE_DIALOG"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              },
+              "rendererContext": {}
+            }
+          },
+          "banner": {
+            "imageBannerViewModel": {
+              "image": {
+                "sources": [
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w1060-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 1060,
+                    "height": 175
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w1138-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 1138,
+                    "height": 188
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 1707,
+                    "height": 283
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w2120-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 2120,
+                    "height": 351
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w2276-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 2276,
+                    "height": 377
+                  },
+                  {
+                    "url": "https://yt3.googleusercontent.com/wsTwUHwKURNjHg1O5XwZrIqts63z7cErnpBXQp62rR6zjNEuYBGRIw8xj6ehGn28F7uvVheMUQ=w2560-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj",
+                    "width": 2560,
+                    "height": 424
+                  }
+                ]
+              },
+              "style": "IMAGE_BANNER_STYLE_INSET",
+              "rendererContext": {}
+            }
+          },
+          "rendererContext": {}
+        }
+      }
+    }
+  },
+  "metadata": {
+    "channelMetadataRenderer": {
+      "title": "Google for Developers",
+      "description": "Welcome to Google for Developers! Subscribe for the latest tools, APIs, and frameworks. Get step-by-step guides for Gemini and Google AI Studio, master modern engineering practices, and discover next-generation builds, to build what’s next with Google for Developers.\n",
+      "rssUrl": "https://www.youtube.com/feeds/videos.xml?channel_id=UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "channelConversionUrl": "https://www.youtube.com/measurement/follow_on/962985656/?backend=innertube&cname=1&cver=2_20261123_00_00&data=backend%3Dinnertube%3Bcname%3D1%3Bcver%3D2_20261123_00_00%3Bptype%3Dcview%3Btype%3Dcview%3Butuid%3D_x5XG1OV2P6uZZ5FSM9Ttw&foc_id=_x5XG1OV2P6uZZ5FSM9Ttw&label=followon_cvisit&ptype=cview&utuid=_x5XG1OV2P6uZZ5FSM9Ttw",
+      "externalId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "keywords": "\"google developers\" developers \"Google developers videos\" \"google developer tutorials\" \"developer tutorials\" \"developer news\" android firebase tensorflow chrome web flutter \"google developer experts\" \"google launchpad\" \"developer updates\" google \"google design\"",
+      "ownerUrls": [
+        "http://www.youtube.com/@GoogleDevelopers"
+      ],
+      "avatar": {
+        "thumbnails": [
+          {
+            "url": "https://yt3.googleusercontent.com/r99eRlOesQkJe7pOzDY4JazAlhidoVp-0syxBnYjfeHdmUXGa5zOxcozaxKF2oPHg3RkglecZQ=s900-c-k-c0x00ffffff-no-rj",
+            "width": 900,
+            "height": 900
+          }
+        ]
+      },
+      "channelUrl": "https://www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "isFamilySafe": true,
+      "availableCountryCodes": [
+        "BH",
+        "GG",
+        "ZM",
+        "NI",
+        "AG",
+        "AQ",
+        "EG",
+        "JP",
+        "NP",
+        "FI",
+        "JO",
+        "KH",
+        "MC",
+        "MR",
+        "GR",
+        "TO",
+        "NG",
+        "NO",
+        "ZA",
+        "MP",
+        "PW",
+        "KI",
+        "AD",
+        "MY",
+        "PE",
+        "NC",
+        "CO",
+        "LU",
+        "MK",
+        "TG",
+        "AW",
+        "FR",
+        "LY",
+        "TM",
+        "IE",
+        "CY",
+        "BZ",
+        "SL",
+        "IL",
+        "CR",
+        "AU",
+        "NE",
+        "EC",
+        "MZ",
+        "NR",
+        "FM",
+        "TJ",
+        "GW",
+        "SO",
+        "CU",
+        "JE",
+        "PR",
+        "MU",
+        "AX",
+        "SS",
+        "DM",
+        "PF",
+        "DK",
+        "ES",
+        "KG",
+        "DO",
+        "UM",
+        "GL",
+        "LT",
+        "PK",
+        "UG",
+        "MX",
+        "SE",
+        "GI",
+        "IS",
+        "CN",
+        "IN",
+        "IQ",
+        "MD",
+        "MF",
+        "NA",
+        "UY",
+        "KW",
+        "UZ",
+        "NU",
+        "KP",
+        "PN",
+        "CA",
+        "HN",
+        "TZ",
+        "PY",
+        "CX",
+        "HK",
+        "AM",
+        "DE",
+        "BE",
+        "LK",
+        "GD",
+        "GM",
+        "TT",
+        "GU",
+        "BL",
+        "LA",
+        "BN",
+        "BT",
+        "MT",
+        "SJ",
+        "SY",
+        "CM",
+        "MQ",
+        "OM",
+        "PA",
+        "PG",
+        "AZ",
+        "SA",
+        "ST",
+        "AS",
+        "MS",
+        "BS",
+        "RO",
+        "AR",
+        "VG",
+        "BO",
+        "CC",
+        "DZ",
+        "CW",
+        "PL",
+        "CZ",
+        "GH",
+        "SB",
+        "CF",
+        "AE",
+        "ID",
+        "KR",
+        "IT",
+        "WS",
+        "CH",
+        "MG",
+        "CI",
+        "EE",
+        "ET",
+        "SD",
+        "GT",
+        "EH",
+        "GE",
+        "NL",
+        "IR",
+        "VU",
+        "PT",
+        "VE",
+        "SZ",
+        "RW",
+        "ER",
+        "MW",
+        "KE",
+        "BI",
+        "WF",
+        "FO",
+        "BR",
+        "GA",
+        "BW",
+        "LB",
+        "CK",
+        "QA",
+        "BA",
+        "ML",
+        "SC",
+        "SG",
+        "VN",
+        "KM",
+        "BM",
+        "SH",
+        "US",
+        "SR",
+        "SX",
+        "TC",
+        "SV",
+        "LR",
+        "AT",
+        "MH",
+        "TK",
+        "BB",
+        "DJ",
+        "NZ",
+        "GS",
+        "KN",
+        "CV",
+        "SM",
+        "TV",
+        "VI",
+        "SN",
+        "LV",
+        "AF",
+        "AI",
+        "BV",
+        "HM",
+        "HU",
+        "VA",
+        "VC",
+        "BG",
+        "CD",
+        "AL",
+        "FK",
+        "GQ",
+        "SK",
+        "HR",
+        "NF",
+        "PS",
+        "GB",
+        "TF",
+        "KZ",
+        "GF",
+        "TN",
+        "ZW",
+        "GY",
+        "LI",
+        "MV",
+        "BJ",
+        "BY",
+        "TL",
+        "IM",
+        "IO",
+        "MM",
+        "KY",
+        "LS",
+        "YT",
+        "RU",
+        "RS",
+        "BF",
+        "RE",
+        "BD",
+        "PM",
+        "CG",
+        "CL",
+        "TD",
+        "TH",
+        "JM",
+        "PH",
+        "YE",
+        "MO",
+        "TR",
+        "UA",
+        "SI",
+        "FJ",
+        "AO",
+        "ME",
+        "GP",
+        "MA",
+        "BQ",
+        "TW",
+        "GN",
+        "LC",
+        "HT",
+        "MN"
+      ],
+      "androidDeepLink": "android-app://com.google.android.youtube/http/www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "androidAppindexingLink": "android-app://com.google.android.youtube/http/www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "iosAppindexingLink": "ios-app://544007664/vnd.youtube/www.youtube.com/channel/UC_x5XG1OV2P6uZZ5FSM9Ttw",
+      "vanityChannelUrl": "http://www.youtube.com/@GoogleDevelopers"
+    }
+  }
+}

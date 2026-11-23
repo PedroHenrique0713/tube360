@@ -1,0 +1,1836 @@
+{
+  "contents": {
+    "singleColumnMusicWatchNextResultsRenderer": {
+      "tabbedRenderer": {
+        "watchNextTabbedResultsRenderer": {
+          "tabs": [
+            {
+              "tabRenderer": {
+                "title": "A seguir",
+                "content": {
+                  "musicQueueRenderer": {
+                    "content": {
+                      "playlistPanelRenderer": {
+                        "contents": [
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "title": {
+                                "runs": [
+                                  {
+                                    "text": "Até Quando"
+                                  }
+                                ]
+                              },
+                              "longBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Natanzinho Lima",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCJqd5Ejxi_fPcttEQ-E7hFw",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": ", "
+                                  },
+                                  {
+                                    "text": "Ronaldinho Gaúcho",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCAgKpqDssjXDKE8XHWxKF_A",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " e "
+                                  },
+                                  {
+                                    "text": "Tu Musica",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UC2xG15qVGVmuKW3gjD6wuCQ",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "Até Quando",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "MPREb_hwdXetzcCUV",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "2026"
+                                  }
+                                ]
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w60-h60-l90-rj",
+                                    "width": 60,
+                                    "height": 60
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w120-h120-l90-rj",
+                                    "width": 120,
+                                    "height": 120
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w180-h180-l90-rj",
+                                    "width": 180,
+                                    "height": 180
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w226-h226-l90-rj",
+                                    "width": 226,
+                                    "height": 226
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w302-h302-l90-rj",
+                                    "width": 302,
+                                    "height": 302
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w544-h544-l90-rj",
+                                    "width": 544,
+                                    "height": 544
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "runs": [
+                                  {
+                                    "text": "3:09"
+                                  }
+                                ]
+                              },
+                              "selected": true,
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "W40W7L1fhUM",
+                                  "playlistId": "RDAMVMW40W7L1fhUM",
+                                  "index": 0,
+                                  "params": "OAHyAQIIAQ%3D%3D",
+                                  "playerParams": "8AUBygYQNTZCNDRGNkQxMDU1N0NDNrAIAg%3D%3D",
+                                  "playlistSetVideoId": "56B44F6D10557CC6",
+                                  "watchEndpointMusicSupportedConfigs": {
+                                    "watchEndpointMusicConfig": {
+                                      "hasPersistentPlaylistPanel": true,
+                                      "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                    }
+                                  }
+                                }
+                              },
+                              "videoId": "W40W7L1fhUM",
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Natanzinho Lima"
+                                  },
+                                  {
+                                    "text": ", "
+                                  },
+                                  {
+                                    "text": "Ronaldinho Gaúcho"
+                                  },
+                                  {
+                                    "text": " e "
+                                  },
+                                  {
+                                    "text": "Tu Musica"
+                                  }
+                                ]
+                              },
+                              "playlistSetVideoId": "56B44F6D10557CC6",
+                              "canReorder": true,
+                              "queueNavigationEndpoint": {
+                                "queueAddEndpoint": {
+                                  "queueTarget": {
+                                    "videoId": "W40W7L1fhUM"
+                                  },
+                                  "queueInsertPosition": "INSERT_AT_END",
+                                  "params": "Q0FJJTNE"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "title": {
+                                "runs": [
+                                  {
+                                    "text": "Insônia (Ao Vivo)"
+                                  }
+                                ]
+                              },
+                              "longBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Natanzinho Lima",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCJqd5Ejxi_fPcttEQ-E7hFw",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "Na Favela - Ao Vivo no Complexo do Alemão/RJ",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "MPREb_eXISSxO6b7O",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "2026"
+                                  }
+                                ]
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/qhSqOyMCsgpYczAAeAFnAsYLPz1RDZjv-71ZR2BRBO09QE6rzFuh1-8c8UKeeMrq5FwOaBpzlX9X3k4=w60-h60-l90-rj",
+                                    "width": 60,
+                                    "height": 60
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/qhSqOyMCsgpYczAAeAFnAsYLPz1RDZjv-71ZR2BRBO09QE6rzFuh1-8c8UKeeMrq5FwOaBpzlX9X3k4=w120-h120-l90-rj",
+                                    "width": 120,
+                                    "height": 120
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/qhSqOyMCsgpYczAAeAFnAsYLPz1RDZjv-71ZR2BRBO09QE6rzFuh1-8c8UKeeMrq5FwOaBpzlX9X3k4=w180-h180-l90-rj",
+                                    "width": 180,
+                                    "height": 180
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/qhSqOyMCsgpYczAAeAFnAsYLPz1RDZjv-71ZR2BRBO09QE6rzFuh1-8c8UKeeMrq5FwOaBpzlX9X3k4=w226-h226-l90-rj",
+                                    "width": 226,
+                                    "height": 226
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/qhSqOyMCsgpYczAAeAFnAsYLPz1RDZjv-71ZR2BRBO09QE6rzFuh1-8c8UKeeMrq5FwOaBpzlX9X3k4=w302-h302-l90-rj",
+                                    "width": 302,
+                                    "height": 302
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/qhSqOyMCsgpYczAAeAFnAsYLPz1RDZjv-71ZR2BRBO09QE6rzFuh1-8c8UKeeMrq5FwOaBpzlX9X3k4=w544-h544-l90-rj",
+                                    "width": 544,
+                                    "height": 544
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "runs": [
+                                  {
+                                    "text": "2:55"
+                                  }
+                                ]
+                              },
+                              "selected": false,
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "fiiFUh-X0-4",
+                                  "playlistId": "RDAMVMW40W7L1fhUM",
+                                  "index": 1,
+                                  "params": "OAHyAQIIAQ%3D%3D",
+                                  "playerParams": "8AUBygYQMjg5RjRBNDZERjBBMzBEMtIHCQlOARCCnT_ysLAIAg%3D%3D",
+                                  "playlistSetVideoId": "289F4A46DF0A30D2",
+                                  "watchEndpointMusicSupportedConfigs": {
+                                    "watchEndpointMusicConfig": {
+                                      "hasPersistentPlaylistPanel": true,
+                                      "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                    }
+                                  }
+                                }
+                              },
+                              "videoId": "fiiFUh-X0-4",
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Natanzinho Lima"
+                                  }
+                                ]
+                              },
+                              "playlistSetVideoId": "289F4A46DF0A30D2",
+                              "canReorder": true,
+                              "queueNavigationEndpoint": {
+                                "queueAddEndpoint": {
+                                  "queueTarget": {
+                                    "videoId": "fiiFUh-X0-4"
+                                  },
+                                  "queueInsertPosition": "INSERT_AT_END",
+                                  "params": "Q0FJJTNE"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "title": {
+                                "runs": [
+                                  {
+                                    "text": "Pense Em Mim (Ao Vivo)"
+                                  }
+                                ]
+                              },
+                              "longBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Sucessos do Forró",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCCuZs7-KFostUgpv6YqDPdw",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " e "
+                                  },
+                                  {
+                                    "text": "Repertório Novo E Atualizado Forró",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCSn5LOLnkLqANPTjo6tqG_w",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "Sucessos E Repertório Atualizado do Natanzinho Lima (Ao Vivo)",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "MPREb_ziV1bpM2gFX",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "2025"
+                                  }
+                                ]
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/I2xAM-K0IHZ9WCikSz6xKRR2wnzkI5sM2I1E1aVM0jk7IVNqTAXhZYWsMAje-XDwfW00HiWm8ya7Ejs=w60-h60-l90-rj",
+                                    "width": 60,
+                                    "height": 60
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/I2xAM-K0IHZ9WCikSz6xKRR2wnzkI5sM2I1E1aVM0jk7IVNqTAXhZYWsMAje-XDwfW00HiWm8ya7Ejs=w120-h120-l90-rj",
+                                    "width": 120,
+                                    "height": 120
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/I2xAM-K0IHZ9WCikSz6xKRR2wnzkI5sM2I1E1aVM0jk7IVNqTAXhZYWsMAje-XDwfW00HiWm8ya7Ejs=w180-h180-l90-rj",
+                                    "width": 180,
+                                    "height": 180
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/I2xAM-K0IHZ9WCikSz6xKRR2wnzkI5sM2I1E1aVM0jk7IVNqTAXhZYWsMAje-XDwfW00HiWm8ya7Ejs=w226-h226-l90-rj",
+                                    "width": 226,
+                                    "height": 226
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/I2xAM-K0IHZ9WCikSz6xKRR2wnzkI5sM2I1E1aVM0jk7IVNqTAXhZYWsMAje-XDwfW00HiWm8ya7Ejs=w302-h302-l90-rj",
+                                    "width": 302,
+                                    "height": 302
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/I2xAM-K0IHZ9WCikSz6xKRR2wnzkI5sM2I1E1aVM0jk7IVNqTAXhZYWsMAje-XDwfW00HiWm8ya7Ejs=w544-h544-l90-rj",
+                                    "width": 544,
+                                    "height": 544
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "runs": [
+                                  {
+                                    "text": "2:13"
+                                  }
+                                ]
+                              },
+                              "selected": false,
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "0dElas5bC10",
+                                  "playlistId": "RDAMVMW40W7L1fhUM",
+                                  "index": 2,
+                                  "params": "OAHyAQIIAQ%3D%3D",
+                                  "playerParams": "8AUBygYQMDE3MjA4RkFBODUyMzNGObAIAg%3D%3D",
+                                  "playlistSetVideoId": "017208FAA85233F9",
+                                  "watchEndpointMusicSupportedConfigs": {
+                                    "watchEndpointMusicConfig": {
+                                      "hasPersistentPlaylistPanel": true,
+                                      "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                    }
+                                  }
+                                }
+                              },
+                              "videoId": "0dElas5bC10",
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Sucessos do Forró"
+                                  },
+                                  {
+                                    "text": " e "
+                                  },
+                                  {
+                                    "text": "Repertório Novo E Atualizado Forró"
+                                  }
+                                ]
+                              },
+                              "playlistSetVideoId": "017208FAA85233F9",
+                              "canReorder": true,
+                              "queueNavigationEndpoint": {
+                                "queueAddEndpoint": {
+                                  "queueTarget": {
+                                    "videoId": "0dElas5bC10"
+                                  },
+                                  "queueInsertPosition": "INSERT_AT_END",
+                                  "params": "Q0FJJTNE"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "title": {
+                                "runs": [
+                                  {
+                                    "text": "Aproveita Que Eu Tô Brigado (Ao Vivo)"
+                                  }
+                                ]
+                              },
+                              "longBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Nattan",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UC--PQbk41TJ2NVynu1GFU1A",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " e "
+                                  },
+                                  {
+                                    "text": "Zé Vaqueiro",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCwakabz1Q6ZThlmsLUWKPvg",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "Aproveita Que Eu Tô Brigado (Ao Vivo)",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "MPREb_Y3L1uW9wCNZ",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "2026"
+                                  }
+                                ]
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/nk4sbSRjcSoZfW41BoNZhsPaVEU9n0GFB41XFtYqRfpQeyYwRtfVZ8i07xdgJOe-osWQoghmPi0eXqds=w60-h60-l90-rj",
+                                    "width": 60,
+                                    "height": 60
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/nk4sbSRjcSoZfW41BoNZhsPaVEU9n0GFB41XFtYqRfpQeyYwRtfVZ8i07xdgJOe-osWQoghmPi0eXqds=w120-h120-l90-rj",
+                                    "width": 120,
+                                    "height": 120
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/nk4sbSRjcSoZfW41BoNZhsPaVEU9n0GFB41XFtYqRfpQeyYwRtfVZ8i07xdgJOe-osWQoghmPi0eXqds=w180-h180-l90-rj",
+                                    "width": 180,
+                                    "height": 180
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/nk4sbSRjcSoZfW41BoNZhsPaVEU9n0GFB41XFtYqRfpQeyYwRtfVZ8i07xdgJOe-osWQoghmPi0eXqds=w226-h226-l90-rj",
+                                    "width": 226,
+                                    "height": 226
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/nk4sbSRjcSoZfW41BoNZhsPaVEU9n0GFB41XFtYqRfpQeyYwRtfVZ8i07xdgJOe-osWQoghmPi0eXqds=w302-h302-l90-rj",
+                                    "width": 302,
+                                    "height": 302
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/nk4sbSRjcSoZfW41BoNZhsPaVEU9n0GFB41XFtYqRfpQeyYwRtfVZ8i07xdgJOe-osWQoghmPi0eXqds=w544-h544-l90-rj",
+                                    "width": 544,
+                                    "height": 544
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "runs": [
+                                  {
+                                    "text": "2:37"
+                                  }
+                                ]
+                              },
+                              "selected": false,
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "mfYRF-oiMYw",
+                                  "playlistId": "RDAMVMW40W7L1fhUM",
+                                  "index": 3,
+                                  "params": "OAHyAQIIAQ%3D%3D",
+                                  "playerParams": "8AUBygYQNTIxNTJCNDk0NkMyRjczRtIHCQlOARCCnT_ysLAIAg%3D%3D",
+                                  "playlistSetVideoId": "52152B4946C2F73F",
+                                  "watchEndpointMusicSupportedConfigs": {
+                                    "watchEndpointMusicConfig": {
+                                      "hasPersistentPlaylistPanel": true,
+                                      "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                    }
+                                  }
+                                }
+                              },
+                              "videoId": "mfYRF-oiMYw",
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Nattan"
+                                  },
+                                  {
+                                    "text": " e "
+                                  },
+                                  {
+                                    "text": "Zé Vaqueiro"
+                                  }
+                                ]
+                              },
+                              "playlistSetVideoId": "52152B4946C2F73F",
+                              "canReorder": true,
+                              "queueNavigationEndpoint": {
+                                "queueAddEndpoint": {
+                                  "queueTarget": {
+                                    "videoId": "mfYRF-oiMYw"
+                                  },
+                                  "queueInsertPosition": "INSERT_AT_END",
+                                  "params": "Q0FJJTNE"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "title": {
+                                "runs": [
+                                  {
+                                    "text": "Voltável"
+                                  }
+                                ]
+                              },
+                              "longBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Tarcísio do Acordeon",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCJGhXcHVf6xPelAlZq4XJOQ",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "Esquenta Pro São João",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "MPREb_ZTDe815uFl5",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "2026"
+                                  }
+                                ]
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/PFeOSB6x8JaZzz103hHJpUK-9LXi69rprZ53gbLe3ZGwnjukQ0JtevZO4RVytsaiZ1h8ZEQeX5y_aQo=w60-h60-l90-rj",
+                                    "width": 60,
+                                    "height": 60
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/PFeOSB6x8JaZzz103hHJpUK-9LXi69rprZ53gbLe3ZGwnjukQ0JtevZO4RVytsaiZ1h8ZEQeX5y_aQo=w120-h120-l90-rj",
+                                    "width": 120,
+                                    "height": 120
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/PFeOSB6x8JaZzz103hHJpUK-9LXi69rprZ53gbLe3ZGwnjukQ0JtevZO4RVytsaiZ1h8ZEQeX5y_aQo=w180-h180-l90-rj",
+                                    "width": 180,
+                                    "height": 180
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/PFeOSB6x8JaZzz103hHJpUK-9LXi69rprZ53gbLe3ZGwnjukQ0JtevZO4RVytsaiZ1h8ZEQeX5y_aQo=w226-h226-l90-rj",
+                                    "width": 226,
+                                    "height": 226
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/PFeOSB6x8JaZzz103hHJpUK-9LXi69rprZ53gbLe3ZGwnjukQ0JtevZO4RVytsaiZ1h8ZEQeX5y_aQo=w302-h302-l90-rj",
+                                    "width": 302,
+                                    "height": 302
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/PFeOSB6x8JaZzz103hHJpUK-9LXi69rprZ53gbLe3ZGwnjukQ0JtevZO4RVytsaiZ1h8ZEQeX5y_aQo=w544-h544-l90-rj",
+                                    "width": 544,
+                                    "height": 544
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "runs": [
+                                  {
+                                    "text": "2:43"
+                                  }
+                                ]
+                              },
+                              "selected": false,
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "WYMRI9_LHlQ",
+                                  "playlistId": "RDAMVMW40W7L1fhUM",
+                                  "index": 4,
+                                  "params": "OAHyAQIIAQ%3D%3D",
+                                  "playerParams": "8AUBygYQMDkwNzk2QTc1RDE1MzkzMrAIAg%3D%3D",
+                                  "playlistSetVideoId": "090796A75D153932",
+                                  "watchEndpointMusicSupportedConfigs": {
+                                    "watchEndpointMusicConfig": {
+                                      "hasPersistentPlaylistPanel": true,
+                                      "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                    }
+                                  }
+                                }
+                              },
+                              "videoId": "WYMRI9_LHlQ",
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Tarcísio do Acordeon"
+                                  }
+                                ]
+                              },
+                              "playlistSetVideoId": "090796A75D153932",
+                              "canReorder": true,
+                              "queueNavigationEndpoint": {
+                                "queueAddEndpoint": {
+                                  "queueTarget": {
+                                    "videoId": "WYMRI9_LHlQ"
+                                  },
+                                  "queueInsertPosition": "INSERT_AT_END",
+                                  "params": "Q0FJJTNE"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "title": {
+                                "runs": [
+                                  {
+                                    "text": "Um Beijo Por Minuto (25 Milhões) (Ao Vivo)"
+                                  }
+                                ]
+                              },
+                              "longBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Natanzinho Lima",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCJqd5Ejxi_fPcttEQ-E7hFw",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "Na Favela - Ao Vivo no Complexo do Alemão/RJ",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "MPREb_0pDpsyfmVx6",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "2026"
+                                  }
+                                ]
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/TkBh3CUn9jTMwtRPgyGOeJZi-7kZ81jzJkGzadh3_9af51qdN3qs2yytwRbocXVj6Gkwb1j6mu_iSi0=w60-h60-l90-rj",
+                                    "width": 60,
+                                    "height": 60
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/TkBh3CUn9jTMwtRPgyGOeJZi-7kZ81jzJkGzadh3_9af51qdN3qs2yytwRbocXVj6Gkwb1j6mu_iSi0=w120-h120-l90-rj",
+                                    "width": 120,
+                                    "height": 120
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/TkBh3CUn9jTMwtRPgyGOeJZi-7kZ81jzJkGzadh3_9af51qdN3qs2yytwRbocXVj6Gkwb1j6mu_iSi0=w180-h180-l90-rj",
+                                    "width": 180,
+                                    "height": 180
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/TkBh3CUn9jTMwtRPgyGOeJZi-7kZ81jzJkGzadh3_9af51qdN3qs2yytwRbocXVj6Gkwb1j6mu_iSi0=w226-h226-l90-rj",
+                                    "width": 226,
+                                    "height": 226
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/TkBh3CUn9jTMwtRPgyGOeJZi-7kZ81jzJkGzadh3_9af51qdN3qs2yytwRbocXVj6Gkwb1j6mu_iSi0=w302-h302-l90-rj",
+                                    "width": 302,
+                                    "height": 302
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/TkBh3CUn9jTMwtRPgyGOeJZi-7kZ81jzJkGzadh3_9af51qdN3qs2yytwRbocXVj6Gkwb1j6mu_iSi0=w544-h544-l90-rj",
+                                    "width": 544,
+                                    "height": 544
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "runs": [
+                                  {
+                                    "text": "2:29"
+                                  }
+                                ]
+                              },
+                              "selected": false,
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "RNQs4M3q28o",
+                                  "playlistId": "RDAMVMW40W7L1fhUM",
+                                  "index": 5,
+                                  "params": "OAHyAQIIAQ%3D%3D",
+                                  "playerParams": "8AUBygYQMTJFRkIzQjFDNTdERTRFMbAIAg%3D%3D",
+                                  "playlistSetVideoId": "12EFB3B1C57DE4E1",
+                                  "watchEndpointMusicSupportedConfigs": {
+                                    "watchEndpointMusicConfig": {
+                                      "hasPersistentPlaylistPanel": true,
+                                      "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                    }
+                                  }
+                                }
+                              },
+                              "videoId": "RNQs4M3q28o",
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Natanzinho Lima"
+                                  }
+                                ]
+                              },
+                              "playlistSetVideoId": "12EFB3B1C57DE4E1",
+                              "canReorder": true,
+                              "queueNavigationEndpoint": {
+                                "queueAddEndpoint": {
+                                  "queueTarget": {
+                                    "videoId": "RNQs4M3q28o"
+                                  },
+                                  "queueInsertPosition": "INSERT_AT_END",
+                                  "params": "Q0FJJTNE"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "title": {
+                                "runs": [
+                                  {
+                                    "text": "Eu Já Tava Bem"
+                                  }
+                                ]
+                              },
+                              "longBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Nadson O Ferinha",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCio9K8g0zlidV9W5cSwkL6Q",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "Nadson O Ferinha 2023",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "MPREb_OdXL6KWCqSG",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "2023"
+                                  }
+                                ]
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/AlPISSwrabGy09TUwYIG5LlJHcycyxWO_rqL0hBlD645kRN9rNOrMIv5M_6S5Ig8wQ9N1Q3cNy-YffPB=w60-h60-l90-rj",
+                                    "width": 60,
+                                    "height": 60
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/AlPISSwrabGy09TUwYIG5LlJHcycyxWO_rqL0hBlD645kRN9rNOrMIv5M_6S5Ig8wQ9N1Q3cNy-YffPB=w120-h120-l90-rj",
+                                    "width": 120,
+                                    "height": 120
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/AlPISSwrabGy09TUwYIG5LlJHcycyxWO_rqL0hBlD645kRN9rNOrMIv5M_6S5Ig8wQ9N1Q3cNy-YffPB=w180-h180-l90-rj",
+                                    "width": 180,
+                                    "height": 180
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/AlPISSwrabGy09TUwYIG5LlJHcycyxWO_rqL0hBlD645kRN9rNOrMIv5M_6S5Ig8wQ9N1Q3cNy-YffPB=w226-h226-l90-rj",
+                                    "width": 226,
+                                    "height": 226
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/AlPISSwrabGy09TUwYIG5LlJHcycyxWO_rqL0hBlD645kRN9rNOrMIv5M_6S5Ig8wQ9N1Q3cNy-YffPB=w302-h302-l90-rj",
+                                    "width": 302,
+                                    "height": 302
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/AlPISSwrabGy09TUwYIG5LlJHcycyxWO_rqL0hBlD645kRN9rNOrMIv5M_6S5Ig8wQ9N1Q3cNy-YffPB=w544-h544-l90-rj",
+                                    "width": 544,
+                                    "height": 544
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "runs": [
+                                  {
+                                    "text": "2:21"
+                                  }
+                                ]
+                              },
+                              "selected": false,
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "amOeABR_Urk",
+                                  "playlistId": "RDAMVMW40W7L1fhUM",
+                                  "index": 6,
+                                  "params": "OAHyAQIIAQ%3D%3D",
+                                  "playerParams": "8AUBygYQNTMyQkIwQjQyMkZCQzdFQ7AIAg%3D%3D",
+                                  "playlistSetVideoId": "532BB0B422FBC7EC",
+                                  "watchEndpointMusicSupportedConfigs": {
+                                    "watchEndpointMusicConfig": {
+                                      "hasPersistentPlaylistPanel": true,
+                                      "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                    }
+                                  }
+                                }
+                              },
+                              "videoId": "amOeABR_Urk",
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Nadson O Ferinha"
+                                  }
+                                ]
+                              },
+                              "playlistSetVideoId": "532BB0B422FBC7EC",
+                              "canReorder": true,
+                              "queueNavigationEndpoint": {
+                                "queueAddEndpoint": {
+                                  "queueTarget": {
+                                    "videoId": "amOeABR_Urk"
+                                  },
+                                  "queueInsertPosition": "INSERT_AT_END",
+                                  "params": "Q0FJJTNE"
+                                }
+                              }
+                            }
+                          },
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "title": {
+                                "runs": [
+                                  {
+                                    "text": "Mega Hair (Ao Vivo)"
+                                  }
+                                ]
+                              },
+                              "longBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Netto Brito",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCoJNuHofAOaTKHY5O8VE64A",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " e "
+                                  },
+                                  {
+                                    "text": "Luan Pereira",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UCt_NeWd6FkCgK0gGrp4B3UQ",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "Mega Hair (Ao Vivo)",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "MPREb_GcBlaRspAUm",
+                                        "browseEndpointContextSupportedConfigs": {
+                                          "browseEndpointContextMusicConfig": {
+                                            "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "text": " • "
+                                  },
+                                  {
+                                    "text": "2026"
+                                  }
+                                ]
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/c3C-iRxKXYQwQFVV-NDyjZGKKE8MkM-ZU2ByfMh0-oI3yHGS2XpHhpRmAasCpGxzjH_FZvhQXVJFIzQ=w60-h60-l90-rj",
+                                    "width": 60,
+                                    "height": 60
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/c3C-iRxKXYQwQFVV-NDyjZGKKE8MkM-ZU2ByfMh0-oI3yHGS2XpHhpRmAasCpGxzjH_FZvhQXVJFIzQ=w120-h120-l90-rj",
+                                    "width": 120,
+                                    "height": 120
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/c3C-iRxKXYQwQFVV-NDyjZGKKE8MkM-ZU2ByfMh0-oI3yHGS2XpHhpRmAasCpGxzjH_FZvhQXVJFIzQ=w180-h180-l90-rj",
+                                    "width": 180,
+                                    "height": 180
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/c3C-iRxKXYQwQFVV-NDyjZGKKE8MkM-ZU2ByfMh0-oI3yHGS2XpHhpRmAasCpGxzjH_FZvhQXVJFIzQ=w226-h226-l90-rj",
+                                    "width": 226,
+                                    "height": 226
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/c3C-iRxKXYQwQFVV-NDyjZGKKE8MkM-ZU2ByfMh0-oI3yHGS2XpHhpRmAasCpGxzjH_FZvhQXVJFIzQ=w302-h302-l90-rj",
+                                    "width": 302,
+                                    "height": 302
+                                  },
+                                  {
+                                    "url": "https://yt3.googleusercontent.com/c3C-iRxKXYQwQFVV-NDyjZGKKE8MkM-ZU2ByfMh0-oI3yHGS2XpHhpRmAasCpGxzjH_FZvhQXVJFIzQ=w544-h544-l90-rj",
+                                    "width": 544,
+                                    "height": 544
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "runs": [
+                                  {
+                                    "text": "2:34"
+                                  }
+                                ]
+                              },
+                              "selected": false,
+                              "navigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "ppAibCP87Ho",
+                                  "playlistId": "RDAMVMW40W7L1fhUM",
+                                  "index": 7,
+                                  "params": "OAHyAQIIAQ%3D%3D",
+                                  "playerParams": "8AUBygYQQ0FDREQ0NjZCM0VEMTU2NbAIAg%3D%3D",
+                                  "playlistSetVideoId": "CACDD466B3ED1565",
+                                  "watchEndpointMusicSupportedConfigs": {
+                                    "watchEndpointMusicConfig": {
+                                      "hasPersistentPlaylistPanel": true,
+                                      "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                    }
+                                  }
+                                }
+                              },
+                              "videoId": "ppAibCP87Ho",
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Netto Brito"
+                                  },
+                                  {
+                                    "text": " e "
+                                  },
+                                  {
+                                    "text": "Luan Pereira"
+                                  }
+                                ]
+                              },
+                              "playlistSetVideoId": "CACDD466B3ED1565",
+                              "canReorder": true,
+                              "queueNavigationEndpoint": {
+                                "queueAddEndpoint": {
+                                  "queueTarget": {
+                                    "videoId": "ppAibCP87Ho"
+                                  },
+                                  "queueInsertPosition": "INSERT_AT_END",
+                                  "params": "Q0FJJTNE"
+                                }
+                              }
+                            }
+                          }
+                        ],
+                        "playlistId": "RDAMVMW40W7L1fhUM",
+                        "isInfinite": true,
+                        "continuations": [
+                          {
+                            "nextRadioContinuationData": {
+                              "continuation": "CONT_public_radio"
+                            }
+                          }
+                        ],
+                        "numItemsToShow": 25,
+                        "shuffleToggleButton": {
+                          "toggleButtonRenderer": {
+                            "defaultIcon": {
+                              "iconType": "MUSIC_SHUFFLE"
+                            },
+                            "defaultServiceEndpoint": {
+                              "watchPlaylistEndpoint": {
+                                "playlistId": "RDAMVMW40W7L1fhUM",
+                                "params": "wAEB8gECGAE%3D"
+                              }
+                            },
+                            "toggledIcon": {
+                              "iconType": "MUSIC_SHUFFLE"
+                            },
+                            "toggledServiceEndpoint": {
+                              "watchPlaylistEndpoint": {
+                                "playlistId": "RDAMVMW40W7L1fhUM",
+                                "params": "wAEB"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "hack": true,
+                    "musicQueueConfig": {},
+                    "header": {
+                      "musicQueueHeaderRenderer": {
+                        "title": {
+                          "runs": [
+                            {
+                              "text": "Tocando neste dispositivo:"
+                            }
+                          ]
+                        },
+                        "subtitle": {
+                          "runs": [
+                            {
+                              "text": "Mix de Até Quando"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "subHeaderChipCloud": {
+                      "chipCloudRenderer": {
+                        "chips": [
+                          {
+                            "chipCloudChipRenderer": {
+                              "text": {
+                                "runs": [
+                                  {
+                                    "text": "Tudo"
+                                  }
+                                ]
+                              },
+                              "navigationEndpoint": {
+                                "queueUpdateCommand": {
+                                  "queueUpdateSection": "QUEUE_UPDATE_SECTION_QUEUE",
+                                  "fetchContentsCommand": {
+                                    "watchEndpoint": {
+                                      "playlistId": "RDAMVMW40W7L1fhUM",
+                                      "params": "ggUMRWdBWUFRJTNEJTNE"
+                                    }
+                                  },
+                                  "dedupeAgainstLocalQueue": true,
+                                  "syncMode": "QUEUE_UPDATE_SYNC_MODE_DEDUPE_AGAINST_LOCAL"
+                                }
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Tudo"
+                                }
+                              },
+                              "isSelected": true,
+                              "uniqueId": "Tudo"
+                            }
+                          },
+                          {
+                            "chipCloudChipRenderer": {
+                              "text": {
+                                "runs": [
+                                  {
+                                    "text": "Em alta"
+                                  }
+                                ]
+                              },
+                              "navigationEndpoint": {
+                                "queueUpdateCommand": {
+                                  "queueUpdateSection": "QUEUE_UPDATE_SECTION_QUEUE",
+                                  "fetchContentsCommand": {
+                                    "watchEndpoint": {
+                                      "playlistId": "RDATpYvW40W7L1fhUM",
+                                      "params": "ggU4Q2hKU1JFRlVjRmwyVnpRd1Z6ZE1NV1pvVlUwWUN5SU5DZ2RGYlNCaGJIUmhHZ0p3ZEElM0QlM0Q%3D"
+                                    }
+                                  },
+                                  "dedupeAgainstLocalQueue": true,
+                                  "syncMode": "QUEUE_UPDATE_SYNC_MODE_DEDUPE_AGAINST_LOCAL"
+                                }
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Em alta"
+                                }
+                              },
+                              "isSelected": false,
+                              "uniqueId": "Em alta"
+                            }
+                          },
+                          {
+                            "chipCloudChipRenderer": {
+                              "text": {
+                                "runs": [
+                                  {
+                                    "text": "Descobrir"
+                                  }
+                                ]
+                              },
+                              "navigationEndpoint": {
+                                "queueUpdateCommand": {
+                                  "queueUpdateSection": "QUEUE_UPDATE_SECTION_QUEUE",
+                                  "fetchContentsCommand": {
+                                    "watchEndpoint": {
+                                      "playlistId": "RDATiXvW40W7L1fhUM",
+                                      "params": "ggU0Q2hKU1JFRlVhVmgyVnpRd1Z6ZE1NV1pvVlUwWUN5SVBDZ2xFWlhOamIySnlhWElhQW5CMA%3D%3D"
+                                    }
+                                  },
+                                  "dedupeAgainstLocalQueue": true,
+                                  "syncMode": "QUEUE_UPDATE_SYNC_MODE_DEDUPE_AGAINST_LOCAL"
+                                }
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Descobrir"
+                                }
+                              },
+                              "isSelected": false,
+                              "uniqueId": "Descobrir"
+                            }
+                          },
+                          {
+                            "chipCloudChipRenderer": {
+                              "text": {
+                                "runs": [
+                                  {
+                                    "text": "Músicas pouco conhecidas"
+                                  }
+                                ]
+                              },
+                              "navigationEndpoint": {
+                                "queueUpdateCommand": {
+                                  "queueUpdateSection": "QUEUE_UPDATE_SECTION_QUEUE",
+                                  "fetchContentsCommand": {
+                                    "watchEndpoint": {
+                                      "playlistId": "RDATpXvW40W7L1fhUM",
+                                      "params": "ggVQQ2hKU1JFRlVjRmgyVnpRd1Z6ZE1NV1pvVlUwWUN5SWZDaGxOdzdwemFXTmhjeUJ3YjNWamJ5QmpiMjVvWldOcFpHRnpHZ0p3ZEElM0QlM0Q%3D"
+                                    }
+                                  },
+                                  "dedupeAgainstLocalQueue": true,
+                                  "syncMode": "QUEUE_UPDATE_SYNC_MODE_DEDUPE_AGAINST_LOCAL"
+                                }
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Músicas pouco conhecidas"
+                                }
+                              },
+                              "isSelected": false,
+                              "uniqueId": "Músicas pouco conhecidas"
+                            }
+                          },
+                          {
+                            "chipCloudChipRenderer": {
+                              "text": {
+                                "runs": [
+                                  {
+                                    "text": "Romance"
+                                  }
+                                ]
+                              },
+                              "navigationEndpoint": {
+                                "queueUpdateCommand": {
+                                  "queueUpdateSection": "QUEUE_UPDATE_SECTION_QUEUE",
+                                  "fetchContentsCommand": {
+                                    "watchEndpoint": {
+                                      "playlistId": "RDATmdvW40W7L1fhUM",
+                                      "params": "ggU4Q2hKU1JFRlViV1IyVnpRd1Z6ZE1NV1pvVlUwWUN5SU5DZ2RTYjIxaGJtTmxHZ0p3ZEElM0QlM0Q%3D"
+                                    }
+                                  },
+                                  "dedupeAgainstLocalQueue": true,
+                                  "syncMode": "QUEUE_UPDATE_SYNC_MODE_DEDUPE_AGAINST_LOCAL"
+                                }
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Romance"
+                                }
+                              },
+                              "isSelected": false,
+                              "uniqueId": "Romance"
+                            }
+                          },
+                          {
+                            "chipCloudChipRenderer": {
+                              "text": {
+                                "runs": [
+                                  {
+                                    "text": "Festa"
+                                  }
+                                ]
+                              },
+                              "navigationEndpoint": {
+                                "queueUpdateCommand": {
+                                  "queueUpdateSection": "QUEUE_UPDATE_SECTION_QUEUE",
+                                  "fetchContentsCommand": {
+                                    "watchEndpoint": {
+                                      "playlistId": "RDATmevW40W7L1fhUM",
+                                      "params": "ggUyQ2hKU1JFRlViV1YyVnpRd1Z6ZE1NV1pvVlUwWUN5SUxDZ1ZHWlhOMFlSb0NjSFElM0Q%3D"
+                                    }
+                                  },
+                                  "dedupeAgainstLocalQueue": true,
+                                  "syncMode": "QUEUE_UPDATE_SYNC_MODE_DEDUPE_AGAINST_LOCAL"
+                                }
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Festa"
+                                }
+                              },
+                              "isSelected": false,
+                              "uniqueId": "Festa"
+                            }
+                          },
+                          {
+                            "chipCloudChipRenderer": {
+                              "text": {
+                                "runs": [
+                                  {
+                                    "text": "Sertanejo"
+                                  }
+                                ]
+                              },
+                              "navigationEndpoint": {
+                                "queueUpdateCommand": {
+                                  "queueUpdateSection": "QUEUE_UPDATE_SECTION_QUEUE",
+                                  "fetchContentsCommand": {
+                                    "watchEndpoint": {
+                                      "playlistId": "RDATgJXvW40W7L1fhUM",
+                                      "params": "ggU8Q2hOU1JFRlVaMHBZZGxjME1GYzNUREZtYUZWTkdBc2lEd29KVTJWeWRHRnVaV3B2R2dKd2RBJTNEJTNE"
+                                    }
+                                  },
+                                  "dedupeAgainstLocalQueue": true,
+                                  "syncMode": "QUEUE_UPDATE_SYNC_MODE_DEDUPE_AGAINST_LOCAL"
+                                }
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Sertanejo"
+                                }
+                              },
+                              "isSelected": false,
+                              "uniqueId": "Sertanejo"
+                            }
+                          },
+                          {
+                            "chipCloudChipRenderer": {
+                              "text": {
+                                "runs": [
+                                  {
+                                    "text": "Forró"
+                                  }
+                                ]
+                              },
+                              "navigationEndpoint": {
+                                "queueUpdateCommand": {
+                                  "queueUpdateSection": "QUEUE_UPDATE_SECTION_QUEUE",
+                                  "fetchContentsCommand": {
+                                    "watchEndpoint": {
+                                      "playlistId": "RDATgkvW40W7L1fhUM",
+                                      "params": "ggUwQ2hKU1JFRlVaMnQyVnpRd1Z6ZE1NV1pvVlUwWUN5SU1DZ1pHYjNKeXc3TWFBbkIw"
+                                    }
+                                  },
+                                  "dedupeAgainstLocalQueue": true,
+                                  "syncMode": "QUEUE_UPDATE_SYNC_MODE_DEDUPE_AGAINST_LOCAL"
+                                }
+                              },
+                              "accessibilityData": {
+                                "accessibilityData": {
+                                  "label": "Forró"
+                                }
+                              },
+                              "isSelected": false,
+                              "uniqueId": "Forró"
+                            }
+                          }
+                        ],
+                        "selectionBehavior": "CHIP_CLOUD_SELECTION_BEHAVIOR_SINGLE_SELECT_ALWAYS_SELECTED"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "tabRenderer": {
+                "endpoint": {
+                  "browseEndpoint": {
+                    "browseId": "MPLYt_hwdXetzcCUV-1",
+                    "browseEndpointContextSupportedConfigs": {
+                      "browseEndpointContextMusicConfig": {
+                        "pageType": "MUSIC_PAGE_TYPE_TRACK_LYRICS"
+                      }
+                    }
+                  }
+                },
+                "title": "Letra"
+              }
+            },
+            {
+              "tabRenderer": {
+                "title": "Comentários",
+                "content": {
+                  "sectionListRenderer": {
+                    "continuations": [
+                      {
+                        "reloadContinuationData": {
+                          "continuation": "CONT_public_radio"
+                        }
+                      }
+                    ],
+                    "targetId": "W40W7L1fhUM"
+                  }
+                }
+              }
+            },
+            {
+              "tabRenderer": {
+                "endpoint": {
+                  "browseEndpoint": {
+                    "browseId": "MPTRt_hwdXetzcCUV-1",
+                    "browseEndpointContextSupportedConfigs": {
+                      "browseEndpointContextMusicConfig": {
+                        "pageType": "MUSIC_PAGE_TYPE_TRACK_RELATED"
+                      }
+                    }
+                  }
+                },
+                "title": "Relacionados"
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "currentVideoEndpoint": {
+    "watchEndpoint": {
+      "videoId": "W40W7L1fhUM",
+      "playlistId": "RDAMVMW40W7L1fhUM",
+      "index": 0,
+      "playerParams": "ygYQNTZCNDRGNkQxMDU1N0NDNg%3D%3D",
+      "playlistSetVideoId": "56B44F6D10557CC6"
+    }
+  },
+  "playerOverlays": {
+    "playerOverlayRenderer": {
+      "actions": [
+        {
+          "likeButtonRenderer": {
+            "target": {
+              "videoId": "W40W7L1fhUM"
+            },
+            "likeStatus": "INDIFFERENT",
+            "likesAllowed": true,
+            "dislikeNavigationEndpoint": {
+              "modalEndpoint": {
+                "modal": {
+                  "modalWithTitleAndButtonRenderer": {
+                    "title": {
+                      "runs": [
+                        {
+                          "text": "Não curtiu muito?"
+                        }
+                      ]
+                    },
+                    "content": {
+                      "runs": [
+                        {
+                          "text": "Melhore as recomendações depois de fazer login"
+                        }
+                      ]
+                    },
+                    "button": {
+                      "buttonRenderer": {
+                        "style": "STYLE_BLUE_TEXT",
+                        "isDisabled": false,
+                        "text": {
+                          "runs": [
+                            {
+                              "text": "Fazer login"
+                            }
+                          ]
+                        },
+                        "navigationEndpoint": {
+                          "signInEndpoint": {
+                            "hack": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "likeCommand": {
+              "modalEndpoint": {
+                "modal": {
+                  "modalWithTitleAndButtonRenderer": {
+                    "title": {
+                      "runs": [
+                        {
+                          "text": "Marque esta música com \"Gostei\""
+                        }
+                      ]
+                    },
+                    "content": {
+                      "runs": [
+                        {
+                          "text": "Melhore as recomendações e salve músicas depois de fazer login"
+                        }
+                      ]
+                    },
+                    "button": {
+                      "buttonRenderer": {
+                        "style": "STYLE_BLUE_TEXT",
+                        "isDisabled": false,
+                        "text": {
+                          "runs": [
+                            {
+                              "text": "Fazer login"
+                            }
+                          ]
+                        },
+                        "navigationEndpoint": {
+                          "signInEndpoint": {
+                            "hack": true
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "browserMediaSession": {
+        "browserMediaSessionRenderer": {
+          "album": {
+            "runs": [
+              {
+                "text": "Até Quando"
+              }
+            ]
+          },
+          "thumbnailDetails": {
+            "thumbnails": [
+              {
+                "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w60-h60-l90-rj",
+                "width": 60,
+                "height": 60
+              },
+              {
+                "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w120-h120-l90-rj",
+                "width": 120,
+                "height": 120
+              },
+              {
+                "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w226-h226-l90-rj",
+                "width": 226,
+                "height": 226
+              },
+              {
+                "url": "https://yt3.googleusercontent.com/Oug8RZBULimimbFBiRg1ShgXlWlyDv24HslgnxKxF3B__rp-dul2D4RqQmjGqBGQw7g4LV6W_RMCIJ8=w544-h544-l90-rj",
+                "width": 544,
+                "height": 544
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "videoReporting": {
+    "reportFormModalRenderer": {
+      "optionsSupportedRenderers": {
+        "optionsRenderer": {
+          "items": [
+            {
+              "optionSelectableItemRenderer": {
+                "text": {
+                  "runs": [
+                    {
+                      "text": "Conteúdo sexual"
+                    }
+                  ]
+                },
+                "submitEndpoint": {
+                  "flagEndpoint": {
+                    "flagAction": "EAciDwoLVzQwVzdMMWZoVU1QBTILVzQwVzdMMWZoVU2QASyYAQGoAQM%3D"
+                  }
+                }
+              }
+            },
+            {
+              "optionSelectableItemRenderer": {
+                "text": {
+                  "runs": [
+                    {
+                      "text": "Conteúdo violento ou repulsivo"
+                    }
+                  ]
+                },
+                "submitEndpoint": {
+                  "flagEndpoint": {
+                    "flagAction": "EAciDwoLVzQwVzdMMWZoVU1QBTILVzQwVzdMMWZoVU2QATaYAQGoAQM%3D"
+                  }
+                }
+              }
+            },
+            {
+              "optionSelectableItemRenderer": {
+                "text": {
+                  "runs": [
+                    {
+                      "text": "Conteúdo de incitação ao ódio ou abusivo"
+                    }
+                  ]
+                },
+                "submitEndpoint": {
+                  "flagEndpoint": {
+                    "flagAction": "EAciDwoLVzQwVzdMMWZoVU1QBTILVzQwVzdMMWZoVU2QARSYAQGoAQM%3D"
+                  }
+                }
+              }
+            },
+            {
+              "optionSelectableItemRenderer": {
+                "text": {
+                  "runs": [
+                    {
+                      "text": "Assédio ou bullying"
+                    }
+                  ]
+                },
+                "submitEndpoint": {
+                  "flagEndpoint": {
+                    "flagAction": "EAciDwoLVzQwVzdMMWZoVU1QBTILVzQwVzdMMWZoVU2QARGYAQGoAQM%3D"
+                  }
+                }
+              }
+            },
+            {
+              "optionSelectableItemRenderer": {
+                "text": {
+                  "runs": [
+                    {
+                      "text": "Atos perigosos ou nocivos"
+                    }
+                  ]
+                },
+                "submitEndpoint": {
+                  "flagEndpoint": {
+                    "flagAction": "EAciDwoLVzQwVzdMMWZoVU1QBTILVzQwVzdMMWZoVU2QAQ2YAQGoAQM%3D"
+                  }
+                }
+              }
+            },
+            {
+              "optionSelectableItemRenderer": {
+                "text": {
+                  "runs": [
+                    {
+                      "text": "Desinformação"
+                    }
+                  ]
+                },
+                "submitEndpoint": {
+                  "flagEndpoint": {
+                    "flagAction": "EAciDwoLVzQwVzdMMWZoVU1QBTILVzQwVzdMMWZoVU2QAUGYAQGoAQM%3D"
+                  }
+                }
+              }
+            },
+            {
+              "optionSelectableItemRenderer": {
+                "text": {
+                  "runs": [
+                    {
+                      "text": "Abuso infantil"
+                    }
+                  ]
+                },
+                "submitEndpoint": {
+                  "flagEndpoint": {
+                    "flagAction": "EAciDwoLVzQwVzdMMWZoVU1QBTILVzQwVzdMMWZoVU2QAQyYAQGoAQM%3D"
+                  }
+                }
+              }
+            },
+            {
+              "optionSelectableItemRenderer": {
+                "text": {
+                  "runs": [
+                    {
+                      "text": "Problema jurídico"
+                    }
+                  ]
+                },
+                "submitEndpoint": {
+                  "flagEndpoint": {
+                    "flagAction": "EAciDwoLVzQwVzdMMWZoVU1QBTILVzQwVzdMMWZoVU2QAUWYAQGoAQM%3D"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      },
+      "title": {
+        "runs": [
+          {
+            "text": "Denunciar vídeo"
+          }
+        ]
+      },
+      "submitButton": {
+        "buttonRenderer": {
+          "style": "STYLE_BRAND",
+          "isDisabled": true,
+          "text": {
+            "runs": [
+              {
+                "text": "Denunciar"
+              }
+            ]
+          }
+        }
+      },
+      "cancelButton": {
+        "buttonRenderer": {
+          "style": "STYLE_TEXT",
+          "isDisabled": false,
+          "text": {
+            "runs": [
+              {
+                "text": "Cancelar"
+              }
+            ]
+          }
+        }
+      },
+      "footer": {
+        "runs": [
+          {
+            "text": "Caso você seja o proprietário dos direitos autorais deste vídeo e acredite que ele tenha sido enviado sem sua permissão, siga "
+          },
+          {
+            "text": "estas instruções",
+            "navigationEndpoint": {
+              "urlEndpoint": {
+                "url": "//support.google.com/youtube/answer/2807622?hl=pt-BR"
+              }
+            }
+          },
+          {
+            "text": " para enviar um aviso de violação dos direitos autorais."
+          }
+        ]
+      }
+    }
+  },
+  "queueContextParams": "CAIaEVJEQU1WTVc0MFc3TDFmaFVNILW_hb6Dn5gDMgtXNDBXN0wxZmhVTToQNTZCNDRGNkQxMDU1N0NDNkIRUkRBTVZNVzQwVzdMMWZoVU1QAVoECAAQAWIAcAF4AQ=="
+}

@@ -1,0 +1,1262 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "secondaryContents": {
+        "sectionListRenderer": {
+          "contents": [
+            {
+              "musicShelfRenderer": {
+                "contents": [
+                  {
+                    "musicResponsiveListItemRenderer": {
+                      "overlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchEndpoint": {
+                                  "videoId": "gYvpcFlKCg8",
+                                  "playlistId": "OLAK5uy_lnYigeW7MJjzpXWqpZKry9-195W3yBrlU",
+                                  "index": 0,
+                                  "playerParams": "ygYQMDE3MjA4RkFBODUyMzNGOQ%3D%3D",
+                                  "playlistSetVideoId": "017208FAA85233F9",
+                                  "watchEndpointMusicSupportedConfigs": {
+                                    "watchEndpointMusicConfig": {
+                                      "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                    }
+                                  }
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 0,
+                              "activeBackgroundColor": 0,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 0,
+                              "activeScaleFactor": 1,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_SMALL",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir Jazz Cafe Music – Coffee Shop Ambience for Work & Study - Rainy Jazz Club"
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar Jazz Cafe Music – Coffee Shop Ambience for Work & Study - Rainy Jazz Club"
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_CENTERED",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_PERSISTENT"
+                        }
+                      },
+                      "flexColumns": [
+                        {
+                          "musicResponsiveListItemFlexColumnRenderer": {
+                            "text": {
+                              "runs": [
+                                {
+                                  "text": "Jazz Cafe Music – Coffee Shop Ambience for Work & Study",
+                                  "navigationEndpoint": {
+                                    "watchEndpoint": {
+                                      "videoId": "gYvpcFlKCg8",
+                                      "playlistId": "OLAK5uy_lnYigeW7MJjzpXWqpZKry9-195W3yBrlU",
+                                      "watchEndpointMusicSupportedConfigs": {
+                                        "watchEndpointMusicConfig": {
+                                          "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              ]
+                            },
+                            "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                          }
+                        },
+                        {
+                          "musicResponsiveListItemFlexColumnRenderer": {
+                            "text": {},
+                            "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                          }
+                        },
+                        {
+                          "musicResponsiveListItemFlexColumnRenderer": {
+                            "text": {
+                              "runs": [
+                                {
+                                  "text": "Tocou 530 mil vezes"
+                                }
+                              ]
+                            },
+                            "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                          }
+                        }
+                      ],
+                      "fixedColumns": [
+                        {
+                          "musicResponsiveListItemFixedColumnRenderer": {
+                            "text": {
+                              "runs": [
+                                {
+                                  "text": "2:01:09"
+                                }
+                              ]
+                            },
+                            "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH",
+                            "size": "MUSIC_RESPONSIVE_LIST_ITEM_FIXED_COLUMN_SIZE_SMALL"
+                          }
+                        }
+                      ],
+                      "playlistItemData": {
+                        "playlistSetVideoId": "017208FAA85233F9",
+                        "videoId": "gYvpcFlKCg8"
+                      },
+                      "itemHeight": "MUSIC_RESPONSIVE_LIST_ITEM_HEIGHT_MEDIUM",
+                      "index": {
+                        "runs": [
+                          {
+                            "text": "1"
+                          }
+                        ]
+                      },
+                      "multiSelectCheckbox": {
+                        "checkboxRenderer": {
+                          "onSelectionChangeCommand": {
+                            "updateMultiSelectStateCommand": {
+                              "multiSelectParams": "CAMSKU9MQUs1dXlfbG5ZaWdlVzdNSmp6cFhXcXBaS3J5OS0xOTVXM3lCcmxV",
+                              "multiSelectItem": "Ch8KC2dZdnBjRmxLQ2c4EhAwMTcyMDhGQUE4NTIzM0Y5"
+                            }
+                          },
+                          "checkedState": "CHECKBOX_CHECKED_STATE_UNCHECKED"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "shelfDivider": {
+                  "musicShelfDividerRenderer": {
+                    "hidden": true
+                  }
+                },
+                "contentsMultiSelectable": true
+              }
+            },
+            {
+              "musicCarouselShelfRenderer": {
+                "header": {
+                  "musicCarouselShelfBasicHeaderRenderer": {
+                    "title": {
+                      "runs": [
+                        {
+                          "text": "Lançamentos para você"
+                        }
+                      ]
+                    },
+                    "accessibilityData": {
+                      "accessibilityData": {
+                        "label": "Lançamentos para você"
+                      }
+                    },
+                    "headerStyle": "MUSIC_CAROUSEL_SHELF_BASIC_HEADER_STYLE_DEFAULT"
+                  }
+                },
+                "contents": [
+                  {
+                    "musicTwoRowItemRenderer": {
+                      "thumbnailRenderer": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/4opR34hz20XVvISdJ9tEPJ2V6KLYu5AtQbb8Ep5WnyzdQtneV5-W4B9T1KMGyXC0dlkLmsXVfPAwrPHi=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/4opR34hz20XVvISdJ9tEPJ2V6KLYu5AtQbb8Ep5WnyzdQtneV5-W4B9T1KMGyXC0dlkLmsXVfPAwrPHi=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                        }
+                      },
+                      "aspectRatio": "MUSIC_TWO_ROW_ITEM_THUMBNAIL_ASPECT_RATIO_SQUARE",
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "1 Hour Sexy Jazz Music for Romance (Sensual Saxophone | Intimate Bedroom Vibes | Couples Date Night)",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "MPREb_2hHRKlRYaWW",
+                                "params": "ggMrGilPTEFLNXV5X215LXJGVW5WVFpFd19ybWt3TE9wTjJ0Q0hpNnNLakItRQ%3D%3D",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Single"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "Auvora",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UChLkWxg2g-7lcmdg05V_qrQ",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "navigationEndpoint": {
+                        "browseEndpoint": {
+                          "browseId": "MPREb_2hHRKlRYaWW",
+                          "params": "ggMrGilPTEFLNXV5X215LXJGVW5WVFpFd19ybWt3TE9wTjJ0Q0hpNnNLakItRQ%3D%3D",
+                          "browseEndpointContextSupportedConfigs": {
+                            "browseEndpointContextMusicConfig": {
+                              "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchPlaylistEndpoint": {
+                                  "playlistId": "OLAK5uy_my-rFUnVTZEw_rmkwLOpN2tCHi6sKjB-E"
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 2566914048,
+                              "activeBackgroundColor": 4278190080,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 1308622847,
+                              "activeScaleFactor": 1.2,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_MEDIUM",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir 1 Hour Sexy Jazz Music for Romance (Sensual Saxophone | Intimate Bedroom Vibes | Couples Date Night)"
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar 1 Hour Sexy Jazz Music for Romance (Sensual Saxophone | Intimate Bedroom Vibes | Couples Date Night)"
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_BOTTOM_RIGHT",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_HOVER"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "musicTwoRowItemRenderer": {
+                      "thumbnailRenderer": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/6g4gKhqVhjq9PQ29qgnF3MtZXNGBSMmByNaOOcei8fsky3BfKzTFpVTNhP_JHSQAKCIGLxlG3e7yCqJk=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/6g4gKhqVhjq9PQ29qgnF3MtZXNGBSMmByNaOOcei8fsky3BfKzTFpVTNhP_JHSQAKCIGLxlG3e7yCqJk=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                        }
+                      },
+                      "aspectRatio": "MUSIC_TWO_ROW_ITEM_THUMBNAIL_ASPECT_RATIO_SQUARE",
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Coffee Shop Music – Relaxing Jazz Cafe Bass Instrumental",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "MPREb_NCCiOFNV395",
+                                "params": "ggMrGilPTEFLNXV5X2xLcWdLRWdFcUtNR19wTmFqaUtnR3l3RkRqTThxaE52VQ%3D%3D",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Single"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "Jazz Instrumental Relax",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCt-0MxhUE6oti312cydi2Pg",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "navigationEndpoint": {
+                        "browseEndpoint": {
+                          "browseId": "MPREb_NCCiOFNV395",
+                          "params": "ggMrGilPTEFLNXV5X2xLcWdLRWdFcUtNR19wTmFqaUtnR3l3RkRqTThxaE52VQ%3D%3D",
+                          "browseEndpointContextSupportedConfigs": {
+                            "browseEndpointContextMusicConfig": {
+                              "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchPlaylistEndpoint": {
+                                  "playlistId": "OLAK5uy_lKqgKEgEqKMG_pNajiKgGywFDjM8qhNvU"
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 2566914048,
+                              "activeBackgroundColor": 4278190080,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 1308622847,
+                              "activeScaleFactor": 1.2,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_MEDIUM",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir Coffee Shop Music – Relaxing Jazz Cafe Bass Instrumental"
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar Coffee Shop Music – Relaxing Jazz Cafe Bass Instrumental"
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_BOTTOM_RIGHT",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_HOVER"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "musicTwoRowItemRenderer": {
+                      "thumbnailRenderer": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/elIIyNQyULTQ2LwgUaT1303VVKaOPOpIJUVyaQK0BuFeONDyuN15IJcjenYyPUoAdckC1zRixRuTtPzo=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/elIIyNQyULTQ2LwgUaT1303VVKaOPOpIJUVyaQK0BuFeONDyuN15IJcjenYyPUoAdckC1zRixRuTtPzo=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                        }
+                      },
+                      "aspectRatio": "MUSIC_TWO_ROW_ITEM_THUMBNAIL_ASPECT_RATIO_SQUARE",
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Hotel Lobby Music",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "MPREb_R37pc5xWNso",
+                                "params": "ggMrGilPTEFLNXV5X21Qb0lJYTVXVUxzOEVQM1BFbHpDeVQtaHpId0NqYXVHRQ%3D%3D",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Single"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "PRVAK",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCpYGY9FOkcPRQNMOdh4-wIA",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "navigationEndpoint": {
+                        "browseEndpoint": {
+                          "browseId": "MPREb_R37pc5xWNso",
+                          "params": "ggMrGilPTEFLNXV5X21Qb0lJYTVXVUxzOEVQM1BFbHpDeVQtaHpId0NqYXVHRQ%3D%3D",
+                          "browseEndpointContextSupportedConfigs": {
+                            "browseEndpointContextMusicConfig": {
+                              "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchPlaylistEndpoint": {
+                                  "playlistId": "OLAK5uy_mPoIIa5WULs8EP3PElzCyT-hzHwCjauGE"
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 2566914048,
+                              "activeBackgroundColor": 4278190080,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 1308622847,
+                              "activeScaleFactor": 1.2,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_MEDIUM",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir Hotel Lobby Music"
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar Hotel Lobby Music"
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_BOTTOM_RIGHT",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_HOVER"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "musicTwoRowItemRenderer": {
+                      "thumbnailRenderer": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/inPQkQBfHYkyETPmLJFjN73v9vlUBcB0Mu1mXnb4U0Wtn28SCeK-m_yLtyWGpuiljazi4ZdINXgj6_8=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/inPQkQBfHYkyETPmLJFjN73v9vlUBcB0Mu1mXnb4U0Wtn28SCeK-m_yLtyWGpuiljazi4ZdINXgj6_8=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                        }
+                      },
+                      "aspectRatio": "MUSIC_TWO_ROW_ITEM_THUMBNAIL_ASPECT_RATIO_SQUARE",
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Relaxing Jazz Coffee Music – Cafe Ambience & Rain Sounds",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "MPREb_mHkPLt8nprY",
+                                "params": "ggMrGilPTEFLNXV5X25rS3JyOUlwNV8zRVBlcUM0VHlvR1phb0FvWDRtd1BPZw%3D%3D",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Single"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "Rainy Jazz Club",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCMJqedJ0OZgh9mjdRf26Xzg",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "navigationEndpoint": {
+                        "browseEndpoint": {
+                          "browseId": "MPREb_mHkPLt8nprY",
+                          "params": "ggMrGilPTEFLNXV5X25rS3JyOUlwNV8zRVBlcUM0VHlvR1phb0FvWDRtd1BPZw%3D%3D",
+                          "browseEndpointContextSupportedConfigs": {
+                            "browseEndpointContextMusicConfig": {
+                              "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchPlaylistEndpoint": {
+                                  "playlistId": "OLAK5uy_nkKrr9Ip5_3EPeqC4TyoGZaoAoX4mwPOg"
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 2566914048,
+                              "activeBackgroundColor": 4278190080,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 1308622847,
+                              "activeScaleFactor": 1.2,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_MEDIUM",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir Relaxing Jazz Coffee Music – Cafe Ambience & Rain Sounds"
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar Relaxing Jazz Coffee Music – Cafe Ambience & Rain Sounds"
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_BOTTOM_RIGHT",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_HOVER"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "musicTwoRowItemRenderer": {
+                      "thumbnailRenderer": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/gbYQSfoBeqHXoS_ooh1EKLxXsh4chWsijv66YMQm6Md_jn4Vl3CDUnONXgRT6-jZx2nXj55VZGqzGNU=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/gbYQSfoBeqHXoS_ooh1EKLxXsh4chWsijv66YMQm6Md_jn4Vl3CDUnONXgRT6-jZx2nXj55VZGqzGNU=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                        }
+                      },
+                      "aspectRatio": "MUSIC_TWO_ROW_ITEM_THUMBNAIL_ASPECT_RATIO_SQUARE",
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Late Night Jazz / City Lights Piano Lounge | Relaxing Jazz for Study, Work & Sleep",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "MPREb_qFAYqhteF2x",
+                                "params": "ggMrGilPTEFLNXV5X2xyb2xqSUdjbXBGd2E2d3pRUnFpRE1WZmRFMUhpR0hKSQ%3D%3D",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Single"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "sonik",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCetLxI9fkiKBaQl_Uvfjfnw",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "navigationEndpoint": {
+                        "browseEndpoint": {
+                          "browseId": "MPREb_qFAYqhteF2x",
+                          "params": "ggMrGilPTEFLNXV5X2xyb2xqSUdjbXBGd2E2d3pRUnFpRE1WZmRFMUhpR0hKSQ%3D%3D",
+                          "browseEndpointContextSupportedConfigs": {
+                            "browseEndpointContextMusicConfig": {
+                              "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchPlaylistEndpoint": {
+                                  "playlistId": "OLAK5uy_lroljIGcmpFwa6wzQRqiDMVfdE1HiGHJI"
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 2566914048,
+                              "activeBackgroundColor": 4278190080,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 1308622847,
+                              "activeScaleFactor": 1.2,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_MEDIUM",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir Late Night Jazz / City Lights Piano Lounge | Relaxing Jazz for Study, Work & Sleep"
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar Late Night Jazz / City Lights Piano Lounge | Relaxing Jazz for Study, Work & Sleep"
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_BOTTOM_RIGHT",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_HOVER"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "musicTwoRowItemRenderer": {
+                      "thumbnailRenderer": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/Pp5ApIVRHwD_9ErkNGTOgNj79Fe94UqwoVjtNxGXJKumUDcqZd8jNTvdcEnX3zGlHraruulRHlrrFcuQDQ=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/Pp5ApIVRHwD_9ErkNGTOgNj79Fe94UqwoVjtNxGXJKumUDcqZd8jNTvdcEnX3zGlHraruulRHlrrFcuQDQ=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                        }
+                      },
+                      "aspectRatio": "MUSIC_TWO_ROW_ITEM_THUMBNAIL_ASPECT_RATIO_SQUARE",
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Autumn Jazz",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "MPREb_gPiz6Ip3PxJ",
+                                "params": "ggMrGilPTEFLNXV5X21lWFY3WXREZ0VVcTJHMU5nTnd5SG1DM2M4emF2cWhrZw%3D%3D",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Álbum"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "Cozy Place",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UChJBzBnrYeghWKljW7LmLgQ",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "navigationEndpoint": {
+                        "browseEndpoint": {
+                          "browseId": "MPREb_gPiz6Ip3PxJ",
+                          "params": "ggMrGilPTEFLNXV5X21lWFY3WXREZ0VVcTJHMU5nTnd5SG1DM2M4emF2cWhrZw%3D%3D",
+                          "browseEndpointContextSupportedConfigs": {
+                            "browseEndpointContextMusicConfig": {
+                              "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchPlaylistEndpoint": {
+                                  "playlistId": "OLAK5uy_meXV7YtDgEUq2G1NgNwyHmC3c8zavqhkg"
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 2566914048,
+                              "activeBackgroundColor": 4278190080,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 1308622847,
+                              "activeScaleFactor": 1.2,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_MEDIUM",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir Autumn Jazz"
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar Autumn Jazz"
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_BOTTOM_RIGHT",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_HOVER"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "musicTwoRowItemRenderer": {
+                      "thumbnailRenderer": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/Wnpu3H9DwMvTBEmEretCuq22V2cGAlpLKU14DRQrtOdDn8kyG5UDq3tOm9jonJURFMd1tpiswFizayaemg=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/Wnpu3H9DwMvTBEmEretCuq22V2cGAlpLKU14DRQrtOdDn8kyG5UDq3tOm9jonJURFMd1tpiswFizayaemg=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                        }
+                      },
+                      "aspectRatio": "MUSIC_TWO_ROW_ITEM_THUMBNAIL_ASPECT_RATIO_SQUARE",
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Whiskey & Jazz.",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "MPREb_3KGq355yo9q",
+                                "params": "ggMrGilPTEFLNXV5X24wSWVMQlRjc1JJZnBMb3VTNmdMX1laTnFGZlVDdUtfdw%3D%3D",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Álbum"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "Easy Hours Lounge",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCLw8czlIKlUtAxE9SB8U4Pg",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "navigationEndpoint": {
+                        "browseEndpoint": {
+                          "browseId": "MPREb_3KGq355yo9q",
+                          "params": "ggMrGilPTEFLNXV5X24wSWVMQlRjc1JJZnBMb3VTNmdMX1laTnFGZlVDdUtfdw%3D%3D",
+                          "browseEndpointContextSupportedConfigs": {
+                            "browseEndpointContextMusicConfig": {
+                              "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchPlaylistEndpoint": {
+                                  "playlistId": "OLAK5uy_n0IeLBTcsRIfpLouS6gL_YZNqFfUCuK_w"
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 2566914048,
+                              "activeBackgroundColor": 4278190080,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 1308622847,
+                              "activeScaleFactor": 1.2,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_MEDIUM",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir Whiskey & Jazz."
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar Whiskey & Jazz."
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_BOTTOM_RIGHT",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_HOVER"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "musicTwoRowItemRenderer": {
+                      "thumbnailRenderer": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/sQCrtdEkF7qGHcM_nSmocqVhUCarfQbJPCMZHL0tb1MXKXX2UGLxtYi85fk2gH3A1CfwIVRcnLkhIiHr=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/sQCrtdEkF7qGHcM_nSmocqVhUCarfQbJPCMZHL0tb1MXKXX2UGLxtYi85fk2gH3A1CfwIVRcnLkhIiHr=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                        }
+                      },
+                      "aspectRatio": "MUSIC_TWO_ROW_ITEM_THUMBNAIL_ASPECT_RATIO_SQUARE",
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Rainy Jazz: Smooth Jazz and Rain Sounds",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "MPREb_NtVHKRPIiyU",
+                                "params": "ggMrGilPTEFLNXV5X2t6RXc4VjJHd1dMc2hLSUk3TG5VYWtxek1ORldGQm9BVQ%3D%3D",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Álbum"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "Cozy Place",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UChJBzBnrYeghWKljW7LmLgQ",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "navigationEndpoint": {
+                        "browseEndpoint": {
+                          "browseId": "MPREb_NtVHKRPIiyU",
+                          "params": "ggMrGilPTEFLNXV5X2t6RXc4VjJHd1dMc2hLSUk3TG5VYWtxek1ORldGQm9BVQ%3D%3D",
+                          "browseEndpointContextSupportedConfigs": {
+                            "browseEndpointContextMusicConfig": {
+                              "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchPlaylistEndpoint": {
+                                  "playlistId": "OLAK5uy_kzEw8V2GwWLshKII7LnUakqzMNFWFBoAU"
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 2566914048,
+                              "activeBackgroundColor": 4278190080,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 1308622847,
+                              "activeScaleFactor": 1.2,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_MEDIUM",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir Rainy Jazz: Smooth Jazz and Rain Sounds"
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar Rainy Jazz: Smooth Jazz and Rain Sounds"
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_BOTTOM_RIGHT",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_HOVER"
+                        }
+                      }
+                    }
+                  }
+                ],
+                "itemSize": "COLLECTION_STYLE_ITEM_SIZE_SMALL"
+              }
+            }
+          ]
+        }
+      },
+      "tabs": [
+        {
+          "tabRenderer": {
+            "content": {
+              "sectionListRenderer": {
+                "contents": [
+                  {
+                    "musicResponsiveHeaderRenderer": {
+                      "thumbnail": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/hIN8i6o0t9pI2NpQ_sGNjjHOHYv6PJBLRlluWatbSY1sDXVhbIcBnE9s_9EOKRAlP6qTLtNVtJZP0GTM=w60-h60-l90-rj",
+                                "width": 60,
+                                "height": 60
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/hIN8i6o0t9pI2NpQ_sGNjjHOHYv6PJBLRlluWatbSY1sDXVhbIcBnE9s_9EOKRAlP6qTLtNVtJZP0GTM=w120-h120-l90-rj",
+                                "width": 120,
+                                "height": 120
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/hIN8i6o0t9pI2NpQ_sGNjjHOHYv6PJBLRlluWatbSY1sDXVhbIcBnE9s_9EOKRAlP6qTLtNVtJZP0GTM=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/hIN8i6o0t9pI2NpQ_sGNjjHOHYv6PJBLRlluWatbSY1sDXVhbIcBnE9s_9EOKRAlP6qTLtNVtJZP0GTM=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_UNSPECIFIED"
+                        }
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Jazz Cafe Music – Coffee Shop Ambience for Work & Study"
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Single"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "2026"
+                          }
+                        ]
+                      },
+                      "straplineTextOne": {
+                        "runs": [
+                          {
+                            "text": "Rainy Jazz Club",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCMJqedJ0OZgh9mjdRf26Xzg",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "straplineThumbnail": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://yt3.googleusercontent.com/kTCIJSqagJqPOmc-csb8yE-ktWgRtIbKp_44gP-0XE2yLYVzYHmwPBnocUguMKBnU72Y7R5_uA-uPR9Fog=w60-h60-l90-rj",
+                                "width": 60,
+                                "height": 60
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/kTCIJSqagJqPOmc-csb8yE-ktWgRtIbKp_44gP-0XE2yLYVzYHmwPBnocUguMKBnU72Y7R5_uA-uPR9Fog=w120-h120-l90-rj",
+                                "width": 120,
+                                "height": 120
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/kTCIJSqagJqPOmc-csb8yE-ktWgRtIbKp_44gP-0XE2yLYVzYHmwPBnocUguMKBnU72Y7R5_uA-uPR9Fog=w226-h226-l90-rj",
+                                "width": 226,
+                                "height": 226
+                              },
+                              {
+                                "url": "https://yt3.googleusercontent.com/kTCIJSqagJqPOmc-csb8yE-ktWgRtIbKp_44gP-0XE2yLYVzYHmwPBnocUguMKBnU72Y7R5_uA-uPR9Fog=w544-h544-l90-rj",
+                                "width": 544,
+                                "height": 544
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_UNSPECIFIED"
+                        }
+                      },
+                      "secondSubtitle": {
+                        "runs": [
+                          {
+                            "text": "1 música"
+                          },
+                          {
+                            "text": " • "
+                          },
+                          {
+                            "text": "2 horas e 1 minuto"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,183 @@
+{
+  "onResponseReceivedActions": [
+    {
+      "appendContinuationItemsAction": {
+        "continuationItems": [
+          {
+            "lockupViewModel": {
+              "contentImage": {
+                "thumbnailViewModel": {
+                  "image": {
+                    "sources": [
+                      {
+                        "url": "https://i.ytimg.com/vi/fpQcDQJQLhg/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCJdN_KfjUucGWJ5gd-OyjqihaJVw",
+                        "width": 360,
+                        "height": 202
+                      },
+                      {
+                        "url": "https://i.ytimg.com/vi/fpQcDQJQLhg/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBj4PpB5VHGcQS5lb2FF_SuX9o2kw",
+                        "width": 720,
+                        "height": 404
+                      }
+                    ]
+                  },
+                  "overlays": [
+                    {
+                      "thumbnailBottomOverlayViewModel": {
+                        "badges": [
+                          {
+                            "thumbnailBadgeViewModel": {
+                              "text": "1:23",
+                              "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                              "animationActivationTargetId": "fpQcDQJQLhg",
+                              "animationActivationEntityKey": "Eh8veW91dHViZS9hcHAvd2F0Y2gvcGxheWVyX3N0YXRlIMMCKAE%3D",
+                              "lottieData": {
+                                "url": "https://www.gstatic.com/youtube/img/lottie/audio_indicator/audio_indicator_v2.json",
+                                "settings": {
+                                  "loop": true,
+                                  "autoplay": true
+                                }
+                              },
+                              "animatedText": "Tocando agora",
+                              "animationActivationEntitySelectorType": "THUMBNAIL_BADGE_ANIMATION_ENTITY_SELECTOR_TYPE_PLAYER_STATE",
+                              "rendererContext": {}
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    {},
+                    {}
+                  ]
+                }
+              },
+              "metadata": {
+                "lockupMetadataViewModel": {
+                  "title": {
+                    "content": "Google Antigravity em ação: Criando um guia de campo offline sobre vida selvagem."
+                  },
+                  "metadata": {
+                    "contentMetadataViewModel": {
+                      "metadataRows": [
+                        {
+                          "metadataParts": [
+                            {
+                              "text": {
+                                "content": "339 visualizações"
+                              }
+                            },
+                            {
+                              "text": {
+                                "content": "há 1 hora"
+                              },
+                              "accessibilityLabel": "há 1 hora"
+                            }
+                          ]
+                        }
+                      ],
+                      "delimiter": " • "
+                    }
+                  }
+                }
+              },
+              "contentId": "fpQcDQJQLhg",
+              "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+              "rendererContext": {
+                "commandContext": {
+                  "onTap": {
+                    "innertubeCommand": {
+                      "commandMetadata": {
+                        "webCommandMetadata": {
+                          "url": "/watch?v=fpQcDQJQLhg",
+                          "webPageType": "WEB_PAGE_TYPE_WATCH",
+                          "rootVe": 3832
+                        }
+                      },
+                      "watchEndpoint": {
+                        "videoId": "fpQcDQJQLhg",
+                        "params": "0gYjEiEaCQoFcHQtQlIQAiIJCgVwdC1CUhACKgkKBXB0LUJSEAI%3D"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          {
+            "playlistVideoRenderer": {
+              "videoId": "F12audio001",
+              "title": {
+                "simpleText": "Faixa de teste 1"
+              },
+              "shortBylineText": {
+                "runs": [
+                  {
+                    "text": "Artista de demonstração",
+                    "navigationEndpoint": {
+                      "browseEndpoint": {
+                        "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+                      }
+                    }
+                  }
+                ]
+              },
+              "lengthText": {
+                "simpleText": "0:04"
+              },
+              "thumbnail": {
+                "thumbnails": [
+                  {
+                    "url": "https://i.ytimg.com/vi/F12audio001/mqdefault.jpg",
+                    "width": 320,
+                    "height": 180
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "playlistVideoRenderer": {
+              "videoId": "F12audio002",
+              "title": {
+                "simpleText": "Faixa de teste 2"
+              },
+              "shortBylineText": {
+                "runs": [
+                  {
+                    "text": "Artista de demonstração",
+                    "navigationEndpoint": {
+                      "browseEndpoint": {
+                        "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+                      }
+                    }
+                  }
+                ]
+              },
+              "lengthText": {
+                "simpleText": "0:04"
+              },
+              "thumbnail": {
+                "thumbnails": [
+                  {
+                    "url": "https://i.ytimg.com/vi/F12audio002/mqdefault.jpg",
+                    "width": 320,
+                    "height": 180
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "continuationItemRenderer": {
+              "continuationEndpoint": {
+                "continuationCommand": {
+                  "token": "CONT_channel_videos"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

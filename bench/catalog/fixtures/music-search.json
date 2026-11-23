@@ -1,0 +1,1231 @@
+{
+  "contents": {
+    "tabbedSearchResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "title": "YT Music",
+            "selected": true,
+            "content": {
+              "sectionListRenderer": {
+                "contents": [
+                  {
+                    "musicCardShelfRenderer": {
+                      "thumbnail": {
+                        "musicThumbnailRenderer": {
+                          "thumbnail": {
+                            "thumbnails": [
+                              {
+                                "url": "https://music.youtube.com/image/radioart?r=CisKCC9tLzA1M3l4CgovbS8wMXJzdmJsCggvbS8wNjB4MwoJL20vMDE0ZzkxEMgBGMgBYggKBgoECgJwdA",
+                                "width": 200,
+                                "height": 200
+                              },
+                              {
+                                "url": "https://music.youtube.com/image/radioart?r=CisKCC9tLzA1M3l4CgovbS8wMXJzdmJsCggvbS8wNjB4MwoJL20vMDE0ZzkxENgEGNgEYggKBgoECgJwdA",
+                                "width": 600,
+                                "height": 600
+                              },
+                              {
+                                "url": "https://music.youtube.com/image/radioart?r=CisKCC9tLzA1M3l4CgovbS8wMXJzdmJsCggvbS8wNjB4MwoJL20vMDE0ZzkxEKAGGKAGYggKBgoECgJwdA",
+                                "width": 800,
+                                "height": 800
+                              },
+                              {
+                                "url": "https://music.youtube.com/image/radioart?r=CisKCC9tLzA1M3l4CgovbS8wMXJzdmJsCggvbS8wNjB4MwoJL20vMDE0ZzkxEOgHGOgHYggKBgoECgJwdA",
+                                "width": 1000,
+                                "height": 1000
+                              }
+                            ]
+                          },
+                          "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                          "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                        }
+                      },
+                      "title": {
+                        "runs": [
+                          {
+                            "text": "Rádio de jazz • Instrumental",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "VLRDATnXgy",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_PLAYLIST"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      "subtitle": {
+                        "runs": [
+                          {
+                            "text": "Paul Desmond, Bill Evans Trio, Beegie Adaire outros"
+                          }
+                        ]
+                      },
+                      "onTap": {
+                        "browseEndpoint": {
+                          "browseId": "VLRDATnXgy",
+                          "browseEndpointContextSupportedConfigs": {
+                            "browseEndpointContextMusicConfig": {
+                              "pageType": "MUSIC_PAGE_TYPE_PLAYLIST"
+                            }
+                          }
+                        }
+                      },
+                      "thumbnailOverlay": {
+                        "musicItemThumbnailOverlayRenderer": {
+                          "content": {
+                            "musicPlayButtonRenderer": {
+                              "playNavigationEndpoint": {
+                                "watchPlaylistEndpoint": {
+                                  "playlistId": "RDATnXgy",
+                                  "params": "wAEB"
+                                }
+                              },
+                              "playIcon": {
+                                "iconType": "PLAY_ARROW"
+                              },
+                              "pauseIcon": {
+                                "iconType": "PAUSE"
+                              },
+                              "iconColor": 4294967295,
+                              "backgroundColor": 0,
+                              "activeBackgroundColor": 0,
+                              "loadingIndicatorColor": 14745645,
+                              "playingIcon": {
+                                "iconType": "VOLUME_UP"
+                              },
+                              "iconLoadingColor": 0,
+                              "activeScaleFactor": 1,
+                              "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_LARGE",
+                              "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                              "accessibilityPlayData": {
+                                "accessibilityData": {
+                                  "label": "Reproduzir Rádio de jazz • Instrumental"
+                                }
+                              },
+                              "accessibilityPauseData": {
+                                "accessibilityData": {
+                                  "label": "Pausar Rádio de jazz • Instrumental"
+                                }
+                              }
+                            }
+                          },
+                          "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_CENTERED",
+                          "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_PERSISTENT"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "musicResponsiveListItemRenderer": {
+                            "thumbnail": {
+                              "musicThumbnailRenderer": {
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/hIN8i6o0t9pI2NpQ_sGNjjHOHYv6PJBLRlluWatbSY1sDXVhbIcBnE9s_9EOKRAlP6qTLtNVtJZP0GTM=w60-h60-l90-rj",
+                                      "width": 60,
+                                      "height": 60
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/hIN8i6o0t9pI2NpQ_sGNjjHOHYv6PJBLRlluWatbSY1sDXVhbIcBnE9s_9EOKRAlP6qTLtNVtJZP0GTM=w120-h120-l90-rj",
+                                      "width": 120,
+                                      "height": 120
+                                    }
+                                  ]
+                                },
+                                "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                                "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                              }
+                            },
+                            "overlay": {
+                              "musicItemThumbnailOverlayRenderer": {
+                                "content": {
+                                  "musicPlayButtonRenderer": {
+                                    "playNavigationEndpoint": {
+                                      "watchEndpoint": {
+                                        "videoId": "gYvpcFlKCg8",
+                                        "watchEndpointMusicSupportedConfigs": {
+                                          "watchEndpointMusicConfig": {
+                                            "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "playIcon": {
+                                      "iconType": "PLAY_ARROW"
+                                    },
+                                    "pauseIcon": {
+                                      "iconType": "PAUSE"
+                                    },
+                                    "iconColor": 4294967295,
+                                    "backgroundColor": 0,
+                                    "activeBackgroundColor": 0,
+                                    "loadingIndicatorColor": 14745645,
+                                    "playingIcon": {
+                                      "iconType": "VOLUME_UP"
+                                    },
+                                    "iconLoadingColor": 0,
+                                    "activeScaleFactor": 1,
+                                    "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_SMALL",
+                                    "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                                    "accessibilityPlayData": {
+                                      "accessibilityData": {
+                                        "label": "Reproduzir Jazz Cafe Music – Coffee Shop Ambience for Work & Study - Rainy Jazz Club"
+                                      }
+                                    },
+                                    "accessibilityPauseData": {
+                                      "accessibilityData": {
+                                        "label": "Pausar Jazz Cafe Music – Coffee Shop Ambience for Work & Study - Rainy Jazz Club"
+                                      }
+                                    }
+                                  }
+                                },
+                                "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_CENTERED",
+                                "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_PERSISTENT"
+                              }
+                            },
+                            "flexColumns": [
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Jazz Cafe Music – Coffee Shop Ambience for Work & Study",
+                                        "navigationEndpoint": {
+                                          "watchEndpoint": {
+                                            "videoId": "gYvpcFlKCg8",
+                                            "watchEndpointMusicSupportedConfigs": {
+                                              "watchEndpointMusicConfig": {
+                                                "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              },
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Música"
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "Rainy Jazz Club",
+                                        "navigationEndpoint": {
+                                          "browseEndpoint": {
+                                            "browseId": "UCMJqedJ0OZgh9mjdRf26Xzg",
+                                            "browseEndpointContextSupportedConfigs": {
+                                              "browseEndpointContextMusicConfig": {
+                                                "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              },
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Tocou 530 mil vezes"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              }
+                            ],
+                            "playlistItemData": {
+                              "videoId": "gYvpcFlKCg8"
+                            },
+                            "flexColumnDisplayStyle": "MUSIC_RESPONSIVE_LIST_ITEM_FLEX_COLUMN_DISPLAY_STYLE_TWO_LINE_STACK",
+                            "itemHeight": "MUSIC_RESPONSIVE_LIST_ITEM_HEIGHT_TALL"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "musicResponsiveListItemRenderer": {
+                            "thumbnail": {
+                              "musicThumbnailRenderer": {
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/_9Tq3tZtwhfQ29zYrMQHHAKVmLUsh0eTgkMNhajqz13QwOGT4D38NQzMv2BDRVQtN5SE4k-TSoo1xbW2=w60-h60-l90-rj",
+                                      "width": 60,
+                                      "height": 60
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/_9Tq3tZtwhfQ29zYrMQHHAKVmLUsh0eTgkMNhajqz13QwOGT4D38NQzMv2BDRVQtN5SE4k-TSoo1xbW2=w120-h120-l90-rj",
+                                      "width": 120,
+                                      "height": 120
+                                    }
+                                  ]
+                                },
+                                "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_CIRCLE",
+                                "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                              }
+                            },
+                            "flexColumns": [
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Bossanova Jazz"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              },
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Artista"
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "10,3 mil inscritos"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              }
+                            ],
+                            "flexColumnDisplayStyle": "MUSIC_RESPONSIVE_LIST_ITEM_FLEX_COLUMN_DISPLAY_STYLE_TWO_LINE_STACK",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UC9oLZrmA6M9pce73hqE26-w",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            },
+                            "itemHeight": "MUSIC_RESPONSIVE_LIST_ITEM_HEIGHT_TALL"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "musicResponsiveListItemRenderer": {
+                            "thumbnail": {
+                              "musicThumbnailRenderer": {
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/TSUtbquRFr7lhlYJq_fZnfxn8FnzXpbzWiZLJb8-WscOEWDXfldNPT3OcTxkdBL_1vKFG_Ni0_nJ8P5h=w60-h60-l90-rj",
+                                      "width": 60,
+                                      "height": 60
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/TSUtbquRFr7lhlYJq_fZnfxn8FnzXpbzWiZLJb8-WscOEWDXfldNPT3OcTxkdBL_1vKFG_Ni0_nJ8P5h=w120-h120-l90-rj",
+                                      "width": 120,
+                                      "height": 120
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/TSUtbquRFr7lhlYJq_fZnfxn8FnzXpbzWiZLJb8-WscOEWDXfldNPT3OcTxkdBL_1vKFG_Ni0_nJ8P5h=w226-h226-l90-rj",
+                                      "width": 226,
+                                      "height": 226
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/TSUtbquRFr7lhlYJq_fZnfxn8FnzXpbzWiZLJb8-WscOEWDXfldNPT3OcTxkdBL_1vKFG_Ni0_nJ8P5h=w544-h544-l90-rj",
+                                      "width": 544,
+                                      "height": 544
+                                    }
+                                  ]
+                                },
+                                "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                                "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                              }
+                            },
+                            "overlay": {
+                              "musicItemThumbnailOverlayRenderer": {
+                                "content": {
+                                  "musicPlayButtonRenderer": {
+                                    "playNavigationEndpoint": {
+                                      "watchPlaylistEndpoint": {
+                                        "playlistId": "RDCLAK5uy_neriXH6JbZPr7Pf4LOi5bGQP-_lWRZXs4",
+                                        "params": "wAEB"
+                                      }
+                                    },
+                                    "playIcon": {
+                                      "iconType": "PLAY_ARROW"
+                                    },
+                                    "pauseIcon": {
+                                      "iconType": "PAUSE"
+                                    },
+                                    "iconColor": 4294967295,
+                                    "backgroundColor": 0,
+                                    "activeBackgroundColor": 0,
+                                    "loadingIndicatorColor": 14745645,
+                                    "playingIcon": {
+                                      "iconType": "VOLUME_UP"
+                                    },
+                                    "iconLoadingColor": 0,
+                                    "activeScaleFactor": 1,
+                                    "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_SMALL",
+                                    "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                                    "accessibilityPlayData": {
+                                      "accessibilityData": {
+                                        "label": "Reproduzir Jazz aconchegante"
+                                      }
+                                    },
+                                    "accessibilityPauseData": {
+                                      "accessibilityData": {
+                                        "label": "Pausar Jazz aconchegante"
+                                      }
+                                    }
+                                  }
+                                },
+                                "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_CENTERED",
+                                "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_PERSISTENT"
+                              }
+                            },
+                            "flexColumns": [
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Jazz aconchegante"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              },
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Playlist"
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "YouTube Music"
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "62 músicas"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              }
+                            ],
+                            "flexColumnDisplayStyle": "MUSIC_RESPONSIVE_LIST_ITEM_FLEX_COLUMN_DISPLAY_STYLE_TWO_LINE_STACK",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "VLRDCLAK5uy_neriXH6JbZPr7Pf4LOi5bGQP-_lWRZXs4",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_PLAYLIST"
+                                  }
+                                }
+                              }
+                            },
+                            "itemHeight": "MUSIC_RESPONSIVE_LIST_ITEM_HEIGHT_TALL"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "musicResponsiveListItemRenderer": {
+                            "thumbnail": {
+                              "musicThumbnailRenderer": {
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/jf2rZB_RbJ2huKYkmpMqKnwRKjmcZfFu_RBLDlbPGfdapRwoUtNsSDn0nSyptF2SF3D1zUydIj0_B9c=w60-h60-l90-rj",
+                                      "width": 60,
+                                      "height": 60
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/jf2rZB_RbJ2huKYkmpMqKnwRKjmcZfFu_RBLDlbPGfdapRwoUtNsSDn0nSyptF2SF3D1zUydIj0_B9c=w120-h120-l90-rj",
+                                      "width": 120,
+                                      "height": 120
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/jf2rZB_RbJ2huKYkmpMqKnwRKjmcZfFu_RBLDlbPGfdapRwoUtNsSDn0nSyptF2SF3D1zUydIj0_B9c=w226-h226-l90-rj",
+                                      "width": 226,
+                                      "height": 226
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/jf2rZB_RbJ2huKYkmpMqKnwRKjmcZfFu_RBLDlbPGfdapRwoUtNsSDn0nSyptF2SF3D1zUydIj0_B9c=w544-h544-l90-rj",
+                                      "width": 544,
+                                      "height": 544
+                                    }
+                                  ]
+                                },
+                                "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                                "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                              }
+                            },
+                            "overlay": {
+                              "musicItemThumbnailOverlayRenderer": {
+                                "content": {
+                                  "musicPlayButtonRenderer": {
+                                    "playNavigationEndpoint": {
+                                      "watchPlaylistEndpoint": {
+                                        "playlistId": "RDCLAK5uy_m7EF_vYZXBhXNuduyXmhT00DYapc8cobs",
+                                        "params": "wAEB"
+                                      }
+                                    },
+                                    "playIcon": {
+                                      "iconType": "PLAY_ARROW"
+                                    },
+                                    "pauseIcon": {
+                                      "iconType": "PAUSE"
+                                    },
+                                    "iconColor": 4294967295,
+                                    "backgroundColor": 0,
+                                    "activeBackgroundColor": 0,
+                                    "loadingIndicatorColor": 14745645,
+                                    "playingIcon": {
+                                      "iconType": "VOLUME_UP"
+                                    },
+                                    "iconLoadingColor": 0,
+                                    "activeScaleFactor": 1,
+                                    "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_SMALL",
+                                    "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                                    "accessibilityPlayData": {
+                                      "accessibilityData": {
+                                        "label": "Reproduzir Jazz essencial"
+                                      }
+                                    },
+                                    "accessibilityPauseData": {
+                                      "accessibilityData": {
+                                        "label": "Pausar Jazz essencial"
+                                      }
+                                    }
+                                  }
+                                },
+                                "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_CENTERED",
+                                "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_PERSISTENT"
+                              }
+                            },
+                            "flexColumns": [
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Jazz essencial"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              },
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Playlist"
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "YouTube Music"
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "92 músicas"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              }
+                            ],
+                            "flexColumnDisplayStyle": "MUSIC_RESPONSIVE_LIST_ITEM_FLEX_COLUMN_DISPLAY_STYLE_TWO_LINE_STACK",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "VLRDCLAK5uy_m7EF_vYZXBhXNuduyXmhT00DYapc8cobs",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_PLAYLIST"
+                                  }
+                                }
+                              }
+                            },
+                            "itemHeight": "MUSIC_RESPONSIVE_LIST_ITEM_HEIGHT_TALL"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "musicResponsiveListItemRenderer": {
+                            "thumbnail": {
+                              "musicThumbnailRenderer": {
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/nO_lzS2C2iZHEu3gn_dgPaeOtcBc_fdX35MIePHACrtijgey8amoacmBS5Jc_n7waBHlRGMHUAR8piA8=w60-h60-l90-rj",
+                                      "width": 60,
+                                      "height": 60
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/nO_lzS2C2iZHEu3gn_dgPaeOtcBc_fdX35MIePHACrtijgey8amoacmBS5Jc_n7waBHlRGMHUAR8piA8=w120-h120-l90-rj",
+                                      "width": 120,
+                                      "height": 120
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/nO_lzS2C2iZHEu3gn_dgPaeOtcBc_fdX35MIePHACrtijgey8amoacmBS5Jc_n7waBHlRGMHUAR8piA8=w226-h226-l90-rj",
+                                      "width": 226,
+                                      "height": 226
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/nO_lzS2C2iZHEu3gn_dgPaeOtcBc_fdX35MIePHACrtijgey8amoacmBS5Jc_n7waBHlRGMHUAR8piA8=w544-h544-l90-rj",
+                                      "width": 544,
+                                      "height": 544
+                                    }
+                                  ]
+                                },
+                                "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                                "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                              }
+                            },
+                            "overlay": {
+                              "musicItemThumbnailOverlayRenderer": {
+                                "content": {
+                                  "musicPlayButtonRenderer": {
+                                    "playNavigationEndpoint": {
+                                      "watchPlaylistEndpoint": {
+                                        "playlistId": "OLAK5uy_n7vp81LVuSTCVtJ1NsSYxPG32y3DfxuVs"
+                                      }
+                                    },
+                                    "playIcon": {
+                                      "iconType": "PLAY_ARROW"
+                                    },
+                                    "pauseIcon": {
+                                      "iconType": "PAUSE"
+                                    },
+                                    "iconColor": 4294967295,
+                                    "backgroundColor": 0,
+                                    "activeBackgroundColor": 0,
+                                    "loadingIndicatorColor": 14745645,
+                                    "playingIcon": {
+                                      "iconType": "VOLUME_UP"
+                                    },
+                                    "iconLoadingColor": 0,
+                                    "activeScaleFactor": 1,
+                                    "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_SMALL",
+                                    "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                                    "accessibilityPlayData": {
+                                      "accessibilityData": {
+                                        "label": "Reproduzir Relaxing Jazz Instrumental Music for Study, Focus and Concentration"
+                                      }
+                                    },
+                                    "accessibilityPauseData": {
+                                      "accessibilityData": {
+                                        "label": "Pausar Relaxing Jazz Instrumental Music for Study, Focus and Concentration"
+                                      }
+                                    }
+                                  }
+                                },
+                                "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_CENTERED",
+                                "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_PERSISTENT"
+                              }
+                            },
+                            "flexColumns": [
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Relaxing Jazz Instrumental Music for Study, Focus and Concentration"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              },
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Álbum"
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "Study Jazz",
+                                        "navigationEndpoint": {
+                                          "browseEndpoint": {
+                                            "browseId": "UC_BZlmKqZrSj_fLVqo5mwSw",
+                                            "browseEndpointContextSupportedConfigs": {
+                                              "browseEndpointContextMusicConfig": {
+                                                "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "2026"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              }
+                            ],
+                            "flexColumnDisplayStyle": "MUSIC_RESPONSIVE_LIST_ITEM_FLEX_COLUMN_DISPLAY_STYLE_TWO_LINE_STACK",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "MPREb_7yMEm716OK4",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                  }
+                                }
+                              }
+                            },
+                            "itemHeight": "MUSIC_RESPONSIVE_LIST_ITEM_HEIGHT_TALL"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "musicResponsiveListItemRenderer": {
+                            "thumbnail": {
+                              "musicThumbnailRenderer": {
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/ar-mbhT-xKKcZVBk_xjuoEzsIHbgfCq2X0JqtLMF0qyjfT2_IIQvznVMHw4YOu98FLDdP5OOtEqCUecOsA=w60-h60-l90-rj",
+                                      "width": 60,
+                                      "height": 60
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/ar-mbhT-xKKcZVBk_xjuoEzsIHbgfCq2X0JqtLMF0qyjfT2_IIQvznVMHw4YOu98FLDdP5OOtEqCUecOsA=w120-h120-l90-rj",
+                                      "width": 120,
+                                      "height": 120
+                                    }
+                                  ]
+                                },
+                                "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_CIRCLE",
+                                "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FILL"
+                              }
+                            },
+                            "flexColumns": [
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Musica Jazz Instrumental"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              },
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Artista"
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "11 inscritos"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              }
+                            ],
+                            "flexColumnDisplayStyle": "MUSIC_RESPONSIVE_LIST_ITEM_FLEX_COLUMN_DISPLAY_STYLE_TWO_LINE_STACK",
+                            "navigationEndpoint": {
+                              "browseEndpoint": {
+                                "browseId": "UCQcL2-X82pDsPlNTh6qy7vg",
+                                "browseEndpointContextSupportedConfigs": {
+                                  "browseEndpointContextMusicConfig": {
+                                    "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                  }
+                                }
+                              }
+                            },
+                            "itemHeight": "MUSIC_RESPONSIVE_LIST_ITEM_HEIGHT_TALL"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "itemSectionRenderer": {
+                      "contents": [
+                        {
+                          "musicResponsiveListItemRenderer": {
+                            "thumbnail": {
+                              "musicThumbnailRenderer": {
+                                "thumbnail": {
+                                  "thumbnails": [
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/yRjrDN4tJh7I_NMiQFq_evUJAaRO6K6CidwHFjp6I1DdZugEgjIMXzHIdOkBCwMy2EuOs9zLunzktETJ=w60-h60-l90-rj",
+                                      "width": 60,
+                                      "height": 60
+                                    },
+                                    {
+                                      "url": "https://yt3.googleusercontent.com/yRjrDN4tJh7I_NMiQFq_evUJAaRO6K6CidwHFjp6I1DdZugEgjIMXzHIdOkBCwMy2EuOs9zLunzktETJ=w120-h120-l90-rj",
+                                      "width": 120,
+                                      "height": 120
+                                    }
+                                  ]
+                                },
+                                "thumbnailCrop": "MUSIC_THUMBNAIL_CROP_UNSPECIFIED",
+                                "thumbnailScale": "MUSIC_THUMBNAIL_SCALE_ASPECT_FIT"
+                              }
+                            },
+                            "overlay": {
+                              "musicItemThumbnailOverlayRenderer": {
+                                "content": {
+                                  "musicPlayButtonRenderer": {
+                                    "playNavigationEndpoint": {
+                                      "watchEndpoint": {
+                                        "videoId": "FdTtOmuQNnM",
+                                        "watchEndpointMusicSupportedConfigs": {
+                                          "watchEndpointMusicConfig": {
+                                            "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                          }
+                                        }
+                                      }
+                                    },
+                                    "playIcon": {
+                                      "iconType": "PLAY_ARROW"
+                                    },
+                                    "pauseIcon": {
+                                      "iconType": "PAUSE"
+                                    },
+                                    "iconColor": 4294967295,
+                                    "backgroundColor": 0,
+                                    "activeBackgroundColor": 0,
+                                    "loadingIndicatorColor": 14745645,
+                                    "playingIcon": {
+                                      "iconType": "VOLUME_UP"
+                                    },
+                                    "iconLoadingColor": 0,
+                                    "activeScaleFactor": 1,
+                                    "buttonSize": "MUSIC_PLAY_BUTTON_SIZE_SMALL",
+                                    "rippleTarget": "MUSIC_PLAY_BUTTON_RIPPLE_TARGET_SELF",
+                                    "accessibilityPlayData": {
+                                      "accessibilityData": {
+                                        "label": "Reproduzir Relaxing Jazz for old souls - Relaxing Music"
+                                      }
+                                    },
+                                    "accessibilityPauseData": {
+                                      "accessibilityData": {
+                                        "label": "Pausar Relaxing Jazz for old souls - Relaxing Music"
+                                      }
+                                    }
+                                  }
+                                },
+                                "contentPosition": "MUSIC_ITEM_THUMBNAIL_OVERLAY_CONTENT_POSITION_CENTERED",
+                                "displayStyle": "MUSIC_ITEM_THUMBNAIL_OVERLAY_DISPLAY_STYLE_PERSISTENT"
+                              }
+                            },
+                            "flexColumns": [
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Relaxing Jazz for old souls",
+                                        "navigationEndpoint": {
+                                          "watchEndpoint": {
+                                            "videoId": "FdTtOmuQNnM",
+                                            "watchEndpointMusicSupportedConfigs": {
+                                              "watchEndpointMusicConfig": {
+                                                "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              },
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Música"
+                                      },
+                                      {
+                                        "text": " • "
+                                      },
+                                      {
+                                        "text": "Relaxing Music",
+                                        "navigationEndpoint": {
+                                          "browseEndpoint": {
+                                            "browseId": "UCjYxGJDdou-WWzkbQmhZGrA",
+                                            "browseEndpointContextSupportedConfigs": {
+                                              "browseEndpointContextMusicConfig": {
+                                                "pageType": "MUSIC_PAGE_TYPE_ARTIST"
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              },
+                              {
+                                "musicResponsiveListItemFlexColumnRenderer": {
+                                  "text": {
+                                    "runs": [
+                                      {
+                                        "text": "Tocou 1,4 mi vezes"
+                                      }
+                                    ]
+                                  },
+                                  "displayPriority": "MUSIC_RESPONSIVE_LIST_ITEM_COLUMN_DISPLAY_PRIORITY_HIGH"
+                                }
+                              }
+                            ],
+                            "playlistItemData": {
+                              "videoId": "FdTtOmuQNnM"
+                            },
+                            "flexColumnDisplayStyle": "MUSIC_RESPONSIVE_LIST_ITEM_FLEX_COLUMN_DISPLAY_STYLE_TWO_LINE_STACK",
+                            "itemHeight": "MUSIC_RESPONSIVE_LIST_ITEM_HEIGHT_TALL"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "header": {
+                  "chipCloudRenderer": {
+                    "chips": [
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_DEFAULT"
+                          },
+                          "text": {
+                            "runs": [
+                              {
+                                "text": "Músicas"
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "searchEndpoint": {
+                              "query": "jazz instrumental",
+                              "params": "EgWKAQIIAWoSEAMQBRAOEAkQBBAKEBUQEBAR"
+                            }
+                          },
+                          "accessibilityData": {
+                            "accessibilityData": {
+                              "label": "Mostrar resultados de músicas"
+                            }
+                          },
+                          "isSelected": false,
+                          "uniqueId": "Músicas"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_DEFAULT"
+                          },
+                          "text": {
+                            "runs": [
+                              {
+                                "text": "Artistas"
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "searchEndpoint": {
+                              "query": "jazz instrumental",
+                              "params": "EgWKAQIgAWoSEAMQBRAOEAkQBBAKEBUQEBAR"
+                            }
+                          },
+                          "accessibilityData": {
+                            "accessibilityData": {
+                              "label": "Mostrar resultados de artistas"
+                            }
+                          },
+                          "isSelected": false,
+                          "uniqueId": "Artistas"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_DEFAULT"
+                          },
+                          "text": {
+                            "runs": [
+                              {
+                                "text": "Playlists em destaque"
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "searchEndpoint": {
+                              "query": "jazz instrumental",
+                              "params": "EgeKAQQoADgBahIQAxAFEA4QCRAEEAoQFRAQEBE%3D"
+                            }
+                          },
+                          "accessibilityData": {
+                            "accessibilityData": {
+                              "label": "Mostrar Playlists em destaque"
+                            }
+                          },
+                          "isSelected": false,
+                          "uniqueId": "Playlists em destaque"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_DEFAULT"
+                          },
+                          "text": {
+                            "runs": [
+                              {
+                                "text": "Álbuns"
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "searchEndpoint": {
+                              "query": "jazz instrumental",
+                              "params": "EgWKAQIYAWoSEAMQBRAOEAkQBBAKEBUQEBAR"
+                            }
+                          },
+                          "accessibilityData": {
+                            "accessibilityData": {
+                              "label": "Mostrar resultados de álbuns"
+                            }
+                          },
+                          "isSelected": false,
+                          "uniqueId": "Álbuns"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_DEFAULT"
+                          },
+                          "text": {
+                            "runs": [
+                              {
+                                "text": "Vídeos"
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "searchEndpoint": {
+                              "query": "jazz instrumental",
+                              "params": "EgWKAQIQAWoSEAMQBRAOEAkQBBAKEBUQEBAR"
+                            }
+                          },
+                          "accessibilityData": {
+                            "accessibilityData": {
+                              "label": "Mostrar resultados de vídeos"
+                            }
+                          },
+                          "isSelected": false,
+                          "uniqueId": "Vídeos"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_DEFAULT"
+                          },
+                          "text": {
+                            "runs": [
+                              {
+                                "text": "Playlists da comunidade"
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "searchEndpoint": {
+                              "query": "jazz instrumental",
+                              "params": "EgeKAQQoAEABahIQAxAFEA4QCRAEEAoQFRAQEBE%3D"
+                            }
+                          },
+                          "accessibilityData": {
+                            "accessibilityData": {
+                              "label": "Mostrar os resultados de playlists da comunidade"
+                            }
+                          },
+                          "isSelected": false,
+                          "uniqueId": "Playlists da comunidade"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_DEFAULT"
+                          },
+                          "text": {
+                            "runs": [
+                              {
+                                "text": "Perfis"
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "searchEndpoint": {
+                              "query": "jazz instrumental",
+                              "params": "EgWKAQJYAWoSEAMQBRAOEAkQBBAKEBUQEBAR"
+                            }
+                          },
+                          "accessibilityData": {
+                            "accessibilityData": {
+                              "label": "Mostrar resultados dos perfis"
+                            }
+                          },
+                          "isSelected": false,
+                          "uniqueId": "Perfis"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_DEFAULT"
+                          },
+                          "text": {
+                            "runs": [
+                              {
+                                "text": "Episódios"
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "searchEndpoint": {
+                              "query": "jazz instrumental",
+                              "params": "EgWKAQJIAWoSEAMQBRAOEAkQBBAKEBUQEBAR"
+                            }
+                          },
+                          "accessibilityData": {
+                            "accessibilityData": {
+                              "label": "Exibir resultados de episódios de podcast"
+                            }
+                          },
+                          "isSelected": false,
+                          "uniqueId": "Episódios"
+                        }
+                      },
+                      {
+                        "chipCloudChipRenderer": {
+                          "style": {
+                            "styleType": "STYLE_DEFAULT"
+                          },
+                          "text": {
+                            "runs": [
+                              {
+                                "text": "Podcasts"
+                              }
+                            ]
+                          },
+                          "navigationEndpoint": {
+                            "searchEndpoint": {
+                              "query": "jazz instrumental",
+                              "params": "EgWKAQJQAWoSEAMQBRAOEAkQBBAKEBUQEBAR"
+                            }
+                          },
+                          "accessibilityData": {
+                            "accessibilityData": {
+                              "label": "Mostrar resultados de podcasts"
+                            }
+                          },
+                          "isSelected": false,
+                          "uniqueId": "Podcasts"
+                        }
+                      }
+                    ],
+                    "collapsedRowCount": 1,
+                    "horizontalScrollable": true
+                  }
+                }
+              }
+            },
+            "tabIdentifier": "music_search_catalog"
+          }
+        }
+      ]
+    }
+  }
+}

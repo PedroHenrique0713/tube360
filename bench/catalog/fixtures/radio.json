@@ -1,0 +1,123 @@
+{
+  "contents": {
+    "singleColumnMusicWatchNextResultsRenderer": {
+      "tabbedRenderer": {
+        "watchNextTabbedResultsRenderer": {
+          "tabs": [
+            {
+              "tabRenderer": {
+                "selected": true,
+                "content": {
+                  "musicQueueRenderer": {
+                    "content": {
+                      "playlistPanelRenderer": {
+                        "contents": [
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "videoId": "F12audio001",
+                              "title": {
+                                "simpleText": "Faixa de teste 1"
+                              },
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Artista de demonstração",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "simpleText": "0:04"
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/F12audio001/mqdefault.jpg",
+                                    "width": 320,
+                                    "height": 180
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "videoId": "F12audio002",
+                              "title": {
+                                "simpleText": "Faixa de teste 2"
+                              },
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Artista de demonstração",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "simpleText": "0:04"
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/F12audio002/mqdefault.jpg",
+                                    "width": 320,
+                                    "height": 180
+                                  }
+                                ]
+                              }
+                            }
+                          },
+                          {
+                            "playlistPanelVideoRenderer": {
+                              "videoId": "F12audio003",
+                              "title": {
+                                "simpleText": "Faixa de teste 3"
+                              },
+                              "shortBylineText": {
+                                "runs": [
+                                  {
+                                    "text": "Artista de demonstração",
+                                    "navigationEndpoint": {
+                                      "browseEndpoint": {
+                                        "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw"
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              "lengthText": {
+                                "simpleText": "0:04"
+                              },
+                              "thumbnail": {
+                                "thumbnails": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/F12audio003/mqdefault.jpg",
+                                    "width": 320,
+                                    "height": 180
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
