@@ -212,7 +212,7 @@ bool Client::session(const string& id, string& error) {
     return true;
 }
 
-Video Client::player(const string& id, int height, MediaOffers* offers) {
+Video Client::player(const string& id, int height, MediaOffers* offers, int mode, const string& wantedAudio) {
     if (offers) *offers = {};
     J j;
     Video out;
@@ -258,9 +258,9 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
     if (httpsUrl(hls)) out.hls=std::move(hls);
     int audioRate=0, audioRank=-1;
     Format bestAdaptive, bestMuxed, fallback;
-    auto better = [](const Format& candidate, const Format& best) {
+    auto better = [mode](const Format& candidate, const Format& best) {
         if (candidate.height != best.height) return candidate.height > best.height;
-        if ((candidate.fps <= 30.1) != (best.fps <= 30.1)) return candidate.fps <= 30.1;
+        if (mode != 1 && (candidate.fps <= 30.1) != (best.fps <= 30.1)) return candidate.fps <= 30.1;
         return candidate.fps > best.fps;
     };
     for (auto key : {"formats","adaptiveFormats"}) {
@@ -285,6 +285,16 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
                 const bool original=str(track,"displayName").find("original")!=string::npos;
                 const auto& isDefault=field(track,"audioIsDefault");
                 int rank=(original ? 4 : 0) + (isDefault.is<bool>() && isDefault.get<bool>() ? 2 : 0) + (fmt.itag==140 ? 1 : 0);
+                string name=str(track,"displayName"), language=str(track,"id");
+                language=language.substr(0,language.find('.'));
+                string lower=name; std::transform(lower.begin(),lower.end(),lower.begin(),[](unsigned char c){ return char(std::tolower(c)); });
+                bool automatic=lower.find("auto")!=string::npos;
+                bool isOriginal=original || lower.find("original")!=string::npos;
+                rank=(isOriginal ? 4 : 0) + (isDefault.is<bool>() && isDefault.get<bool>() ? 2 : 0) + (fmt.itag==140 ? 1 : 0);
+                string code=audioCode(language,isOriginal,automatic);
+                auto existing=std::find_if(out.audioTracks.begin(),out.audioTracks.end(),[&](const AudioTrack& t){ return t.code==code; });
+                if (existing==out.audioTracks.end()) out.audioTracks.push_back({code,language,name,isOriginal,automatic,isDefault.is<bool>() && isDefault.get<bool>(),fmt});
+                else if (fmt.itag==140 && existing->format.itag!=140) existing->format=fmt;
                 if (out.audio.url.empty() || rank>audioRank || (rank==audioRank && rate>audioRate)) { out.audio=fmt; audioRate=rate; audioRank=rank; }
             } else if (mime.find("video/mp4")==0 && mime.find("avc1")!=string::npos &&
                 fmt.height>0 && fmt.height<=1080 && fmt.fps>0 && fmt.fps<=60.1 &&
@@ -298,7 +308,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
                         if (muxed && mime.find("mp4a")!=string::npos) ++count.muxedAac;
                     }
                 }
-                if (!direct || fmt.height>(height>=720 ? 1080 : height) ||
+                if (!direct || fmt.height>(height>=720 ? (mode==1 ? 720 : 1080) : height) ||
                     (muxed && (fmt.height>720 || mime.find("mp4a")==string::npos))) continue;
                 if (fmt.height<=720 && better(fmt,fallback)) fallback=fmt;
                 auto& best=muxed ? bestMuxed : bestAdaptive;
@@ -306,8 +316,24 @@ Video Client::player(const string& id, int height, MediaOffers* offers) {
             }
         }
     }
+    auto chosen=std::find_if(out.audioTracks.begin(),out.audioTracks.end(),[&](const AudioTrack& t){ return t.code==wantedAudio; });
+    if (chosen==out.audioTracks.end() && wantedAudio!="original") {
+        bool language=wantedAudio.rfind("lang:",0)==0;
+        size_t split=wantedAudio.rfind('-');
+        string wanted=language ? wantedAudio.substr(5) : wantedAudio.substr(0,split);
+        chosen=std::find_if(out.audioTracks.begin(),out.audioTracks.end(),[&](const AudioTrack& t){
+            return t.language.substr(0,t.language.find('-'))==wanted.substr(0,wanted.find('-')) &&
+                   (language || (split!=string::npos && t.code.substr(t.code.rfind('-'))==wantedAudio.substr(split)));
+        });
+    }
+    if (chosen!=out.audioTracks.end()) out.audio=chosen->format;
+    for (const auto& track : out.audioTracks) if (track.format.url==out.audio.url) out.selectedAudio=track.code;
     out.muxed = !bestMuxed.url.empty() && (out.audio.url.empty() || !better(bestAdaptive,bestMuxed));
     out.video = out.muxed ? bestMuxed : bestAdaptive;
+    if (out.audioTracks.size()>1 && !out.audio.url.empty()) {
+        out.muxed=false;
+        out.video=bestAdaptive.url.empty() ? bestMuxed : bestAdaptive;
+    }
     if (out.video.height>720) out.fallbackVideo=fallback;
     if (out.muxed) out.audio={};
     if (out.hls.empty()) {

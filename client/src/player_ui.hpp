@@ -2,8 +2,9 @@
 #include <cstdint>
 
 struct PlayerUI {
-  enum Panel { NONE, CAPTIONS, QUALITY, SOUND } panel = NONE;
-  enum Option { CC, VIDEO, AUDIO, TIMER, RATE, CHANNEL, COUNT };
+  enum Panel { NONE, CAPTIONS, QUALITY, SOUND, TRACKS } panel = NONE;
+  enum Option { CC, VIDEO, AUDIO, TRACK, TIMER, RATE, CHANNEL, COUNT };
+  bool tracks = false;
   uint64_t until = 0;
   bool options = false;
   int selected = TIMER, panelSel = 0, sleepRow = 0;
@@ -11,13 +12,14 @@ struct PlayerUI {
 
   bool visible(uint64_t now) const { return options || panel != NONE || now < until; }
   void touch(uint64_t now) { until = now + timeout; }
-  void reset(uint64_t now) { options = false; panel = NONE; sleepRow = 0; touch(now); }
+  void reset(uint64_t now) { options = false; panel = NONE; sleepRow = 0; if (!tracks && selected==TRACK) selected=VIDEO; touch(now); }
   // Retorna o salto somente quando a trilha já tinha o foco antes do toque.
   int direction(uint64_t now, int horizontal, int vertical) {
     if (!visible(now)) { options = false; touch(now); return 0; }
     touch(now);
     if (options) {
       selected = (selected + horizontal + COUNT) % COUNT;
+      if (!tracks && selected==TRACK) selected=(selected+(horizontal<0 ? -1 : 1)+COUNT)%COUNT;
       if (vertical < 0) options = false;
       return 0;
     }

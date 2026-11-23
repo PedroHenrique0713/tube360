@@ -15,6 +15,25 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(Console, "Console", "Console") \
   X(ServerMode, "Server", "Servidor") \
   X(Automatic, "Automatic", "Automático") \
+  X(Video720Fast, "720p · 60 fps", "720p · 60 fps") \
+  X(Video1080Detail, "1080p · 30 fps", "1080p · 30 fps") \
+  X(VideoAdjusted, "Adjusted to keep playback smooth", "Ajustado para manter a reprodução fluida") \
+  X(DisplayOutput, "TV output", "Saída da TV") \
+  X(Display1080Help, "For native 1080p, select 1080p (progressive) in Xbox Display Settings and use HDMI.", "Para 1080p nativo, selecione 1080p progressivo no painel do Xbox e use HDMI.") \
+  X(AudioTrack, "Audio", "Áudio") \
+  X(AudioPreference, "Audio preference", "Preferência de áudio") \
+  X(AudioAlwaysOriginal, "Always original", "Sempre o original") \
+  X(AudioInterface, "Interface language when available", "Idioma da interface quando houver") \
+  X(AudioOriginal, "Original", "Original") \
+  X(AudioAutoDub, "automatically dubbed", "dublado automaticamente") \
+  X(AudioDub, "dubbed", "dublado") \
+  X(AudioEnglish, "English", "inglês") \
+  X(AudioPortuguese, "Portuguese", "português") \
+  X(AudioSpanish, "Spanish", "espanhol") \
+  X(AudioFrench, "French", "francês") \
+  X(AudioGerman, "German", "alemão") \
+  X(AudioJapanese, "Japanese", "japonês") \
+  X(AudioUnknown, "Audio track", "Faixa de áudio") \
   X(Home, "Home", "Início") \
   X(Search, "Search", "Buscar") \
   X(Phone, "Phone", "Celular") \
