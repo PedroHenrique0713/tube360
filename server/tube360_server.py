@@ -1124,6 +1124,11 @@ def nav_response(data, lang=LANGUAGE):
               int(bool(data.get("subscribed"))), int(bool(data.get("more"))), data.get("channel_id", "")]
     lines = ["ok\t" + "\t".join(clean(v) for v in fields)]
     for item in data.get("items", []):
+        item = dict(item)
+        if item.get("type") == "channel":
+            item["channel"] = nav_subtitle(item.get("channel", ""), lang)
+        elif item.get("type") == "album":
+            item["channel"] = re.sub(r"^(Album|Álbum)\s*[•·]\s*", "", item.get("channel", ""), flags=re.I)
         lines.append("\t".join(clean(item.get(k, "")) for k in
                      ("type", "id", "title", "channel", "duration", "image", "channel_id", "section")))
     return PlainTextResponse("\n".join(lines) + "\n", headers={"Cache-Control": "no-store"})
