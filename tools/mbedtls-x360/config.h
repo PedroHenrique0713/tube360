@@ -1,3 +1,4 @@
+#include "../../client/src/yt/tls-threading.h"
 // I/O será feito pelo transporte do console. Validade de certificados requer relógio civil.
 #undef MBEDTLS_NET_C
 #undef MBEDTLS_TIMING_C
