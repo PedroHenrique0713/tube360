@@ -1,4 +1,4 @@
-// Player: puxa o MPEG-PS do servidor (docs/PROTOCOLO.md, /api/stream), decodifica com o pl_mpeg e entrega quadros
+// Player: negocia MPEG-TS/H.264 ou MPEG-PS/MPEG-1 em /api/stream e entrega quadros
 // YUV e áudio. Três threads: rede (enche o anel), decodificação (enche a fila de quadros e o áudio do SDL) e a
 // principal (escolhe o quadro pelo relógio do áudio). No 360 cada thread pesada vai para um núcleo próprio: o xsdk
 // cria toda thread no núcleo de quem a criou (xsdk/thread.h).
@@ -12,7 +12,9 @@
 #include <vector>
 
 #include "net.hpp"
+#include "http_chunks.hpp"
 #include "pl_mpeg.h"
+#include "h264.hpp"
 #ifdef __XSDK__
 #include "xsdk/thread.h"
 #include "xsdk/audio.h"
@@ -28,7 +30,7 @@ inline void moveToHardwareThread(int hw) {
 #endif
 }
 
-struct Frame { double pts = 0; int w = 0, h = 0; std::vector<uint8_t> yuv; };
+struct Frame { double pts = 0; int w = 0, h = 0; bool bt709 = false, fullRange = false; std::vector<uint8_t> yuv; };
 
 // Ajudantes da decodificação por fatias do pl_mpeg (plm_video_run_parallel): a thread do decodificador roda a faixa 0
 // e cada ajudante roda a sua num núcleo livre do 360 (hardware threads 3, 1 e 4; o decodificador fica na 2 e a tela na 0).
@@ -79,6 +81,11 @@ struct Player {
   // fila de quadros (protegida por mu)
   std::deque<Frame*> frames; std::vector<Frame*> spare; int maxFrames = 10;
   bool decEnded = false;
+  std::atomic<bool> original{false}, retryConverted{false};
+  std::atomic<bool> allowOriginal{true};
+  int queueMin = 0;
+  uint64_t originalWatch = 0;
+  std::atomic<unsigned> pauseChanges{0};
 
   // áudio
   SDL_AudioStream* audio = nullptr; std::atomic<bool> hasAudio{false};
@@ -174,7 +181,9 @@ struct Player {
   static int nestMain(void* p) { ((Player*)p)->nestLoop(); return 0; }
 
   void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker) {
+    if (vid != id || state == IDLE || quality != q) allowOriginal = true;
     halt(!speaker);
+    original = retryConverted = false; originalWatch = 0; queueMin = maxFrames;
     speakerRequested = speaker; nest = false;
     srv = s; id = vid; startAt = std::max(0.0, t); title = ttl; duration = dur; quality = q; error.clear();
     ring.assign(6u << 20, 0); rhead = rcount = 0; netEof = netErr = false; decEnded = false;
@@ -231,7 +240,7 @@ struct Player {
     moveToHardwareThread(4);
     net::Response r; std::vector<uint8_t> extra;
     char path[256];
-    std::snprintf(path, sizeof(path), "/api/stream/%s?t=%.2f&q=%d%s", id.c_str(), startAt, quality, speakerRequested ? "&speaker=1" : "");
+    std::snprintf(path, sizeof(path), "/api/stream/%s?t=%.2f&q=%d%s%s", id.c_str(), startAt, quality, allowOriginal ? "&codec=h264" : "", speakerRequested ? "&speaker=1" : "");
     int fd = net::connectTo(srv, 20000);
     SDL_LockMutex(mu); sock = fd; SDL_UnlockMutex(mu);
     if (stop || fd < 0 || !net::readGet(fd, srv, path, r, extra) || r.status != 200) {
@@ -255,6 +264,7 @@ struct Player {
     if (!tt.empty() && title.empty()) title = net::urlDecode(tt);
     std::string sid = net::header(r, "X-Stream-Id");
     if (!speakerRequested && net::header(r, "X-Nest-Handoff") != "1") output = LOCAL;
+    original = net::header(r, "X-Video-Codec") == "h264";
     session = sid.empty() ? -1 : std::atoi(sid.c_str());
     if (state == CONNECTING) state = BUFFERING;
     auto put = [&](const uint8_t* p, size_t n) {
@@ -270,14 +280,23 @@ struct Player {
       }
       SDL_UnlockMutex(mu);
     };
-    if (!extra.empty()) put(extra.data(), extra.size());
+    std::string encoding = net::header(r, "Transfer-Encoding");
+    std::transform(encoding.begin(), encoding.end(), encoding.begin(), [](unsigned char c){ return std::tolower(c); });
+    const bool chunked = encoding == "chunked";
+    net::ChunkReader chunks;
+    auto deliver = [&](const uint8_t* p, size_t n) {
+      if (chunked) return chunks.feed(p, n, put);
+      put(p, n); return true;
+    };
+    bool valid = deliver(extra.data(), extra.size());
     std::vector<uint8_t> buf(64 << 10);
-    while (!stop) {
+    while (!stop && valid && !chunks.finished()) {
       ssize_t n = ::recv(fd, buf.data(), buf.size(), 0);
       if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK) && !stop) continue;  // pausa longa: o servidor só espera
       if (n <= 0) break;
-      put(buf.data(), (size_t)n);
+      valid = deliver(buf.data(), (size_t)n);
     }
+    if (original && !stop && (!valid || (chunked && !chunks.finished()))) retryConverted = true;
     SDL_LockMutex(mu); sock = -1; netEof = true; SDL_BroadcastCondition(cv); SDL_UnlockMutex(mu);
     ::close(fd);
   }
@@ -304,8 +323,31 @@ struct Player {
 
   double audioQueuedSec() { return audio ? SDL_GetAudioStreamQueued(audio) / (44100.0 * 2 * 4) : 0; }
 
+  void trimReserve() {
+    // Descartar PCM realmente enfileirado, no formato do dispositivo, somente enquanto a reserva está muda.
+    int trim = trimMs.exchange(-1);
+    if (trim > 0 && outputFrameBytes && hasAudio) {
+      uint8_t discarded[4096];
+      SDL_LockAudioStream(audio);
+      double queued = audioQueuedSec();
+      int bytes = int(std::min(queued, std::max(0.0, trim / 1000.0 - tvClock(0, queued))) * outputBytesPerSec);
+      while (bytes >= outputFrameBytes && !stop) {
+        int n = std::min(bytes, (int)sizeof(discarded)) / outputFrameBytes * outputFrameBytes;
+        int got = SDL_GetAudioStreamData(audio, discarded, n);
+        if (got <= 0) break;
+        bytes -= got;
+      }
+      SDL_UnlockAudioStream(audio);
+    }
+  }
+
   void decLoop() {
     moveToHardwareThread(2);
+    SDL_LockMutex(mu);
+    while (!rcount && !netEof && !netErr && !stop) SDL_WaitCondition(cv, mu);
+    SDL_UnlockMutex(mu);
+    if (stop) return;
+    if (original) { decodeOriginal(); return; }
     plm_buffer_t* buf = plm_buffer_create_with_capacity(512 << 10);
     plm_buffer_set_load_callback(buf, loadCb, this);
     plm_t* plm = plm_create_with_buffer(buf, 1);
@@ -342,21 +384,7 @@ struct Player {
         SDL_UnlockAudioStream(audio);
         did = true;
       }
-      // Descartar PCM realmente enfileirado, no formato do dispositivo, somente enquanto a reserva está muda.
-      int trim = trimMs.exchange(-1);
-      if (trim > 0 && outputFrameBytes && hasAudio) {
-        uint8_t discarded[4096];
-        SDL_LockAudioStream(audio);
-        double queued = audioQueuedSec();
-        int bytes = int(std::min(queued, std::max(0.0, trim / 1000.0 - tvClock(0, queued))) * outputBytesPerSec);
-        while (bytes >= outputFrameBytes && !stop) {
-          int n = std::min(bytes, (int)sizeof(discarded)) / outputFrameBytes * outputFrameBytes;
-          int got = SDL_GetAudioStreamData(audio, discarded, n);
-          if (got <= 0) break;
-          bytes -= got;
-        }
-        SDL_UnlockAudioStream(audio);
-      }
+      trimReserve();
       // atrasado em relação ao áudio: pula quadros B até alcançar
       double c = masterMs.load() / 1000.0;
       bool nearCue = output == PRIMING && std::fabs(lastDecodedPts - cueMs / 1000.0) < 0.4;
@@ -385,19 +413,35 @@ struct Player {
   }
 
   void enqueue(plm_frame_t* f) {
+    const uint8_t* planes[] = {f->y.data, f->cb.data, f->cr.data};
+    const int strides[] = {(int)f->y.width, (int)f->cb.width, (int)f->cr.width};
+    enqueuePlanes(f->width, f->height, f->time, planes, strides, false, false);
+  }
+
+  void enqueuePlanes(int w, int h, double pts, const uint8_t* const* planes, const int* strides, bool bt709, bool full) {
     SDL_LockMutex(mu);
     Frame* fr = spare.empty() ? new Frame() : spare.back();
     if (!spare.empty()) spare.pop_back();
     SDL_UnlockMutex(mu);
-    int w = (int)f->width, h = (int)f->height, cw = (w + 1) / 2, ch = (h + 1) / 2;
-    fr->w = w; fr->h = h; fr->pts = f->time;
+    int cw = (w + 1) / 2, ch = (h + 1) / 2;
+    fr->w = w; fr->h = h; fr->pts = pts; fr->bt709 = bt709; fr->fullRange = full;
     fr->yuv.resize((size_t)w * h + 2 * (size_t)cw * ch);
-    uint8_t* o = fr->yuv.data();
-    for (int y = 0; y < h; y++, o += w) std::memcpy(o, f->y.data + (size_t)y * f->y.width, (size_t)w);
-    for (int y = 0; y < ch; y++, o += cw) std::memcpy(o, f->cb.data + (size_t)y * f->cb.width, (size_t)cw);
-    for (int y = 0; y < ch; y++, o += cw) std::memcpy(o, f->cr.data + (size_t)y * f->cr.width, (size_t)cw);
+    uint8_t* dst = fr->yuv.data();
+    for (int i = 0; i < 3; ++i) {
+      int width = i ? cw : w, height = i ? ch : h;
+      if (strides[i] == width) {
+        size_t bytes = size_t(width) * height;
+        std::memcpy(dst, planes[i], bytes); dst += bytes;
+      } else {
+        for (int y = 0; y < height; ++y, dst += width) std::memcpy(dst, planes[i] + y * strides[i], width);
+      }
+    }
     SDL_LockMutex(mu); frames.push_back(fr); SDL_UnlockMutex(mu);
   }
+
+  static int readOriginal(void* user, uint8_t* dst, int size);
+  bool putOriginalAudio(h264::Stream& s, int count, double pts);
+  void decodeOriginal();
 
   void nestLoop() {
     moveToHardwareThread(5);
@@ -511,7 +555,7 @@ struct Player {
 
   void setPaused(bool p, bool notifySpeaker = true) {
     if (p == paused) return;
-    paused = p;
+    paused = p; ++pauseChanges;
     if (speakerRequested && notifySpeaker) nestCmd = p ? 1 : 2;
     if (audio) {
       if (p) SDL_PauseAudioStreamDevice(audio);
@@ -531,6 +575,15 @@ struct Player {
     double now = SDL_GetTicksNS() / 1e6;
     uint64_t ms = SDL_GetTicks();
     wantedOffsetMs = (int)std::lround(nestOffset * 1000);
+    if (original && !paused && (state == BUFFERING || state == PLAYING)) {
+      if (!originalWatch) originalWatch = ms;
+      if (retryConverted || ms - std::max(originalWatch, lastFrameMs) > 6500) {
+        LOG("decod: H.264 -> MPEG-1 em %.3f s", position());
+        allowOriginal = false;
+        start(srv, id, position(), title, duration, quality, speakerRequested);
+        return nullptr;
+      }
+    } else originalWatch = 0;
     bool starved = false;
     if (live && !paused && lastFrameMs && ms - lastFrameMs > 1100 &&
         (uint32_t)ms - lastPacketMs.load() > (speakerRequested ? 3000u : 1350u) &&
@@ -554,7 +607,7 @@ struct Player {
     }
     SDL_LockMutex(mu);
     Frame* show = nullptr;
-    if (firstPts < 0 && !paused && !frames.empty() && (frames.size() >= (speakerRequested && live ? 6u : 2u) || decEnded) &&
+    if (firstPts < 0 && !paused && !frames.empty() && (frames.size() >= (original || (speakerRequested && live) ? 6u : 2u) || decEnded) &&
         (!hasAudio || audioQueuedSec() >= (speakerRequested && live ? 0.20 : 0.10) || decEnded)) {
       pictureReady = true;
       if (!readyMs) readyMs = ms;
@@ -573,6 +626,8 @@ struct Player {
       if (audio) SDL_UnlockAudioStream(audio);
       double dt = std::max(0.0, (now - tickMs) / 1000.0);
       double predicted = screenSec + dt;
+      // O último PCM já foi entregue ao dispositivo. Apresenta também a cauda do vídeo até o último PTS.
+      if (original && decEnded && queued <= 0) tv = std::max(tv, predicted);
       bool follow = speaker >= 0 && route == CAST;
       bool local = route == LOCAL || route == PRIMING;
       double cue = cueMs / 1000.0;
@@ -599,6 +654,10 @@ struct Player {
       while (!frames.empty() && frames.front()->pts <= screenSec + 0.010) {
         if (show) { spare.push_back(show); droppedFrames++; }
         show = frames.front(); frames.pop_front();
+      }
+      if (original) {
+        queueMin = std::min(queueMin, (int)frames.size());
+        if (show) SDL_BroadcastCondition(cv);
       }
       double display = show ? show->pts : lastPos - (live ? 0 : startAt);
       bool aligned = std::fabs(tv - display) <= 0.022 && (queued >= 0.10 || decEnded);
@@ -640,7 +699,7 @@ struct Player {
     }
     bool drained = decEnded && frames.empty();
     SDL_UnlockMutex(mu);
-    if (drained && state != FAILED && (!hasAudio || audioQueuedSec() < 0.05)) state = ENDED;
+    if (drained && !retryConverted && state != FAILED && (!hasAudio || audioQueuedSec() < 0.05)) state = ENDED;
     return show;
   }
   void recycle(Frame* f) { SDL_LockMutex(mu); spare.push_back(f); SDL_UnlockMutex(mu); }
@@ -650,3 +709,5 @@ struct Player {
 };
 
 }  // namespace player
+
+#include "player_h264.hpp"

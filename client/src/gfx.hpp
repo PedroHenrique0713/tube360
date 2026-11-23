@@ -49,6 +49,7 @@ struct Font { float size = 0, ascent = 0, lineH = 0; std::map<uint32_t, Glyph> g
 // Quadro do vídeo: três texturas de um canal e o descritor que liga as três.
 struct Video {
   Tex y, cb, cr; VkDescriptorSet set = VK_NULL_HANDLE; Buf staging[2]; int w = 0, h = 0; bool ready = false;
+  bool bt709 = false, fullRange = false;
   bool pending[2] = {false, false};
 };
 
@@ -397,8 +398,15 @@ inline float textGrad(Gfx& g, int font, const std::string& s, float x, float y, 
 
 inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 1) {
   if (!g.video || !g.video->ready) return;
-  float p[4] = {0, 0, 0, 0};
-  quad(g, VIDEO, g.video->set, p, x, y, w, h, {1, 1, 1, alpha});
+  float scale = std::min(w / g.video->w, h / g.video->h);
+  float vw = scale * g.video->w, vh = scale * g.video->h;
+  x += (w - vw) * .5f; y += (h - vh) * .5f; w = vw; h = vh;
+  bool hd = g.video->bt709, full = g.video->fullRange;
+  float c = full ? 1.f : 255.f / 224.f;
+  float p[4] = {(hd ? 1.5748f : 1.402f) * c, (hd ? 1.8556f : 1.772f) * c,
+                full ? 1.f : 255.f / 219.f, full ? 0.f : 16.f / 255.f};
+  // Os dois coeficientes do verde usam a cor constante dos vértices. A matriz já chega pronta ao Xenos.
+  quad(g, VIDEO, g.video->set, p, x, y, w, h, {(hd ? .187324f : .344136f) * c, (hd ? .468124f : .714136f) * c, 0, alpha});
 }
 
 // ---------------------------------------------------------------- vídeo

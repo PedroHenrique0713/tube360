@@ -11,6 +11,9 @@ target_include_directories(tube360 PRIVATE ${CMAKE_CURRENT_LIST_DIR} ${CMAKE_CUR
   ${V4X}/include ${V4X}/third_party/vulkan-headers/include)
 target_link_libraries(tube360 PRIVATE ${V4X}/build/libvulkan4xenon.a SDL3::SDL3-static)
 set_property(TARGET tube360 APPEND PROPERTY LINK_DEPENDS ${V4X}/build/libvulkan4xenon.a)
+target_sources(tube360 PRIVATE ffmpeg-libc.c)
+target_link_options(tube360 PRIVATE -Wl,--wrap=pthread_create)
+include(../ffmpeg.cmake)
 # title ID próprio ("XTUB") e o nome que o Aurora mostra
 set(APP_NAME "Tube360" CACHE STRING "Nome que o Aurora e o painel mostram")
 xsdk_add_xex(tube360 TITLE_ID 0x58545542 NAME "${APP_NAME}" VERSION 1.0.0.0)

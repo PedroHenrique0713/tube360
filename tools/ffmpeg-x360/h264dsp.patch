@@ -1,0 +1,7 @@
+--- a/libavcodec/ppc/h264dsp.c
++++ b/libavcodec/ppc/h264dsp.c
+@@ -807,0 +808,2 @@
++        /* Tube360, 2026-11-23: o VMX128 nao implementa vmladduhm. */
++#ifndef __XSDK__
+@@ -811,0 +814 @@
++#endif
