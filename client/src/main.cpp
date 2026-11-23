@@ -547,8 +547,8 @@ int main(int argc, char** argv) {
     playing = v; playerFromRemote = fromRemote;
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
-    pl.nest = nestOut && (!nestChecked || nestAvailable) && !nestSkip; pl.nestOffset = nestOffsetMs / 1000.0;
-    pl.start(srv, v.id, t, v.title, v.dur, quality);
+    pl.nestOffset = nestOffsetMs / 1000.0;
+    pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && (!nestChecked || nestAvailable) && !nestSkip);
     if (screen != PLAYER) backTo = screen;
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
@@ -896,7 +896,6 @@ int main(int argc, char** argv) {
           } else if (!playerUI.panelSel || nestAvailable) {
             bool speaker = playerUI.panelSel == 1;
             change = speaker != pl.nest; nestOut = speaker; nestSkip = false;
-            if (!speaker) control.add({5, "/api/nest/stop", 0});
           } else { toast = tr(K::NoSpeaker); toastUntil = now + 3000; }
           if (change) { startVideo(playing, pl.live ? 0 : pl.position(), playerFromRemote); saveSettings(); }
           playerUI.options = true; playerUI.panel = PlayerUI::NONE;
@@ -1181,7 +1180,6 @@ int main(int argc, char** argv) {
           bool row = playerUI.options;
           if (nestSkip && nestOut) nestSkip = false;
           else nestOut = !nestOut;
-          if (!nestOut) control.add({5, "/api/nest/stop", 0});
           startVideo(playing, pl.position(), playerFromRemote); playerUI.options = row;
           toast = tr(K::SoundPrefix) + (nestOut ? nestName : std::string(tr(K::TV)));
           saveSettings();

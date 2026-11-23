@@ -33,8 +33,13 @@ inline int connectTo(const Server& s, int timeoutMs) {
 
 inline bool sendAll(int fd, const std::string& s) {
   size_t off = 0;
+#ifdef MSG_NOSIGNAL
+  constexpr int flags = MSG_NOSIGNAL;
+#else
+  constexpr int flags = 0;
+#endif
   while (off < s.size()) {
-    ssize_t n = ::send(fd, s.data() + off, s.size() - off, 0);
+    ssize_t n = ::send(fd, s.data() + off, s.size() - off, flags);
     if (n <= 0) return false;
     off += (size_t)n;
   }
@@ -64,27 +69,31 @@ inline std::string urlDecode(const std::string& s) {
 
 struct Response { int status = 0; std::string headers; std::vector<uint8_t> body; };
 
-// Abre GET e lê até o fim dos cabeçalhos. Devolve o fd (o corpo segue nele) e o que já veio do corpo em `extra`.
-inline int openGet(const Server& s, const std::string& path, int timeoutMs, Response& r, std::vector<uint8_t>& extra) {
-  int fd = connectTo(s, timeoutMs);
-  if (fd < 0) return -1;
-  if (!sendAll(fd, "GET " + path + " HTTP/1.0\r\nHost: " + s.ip + "\r\nUser-Agent: Tube360/1.0\r\n\r\n")) { ::close(fd); return -1; }
+// Não fecha o fd: o player também pode interromper a espera pelos cabeçalhos durante uma busca ou saída.
+inline bool readGet(int fd, const Server& s, const std::string& path, Response& r, std::vector<uint8_t>& extra) {
+  if (!sendAll(fd, "GET " + path + " HTTP/1.0\r\nHost: " + s.ip + "\r\nUser-Agent: Tube360/1.0\r\n\r\n")) return false;
   std::vector<uint8_t> buf;
   uint8_t tmp[8192];
   for (;;) {
     ssize_t n = ::recv(fd, tmp, sizeof(tmp), 0);
-    if (n <= 0) { ::close(fd); return -1; }
+    if (n <= 0) return false;
     buf.insert(buf.end(), tmp, tmp + n);
     for (size_t i = 0; i + 3 < buf.size(); i++) {
       if (std::memcmp(&buf[i], "\r\n\r\n", 4) == 0) {
         r.headers.assign((const char*)buf.data(), i);
         std::sscanf(r.headers.c_str(), "HTTP/%*d.%*d %d", &r.status);
         extra.assign(buf.begin() + (long)i + 4, buf.end());
-        return fd;
+        return true;
       }
     }
-    if (buf.size() > 65536) { ::close(fd); return -1; }
+    if (buf.size() > 65536) return false;
   }
+}
+
+inline int openGet(const Server& s, const std::string& path, int timeoutMs, Response& r, std::vector<uint8_t>& extra) {
+  int fd = connectTo(s, timeoutMs);
+  if (fd >= 0 && !readGet(fd, s, path, r, extra)) { ::close(fd); return -1; }
+  return fd;
 }
 
 inline std::string header(const Response& r, const char* name) {
