@@ -215,3 +215,37 @@ class AudioTests(unittest.IsolatedAsyncioTestCase):
         self.n.command("stop")
         self.assertEqual(b"".join([b async for b in chunks]), b"")
         self.assertNotIn("content-length", res.headers)
+
+    async def test_stop_durante_preparo_nao_entrega_range_revogada(self):
+        self.path.write_bytes(b'a' * 1024)
+        self.n.token = 's=42'
+        entered, release = asyncio.Event(), asyncio.Event()
+
+        async def preparing(*args):
+            entered.set()
+            await release.wait()
+            return self.path, None
+
+        with patch.object(self.m, 'audio_file', preparing):
+            pending = asyncio.create_task(self.get_audio(b'bytes=0-100', b's=42'))
+            await asyncio.wait_for(entered.wait(), 1)
+            self.n.stop_intent()
+            release.set()
+            with self.assertRaises(self.m.HTTPException) as err:
+                await pending
+            self.assertEqual(err.exception.status_code, 410)
+
+    async def test_stop_confere_midia_recebida_depois_da_reconexao(self):
+        cc = FakeCast()
+        self.n.cc, self.n.ours, self.n.token = cc, True, 's=old'
+        st = cc.media_controller.status
+        st.content_id, st.media_session_id = None, None
+
+        def fresh_status():
+            st.content_id = 'http://other/audio?s=new'
+            st.media_session_id = 72
+
+        cc.media_controller.update_status = fresh_status
+        await asyncio.to_thread(self.n.command, 'stop')
+        self.assertNotIn('stop', cc.media_controller.calls)
+        self.assertFalse(self.n.want_stop)

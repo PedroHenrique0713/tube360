@@ -1473,6 +1473,8 @@ async def audio(request: Request, video_id: str, t: float = Query(0, ge=0, le=86
         path, job = await audio_file(video_id, t)
     except Exception:
         raise HTTPException(502, "Não foi possível abrir este áudio.") from None
+    if token and nest.token != "s=" + token:
+        raise HTTPException(410, "Esta sessão de áudio terminou.")
     start = 0
     match = re.fullmatch(r"bytes=(\d+)-(\d*)", request.headers.get("range", ""))
     if match:
@@ -1823,16 +1825,17 @@ class Nest:
                     return
                 mc = cc.media_controller
                 st = mc.status
-                if what == "stop" and self.stopping_token and st.content_id and parse_qs(
-                        urlparse(st.content_id).query).get("s") != [self.stopping_token[2:]]:
-                    self.want_stop = False  # outro remetente já ocupou o receptor
-                    return
                 if what != "stop" and (not self.active or not self.matches(st)):
                     return
                 if not st.media_session_id:
                     mc.update_status()
                     time.sleep(0.25)
                 if rev != self.revision or not self.media_ready(cc):
+                    return
+                st = mc.status
+                if what == "stop" and self.stopping_token and st.content_id and parse_qs(
+                        urlparse(st.content_id).query).get("s") != [self.stopping_token[2:]]:
+                    self.want_stop = False  # outro remetente já ocupou o receptor
                     return
                 if mc.status.media_session_id:
                     {"pause": mc.pause, "resume": mc.play, "stop": mc.stop}[what](timeout=2)
