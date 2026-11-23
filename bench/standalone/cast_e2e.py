@@ -160,7 +160,7 @@ log, _ = run('pc-idle-recover', 13, idle)
 assert 'som: TV' in log and log.count('som: Nest') >= 2
 log, events = run('pc-partition', 20, partition)
 assert 'som: TV' in log and log.count('som: Nest') >= 2
-log, events = run('pc-seek', 10, keys='..RR....U')
+log, events = run('pc-seek', 10, keys='...R....U')
 assert sum(ns.endswith('.media') and data['type'] == 'LOAD' for ns, data in events) == 1
 assert sum(ns.endswith('.media') and data['type'] == 'SEEK' for ns, data in events) == 1
 print('Desktop Cast playback, sparse status, quiet failover, recovery and stop verified', flush=True)
