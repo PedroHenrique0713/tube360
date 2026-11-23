@@ -27,6 +27,9 @@
 #include "gfx.hpp"
 #include "net.hpp"
 #include "player.hpp"
+#include "player_ui.hpp"
+#include "player_text.hpp"
+#include "captions.hpp"
 #include "settings.hpp"
 #include "account.hpp"
 #include "sleep.hpp"
@@ -458,8 +461,19 @@ int main(int argc, char** argv) {
   Color ambient{0.15f, 0.15f, 0.2f, 1}, ambientWant = ambient;
   std::string query; std::vector<std::string> recent;
   int keyRow = 0, keyCol = 0; bool keyInRecent = false; int recentSel = 0;
-  uint64_t overlayUntil = 0; Screen backTo = HOME; std::string toast; uint64_t toastUntil = 0;
+  PlayerUI playerUI; uint64_t& overlayUntil = playerUI.until;
+  Screen backTo = HOME; std::string toast; uint64_t toastUntil = 0;
   Video playing; bool playerFromRemote = false;
+  cc::Loader captionLoader; cc::Data captions;
+  int captionIndex = -1; std::vector<std::string> captionLines; float captionWidth = 0;
+  float captionLineWidths[2]{};
+  PlayerText optionLabels[PlayerUI::COUNT], optionValues[PlayerUI::COUNT];
+  std::string captionVideo, captionInterface;
+  // F3: ligar esta chamada à página do canal e usar channelId (UC...) ou o vídeo como fallback.
+  auto openPlayerChannel = [&](const std::string& channelId, const std::string& videoId) {
+    LOG("player channel: %s video %s", channelId.c_str(), videoId.c_str());
+    toast = tr(K::PlayerChannelPending); toastUntil = SDL_GetTicks() + 3500;
+  };
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false;
   bool livePaused = false;
@@ -505,20 +519,24 @@ int main(int argc, char** argv) {
   if (g.win) SDL_StartTextInput(g.win);
 #endif
   auto startVideo = [&](const Video& v, double t, bool fromRemote) {
+    if (captionVideo != v.id || captionInterface != i18n::code(settings.lang)) {
+      captionVideo = v.id; captionInterface = i18n::code(settings.lang); captions = cc::Data{}; captionIndex = -1; captionLines.clear();
+      captionLoader.request(srv, v.id, i18n::code(settings.lang), settings.captionLang);
+    }
     if (v.id != playing.id) {
       nestSkip = false; likeState.clear(); upNext = Video{};
       control.add({5, "/api/video/" + v.id + "/next", 0});
     }
-    nextAt = 0; endedSent = false; ratePanel = false; livePaused = false;
+    nextAt = 0; endedSent = false; ratePanel = sleepPanel = false; livePaused = false;
     playing = v; playerFromRemote = fromRemote;
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
     pl.nest = nestOut && (!nestChecked || nestAvailable) && !nestSkip; pl.nestOffset = nestOffsetMs / 1000.0;
     pl.start(srv, v.id, t, v.title, v.dur, quality);
     if (screen != PLAYER) backTo = screen;
-    screen = PLAYER; overlayUntil = SDL_GetTicks() + 5000;
+    screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
-  auto stopVideo = [&]() { pl.halt(); ratePanel = false; nextAt = 0; screen = backTo == PLAYER ? HOME : backTo; };
+  auto stopVideo = [&]() { pl.halt(); ratePanel = sleepPanel = false; playerUI.panel = PlayerUI::NONE; playerUI.options = false; nextAt = 0; screen = backTo == PLAYER ? HOME : backTo; };
   // Live pausada não continua de onde parou: o ffmpeg do servidor para junto, e a janela de algumas lives no YouTube
   // tem só 30 s. Continuar abre de novo perto do ao vivo.
   auto resumeLive = [&]() { livePaused = false; startVideo(playing, 0, playerFromRemote); };
@@ -710,7 +728,7 @@ int main(int argc, char** argv) {
         if (c[0] == "pause") pl.setPaused(true);
         else if (c[0] == "resume") { if (pl.live && pl.paused) resumeLive(); else pl.setPaused(false); }
         else if (c[0] == "stop") stopVideo();
-        else if (c[0] == "seek" && c.size() >= 2 && !pl.live) startVideo(playing, std::max(0.0, pl.position() + std::atof(c[1].c_str())), playerFromRemote);
+        else if (c[0] == "seek" && c.size() >= 2 && !pl.live && pl.state != player::CONNECTING) startVideo(playing, std::max(0.0, pl.position() + std::atof(c[1].c_str())), playerFromRemote);
         overlayUntil = now + 4000;
       }
     }
@@ -730,10 +748,17 @@ int main(int argc, char** argv) {
       if (in.hit(Input::A) && !sleepPending) requestSleep("/api/sleep/add?min=15");
       if (in.hit(Input::B) && !sleepPending) requestSleep("/api/sleep/cancel");
     } else if (sleepPanel) {
-      if (in.hit(Input::LEFT)) sleepChoice = (sleepChoice + 7) % 8;
-      if (in.hit(Input::RIGHT)) sleepChoice = (sleepChoice + 1) % 8;
-      if (in.hit(Input::A) && !sleepPending) { applySleep(); sleepPanel = false; }
+      if (in.hit(Input::UP)) playerUI.sleepRow = 0;
+      if (in.hit(Input::DOWN)) playerUI.sleepRow = 1;
+      int direction = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
+      if (!playerUI.sleepRow) sleepChoice = (sleepChoice + direction + 8) % 8;
+      else if (direction || in.hit(Input::A)) {
+        settings.sleepNotebook = !settings.sleepNotebook; saveSettings();
+        if (sleep.active) requestSleep(std::string("/api/sleep/set?target_only=1&what=") + (settings.sleepNotebook ? "xbox_notebook" : "xbox"));
+      }
+      if (in.hit(Input::A) && !playerUI.sleepRow && !sleepPending) { applySleep(); sleepPanel = false; }
       if (in.hit(Input::B)) sleepPanel = false;
+      playerUI.touch(now);
     } else if (ratePanel && (screen != PLAYER || pl.state == player::FAILED)) {
       ratePanel = false;  // o vídeo parou ou falhou com o painel aberto: o A não pode avaliar por trás da grade
     } else if (ratePanel) {
@@ -746,6 +771,43 @@ int main(int argc, char** argv) {
       }
       if (in.hit(Input::B) || in.hit(Input::DOWN)) ratePanel = false;
       overlayUntil = now + 4000;
+    } else if (screen == PLAYER && playerUI.panel != PlayerUI::NONE) {
+      if (in.hit(Input::B)) playerUI.panel = PlayerUI::NONE;
+      else if (playerUI.panel == PlayerUI::CAPTIONS) {
+        if (in.hit(Input::UP)) playerUI.panelSel = 0;
+        if (in.hit(Input::DOWN)) playerUI.panelSel = 1;
+        int direction = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
+        if (captions.failed && in.hit(Input::A) && !captionLoader.loading)
+          captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang);
+        else if (!playerUI.panelSel && !captions.cues.empty() && (direction || in.hit(Input::A))) {
+          settings.captions = !settings.captions; saveSettings();
+        } else if (playerUI.panelSel && !captions.tracks.empty() && !captionLoader.loading && (direction || in.hit(Input::A))) {
+          int index = 0;
+          for (size_t i = 0; i < captions.tracks.size(); i++) if (captions.tracks[i].code == captions.selected) index = (int)i;
+          index = (index + (direction ? direction : 1) + (int)captions.tracks.size()) % (int)captions.tracks.size();
+          settings.captionLang = captions.tracks[(size_t)index].code; settings.captions = true; saveSettings();
+          captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang);
+          captions.cues.clear(); captionIndex = -1; captionLines.clear();
+        }
+      } else {
+        int count = playerUI.panel == PlayerUI::QUALITY ? 3 : 2;
+        if (in.hit(Input::UP) || in.hit(Input::LEFT)) playerUI.panelSel = (playerUI.panelSel + count - 1) % count;
+        if (in.hit(Input::DOWN) || in.hit(Input::RIGHT)) playerUI.panelSel = (playerUI.panelSel + 1) % count;
+        if (in.hit(Input::A)) {
+          bool change = false;
+          if (playerUI.panel == PlayerUI::QUALITY) {
+            int q = playerUI.panelSel == 0 ? 720 : playerUI.panelSel == 1 ? 480 : 360;
+            change = q != quality; quality = q;
+          } else if (!playerUI.panelSel || nestAvailable) {
+            bool speaker = playerUI.panelSel == 1;
+            change = speaker != pl.nest; nestOut = speaker; nestSkip = false;
+            if (!speaker) control.add({5, "/api/nest/stop", 0});
+          } else { toast = tr(K::NoSpeaker); toastUntil = now + 3000; }
+          if (change) { startVideo(playing, pl.live ? 0 : pl.position(), playerFromRemote); saveSettings(); }
+          playerUI.options = true; playerUI.panel = PlayerUI::NONE;
+        }
+      }
+      playerUI.touch(now);
     } else if (screen == PLAYER && nextAt) {
       if (in.hit(Input::A) || in.hit(Input::START)) { Video v = upNext; startVideo(v, 0, false); }
       else if (in.hit(Input::B) || in.hit(Input::BACK)) { nextAt = 0; stopVideo(); }
@@ -865,32 +927,61 @@ int main(int argc, char** argv) {
       if (in.hit(Input::B)) screen = HOME;
     } else if (screen == PLAYER) {
       bool any = false;
-      // Carregando, o A não pausa: a pausa ficava invisível atrás do "Carregando" e o vídeo abria parado em 0:00.
-      if ((in.hit(Input::A) || in.hit(Input::START)) && !pl.waiting()) {
-        if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
-        any = true;
-      }
+      int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
+      int vertical = in.hit(Input::UP) ? 1 : in.hit(Input::DOWN) ? -1 : 0;
       double jump = 0;
-      if (in.hit(Input::LEFT)) jump = -10;
-      if (in.hit(Input::RIGHT)) jump = 10;
+      if (horizontal || vertical) { jump = playerUI.direction(now, horizontal, vertical) * 10; any = true; }
       if (in.hit(Input::LB)) jump = -60;
       if (in.hit(Input::RB)) jump = 60;
-      if (jump != 0 && pl.state != player::FAILED && !pl.live) {
-        double to = std::clamp(pl.position() + jump, 0.0, pl.duration > 0 ? std::max(0.0, pl.duration - 3) : 1e9);
-        startVideo(playing, to, playerFromRemote); any = true;
+      if (jump != 0) {
+        if (pl.state == player::CONNECTING) {
+          LOG("player: seek ignored: live status unknown (CONNECTING)");
+          toast = tr(K::PlayerSeekWait); toastUntil = now + 2500;
+        } else if (pl.live) {
+          LOG("player: seek ignored: live");
+          toast = tr(K::PlayerLiveSeek); toastUntil = now + 2500;
+        } else if (pl.state != player::FAILED) {
+          double to = std::clamp(pl.position() + jump, 0.0, pl.duration > 0 ? std::max(0.0, pl.duration - 3) : 1e9);
+          startVideo(playing, to, playerFromRemote);
+        }
+        any = true;
+      }
+      bool pressA = in.hit(Input::A), open = pressA && playerUI.options;
+      if (open) {
+        playerUI.panelSel = 0;
+        if (playerUI.selected == PlayerUI::TIMER) { sleepPanel = true; playerUI.sleepRow = 0; }
+        else if (playerUI.selected == PlayerUI::RATE) {
+          if (account.signedIn()) { ratePanel = true; rateSel = likeState == "DISLIKE" ? 1 : 0; }
+          else { toast = tr(K::RateSignIn); toastUntil = now + 3500; }
+        } else if (playerUI.selected == PlayerUI::CC) {
+          if (captions.failed || captionLoader.loading || (!captions.live && !captions.tracks.empty())) playerUI.panel = PlayerUI::CAPTIONS;
+        } else if (playerUI.selected == PlayerUI::VIDEO) {
+          playerUI.panel = PlayerUI::QUALITY; playerUI.panelSel = quality == 720 ? 0 : quality == 480 ? 1 : 2;
+        } else if (playerUI.selected == PlayerUI::AUDIO) {
+          playerUI.panel = PlayerUI::SOUND; playerUI.panelSel = pl.nest ? 1 : 0;
+        } else openPlayerChannel(captions.channelId, playing.id);
+        any = true;
+      }
+      // Durante a abertura, A não cria uma pausa invisível atrás do carregamento.
+      if (((pressA && !open) || in.hit(Input::START)) && !pl.waiting()) {
+        if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
+        LOG("player: pause=%d pos=%.2f", pl.paused ? 1 : 0, pl.position());
+        any = true;
       }
       if (in.hit(Input::Y) && pl.state != player::FAILED) {
+        bool row = playerUI.options;
         quality = quality == 720 ? 480 : quality == 480 ? 360 : 720;
-        startVideo(playing, pl.position(), playerFromRemote);
+        startVideo(playing, pl.position(), playerFromRemote); playerUI.options = row;
         toast = std::string(tr(K::QualityPrefix)) + tr(i18n::quality(quality)); toastUntil = now + 2500; saveSettings(); any = true;
       }
       if (in.hit(Input::X)) {
         if (!nestAvailable) toast = tr(K::NoSpeaker);
         else {
+          bool row = playerUI.options;
           if (nestSkip && nestOut) nestSkip = false;
           else nestOut = !nestOut;
           if (!nestOut) control.add({5, "/api/nest/stop", 0});
-          startVideo(playing, pl.position(), playerFromRemote);
+          startVideo(playing, pl.position(), playerFromRemote); playerUI.options = row;
           toast = tr(K::SoundPrefix) + (nestOut ? nestName : std::string(tr(K::TV)));
           saveSettings();
         }
@@ -902,18 +993,19 @@ int main(int argc, char** argv) {
         toast = tr(K::SyncPrefix) + std::to_string(nestOffsetMs) + tr(K::Milliseconds);
         toastUntil = now + 2500; saveSettings(); any = true;
       }
-      if (in.hit(Input::UP)) { sleepPanel = true; any = true; }
-      if (in.hit(Input::DOWN)) {
-        if (account.signedIn()) { ratePanel = true; rateSel = likeState == "DISLIKE" ? 1 : 0; }
-        else { toast = tr(K::RateSignIn); toastUntil = now + 3500; }
-        any = true;
-      }
-      if (any) overlayUntil = now + 4000;
-      if (in.hit(Input::B) || in.hit(Input::BACK)) stopVideo();
+      if (any) playerUI.touch(now);
+      if (in.hit(Input::BACK) || (in.hit(Input::B) && !playerUI.back(now))) stopVideo();
       if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
         nestSkip = true;
         toast = tr(K::SpeakerFallback); toastUntil = now + 5000;
         startVideo(playing, pl.position(), playerFromRemote);
+      }
+
+    }
+    if (screen == PLAYER) {
+      if (captionLoader.pop(captions)) {
+        captionIndex = -1; captionLines.clear();
+        LOG("legendas: %s %s, %u frases, %u idiomas", captionVideo.c_str(), captions.selected.c_str(), (unsigned)captions.cues.size(), (unsigned)captions.tracks.size());
       }
 
     }
@@ -924,7 +1016,7 @@ int main(int argc, char** argv) {
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt) {
       if (!endedSent) {
         SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
-        endedSent = true; ratePanel = false;
+        endedSent = true; ratePanel = sleepPanel = false; playerUI.panel = PlayerUI::NONE;
         // Pedido pelo celular: o app do celular escolhe o próximo. Timer "no fim do vídeo": desliga, não emenda.
         if (!playerFromRemote && !upNext.id.empty() && !(sleep.active && sleep.end)) nextAt = now + 8000;
         else stopVideo();
@@ -1184,42 +1276,130 @@ int main(int argc, char** argv) {
     if (screen == PLAYER) {
       gfx::rect(g, 0, 0, ui::W, ui::H, rgb(0x000000), 0);
       gfx::videoQuad(g, 0, 0, ui::W, ui::H);
-      bool show = pl.paused || now < overlayUntil || pl.waiting() || pl.state == player::FAILED;
+      bool panelOpen = ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt;
+      bool show = playerUI.visible(now) || panelOpen;
       if (show) {
-        gfx::vgrad(g, 0, 0, ui::W, 200, {0, 0, 0, 0.8f}, {0, 0, 0, 0});
-        gfx::vgrad(g, 0, ui::H - 220, ui::W, 220, {0, 0, 0, 0}, {0, 0, 0, 0.88f});
-        std::string ttl = pl.title.empty() ? playing.title : pl.title;
-        gfx::text(g, ui::F_BIG, gfx::ellipsize(g, ui::F_BIG, ttl, ui::W - 2 * 72), 72, 44, ui::TEXT);
-        if (!playing.channel.empty()) gfx::text(g, ui::F_CHAN, playing.channel, 72, 92, ui::MUTED);
+        gfx::vgrad(g, 0, 0, ui::W, 190, {0, 0, 0, 0.82f}, {0, 0, 0, 0});
+        gfx::vgrad(g, 0, 470, ui::W, 250, {0, 0, 0, 0}, {0, 0, 0, 0.94f});
+        const std::string& ttl = !captions.title.empty() ? captions.title : pl.title.empty() ? playing.title : pl.title;
+        gfx::text(g, ui::F_BIG, gfx::ellipsize(g, ui::F_BIG, ttl, ui::W - 144), 72, 40, ui::TEXT);
+        const std::string& channel = captions.channel.empty() ? playing.channel : captions.channel;
+        gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, channel, 760), 72, 90, ui::TEXT);
+        if (!captions.date.empty()) gfx::text(g, ui::F_SMALL, captions.date, 72, 120, ui::MUTED);
+        float statusX = ui::W - 72;
+        gfx::text(g, ui::F_SMALL, tr(i18n::quality(quality)), statusX, 94, ui::TEXT, 2);
+        gfx::text(g, ui::F_SMALL, pl.nest ? nestName : std::string(tr(K::TV)), statusX, 122, ui::MUTED, 2);
         double pos = pl.position(), dur = pl.duration;
-        float bx = 72, by = ui::H - 104, bw = ui::W - 144;
-        gfx::rect(g, bx, by, bw, 6, {1, 1, 1, 0.22f}, 3);
+        float bx = 72, by = 620, bw = ui::W - 144;
+        bool trackFocus = !playerUI.options && !panelOpen;
+        gfx::rect(g, bx, by, bw, 6, {1, 1, 1, 0.26f}, 3);
         bool live = pl.live;
         float frac = live ? 1.f : dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0;
         if (frac > 0) gfx::hgrad(g, bx, by, std::max(6.f, bw * frac), 6, ui::A1, ui::A2, 3);
-        gfx::rect(g, bx + bw * frac - 14, by - 11, 28, 28, ui::alpha(ui::A2, 0.35f), 14, 6);
-        gfx::rect(g, bx + bw * frac - 8, by - 5, 16, 16, rgb(0xffffff), 8);
+        if (!live && dur > 0) {
+          for (const auto& chapter : captions.chapters) {
+            float cx = bx + bw * (float)(chapter.start / dur);
+            if (cx > bx && cx < bx + bw) gfx::rect(g, cx - 2, by - 1, 4, 8, rgb(0x000000), 1);
+          }
+        }
+        if (trackFocus) gfx::rect(g, bx + bw * frac - 13, by - 10, 26, 26, ui::alpha(ui::A2, 0.4f), 13);
+        gfx::rect(g, bx + bw * frac - 7, by - 4, 14, 14, trackFocus ? ui::TEXT : ui::A2, 7);
         if (live) {
-          float lw = gfx::textWidth(g, ui::F_SMALL, tr(K::Live)) + 24;
-          gfx::rect(g, bx, by + 22, lw, 28, ui::A1, 6);
-          gfx::text(g, ui::F_SMALL, tr(K::Live), bx + lw / 2, by + 26, rgb(0xffffff), 1);
+          gfx::rect(g, bx, by + 22, 9, 9, ui::A1, 4.5f);
+          gfx::text(g, ui::F_SMALL, tr(K::Live), bx + 19, by + 17, ui::TEXT);
         } else {
-          gfx::text(g, ui::F_BODY, fmtTime(pos), bx, by + 22, ui::TEXT);
-          if (dur > 0) gfx::text(g, ui::F_BODY, fmtTime(dur), bx + bw, by + 22, ui::MUTED, 2);
+          gfx::text(g, ui::F_SMALL, fmtTime(pos), bx, by + 17, ui::TEXT);
+          if (dur > 0) gfx::text(g, ui::F_SMALL, fmtTime(dur), bx + bw, by + 17, ui::MUTED, 2);
+          const cc::Chapter* chapter = nullptr;
+          for (const auto& c : captions.chapters) if (c.start <= pos) chapter = &c;
+          if (chapter) gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, chapter->title, 800), ui::W / 2, by + 17, ui::TEXT, 1);
         }
-        float hx2 = ui::W / 2 - 430;
-        hx2 = hint(g, hx2, by + 24, "A", XA, pl.paused ? tr(K::Resume) : tr(K::Pause));
-        hx2 = hint(g, hx2, by + 24, "Y", XY, tr(i18n::quality(quality)));
-        hx2 = hint(g, hx2, by + 24, "X", XX, (tr(K::SoundPrefix) + (pl.nest ? nestName : std::string(tr(K::TV)))).c_str());
-        if (!live) {
-          hx2 = hint(g, hx2, by + 24, tr(K::BtnHorizontal), XG, tr(K::TenSeconds));
-          hx2 = hint(g, hx2, by + 24, "LB RB", XG, tr(K::OneMinute));
+        const K labels[] = {K::Captions, K::PlayerQuality, K::Sound, K::SleepTimer, K::Rate, K::PlayerChannel};
+        float optionW = (bw - 5 * 12) / 6;
+        for (int i = 0; i < PlayerUI::COUNT; i++) {
+          float ox = bx + i * (optionW + 12), oy = 518;
+          bool focused = playerUI.options && playerUI.selected == i;
+          bool disabled = i == PlayerUI::CC && !captionLoader.loading && !captions.failed && (captions.live || captions.tracks.empty());
+          if (focused) gfx::rect(g, ox - 3, oy - 3, optionW + 6, 68, ui::TEXT, 15);
+          gfx::rect(g, ox, oy, optionW, 62, focused ? ui::SURFACE2 : ui::alpha(ui::SURFACE, 0.88f), 12);
+          if (focused) gfx::hgrad(g, ox + 14, oy + 56, optionW - 28, 3, ui::A1, ui::A2, 1.5f);
+          auto& label = optionLabels[i]; label.update(g, ui::F_CARD, tr(labels[i]), optionW - 20);
+          gfx::text(g, ui::F_CARD, label.text, ox + (optionW - label.width) / 2, oy + 10, disabled ? ui::FAINT : ui::TEXT);
+          const char* value = "";
+          if (i == PlayerUI::CC) value = tr(captionLoader.loading ? K::Loading : settings.captions && !disabled ? K::CaptionsOn : K::CaptionsOff);
+          else if (i == PlayerUI::VIDEO) value = tr(i18n::quality(quality));
+          else if (i == PlayerUI::AUDIO) value = pl.nest ? nestName.c_str() : tr(K::TV);
+          else if (i == PlayerUI::TIMER) value = tr(sleep.active ? K::PlayerTimerOn : K::SleepOff);
+          else if (i == PlayerUI::RATE) value = tr(likeState == "LIKE" ? K::Liked : likeState == "DISLIKE" ? K::Disliked : K::Open);
+          else value = tr(K::Open);
+          auto& detail = optionValues[i]; detail.update(g, ui::F_TINY, value, optionW - 20);
+          gfx::text(g, ui::F_TINY, detail.text, ox + (optionW - detail.width) / 2, oy + 35, focused ? ui::A2 : ui::MUTED);
         }
-        hint(g, hx2, by + 24, "B", XB, tr(K::Back));
-        float ux = hint(g, 72, by - 42, "↑", XG, tr(K::SleepTimer));
-        float rx = hint(g, ux, by - 42, "↓", XG, tr(K::Rate));
-        if (likeState == "LIKE" || likeState == "DISLIKE")  // a avaliação já dada, como o joinha aceso do YouTube
-          glyph(g, likeState == "LIKE" ? icons::THUMB_UP_FILL : icons::THUMB_DOWN_FILL, false, rx - 22, by - 42, ui::TEXT);
+        if (!panelOpen && playerUI.options && playerUI.selected == PlayerUI::CC && captions.cues.empty()) {
+          K reason = captionLoader.loading ? K::CaptionsLoading : captions.failed ? K::CaptionsFailed : captions.reason == "live_clock" ? K::CaptionsLiveClock : pl.live ? K::CaptionsLiveNone : K::CaptionsNone;
+          gfx::text(g, ui::F_SMALL, tr(reason), 72, 484, ui::TEXT);
+        }
+        if (!panelOpen) {
+          float hx = 72;
+          hx = hint(g, hx, 680, "A", XA, tr(playerUI.options ? K::Open : pl.paused ? K::Resume : K::Pause));
+          hx = hint(g, hx, 680, playerUI.options ? "↓" : "↑", XG, tr(playerUI.options ? K::PlayerTimeline : K::PlayerOptions));
+          hx = hint(g, hx, 680, tr(K::BtnHorizontal), XG, tr(playerUI.options ? K::ChooseRow : K::TenSeconds));
+          hx = hint(g, hx, 680, "Y", XY, tr(K::PlayerQuality));
+          hx = hint(g, hx, 680, "X", XX, tr(K::Sound));
+          hint(g, hx, 680, "B", XB, tr(K::Back));
+        }
+      }
+      if (settings.captions && !captions.failed && !panelOpen && videoTex.ready) {
+        int index = captions.at(pl.position());
+        if (index != captionIndex) {
+          captionIndex = index; captionLines.clear(); captionWidth = 0;
+          if (index >= 0) {
+            captionLines = gfx::wrap(g, ui::F_H2, captions.cues[(size_t)index].text, 1060, 2);
+            for (size_t i = 0; i < captionLines.size(); i++) {
+              captionLineWidths[i] = gfx::textWidth(g, ui::F_H2, captionLines[i]);
+              captionWidth = std::max(captionWidth, captionLineWidths[i]);
+            }
+          }
+        }
+        if (!captionLines.empty()) {
+          float height = (float)captionLines.size() * 31 + 16, bottom = show ? 482 : 674;
+          gfx::rect(g, (ui::W - captionWidth) / 2 - 18, bottom - height, captionWidth + 36, height, {0, 0, 0, 0.78f}, 8);
+          float cy = bottom - height + 8;
+          for (size_t i = 0; i < captionLines.size(); i++) {
+            gfx::text(g, ui::F_H2, captionLines[i], (ui::W - captionLineWidths[i]) / 2, cy, ui::TEXT); cy += 31;
+          }
+        }
+      }
+      if (playerUI.panel != PlayerUI::NONE) {
+        float w = 720, h = 330, x = (ui::W - w) / 2, y = 190;
+        gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.55f});
+        gfx::shadow(g, x, y + 10, w, h, 24, 32, 0.6f);
+        gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
+        bool ccPanel = playerUI.panel == PlayerUI::CAPTIONS;
+        gfx::text(g, ui::F_BIG, tr(ccPanel ? K::Captions : playerUI.panel == PlayerUI::QUALITY ? K::PlayerQuality : K::Sound), x + 36, y + 28, ui::TEXT);
+        if (ccPanel && (captionLoader.loading || captions.failed || captions.tracks.empty())) {
+          gfx::text(g, ui::F_BODY, tr(captionLoader.loading ? K::CaptionsLoading : captions.failed ? K::CaptionsFailed : captions.reason == "live_clock" ? K::CaptionsLiveClock : pl.live ? K::CaptionsLiveNone : K::CaptionsNone), x + 36, y + 110, ui::MUTED);
+        } else {
+          int count = ccPanel ? 2 : playerUI.panel == PlayerUI::QUALITY ? 3 : 2;
+          for (int i = 0; i < count; i++) {
+            float ry = y + 90 + i * 58;
+            bool focused = playerUI.panelSel == i;
+            bool disabled = playerUI.panel == PlayerUI::SOUND && i == 1 && !nestAvailable;
+            gfx::rect(g, x + 30, ry, w - 60, 50, focused ? ui::TEXT : ui::SURFACE2, 10);
+            std::string label;
+            if (ccPanel && !i) label = tr(settings.captions ? K::CaptionsOn : K::CaptionsOff);
+            else if (ccPanel) {
+              label = tr(K::CaptionsLanguage);
+              for (const auto& track : captions.tracks) if (track.code == captions.selected)
+                label = track.name + " · " + tr(track.automatic ? K::CaptionsAuto : K::CaptionsManual);
+            } else if (playerUI.panel == PlayerUI::QUALITY) label = tr(i18n::quality(i == 0 ? 720 : i == 1 ? 480 : 360));
+            else label = i ? nestName : tr(K::TV);
+            gfx::text(g, ui::F_BODY, gfx::ellipsize(g, ui::F_BODY, label, w - 132), x + 50, ry + 14, disabled ? ui::FAINT : focused ? ui::INK : ui::TEXT);
+          }
+        }
+        float hx = hint(g, x + 36, y + h - 42, tr(K::BtnVertical), XG, tr(K::ChooseRow));
+        hx = hint(g, hx, y + h - 42, "A", XA, tr(K::SleepApply));
+        hint(g, hx, y + h - 42, "B", XB, tr(K::Back));
       }
       if (ratePanel) {
         // dois botões redondos com o joinha, como no YouTube: aceso (cheio, na cor de destaque) o que está marcado
@@ -1258,16 +1438,16 @@ int main(int argc, char** argv) {
         float hx = hint(g, x + 32, y + h - 52, "A", XA, tr(K::WatchNow));
         hint(g, hx, y + h - 52, "B", XB, tr(K::Cancel));
       }
-      if (pl.paused && !pl.waiting()) {
+      if (pl.paused && !pl.waiting() && !panelOpen && show) {
         gfx::rect(g, ui::W / 2 - 52, ui::H / 2 - 52, 104, 104, {0, 0, 0, 0.5f}, 52);
         gfx::rect(g, ui::W / 2 - 18, ui::H / 2 - 22, 12, 44, rgb(0xffffff), 3);
         gfx::rect(g, ui::W / 2 + 6, ui::H / 2 - 22, 12, 44, rgb(0xffffff), 3);
       }
-      if (pl.waiting()) {
+      if (pl.waiting() && !panelOpen) {
         spinner(g, ui::W / 2, ui::H / 2, 26, t);
         gfx::text(g, ui::F_BODY, pl.state == player::CONNECTING ? tr(K::RequestingVideo) : tr(K::Loading), ui::W / 2, ui::H / 2 + 46, ui::TEXT, 1);
       }
-      if (pl.state == player::FAILED) {
+      if (pl.state == player::FAILED && !panelOpen) {
         gfx::rect(g, ui::W / 2 - 340, ui::H / 2 - 74, 680, 148, ui::SURFACE, 22);
         gfx::text(g, ui::F_H2, tr(K::VideoFailed), ui::W / 2, ui::H / 2 - 46, ui::TEXT, 1);
         gfx::text(g, ui::F_BODY, tr(i18n::playerError(pl.error)), ui::W / 2, ui::H / 2, ui::MUTED, 1);
@@ -1342,26 +1522,38 @@ int main(int argc, char** argv) {
 
     if (sleepPanel || sleepWarning || shutdownAt) {
       gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.65f});
-      float x = 280, y = 242, w = 720;
-      gfx::shadow(g, x, y + 12, w, 226, 24, 32, 0.6f);
-      gfx::rect(g, x, y, w, 226, ui::SURFACE, 24);
+      float x = 280, y = sleepPanel && !sleepWarning && !shutdownAt ? 190 : 242, w = 720;
+      float h = sleepPanel && !sleepWarning && !shutdownAt ? 330 : 226;
+      gfx::shadow(g, x, y + 12, w, h, 24, 32, 0.6f);
+      gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
       std::string title = shutdownAt ? tr(K::SleepShuttingDown) : sleepWarning ? std::string(tr(K::SleepWarning)) +
           std::to_string((int)std::ceil(sleepLeft)) + tr(K::SleepSeconds) : tr(K::SleepTimer);
-      gfx::text(g, ui::F_BIG, title, x + 36, y + 32, ui::TEXT);
+      gfx::text(g, ui::F_BIG, title, x + 36, y + 28, ui::TEXT);
       if (!shutdownAt) {
-        gfx::text(g, ui::F_KEY, sleepWarning ? tr(sleep.notebook ? K::SleepNotebook : K::SleepXbox) : sleepLabel(sleepChoice), x + 36, y + 92, ui::A2);
-        float hx = x + 36;
-        if (!sleepWarning) hx = hint(g, hx, y + 162, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
-        hx = hint(g, hx, y + 162, "A", XA, tr(sleepWarning ? K::SleepAdd : K::SleepApply));
-        hint(g, hx, y + 162, "B", XB, tr(K::Cancel));
+        if (!sleepWarning) {
+          bool timeFocus = playerUI.sleepRow == 0;
+          gfx::rect(g, x + 30, y + 90, w - 60, 62, timeFocus ? ui::TEXT : ui::SURFACE2, 12);
+          gfx::text(g, ui::F_KEY, sleepLabel(sleepChoice), x + 50, y + 108, timeFocus ? ui::INK : ui::A2);
+          gfx::text(g, ui::F_KEY, "<   >", x + w - 50, y + 108, timeFocus ? ui::INK : ui::MUTED, 2);
+          gfx::rect(g, x + 30, y + 174, w - 60, 62, !timeFocus ? ui::TEXT : ui::SURFACE2, 12);
+          gfx::text(g, ui::F_SMALL, tr(K::PlayerAlsoOff), x + 50, y + 184, !timeFocus ? ui::INK : ui::MUTED);
+          gfx::text(g, ui::F_BODY, tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox), x + 50, y + 206, !timeFocus ? ui::INK : ui::TEXT);
+          gfx::text(g, ui::F_BODY, "<   >", x + w - 50, y + 198, !timeFocus ? ui::INK : ui::MUTED, 2);
+        } else gfx::text(g, ui::F_KEY, tr(sleep.notebook ? K::SleepNotebook : K::SleepXbox), x + 36, y + 92, ui::A2);
+        float hy = y + h - 48, hx = x + 36;
+        if (!sleepWarning) hx = hint(g, hx, hy, tr(K::BtnVertical), XG, tr(K::ChooseRow));
+        hx = hint(g, hx, hy, "A", XA, tr(sleepWarning ? K::SleepAdd : playerUI.sleepRow ? K::ChangeValue : K::SleepApply));
+        hint(g, hx, hy, "B", XB, tr(K::Back));
       }
     }
+
     bool shoot = shotPath && (int)frame == shotFrame;
     gfx::end(g, shoot ? shotPath : nullptr);
     if (shoot) quit = true;
     frame++;
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
+  captionLoader.stop();
   pl.halt();
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);
   remote.quit = true;

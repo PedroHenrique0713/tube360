@@ -8,7 +8,8 @@
 struct Settings {
   i18n::Lang lang = i18n::Lang::EN;
   int cols = 4, quality = 720, syncMs = 0;
-  bool nest = false, sleepNotebook = false;
+  bool nest = false, sleepNotebook = false, captions = false;
+  std::string captionLang;
 
   void load(const std::string& dir) {
     *this = Settings{};
@@ -20,6 +21,8 @@ struct Settings {
         size_t eq = s.find('='); if (eq == std::string::npos) continue;
         std::string key = s.substr(0, eq), val = s.substr(eq + 1);
         if (key == "lang") { if (val == "pt") lang = i18n::Lang::PT; else if (val == "en") lang = i18n::Lang::EN; }
+        else if (key == "captions") captions = val == "on";
+        else if (key == "caption_lang" && val.size() <= 32 && val.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_") == std::string::npos) captionLang = val;
         else if (key == "sleep_what") { sleepNotebook = val == "xbox_notebook"; }
         else if (key == "sound") { if (val == "nest" || val == "tv") nest = val == "nest"; }
         else {
@@ -47,7 +50,7 @@ struct Settings {
   bool save(const std::string& dir) const {
     std::string tmp = dir + "settings.tmp", dest = dir + "settings.txt";
     FILE* f = std::fopen(tmp.c_str(), "w"); if (!f) return false;
-    bool ok = std::fprintf(f, "lang=%s\ncols=%d\nquality=%d\nsound=%s\nsync_ms=%d\nsleep_what=%s\n", i18n::code(lang), cols, quality, nest ? "nest" : "tv", syncMs, sleepNotebook ? "xbox_notebook" : "xbox") > 0;
+    bool ok = std::fprintf(f, "lang=%s\ncols=%d\nquality=%d\nsound=%s\nsync_ms=%d\nsleep_what=%s\ncaptions=%s\ncaption_lang=%s\n", i18n::code(lang), cols, quality, nest ? "nest" : "tv", syncMs, sleepNotebook ? "xbox_notebook" : "xbox", captions ? "on" : "off", captionLang.c_str()) > 0;
     if (std::fclose(f) != 0) ok = false;
     if (ok) ok = std::rename(tmp.c_str(), dest.c_str()) == 0;
     if (!ok) std::remove(tmp.c_str());

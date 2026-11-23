@@ -245,3 +245,77 @@ curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/set?min=1&what=xbox'
 curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/add?min=15'
 curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/cancel'
 ```
+
+## Player focus and captions (F4)
+
+This section supersedes the earlier player D-pad shortcuts. A hidden control bar consumes the first direction
+solely to reveal the timeline. On the timeline, Left/Right seek 10 seconds and A pauses/resumes. Up focuses the
+options row (Captions, Quality, Sound, Sleep timer, Rate, Go to channel); Left/Right choose an option, A opens it,
+and Down returns to the timeline. B closes one level: panel → options → timeline → hidden bar → leave video.
+The bar hides after **5 seconds** without interaction on the timeline, including while paused. Options and panels
+hold it open. The next reveal always focuses the timeline. A/Menu, Y, X, LB/RB and LT/RT retain their playback
+functions; View still leaves directly. Modal A applies the focused choice. Seeking, including phone seeking, is
+blocked while `Player::state == CONNECTING`, before `X-Live` is known; live seeking remains blocked afterwards.
+
+The player timer has a primary time row and a secondary target row. Up/Down choose the row, Left/Right change it.
+A on the time row applies; A on the target row changes the saved preference. Both the player and Settings use
+`Settings::sleepNotebook`, saved as `sleep_what`. Changing a running timer's target calls the existing
+`/api/sleep/set?target_only=1&what=…`, preserving the deadline. B returns to the options row.
+
+`openPlayerChannel(channelId, videoId)` in `main.cpp` is the explicit integration hook for F3's channel page. Until
+integration it logs the IDs and displays a localized message; it does not navigate away or interrupt playback.
+
+### GET /api/captions/{video_id}?lang=pt|en&track=<optional track code>
+
+Read-only, `text/plain; charset=utf-8`, `Cache-Control: no-store`. Uses the existing ID validation. `lang` defaults
+to `en`; the client always sends its interface language. Track codes accept `[A-Za-z0-9_-]{1,32}`.
+
+```
+ok\t<selected code or empty>\t<manual|auto|none>\t<live 0|1>\t<reason or empty>
+meta\t<title>\t<channel>\t<upload date YYYY-MM-DD>\t<channel ID or empty>
+track\t<code>\t<display name>\t<manual|auto>
+chapter\t<absolute start seconds>\t<title>
+cue\t<absolute start seconds>\t<absolute end seconds>\t<text>
+```
+
+Fields obey the text rules above. Only one `meta` line; repeated `track`, `chapter` and `cue` lines. Empty fields
+are retained. Cues are sorted, nonoverlapping and use half-open intervals `[start, end)`. VOD timestamps are
+absolute video seconds, **not relative to the current seek**. Metadata and available tracks remain present when a
+requested language is missing. Reasons are `unavailable`, `language_missing`, `live_unavailable`, or `live_clock`.
+Extraction/download failure returns `erro\tfailed\n`; oversize output returns `erro\ttoo_large\n`. Invalid IDs or
+track codes return HTTP 400; invalid interface language returns HTTP 422. Errors do not stop video playback.
+
+Selection prefers the interface language, creator captions within that language, then original ASR (`*-orig`)
+before translated ASR, then other languages (creator captions first). Creator captions replace automatic captions
+with the same code. Explicit `track` selects that exact offered code; it never silently changes languages. The
+caption panel offers on/off and a language row; changing the language enables captions and saves the code. If a
+saved code is missing on another video, available choices remain accessible in the panel.
+
+The server uses yt-dlp without downloading video for caption discovery and fetches JSON3 (preferred) or VTT in a
+worker. HTML, inline VTT timestamps and control characters are stripped. Automatic rolling windows remove only
+the overlapping suffix/prefix of adjacent cues; repeated speech after a gap is kept. JSON3 append events are
+joined. Long phrases become consecutive chunks of at most 100 characters (except an unbroken word), with their
+time divided proportionally, so the two-line display need not discard the rest of the sentence.
+
+Limits: 25-second route deadline, 12-second caption download timeout, 2 MiB download/output, 20,000 cues, 256
+tracks and 128 chapters. Discovery has a 15-minute cache of 16 videos/interface languages; parsed VOD tracks have
+a 15-minute cache of 24 selections. These caches are independent of the production stream resolver, so discovery
+can require one additional YouTube extraction when opening a new video. Choosing an original ASR track matters:
+YouTube may return HTTP 429 for the translation into its own language while the original still downloads.
+
+The console's dedicated `cc::Loader` fetches and parses outside rendering, discards obsolete request revisions and
+caps its response at 2 MiB. Rendering performs a binary search using `Player::position()` **after `take()`**, so CC
+follows the displayed frame, pause, seeking and the Nest-controlled picture clock. Wrapping and line widths
+are cached until the active cue changes. Option labels, values and their widths are cached until their text changes.
+A translucent dark box shows at most two lines, above the options/bar
+while visible and near the bottom otherwise. Modal panels suppress captions, loading, pause and error overlays.
+The preferences are `captions=on|off` (default off) and `caption_lang=<code>` (empty follows interface language).
+
+### Live caption limitation to resolve with F1
+
+YouTube live timedtext may use seconds since the broadcast began, while the current MPEG stream starts at zero.
+The current Player/stream API provides no shared HLS origin or mapping for these two clocks. For a live with
+tracks, this route returns metadata/tracks with `reason=live_clock` and no cues; the CC option is disabled with a
+localized explanation. A live without tracks uses `live_unavailable`. **Live CC is not yet supported**, even if
+YouTube offers a track. Integration must expose the MPEG-to-broadcast timestamp origin, then map live cues and
+refresh their rolling window. Guessing an offset from wall time would give incorrect captions.
