@@ -81,11 +81,11 @@ flowchart LR
 
 ### Por que MPEG-1?
 
-O Xbox 360 não tem decodificador H.264/VP9 aberto que homebrew possa usar. MPEG-1 é antigo, mas é simples o bastante para decodificar na CPU, e o [pl_mpeg](https://github.com/phoboslab/pl_mpeg) é um decodificador de um arquivo só que compila no toolchain do console sem mudança. Então o PC pega o vídeo do YouTube com o `yt-dlp` (H.264 primeiro, porque abrir AV1 custa o dobro de CPU) e o `ffmpeg` converte na hora. O vídeo começa em poucos segundos e nunca é convertido inteiro antes.
+O Xbox 360 não tem decodificador H.264/VP9 aberto que homebrew possa usar. MPEG-1 é antigo, mas é simples o bastante para decodificar na CPU, e o [pl_mpeg](https://github.com/phoboslab/pl_mpeg) é um decodificador de um arquivo só que compila no toolchain do console sem mudança. Então o PC pega o vídeo do YouTube com o `yt-dlp` (H.264 primeiro, porque abrir AV1 custa o dobro de CPU) e o `ffmpeg` converte na hora. Para vídeo sob demanda em 720p, o servidor prefere uma fonte H.264 disponível de até 1080p a 30 fps e reduz a imagem. Isso preserva mais detalhes do gramado e da torcida. Em 20 segundos de futebol, o VMAF subiu de 83,1 para 90,1 contra a melhor versão do YouTube reduzida a 720p. O vídeo começa enquanto a conversão está em andamento. Quando só existe 1080p a 50/60 fps, o servidor usa a fonte de menor resolução. A live mantém a fonte HLS de até 720p com o som sincronizado.
 
 | Qualidade | Tamanho | Bitrate do vídeo | Observação |
 |---|---|---|---|
-| **720p** (padrão) | 1280×720 | 5,5 Mbit/s | 30 fps, GOP 15, 2 quadros B |
+| **720p** (padrão) | 1280×720 | 5,5 Mbit/s | 30 fps, GOP 30, 2 quadros B |
 | 480p | 854×480 | 2,5 Mbit/s | troca com **Y** no player |
 | 360p | 640×360 | 1,5 Mbit/s | |
 
