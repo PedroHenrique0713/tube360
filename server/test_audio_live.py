@@ -70,8 +70,10 @@ class AudioTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((state, pos), ('STALE', 15.0))
 
     async def test_seek_no_mesmo_receptor_para_10_e_60_segundos(self):
-        with self.path.open('wb') as f:
-            f.truncate(150 * 24000)
+        partial = self.path.with_suffix(".part.mp3")
+        with partial.open("wb") as f:
+            f.truncate(15 * 24000)
+        self.m.audio_jobs[(self.vid, 0.0)] = SimpleNamespace(returncode=None)
         cc = FakeCast()
         self.n.cc, self.n.ours = cc, True
         mc = cc.media_controller
@@ -89,6 +91,11 @@ class AudioTests(unittest.IsolatedAsyncioTestCase):
         self.m.CONFIG['nest'] = {'host': '127.0.0.1'}
         with patch.object(self.m, 'resolve_video', AsyncMock(return_value={'duration': 150, 'live': False})):
             for t in (0, 10, 70):
+                if t == 70:
+                    with partial.open("ab") as f:
+                        f.truncate(150 * 24000)
+                    partial.replace(self.path)
+                    self.m.audio_jobs.clear()
                 self.m.remote.last_poll = time.monotonic()
                 await self.m.nest_play(self.vid, t)
                 for _ in range(60):
