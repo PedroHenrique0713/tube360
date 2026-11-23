@@ -579,9 +579,10 @@ struct ConsoleAccount::Impl {
         if (!id(nextId,11) || nextId==videoId) nextId.clear();
         return {"ok\t"+like+"\t"+nextId+"\t"+clean(text(get(next,"byline")))+"\t"+clean(text(get(next,"videoTitle")))+"\n",{}};
     }
-    AccountReply watched(const string& videoId, double pos, bool /* progress */) {
+    AccountReply watched(const string& videoId, double pos, bool progress) {
         if (tokens.refresh.empty()) return {{}, "signed_out"};
         auto e=auth(); if (!e.empty()) return {{},e};
+        if (!progress) tracking.erase(videoId);
         auto found=tracking.find(videoId);
         if (found==tracking.end()) {
             J j;

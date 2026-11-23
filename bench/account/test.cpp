@@ -168,6 +168,10 @@ void history(const string& path) {
     check(f.sent.back().url.find("cmt=12.500")!=string::npos && f.sent.back().url.find("final=1")!=string::npos,"watchtime query matches playback position");
     f.add("/api/stats/watchtime?","","",204,"fake-a");
     check(a.request("/api/account/watched?id="+video+"&pos=30&progress=1",1030,40).ok(),"progress reuses tracking without duplicate start");
+    f.add("/player","",R"({"playbackTracking":{"videostatsPlaybackUrl":{"baseUrl":"https://www.youtube.com/api/stats/playback?ei=new"},"videostatsWatchtimeUrl":{"baseUrl":"https://www.youtube.com/api/stats/watchtime?ei=new"}}})",200,"fake-a");
+    f.add("/api/stats/playback?","","",204,"fake-a");
+    auto before=f.sent.size();
+    check(a.request("/api/account/watched?id="+video+"&pos=0",1031,41).ok() && f.sent.size()==before+2,"restarting the same video opens fresh playback tracking");
     f.add("/player","",R"({"playbackTracking":{"videostatsPlaybackUrl":{"baseUrl":"https://evil.example/api/stats/playback"},"videostatsWatchtimeUrl":{"baseUrl":"https://evil.example/api/stats/watchtime"}}})",200,"fake-a");
     check(a.request("/api/account/watched?id=video000002",1030,40).error=="tracking_unavailable","tracking origin allowlist");
     check(f.steps.empty(),"history exchanges consumed");
