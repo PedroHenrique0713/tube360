@@ -450,6 +450,22 @@ class CastTests(unittest.TestCase):
         self.assertEqual(self.driver.command('sample')['state'], 2)
         self.receiver.at = original
 
+    def test_partial_media_status_keeps_the_clock_observation(self):
+        self.play()
+        original = self.receiver.reply
+        def reply(client, request, payload, source=None):
+            if payload.get('type') == 'MEDIA_STATUS':
+                payload = dict(payload, status=[{'mediaSessionId': item['mediaSessionId']} for item in payload['status']])
+            original(client, request, payload, source)
+        self.receiver.reply = reply
+        time.sleep(.5)
+        before = self.driver.command('sample')
+        time.sleep(.5)
+        after = self.driver.command('sample')
+        self.assertEqual(after['state'], 2)
+        self.assertEqual(after['updated'], before['updated'])
+        self.receiver.reply = original
+
 
 if __name__ == '__main__':
     unittest.main(argv=[sys.argv[0]], verbosity=2)

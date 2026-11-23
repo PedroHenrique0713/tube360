@@ -328,7 +328,8 @@ private:
                     if (goal.active && !pending && (fresh && replyId >= barrier)) acknowledged = true;
                     if (goal.active && acknowledged && (replyId == 0 || (fresh && replyId >= barrier))) {
                         auto previousState = view.state;
-                        view.state = state == "PLAYING" ? PLAYING : state == "PAUSED" ? PAUSED : state == "BUFFERING" ? BUFFERING : state == "IDLE" ? IDLE : UNKNOWN;
+                        if (!state.empty())
+                            view.state = state == "PLAYING" ? PLAYING : state == "PAUSED" ? PAUSED : state == "BUFFERING" ? BUFFERING : state == "IDLE" ? IDLE : UNKNOWN;
                         if (previousState == PAUSED && (view.state == PLAYING || view.state == BUFFERING)) advanced = now;
                         double position = number(entry,"currentTime",NAN);
                         if (std::isfinite(position) && position >= 0 && (fast || replyId == 0)) {
