@@ -269,6 +269,10 @@ class Client {
   Transport& net;
   struct Context { J data; string version, visitor; } web, music;
   string token, language = "en";
+  bool tokenRejected = false;
+public:
+  string authError; // último motivo de recusa do token (vazio se aceito)
+private:
   // Com o UA Tube360 o Music devolve a página de navegador incompatível, sem contexto InnerTube.
   static constexpr const char* agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
   struct List {
@@ -312,8 +316,16 @@ class Client {
     Request r; r.url = origin + "/youtubei/v1/" + route + "?prettyPrint=false"; r.body = J(args).serialize(); r.agent = agent;
     r.headers = {"Origin: " + origin,"X-Youtube-Client-Name: " + string(isMusic ? "67" : "1"),"X-Youtube-Client-Version: " + c.version};
     if (!c.visitor.empty() && c.visitor.find_first_of("\r\n") == string::npos) r.headers.push_back("X-Goog-Visitor-Id: " + c.visitor);
-    if (!token.empty()) r.headers.push_back("Authorization: Bearer " + token);
-    return error(net.send(r),out);
+    bool authorized = !token.empty() && !tokenRejected;
+    if (authorized) r.headers.push_back("Authorization: Bearer " + token);
+    auto res = net.send(r);
+    if (authorized && (res.status == 401 || res.status == 403)) {
+      // Token da conta recusado aqui: segue deslogado (a tela não pode cair) e guarda o motivo para o log.
+      tokenRejected = true; authError = route + " HTTP " + std::to_string(res.status);
+      r.headers.pop_back();
+      res = net.send(r);
+    }
+    return error(res,out);
   }
   string channelTab(J& data, const string& tab, bool isMusic) {
     const J* tabs = find(get(data,"contents"),"tabs");
@@ -345,7 +357,7 @@ public:
   // Chamar no worker de navegação ao receber/renovar/remover o token da F11.
   bool setToken(const string& access) {
     if (access.size() > 8192 || access.find_first_of("\r\n\t ") != string::npos) return false;
-    if (token != access) { token = access; lists.clear(); web = {}; music = {}; }
+    if (token != access) { token = access; tokenRejected = false; authError.clear(); lists.clear(); web = {}; music = {}; }
     return true;
   }
   Page browse(const std::map<string,string>& q) {

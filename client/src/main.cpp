@@ -128,7 +128,8 @@ struct Worker {
         bool accountFallback = !r.catalog && consoleAccount && consoleAccount->active() && yt::ConsoleAccount::supports(j.a);
         if (!r.catalog && !net::serverEnabled && !accountFallback) { r.feed.error = K::NoResponse; r.feed.title.clear(); }
         if (r.catalog || (!net::serverEnabled && !accountFallback)) {
-          LOG("catalogo console: %s, %u bytes",j.a.substr(0,j.a.find('?')).c_str(),(unsigned)r.feed.title.size());
+          LOG("catalogo console: %s, %u bytes%s%s",j.a.substr(0,j.a.find('?')).c_str(),(unsigned)r.feed.title.size(),
+              catalog.authError.empty() ? "" : ", conta recusada: ",catalog.authError.c_str());
           SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu); continue;
         }
         r.feed.title.clear();
