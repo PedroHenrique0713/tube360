@@ -39,7 +39,7 @@ struct Video {
     int ttl = 0, duration = 0;
     int64_t expiresAt = 0;
     bool highFrameRate720 = false, live = false;
-    Format video, audio;
+    Format video, audio, fallbackVideo;
     bool muxed = false;
     std::vector<Track> captions;
 };
