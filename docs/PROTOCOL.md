@@ -424,7 +424,7 @@ The channel implements CONNECT, PING/PONG, receiver/media GET_STATUS, LAUNCH, LO
 PAUSE, PLAY and STOP. A seek within the same URL retains the Cast media session. A new resource
 waits for the previous playback to stop. Discovery currently uses the configured host.
 
-Each LOAD carries an ownership token in `media.customData.tube360`. Clock samples require that token
+Each LOAD carries an ownership token in `media.customData.tube360`. Clock samples require that token, the exact loaded content URL
 or an already verified media session. Command request IDs fence older clock replies across seeks.
 The observation time advances only when an accepted MEDIA_STATUS contains `currentTime`. Fast
 request/reply pairs use their midpoint (120 ms maximum round trip). Unsolicited status uses receipt
@@ -447,7 +447,7 @@ zero-based video PTS and the receiver's event-relative `currentTime` need a veri
 before independent YouTube HLS playback can use the Nest clock.
 
 The desktop-only `XT_YT_REPLAY=<directory>` replaces YouTube responses with sanitized local
-fixtures. It never connects to YouTube. `bench/standalone/cast_e2e.py <repo>` prepares synthetic
+fixtures. `bench/standalone/cast_e2e.py <repo>` prepares synthetic
 720p30 AVC/AAC media, drives the desktop app with `server=off`, serves AAC over local HTTPS on
 8233, exercises a TLS/protobuf Cast receiver and writes captures under `.work/provas/`.
 Run `python3 bench/standalone/cast_test.py client/build/nest-test` for channel, ownership and recovery
