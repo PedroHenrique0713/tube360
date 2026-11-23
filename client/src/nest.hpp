@@ -100,8 +100,9 @@ public:
         ownerPath = dir + "nest-owner.json";
         config.load(dir);
         mutex = SDL_CreateMutex();
-        if (FILE* file = std::fopen(ownerPath.c_str(),"r")) { status.quiet = false; std::fclose(file); }
-        if (configured()) thread = yt::worker([](void* p) { static_cast<Speaker*>(p)->run(); return 0; },"cast-v2",this);
+        bool pending = false;
+        if (FILE* file = std::fopen(ownerPath.c_str(),"r")) { pending = true; status.quiet = false; std::fclose(file); }
+        if (configured() || pending) thread = yt::worker([](void* p) { static_cast<Speaker*>(p)->run(); return 0; },"cast-v2",this);
     }
     Status sample() {
         if (!mutex) return {};
