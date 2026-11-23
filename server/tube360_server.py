@@ -759,10 +759,12 @@ class SleepTimer:
         LOG.info("Timer: ligado (%s, %s)", self.what, self.mode)
 
     def expire(self):
+        global nav_queue_serial
         if not self.active or self.fired:
             return
         LOG.info("Timer: vencido; enviando desligar ao Xbox (%s)", self.what)
         self.fired = self.shutdown = True
+        nav_queue_serial += 1
         remote.commands.clear()
         remote.queue.clear()
         if nest.active:

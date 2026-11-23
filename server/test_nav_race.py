@@ -26,6 +26,7 @@ class CastRace(unittest.IsolatedAsyncioTestCase):
         from starlette.requests import Request
         request = Request({'type': 'http', 'headers': [(b'user-agent', b'Tube360/1.0')]})
         self.m.remote = self.m.Remote()
+        self.m.sleep_timer = self.m.SleepTimer()
         entered, release = asyncio.Event(), asyncio.Event()
 
         async def slow(*args, **kwargs):
@@ -54,6 +55,15 @@ class CastRace(unittest.IsolatedAsyncioTestCase):
         release.set()
         await load
         self.assertEqual(self.m.remote.poll('bbbbbbbbbbb', 1, 60, 0, ''), 'none\n')
+
+    async def test_timer_cancela_a_playlist_carregando(self):
+        load, release = await self.pending_playlist()
+        self.m.sleep_timer.set(15, False, 'xbox')
+        self.m.sleep_timer.expire()
+        self.assertEqual(self.m.remote.poll('', 0, 0, 0, ''), 'desligar\n')
+        release.set()
+        await load
+        self.assertEqual(self.m.remote.poll('', 0, 0, 0, ''), 'none\n')
 
 
 if __name__ == '__main__':
