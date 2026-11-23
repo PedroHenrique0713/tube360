@@ -1,0 +1,7 @@
+request 1 HTTP 200 bytes 1413080 elapsed_ms 887
+vod status OK ttl_s 21540
+vod 720p30 avc_listed 1 avc_direct 0 muxed_aac_direct 0
+vod 480p30 avc_listed 1 avc_direct 0 muxed_aac_direct 0
+vod aac_listed 4 aac_direct 0
+request 2 HTTP 200 bytes 1437446 elapsed_ms 865
+live status OK hls 0 ttl_s 21540

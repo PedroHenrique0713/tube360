@@ -1,0 +1,92 @@
+[
+  {
+    "video": "4p_9OPKgcDE",
+    "kind": "vod",
+    "client": "VISIONOS",
+    "version": "1.02",
+    "utc": "2026-11-23T17:46:46.966172+00:00",
+    "http": 200,
+    "playability": {
+      "status": "LOGIN_REQUIRED",
+      "reason": "Sign in to confirm you\u2019re not a bot"
+    },
+    "announced_ttl_s": null,
+    "hls": false,
+    "candidates": []
+  },
+  {
+    "video": "HvZt-nh9sGg",
+    "kind": "live",
+    "client": "VISIONOS",
+    "version": "1.02",
+    "utc": "2026-11-23T17:46:47.230607+00:00",
+    "http": 200,
+    "playability": {
+      "status": "LOGIN_REQUIRED",
+      "reason": "Sign in to confirm you\u2019re not a bot"
+    },
+    "announced_ttl_s": null,
+    "hls": false,
+    "candidates": []
+  },
+  {
+    "video": "4p_9OPKgcDE",
+    "kind": "vod",
+    "client": "ANDROID_VR",
+    "version": "1.65.10",
+    "utc": "2026-11-23T17:46:47.452802+00:00",
+    "http": 200,
+    "playability": {
+      "status": "LOGIN_REQUIRED",
+      "reason": "Sign in to confirm you\u2019re not a bot"
+    },
+    "announced_ttl_s": null,
+    "hls": false,
+    "candidates": []
+  },
+  {
+    "video": "HvZt-nh9sGg",
+    "kind": "live",
+    "client": "ANDROID_VR",
+    "version": "1.65.10",
+    "utc": "2026-11-23T17:46:47.696983+00:00",
+    "http": 200,
+    "playability": {
+      "status": "LOGIN_REQUIRED",
+      "reason": "Sign in to confirm you\u2019re not a bot"
+    },
+    "announced_ttl_s": null,
+    "hls": false,
+    "candidates": []
+  },
+  {
+    "video": "4p_9OPKgcDE",
+    "kind": "vod",
+    "client": "IOS",
+    "version": "21.26.4",
+    "utc": "2026-11-23T17:46:47.937081+00:00",
+    "http": 200,
+    "playability": {
+      "status": "LOGIN_REQUIRED",
+      "reason": "Sign in to confirm you\u2019re not a bot"
+    },
+    "announced_ttl_s": null,
+    "hls": false,
+    "candidates": []
+  },
+  {
+    "video": "HvZt-nh9sGg",
+    "kind": "live",
+    "client": "IOS",
+    "version": "21.26.4",
+    "utc": "2026-11-23T17:46:48.192552+00:00",
+    "http": 200,
+    "playability": {
+      "status": "LOGIN_REQUIRED",
+      "reason": "Sign in to confirm you\u2019re not a bot"
+    },
+    "announced_ttl_s": null,
+    "hls": false,
+    "candidates": []
+  }
+]

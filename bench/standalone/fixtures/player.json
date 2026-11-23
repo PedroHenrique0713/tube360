@@ -1,0 +1,213 @@
+{
+  "playabilityStatus": {
+    "status": "OK"
+  },
+  "videoDetails": {
+    "videoId": "4p_9OPKgcDE",
+    "title": "PALMEIRAS 4 X 1 CORINTHIANS | MELHORES MOMENTOS | 30ª RODADA | BRASILEIRÃO 2026 | ge tv",
+    "lengthSeconds": "467",
+    "author": "ge tv"
+  },
+  "streamingData": {
+    "expiresInSeconds": "21540",
+    "adaptiveFormats": [
+      {
+        "itag": 137,
+        "mimeType": "video/mp4; codecs=\"avc1.640028\"",
+        "bitrate": 4335215,
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "url": "https://media.example/fixture/137"
+      },
+      {
+        "itag": 248,
+        "mimeType": "video/webm; codecs=\"vp9\"",
+        "bitrate": 2773341,
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "url": "https://media.example/fixture/248"
+      },
+      {
+        "itag": 399,
+        "mimeType": "video/mp4; codecs=\"av01.0.08M.08\"",
+        "bitrate": 2239227,
+        "width": 1920,
+        "height": 1080,
+        "fps": 30,
+        "url": "https://media.example/fixture/399"
+      },
+      {
+        "itag": 136,
+        "mimeType": "video/mp4; codecs=\"avc1.4D401F\"",
+        "bitrate": 1882997,
+        "width": 1280,
+        "height": 720,
+        "fps": 30,
+        "url": "https://media.example/fixture/136"
+      },
+      {
+        "itag": 247,
+        "mimeType": "video/webm; codecs=\"vp9\"",
+        "bitrate": 1563441,
+        "width": 1280,
+        "height": 720,
+        "fps": 30,
+        "url": "https://media.example/fixture/247"
+      },
+      {
+        "itag": 398,
+        "mimeType": "video/mp4; codecs=\"av01.0.05M.08\"",
+        "bitrate": 1237453,
+        "width": 1280,
+        "height": 720,
+        "fps": 30,
+        "url": "https://media.example/fixture/398"
+      },
+      {
+        "itag": 135,
+        "mimeType": "video/mp4; codecs=\"avc1.4D401F\"",
+        "bitrate": 1157827,
+        "width": 854,
+        "height": 480,
+        "fps": 30,
+        "url": "https://media.example/fixture/135"
+      },
+      {
+        "itag": 244,
+        "mimeType": "video/webm; codecs=\"vp9\"",
+        "bitrate": 804134,
+        "width": 854,
+        "height": 480,
+        "fps": 30,
+        "url": "https://media.example/fixture/244"
+      },
+      {
+        "itag": 397,
+        "mimeType": "video/mp4; codecs=\"av01.0.04M.08\"",
+        "bitrate": 591031,
+        "width": 854,
+        "height": 480,
+        "fps": 30,
+        "url": "https://media.example/fixture/397"
+      },
+      {
+        "itag": 134,
+        "mimeType": "video/mp4; codecs=\"avc1.4D401E\"",
+        "bitrate": 634319,
+        "width": 640,
+        "height": 360,
+        "fps": 30,
+        "url": "https://media.example/fixture/134"
+      },
+      {
+        "itag": 243,
+        "mimeType": "video/webm; codecs=\"vp9\"",
+        "bitrate": 486369,
+        "width": 640,
+        "height": 360,
+        "fps": 30,
+        "url": "https://media.example/fixture/243"
+      },
+      {
+        "itag": 396,
+        "mimeType": "video/mp4; codecs=\"av01.0.01M.08\"",
+        "bitrate": 335083,
+        "width": 640,
+        "height": 360,
+        "fps": 30,
+        "url": "https://media.example/fixture/396"
+      },
+      {
+        "itag": 133,
+        "mimeType": "video/mp4; codecs=\"avc1.4D4015\"",
+        "bitrate": 245555,
+        "width": 426,
+        "height": 240,
+        "fps": 30,
+        "url": "https://media.example/fixture/133"
+      },
+      {
+        "itag": 242,
+        "mimeType": "video/webm; codecs=\"vp9\"",
+        "bitrate": 183011,
+        "width": 426,
+        "height": 240,
+        "fps": 30,
+        "url": "https://media.example/fixture/242"
+      },
+      {
+        "itag": 395,
+        "mimeType": "video/mp4; codecs=\"av01.0.00M.08\"",
+        "bitrate": 152993,
+        "width": 426,
+        "height": 240,
+        "fps": 30,
+        "url": "https://media.example/fixture/395"
+      },
+      {
+        "itag": 160,
+        "mimeType": "video/mp4; codecs=\"avc1.4D400C\"",
+        "bitrate": 111436,
+        "width": 256,
+        "height": 144,
+        "fps": 30,
+        "url": "https://media.example/fixture/160"
+      },
+      {
+        "itag": 278,
+        "mimeType": "video/webm; codecs=\"vp9\"",
+        "bitrate": 91254,
+        "width": 256,
+        "height": 144,
+        "fps": 30,
+        "url": "https://media.example/fixture/278"
+      },
+      {
+        "itag": 394,
+        "mimeType": "video/mp4; codecs=\"av01.0.00M.08\"",
+        "bitrate": 86857,
+        "width": 256,
+        "height": 144,
+        "fps": 30,
+        "url": "https://media.example/fixture/394"
+      },
+      {
+        "itag": 139,
+        "mimeType": "audio/mp4; codecs=\"mp4a.40.5\"",
+        "bitrate": 50271,
+        "url": "https://media.example/fixture/139"
+      },
+      {
+        "itag": 140,
+        "mimeType": "audio/mp4; codecs=\"mp4a.40.2\"",
+        "bitrate": 130710,
+        "url": "https://media.example/fixture/140"
+      },
+      {
+        "itag": 249,
+        "mimeType": "audio/webm; codecs=\"opus\"",
+        "bitrate": 65542,
+        "url": "https://media.example/fixture/249"
+      },
+      {
+        "itag": 251,
+        "mimeType": "audio/webm; codecs=\"opus\"",
+        "bitrate": 158246,
+        "url": "https://media.example/fixture/251"
+      }
+    ],
+    "formats": [
+      {
+        "itag": 18,
+        "mimeType": "video/mp4; codecs=\"avc1.42001E, mp4a.40.2\"",
+        "bitrate": 703737,
+        "width": 640,
+        "height": 360,
+        "fps": 30,
+        "url": "https://media.example/fixture/18"
+      }
+    ]
+  }
+}

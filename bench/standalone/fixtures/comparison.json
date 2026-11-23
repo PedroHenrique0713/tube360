@@ -1,0 +1,148 @@
+{
+  "utc": "2026-11-23T19:04:47.276515+00:00",
+  "tool": "yt-dlp 2026.10.26",
+  "test": "android_vr, anonymous, no cookie file or disk cache; default plugin discovery",
+  "cases": [
+    {
+      "video": "4p_9OPKgcDE",
+      "kind": "vod",
+      "requests": [
+        {
+          "route": "/watch",
+          "http": 200
+        },
+        {
+          "route": "/youtubei/v1/player",
+          "http": 200
+        }
+      ],
+      "player": {
+        "status": "OK",
+        "reason": null,
+        "ttl_s": "21540",
+        "hls": false,
+        "direct_avc": [
+          [
+            1080,
+            30
+          ],
+          [
+            720,
+            30
+          ],
+          [
+            480,
+            30
+          ],
+          [
+            360,
+            30
+          ],
+          [
+            240,
+            30
+          ],
+          [
+            144,
+            30
+          ],
+          [
+            360,
+            30
+          ]
+        ]
+      },
+      "warn_po_token": true,
+      "extractor_formats": [
+        {
+          "id": "18",
+          "height": 360,
+          "fps": 30,
+          "protocol": null
+        }
+      ]
+    },
+    {
+      "video": "HvZt-nh9sGg",
+      "kind": "live",
+      "requests": [
+        {
+          "route": "/watch",
+          "http": 200
+        },
+        {
+          "route": "/youtubei/v1/player",
+          "http": 200
+        },
+        {
+          "route": "HLS",
+          "http": 200
+        }
+      ],
+      "player": {
+        "status": "OK",
+        "reason": null,
+        "ttl_s": "21540",
+        "hls": true,
+        "direct_avc": [
+          [
+            1080,
+            30
+          ],
+          [
+            720,
+            30
+          ],
+          [
+            480,
+            30
+          ],
+          [
+            360,
+            30
+          ],
+          [
+            240,
+            30
+          ],
+          [
+            144,
+            15
+          ]
+        ]
+      },
+      "extractor_formats": [
+        {
+          "id": "91",
+          "height": 144,
+          "fps": 15.0,
+          "protocol": "m3u8_native"
+        },
+        {
+          "id": "92",
+          "height": 240,
+          "fps": 30.0,
+          "protocol": "m3u8_native"
+        },
+        {
+          "id": "93",
+          "height": 360,
+          "fps": 30.0,
+          "protocol": "m3u8_native"
+        },
+        {
+          "id": "94",
+          "height": 480,
+          "fps": 30.0,
+          "protocol": "m3u8_native"
+        },
+        {
+          "id": "95",
+          "height": 720,
+          "fps": 30.0,
+          "protocol": "m3u8_native"
+        }
+      ]
+    }
+  ]
+}

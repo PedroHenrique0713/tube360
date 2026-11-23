@@ -1,0 +1,5 @@
+request 1 HTTP 200 bytes 1026971 elapsed_ms 585
+request 2 HTTP 200 bytes 1256150 elapsed_ms 673
+search cards 28 status OK
+request 3 HTTP 200 bytes 1419540 elapsed_ms 617
+player status OK height 0 fps 0 audio_itag 0 muxed 0 hls 0 ttl_s 21540
