@@ -124,11 +124,13 @@ struct Worker {
         catalog.setToken(access);
         r.feed.title = catalog.handle(j.a);
         if (r.feed.title.rfind("ok\t",0) == 0) r.catalog = true;
-        else if (!net::serverEnabled) { r.feed.error = K::NoResponse; r.feed.title.clear(); }
-        if (r.catalog || !net::serverEnabled) {
+        bool accountFallback = !r.catalog && consoleAccount && consoleAccount->active() && yt::ConsoleAccount::supports(j.a);
+        if (!r.catalog && !net::serverEnabled && !accountFallback) { r.feed.error = K::NoResponse; r.feed.title.clear(); }
+        if (r.catalog || (!net::serverEnabled && !accountFallback)) {
           LOG("catalogo console: %s, %u bytes",j.a.substr(0,j.a.find('?')).c_str(),(unsigned)r.feed.title.size());
           SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu); continue;
         }
+        r.feed.title.clear();
       }
       std::string accountPath = j.a;
       bool feedJob = j.kind == 0 || j.kind == 1 || j.kind == 3;

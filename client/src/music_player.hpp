@@ -36,17 +36,24 @@ struct Player : player::Player {
 
   void start(const net::Server& server, const std::string& video, double at, const std::string& name, double length,
              int height, bool speaker, bool tryDirect = true) {
-    halt();
-    playingAudio = audioOnly && !speaker;
-    serverAudio = !tryDirect;
+    halt(!speaker);
+    playingAudio = audioOnly;
+    serverAudio = !tryDirect || (speaker && !directSpeaker.configured());
     if (!playingAudio) { player::Player::start(server,video,at,name,length,height,speaker,tryDirect); return; }
     srv = server; id = video; startAt = std::max(0.0,at); lastPos = startAt; title = name; duration = length; quality = height;
     stop = false; paused = false; live = false; direct = !serverAudio; original = !serverAudio; state = player::CONNECTING;
-    speakerRequested = nest = false; nestFailed = false; renew = retryConverted = mediaReady = false;
+    speakerRequested = speaker; nest = false; nestFailed = false; renew = retryConverted = mediaReady = false;
+    castMediaReady = false; decEnded = false;
     validUntil = 0; cachedQuality = 0;
     actualHeight = 0; error.clear(); audioDone = false; audioFailure = 0; audioTail = 0; hasAudio = false; drainAt = 0;
     firstPts = -1; wallStart = pausedAt = pausedTotal = 0; refill = reservePaused = false; deviceDrained();
-    openedMs = SDL_GetTicks(); droppedFrames = shownFrames = 0; output = LOCAL;
+    openedMs = SDL_GetTicks(); droppedFrames = shownFrames = 0;
+    output = speaker || !directSpeaker.sample().quiet ? CAST : LOCAL;
+    readyMs = tuneAt = 0; screenSec = -1; tickMs = 0; tracking = false;
+    masterMs = speakerTargetMs = trimMs = cueMs = -1;
+    armed = mutedForCast = localPlaying = pictureReady = false; mutedAt = 0;
+    speakerPause = nestCmd = 0;
+    SDL_LockMutex(nmu); nestState = 0; nestPos = nestStampMs = 0; SDL_UnlockMutex(nmu);
     SDL_SetAtomicInt(&audioBaseMs,-1); SDL_SetAtomicInt(&pushed,0); SDL_SetAtomicInt(&netBytes,0);
     if (audio) { SDL_PauseAudioStreamDevice(audio); SDL_ClearAudioStream(audio); SDL_SetAudioStreamFrequencyRatio(audio,1); }
     tvSound(false);
@@ -61,6 +68,7 @@ struct Player : player::Player {
       return 0;
     },"music-aac",this);
     if (!decThread) { error = "console"; state = player::FAILED; }
+    nestThread = yt::worker(nestMain,"music-nest",this);
   }
   void decodeAudio() {
     player::moveToHardwareThread(2);
@@ -72,7 +80,7 @@ struct Player : player::Player {
       media = client.player(id,quality);
       if (stop) return;
       if (media.status != "OK" || media.audio.url.empty()) { audioFailure = AVERROR_STREAM_NOT_FOUND; return; }
-      mediaReady = true;
+      mediaReady = true; castMediaReady = true;
       yt::RangeFile file(yt::catalog::transport(&stop),media.audio.url,&netBytes);
       h264::Stream stream;
       result = audio ? stream.open(&file,yt::RangeFile::pull,1,true,false,yt::RangeFile::seek) : AVERROR(ENODEV);
@@ -101,7 +109,7 @@ struct Player : player::Player {
           }
           ++decoded;
           work += SDL_GetTicksNS()-begin;
-          while (!stop && audioQueuedSec() > 2.0) SDL_Delay(8);
+          while (!stop && audioQueuedSec() > 2.0) { trimReserve(); SDL_Delay(8); }
           begin = SDL_GetTicksNS();
         }
         return r == AVERROR(EAGAIN) || r == AVERROR_EOF ? 0 : r;
@@ -223,14 +231,61 @@ struct Player : player::Player {
       start(server,video,at,name,length,height,false,false); setPaused(hold); return nullptr;
     }
     if (audioFailure) { error = "console"; state = player::FAILED; if (audio) SDL_PauseAudioStreamDevice(audio); return nullptr; }
+    int external = speakerPause.exchange(0);
+    if (external) setPaused(external == 1,false);
     if (paused || state == player::FAILED || state == player::ENDED) return nullptr;
+    uint64_t now = SDL_GetTicks();
+    wantedOffsetMs = int(std::lround(nestOffset*1000));
     double queued = audioQueuedSec();
-    if (firstPts < 0 && (queued >= .12 || (audioDone && queued > 0))) {
-      firstPts = 0; wallStart = SDL_GetTicks(); tvSound(true); SDL_ResumeAudioStreamDevice(audio); state = player::PLAYING;
-      LOG("musica: primeiro audio em %llu ms, video 0 quadros",(unsigned long long)(wallStart-openedMs));
+    double speaker = -1;
+    auto route = output.load();
+    if (speakerRequested && route == CAST) {
+      SDL_LockMutex(nmu);
+      if (nestState == 1 && now-nestStampMs < (direct ? 8000 : 650)) speaker = nestPos+(now-nestStampMs)/1000;
+      SDL_UnlockMutex(nmu);
     }
-    if (firstPts >= 0) lastPos = startAt + std::min(audioTail.load(),tvClock(0,queued));
-    if (audioDone && queued <= 0 && firstPts >= 0) {
+    if (firstPts < 0 && (queued >= .12 || (audioDone && queued > 0))) {
+      pictureReady = true;
+      if (!readyMs) readyMs = now;
+      if (!speakerRequested || speaker >= 0 || now-readyMs >= 1400) {
+        firstPts = 0; wallStart = now; tickMs = now;
+        screenSec = speaker >= 0 ? std::max(0.0,speaker+nestOffset) : 0;
+        SDL_ResumeAudioStreamDevice(audio); state = player::PLAYING;
+        LOG("musica: primeiro audio em %llu ms, video 0 quadros",(unsigned long long)(wallStart-openedMs));
+      }
+    }
+    if (firstPts >= 0) {
+      double tv = tvClock(0,queued), dt = std::max(0.0,(now-tickMs)/1000);
+      double predicted = screenSec+dt;
+      bool follow = speaker >= 0 && route == CAST;
+      bool local = route == LOCAL || route == PRIMING;
+      double cue = cueMs/1000.0;
+      if (route == PRIMING && (mutedAt || (audible ? tv : predicted) >= cue-deviceMs/1000.0)) {
+        local = false; if (!mutedAt) mutedAt = now;
+      } else if (route != PRIMING) mutedAt = 0;
+      double target = follow ? speaker+nestOffset : audible ? tv : predicted;
+      screenSec = speakerRequested && !audible ? predicted+std::clamp(target-predicted,-dt*.15,dt*.15) : tv;
+      if (route == PRIMING && cue >= 0) screenSec = std::min(screenSec,std::max(cue,predicted-dt));
+      if (follow && mutedForCast.exchange(false)) screenSec = std::max(screenSec,speaker+nestOffset);
+      tickMs = now; speakerTargetMs = masterMs = int(std::lround(screenSec*1000));
+      bool on = local && (audible || std::fabs(tv-screenSec) <= .022);
+      if (route == PRIMING && armed && mutedAt && now-mutedAt >= uint64_t(deviceMs) && deviceDrained() &&
+          std::fabs(screenSec-cue) < .020 && audioTail.load()-cue >= .18) mutedForCast = true;
+      if (on != audible || follow != tracking) LOG("som: %s, Nest %.3f TV %.3f musica %.3f",on ? "TV" : follow ? "Nest" : "aguardando",speaker,tv,screenSec);
+      tracking = follow; tvSound(on); localPlaying = audible.load(); nest = follow;
+      if (!on && screenSec-tv > .025) trimMs = int(std::lround(screenSec*1000));
+      bool hold = !on && tv-screenSec > (reservePaused ? .010 : .035);
+      if (hold != reservePaused) {
+        reservePaused = hold;
+        if (hold) SDL_PauseAudioStreamDevice(audio); else SDL_ResumeAudioStreamDevice(audio);
+      }
+      if (now >= tuneAt) {
+        tuneAt = now+120;
+        SDL_SetAudioStreamFrequencyRatio(audio,float(speakerRequested && !on ? 1+std::clamp((screenSec-tv)*1.2,-.35,.08) : 1));
+      }
+      lastPos = startAt+std::min(audioTail.load(),screenSec);
+    }
+    if (audioDone && queued <= 0 && firstPts >= 0 && (!speakerRequested || screenSec >= audioTail.load()-.02)) {
       if (!drainAt) drainAt = SDL_GetTicks();
       if (SDL_GetTicks()-drainAt >= uint64_t(deviceMs+10)) { lastPos = startAt+audioTail.load(); state = player::ENDED; }
     }

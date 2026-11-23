@@ -27,6 +27,16 @@ public:
       bool matches = true;
       if (get(entry,"fields").is<Object>()) for (const auto& kv : get(entry,"fields").get<Object>()) if (get(args,kv.first) != kv.second) matches = false;
       if (!matches) continue;
+      const auto& authorization = get(entry,"authorization");
+      if (authorization.is<string>()) {
+        string expected = str(authorization), actual;
+        for (const auto& header : r.headers) if (header.compare(0,15,"Authorization: ") == 0) actual = header.substr(15);
+        bool accepted = actual == (expected.empty() ? "" : "Bearer "+expected);
+        if (const auto* log = std::getenv("XT_CATALOG_AUDIT")) if (auto* f = std::fopen(log,"a")) {
+          std::fprintf(f,"%s\t%s\n",r.url.c_str(),accepted ? "authorized_fixture" : "rejected_fixture"); std::fclose(f);
+        }
+        if (!accepted) return {401,"{}",{}};
+      }
       string bytes = file(str(entry,"file"));
       if (bytes.empty()) return {0,{},"replay_file_missing"};
       if (flag(entry,"range")) {

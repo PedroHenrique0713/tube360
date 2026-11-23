@@ -390,10 +390,16 @@ the slot count. Now playing reconfigures that same pool to 640×360, reducing it
 returning to browsing restores the configured grid size. There is no second texture pool. Only visible cards,
 visible avatars and the current cover request artwork.
 
-The native Music screen uses the same negotiated playback stream and decoder, with its own controls and render dispatcher.
-It does not request audio-only playback. B stops and clears the queue, returning to the source page; selecting Show
-video continues the same stream using the existing player UI. B through the player's usual focus levels then returns
-to Now playing without stopping that Music session. Lyrics can be scrolled with up/down.
+With `server=off`, account routes use the console TV session in `yt-console-account.json`. Music receives the
+current access token on login, refresh and logout; the token never appears in the text protocol. Changing it clears
+catalog caches and discards navigation responses from the previous token. Public channel/playlist requests use the
+native catalog first; a failed account playlist request can use the TV session, including private library playlists.
+
+Now playing decodes only AAC, including when the console controls a Nest directly. The muted PCM reserve follows
+the speaker clock and becomes audible only after Cast confirms silence. The PC audio reserve accepts AAC or MP2
+without decoding video. B stops and clears the local queue, returning to the source page. Show video reopens at the
+current position, preserving pause; B through the player's focus levels returns to audio at that position. Lyrics
+can be scrolled with up/down. Account history also records audio-only sessions.
 
 Local JSON account additions: `GET /nav` with `kind,id,q,tab,filter,page,fresh`, returning
 `{title,subtitle,image,channel_id,subscribed,items:[{type,id,title,channel,duration,image,channel_id,section}],more}`;
