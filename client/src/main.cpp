@@ -99,7 +99,10 @@ struct Worker {
       SDL_UnlockMutex(mu);
       Result r; r.kind = j.kind; r.key = j.a; r.stamp = j.stamp; r.offset = j.offset;
       net::Response resp;
-      if (j.kind == 5) {
+      if (j.kind == 6) {
+        if (!net::get(srv, j.a, resp, 30000, 512 * 1024)) r.feed.error = K::NoResponse;
+        r.feed.title.assign(resp.body.begin(), resp.body.end());
+      } else if (j.kind == 5) {
         if (!net::get(srv, j.a, resp, 8000, 4096)) r.feed.error = K::NoResponse;
         r.feed.title.assign(resp.body.begin(), resp.body.end());
       } else if (j.kind == 0 || j.kind == 1 || j.kind == 3) {
@@ -111,7 +114,7 @@ struct Worker {
         else parseFeed(resp.body, r.feed);
       } else {
         std::string size = "?w=" + std::to_string(j.w) + "&h=" + std::to_string(j.h);
-        if (net::get(srv, "/api/thumb/" + j.a + size, resp, 10000)) {
+        if (net::get(srv, "/api/thumb/" + (j.a[0] == '~' ? "nav/" + j.a.substr(1) : j.a) + size, resp, 10000)) {
           int w, h, n;
           // Não decodifica dimensões arbitrárias recebidas pela rede.
           if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || w != j.w || h != j.h) { w = h = 0; }
@@ -350,6 +353,14 @@ static void icon(gfx::Gfx& g, int which, float cx, float cy, Color c, Color bg) 
     }
     gfx::rect(g, cx - 10, cy - 10, 20, 20, c, 10);
     gfx::rect(g, cx - 4, cy - 4, 8, 8, bg, 4);
+  } else if (which == 5) {
+    gfx::rect(g, cx + 4, cy - 12, 3, 20, c, 1); gfx::rect(g, cx - 4, cy - 12, 11, 4, c, 1);
+    gfx::rect(g, cx - 8, cy + 2, 14, 9, c, 4.5f);
+  } else if (which == 6) {
+    for (int i = 0; i < 3; i++) gfx::rect(g, cx - 12 + i * 8, cy - 11, 5, 22, c, 1);
+  } else if (which == 7) {
+    gfx::rect(g, cx - 11, cy - 7, 22, 17, c, 3); gfx::rect(g, cx - 7, cy - 12, 14, 2, c, 1);
+    gfx::triangle(g, cx - 3, cy - 3, cx - 3, cy + 6, cx + 5, cy + 1.5f, bg);
   } else {  // sair: liga/desliga
     gfx::rect(g, cx - 11, cy - 10, 22, 22, c, 11);
     gfx::rect(g, cx - 8, cy - 7, 16, 16, bg, 8);
@@ -366,6 +377,8 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
     gfx::rect(g, cx + std::cos(a) * r - 4, cy + std::sin(a) * r - 4, 8, 8, c, 4);
   }
 }
+
+#include "navigation.hpp"
 
 int main(int argc, char** argv) {
   (void)argc; (void)argv;
@@ -412,6 +425,9 @@ int main(int argc, char** argv) {
   // Conta e pareamento não esperam as buscas do feed.
   Worker control; control.srv = srv; control.hw = 5;
   SDL_Thread* ct = SDL_CreateThread(Worker::main, "conta", &control);
+  Worker navWorker; navWorker.srv = srv; navWorker.hw = 5;
+  SDL_Thread* nt = SDL_CreateThread(Worker::main, "navegação", &navWorker);
+  Navigation nav;
   Worker sleepWorker; sleepWorker.srv = srv; sleepWorker.hw = 5;
   SDL_Thread* st = SDL_CreateThread(Worker::main, "timer", &sleepWorker);
   // miniaturas numa fila própria, com 3 threads: não esperam atrás das buscas das categorias
@@ -448,7 +464,8 @@ int main(int argc, char** argv) {
   };
   rebuildCats();
 
-  enum Screen { HOME, SEARCH, PLAYER, SETTINGS } screen = HOME;
+  enum Screen { HOME, SEARCH, PLAYER, SETTINGS, NAV } screen = HOME;
+  Screen navReturn = HOME, searchBack = HOME; bool searchMusic = false;
   int zone = 0;  // 0 grade, 1 categorias
   float scroll = 0; static float selAnim[600] = {};
   bool railFocus = false; int railSel = 0; float railOpen = 0;
@@ -494,7 +511,7 @@ int main(int argc, char** argv) {
   };
 
   Input in; SDL_Gamepad* pad = nullptr;
-  bool quit = false; uint64_t frame = 0; int shotFrame = std::getenv("XT_SHOT_FRAME") ? std::atoi(std::getenv("XT_SHOT_FRAME")) : 90;
+  bool quit = false; uint64_t frame = 0, runStart = SDL_GetTicks(); int shotFrame = std::getenv("XT_SHOT_FRAME") ? std::atoi(std::getenv("XT_SHOT_FRAME")) : 90;
 #ifndef __XSDK__
   if (const char* s = std::getenv("XT_SCREEN")) {
     if (!std::strcmp(s, "search")) { screen = SEARCH; query = "flamengo 0x3 palmeiras"; recent = {"palmeiras 4x1 corinthians", "reações dos corintianos", "flamengo 0x3 palmeiras"}; }
@@ -505,6 +522,10 @@ int main(int argc, char** argv) {
   if (g.win) SDL_StartTextInput(g.win);
 #endif
   auto startVideo = [&](const Video& v, double t, bool fromRemote) {
+    if (!fromRemote && nav.ownsQueue) {
+      nav.ownsQueue = nav.musicSession = nav.musicNow = false;
+      navWorker.add({6, "/api/nav/transport?action=clear", ++nav.serial}, true);
+    }
     if (v.id != playing.id) {
       nestSkip = false; likeState.clear(); upNext = Video{};
       control.add({5, "/api/video/" + v.id + "/next", 0});
@@ -518,7 +539,12 @@ int main(int argc, char** argv) {
     if (screen != PLAYER) backTo = screen;
     screen = PLAYER; overlayUntil = SDL_GetTicks() + 5000;
   };
-  auto stopVideo = [&]() { pl.halt(); ratePanel = false; nextAt = 0; screen = backTo == PLAYER ? HOME : backTo; };
+  auto stopVideo = [&]() {
+    if (nav.ownsQueue && pl.state != player::ENDED) {
+      nav.ownsQueue = nav.musicSession = nav.musicNow = false; nav.busy = false; nav.cancelQueue = true;
+      nav.action(navWorker, "/api/nav/transport?action=stop");
+    }
+    pl.halt(); ratePanel = false; nextAt = 0; screen = backTo == PLAYER ? HOME : backTo; };
   // Live pausada não continua de onde parou: o ffmpeg do servidor para junto, e a janela de algumas lives no YouTube
   // tem só 30 s. Continuar abre de novo perto do ao vivo.
   auto resumeLive = [&]() { livePaused = false; startVideo(playing, 0, playerFromRemote); };
@@ -528,18 +554,40 @@ int main(int argc, char** argv) {
     while (at > 0 && ((unsigned char)query[at] & 0xC0) == 0x80) at--;
     query.resize(at);
   };
+  auto openNav = [&](const std::string& kind, const std::string& id = "", const std::string& q = "", bool music = false) {
+    if (screen != NAV) { navReturn = screen == SEARCH ? searchBack : screen; nav.pages.clear(); }
+    nav.open(navWorker, settings.lang, kind, id, q, music); screen = NAV; railFocus = false;
+  };
+  auto openChannelForVideo = [&](const std::string& id) {
+    if (screen != NAV) { navReturn = screen; nav.pages.clear(); }
+    nav.channelFromVideo(navWorker, settings.lang, id); screen = NAV; railFocus = false;
+  };
+  auto navBack = [&]() {
+    if (!nav.pages.empty()) nav.pages.pop_back();
+    if (nav.pages.empty()) { screen = navReturn; if (screen == SEARCH || screen == PLAYER) screen = HOME; }
+    else screen = NAV;
+  };
+  auto openSearch = [&]() {
+    searchBack = screen; searchMusic = screen == NAV && nav.page().music;
+    screen = SEARCH; keyRow = keyCol = 0; keyInRecent = false; railFocus = false;
+  };
   auto doSearch = [&](std::string q) {
     if (q.empty()) return;
     query = q; recent.erase(std::remove(recent.begin(), recent.end(), q), recent.end()); recent.insert(recent.begin(), q);
     if (recent.size() > 6) recent.pop_back();
-    results = Shelf{"", q, {}};
-    requestFeed(results, 1, false, 0, true);
-    inResults = true; zone = 0; scroll = 0; railFocus = false; screen = HOME;
+    if (screen == SEARCH) screen = searchBack;
+    openNav(searchMusic ? "music_search" : "search", "", q, searchMusic);
   };
-  auto goHome = [&]() { inResults = false; zone = 0; scroll = 0; railFocus = false; screen = HOME; };
+  auto goHome = [&]() { nav.pages.clear(); nav.musicSession = false; inResults = false; zone = 0; scroll = 0; railFocus = false; screen = HOME; };
   if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; startVideo(v, 0, false); }
 #ifndef __XSDK__
   if (const char* q = std::getenv("XT_QUERY")) doSearch(q);
+#endif
+#ifndef __XSDK__
+  if (const char* kind = std::getenv("XT_NAV")) {
+    const char* id = std::getenv("XT_NAV_ID"), *q = std::getenv("XT_NAV_QUERY");
+    openNav(kind, id ? id : "", q ? q : "", std::getenv("XT_MUSIC") != nullptr);
+  }
 #endif
   // autoplay.txt ao lado do .xex ("<id> [segundos]"): abre direto no player, para testar no console sem controle
   if (FILE* f = std::fopen((assets + "autoplay.txt").c_str(), "r")) {
@@ -582,10 +630,15 @@ int main(int argc, char** argv) {
       in.clear();
       static const char* script = std::getenv("XT_KEYS");
       int step = (int)frame - 40;
+#ifndef __XSDK__
+      static int interval = std::getenv("XT_KEYS_MS") ? std::atoi(std::getenv("XT_KEYS_MS")) : 0;
+      static int keyIndex = 0; static uint64_t keyAt = runStart + (uint64_t)std::max(0, interval);
+      if (interval > 0) { step = -1; if (now >= keyAt) { step = keyIndex++ * 24; keyAt = now + interval; } }
+#endif
       if (script && step >= 0 && step % 24 == 0 && step / 24 < (int)std::strlen(script)) {
         char k = script[step / 24];
         int b = k == 'U' ? Input::UP : k == 'D' ? Input::DOWN : k == 'L' ? Input::LEFT : k == 'R' ? Input::RIGHT : k == 'A' ? Input::A
-              : k == 'B' ? Input::B : k == 'X' ? Input::X : k == 'Y' ? Input::Y : k == 'l' ? Input::LT : k == 'r' ? Input::RT : -1;
+              : k == 'B' ? Input::B : k == 'X' ? Input::X : k == 'Y' ? Input::Y : k == 'S' ? Input::START : k == 'l' ? Input::LT : k == 'r' ? Input::RT : -1;
         if (b >= 0) in.fired[b] = true;
       }
     }
@@ -643,7 +696,10 @@ int main(int argc, char** argv) {
         if (ok) {
           bool changed = account.signedIn() != next.signedIn();
           account = next; accountKnown = true; accountFailed = false;
-          if (changed) { rebuildCats(); scroll = 0; }
+          if (changed) {
+            rebuildCats(); scroll = 0;
+            if (accountKnown && !account.signedIn()) { nav.pages.clear(); nav.queue.clear(); if (screen == NAV) screen = HOME; }
+          }
           if (account.signedIn()) {
             loginPanel = false; loginError = K::None;
             if (changed) { toast = tr(K::SignedInAs) + account.name; toastUntil = now + 4000; }
@@ -658,6 +714,30 @@ int main(int argc, char** argv) {
           accountAt = now + (loginPanel && account.state == Account::PENDING ? 3000 : 60000);
         }
       }
+    }
+    while (navWorker.pop(r)) {
+      if (r.stamp == nav.actionStamp && nav.busy) {
+        nav.busy = false;
+        bool ok = r.feed.error == K::None && r.feed.title.rfind("ok", 0) == 0;
+        if (r.key.rfind("/api/nav/play?", 0) == 0 && ok) {
+          NavPage queue; Navigation::parse(r.feed.title, queue);
+          if (nav.cancelQueue) { nav.musicSession = nav.musicNow = false; nav.action(navWorker, "/api/nav/transport?action=stop"); }
+          else { nav.queue = std::move(queue.items); nav.ownsQueue = true; }
+          nav.nowSel = 0; nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
+        } else if (r.key.rfind("/api/nav/lyrics?", 0) == 0) {
+          auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
+          nav.lyrics = fields.size() > 1 ? fields[1] : "";
+          nav.lyricLines = nav.lyrics.empty() ? std::vector<std::string>{} : gfx::wrap(g, ui::F_KEY, nav.lyrics, 714, 200); nav.lyricScroll = 0;
+        } else if (r.key.find("action=subscribe") != std::string::npos && ok && !nav.pages.empty()) {
+          for (auto& p : nav.pages) if (r.key.find("id=" + p.channelId + "&") != std::string::npos && !p.channelId.empty()) p.subscribed = r.key.find("value=1") != std::string::npos;
+        } else if (r.key.find("action=later") != std::string::npos && ok) { toast = tr(K::AddedLater); toastUntil = now + 3500; nav.menu = false; }
+        if (r.key == "/api/nav/transport?action=stop") { nav.cancelQueue = false; nav.ownsQueue = false; }
+        if (!ok) {
+          if (r.key.rfind("/api/nav/play?", 0) == 0) nav.musicSession = nav.musicNow = false;
+          auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
+          toast = fields.size() > 1 ? fields[1] : tr(K::ActionFailed); toastUntil = now + 4500;
+        }
+      } else nav.arrived(r, g, settings.lang);
     }
     while (worker.pop(r)) {
       Shelf* target = inResults && r.stamp == results.stamp ? &results : nullptr;
@@ -701,6 +781,7 @@ int main(int argc, char** argv) {
         toastUntil = now + 5000;
         continue;
       }
+      if (c[0] == "play" && nav.cancelQueue) continue;
       if (c[0] == "play" && c.size() >= 2) {
         Video v; v.id = c[1]; double t = c.size() > 2 ? std::atof(c[2].c_str()) : 0; v.title = c.size() > 3 ? c[3] : "";
         for (auto& c : cats) for (auto& it : c.feed.items) if (it.id == v.id) v = it;
@@ -715,6 +796,10 @@ int main(int argc, char** argv) {
       }
     }
 
+    if (screen == PLAYER && nav.musicSession) {
+      nav.musicNow = true;
+      for (const auto& item : nav.queue) if (item.id == playing.id) { playing.title = item.title; playing.channel = item.channel; break; }
+    }
     // ---------------------------------------------------------------- lógica por tela
     // código de pareamento e quem está conectado pelo Transmitir (o código troca a cada 5 min)
     if (now >= castCodeAt) { control.add({5, "/api/cast/code", 0}); castCodeAt = now + (phonePanel ? 15000 : 30000); }
@@ -760,6 +845,86 @@ int main(int argc, char** argv) {
       if (in.hit(Input::A) && !accountBusy) requestAccount("/api/account/logout");
     } else if (phonePanel) {
       if (in.hit(Input::A) || in.hit(Input::B)) phonePanel = false;
+    } else if (nav.menu) {
+      if (in.hit(Input::UP) && nav.menuSel > 0) nav.menuSel--;
+      if (in.hit(Input::DOWN) && nav.menuSel < 2) nav.menuSel++;
+      if (in.hit(Input::B)) nav.menu = false;
+      if (in.hit(Input::A) && !nav.busy) {
+        const auto item = nav.menuItem;
+        if (nav.menuSel == 0) {
+          nav.menu = false;
+          if (!item.channelId.empty()) openNav("channel", item.channelId);
+          else openChannelForVideo(item.id);
+        } else if (nav.menuSel == 1) {
+          if (!account.signedIn()) { toast = tr(K::AccountRequired); toastUntil = now + 4000; }
+          else nav.action(navWorker, "/api/nav/action?action=later&id=" + item.id + "&lang=" + i18n::code(settings.lang));
+        } else { nav.menu = false; openNav("radio", item.id, "", true); }
+      }
+    } else if (nav.unsubscribe) {
+      if (in.hit(Input::B)) nav.unsubscribe = false;
+      if (in.hit(Input::A) && !nav.busy) {
+        nav.unsubscribe = false;
+        nav.action(navWorker, "/api/nav/action?action=subscribe&id=" + nav.page().channelId + "&value=0&lang=" + i18n::code(settings.lang));
+      }
+    } else if (screen == NAV && !nav.pages.empty()) {
+      auto& p = nav.page(); uint64_t currentPage = p.stamp;
+      bool channel = p.kind == "channel";
+      bool playlist = p.kind == "playlist" || p.kind == "music_playlist" || p.kind == "album" || p.kind == "radio" || p.kind == "later";
+      bool tabs = channel || p.kind == "music" || p.kind == "search" || p.kind == "music_search";
+      int count = (int)p.items.size();
+      if (count) p.sel = std::clamp(p.sel, 0, count - 1);
+      bool left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), up = in.hit(Input::UP), down = in.hit(Input::DOWN), a = in.hit(Input::A);
+      if (p.zone == 0) {
+        if (down) p.zone = tabs ? 1 : !p.channels.empty() ? 2 : 3;
+        if (a && !p.loading && !nav.busy) {
+          if (channel) {
+            if (!account.signedIn()) { toast = tr(K::AccountRequired); toastUntil = now + 4000; }
+            else if (p.subscribed) nav.unsubscribe = true;
+            else nav.action(navWorker, "/api/nav/action?action=subscribe&id=" + p.channelId + "&value=1&lang=" + i18n::code(settings.lang));
+          } else if (playlist) {
+            nav.cancelQueue = false; nav.musicSession = p.music; nav.musicNow = false;
+            nav.action(navWorker, "/api/nav/play?kind=" + p.kind + "&id=" + net::urlEncode(p.id) + "&lang=" + i18n::code(settings.lang));
+          }
+        }
+      } else if (p.zone == 1) {
+        int maxTab = p.kind == "music_search" ? 3 : 2, before = p.tabSel;
+        if (left && p.tabSel > 0) p.tabSel--;
+        if (right && p.tabSel < maxTab) p.tabSel++;
+        if (up && (channel || playlist)) p.zone = 0;
+        if (down || a) p.zone = 3;
+        if (p.tabSel != before) {
+          p.tab = p.tabSel == 1 ? "live" : p.tabSel == 2 ? "playlists" : "videos";
+          if (p.kind == "music") p.query = p.tabSel == 1 ? "charts" : p.tabSel == 2 ? "mixes" : "";
+          p.sel = 0; p.scroll = 0; nav.load(navWorker, settings.lang);
+        }
+      } else if (p.zone == 2) {
+        if (left && p.channelSel > 0) p.channelSel--;
+        if (right && p.channelSel + 1 < (int)p.channels.size()) p.channelSel++;
+        if (down) p.zone = 3;
+        if (a && !p.channels.empty()) { const auto id = p.channels[(size_t)p.channelSel].id; openNav("channel", id); }
+      } else {
+        if (left && p.sel % 4 > 0) p.sel--;
+        if (right && p.sel % 4 < 3 && p.sel + 1 < count) p.sel++;
+        if (up) { if (p.sel >= 4) p.sel -= 4; else p.zone = !p.channels.empty() ? 2 : tabs ? 1 : channel || playlist ? 0 : 3; }
+        if (down) { if (p.sel + 4 < count) p.sel += 4; else if (count) p.sel = count - 1; }
+        if (a && count) {
+          const auto item = p.items[(size_t)p.sel];
+          if (item.type == "video") {
+            if (p.music) { openNav("radio", item.id, "", true); nav.page().zone = 0; }
+            else startVideo(item.video(), 0, false);
+          } else if (item.type == "mixes") openNav("music", "", "mixes", true);
+          else if (item.type == "history" || item.type == "later") openNav(item.type, "", "", p.music);
+          else openNav(item.type == "playlist" && p.music ? "music_playlist" : item.type, item.id, "", p.music);
+        }
+        if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::START) && count && p.items[(size_t)p.sel].type == "video") { nav.menuItem = p.items[(size_t)p.sel]; nav.menuSel = 0; nav.menu = true; }
+        if (screen == NAV && nav.page().stamp == currentPage && count && p.sel >= count - 8 && p.more && !p.loading) nav.load(navWorker, settings.lang, false, true);
+      }
+      if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::X)) { nav.page().sel = 0; nav.page().scroll = 0; nav.load(navWorker, settings.lang, true); }
+      if (in.hit(Input::Y)) openSearch();
+      if (in.hit(Input::B)) {
+        if (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0) nav.cancelQueue = true;
+        navBack();
+      }
     } else if (screen == SETTINGS) {
       if (in.hit(Input::UP) && settingsRow > 0) settingsRow--;
       if (in.hit(Input::DOWN) && settingsRow < 7) settingsRow++;
@@ -794,16 +959,19 @@ int main(int argc, char** argv) {
         }
         if (changed) saveSettings();
       }
-      if (in.hit(Input::B)) { screen = HOME; railFocus = true; railSel = 3; }
+      if (in.hit(Input::B)) { screen = HOME; railFocus = true; railSel = 6; }
     } else if (screen == HOME && railFocus) {
       if (in.hit(Input::UP) && railSel > 0) railSel--;
-      if (in.hit(Input::DOWN) && railSel < 4) railSel++;
+      if (in.hit(Input::DOWN) && railSel < 7) railSel++;
       if (in.hit(Input::RIGHT) || in.hit(Input::B)) railFocus = false;
       if (in.hit(Input::A)) {
         if (railSel == 0) goHome();
-        else if (railSel == 1) { screen = SEARCH; keyRow = keyCol = 0; keyInRecent = false; railFocus = false; }
-        else if (railSel == 2) { phonePanel = true; castCodeAt = 0; }
-        else if (railSel == 3) { screen = SETTINGS; railFocus = false; nestInfoAt = 0; accountAt = 0; }
+        else if (railSel == 1) openSearch();
+        else if (railSel == 2) openNav("subscriptions");
+        else if (railSel == 3) openNav("library");
+        else if (railSel == 4) openNav("music", "", "", true);
+        else if (railSel == 5) { phonePanel = true; castCodeAt = 0; }
+        else if (railSel == 6) { screen = SETTINGS; railFocus = false; nestInfoAt = 0; accountAt = 0; }
         else quit = true;
       }
     } else if (screen == HOME) {
@@ -813,7 +981,8 @@ int main(int argc, char** argv) {
       if (zone == 1 && !inResults) {
         if (in.hit(Input::LEFT)) { if (cat > 0) { cat--; scroll = 0; } else { railFocus = true; railSel = 0; } }
         if (in.hit(Input::RIGHT) && cat + 1 < (int)cats.size()) { cat++; scroll = 0; }
-        if ((in.hit(Input::DOWN) || in.hit(Input::A)) && n) zone = 0;
+        if (cur.kind == "subs" && (in.hit(Input::DOWN) || in.hit(Input::A))) openNav("subscriptions");
+        else if ((in.hit(Input::DOWN) || in.hit(Input::A)) && n) zone = 0;
       } else {
         int cols = settings.cols;
         if (in.hit(Input::LEFT)) { if (cur.sel % cols > 0) cur.sel--; else { railFocus = true; railSel = inResults ? 1 : 0; } }
@@ -831,7 +1000,8 @@ int main(int argc, char** argv) {
           startVideo(v, v.dur > 0 && v.pos >= v.dur ? 0 : v.pos, false);
         }
       }
-      if (in.hit(Input::Y)) { screen = SEARCH; keyRow = keyCol = 0; keyInRecent = false; }
+      if (in.hit(Input::START) && n && zone == 0) { const auto& v = cur.feed.items[(size_t)cur.sel]; nav.menuItem = {"video",v.id,v.title,v.channel,v.id,"","",v.dur}; nav.menuSel = 0; nav.menu = true; }
+      if (in.hit(Input::Y)) openSearch();
       if (in.hit(Input::X)) {
         cur.feed = Feed{}; requestFeed(cur, inResults ? 1 : cat == 0 ? 0 : 3, true, 0, true);
         cur.sel = 0; scroll = 0; zone = 0; toast = tr(K::Refreshing); toastUntil = now + 2500;
@@ -848,7 +1018,7 @@ int main(int argc, char** argv) {
         int cols = keyRow < 4 ? 10 : 3;
         if (in.hit(Input::UP) && keyRow > 0) { if (keyRow == 4) keyCol = keyCol * 3 + 1; keyRow--; }
         if (in.hit(Input::DOWN) && keyRow < 4) { keyRow++; if (keyRow == 4) keyCol = std::min(2, keyCol / 4); }
-        if (in.hit(Input::LEFT)) { if (keyCol > 0) keyCol--; else { screen = HOME; railFocus = true; railSel = 1; } }
+        if (in.hit(Input::LEFT)) { if (keyCol > 0) keyCol--; else { screen = searchBack; railFocus = screen == HOME; railSel = 1; } }
         if (in.hit(Input::RIGHT)) { if (keyCol + 1 < cols) keyCol++; else if (!recent.empty()) { keyInRecent = true; recentSel = 0; } }
         if (in.hit(Input::A)) {
           if (keyRow < 4) {
@@ -862,7 +1032,24 @@ int main(int argc, char** argv) {
       if (in.hit(Input::X)) backspace();
       if (in.hit(Input::Y)) query += ' ';
       if (in.hit(Input::START)) doSearch(query);
-      if (in.hit(Input::B)) screen = HOME;
+      if (in.hit(Input::B)) screen = searchBack;
+    } else if (screen == PLAYER && nav.musicNow) {
+      if (in.hit(Input::UP) && nav.lyricsOpen && nav.lyricScroll > 0) nav.lyricScroll--;
+      if (in.hit(Input::DOWN) && nav.lyricsOpen && nav.lyricScroll + 9 < (int)nav.lyricLines.size()) nav.lyricScroll++;
+      if (in.hit(Input::LEFT) && nav.nowSel > 0) nav.nowSel--;
+      if (in.hit(Input::RIGHT) && nav.nowSel < 3) nav.nowSel++;
+      if (in.hit(Input::A)) {
+        if (nav.nowSel == 0 && !pl.waiting()) pl.setPaused(!pl.paused);
+        else if (nav.nowSel == 1 && !nav.busy) nav.action(navWorker, "/api/nav/transport?action=next");
+        else if (nav.nowSel == 2) {
+          nav.lyricsOpen = !nav.lyricsOpen;
+          if (nav.lyricsOpen && nav.lyricsId != playing.id && !nav.busy) { nav.lyricsId = playing.id; nav.lyrics.clear(); nav.lyricLines.clear(); nav.action(navWorker, "/api/nav/lyrics?id=" + playing.id); }
+        } else if (nav.nowSel == 3) { nav.musicNow = nav.musicSession = false; }
+      }
+      if (in.hit(Input::B)) {
+        nav.ownsQueue = nav.musicSession = nav.musicNow = false; nav.busy = false; nav.cancelQueue = true;
+        nav.action(navWorker, "/api/nav/transport?action=stop"); stopVideo();
+      }
     } else if (screen == PLAYER) {
       bool any = false;
       // Carregando, o A não pausa: a pausa ficava invisível atrás do "Carregando" e o vídeo abria parado em 0:00.
@@ -939,7 +1126,7 @@ int main(int argc, char** argv) {
     remote.playing = screen == PLAYER ? playing.id : ""; remote.pos = pl.position(); remote.dur = pl.duration; remote.paused = pl.paused;
     SDL_UnlockMutex(remote.mu);
 
-    if (focusVid) { if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, focusVid->id, frame)) ambientWant = s->avg; }
+    if (focusVid && screen == HOME) { if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, focusVid->id, frame)) ambientWant = s->avg; }
     ambient = ui::mix(ambient, ambientWant, 0.06f);
     railOpen += ((railFocus ? 1.f : 0.f) - railOpen) * 0.25f;
 
@@ -1033,6 +1220,7 @@ int main(int argc, char** argv) {
         if (account.signedIn()) pill(tr(K::AccountPrefix) + account.name, ui::A2);
         float hx3 = hint(g, lx, 32, "X", XX, tr(K::Refresh));
         hint(g, hx3, 32, "Y", XY, tr(K::Search));
+        hint(g, 1010, 678, "Menu", XG, tr(K::MoreOptions));
       }
       if (inResults) {
         gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, cur.feed.title, 760), ui::X0, 78, ui::TEXT);
@@ -1069,7 +1257,7 @@ int main(int argc, char** argv) {
       gfx::rect(g, fx + 1, fy + 1, fw - 2, fh - 2, ui::SURFACE, 29);
       icon(g, 1, fx + 34, fy + 30, ui::MUTED, ui::SURFACE);
       float qx = fx + 62;
-      if (query.empty()) gfx::text(g, ui::F_KEY, tr(K::SearchPrompt), qx, fy + 17, ui::FAINT);
+      if (query.empty()) gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, tr(searchMusic ? K::MusicSearch : K::SearchPrompt), 540), qx, fy + 17, ui::FAINT);
       else qx += gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, query, 540), qx, fy + 17, ui::TEXT);
       if (std::fmod(t, 1.0) < 0.55) gfx::vgrad(g, qx + 3, fy + 15, 3, 30, ui::A1, ui::A2, 1.5f);
       const float kx = ui::X0, ky = 200, kw = 58, kh = 54, kg = 8;
@@ -1159,28 +1347,34 @@ int main(int argc, char** argv) {
       hint(g, hx, 678, "B", XB, tr(K::Back));
     }
 
-    if (screen == HOME || screen == SEARCH || screen == SETTINGS) {
+    if (screen == NAV) nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang);
+
+    if (screen == HOME || screen == SEARCH || screen == SETTINGS || screen == NAV) {
       // barra lateral: ícones; com foco, abre com os nomes
       float rw = ui::RAIL + 200 * railOpen;
       if (railOpen > 0.01f) {
         gfx::rect(g, 0, 0, rw, ui::H, ui::alpha(ui::BG, 0.96f * railOpen), 0);
         gfx::hgrad(g, rw - 1, 0, 200, ui::H, ui::alpha(ui::BG, 0.96f * railOpen), ui::alpha(ui::BG, 0));
       }
-      const char* names[] = {tr(K::Home), tr(K::Search), tr(K::Phone), tr(K::Settings), tr(K::Exit)};
-      int page = screen == SETTINGS ? 3 : screen == SEARCH || inResults ? 1 : 0;
-      for (int i = 0; i < 5; i++) {
-        float y = 170 + i * 64 + (i == 4 ? 194 : 0);
+      const char* names[] = {tr(K::Home), tr(K::Search), tr(K::Subscriptions), tr(K::Library), tr(K::Music), tr(K::Phone), tr(K::Settings), tr(K::Exit)};
+      int page = screen == SETTINGS ? 6 : screen == SEARCH || inResults ? 1 : screen == NAV && !nav.pages.empty() ? nav.page().music ? 4 : nav.pages.front().kind == "subscriptions" ? 2 : nav.pages.front().kind == "library" ? 3 : 0 : 0;
+      for (int i = 0; i < 8; i++) {
+        float y = 142 + i * 68;
         bool f = railFocus && railSel == i, act = i == page;
         if (f) gfx::rect(g, 30, y - 24, 52 + 168 * railOpen, 48, rgb(0xffffff), 24);
         else if (act) gfx::rect(g, 30, y - 24, 52, 48, ui::alpha(rgb(0xffffff), 0.1f), 24);
         if (act && !f) gfx::vgrad(g, 16, y - 12, 4, 24, ui::A1, ui::A2, 2);
         Color ic = f ? ui::INK : act ? ui::TEXT : ui::MUTED;
-        icon(g, i, 56, y, ic, f ? rgb(0xffffff) : act ? ui::mix(ui::BG, rgb(0xffffff), 0.1f) : ui::BG);
+        const int symbols[] = {0,1,7,6,5,2,3,4};
+        icon(g, symbols[i], 56, y, ic, f ? rgb(0xffffff) : act ? ui::mix(ui::BG, rgb(0xffffff), 0.1f) : ui::BG);
         if (railOpen > 0.05f) gfx::text(g, ui::F_BODY, names[i], 94, y - 12, ui::alpha(f ? ui::INK : ui::TEXT, railOpen));
-        if (i == 2) gfx::rect(g, 66, y - 18, 9, 9, !castWho.empty() ? rgb(0x34c759) : remoteOnline ? rgb(0xd4d4d8) : ui::FAINT, 4.5f);
+        if (i == 5) gfx::rect(g, 66, y - 18, 9, 9, !castWho.empty() ? rgb(0x34c759) : remoteOnline ? rgb(0xd4d4d8) : ui::FAINT, 4.5f);
       }
     }
 
+    if (screen == PLAYER && nav.musicNow) nav.drawNow(g, thumbs, thumbsWorker, playing, pl.position(), pl.duration, pl.paused, pl.waiting(),
+        pl.state == player::FAILED ? i18n::playerError(pl.error) : K::None, frame, settings.lang);
+    else {
     if (screen == PLAYER) {
       gfx::rect(g, 0, 0, ui::W, ui::H, rgb(0x000000), 0);
       gfx::videoQuad(g, 0, 0, ui::W, ui::H);
@@ -1274,6 +1468,8 @@ int main(int argc, char** argv) {
       }
     }
 
+    }
+
     if (sleep.active && screen == PLAYER) {
       std::string value = sleep.end ? tr(K::SleepEnd) : fmtTime(std::ceil(sleepLeft));
       if (sleep.end && sleepLeft >= 0) value += " · " + fmtTime(std::ceil(sleepLeft));
@@ -1282,6 +1478,16 @@ int main(int argc, char** argv) {
       float y = screen == PLAYER ? 124 : 24;
       gfx::rect(g, x, y, w, 32, ui::SURFACE2, 16);
       gfx::text(g, ui::F_SMALL, label, x + 15, y + 7, ui::MUTED);
+    }
+    if (nav.menu) nav.drawMenu(g, settings.lang);
+    if (nav.unsubscribe) {
+      gfx::rect(g, 0, 0, 1280, 720, {0,0,0,0.8f}); gfx::rect(g, 250, 250, 780, 210, ui::SURFACE, 24);
+      gfx::text(g, ui::F_H2, tr(K::SubscribeConfirm), 290, 290, ui::TEXT);
+      float hx = hint(g, 290, 398, "A", XA, tr(K::Confirm)); hint(g, hx, 398, "B", XB, tr(K::Cancel));
+    }
+    if (nav.busy && screen != PLAYER) {
+      gfx::rect(g, 410, 615, 460, 48, ui::SURFACE2, 24);
+      gfx::text(g, ui::F_CHAN, tr(nav.actionPath.rfind("/api/nav/play?",0) == 0 ? K::StartingQueue : K::Saving), 640, 630, ui::TEXT, 1);
     }
     if (phonePanel) {
       gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.72f});
@@ -1357,8 +1563,15 @@ int main(int argc, char** argv) {
       }
     }
     bool shoot = shotPath && (int)frame == shotFrame;
+#ifndef __XSDK__
+    if (shotPath && std::getenv("XT_SHOT_MS")) shoot = now - runStart >= (uint64_t)std::atoi(std::getenv("XT_SHOT_MS"));
+#endif
     gfx::end(g, shoot ? shotPath : nullptr);
-    if (shoot) quit = true;
+    if (shoot) {
+      LOG("captura: frame %llu, tempo %llu ms, tela %d, vídeo %s, posição %.2f", (unsigned long long)frame, (unsigned long long)(now - runStart), (int)screen, playing.id.c_str(), pl.position());
+      if (screen == NAV && !nav.pages.empty()) LOG("captura navegação: %s sel=%d canal=%d zona=%d pilha=%u", nav.page().kind.c_str(), nav.page().sel, nav.page().channelSel, nav.page().zone, (unsigned)nav.pages.size());
+      quit = true;
+    }
     frame++;
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
@@ -1366,6 +1579,8 @@ int main(int argc, char** argv) {
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);
   remote.quit = true;
   SDL_LockMutex(sleepWorker.mu); sleepWorker.quit = true; SDL_SignalCondition(sleepWorker.cv); SDL_UnlockMutex(sleepWorker.mu);
+  SDL_LockMutex(navWorker.mu); navWorker.quit = true; SDL_SignalCondition(navWorker.cv); SDL_UnlockMutex(navWorker.mu);
+  SDL_WaitThread(nt, nullptr);
   SDL_WaitThread(st, nullptr);
   SDL_LockMutex(control.mu); control.quit = true; SDL_SignalCondition(control.cv); SDL_UnlockMutex(control.mu);
   SDL_LockMutex(thumbsWorker.mu); thumbsWorker.quit = true; SDL_BroadcastCondition(thumbsWorker.cv); SDL_UnlockMutex(thumbsWorker.mu);

@@ -149,6 +149,46 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(Confirm, "Confirm", "Confirmar") \
   X(Cancel, "Cancel", "Cancelar") \
   X(SignedOutToast, "Signed out of YouTube", "Conta do YouTube desconectada") \
+  X(Library, "Library", "Biblioteca") \
+  X(Channel, "Channel", "Canal") \
+  X(GoChannel, "Go to channel", "Ir para o canal") \
+  X(Subscribe, "Subscribe", "Inscrever-se") \
+  X(Subscribed, "Subscribed", "Inscrito") \
+  X(Videos, "Videos", "Vídeos") \
+  X(Playlists, "Playlists", "Playlists") \
+  X(PlayAll, "Play all", "Tocar tudo") \
+  X(QuickPicks, "Quick picks", "Escolhas rápidas") \
+  X(Charts, "Charts", "Paradas") \
+  X(Mixes, "Mixes", "Mixes") \
+  X(Songs, "Songs", "Músicas") \
+  X(Albums, "Albums", "Álbuns") \
+  X(Artists, "Artists", "Artistas") \
+  X(Artist, "Artist", "Artista") \
+  X(Album, "Album", "Álbum") \
+  X(Radio, "Start radio", "Iniciar rádio") \
+  X(NowPlaying, "Now playing", "Tocando agora") \
+  X(Queue, "Up next", "A seguir") \
+  X(NextTrack, "Next track", "Próxima faixa") \
+  X(Lyrics, "Lyrics", "Letra") \
+  X(NoLyrics, "Lyrics are not available for this track.", "Letra indisponível para esta faixa.") \
+  X(ShowVideo, "Show video", "Mostrar vídeo") \
+  X(CardMenu, "Video options", "Opções do vídeo") \
+  X(AddedLater, "Saved to Watch later", "Salvo em Assistir mais tarde") \
+  X(AccountRequired, "Sign in to YouTube in Settings to save and subscribe.", "Conecte sua conta em Configurações para salvar e se inscrever.") \
+  X(ActionFailed, "Could not save. Press A to retry.", "Não foi possível salvar. Aperte A para tentar de novo.") \
+  X(Saving, "Saving…", "Salvando…") \
+  X(StartingQueue, "Preparing the queue…", "Preparando a fila…") \
+  X(History, "History", "Histórico") \
+  X(MusicSearch, "Search songs, albums and artists", "Buscar músicas, álbuns e artistas") \
+  X(NoLive, "No live streams on this channel.", "Este canal não tem transmissões ao vivo.") \
+  X(MoreLoading, "Loading the next page…", "Carregando a próxima página…") \
+  X(Results, "Search results", "Resultados da busca") \
+  X(AllResults, "All results", "Tudo") \
+  X(MoreOptions, "Options", "Opções") \
+  X(ChooseTab, "Choose a tab", "Escolher aba") \
+  X(MusicIntro, "Your next favourite sound.", "Seu próximo som favorito.") \
+  X(QueueLimit, "Playlists play up to 256 tracks.", "As playlists tocam até 256 faixas.") \
+  X(SubscribeConfirm, "Unsubscribe from this channel?", "Cancelar a inscrição neste canal?") \
   X(BtnA, "A", "A") X(BtnB, "B", "B") X(BtnX, "X", "X") X(BtnY, "Y", "Y") \
   X(BtnView, "View", "View") X(BtnMenu, "Menu", "Menu") \
   X(BtnShoulders, "LB RB", "LB RB") X(BtnTriggers, "LT RT", "LT RT") \
