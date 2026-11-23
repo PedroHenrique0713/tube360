@@ -94,8 +94,9 @@ def run(name, seconds=2, token=None, expired=False, speaker=None, scenario=None,
 
 try:
     run('account-code', .9, XT_SCREEN='settings', XT_KEYS='A')
+    # OAuth aguarda 5 s e a UI consulta o estado a cada 3 s; deixe passar os dois ciclos.
     # Depois de entrar, volta ao menu e abre a Música com o token recém-obtido.
-    log, account, music = run('account-login-music', 8.8, expected='fixture-access', XT_SCREEN='settings', XT_KEYS='A...............BUUA')
+    log, account, music = run('account-login-music', 12.8, expected='fixture-access', XT_SCREEN='settings', XT_KEYS='A.........................BUUA')
     assert '/o/oauth2/token' in account and 'authorized_fixture' in music
     log, account, _ = run('account-home', 5, token=True)
     assert '/account/accounts_list' in account and '/youtubei/v1/browse' in account
