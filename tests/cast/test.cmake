@@ -1,9 +1,9 @@
 # Mesmo main/player/render do produto, com os dois transportes substituídos no link por loopback.
 add_executable(cast-test-app EXCLUDE_FROM_ALL
-  "${CMAKE_CURRENT_LIST_DIR}/../../client/src/main.cpp"
+  $<TARGET_OBJECTS:tube360-main>
   "${CMAKE_CURRENT_LIST_DIR}/../../client/src/cast/lounge.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../client/src/cast/receiver.cpp"
-  "${CMAKE_CURRENT_LIST_DIR}/transport.cpp" ${SHADER_HEADERS})
+  "${CMAKE_CURRENT_LIST_DIR}/transport.cpp")
 target_compile_features(cast-test-app PRIVATE cxx_std_20)
 target_compile_definitions(cast-test-app PRIVATE TUBE360_CAST_TEST=1 PICOJSON_USE_LOCALE=0)
 target_include_directories(cast-test-app PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"

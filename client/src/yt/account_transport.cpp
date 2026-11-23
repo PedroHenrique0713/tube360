@@ -5,6 +5,8 @@
 #include <cstdio>
 #include <fstream>
 #include <sstream>
+#include <thread>
+#include <chrono>
 
 namespace yt {
 namespace {
@@ -39,6 +41,14 @@ public:
             auto auth=str(rule,"authorization");
             if (!auth.empty() && std::find(r.headers.begin(),r.headers.end(),"Authorization: Bearer "+auth)==r.headers.end())
                 return {401,"{}",""};
+            const auto& wait=rule.get("delay_ms");
+            if (wait.is<double>() && wait.get<double>()>0 && wait.get<double>()<=2000) {
+                int ms=int(wait.get<double>());
+                if (const auto* log=std::getenv("XT_ACCOUNT_AUDIT")) if (auto* f=std::fopen(log,"a")) {
+                    std::fprintf(f,"fixture_delay_ms=%d\n",ms); std::fclose(f);
+                }
+                std::this_thread::sleep_for(std::chrono::milliseconds(ms));
+            }
             auto data=str(rule,"body");
             if (rule.contains("json")) data=rule.get("json").serialize();
             auto file=str(rule,"file");

@@ -63,7 +63,7 @@ def run(name, seconds=2, token=None, expired=False, speaker=None, scenario=None,
     audit.unlink(missing_ok=True)
     music_audit.unlink(missing_ok=True)
     env = {key: value for key, value in os.environ.items() if not key.startswith('XT_')}
-    env.update(SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2',
+    env.update(XT_CAST_DISABLE='1', SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2',
         XT_ASSETS=str(assets), XT_SERVER='127.0.0.1:8118', XT_ACCOUNT_FIXTURES=str(accounts),
         XT_ACCOUNT_AUDIT=str(audit), XT_CATALOG_REPLAY=str(replay), XT_CATALOG_AUDIT=str(music_audit),
         XT_SHOT=str(proof / f'{name}.ppm'), XT_SHOT_FRAME='2147483647', XT_SHOT_MS=str(int(seconds*1000)),
@@ -97,7 +97,7 @@ try:
     # Depois de entrar, volta ao menu e abre a Música com o token recém-obtido.
     log, account, music = run('account-login-music', 8.8, expected='fixture-access', XT_SCREEN='settings', XT_KEYS='A...............BUUA')
     assert '/o/oauth2/token' in account and 'authorized_fixture' in music
-    log, account, _ = run('account-home', token=True)
+    log, account, _ = run('account-home', 5, token=True)
     assert '/account/accounts_list' in account and '/youtubei/v1/browse' in account
     log, account, _ = run('account-library', token=True, XT_NAV='library')
     assert '/youtubei/v1/browse' in account

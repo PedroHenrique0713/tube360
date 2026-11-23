@@ -1,7 +1,7 @@
 import pathlib,subprocess,os
 import sys
 root=pathlib.Path(__file__).resolve().parents[2]; proof=pathlib.Path(sys.argv[1]).resolve(); replay=proof/'replay'
-base={**os.environ,'SDL_VIDEO_DRIVER':'offscreen','SDL_AUDIO_DRIVER':'dummy','LP_NUM_THREADS':'2','XT_ASSETS':str(replay/'assets'),'XT_SERVER':'127.0.0.1:8132','XT_CATALOG_REPLAY':str(replay),'XT_SHOT_FRAME':'2147483647'}
+base={**os.environ,'XT_CAST_DISABLE':'1','SDL_VIDEO_DRIVER':'offscreen','SDL_AUDIO_DRIVER':'dummy','LP_NUM_THREADS':'2','XT_ASSETS':str(replay/'assets'),'XT_SERVER':'127.0.0.1:8132','XT_CATALOG_REPLAY':str(replay),'XT_SHOT_FRAME':'2147483647'}
 cases=[
  ('music-home',{'XT_NAV':'music','XT_MUSIC':'1','XT_SHOT_MS':'1000'}),
  ('charts',{'XT_NAV':'music','XT_NAV_QUERY':'charts','XT_MUSIC':'1','XT_SHOT_MS':'1000'}),

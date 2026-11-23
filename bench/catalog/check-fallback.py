@@ -51,7 +51,7 @@ for label, codec, fail_native in (('aac', 'aac', True), ('mp2', 'mp2', True), ('
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
-        env = {**os.environ, 'SDL_VIDEO_DRIVER': 'offscreen', 'SDL_AUDIO_DRIVER': 'dummy', 'LP_NUM_THREADS': '2',
+        env = {**os.environ, 'XT_CAST_DISABLE': '1', 'SDL_VIDEO_DRIVER': 'offscreen', 'SDL_AUDIO_DRIVER': 'dummy', 'LP_NUM_THREADS': '2',
                'XT_ASSETS': str(replay / 'assets'), 'XT_CATALOG_REPLAY': str(replay),
                'XT_SERVER': '127.0.0.1:8132', 'XT_NAV': 'radio', 'XT_NAV_ID': 'F12audio001', 'XT_MUSIC': '1',
                'XT_KEYS': 'UA', 'XT_KEYS_MS': '400', 'XT_SHOT_FRAME': '2147483647', 'XT_SHOT_MS': '3000' if fail_native else '6500',

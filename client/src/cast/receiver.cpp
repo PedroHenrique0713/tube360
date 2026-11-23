@@ -444,6 +444,9 @@ struct Receiver::Impl {
 Receiver::Receiver(const string& assets) : impl(std::make_unique<Impl>(assets)) {}
 Receiver::~Receiver() = default;
 void Receiver::enable(bool on) {
+#ifndef __XSDK__
+    if (std::getenv("XT_CAST_DISABLE")) on = false;
+#endif
     Lock lock(impl->mutex);
     impl->enabled = on;
     if (!on) { impl->cancel = true; impl->rpcCancel = true; }

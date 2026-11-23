@@ -86,7 +86,7 @@ def run(name, seconds, scenario=None, keys=''):
     (assets/'nest.txt').write_text(f'127.0.0.1 {receiver.port}\nNest de bancada\n')
     if not keys:
         keys = '.'*(seconds-2)+'U'
-    env = os.environ | {'SDL_VIDEO_DRIVER': 'offscreen', 'SDL_AUDIO_DRIVER': 'dummy',
+    env = os.environ | {'XT_CAST_DISABLE': '1', 'SDL_VIDEO_DRIVER': 'offscreen', 'SDL_AUDIO_DRIVER': 'dummy',
                        'XT_ASSETS': str(assets), 'XT_SERVER': '127.0.0.1:8133',
                        'XT_YT_REPLAY': str(proof/'replay'), 'XT_SHOT': str(proof/(name+'.ppm')),
                        'XT_SHOT_MS': str(seconds*1000), 'XT_KEYS_MS': '1000', 'XT_KEYS': keys}
