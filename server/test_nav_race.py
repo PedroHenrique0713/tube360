@@ -32,7 +32,7 @@ class CastRace(unittest.IsolatedAsyncioTestCase):
         async def slow(*args, **kwargs):
             entered.set()
             await release.wait()
-            return {'items': [dict(type='video', id='aaaaaaaaaaa', title='a')], 'more': False}
+            return {'items': [dict(type='video', id=letter * 11, title=letter) for letter in 'abc'], 'more': False}
 
         self.m.nav_data = slow
         load = asyncio.create_task(self.m.navigation_play(request, 'playlist', 'PLslow', 0, 'pt'))
@@ -64,6 +64,52 @@ class CastRace(unittest.IsolatedAsyncioTestCase):
         release.set()
         await load
         self.assertEqual(self.m.remote.poll('', 0, 0, 0, ''), 'none\n')
+
+    async def test_play_do_celular_substitui_a_fila_musical_pronta(self):
+        load, release = await self.pending_playlist()
+        release.set()
+        await load
+        self.m.remote.poll('', 0, 0, 0, '')
+        await self.m.command(self.m.Command(action='play', id='ddddddddddd'))
+        self.assertTrue(self.m.remote.poll('aaaaaaaaaaa', 1, 60, 0, '').startswith('play\tddddddddddd'))
+        self.assertEqual(self.m.remote.poll('ddddddddddd', 60, 60, 0, 'ddddddddddd'), 'none\n')
+        self.assertFalse(self.m.remote.queue)
+
+    async def test_celular_substitui_play_da_navegacao_ainda_nao_entregue(self):
+        load, release = await self.pending_playlist()
+        release.set()
+        await load
+        await self.m.command(self.m.Command(action='play', id='ddddddddddd'))
+        self.assertTrue(self.m.remote.poll('', 0, 0, 0, '').startswith('play\tddddddddddd'))
+        self.assertFalse(self.m.remote.queue)
+
+    async def test_stop_do_celular_descarta_a_fila_pronta(self):
+        load, release = await self.pending_playlist()
+        release.set()
+        await load
+        await self.m.command(self.m.Command(action='stop'))
+        self.assertEqual(self.m.remote.poll('', 0, 0, 0, ''), 'stop\n')
+        self.assertFalse(self.m.remote.queue)
+
+    async def test_fila_da_navegacao_identifica_inicio_e_proximo_natural(self):
+        load, release = await self.pending_playlist()
+        release.set()
+        await load
+        self.assertTrue(self.m.remote.poll('', 0, 0, 0, '').endswith('\tnavigation\n'))
+        next_line = self.m.remote.poll('aaaaaaaaaaa', 60, 60, 0, 'aaaaaaaaaaa')
+        self.assertTrue(next_line.startswith('play\tbbbbbbbbbbb'))
+        self.assertTrue(next_line.endswith('\tnavigation\n'))
+
+    async def test_celular_preserva_itens_da_propria_fila(self):
+        load, release = await self.pending_playlist()
+        release.set()
+        await load
+        await self.m.command(self.m.Command(action='queue', id='eeeeeeeeeee'))
+        await self.m.command(self.m.Command(action='play', id='ddddddddddd'))
+        self.m.remote.poll('', 0, 0, 0, '')
+        next_line = self.m.remote.poll('ddddddddddd', 60, 60, 0, 'ddddddddddd')
+        self.assertTrue(next_line.startswith('play\teeeeeeeeeee'))
+        self.assertNotIn('\tnavigation', next_line)
 
 
 if __name__ == '__main__':

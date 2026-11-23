@@ -702,12 +702,13 @@ class Remote:
             if not self.queue:
                 return "stop\n"
             item = self.queue.popleft()
-            cmd = {"action": "play", "id": item["id"], "t": item.get("t", 0)}
+            cmd = {"action": "play", "id": item["id"], "t": item.get("t", 0), "source": item.get("source", "")}
             action = "play"
         if action == "aviso":
             return f"aviso\t{clean(cmd.get('text', ''))}\n"
         if action == "play":
-            return f"play\t{cmd['id']}\t{cmd.get('t') or 0:g}\t{clean(self.item(cmd['id'])['title'])}\n"
+            source = "\tnavigation" if cmd.get("source") == "navigation" else ""
+            return f"play\t{cmd['id']}\t{cmd.get('t') or 0:g}\t{clean(self.item(cmd['id'])['title'])}{source}\n"
         if action == "seek":
             delta = cmd.get("delta")
             if delta is None:
@@ -1240,9 +1241,9 @@ async def navigation_play(request: Request, kind: Literal["playlist", "album", "
         if serial != nav_queue_serial:
             return PlainTextResponse("erro\t" + tr("Reprodução cancelada.", "Playback cancelled.", lang) + "\n", headers={"Cache-Control": "no-store"})
         remote.queue.clear()
-        remote.queue.extend(v | {"t": 0} for v in items[1:])
+        remote.queue.extend(v | {"t": 0, "source": "navigation"} for v in items[1:])
         remote.commands = deque(c for c in remote.commands if c["action"] not in ("play", "next", "stop", "pause", "resume", "seek"))
-        remote.commands.append({"action": "play", "id": items[0]["id"], "t": 0, "at": time.monotonic()})
+        remote.commands.append({"action": "play", "id": items[0]["id"], "t": 0, "source": "navigation", "at": time.monotonic()})
         return nav_response(data | {"items": items}, lang)
     except Exception as error:
         return nav_error(error, lang)
@@ -1262,11 +1263,11 @@ async def navigation_transport(request: Request, action: Literal["next", "stop",
         # Um play pendente impede que o mesmo poll acrescente outro avanço pelo fim natural.
         if remote.queue:
             item = remote.queue.popleft()
-            remote.commands.append({"action": "play", "id": item["id"], "t": item.get("t", 0), "at": time.monotonic()})
+            remote.commands.append({"action": "play", "id": item["id"], "t": item.get("t", 0), "source": item.get("source", ""), "at": time.monotonic()})
         else:
-            remote.commands.append({"action": "stop", "at": time.monotonic()})
+            remote.commands.append({"action": "stop", "source": "navigation", "at": time.monotonic()})
     elif action != "clear":
-        remote.commands.append({"action": action, "at": time.monotonic()})
+        remote.commands.append({"action": action, "source": "navigation", "at": time.monotonic()})
     return PlainTextResponse("ok\n", headers={"Cache-Control": "no-store"})
 
 
@@ -2449,15 +2450,17 @@ async def nest_command(what: Literal["pause", "resume", "stop"], sid: int | None
 @app.post("/api/remote/cmd")
 async def command(cmd: Command):
     global nav_queue_serial
-    if cmd.action in ("play", "stop"):
-        # O celular assumiu: uma playlist da navegação que ainda carrega não pode tocar por cima depois
-        nav_queue_serial += 1
     if cmd.action in ("play", "queue"):
         valid_id(cmd.id or "")
     if cmd.action == "seek" and cmd.t is None and cmd.delta is None:
         raise HTTPException(400, "Informe t ou delta para buscar.")
     if (cmd.action == "queue" and len(remote.queue) >= 256) or (cmd.action != "queue" and len(remote.commands) >= 256):
         raise HTTPException(429, "A fila está cheia.")
+    if cmd.action in ("play", "stop"):
+        # O celular assumiu: descarta também a fila pronta e os comandos locais ainda não entregues.
+        nav_queue_serial += 1
+        remote.queue = deque(v for v in remote.queue if v.get("source") != "navigation")
+        remote.commands = deque(c for c in remote.commands if c.get("source") != "navigation")
     if cmd.action == "queue":
         remote.queue.append(remote.item(cmd.id) | {"t": cmd.t or 0})
     else:

@@ -807,12 +807,17 @@ int main(int argc, char** argv) {
         toastUntil = now + 5000;
         continue;
       }
-      if (c[0] == "play" && nav.cancelQueue) continue;
+      bool queueStart = c[0] == "play" && c.size() > 4 && c[4] == "navigation";
+      if (queueStart && nav.cancelQueue) continue;
       if (c[0] == "play" && c.size() >= 2) {
         Video v; v.id = c[1]; double t = c.size() > 2 ? std::atof(c[2].c_str()) : 0; v.title = c.size() > 3 ? c[3] : "";
         for (auto& c : cats) for (auto& it : c.feed.items) if (it.id == v.id) v = it;
         for (auto& it : results.feed.items) if (it.id == v.id) v = it;
-        bool queueStart = nav.ownsQueue || (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0);
+        if (!queueStart) {
+          nav.ownsQueue = nav.musicSession = nav.musicNow = nav.cancelQueue = false;
+          nav.queue.clear();
+          if (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0) nav.busy = false;
+        }
         startVideo(v, t, true);
         if (!queueStart) { toast = tr(K::PhoneRequest); toastUntil = now + 2500; }
       } else if (screen == PLAYER) {

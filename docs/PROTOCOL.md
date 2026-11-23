@@ -139,7 +139,7 @@ The answer is one line:
 | Line | Meaning |
 |---|---|
 | `none` | nothing to do |
-| `play\t<id>\t<t>\t<title>` | play now (also sent after `ended` when the queue has a next video) |
+| `play\t<id>\t<t>\t<title>[\tnavigation]` | play now; the optional fifth field identifies navigation queue playback, including automatic next |
 | `pause` · `resume` · `stop` | |
 | `desligar` | stop playback, show a two-second shutdown message and power down the Xbox (see Sleep timer). |
 | `seek\t<delta s>` | relative seek, may be negative |
@@ -363,6 +363,9 @@ and timer actions do. These checks prevent browser CSRF; they do not authenticat
   those playable items. `start` indexes playable videos, not collection cards. A failed load preserves the old queue.
   The existing console `ended` poll advances this queue; these starts use the remote path to suppress local autoplay.
 - `/api/nav/transport?action=next|stop|clear`: queue transport. Stop clears queued videos and pending play/next/stop commands. Clear does that without stopping the current stream.
+
+Phone play/stop replaces navigation playback, discarding its ready queue and pending commands and cancelling a
+list still loading. Phone queue entries remain separate. Sleep expiry also cancels a navigation list still loading.
 - `/api/nav/lyrics?id=<video ID>`: `ok\t<plain lyrics or empty>`. Lyrics are optional, unsynchronized, and may be
   unavailable without Premium. A failed lyrics request does not interrupt playback.
 
