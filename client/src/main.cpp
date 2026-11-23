@@ -163,8 +163,8 @@ struct Thumbs {
   static constexpr size_t budgetBytes = 64u * 320 * 180 * 4;
   int maxSlots = 64, width = 320, height = 180; uint64_t generation = 1;
   size_t slotBytes = 0, peakPending = 0;
-  void configure(gfx::Gfx& g, Worker& worker, int cols) {
-    int w = cols == 3 ? 384 : 320, h = cols == 3 ? 216 : 180;
+  void configure(gfx::Gfx& g, Worker& worker, int cols, bool cover = false) {
+    int w = cover ? 640 : cols == 3 ? 384 : 320, h = cover ? 360 : cols == 3 ? 216 : 180;
     if (w == width && h == height) return;
     vkDeviceWaitIdle(g.dev);
     for (auto& s : slots) {
@@ -722,7 +722,7 @@ int main(int argc, char** argv) {
         if (r.key.rfind("/api/nav/play?", 0) == 0 && ok) {
           NavPage queue; Navigation::parse(r.feed.title, queue);
           if (nav.cancelQueue) { nav.musicSession = nav.musicNow = false; nav.action(navWorker, "/api/nav/transport?action=stop"); }
-          else { nav.queue = std::move(queue.items); nav.ownsQueue = true; }
+          else { nav.queue = std::move(queue.items); nav.nowId.clear(); nav.ownsQueue = true; }
           nav.nowSel = 0; nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
         } else if (r.key.rfind("/api/nav/lyrics?", 0) == 0) {
           auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
@@ -803,7 +803,7 @@ int main(int argc, char** argv) {
 
     if (screen == PLAYER && nav.musicSession) {
       nav.musicNow = true;
-      for (const auto& item : nav.queue) if (item.id == playing.id) { playing.title = item.title; playing.channel = item.channel; break; }
+      nav.prepareNow(g, playing, settings.lang);
     }
     // ---------------------------------------------------------------- lógica por tela
     // código de pareamento e quem está conectado pelo Transmitir (o código troca a cada 5 min)
@@ -1136,6 +1136,7 @@ int main(int argc, char** argv) {
     railOpen += ((railFocus ? 1.f : 0.f) - railOpen) * 0.25f;
 
     // ---------------------------------------------------------------- quadro do vídeo
+    thumbs.configure(g, thumbsWorker, settings.cols, screen == PLAYER && nav.musicNow);
     gfx::begin(g);
     gfx::rect(g, 0, 0, ui::W, ui::H, ui::BG);
     if (screen == PLAYER) {

@@ -1252,7 +1252,7 @@ def nav_make_thumb(key, w, h, path):
 
 
 @app.get("/api/thumb/nav/{key}")
-async def navigation_thumb(key: str, w: int = Query(320, ge=1, le=384), h: int = Query(180, ge=1, le=216)):
+async def navigation_thumb(key: str, w: int = Query(320, ge=1, le=640), h: int = Query(180, ge=1, le=360)):
     if not re.fullmatch(r"[a-f0-9]{24}", key):
         raise HTTPException(404, "Invalid artwork.")
     path = THUMBS / f"nav_{key}_{w}x{h}.jpg"

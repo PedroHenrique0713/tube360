@@ -269,7 +269,8 @@ Library adds local shortcuts for History and Watch later before the account's pl
 For channel pages, `tab` selects the corresponding TV shelf and that shelf's continuation, excluding Shorts.
 Search `filter`: 0 all, 1 videos, 2 channels. Music search: 0 all, 1 songs, 2 albums, 3 artists.
 For `music`, `q=charts` follows Explore’s Charts endpoint, `q=mixes` selects playlists from the Music home,
-and empty `q` puts playable tracks before collections. Shelf titles and metadata retain YouTube's language.
+and empty `q` puts playable tracks before collections. Shelf titles retain YouTube's language; subscriber/video/view
+counts and album labels in page subtitles follow the requested language.
 
 `GET /api/nav/channel?id=<video ID>&lang=…` resolves a video's channel and returns its first channel page.
 The card's Menu button opens channel / Watch later / radio actions without changing X or Y.
@@ -288,12 +289,15 @@ and timer actions do. These checks prevent browser CSRF; they do not authenticat
 - `/api/nav/lyrics?id=<video ID>`: `ok\t<plain lyrics or empty>`. Lyrics are optional, unsynchronized, and may be
   unavailable without Premium. A failed lyrics request does not interrupt playback.
 
-Artwork keys prefixed `~` use `GET /api/thumb/nav/<key without ~>?w=320&h=180` (or 384×216). They are baseline JPEGs
+Artwork keys prefixed `~` use `GET /api/thumb/nav/<key without ~>?w=320&h=180` (384×216 for three columns,
+640×360 for the 350px Now playing cover). They are baseline JPEGs
 in the same disk directory and request cache as video thumbnails. Only allowlisted YouTube image hosts supplied by
 the account service are accepted; the client cannot submit a URL, and redirects are refused. Square artwork is
 letterboxed inside the existing 16:9 GPU slot and cropped using UVs, so it needs no additional GPU cache or textures.
 The shared allocation budget remains `64 * 320 * 180 * 4 = 14,745,600` bytes; actual Vulkan page allocation determines
-the slot count. Only visible cards, visible avatars and the current cover request artwork.
+the slot count. Now playing reconfigures that same pool to 640×360, reducing its slot count within the same budget;
+returning to browsing restores the configured grid size. There is no second texture pool. Only visible cards,
+visible avatars and the current cover request artwork.
 
 The native Music screen uses the existing MPEG stream and decoder, with its own controls and render dispatcher.
 It does not request audio-only playback. B stops and clears the queue, returning to the source page; selecting Show

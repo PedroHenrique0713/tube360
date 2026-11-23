@@ -109,7 +109,7 @@ function findNodes(data, name) {
 }
 function thumbnail(data) {
   const all = [...findNodes(data, 'thumbnails'), ...findNodes(data, 'sources')].flat().filter((t) => t?.url);
-  return all.find((t) => t.width >= 200 && t.width <= 600)?.url || all.filter((t) => t.width <= 600).sort((a, b) => b.width - a.width)[0]?.url || all[0]?.url || '';
+  return all.filter((t) => t.width <= 1024).sort((a, b) => Math.min(b.width, b.height || b.width) - Math.min(a.width, a.height || a.width))[0]?.url || all[0]?.url || '';
 }
 function browseId(data) { return findNodes(data, 'browseEndpoint').find((v) => CHANNEL_ID.test(v.browseId || ''))?.browseId || ''; }
 export function parseNavigation(data, music = false) {

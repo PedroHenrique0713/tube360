@@ -24,6 +24,9 @@ struct Navigation {
   std::string actionPath, lyrics, lyricsId;
   std::vector<std::string> lyricLines; int lyricScroll = 0;
   std::vector<NavItem> queue;
+  std::string nowId, nowImage, nowTitle, nowArtist, nowError, noLyrics;
+  std::vector<std::string> nextTitles;
+  K nowErrorKey = K::None;
   int nowSel = 0, nowZone = 0, menuSel = 0;
   bool menu = false;
   NavItem menuItem;
@@ -79,6 +82,7 @@ struct Navigation {
             item.type == "artist" ? i18n::get(lang, K::Artist) : item.channel;
         item.byline = gfx::ellipsize(g, ui::F_CHAN, by, 246);
       }
+      for (auto& item : p.channels) item.byline = gfx::ellipsize(g, ui::F_CHAN, item.title, 142);
       int font = p.music ? ui::F_HERO : ui::F_BIG;
       std::string title = p.kind == "music" || p.kind == "library" || p.kind == "subscriptions" || p.kind == "later" || p.kind == "history" || p.title.empty() ? i18n::get(lang, titleKey(p)) : p.title;
       p.displayTitle = gfx::ellipsize(g, font, title, 680 - (p.image.empty() ? 0 : p.music ? 110 : 96));
@@ -159,7 +163,7 @@ struct Navigation {
         bool f = p.zone == 2 && c == p.channelSel;
         if (f) gfx::rect(g, x - 5, 166 - 5, 106, 106, ui::TEXT, 53);
         artwork(g, thumbs, worker, item.image, frame, x, 166, 96, 96, true);
-        gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, item.title, 142), x, 276, f ? ui::TEXT : ui::MUTED);
+        gfx::text(g, ui::F_CHAN, item.byline, x, 276, f ? ui::TEXT : ui::MUTED);
       }
       top = 342;
     }
@@ -208,27 +212,39 @@ struct Navigation {
     }
     float hx = hint(g, 308, 528, "A", XA, tr(K::Open)); hint(g, hx, 528, "B", XB, tr(K::Back));
   }
+  void prepareNow(gfx::Gfx& g, Video& playing, i18n::Lang lang) {
+    if (nowId == playing.id) return;
+    nowId = playing.id; size_t index = 0; const NavItem* current = nullptr;
+    for (size_t i = 0; i < queue.size(); i++) if (queue[i].id == playing.id) { current = &queue[i]; index = i; break; }
+    if (current) { playing.title = current->title; playing.channel = current->channel; }
+    nowImage = current && !current->image.empty() ? current->image : playing.id;
+    nowTitle = gfx::ellipsize(g, ui::F_BIG, playing.title, 714);
+    nowArtist = gfx::ellipsize(g, ui::F_KEY, playing.channel, 714);
+    nextTitles.clear();
+    for (size_t i = index + 1; i < std::min(queue.size(), index + 5); i++) nextTitles.push_back(gfx::ellipsize(g, ui::F_KEY, queue[i].title, 660));
+    noLyrics = i18n::get(lang, K::NoLyrics); nowError.clear(); nowErrorKey = K::None;
+  }
   void drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const Video& playing, double pos, double duration, bool paused, bool waiting, K error, uint64_t frame, i18n::Lang lang) {
+    (void)playing;
     auto tr = [&](K k) { return i18n::get(lang, k); };
     gfx::hgrad(g, 0, 0, 620, 720, rgb(0x37151f), ui::BG);
     gfx::text(g, ui::F_H2, tr(K::NowPlaying), 64, 40, ui::MUTED);
-    const NavItem* current = nullptr; size_t index = 0;
-    for (size_t i = 0; i < queue.size(); i++) if (queue[i].id == playing.id) { current = &queue[i]; index = i; break; }
-    artwork(g, thumbs, worker, current ? current->image : playing.id, frame, 64, 104, 350, 350, true);
-    gfx::text(g, ui::F_BIG, gfx::ellipsize(g, ui::F_BIG, playing.title, 714), 466, 104, ui::TEXT);
-    gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, current ? current->channel : playing.channel, 714), 466, 158, ui::MUTED);
-    if (error != K::None) gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, tr(error), 714), 466, 210, ui::A2);
+    artwork(g, thumbs, worker, nowImage, frame, 64, 104, 350, 350, true);
+    gfx::text(g, ui::F_BIG, nowTitle, 466, 104, ui::TEXT);
+    gfx::text(g, ui::F_KEY, nowArtist, 466, 158, ui::MUTED);
+    if (error != nowErrorKey) { nowErrorKey = error; nowError = error == K::None ? "" : gfx::ellipsize(g, ui::F_KEY, tr(error), 714); }
+    if (error != K::None) gfx::text(g, ui::F_KEY, nowError, 466, 210, ui::A2);
     else if (waiting) gfx::text(g, ui::F_KEY, tr(K::Loading), 466, 210, ui::A2);
     else if (lyricsOpen) {
       float y = 226;
-      if (lyricLines.empty()) gfx::text(g, ui::F_KEY, tr(K::NoLyrics), 466, y, ui::MUTED);
+      if (lyricLines.empty()) gfx::text(g, ui::F_KEY, noLyrics, 466, y, ui::MUTED);
       for (size_t i = lyricScroll; i < std::min(lyricLines.size(), (size_t)lyricScroll + 9); i++) { gfx::text(g, ui::F_KEY, lyricLines[i], 466, y, ui::TEXT); y += 30; }
     } else {
       gfx::text(g, ui::F_H2, tr(K::Queue), 466, 222, ui::TEXT);
-      for (size_t n = 0; n < 4 && index + n + 1 < queue.size(); n++) {
-        const auto& v = queue[index + n + 1]; float y = 272 + n * 58;
+      for (size_t n = 0; n < nextTitles.size(); n++) {
+        float y = 272 + n * 58;
         gfx::text(g, ui::F_CHAN, std::to_string(n + 1), 470, y, ui::A2);
-        gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, v.title, 660), 510, y, ui::TEXT);
+        gfx::text(g, ui::F_KEY, nextTitles[n], 510, y, ui::TEXT);
       }
     }
     float fraction = duration > 0 ? (float)std::clamp(pos / duration, 0.0, 1.0) : 0;
