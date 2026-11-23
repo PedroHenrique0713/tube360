@@ -1236,7 +1236,7 @@ int main(int argc, char** argv) {
       if (in.hit(Input::LEFT) && nav.nowSel > 0) nav.nowSel--;
       if (in.hit(Input::RIGHT) && nav.nowSel < 3) nav.nowSel++;
       if (in.hit(Input::A)) {
-        if (nav.nowSel == 0 && !pl.waiting()) pl.setPaused(!pl.paused);
+        if (nav.nowSel == 0 && (!pl.waiting() || pl.paused)) pl.setPaused(!pl.paused);
         else if (nav.nowSel == 1 && !nav.busy) {
           if (nav.localQueue) {
             if (nav.queueIndex+1 < nav.queue.size()) { ++nav.queueIndex; startVideo(nav.queue[nav.queueIndex].video(),0,false); }
@@ -1296,7 +1296,7 @@ int main(int argc, char** argv) {
         any = true;
       }
       // Durante a abertura, A não cria uma pausa invisível atrás do carregamento.
-      if (((pressA && !open) || in.hit(Input::START)) && !pl.waiting()) {
+      if (((pressA && !open) || in.hit(Input::START)) && (!pl.waiting() || pl.paused)) {
         if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
         LOG("player: pause=%d pos=%.2f", pl.paused ? 1 : 0, pl.position());
         any = true;
@@ -1365,6 +1365,7 @@ int main(int argc, char** argv) {
     else livePaused = false;
     // Fim natural continua sendo informado mesmo com um cartão aberto.
     if (screen == PLAYER && nav.localQueue && pl.state == player::ENDED) {
+      SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
       if (nav.queueIndex+1 < nav.queue.size() && !(sleep.active && sleep.end)) {
         ++nav.queueIndex; startVideo(nav.queue[nav.queueIndex].video(),0,false);
       } else stopVideo();

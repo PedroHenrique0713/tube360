@@ -43,6 +43,7 @@ struct Player : player::Player {
     srv = server; id = video; startAt = std::max(0.0,at); lastPos = startAt; title = name; duration = length; quality = height;
     stop = false; paused = false; live = false; direct = !serverAudio; original = !serverAudio; state = player::CONNECTING;
     speakerRequested = nest = false; nestFailed = false; renew = retryConverted = mediaReady = false;
+    validUntil = 0; cachedQuality = 0;
     actualHeight = 0; error.clear(); audioDone = false; audioFailure = 0; audioTail = 0; hasAudio = false; drainAt = 0;
     firstPts = -1; wallStart = pausedAt = pausedTotal = 0; refill = reservePaused = false; deviceDrained();
     openedMs = SDL_GetTicks(); droppedFrames = shownFrames = 0; output = LOCAL;
