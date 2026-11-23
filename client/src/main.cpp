@@ -56,7 +56,7 @@ inline Color mix(Color a, Color b, float t) { return {a.r + (b.r - a.r) * t, a.g
 }  // namespace ui
 
 struct Video { std::string id, channel, views, title; int dur = -1; double pos = 0; };
-struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; bool more = true, loadingMore = false; };
+struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; bool more = true, loadingMore = false, direct = false; };
 struct Shelf { std::string title, query; Feed feed; int sel = 0; std::string kind = "search"; uint64_t stamp = 0; };
 
 static std::string fmtTime(double s) {
@@ -69,7 +69,7 @@ static std::string fmtTime(double s) {
 
 // ---------------------------------------------------------------- trabalho em segundo plano
 // kind: 0 home, 1 busca do usuário, 2 miniatura, 3 categoria, 5 controle/conta.
-struct Job { int kind; std::string a; uint64_t stamp; bool fresh = false; int offset = 0; i18n::Lang lang = i18n::Lang::EN; std::string feedKind; int w = 320, h = 180; };
+struct Job { int kind; std::string a; uint64_t stamp; bool fresh = false; int offset = 0; i18n::Lang lang = i18n::Lang::EN; std::string feedKind; int w = 320, h = 180; bool native = false; std::string query; };
 struct Result { int kind = -1; std::string key; Feed feed; std::vector<uint8_t> rgba; int w = 0, h = 0; uint64_t stamp = 0; int offset = 0; };
 
 static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
@@ -94,6 +94,8 @@ struct Worker {
   void add(Job j, bool front = false) { SDL_LockMutex(mu); if (front) jobs.push_front(j); else jobs.push_back(j); SDL_SignalCondition(cv); SDL_UnlockMutex(mu); }
   void loop() {
     player::moveToHardwareThread(hw);
+    auto https = yt::https();
+    yt::Client youtube(*https);
     for (;;) {
       SDL_LockMutex(mu);
       while (jobs.empty() && !quit) SDL_WaitCondition(cv, mu);
@@ -102,6 +104,28 @@ struct Worker {
       SDL_UnlockMutex(mu);
       Result r; r.kind = j.kind; r.key = j.a; r.stamp = j.stamp; r.offset = j.offset;
       net::Response resp;
+      if (j.native && j.kind != 2) {
+        yt::Page page;
+        if (j.kind == 5) page = youtube.next(j.a.substr(11,11));
+        else if (j.feedKind == "home") page = youtube.home();
+        else page = youtube.search(j.kind == 6 ? j.query : j.a);
+        if (j.feedKind == "home" && page.error.empty() && page.cards.empty())
+          page = youtube.search(i18n::get(j.lang, K::FootballQuery));
+        if (page.error.empty() && (j.kind != 5 || !page.cards.empty())) {
+          r.feed.direct = true;
+          for (auto& card : page.cards) {
+            Video v; v.id = std::move(card.id); v.title = std::move(card.title);
+            r.feed.items.push_back(std::move(v));
+          }
+          r.feed.title = j.kind == 6 ? j.query : j.a;
+        } else if (!net::serverEnabled) {
+          r.feed.error = K::BadResponse;
+        }
+      }
+      if (r.feed.direct || r.feed.error != K::None) {
+        SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu);
+        continue;
+      }
       if (j.kind == 6) {
         if (!net::get(srv, j.a, resp, 30000, 512 * 1024)) r.feed.error = K::NoResponse;
         r.feed.title.assign(resp.body.begin(), resp.body.end());
@@ -117,12 +141,27 @@ struct Worker {
         else parseFeed(resp.body, r.feed);
       } else {
         std::string size = "?w=" + std::to_string(j.w) + "&h=" + std::to_string(j.h);
-        if (net::get(srv, "/api/thumb/" + (j.a[0] == '~' ? "nav/" + j.a.substr(1) : j.a) + size, resp, 10000)) {
+        bool native = false;
+        if (j.native && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
+          auto img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg");
+          native = img.status == 200 && img.error.empty();
+          if (native) resp.body.assign(img.body.begin(), img.body.end());
+        }
+        if (native || net::get(srv, "/api/thumb/" + (j.a[0] == '~' ? "nav/" + j.a.substr(1) : j.a) + size, resp, 10000)) {
           int w, h, n;
           // Não decodifica dimensões arbitrárias recebidas pela rede.
-          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || w != j.w || h != j.h) { w = h = 0; }
+          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (native ? (w != 320 || h != 180) : (w != j.w || h != j.h))) { w = h = 0; }
           unsigned char* px = w ? stbi_load_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n, 4) : nullptr;
-          if (px) { r.rgba.assign(px, px + (size_t)w * h * 4); r.w = w; r.h = h; stbi_image_free(px); }
+          if (px) {
+            r.w = j.w; r.h = j.h;
+            if (w == j.w && h == j.h) r.rgba.assign(px, px + (size_t)w*h*4);
+            else {
+              r.rgba.resize((size_t)j.w*j.h*4);
+              for (int y=0; y<j.h; ++y) for (int x=0; x<j.w; ++x)
+                std::memcpy(r.rgba.data() + 4*(y*j.w+x), px + 4*((y*h/j.h)*w + x*w/j.w), 4);
+            }
+            stbi_image_free(px);
+          }
         }
       }
       SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu);
@@ -133,12 +172,13 @@ struct Worker {
 
 // ---------------------------------------------------------------- controle pelo celular (poll a cada ~500 ms)
 struct Remote {
-  net::Server srv; SDL_Mutex* mu = SDL_CreateMutex(); std::deque<std::vector<std::string>> cmds; bool quit = false;
+  net::Server srv; SDL_Mutex* mu = SDL_CreateMutex(); std::deque<std::vector<std::string>> cmds; std::atomic_bool quit{false};
   std::string playing, ended; double pos = 0, dur = 0; bool paused = false; bool online = false;
   static int main(void* p) { ((Remote*)p)->loop(); return 0; }
   void loop() {
     player::moveToHardwareThread(5);
     while (!quit) {
+      if (!net::serverEnabled) { SDL_Delay(100); continue; }
       SDL_LockMutex(mu);
       char q[256];
       std::snprintf(q, sizeof(q), "/api/remote/poll?playing=%s&pos=%.1f&dur=%.1f&paused=%d&ended=%s", playing.c_str(), pos, dur, paused ? 1 : 0, ended.c_str());
@@ -147,7 +187,7 @@ struct Remote {
       net::Response r;
       bool ok = net::get(srv, q, r, 3000, 4096);
       SDL_LockMutex(mu);
-      online = ok;
+      ok = ok && net::serverEnabled; online = ok;
       if (ok) {
         std::string line(r.body.begin(), r.body.end());
         while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) line.pop_back();
@@ -162,6 +202,7 @@ struct Remote {
 // ---------------------------------------------------------------- miniaturas na GPU (vagas reaproveitadas) e cor média
 struct Thumbs {
   struct Slot { gfx::Tex tex; std::string id; uint64_t used = 0; Color avg{0.2f, 0.2f, 0.25f, 1}; };
+  std::map<std::string,uint64_t> retryAt;
   std::vector<Slot> slots; std::map<std::string, int> byId; std::map<std::string, Result> waiting;
   static constexpr size_t budgetBytes = 64u * 320 * 180 * 4;
   int maxSlots = 64, width = 320, height = 180; uint64_t generation = 1;
@@ -174,15 +215,17 @@ struct Thumbs {
       vkFreeDescriptorSets(g.dev, g.pool, 1, &s.tex.set);
       vkDestroyImageView(g.dev, s.tex.view, nullptr); vkDestroyImage(g.dev, s.tex.img, nullptr); vkFreeMemory(g.dev, s.tex.mem, nullptr);
     }
-    slots.clear(); byId.clear(); waiting.clear(); generation++;
+    slots.clear(); retryAt.clear(); byId.clear(); waiting.clear(); generation++;
     width = w; height = h; maxSlots = 64; slotBytes = peakPending = 0;
     SDL_LockMutex(worker.mu); worker.jobs.clear(); worker.results.clear(); SDL_UnlockMutex(worker.mu);
   }
-  const Slot* get(Worker& w, const std::string& id, uint64_t frame) {
+  const Slot* get(Worker& w, const std::string& id, uint64_t frame, bool direct = false) {
     auto it = byId.find(id);
     if (it != byId.end()) { Slot& s = slots[(size_t)it->second]; s.used = frame; return &s; }
+    auto retry = retryAt.find(id);
+    if (retry != retryAt.end() && retry->second > SDL_GetTicks()) return nullptr;
     if (!waiting.count(id) && waiting.size() < 24) {
-      Job j{2, id, generation}; j.w = width; j.h = height; w.add(j); waiting[id] = Result{};
+      Job j{2, id, generation}; j.native = direct; j.w = width; j.h = height; w.add(j); waiting[id] = Result{};
     }
     return nullptr;
   }
@@ -196,7 +239,7 @@ struct Thumbs {
     for (auto it = waiting.begin(); it != waiting.end() && budget > 0;) {
       Result& r = it->second;
       if (r.kind != 2) { ++it; continue; }
-      if (r.rgba.empty() || r.w != width || r.h != height) { it = waiting.erase(it); continue; }
+      if (r.rgba.empty() || r.w != width || r.h != height) { if (retryAt.size() >= 128) retryAt.clear(); retryAt[it->first] = SDL_GetTicks()+60000; it = waiting.erase(it); continue; }
       int idx;
       if ((int)slots.size() < maxSlots) {
         slots.push_back({}); idx = (int)slots.size() - 1;
@@ -393,7 +436,7 @@ int main(int argc, char** argv) {
   std::string assets = std::getenv("XT_ASSETS") ? std::getenv("XT_ASSETS") : "assets/";
 #endif
   if (!assets.empty() && assets.back() != '/') assets += '/';
-  Settings settings; settings.load(assets);
+  Settings settings; settings.load(assets); net::serverEnabled = settings.server;
   auto tr = [&](K key) { return i18n::get(settings.lang, key); };
   if (FILE* f = std::fopen((assets + "marca.txt").c_str(), "r")) {
     char line[64] = {0};
@@ -422,21 +465,21 @@ int main(int argc, char** argv) {
   loadIcons(g);
 
   gfx::Video videoTex; g.video = &videoTex;
-  player::Player pl; pl.init();
+  player::Player pl; pl.cacheBase = assets + "yt-base"; pl.init();
   Worker worker; worker.srv = srv;
-  SDL_Thread* wt = SDL_CreateThread(Worker::main, "trabalho", &worker);
+  SDL_Thread* wt = yt::worker(Worker::main, "trabalho", &worker);
   // Conta e pareamento não esperam as buscas do feed.
   Worker control; control.srv = srv; control.hw = 5;
-  SDL_Thread* ct = SDL_CreateThread(Worker::main, "conta", &control);
+  SDL_Thread* ct = yt::worker(Worker::main, "conta", &control);
   Worker navWorker; navWorker.srv = srv; navWorker.hw = 5;
-  SDL_Thread* nt = SDL_CreateThread(Worker::main, "navegação", &navWorker);
+  SDL_Thread* nt = yt::worker(Worker::main, "navegação", &navWorker);
   Navigation nav;
   Worker sleepWorker; sleepWorker.srv = srv; sleepWorker.hw = 5;
-  SDL_Thread* st = SDL_CreateThread(Worker::main, "timer", &sleepWorker);
+  SDL_Thread* st = yt::worker(Worker::main, "timer", &sleepWorker);
   // miniaturas numa fila própria, com 3 threads: não esperam atrás das buscas das categorias
   Worker thumbsWorker; thumbsWorker.srv = srv; thumbsWorker.hw = 5;
   SDL_Thread* tw[3];
-  for (auto& th : tw) th = SDL_CreateThread(Worker::main, "miniaturas", &thumbsWorker);
+  for (auto& th : tw) th = yt::worker(Worker::main, "miniaturas", &thumbsWorker);
   Remote remote; remote.srv = srv;
   SDL_Thread* rt = SDL_CreateThread(Remote::main, "controle", &remote);
   Thumbs thumbs;
@@ -448,6 +491,7 @@ int main(int argc, char** argv) {
   auto requestFeed = [&](Shelf& shelf, int kind, bool fresh = false, int offset = 0, bool front = false) {
     if (!offset) { shelf.stamp = ++stamp; shelf.feed.loading = true; shelf.feed.loadingMore = false; shelf.feed.error = K::None; }
     Job j{kind, shelf.query, shelf.stamp, fresh, offset}; j.lang = settings.lang; j.feedKind = shelf.kind;
+    j.native = !offset && (shelf.kind == "search" || (shelf.kind == "home" && !account.signedIn()));
     worker.add(j, front);
   };
   auto rebuildCats = [&]() {
@@ -462,7 +506,7 @@ int main(int argc, char** argv) {
     const K titles[] = {K::Music, K::Football, K::Games, K::Podcasts, K::News};
     const K queries[] = {K::MusicQuery, K::FootballQuery, K::GamesQuery, K::PodcastsQuery, K::NewsQuery};
     for (int i = 0; i < 5; i++) cats.push_back({tr(titles[i]), tr(queries[i]), {}});
-    for (size_t i = 0; i < cats.size(); i++) requestFeed(cats[i], i == 0 ? 0 : 3);
+    requestFeed(cats[0], 0);
     if (inResults) requestFeed(results, 1, false, 0, true);
   };
   rebuildCats();
@@ -484,12 +528,12 @@ int main(int argc, char** argv) {
   cc::Loader captionLoader; cc::Data captions;
   int captionIndex = -1; std::vector<std::string> captionLines; float captionWidth = 0;
   float captionLineWidths[2]{};
-  const char *lastQuality = nullptr, *lastMode = nullptr;
-  std::string qualityLabel;
+  int lastQuality = -1; const char* lastMode = nullptr;
+  std::string qualityLabel, resolutionLabel;
   PlayerText optionLabels[PlayerUI::COUNT], optionValues[PlayerUI::COUNT];
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
-  std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false;
+  std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false; uint64_t nextDeadline = 0; bool nextPending = false;
   bool livePaused = false;
   int& quality = settings.quality;
   bool& nestOut = settings.nest; int& nestOffsetMs = settings.syncMs;
@@ -533,24 +577,22 @@ int main(int argc, char** argv) {
   if (g.win) SDL_StartTextInput(g.win);
 #endif
   auto startVideo = [&](const Video& v, double t, bool fromRemote) {
-    if (captionVideo != v.id || captionInterface != i18n::code(settings.lang)) {
-      captionVideo = v.id; captionInterface = i18n::code(settings.lang); captions = cc::Data{}; captionIndex = -1; captionLines.clear();
-      captionLoader.request(srv, v.id, i18n::code(settings.lang), settings.captionLang);
-    }
     if (!fromRemote && nav.ownsQueue) {
       nav.ownsQueue = nav.musicSession = nav.musicNow = false;
       navWorker.add({6, "/api/nav/transport?action=clear", ++nav.serial}, true);
     }
     if (v.id != playing.id) {
       nestSkip = false; likeState.clear(); upNext = Video{};
-      control.add({5, "/api/video/" + v.id + "/next", 0});
+      Job next{5, "/api/video/" + v.id + "/next", 0};
+      next.native = !fromRemote && !account.signedIn(); control.add(next, true); nextPending = true;
     }
-    nextAt = 0; endedSent = false; ratePanel = sleepPanel = false; livePaused = false;
+    if (v.id != playing.id) { captions = {}; captionIndex = -1; captionLines.clear(); captionVideo.clear(); captionLoader.cancel(); }
+    nextAt = nextDeadline = 0; endedSent = false; ratePanel = sleepPanel = false; livePaused = false;
     playing = v; playerFromRemote = fromRemote;
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
     pl.nestOffset = nestOffsetMs / 1000.0;
-    pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && (!nestChecked || nestAvailable) && !nestSkip);
+    pl.start(srv, v.id, t, v.title, v.dur, quality, net::serverEnabled && nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
@@ -659,7 +701,7 @@ int main(int argc, char** argv) {
       if (script && step >= 0 && step % 24 == 0 && step / 24 < (int)std::strlen(script)) {
         char k = script[step / 24];
         int b = k == 'U' ? Input::UP : k == 'D' ? Input::DOWN : k == 'L' ? Input::LEFT : k == 'R' ? Input::RIGHT : k == 'A' ? Input::A
-              : k == 'B' ? Input::B : k == 'X' ? Input::X : k == 'Y' ? Input::Y : k == 'S' ? Input::START : k == 'l' ? Input::LT : k == 'r' ? Input::RT : -1;
+              : k == 'B' ? Input::B : k == 'X' ? Input::X : k == 'Y' ? Input::Y : k == 'S' ? Input::START : k == '[' ? Input::LB : k == ']' ? Input::RB : k == 'l' ? Input::LT : k == 'r' ? Input::RT : -1;
         if (b >= 0) in.fired[b] = true;
       }
     }
@@ -684,7 +726,7 @@ int main(int argc, char** argv) {
       } else if (r.key != "/api/sleep") { toast = tr(K::SleepError); toastUntil = now + 4000; }
       sleepAt = now + 5000;
     }
-    if (!sleepPending && now >= sleepAt && !shutdownAt) requestSleep("/api/sleep");
+    if (net::serverEnabled && !sleepPending && now >= sleepAt && !shutdownAt) requestSleep("/api/sleep");
     double sleepLeft = sleep.remaining(now, sleep.end && pl.paused);
     bool sleepWarning = sleep.active && sleepLeft >= 0 && sleepLeft <= 60 && !shutdownAt;
     double gain = sleepWarning ? std::clamp(sleepLeft / 60, 0.0, 1.0) : 1.0;
@@ -702,10 +744,13 @@ int main(int argc, char** argv) {
         auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
         bool ok = r.feed.error == K::None && !f.empty() && f[0] == "ok";
         std::string id = r.key.substr(11, 11);
+        if (id == playing.id && r.key.ends_with("/next")) nextPending = false;
         if (r.key.find("/rate?") != std::string::npos) {
           if (ok && f.size() > 1 && id == playing.id) likeState = f[1];
           toast = tr(!ok ? K::RateFailed : likeState == "LIKE" ? K::Liked : likeState == "DISLIKE" ? K::Disliked : K::RatingRemoved);
           toastUntil = now + 3000;
+        } else if (r.feed.direct && id == playing.id && !r.feed.items.empty()) {
+          upNext = r.feed.items.front();
         } else if (ok && id == playing.id && f.size() >= 5) {
           likeState = f[1];
           upNext = Video{};
@@ -782,7 +827,7 @@ int main(int argc, char** argv) {
           }
         }
       } else {
-        r.feed.more = r.feed.items.size() >= 24;
+        r.feed.more = !r.feed.direct && r.feed.items.size() >= 24;
         target->feed = std::move(r.feed);
       }
     }
@@ -836,9 +881,9 @@ int main(int argc, char** argv) {
     }
     // ---------------------------------------------------------------- lógica por tela
     // código de pareamento e quem está conectado pelo Transmitir (o código troca a cada 5 min)
-    if (now >= castCodeAt) { control.add({5, "/api/cast/code", 0}); castCodeAt = now + (phonePanel ? 15000 : 30000); }
-    if (now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
-    if (!accountBusy && now >= accountAt) requestAccount("/api/account");
+    if (net::serverEnabled && now >= castCodeAt) { control.add({5, "/api/cast/code", 0}); castCodeAt = now + (phonePanel ? 15000 : 30000); }
+    if (net::serverEnabled && now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
+    if (net::serverEnabled && !accountBusy && now >= accountAt) requestAccount("/api/account");
     const char* keys[] = {tr(K::Keyboard1), tr(K::Keyboard2), tr(K::Keyboard3), tr(K::Keyboard4)};
     if (shutdownAt) {
       if (now >= shutdownAt) {
@@ -879,7 +924,7 @@ int main(int argc, char** argv) {
         if (in.hit(Input::DOWN)) playerUI.panelSel = 1;
         int direction = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
         if (captions.failed && in.hit(Input::A) && !captionLoader.loading)
-          captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang);
+          captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang, nullptr, pl.direct);
         else if (!playerUI.panelSel && !captions.cues.empty() && (direction || in.hit(Input::A))) {
           settings.captions = !settings.captions; saveSettings();
         } else if (playerUI.panelSel && !captions.tracks.empty() && !captionLoader.loading && (direction || in.hit(Input::A))) {
@@ -887,7 +932,7 @@ int main(int argc, char** argv) {
           for (size_t i = 0; i < captions.tracks.size(); i++) if (captions.tracks[i].code == captions.selected) index = (int)i;
           index = (index + (direction ? direction : 1) + (int)captions.tracks.size()) % (int)captions.tracks.size();
           settings.captionLang = captions.tracks[(size_t)index].code; settings.captions = true; saveSettings();
-          captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang);
+          captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang, nullptr, pl.direct);
           captions.cues.clear(); captionIndex = -1; captionLines.clear();
         }
       } else {
@@ -1004,7 +1049,7 @@ int main(int argc, char** argv) {
       }
     } else if (screen == SETTINGS) {
       if (in.hit(Input::UP) && settingsRow > 0) settingsRow--;
-      if (in.hit(Input::DOWN) && settingsRow < 7) settingsRow++;
+      if (in.hit(Input::DOWN) && settingsRow < 8) settingsRow++;
       int direction = 0;
       if (in.hit(Input::LEFT)) direction = -1;
       if (in.hit(Input::RIGHT)) direction = 1;
@@ -1034,6 +1079,14 @@ int main(int argc, char** argv) {
             requestSleep(std::string("/api/sleep/set?what=") + (settings.sleepNotebook ? "xbox_notebook" : "xbox") + "&target_only=1");
           }
         }
+        else if (settingsRow == 8) {
+          settings.server = !settings.server; net::serverEnabled = settings.server;
+          if (!settings.server) {
+            account = {}; accountKnown = false; nestAvailable = false; castWho.clear(); sleep = {};
+            SDL_LockMutex(remote.mu); remote.online = false; remote.cmds.clear(); remote.ended.clear(); SDL_UnlockMutex(remote.mu);
+          }
+          accountAt = nestInfoAt = castCodeAt = 0; rebuildCats();
+        }
         if (changed) saveSettings();
       }
       if (in.hit(Input::B)) { screen = HOME; railFocus = true; railSel = 6; }
@@ -1058,6 +1111,7 @@ int main(int argc, char** argv) {
       if (zone == 1 && !inResults) {
         if (in.hit(Input::LEFT)) { if (cat > 0) { cat--; scroll = 0; } else { railFocus = true; railSel = 0; } }
         if (in.hit(Input::RIGHT) && cat + 1 < (int)cats.size()) { cat++; scroll = 0; }
+        if (!cats[cat].stamp) requestFeed(cats[cat], cat == 0 ? 0 : 3);
         if (cur.kind == "subs" && (in.hit(Input::DOWN) || in.hit(Input::A))) openNav("subscriptions");
         else if ((in.hit(Input::DOWN) || in.hit(Input::A)) && n) zone = 0;
       } else {
@@ -1212,6 +1266,19 @@ int main(int argc, char** argv) {
 
     }
     if (screen == PLAYER) {
+      if (pl.direct && pl.mediaReady.exchange(false)) {
+        if (pl.title.empty()) pl.title = pl.media.title;
+        pl.duration = pl.media.duration;
+        if (captionVideo != playing.id || captionInterface != i18n::code(settings.lang) || !captionLoader.native) {
+          captionVideo = playing.id; captionInterface = i18n::code(settings.lang);
+          captions = {}; captionIndex = -1; captionLines.clear();
+          captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang, &pl.media);
+        }
+      } else if (!pl.direct && (captionVideo != playing.id || captionInterface != i18n::code(settings.lang) || captionLoader.native)) {
+        captionVideo = playing.id; captionInterface = i18n::code(settings.lang);
+        captions = {}; captionIndex = -1; captionLines.clear();
+        captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang);
+      }
       if (captionLoader.pop(captions)) {
         captionIndex = -1; captionLines.clear();
         LOG("legendas: %s %s, %u frases, %u idiomas", captionVideo.c_str(), captions.selected.c_str(), (unsigned)captions.cues.size(), (unsigned)captions.tracks.size());
@@ -1222,7 +1289,8 @@ int main(int argc, char** argv) {
     if (screen == PLAYER && pl.live) { if (pl.paused) livePaused = true; else if (livePaused) resumeLive(); }
     else livePaused = false;
     // Fim natural continua sendo informado mesmo com um cartão aberto.
-    if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt) {
+    if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;
+    if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && (playerFromRemote || !nextPending || now >= nextDeadline)) {
       if (!endedSent) {
         SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
         endedSent = true; ratePanel = sleepPanel = false; playerUI.panel = PlayerUI::NONE;
@@ -1240,7 +1308,7 @@ int main(int argc, char** argv) {
     remote.playing = screen == PLAYER ? playing.id : ""; remote.pos = pl.position(); remote.dur = pl.duration; remote.paused = pl.paused;
     SDL_UnlockMutex(remote.mu);
 
-    if (focusVid && screen == HOME) { if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, focusVid->id, frame)) ambientWant = s->avg; }
+    if (focusVid && screen == HOME) { if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, focusVid->id, frame, cur.feed.direct)) ambientWant = s->avg; }
     ambient = ui::mix(ambient, ambientWant, 0.06f);
     railOpen += ((railFocus ? 1.f : 0.f) - railOpen) * 0.25f;
 
@@ -1283,7 +1351,7 @@ int main(int argc, char** argv) {
           gfx::shadow(g, ix, iy + 10, w, h, 14, 22, 0.6f * an);
           gfx::rect(g, ix - 4, iy - 4, w + 8, h + 8, ui::alpha(rgb(0xffffff), an), 16);
         }
-        const Thumbs::Slot* ts = thumbs.get(thumbsWorker, v.id, frame);
+        const Thumbs::Slot* ts = thumbs.get(thumbsWorker, v.id, frame, cur.feed.direct);
         if (ts) gfx::image(g, ts->tex, ix, iy, w, h, 12);
         else gfx::rect(g, ix, iy, w, h, ui::SURFACE, 12);
         if (v.pos > 0 && v.dur > 0) {
@@ -1306,9 +1374,9 @@ int main(int argc, char** argv) {
       if (n == 0) {
         if (cur.feed.loading) { spinner(g, ui::X0 + (ui::W - ui::X0) / 2 - 32, 380, 22, t); gfx::text(g, ui::F_BODY, tr(K::LoadingVideos), ui::X0 + (ui::W - ui::X0) / 2 - 32, 420, ui::MUTED, 1); }
         else if (cur.feed.error != K::None) {
-          gfx::text(g, ui::F_BIG, tr(K::ServerUnavailable), ui::X0, 190, ui::TEXT);
-          gfx::text(g, ui::F_BODY, std::string(tr(cur.feed.error)) + " (" + srv.ip + ":" + std::to_string(srv.port) + ")", ui::X0, 240, ui::MUTED);
-          gfx::text(g, ui::F_BODY, tr(K::RetryServer), ui::X0, 270, ui::MUTED);
+          gfx::text(g, ui::F_BIG, tr(settings.server ? K::ServerUnavailable : K::BadResponse), ui::X0, 190, ui::TEXT);
+          gfx::text(g, ui::F_BODY, settings.server ? std::string(tr(cur.feed.error)) + " (" + srv.ip + ":" + std::to_string(srv.port) + ")" : tr(K::Refresh), ui::X0, 240, ui::MUTED);
+          if (settings.server) gfx::text(g, ui::F_BODY, tr(K::RetryServer), ui::X0, 270, ui::MUTED);
         } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
       }
       // topo fixo: o nome e as categorias (a grade passa por baixo)
@@ -1333,6 +1401,7 @@ int main(int argc, char** argv) {
           pill(std::string(tr(K::SleepTimer)) + " · " + value, ui::A1);
         }
         if (!castWho.empty()) pill(tr(K::PhonePrefix) + castWho, rgb(0x34c759));
+        if (!cur.feed.items.empty() && !sleep.active && castWho.empty() && !account.signedIn()) pill(tr(cur.feed.direct ? K::Console : K::ServerMode), ui::MUTED);
         if (account.signedIn()) pill(tr(K::AccountPrefix) + account.name, ui::A2);
         float hx3 = hint(g, lx, 32, "X", XX, tr(K::Refresh));
         float hx4 = hint(g, hx3, 32, "Y", XY, tr(K::Search));
@@ -1422,9 +1491,9 @@ int main(int argc, char** argv) {
       gfx::text(g, ui::F_BIG, tr(K::Settings), ui::X0, 42, ui::TEXT);
       gfx::text(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::MUTED);
       gfx::text(g, ui::F_SMALL, tr(K::SavedAutomatically), ui::W - 64, 94, ui::FAINT, 2);
-      const K labels[] = {K::YouTubeAccount, K::VideosPerRow, K::DefaultQuality, K::Sound, K::SpeakerSync, K::Language, K::SleepTimer, K::SleepTogether};
-      for (int i = 0; i < 8; i++) {
-        float x = ui::X0, y = 132 + i * 61, w = ui::W - ui::X0 - 64;
+      const K labels[] = {K::YouTubeAccount, K::VideosPerRow, K::DefaultQuality, K::Sound, K::SpeakerSync, K::Language, K::SleepTimer, K::SleepTogether, K::ServerMode};
+      for (int i = 0; i < 9; i++) {
+        float x = ui::X0, y = 122 + i * 55, w = ui::W - ui::X0 - 64;
         bool selected = i == settingsRow, disabled = i == 3 && !nestAvailable;
         if (selected) {
           gfx::shadow(g, x, y + 6, w, 53, 18, 20, 0.45f);
@@ -1446,7 +1515,8 @@ int main(int argc, char** argv) {
         } else if (i == 4) value = (nestOffsetMs > 0 ? "+" : "") + std::to_string(nestOffsetMs) + tr(K::Milliseconds);
         else if (i == 5) value = tr(settings.lang == i18n::Lang::PT ? K::Portuguese : K::English);
         else if (i == 6) value = sleepLabel(sleepChoice);
-        else value = tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox);
+        else if (i == 7) value = tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox);
+        else value = tr(settings.server ? K::Automatic : K::SleepOff);
         float right = x + w - 54;
         gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, value, i == 0 ? 480 : 320), right, y + 15, disabled ? ui::FAINT : selected ? ui::A2 : ui::TEXT, 2);
         if (selected && i > 0 && !disabled) {
@@ -1505,11 +1575,12 @@ int main(int argc, char** argv) {
         gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, channel, 760), 72, 90, ui::TEXT);
         if (!captions.date.empty()) gfx::text(g, ui::F_SMALL, captions.date, 72, 120, ui::MUTED);
         float statusX = ui::W - 72;
-        const char* resolution = tr(i18n::quality(quality));
-        const char* mode = pl.waiting() ? nullptr : tr(pl.original ? K::Original : K::Converted);
+        int resolution = pl.actualHeight.load();
+        const char* mode = pl.waiting() ? nullptr : tr(pl.direct ? K::Console : pl.original ? K::ServerOriginal : K::ServerConverted);
         if (resolution != lastQuality || mode != lastMode) {
-          qualityLabel = resolution;
-          if (mode) { qualityLabel += " · "; qualityLabel += mode; }
+          resolutionLabel = resolution ? std::to_string(resolution) + "p" : "";
+          qualityLabel = resolutionLabel;
+          if (mode) { if (resolution) qualityLabel += " · "; qualityLabel += mode; }
           lastQuality = resolution; lastMode = mode;
         }
         gfx::text(g, ui::F_SMALL, qualityLabel, statusX, 94, ui::TEXT, 2);
@@ -1552,7 +1623,7 @@ int main(int argc, char** argv) {
           gfx::text(g, ui::F_CARD, label.text, ox + (optionW - label.width) / 2, oy + 10, disabled ? ui::FAINT : ui::TEXT);
           const char* value = "";
           if (i == PlayerUI::CC) value = tr(captionLoader.loading ? K::Loading : settings.captions && !disabled ? K::CaptionsOn : K::CaptionsOff);
-          else if (i == PlayerUI::VIDEO) value = tr(i18n::quality(quality));
+          else if (i == PlayerUI::VIDEO) value = resolution ? resolutionLabel.c_str() : tr(i18n::quality(quality));
           else if (i == PlayerUI::AUDIO) value = pl.nest ? nestName.c_str() : tr(K::TV);
           else if (i == PlayerUI::TIMER) value = tr(sleep.active ? K::PlayerTimerOn : K::SleepOff);
           else if (i == PlayerUI::RATE) value = tr(likeState == "LIKE" ? K::Liked : likeState == "DISLIKE" ? K::Disliked : K::Open);
@@ -1656,7 +1727,7 @@ int main(int argc, char** argv) {
         gfx::hgrad(g, x + 32, y + 52, std::max(4.f, (w - 64) * (float)(1 - left / 8.0)), 4, ui::A1, ui::A2, 2);
         float tw = 256, th = 144, tx = x + 32, ty = y + 74;
         gfx::rect(g, tx, ty, tw, th, ui::SURFACE2, 12);
-        if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, upNext.id, frame)) gfx::image(g, s->tex, tx, ty, tw, th, 12);
+        if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, upNext.id, frame, pl.direct)) gfx::image(g, s->tex, tx, ty, tw, th, 12);
         float cx = tx + tw + 28, cw = x + w - 32 - cx, cy = ty + 2;
         for (auto& line : gfx::wrap(g, ui::F_H2, upNext.title, cw, 2)) { gfx::text(g, ui::F_H2, line, cx, cy, ui::TEXT); cy += 30; }
         if (!upNext.channel.empty()) gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, upNext.channel, cw), cx, cy + 8, ui::MUTED);
@@ -1670,7 +1741,7 @@ int main(int argc, char** argv) {
       }
       if (pl.waiting() && !panelOpen) {
         spinner(g, ui::W / 2, ui::H / 2, 26, t);
-        gfx::text(g, ui::F_BODY, pl.state == player::CONNECTING ? tr(K::RequestingVideo) : tr(K::Loading), ui::W / 2, ui::H / 2 + 46, ui::TEXT, 1);
+        gfx::text(g, ui::F_BODY, pl.state == player::CONNECTING ? tr(pl.direct ? K::Loading : K::RequestingVideo) : tr(K::Loading), ui::W / 2, ui::H / 2 + 46, ui::TEXT, 1);
       }
       if (pl.state == player::FAILED && !panelOpen) {
         gfx::rect(g, ui::W / 2 - 340, ui::H / 2 - 74, 680, 148, ui::SURFACE, 22);

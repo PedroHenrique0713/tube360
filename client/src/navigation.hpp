@@ -9,7 +9,7 @@ struct NavItem {
 struct NavPage {
   std::string kind, id, query, tab = "videos", title, subtitle, image, channelId, error, displayTitle, displaySub;
   std::vector<NavItem> items, channels;
-  bool music = false, loading = true, more = false, subscribed = false;
+  bool music = false, direct = false, loading = true, more = false, subscribed = false;
   int sel = 0, channelSel = 0, zone = 3, tabSel = 0, offset = 0;
   float scroll = 0;
   uint64_t stamp = 0;
@@ -36,7 +36,8 @@ struct Navigation {
     p.more = false;
     if (!append) { p.offset = 0; p.items.clear(); p.channels.clear(); }
     std::string path = p.path() + "&lang=" + i18n::code(lang) + "&offset=" + std::to_string(p.offset) + "&fresh=" + (fresh ? "1" : "0");
-    worker.add({6, path, p.stamp}, true);
+    Job job{6, path, p.stamp};
+    job.native = p.kind == "search" && p.tabSel != 2 && !append; job.query = p.query; job.lang = lang; worker.add(job, true);
   }
   void open(Worker& worker, i18n::Lang lang, std::string kind, std::string id = "", std::string query = "", bool music = false) {
     // As telas guardam seleção e rolagem; B não refaz a consulta de onde o usuário veio.
@@ -69,7 +70,12 @@ struct Navigation {
       p.loading = false;
       if (r.feed.error != K::None) { p.error = i18n::get(lang, K::NoResponse); return; }
       bool first = p.offset == 0;
-      if (!parse(r.feed.title, p, !first) && p.error.empty()) p.error = i18n::get(lang, K::BadResponse);
+      p.direct = r.feed.direct;
+      if (p.direct) {
+        p.title = p.query; p.subtitle = i18n::get(lang, K::Console); p.more = false;
+        for (const auto& v : r.feed.items) p.items.push_back({"video",v.id,v.title,v.channel,v.id,"","",v.dur});
+        p.offset = (int)p.items.size();
+      } else if (!parse(r.feed.title, p, !first) && p.error.empty()) p.error = i18n::get(lang, K::BadResponse);
       if (first && p.kind == "library" && p.error.empty()) {
         NavItem history; history.type = "history"; history.id = "HISTORY"; history.title = i18n::get(lang, K::History);
         NavItem later; later.type = "later"; later.id = "WL"; later.title = i18n::get(lang, K::WatchLater);
@@ -98,10 +104,10 @@ struct Navigation {
     if (busy) return;
     busy = true; actionPath = path; actionStamp = ++serial; worker.add({6, path, actionStamp}, true);
   }
-  static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::string& id, uint64_t frame, float x, float y, float w, float h, bool square = false) {
+  static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::string& id, uint64_t frame, float x, float y, float w, float h, bool square = false, bool direct = false) {
     gfx::rect(g, x, y, w, h, ui::SURFACE2, square ? 6 : 12);
     if (id.empty()) return;
-    if (const auto* s = thumbs.get(worker, id, frame)) {
+    if (const auto* s = thumbs.get(worker, id, frame, direct)) {
       if (square) {
         float fraction = (float)thumbs.height / thumbs.width;
         gfx::imagePart(g, s->tex, x, y, w, h, (1 - fraction) / 2, 0, (1 + fraction) / 2, 1, ui::TEXT);
@@ -176,7 +182,7 @@ struct Navigation {
       if (y < top - 2 || y + h + 92 > 656) continue;
       bool f = p.zone == 3 && (int)i == p.sel;
       if (f) gfx::rect(g, x - 5, y - 5, art + 10, h + 10, ui::TEXT, 12);
-      artwork(g, thumbs, worker, item.image, frame, x, y, art, h, p.music || item.type == "channel" || item.type == "artist");
+      artwork(g, thumbs, worker, item.image, frame, x, y, art, h, p.music || item.type == "channel" || item.type == "artist", p.direct);
       if (item.image.empty()) {
         K k = item.type == "history" ? K::History : item.type == "later" ? K::WatchLater : item.type == "mixes" ? K::Mixes : K::Playlists;
         gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, tr(k), art - 32), x + 16, y + h / 2 - 12, ui::MUTED);

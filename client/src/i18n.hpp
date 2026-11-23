@@ -9,6 +9,12 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
 // Texto do app. Títulos, nomes e metadados do servidor continuam sendo dados.
 #define TUBE360_TEXT(X) \
   X(None, "", "") \
+  X(ServerOriginal, "Server · original", "Servidor · original") \
+  X(ServerConverted, "Server · converted", "Servidor · convertido") \
+  X(ConsoleVideoError, "Could not open the YouTube stream on this console.", "O console não conseguiu abrir o fluxo do YouTube.") \
+  X(Console, "Console", "Console") \
+  X(ServerMode, "Server", "Servidor") \
+  X(Automatic, "Automatic", "Automático") \
   X(Home, "Home", "Início") \
   X(Search, "Search", "Buscar") \
   X(Phone, "Phone", "Celular") \
@@ -236,6 +242,7 @@ inline Key quality(int q) { return q == 360 ? Key::Q360 : q == 480 ? Key::Q480 :
 
 // player.hpp mantém os diagnósticos internos; só a apresentação é traduzida.
 inline Key playerError(const std::string& error) {
+  if (error == "console") return Key::ConsoleVideoError;
   if (error == "Sem conexão com o servidor do notebook") return Key::NoResponse;
   if (error == "O servidor não conseguiu abrir este vídeo") return Key::VideoOpenError;
   if (error == "O vídeo não chegou (o servidor fechou a conexão)") return Key::VideoClosed;
