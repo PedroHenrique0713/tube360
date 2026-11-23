@@ -110,14 +110,25 @@ error: HTTP 404. The server prefetches thumbnails for every list it serves.
 
 ## Video
 
-`GET /api/stream/<id>?t=<seconds>&q=720|480|360&a=0|1&speaker=0|1` returns `video/mpeg`: MPEG-PS with **one** `mpeg1video` stream and,
+`GET /api/stream/<id>?t=<seconds>&q=1080|720|480|360&a=0|1&speaker=0|1` returns `video/mpeg`: MPEG-PS with **one** `mpeg1video` stream and,
 unless `a=0`, **one** `mp2` stream.
 
 Clients with the FFmpeg decoder can append `&codec=h264`. Read `X-Video-Codec` before opening the decoder.
 The value `h264` selects `video/mp2t` with the source AVC and AAC tracks copied into MPEG-TS (video only for
 `a=0`). All other responses, including older servers with no codec header, use the MPEG-PS path below.
-Original mode needs a matching SDR rendition up to 1280×720 at up to 30 fps and a direct AAC source. Live,
-higher frame rates, incompatible sources and a failed remux use the existing conversion.
+Original mode needs a matching SDR AVC rendition and a direct AAC source. Optional `mode=auto|720p60|1080p30`
+selects the source: `720p60` favors frame rate within 720p; the other modes prefer 1080p at up to 30 fps,
+then 720p (including 60 fps). `q=480|360` imposes a lower ceiling; for `q>=720`, `mode` decides the ceiling.
+Live, incompatible sources and a failed remux
+use the existing conversion, limited to 720p30 even when `q=1080`.
+
+Optional `audio=original|lang:<language>|<track code>` selects the audio for both the stream and its speaker
+session. The default is original, even if YouTube marks an automatic dub as default. The interface-language
+preference uses `lang:pt` or `lang:en` and falls back to original if unavailable. Canonical track codes include
+the language and role, e.g. `en-original`, `pt-auto`; read the response catalog rather than inventing codes.
+`X-Audio-Track` is the percent-encoded selected code; `X-Audio-Tracks` is a percent-encoded UTF-8 catalog with
+one TAB-separated `code, language, name, original (0|1), automatic (0|1)` row per track. `X-Source-Fps` reports
+the output source rate (30 for conversion). The native client builds the same catalog from YouTube/HLS.
 
 The TS clock is relative to the requested position. A seek includes the previous keyframe. Decode the negative
 PTS for reference, discard its pictures and trim negative-time PCM before starting the shared presentation clock.
@@ -176,13 +187,13 @@ Set in `config.json` as `"nest": {"host": "<IP>", "name": "<name>"}`.
 |---|---|
 | `GET /api/nest/info` | `ok\t<name>` or `erro\t...` |
 | `GET /api/nest/prepare` | wakes the speaker and opens the media receiver ahead of time |
-| `GET /api/nest/play?id=<id>&t=<s>&sid=<X-Stream-Id>` | `ok\t<revision>`; start at absolute `t`, using a Cast seek within the current VOD resource when possible |
+| `GET /api/nest/play?id=<id>&t=<s>&sid=<X-Stream-Id>&audio=<selection>` | `ok\t<revision>`; start at absolute `t`, using a Cast seek within the current VOD resource when possible |
 | `GET /api/nest/pos?sid=<id>` | `<state>\t<absolute position s>\t<error>\t<revision of gated MP3 reader or 0>`; states include `LOADING`, `PLAYING`, `PAUSED`, `BUFFERING`, `STALE`, `IDLE` and `ERRO` |
 | `GET /api/nest/local?sid=<id>&rev=<revision>` | `WAIT\t<revision>` or `QUIET\t<revision>`. Reserves the TV output and revokes the previous Cast URL. Use the returned quiet revision as `claim` on the next play. |
 | `GET /api/nest/unmute?sid=<id>&rev=<play revision>` | Open the waiting MP3 body after the TV mutes and its device buffer drains. Returns `ok\t<absolute position s>` on a fresh PLAYING reply for that media session, 409 on obsolete ownership or 503 on an unconfirmed start. |
 | `GET /api/nest/pause` · `resume` · `stop` | |
 | `GET /api/nest/volume?v=0..100` | |
-| `GET /api/audio/<id>?t=<s>` | the MP3 the speaker downloads (supports `Range`) |
+| `GET /api/audio/<id>?t=<s>&track=<selection>` | the selected MP3 the speaker downloads (supports `Range`) |
 
 A receiver status supplies its own update timestamp. The server extrapolates a playing position for at most 1.2 s, then returns `STALE` with the last observation. The Xbox discards normal position samples with a round trip above 120 ms. A server advertising `X-Nest-Handoff: 1` arbitrates the two outputs. A stale speaker clock leaves local PCM muted. If a LOAD could have emitted sound, the server waits for a fresh quiet status after revoking its URL and stopping the receiver. The server records the possible owner on disk before a LOAD so that restarting the process still requires confirmation. A control-channel partition can therefore leave a silent interval after the receiver runs out of buffered MP3.
 
@@ -192,7 +203,9 @@ The optional `sid` on play, position, pause, resume and stop is the stream ID fr
 
 VOD uses Cast `BUFFERED` with the known remaining duration. A seek to converted audio in the currently loaded resource preserves its URL and Cast media session. If the destination precedes that resource, lies beyond the converted prefix, or the receiver does not confirm SEEK, the server can LOAD an appropriate MP3. Live uses Cast `LIVE` and a session-specific provisional file. After a pause it starts again at the live edge.
 
-**MP3 downloads.** Conversion writes `<id>_<t>.part.mp3`. A successful conversion with a nonempty output promotes it atomically to `<id>_<t>.mp3`. Failed and abandoned outputs are regenerated. A complete target supports `HEAD` with length and byte-range GETs with a known total. For a growing file, an initial `bytes=0-` receives a continuous 200 response. Other single ranges receive 206 with the available extent and `*` for an unknown total. Unsupported range forms receive 200. Positions beyond the available data can receive 416.
+**MP3 downloads.** Conversion writes `<id>_<t>.part.mp3` for original audio; other selections add a hash of the
+selection to the ID. Jobs and cache keys are partitioned by selection. Changing language forces a Cast LOAD,
+even for the same video and position; it cannot SEEK within the old language's resource. A successful conversion with a nonempty output promotes it atomically to `<id>_<t>.mp3`. Failed and abandoned outputs are regenerated. A complete target supports `HEAD` with length and byte-range GETs with a known total. For a growing file, an initial `bytes=0-` receives a continuous 200 response. Other single ranges receive 206 with the available extent and `*` for an unknown total. Unsupported range forms receive 200. Positions beyond the available data can receive 416.
 
 Cast URLs carry an opaque `s`. A revoked URL receives 410. Small fixed ranges and completed unscoped downloads include Content-Length. A larger session-bound GET streams until EOF or revocation. A 206 still reports Content-Range. Delivery allows four seconds for startup or a range entrance and about 1.5 s ahead of the confirmed clock in steady playback, using the 192 kbit/s MP3 rate.
 

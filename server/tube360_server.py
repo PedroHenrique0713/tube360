@@ -4,6 +4,7 @@
 import asyncio
 import contextlib
 import io
+import hashlib
 import json
 import logging
 import math
@@ -52,7 +53,7 @@ THUMBS = Path.home() / ".cache/tube360/thumbs"
 FFMPEG = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
 ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{11}$")
 LOG = logging.getLogger("tube360")
-SIZES = {720: (1280, 720, "5500k"), 480: (854, 480, "2500k"), 360: (640, 360, "1500k")}
+SIZES = {1080: (1920, 1080, "12000k"), 720: (1280, 720, "5500k"), 480: (854, 480, "2500k"), 360: (640, 360, "1500k")}
 metadata = {}
 extract_slots = asyncio.Semaphore(4)
 
@@ -303,6 +304,51 @@ def source_status(info, source, timeout=8):
         return None
 
 
+def audio_catalog(formats):
+    result = {}
+    for fmt in formats:
+        if fmt.get("vcodec") != "none" or fmt.get("acodec") in (None, "none") or not fmt.get("url") or fmt.get("has_drm"):
+            continue
+        language = clean(fmt.get("language") or "und")
+        note = clean(fmt.get("format_note") or "")
+        original = "original" in note.lower() or fmt.get("language_preference") == 10
+        automatic = "auto" in note.lower()
+        code = language + ("-original" if original else "-auto" if automatic else "-dub")
+        rank = (fmt.get("ext") == "m4a", float(fmt.get("abr") or fmt.get("tbr") or 0))
+        if code not in result or rank > result[code][0]:
+            result[code] = (rank, {"code": code, "language": language, "name": note,
+                                   "original": original, "automatic": automatic, "format": fmt})
+    return [entry[1] for entry in result.values()]
+
+
+def audio_choice(value):
+    if not isinstance(value, str) or not re.fullmatch(r"(?:original|lang:[A-Za-z-]{2,20}|[A-Za-z0-9_-]{1,60})", value):
+        raise HTTPException(400, "Faixa de áudio inválida.")
+    return value
+
+
+def choose_audio(info, selection="original"):
+    audio_choice(selection)
+    tracks = info.get("audio_tracks") or []
+    chosen = next((t for t in tracks if t["original"]), None)
+    exact = next((t for t in tracks if t["code"] == selection), None)
+    chosen = exact or chosen
+    if exact is None and not selection.startswith("lang:") and "-" in selection:
+        language,kind=selection.rsplit("-",1)
+        chosen=next((t for t in tracks if t["language"].split("-")[0]==language.split("-")[0] and t["code"].rsplit("-",1)[-1]==kind),chosen)
+    if selection.startswith("lang:"):
+        chosen = next((t for t in tracks if t["language"].split("-")[0] == selection[5:].split("-")[0]), chosen)
+    if chosen is None:
+        chosen = next((t for t in tracks if t["format"]["url"] == info["audio"]["url"]), None)
+    # O cache do resolvedor é compartilhado: selecionar uma faixa não pode alterar outra sessão.
+    return info | ({"audio": chosen["format"], "audio_selected": chosen["code"], "audio_selection": selection} if chosen else {"audio_selection": selection})
+
+
+def audio_cache_id(video_id, selection="original"):
+    audio_choice(selection)
+    return video_id if selection == "original" else video_id + "~" + hashlib.sha256(selection.encode()).hexdigest()[:12]
+
+
 def hd_source(data, video):
     # O yt-dlp já ordenou os formatos por preferência. A live precisa do seu segmento HLS com áudio.
     if data.get("live_status") == "is_live":
@@ -319,8 +365,8 @@ def hd_source(data, video):
 
 
 def original_sources(data, video, audio):
-    # Uma gravação de 60 fps continua no conversor mesmo se houver uma versão de resolução menor a 30.
-    if (data.get("live_status") == "is_live" or (video.get("fps") or 0) > 30
+    # O remux precisa de AAC direto; a live mantém o caminho HLS com os dois fluxos.
+    if (data.get("live_status") == "is_live"
             or not (audio.get("acodec") or "").startswith(("mp4a", "aac"))
             or audio.get("protocol") != "https" or audio.get("has_drm")):
         return {}
@@ -330,7 +376,7 @@ def original_sources(data, video, audio):
         for q, (width, height, _) in SIZES.items():
             if (q not in result and 0 < h <= height and 0 < w <= width and (h == height or w == width)
                     and fmt.get("protocol") == "https" and (fmt.get("vcodec") or "").startswith("avc1")
-                    and 0 < (fmt.get("fps") or 0) <= 30 and fmt.get("dynamic_range") in (None, "SDR")
+                    and 0 < (fmt.get("fps") or 0) <= (30 if h > 720 else 60.1) and fmt.get("dynamic_range") in (None, "SDR")
                     and not fmt.get("has_drm")):
                 result[q] = fmt
     return result
@@ -348,6 +394,18 @@ def remux_command(info, video, start, with_audio):
     return cmd + ["-c", "copy", "-bsf:v", "h264_mp4toannexb,dump_extra=freq=keyframe",
                   "-mpegts_copyts", "1", "-avoid_negative_ts", "disabled", "-muxdelay", "0",
                   "-flush_packets", "1", "-f", "mpegts", "pipe:1"]
+
+
+def copy_source(info, quality, mode):
+    if not (info["audio"].get("acodec") or "").startswith(("mp4a","aac")) or info["audio"].get("has_drm"):
+        return None
+    ceiling = min(quality,720) if mode == "720p60" else 1080 if quality >= 720 else quality
+    formats = [f for f in info.get("video_formats", []) if f.get("protocol") == "https"
+               and (f.get("vcodec") or "").startswith("avc1") and not f.get("has_drm")
+               and f.get("dynamic_range") in (None,"SDR")
+               and 0 < (f.get("height") or 0) <= ceiling and 0 < (f.get("width") or 0) <= 1920
+               and 0 < (f.get("fps") or 0) <= (30 if (f.get("height") or 0) > 720 else 60.1)]
+    return max(formats, key=lambda f: (f["height"], mode == "720p60" or f["fps"] <= 30.1, f["fps"]), default=None) or info.get("original", {}).get(min(quality,ceiling))
 
 
 def clients_named(api_name):
@@ -423,6 +481,8 @@ async def resolve_video(video_id):
                 "title": clean(data.get("title") or video_id),
                 "headers": data.get("http_headers", {}),
                 "live": data.get("live_status") == "is_live",
+                "audio_tracks": audio_catalog(data.get("formats") or []),
+                "video_formats": data.get("formats") or [],
             }
             # O YouTube às vezes recusa (403) todos os links de um cliente (tv_samsung, 2026-11-22), e o link novo do
             # mesmo cliente volta recusado: refaz a extração sem ele.
@@ -449,7 +509,7 @@ async def resolve_video(video_id):
             LOG.info("vídeo %s: o YouTube recusou o link de %s, extraindo sem esse cliente por 30 min", video_id, ", ".join(new))
         remember({"id": video_id, "duration": result["duration"], "title": result["title"],
                   "channel": clean(data.get("channel")), "views": views_text(data.get("view_count"))})
-        return result
+        return choose_audio(result)
     return await url_cache.get(video_id, load)
 
 
@@ -1569,17 +1629,21 @@ async def thumb(video_id: str, w: int = Query(320, ge=1, le=1920), h: int = Quer
 
 @app.get("/api/stream/{video_id}")
 async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=86400 * 30), q: int = 720,
-                 a: int = Query(1, ge=0, le=1), speaker: int = Query(0, ge=0, le=1), codec: str = ""):
+                 a: int = Query(1, ge=0, le=1), speaker: int = Query(0, ge=0, le=1), codec: str = "", mode: str = "auto", audio: str = "original"):
     valid_id(video_id)
     if q not in SIZES or not math.isfinite(t):
         raise HTTPException(400, "Qualidade ou posição inválida.")
+    audio_choice(audio)
+    if mode not in ("auto", "720p60", "1080p30"):
+        raise HTTPException(400, "Modo de vídeo inválido.")
     opened = time.monotonic()
     ticket = await streams.begin()
     refetched = False
     allow_copy = codec == "h264"
     while True:
         try:
-            info = await resolve_video(video_id)
+            cached_info = await resolve_video(video_id)
+            info = choose_audio(cached_info, audio)
         except Exception as error:
             reason = unplayable_reason(error)
             LOG.info("vídeo %s não abriu (%s): %s", video_id, reason or "erro",
@@ -1599,9 +1663,9 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
             AUDIO_DIR.mkdir(parents=True, exist_ok=True)
             mp3 = AUDIO_DIR / f"{video_id}_live_{ticket}.part.mp3"
             mp3.unlink(missing_ok=True)
-        original = info.get("original", {}).get(q) if allow_copy and not info["live"] else None
+        original = copy_source(info,q,mode) if allow_copy and not info["live"] else None
         command = (remux_command(info, original, t, bool(a)) if original else
-                   ffmpeg_command(info, t, q, with_audio=bool(a), mp3=mp3))
+                   ffmpeg_command(info, t, min(q,720), with_audio=bool(a), mp3=mp3))
         encoder = await streams.start(ticket, command)
         streams.video_id, streams.info = video_id, info
         encoder.mp3 = mp3
@@ -1649,6 +1713,7 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
         # A fonte 1080p passou na sondagem de 2 bytes e foi recusada na leitura: a reserva já resolvida (que também
         # passou) serve agora e nos próximos pulos deste link. O dict é o mesmo guardado no url_cache.
         if q == 720 and info.pop("video_hd", None) is not None:
+            cached_info.pop("video_hd",None)
             LOG.info("stream %s: a fonte maior recusou a leitura, usando a reserva", video_id)
             continue
         # A URL assinada foi recusada (o YouTube às vezes responde 403): resolve de novo e tenta mais uma vez.
@@ -1672,6 +1737,9 @@ async def stream(request: Request, video_id: str, t: float = Query(0, ge=0, le=8
              "H.264" if original else "MPEG-1", time.monotonic() - opened, info["live"])
     return StreamingResponse(body(), media_type="video/mp2t" if original else "video/mpeg", headers={
         "X-Video-Codec": "h264" if original else "mpeg1",
+        "X-Source-Fps": str((original or {}).get("fps") or 30),
+        "X-Audio-Track": quote(info.get("audio_selected", ""),safe=""),
+        "X-Audio-Tracks": quote("\n".join("\t".join((tr["code"],tr["language"],tr["name"][:100],str(int(tr["original"])),str(int(tr["automatic"])))) for tr in info.get("audio_tracks", [])[:64]),safe=""),
         "X-Nest-Handoff": "1",
         "X-Stream-Id": str(ticket), "X-Duration": str(info["duration"]), "X-Live": "1" if info["live"] else "0", "X-Title": quote(info["title"], safe=""),
         "Cache-Control": "no-store", "X-Accel-Buffering": "no",
@@ -1699,11 +1767,12 @@ def finish_audio(key, job, path, partial):
         partial.replace(path)
     else:
         partial.unlink(missing_ok=True)
-        url_cache.values.pop(key[0], None)
+        url_cache.values.pop(key[0].split("~",1)[0], None)
     audio_jobs.pop(key, None)
 
 
-def audio_reachable(video_id, base, target):
+def audio_reachable(video_id, base, target, selection="original"):
+    video_id=audio_cache_id(video_id,selection)
     if target < base:
         return False
     path = AUDIO_DIR / f"{video_id}_{base:.2f}.mp3"
@@ -1721,26 +1790,30 @@ def audio_reachable(video_id, base, target):
         return path.is_file()
 
 
-def cached_audio_base(video_id, target):
+def cached_audio_base(video_id, target, selection="original"):
     # Um trecho iniciado em 30 s também serve para abrir em 50 s, mesmo após trocar de vídeo ou reiniciar o servidor.
     choices = []
-    for path in AUDIO_DIR.glob(f"{video_id}_*.mp3"):
-        match = re.fullmatch(r"(\d+\.\d{2})(?:\.part)?\.mp3", path.name[len(video_id) + 1:])
+    cache_id=audio_cache_id(video_id,selection)
+    for path in AUDIO_DIR.glob(f"{cache_id}_*.mp3"):
+        match = re.fullmatch(r"(\d+\.\d{2})(?:\.part)?\.mp3", path.name[len(cache_id) + 1:])
         if match:
             base = float(match[1])
-            if audio_reachable(video_id, base, target):
+            if audio_reachable(video_id, base, target, selection):
                 choices.append(base)
     return min(choices, default=None)
 
 
-async def audio_file(video_id, t):
+async def audio_file(video_id, t, selection="original"):
     """Só um ffmpeg por trecho. O Nest lê o provisório; só uma conversão completa vira cache."""
     live = live_audio.get(video_id)
     if live and live[1].returncode is None:
+        if streams.info and streams.video_id == video_id and choose_audio(streams.info,selection).get("audio_selected") != streams.info.get("audio_selected"):
+            raise RuntimeError("trocar a faixa da live requer reabrir o vídeo")
         return live
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
-    key = (video_id, round(t, 2))
-    path = AUDIO_DIR / f"{video_id}_{key[1]:.2f}.mp3"
+    cache_id=audio_cache_id(video_id,selection)
+    key = (cache_id, round(t, 2))
+    path = AUDIO_DIR / f"{cache_id}_{key[1]:.2f}.mp3"
     partial = path.with_suffix(".part.mp3")
     async with audio_lock:
         job = audio_jobs.get(key)
@@ -1758,7 +1831,7 @@ async def audio_file(video_id, t):
             url_cache.values.pop(video_id, None)
         if path.exists():
             return path, None
-        info = await resolve_video(video_id)
+        info = choose_audio(await resolve_video(video_id),selection)
         if info["live"]:
             # um leitor à parte começaria noutro segmento e viraria cache de um trecho velho
             raise RuntimeError("live sem a imagem aberta no console")
@@ -1771,9 +1844,9 @@ async def audio_file(video_id, t):
             old.unlink(missing_ok=True)
         cmd = audio_command(info, t)[:-1]
         if nest.gated_revision and t > 0:
-            base = cached_audio_base(video_id, t)
+            base = cached_audio_base(video_id, t, selection)
             if base is not None and base < t:
-                cached = AUDIO_DIR / f"{video_id}_{base:.2f}.mp3"
+                cached = AUDIO_DIR / f"{cache_id}_{base:.2f}.mp3"
                 if cached.is_file():
                     cmd = [FFMPEG, "-hide_banner", "-loglevel", "error", "-ss", f"{t - base:.3f}",
                            "-i", str(cached), *mp3_output("0:a:0", "pipe:1")[:-1]]
@@ -1790,15 +1863,16 @@ async def audio_file(video_id, t):
 
 @app.head("/api/audio/{video_id}")
 @app.get("/api/audio/{video_id}")
-async def audio(request: Request, video_id: str, t: float = Query(0, ge=0, le=86400 * 30)):
+async def audio(request: Request, video_id: str, t: float = Query(0, ge=0, le=86400 * 30), track: str = "original"):
     valid_id(video_id)
+    audio_choice(track)
     if not math.isfinite(t):
         raise HTTPException(400, "Posição inválida.")
     token = request.query_params.get("s")
     if token and nest.token != "s=" + token:
         raise HTTPException(410, "Esta sessão de áudio terminou.")
     try:
-        path, job = await audio_file(video_id, t)
+        path, job = await audio_file(video_id, t) if track == "original" else await audio_file(video_id, t, track)
     except Exception:
         raise HTTPException(502, "Não foi possível abrir este áudio.") from None
     if token and nest.token != "s=" + token:
@@ -1937,6 +2011,7 @@ class Nest:
         self.intent = threading.Lock()  # protege a intenção sem esperar a rede do Cast
         self.revision, self.sid, self.closed_sid, self.requested_at = 0, None, 0, 0.0
         self.loaded_id = self.stopping_token = ""
+        self.audio_selection = self.loaded_audio = "original"
         self.target, self.confirmed_revision = 0.0, 0
         self.gated_revision = self.reader_ready = 0
         self.until_fast_status = 0.0
@@ -2008,12 +2083,13 @@ class Nest:
     def matches(self, st):
         return bool(self.token and parse_qs(urlparse(st.content_id or "").query).get("s") == [self.token[2:]])
 
-    def request_play(self, video_id, target, duration, live, host_ip, sid, gated=False):
+    def request_play(self, video_id, target, duration, live, host_ip, sid, gated=False, audio_selection="original"):
         with self.intent:
             self.revision += 1
             self.gated_revision = self.revision if gated else 0
             self.reader_ready = 0
             self.video_id, self.sid, self.host_ip, self.target = video_id, sid, host_ip, target
+            self.audio_selection=audio_selection
             self.want_stop, self.active = False, True
             self.state, self.pos, self.error, self.requested_at = "LOADING", 0.0, "", time.monotonic()
             rev = self.revision
@@ -2046,7 +2122,8 @@ class Nest:
                 cc = self.connect()
                 mc = cc.media_controller
                 old_base = self.t0
-                reachable = not live and self.loaded_id == video_id and audio_reachable(video_id, old_base, target)
+                selection=self.audio_selection
+                reachable = not live and self.loaded_id == video_id and self.loaded_audio == selection and (audio_reachable(video_id, old_base, target) if selection=="original" else audio_reachable(video_id,old_base,target,selection))
                 if rev != self.gated_revision and reachable and self.media_ready(cc) and self.matches(mc.status) and mc.status.media_session_id:
                     started = time.monotonic()
                     try:
@@ -2078,15 +2155,17 @@ class Nest:
                 elif reachable:
                     base = old_base
                 else:
-                    cached = cached_audio_base(video_id, target)
+                    cached = cached_audio_base(video_id, target) if selection=="original" else cached_audio_base(video_id,target,selection)
                     if cached is not None:
                         base = cached
                 with self.intent:
                     if rev != self.revision:
                         return
                     self.t0, self.loaded_id = base, video_id
+                    self.loaded_audio=selection
                     self.token = "s=" + uuid.uuid4().hex
                     url = f"http://{self.host_ip}:{PORT}/api/audio/{video_id}?t={base:.2f}&{self.token}"
+                    if selection != "original": url += "&track=" + quote(selection,safe="")
                 for attempt in range(2):
                     if rev != self.revision or not self.receiver(cc, rev, force=bool(attempt)):
                         break
@@ -2372,8 +2451,9 @@ async def nest_info():
 
 @app.get("/api/nest/play", response_class=PlainTextResponse)
 async def nest_play(video_id: str = Query(..., alias="id"), t: float = Query(0, ge=0, le=86400 * 30),
-                    sid: int | None = None, claim: int = 0):
+                    sid: int | None = None, claim: int = 0, audio: str = "original"):
     valid_id(video_id)
+    audio_choice(audio)
     host = (CONFIG.get("nest") or {}).get("host")
     if not host:
         return PlainTextResponse("erro\t" + tr("Nenhum Nest configurado.", "No Nest configured.") + "\n")
@@ -2392,7 +2472,11 @@ async def nest_play(video_id: str = Query(..., alias="id"), t: float = Query(0, 
             raise HTTPException(409, "A TV está com o áudio desta sessão.")
     elif claim:
         raise HTTPException(409, "Esta autorização de áudio expirou.")
-    nest.request_play(video_id, t, info["duration"], info["live"], lan_ip_towards(host), sid, gated=bool(claim))
+    if sid is not None and audio=="original": audio=info.get("audio_selection","original")
+    if audio=="original":
+        nest.request_play(video_id, t, info["duration"], info["live"], lan_ip_towards(host), sid, gated=bool(claim))
+    else:
+        nest.request_play(video_id, t, info["duration"], info["live"], lan_ip_towards(host), sid, gated=bool(claim),audio_selection=audio)
     return PlainTextResponse(f"ok\t{nest.revision}\n")
 
 

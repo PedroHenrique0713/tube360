@@ -59,7 +59,7 @@ class OriginalTests(unittest.IsolatedAsyncioTestCase):
         return self.m.original_sources(data, self.video, self.audio)
 
     def test_ineligible_sources(self):
-        for changes in [dict(fps=60), dict(fps=None), dict(vcodec="vp9"), dict(vcodec="av01"),
+        for changes in [dict(fps=120), dict(fps=None), dict(vcodec="vp9"), dict(vcodec="av01"),
                         dict(dynamic_range="HDR10"), dict(protocol="m3u8_native"), dict(has_drm=True)]:
             with self.subTest(changes=changes), patch.dict(self.video, changes):
                 self.assertIsNone(self.sources().get(720))
@@ -67,6 +67,10 @@ class OriginalTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(self.sources().get(480))
         with patch.dict(self.audio, acodec="opus"):
             self.assertIsNone(self.sources().get(720))
+
+    def test_720p60_is_eligible_for_native_h264(self):
+        with patch.dict(self.video,fps=60):
+            self.assertIs(self.sources().get(720),self.video)
 
     def test_480_rendition_ignores_hd_transcode_source(self):
         sd = dict(self.video, width=854, height=480)
