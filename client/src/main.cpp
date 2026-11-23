@@ -28,6 +28,7 @@
 #include "net.hpp"
 #include "player.hpp"
 #include "player_ui.hpp"
+#include "player_text.hpp"
 #include "captions.hpp"
 #include "settings.hpp"
 #include "account.hpp"
@@ -465,6 +466,8 @@ int main(int argc, char** argv) {
   Video playing; bool playerFromRemote = false;
   cc::Loader captionLoader; cc::Data captions;
   int captionIndex = -1; std::vector<std::string> captionLines; float captionWidth = 0;
+  float captionLineWidths[2]{};
+  PlayerText optionLabels[PlayerUI::COUNT], optionValues[PlayerUI::COUNT];
   std::string captionVideo, captionInterface;
   // F3: ligar esta chamada à página do canal e usar channelId (UC...) ou o vídeo como fallback.
   auto openPlayerChannel = [&](const std::string& channelId, const std::string& videoId) {
@@ -1320,7 +1323,8 @@ int main(int argc, char** argv) {
           if (focused) gfx::rect(g, ox - 3, oy - 3, optionW + 6, 68, ui::TEXT, 15);
           gfx::rect(g, ox, oy, optionW, 62, focused ? ui::SURFACE2 : ui::alpha(ui::SURFACE, 0.88f), 12);
           if (focused) gfx::hgrad(g, ox + 14, oy + 56, optionW - 28, 3, ui::A1, ui::A2, 1.5f);
-          gfx::text(g, ui::F_CARD, tr(labels[i]), ox + optionW / 2, oy + 10, disabled ? ui::FAINT : ui::TEXT, 1);
+          auto& label = optionLabels[i]; label.update(g, ui::F_CARD, tr(labels[i]), optionW - 20);
+          gfx::text(g, ui::F_CARD, label.text, ox + (optionW - label.width) / 2, oy + 10, disabled ? ui::FAINT : ui::TEXT);
           const char* value = "";
           if (i == PlayerUI::CC) value = tr(captionLoader.loading ? K::Loading : settings.captions && !disabled ? K::CaptionsOn : K::CaptionsOff);
           else if (i == PlayerUI::VIDEO) value = tr(i18n::quality(quality));
@@ -1328,7 +1332,8 @@ int main(int argc, char** argv) {
           else if (i == PlayerUI::TIMER) value = tr(sleep.active ? K::PlayerTimerOn : K::SleepOff);
           else if (i == PlayerUI::RATE) value = tr(likeState == "LIKE" ? K::Liked : likeState == "DISLIKE" ? K::Disliked : K::Open);
           else value = tr(K::Open);
-          gfx::text(g, ui::F_TINY, gfx::ellipsize(g, ui::F_TINY, value, optionW - 20), ox + optionW / 2, oy + 35, focused ? ui::A2 : ui::MUTED, 1);
+          auto& detail = optionValues[i]; detail.update(g, ui::F_TINY, value, optionW - 20);
+          gfx::text(g, ui::F_TINY, detail.text, ox + (optionW - detail.width) / 2, oy + 35, focused ? ui::A2 : ui::MUTED);
         }
         if (!panelOpen && playerUI.options && playerUI.selected == PlayerUI::CC && captions.cues.empty()) {
           K reason = captionLoader.loading ? K::CaptionsLoading : captions.failed ? K::CaptionsFailed : captions.reason == "live_clock" ? K::CaptionsLiveClock : pl.live ? K::CaptionsLiveNone : K::CaptionsNone;
@@ -1350,14 +1355,19 @@ int main(int argc, char** argv) {
           captionIndex = index; captionLines.clear(); captionWidth = 0;
           if (index >= 0) {
             captionLines = gfx::wrap(g, ui::F_H2, captions.cues[(size_t)index].text, 1060, 2);
-            for (const auto& line : captionLines) captionWidth = std::max(captionWidth, gfx::textWidth(g, ui::F_H2, line));
+            for (size_t i = 0; i < captionLines.size(); i++) {
+              captionLineWidths[i] = gfx::textWidth(g, ui::F_H2, captionLines[i]);
+              captionWidth = std::max(captionWidth, captionLineWidths[i]);
+            }
           }
         }
         if (!captionLines.empty()) {
           float height = (float)captionLines.size() * 31 + 16, bottom = show ? 482 : 674;
           gfx::rect(g, (ui::W - captionWidth) / 2 - 18, bottom - height, captionWidth + 36, height, {0, 0, 0, 0.78f}, 8);
           float cy = bottom - height + 8;
-          for (const auto& line : captionLines) { gfx::text(g, ui::F_H2, line, ui::W / 2, cy, ui::TEXT, 1); cy += 31; }
+          for (size_t i = 0; i < captionLines.size(); i++) {
+            gfx::text(g, ui::F_H2, captionLines[i], (ui::W - captionLineWidths[i]) / 2, cy, ui::TEXT); cy += 31;
+          }
         }
       }
       if (playerUI.panel != PlayerUI::NONE) {

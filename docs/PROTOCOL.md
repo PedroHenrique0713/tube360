@@ -305,8 +305,9 @@ YouTube may return HTTP 429 for the translation into its own language while the 
 
 The console's dedicated `cc::Loader` fetches and parses outside rendering, discards obsolete request revisions and
 caps its response at 2 MiB. Rendering performs a binary search using `Player::position()` **after `take()`**, so CC
-follows the displayed frame, pause, seeking and the Nest-controlled picture clock. Wrapping and text measurement
-are cached until the active cue changes. A translucent dark box shows at most two lines, above the options/bar
+follows the displayed frame, pause, seeking and the Nest-controlled picture clock. Wrapping and line widths
+are cached until the active cue changes. Option labels, values and their widths are cached until their text changes.
+A translucent dark box shows at most two lines, above the options/bar
 while visible and near the bottom otherwise. Modal panels suppress captions, loading, pause and error overlays.
 The preferences are `captions=on|off` (default off) and `caption_lang=<code>` (empty follows interface language).
 
