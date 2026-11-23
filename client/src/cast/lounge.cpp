@@ -7,8 +7,8 @@
 namespace cast {
 namespace {
 const string base = "https://www.youtube.com/api/lounge/";
-picojson::value parse(const string& s) {
-    if (s.size() > 256 * 1024) return {};
+picojson::value parse(const string& s, size_t limit = 256 * 1024) {
+    if (s.size() > limit) return {};
     int depth = 0, nodes = 0; bool quoted = false, escaped = false;
     for (char c : s) {
         if (quoted) {
@@ -306,7 +306,41 @@ void Lounge::ended(const string& id, uint64_t endedSerial) {
     if (index + 1 < int(queue.size())) select(index + 1);
     else { current.clear(); actual = {}; index = -1; report(); }
 }
-bool Lounge::needsNext() const { return autoplay && !current.empty() && index + 1 >= int(queue.size()) && queue.size() < 256; }
+bool Lounge::needsNext() const { return (autoplay || !list.empty()) && !current.empty() && index + 1 >= int(queue.size()) && queue.size() < 256; }
+string Lounge::nextInPlaylist() {
+    if (list.empty() || current.empty()) return {};
+    Object client = values({{"clientName","TVHTML5"},{"clientVersion","7.20230405.08.01"},{"hl","en"}});
+    Object context{{"client",picojson::value(client)}};
+    if (!ctt.empty()) {
+        Object transfer = values({{"scope","VIDEO"},{"token",ctt}});
+        Object user{{"credentialTransferTokens",picojson::value(picojson::array{picojson::value(transfer)})}};
+        context["user"] = picojson::value(user);
+    }
+    Object body = values({{"videoId",current},{"playlistId",list}});
+    body["context"] = picojson::value(context);
+    body["playlistIndex"] = picojson::value(double(listIndex));
+    body["enableMdxAutoplay"] = picojson::value(true); body["isMdxPlayback"] = picojson::value(true);
+    if (!params.empty()) body["params"] = picojson::value(params);
+    yt::Request request;
+    request.url = "https://www.youtube.com/youtubei/v1/next?prettyPrint=false";
+    request.body = picojson::value(body).serialize();
+    request.agent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/75.0.3770.142 Safari/537.36; SMART-TV; Tizen 4.0,gzip(gfe)";
+    request.headers = {"X-Youtube-Client-Name: 7","X-Youtube-Client-Version: 7.20230405.08.01"};
+    auto response = transport.send(request);
+    if (response.status != 200 || !response.error.empty()) return {};
+    auto result = parse(response.body,3 * 1024 * 1024);
+    auto field = [](const picojson::value& value, const string& key) -> const picojson::value& {
+        static const picojson::value empty;
+        return value.is<Object>() ? value.get(key) : empty;
+    };
+    const auto* sets = &result;
+    for (const auto* key : {"contents","singleColumnWatchNextResults","autoplay","autoplay","sets"}) sets = &field(*sets,key);
+    if (!sets->is<picojson::array>() || sets->get<picojson::array>().empty()) return {};
+    const auto& renderer = field(sets->get<picojson::array>().front(),"nextVideoRenderer");
+    const auto& next = field(field(renderer,"autoplayEndpointRenderer"),"endpoint");
+    string id = text(field(next,"watchEndpoint"),"videoId");
+    return videoId(id) && id != current ? id : string{};
+}
 void Lounge::offerNext(const string& id) {
     if (videoId(id) && std::find(queue.begin(),queue.end(),id) == queue.end()) { queue.push_back(id); report(); }
 }

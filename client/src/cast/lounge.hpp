@@ -62,6 +62,8 @@ public:
     string screenId() const { return screen; }
     bool expired(uint64_t now) const { return now >= tokenUntil; }
     bool needsNext() const;
+    string nextInPlaylist();
+    bool allowsAutoplay() const { return autoplay; }
     void offerNext(const string& id);
     string currentId() const { return current; }
     bool pop(Command&);

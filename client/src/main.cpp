@@ -485,7 +485,7 @@ int main(int argc, char** argv) {
   for (auto& th : tw) th = yt::worker(Worker::main, "miniaturas", &thumbsWorker);
   Remote remote; remote.srv = srv;
   SDL_Thread* rt = SDL_CreateThread(Remote::main, "controle", &remote);
-  cast::Receiver phone(assets); phone.enable(!settings.server);
+  cast::Receiver phone(assets); phone.enable(true);
   cast::Status phoneStatus; uint64_t phoneStateAt = 0, phonePlaybackSerial = 0;
   float phoneGain = 1;
   Thumbs thumbs;
@@ -548,7 +548,7 @@ int main(int argc, char** argv) {
   };
   std::string nestName = tr(K::Nest); bool nestAvailable = false, nestChecked = false;
   bool nestSkip = false;  // o Nest falhou neste vídeo: segue com o som da TV até trocar de vídeo ou apertar X
-  std::string castCode, castWho; uint64_t castCodeAt = 0;  // castWho: quem está conectado pelo Transmitir  // código de "Assistir na TV" do receptor (cast/receptor.mjs)
+  std::string castCode, castWho;
   if (nestOut) control.add({5, "/api/nest/prepare", 0});
   auto requestAccount = [&](const char* path) { control.add({5, path, 0}); accountBusy = true; };
   auto beginLogin = [&]() {
@@ -599,7 +599,7 @@ int main(int argc, char** argv) {
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
     pl.nestOffset = nestOffsetMs / 1000.0;
-    pl.start(srv, v.id, t, v.title, v.dur, quality, net::serverEnabled && nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled);
+    pl.start(srv, v.id, t, v.title, v.dur, quality, net::serverEnabled && nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
@@ -743,11 +743,7 @@ int main(int argc, char** argv) {
     double gain = sleepWarning ? std::clamp(sleepLeft / 60, 0.0, 1.0) : 1.0;
     pl.sleepGain((float)gain * phoneGain);
     while (control.pop(r)) {
-      if (r.key == "/api/cast/code") {
-        auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
-        castCode = f.size() > 1 && f[0] == "ok" ? f[1] : "";
-        castWho = f.size() > 2 && f[0] == "ok" ? f[2] : "";
-      } else if (r.key == "/api/nest/info") {
+      if (r.key == "/api/nest/info") {
         auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
         nestChecked = true; nestAvailable = f.size() > 1 && f[0] == "ok" && !f[1].empty();
         if (nestAvailable) nestName = f[1];
@@ -849,9 +845,9 @@ int main(int argc, char** argv) {
     std::deque<std::vector<std::string>> cmds; cmds.swap(remote.cmds);
     bool remoteOnline = remote.online;
     SDL_UnlockMutex(remote.mu);
-    if (!net::serverEnabled) {
+    {
       phone.drain(cmds, phoneStatus);
-      remoteOnline = phoneStatus.online;
+      remoteOnline = remoteOnline || phoneStatus.online;
       if (castWho != phoneStatus.who) {
         toast = phoneStatus.who.empty() ? tr(K::PhoneDisconnected) : tr(K::PhoneConnected) + phoneStatus.who;
         toastUntil = now + 5000;
@@ -910,7 +906,7 @@ int main(int argc, char** argv) {
     }
     // ---------------------------------------------------------------- lógica por tela
     // código de pareamento e quem está conectado pelo Transmitir (o código troca a cada 5 min)
-    if (net::serverEnabled && now >= castCodeAt) { control.add({5, "/api/cast/code", 0}); castCodeAt = now + (phonePanel ? 15000 : 30000); }
+
     if (net::serverEnabled && now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
     if (net::serverEnabled && !accountBusy && now >= accountAt) requestAccount("/api/account");
     const char* keys[] = {tr(K::Keyboard1), tr(K::Keyboard2), tr(K::Keyboard3), tr(K::Keyboard4)};
@@ -1110,12 +1106,11 @@ int main(int argc, char** argv) {
         }
         else if (settingsRow == 8) {
           settings.server = !settings.server; net::serverEnabled = settings.server;
-          phone.enable(!settings.server); phoneGain = 1; castCode.clear(); castWho.clear();
           if (!settings.server) {
-            account = {}; accountKnown = false; nestAvailable = false; castWho.clear(); sleep = {};
+            account = {}; accountKnown = false; nestAvailable = false; sleep = {};
             SDL_LockMutex(remote.mu); remote.online = false; remote.cmds.clear(); remote.ended.clear(); SDL_UnlockMutex(remote.mu);
           }
-          accountAt = nestInfoAt = castCodeAt = 0; rebuildCats();
+          accountAt = nestInfoAt = 0; rebuildCats();
         }
         if (changed) saveSettings();
       }
@@ -1130,7 +1125,7 @@ int main(int argc, char** argv) {
         else if (railSel == 2) openNav("subscriptions");
         else if (railSel == 3) openNav("library");
         else if (railSel == 4) openNav("music", "", "", true);
-        else if (railSel == 5) { phonePanel = true; castCodeAt = 0; }
+        else if (railSel == 5) { phonePanel = true; }
         else if (railSel == 6) { screen = SETTINGS; railFocus = false; nestInfoAt = 0; accountAt = 0; }
         else quit = true;
       }
@@ -1324,7 +1319,7 @@ int main(int argc, char** argv) {
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && (playerFromRemote || !nextPending || now >= nextDeadline)) {
       if (!endedSent) {
         SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
-        if (!net::serverEnabled && playerFromRemote) phone.publish({playing.id, pl.position(), pl.duration, 4, phonePlaybackSerial}, playing.id);
+        if (phonePlaybackSerial && playerFromRemote) phone.publish({playing.id, pl.position(), pl.duration, 4, phonePlaybackSerial}, playing.id);
         endedSent = true; ratePanel = sleepPanel = false; playerUI.panel = PlayerUI::NONE;
         // Pedido pelo celular: o app do celular escolhe o próximo. Timer "no fim do vídeo": desliga, não emenda.
         if (!playerFromRemote && !upNext.id.empty() && !(sleep.active && sleep.end)) nextAt = now + 8000;
@@ -1343,7 +1338,7 @@ int main(int argc, char** argv) {
     SDL_LockMutex(remote.mu);
     remote.playing = screen == PLAYER ? playing.id : ""; remote.pos = pl.position(); remote.dur = pl.duration; remote.paused = pl.paused;
     SDL_UnlockMutex(remote.mu);
-    if (!net::serverEnabled && now >= phoneStateAt) {
+    if (now >= phoneStateAt) {
       int state = screen != PLAYER ? -1 : (pl.state == player::ENDED || pl.state == player::FAILED) ? 4 : pl.paused ? 2 : pl.state == player::PLAYING ? 1 : 3;
       phone.publish({screen == PLAYER ? playing.id : "", pl.position(), pl.duration, state, phonePlaybackSerial});
       phoneStateAt = now + 250;
@@ -1820,7 +1815,7 @@ int main(int argc, char** argv) {
       icon(g, 2, px + 56, py + 60, ui::TEXT, ui::SURFACE);
       gfx::text(g, ui::F_BIG, tr(K::CastTitle), px + 92, py + 40, ui::TEXT);
       float ty = py + 104;
-      for (auto& line : gfx::wrap(g, ui::F_BODY, tr(K::CastChoose) + (net::serverEnabled ? brandName : std::string("YouTube 360")) + ".", pw - 96, 2)) {
+      for (auto& line : gfx::wrap(g, ui::F_BODY, std::string(tr(K::CastChoose)) + "YouTube 360.", pw - 96, 2)) {
         gfx::text(g, ui::F_BODY, line, px + 48, ty, ui::TEXT); ty += 25;
       }
       for (auto& line : gfx::wrap(g, ui::F_SMALL, tr(K::CastPath), pw - 96, 2)) {
@@ -1830,7 +1825,7 @@ int main(int argc, char** argv) {
       else gfx::text(g, ui::F_BODY, tr(K::CastLoading), px + 48, py + 208, ui::FAINT);
       gfx::text(g, ui::F_SMALL, tr(K::CastRemember), px + 48, py + 264, ui::MUTED);
       gfx::rect(g, px + 48, py + 300, pw - 96, 1, ui::alpha(rgb(0xffffff), 0.08f));
-      gfx::text(g, ui::F_SMALL, !castWho.empty() ? tr(K::PhoneConnected) + castWho : std::string(tr(remoteOnline ? K::NoPhone : net::serverEnabled ? K::ServerOffline : K::CastOffline)),
+      gfx::text(g, ui::F_SMALL, !castWho.empty() ? tr(K::PhoneConnected) + castWho : std::string(tr(phoneStatus.online ? K::NoPhone : K::CastOffline)),
                 px + 48, py + 320, !castWho.empty() ? rgb(0x34c759) : ui::FAINT);
       float hx = hint(g, px + 48, py + 366, "A", XA, tr(K::Close));
       hint(g, hx, py + 366, "B", XB, tr(K::Back));

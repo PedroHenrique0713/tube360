@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <cctype>
+#include <cerrno>
 #include <cstdio>
 #include <cstring>
 #ifdef __XSDK__
@@ -20,6 +21,14 @@ namespace cast {
 namespace {
 const string service = "urn:dial-multiscreen-org:service:dial:1";
 const string deviceType = "urn:dial-multiscreen-org:device:dial:1";
+// O XSDK repassa as opções ao XAM, mas omite as declarações de multicast do Winsock.
+struct Membership { in_addr group, interfaceAddress; };
+static_assert(sizeof(Membership) == 8);
+#ifdef __XSDK__
+constexpr int addMembership = 12;
+#else
+constexpr int addMembership = IP_ADD_MEMBERSHIP;
+#endif
 void affinity() {
 #ifdef __XSDK__
     xsdk_thread_move(5);
@@ -139,7 +148,8 @@ string localAddress(const sockaddr_in& remote) {
     bool ok = ::connect(fd,reinterpret_cast<const sockaddr*>(&remote),sizeof(remote)) == 0 &&
         ::getsockname(fd,reinterpret_cast<sockaddr*>(&local),&size) == 0;
     ::close(fd);
-    return ok ? string(::inet_ntoa(local.sin_addr)) : "";
+    char ip[INET_ADDRSTRLEN]{};
+    return ok && ::inet_ntop(AF_INET,&local.sin_addr,ip,sizeof(ip)) ? string(ip) : string{};
 }
 }
 struct Receiver::Impl {
@@ -172,7 +182,7 @@ struct Receiver::Impl {
     }
     ~Impl() { stop(); SDL_DestroyMutex(mutex); }
     void stop() {
-        quit = true; cancel = true; rpcCancel = true;
+        { Lock lock(mutex); quit = true; cancel = true; rpcCancel = true; }
         if (lanThread) SDL_WaitThread(lanThread,nullptr);
         if (rpcThread) SDL_WaitThread(rpcThread,nullptr);
         if (controlThread) SDL_WaitThread(controlThread,nullptr);
@@ -213,7 +223,7 @@ struct Receiver::Impl {
                 { Lock lock(mutex); commands.clear(); endedId.clear(); }
                 retryAt = 0; SDL_Delay(50); continue;
             }
-            cancel = false;
+            { Lock lock(mutex); if (quit || !enabled) continue; cancel = false; }
             uint64_t now = SDL_GetTicks();
             std::deque<string> incoming;
             Playback p; string ended, pairCode, theme;
@@ -250,8 +260,12 @@ struct Receiver::Impl {
                 if (now >= notifyAt && !lounge.who.empty()) { lounge.notify(); notifyAt = now + 15000; }
                 if (lounge.needsNext() && offeredFor != lounge.currentId() && now >= nextAt) {
                     offeredFor = lounge.currentId(); nextAt = now + 10000;
-                    auto page = youtube.next(offeredFor);
-                    if (!page.cards.empty()) lounge.offerNext(page.cards.front().id);
+                    string next = lounge.nextInPlaylist();
+                    if (next.empty() && lounge.allowsAutoplay()) {
+                        auto page = youtube.next(offeredFor);
+                        if (!page.cards.empty()) next = page.cards.front().id;
+                    }
+                    lounge.offerNext(next);
                 }
                 if (!lounge.flush()) { online = false; retryAt = now + 1000; }
                 else {
@@ -375,9 +389,9 @@ struct Receiver::Impl {
             sockaddr_in group{}; group.sin_family = AF_INET; group.sin_port = htons(uint16_t(ssdpPort));
             ::inet_pton(AF_INET,"239.255.255.250",&group.sin_addr);
             if (ok && !loopback) {
-                ip_mreq membership{}; membership.imr_multiaddr = group.sin_addr;
-                membership.imr_interface.s_addr = htonl(INADDR_ANY);
-                ok = ::setsockopt(udp,IPPROTO_IP,IP_ADD_MEMBERSHIP,&membership,sizeof(membership)) == 0;
+                Membership membership{group.sin_addr,{htonl(INADDR_ANY)}};
+                if (::setsockopt(udp,IPPROTO_IP,addMembership,&membership,sizeof(membership)) != 0)
+                    SDL_Log("cast: multicast indisponivel, DIAL e codigo de TV ativos (errno %d)",errno);
             }
             if (!ok) {
                 if (tcp >= 0) ::close(tcp);
@@ -429,7 +443,11 @@ struct Receiver::Impl {
 };
 Receiver::Receiver(const string& assets) : impl(std::make_unique<Impl>(assets)) {}
 Receiver::~Receiver() = default;
-void Receiver::enable(bool on) { impl->enabled = on; if (!on) { impl->cancel = true; impl->rpcCancel = true; } }
+void Receiver::enable(bool on) {
+    Lock lock(impl->mutex);
+    impl->enabled = on;
+    if (!on) { impl->cancel = true; impl->rpcCancel = true; }
+}
 void Receiver::publish(const Playback& p, const string& ended) {
     Lock lock(impl->mutex); impl->playback = p;
     if (!ended.empty()) { impl->endedId = ended; impl->endedSerial = p.serial; }
