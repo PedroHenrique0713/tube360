@@ -77,7 +77,7 @@ config.pop('cookies_from_browser', None)
 config['home_queries'] = config['warm_queries'] = []
 (proof / 'config.json').write_text(json.dumps(config))
 base = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
-base.update(HOME=str(home), PYTHONUSERBASE='/home/pedrohenriquequadro/.local',
+base.update(HOME=str(home), PYTHONUSERBASE=str(Path.home()/'.local'),
             TUBE360_CONFIG=str(proof / 'config.json'), TUBE360_ACCOUNT_URL='http://127.0.0.1:8250',
             TUBE360_PORT='8150', TUBE360_WARM_CACHE='0', TUBE360_SLEEP_TEST='1')
 # Recusa uma porta de outra frente antes de iniciar qualquer processo.

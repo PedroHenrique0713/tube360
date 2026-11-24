@@ -77,7 +77,7 @@ tools/build-standalone.sh pc
 .work/standalone-pc/yt-update-test --github  # uma leitura pública: valida a cadeia TLS real do GitHub
 cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
 cmake --build client/build -j3
-flock /home/pedrohenriquequadro/.cache/tube360-frota-xbox.lock systemd-run --user --scope -q -p MemoryMax=6G -p MemorySwapMax=1G tools/build-xbox.sh
+flock ~/.cache/tube360-xbox.lock systemd-run --user --scope -q -p MemoryMax=6G -p MemorySwapMax=1G tools/build-xbox.sh
 ```
 
 Para QA em PC: `tests/update/ui-fixture.py <diretório> --key <chave do mantenedor>` prepara respostas assinadas locais (payload falso, nunca enviar ao console). Use `XT_YT_REPLAY=<diretório>`, `XT_ASSETS=<diretório>` e `server=off`; a rede do YouTube não é usada. A chave de assinatura não é copiada para o fixture.

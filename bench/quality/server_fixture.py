@@ -11,7 +11,7 @@ import threading
 
 root=Path(__file__).resolve().parents[2]
 media=Path(sys.argv[1]).resolve()
-if not os.environ.get("TUBE360_CONFIG") or Path.home()==Path("/home/pedrohenriquequadro"):
+if not os.environ.get("TUBE360_CONFIG") or Path.home()==Path(os.environ.get("TUBE360_OWNER_HOME","/nonexistent")):
     raise RuntimeError("Use HOME e TUBE360_CONFIG isolados no worktree")
 port=int(os.environ.get("TUBE360_ACCOUNT_PORT","8235"))
 

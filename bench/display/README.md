@@ -31,7 +31,7 @@ python3 bench/catalog/prepare-replay.py .work/f22/replay
 python3 bench/quality/prepare.py .work/f22/media --mode both --seconds 10
 python3 bench/catalog/build-replay.py .work/f22
 python3 bench/display/e2e.py .work/f22
-PYTHONUSERBASE=/home/pedrohenriquequadro/.local /home/pedrohenriquequadro/.pyenv/versions/3.12.7/bin/python3 bench/display/server_e2e.py .work/f22
+PYTHONUSERBASE=$HOME/.local python3 bench/display/server_e2e.py .work/f22
 ```
 
 As capturas ficam em `.work/f22/<caso>/screen.png`. O replay substitui somente o transporte;
