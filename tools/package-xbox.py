@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Prepare a local Xbox app ZIP from an explicit file list; never publish it."""
+"""Prepare matching local Xbox ZIP/7z archives from an explicit file list; never publish them."""
 import argparse
 import hashlib
 import json
 import os
 from pathlib import Path
 import re
+import shutil
 import struct
 import subprocess
 import sys
@@ -129,13 +130,13 @@ def main():
         "Nest: host + port on line 1, display name on line 2. Use your speaker's real LAN IP.\n"
         "TV-code account login is in Settings; phone Cast has a separate code in Phone.\n"
         "Press B back to browsing before closing the app, so the speaker receives STOP.\n\n"
-        "This build's sleep timer still requires the optional server; native timer integration is pending.\n\n"
+        "Sleep timer: 15 min to 2 h or end of video; the console powers itself off, without a PC.\n\n"
         "PT: Copie esta pasta inteira para armazenamento gravavel do Xbox. Abra default.xex no Aurora/FSD/XeXMenu.\n"
         "Sem server.txt = so console. Exemplos sao inativos; renomeie e edite apenas se precisar.\n"
         "Nest: host + porta na linha 1, nome na linha 2. Use o IP local real da caixa.\n"
         "Login por codigo em Configuracoes; Cast do celular tem outro codigo no painel Celular.\n"
         "Saia com B ate a navegacao antes de fechar o app para o STOP chegar a caixa.\n\n"
-        "O timer desta base ainda exige servidor; o prazo nativo esta pendente de integracao.\n\n"
+        "Timer: 15 min a 2 h ou fim do video; o proprio console desliga, sem PC.\n\n"
         "Setup / instalacao: https://github.com/PedroHenrique0713/tube360\n"
         "Keep the license notices. Matching source/relink materials accompany the public release.\n"
     ).encode()
@@ -154,7 +155,7 @@ def main():
             raise ValueError(f"Private home path or 192.168 address found in package member: {name}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    output = args.output_dir / f"tube360-{args.version}-xbox360.zip"
+    output = args.output_dir / f"tube360-v{args.version}-xbox360.zip"
     fd, temporary = tempfile.mkstemp(prefix=output.name + ".", dir=args.output_dir)
     try:
         with os.fdopen(fd, "wb") as stream:
@@ -168,9 +169,32 @@ def main():
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
-    checksum = digest(output.read_bytes())
-    output.with_suffix(output.suffix + ".sha256").write_text(f"{checksum}  {output.name}\n")
-    print(f"{output}\n{checksum}  {output.name}\n{len(files)} files; {replacements} home prefixes removed in linked ELF")
+    outputs = [output]
+    sevenzip = shutil.which("7zz") or shutil.which("7z")
+    if not sevenzip:
+        raise ValueError("7z or 7zz is required to create the matching .7z archive")
+    seven = output.with_suffix(".7z")
+    with tempfile.TemporaryDirectory(prefix="tube360-archive-", dir=args.output_dir.resolve()) as directory:
+        stage = Path(directory)
+        for name, data in sorted(files.items()):
+            target = stage / "Tube360" / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
+            target.chmod(0o644)
+            os.utime(target, (1767225600, 1767225600))
+        for folder in sorted(stage.rglob("*"), reverse=True):
+            if folder.is_dir():
+                os.utime(folder, (1767225600, 1767225600))
+        temporary = stage / "release.7z"
+        subprocess.run([sevenzip, "a", "-t7z", "-mx=7", "-mmt=2", "-mtc=off", "-mta=off",
+                        str(temporary), "Tube360"], cwd=stage, check=True, stdout=subprocess.PIPE)
+        os.replace(temporary, seven)
+    outputs.append(seven)
+    for artifact in outputs:
+        checksum = digest(artifact.read_bytes())
+        artifact.with_suffix(artifact.suffix + ".sha256").write_text(f"{checksum}  {artifact.name}\n")
+        print(f"{artifact}\n{checksum}  {artifact.name}")
+    print(f"{len(files)} files per archive; {replacements} home prefixes removed in linked ELF")
     return 0
 
 

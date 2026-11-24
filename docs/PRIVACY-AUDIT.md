@@ -12,7 +12,7 @@ personal names or every possible credential format can be recognized automatical
 | Speaker LAN IP and personal display label | `docs/PROTOCOL.md`, Direct Cast example; older versions remain in history | Replaced with documentation address `192.0.2.20` and a generic Cast label. History retained for the coordinator. |
 | Absolute developer HOME in a command | `bench/quality/README.md:27` and its earlier blob | Replaced with `python3`; no developer username needed. |
 | Absolute developer HOME in an isolation guard | `bench/quality/server_fixture.py:14` | Remaining code finding, outside this documentation/packaging scope. The integration owner should make the guard independent of one user's HOME. Not included in app ZIP. |
-| Private-range example addresses | Previous README versions; `site/src/template.html:140` | README examples now use documentation addresses. The site has a generic example, not the measured speaker address, but still describes the old PC-first setup. Website changes belong to its owner. |
+| Private-range example addresses | Previous README versions; `site/src/template.html:140` | README examples now use documentation addresses. The earlier site used a generic PC address, not the measured speaker address. The release-final website now uses console-only installation without an IP command. |
 | Four public contact emails, creator names and public channel/playlist IDs | Captured public descriptions in `bench/catalog/fixtures/music-explore.json` (notably lines 1588, 2669, 2849) | Public content, not the user's account grant. No new copy in release docs; excluded from app ZIP. Fixture owner should minimize descriptions before distributing source if unnecessary for parsing tests. |
 | Account/access/refresh/client-secret literals | Eight fixture/test files under `bench/` and `tests/cast` | Reviewed values are explicit `fake-*`, `fixture-*`, `console-fixture-token` or `expired-fixture`; no live token identified. |
 | Visitor/account-like identifiers | Recorded OAuth request fixture and synthetic transport tests | Reviewed visitor strings are synthetic, including an encoded fixture visitor. Public video/channel IDs are content identifiers, not evidence of the owner's private account. No private account ID identified. |
@@ -33,3 +33,26 @@ enter the Xbox app ZIP. Neither Git history nor runtime files enter it. Public c
 information is preserved. A source/relink distribution must receive its own final review after integration:
 the remaining fixture/guard findings above mean this branch is not a sanitized export of all source/history.
 See [release preparation](RELEASE.md).
+
+## Release-final review — 2026-11-24
+
+The app ZIP and matching 7z are built from an explicit list of 26 files. Both contain the same sanitized XEX,
+four fonts, inactive commented examples, instructions, license notices and manifest. Runtime account/Cast/Nest
+files are excluded. The current Xbox build needed 2,479 equal-length HOME-prefix replacements in a copy of
+the linked ELF; the converter first reproduced the unmodified XEX exactly. Original executable code sections
+are checked for byte equality before conversion. The raw build is retained privately.
+
+The new [screenshots](SCREENSHOTS.md) use public Palmeiras material and fictional account/pairing data.
+The member badge/refusal responses are synthetic and disclosed; no real account, console or speaker was used.
+JPEG and PNG metadata were inspected with ExifTool, including the website's Open Graph images; no EXIF, XMP,
+IPTC, GPS, author/owner or comment fields were found in the final image set. Visible identities were reviewed
+by opening the captures, rather than inferring privacy from a metadata scan.
+
+The final archive contents, all website output files (including images), and image bytes are scanned for
+developer HOME/Windows/macOS user paths, the local username, private LAN addresses and common Google access
+token/JWT/refresh-token patterns. Public author attribution in LICENSE and dependency notices is retained.
+Checksums and detailed commands/results are in the coordinator's ignored release-final report. This remains
+a bounded pattern/visual audit; it does not claim that every possible secret format can be detected.
+
+The original matching-source/relink obligations still apply before public distribution. This front prepares
+the installable app archives; the table above retains source-tree findings for the integration owner.

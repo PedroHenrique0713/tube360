@@ -1,8 +1,11 @@
+# YouTube no Xbox 360, sem PC.
+
 <p align="center">
   <img src="docs/img/hero.jpg" alt="Tube360 rodando no Xbox 360: grade de vídeos no estilo do YouTube" width="100%">
 </p>
 
 <p align="center">
+  <a href="https://github.com/PedroHenrique0713/tube360/releases"><img src="https://img.shields.io/github/v/release/PedroHenrique0713/tube360?style=for-the-badge&amp;labelColor=111&amp;color=ff0f3c" alt="Release"></a>
   <a href="https://github.com/PedroHenrique0713/tube360/stargazers"><img src="https://img.shields.io/github/stars/PedroHenrique0713/tube360?style=for-the-badge&logo=github&color=ff0f3c&labelColor=111" alt="Estrelas"></a>
   <img src="https://img.shields.io/badge/Xbox%20360-BadUpdate%20%C2%B7%20RGH%20%C2%B7%20JTAG-107C10?style=for-the-badge&logo=xbox&logoColor=white&labelColor=111" alt="Xbox 360">
   <img src="https://img.shields.io/badge/Console-first-H.264-ff5a52?style=for-the-badge&labelColor=111" alt="Console-first H.264">
@@ -26,6 +29,9 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 
 | | |
 |---|---|
+| 🎮 **100% no Xbox, sem Xbox Live** | Instale, navegue e assista no próprio console. Sem PC ligado e sem assinatura ou login no Xbox Live. |
+| 🏷️ **Selo de membros** | Identifica vídeos exclusivos do canal na navegação. Usa a sua conta para tentar reproduzir quando ela tem acesso; o selo não libera conteúdo pago. |
+| 📡 **Rede fraca** | Retoma conexões interrompidas e troca para uma qualidade mais leve quando necessário. |
 | 📺 **App nativo** | C++20, Vulkan pelo [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 e navegação pelo controle. Title ID próprio no Aurora: `0x58545542`. |
 | ⚡ **YouTube direto no Xbox** | HTTPS com o YouTube, vídeo H.264 original e áudio AAC decodificados localmente com FFmpeg. Sem conversão no PC no uso normal. |
 | 👤 **Sua conta na TV** | Login por código, recomendações, inscrições, histórico e retomada, Assistir mais tarde, playlists, gostei e não gostei. O token fica no console. |
@@ -52,9 +58,21 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | **Gostei ou não gostei do vídeo** | **Próximo vídeo automático** |
 | ![Avaliar este vídeo](docs/img/rate.jpg) | ![Contagem para o próximo vídeo](docs/img/up-next.jpg) |
 
-<sub>Estas imagens ilustram a interface anterior; a v0.3.0 acrescenta os caminhos nativos e o player revisado descritos aqui. As telas são do build de PC do cliente, que roda o mesmo código e o mesmo renderizador do build do console, aqui com a interface em inglês. A home de demonstração foi escolha do autor: Palmeiras 4×1 Corinthians e Flamengo 0×3 Palmeiras. 🟢⚪ A conta é de demonstração, e os códigos de login e do Transmitir são de exemplo.</sub>
+| **TV Palmeiras** | **Selo de membros** |
+|---|---|
+| ![Canal da TV Palmeiras](docs/img/channel.jpg) | ![Selo de vídeo para membros](docs/img/members-badge.jpg) |
+| **Som no Google Nest** | **Vídeo exclusivo** |
+| ![Saída de som](docs/img/nest.jpg) | ![Aviso de vídeo exclusivo](docs/img/members-only.jpg) |
+
+<sub>Capturas do app de PC atual em modo console (`server=off`), com o mesmo código e renderizador do Xbox. Conteúdo público do Palmeiras; onde necessário, conta fictícia Demo e códigos ilustrativos. O selo e a recusa de membros usam respostas sintéticas e são identificados como Demo; o print do Nest mostra configuração, sem conectar a uma caixa real. Nenhuma conta pessoal foi usada. As capturas não medem o desempenho do Xbox.</sub>
 
 ---
+
+## Por que Tube360
+
+O Xbox 360 ainda pode ser a TV da sala. O Tube360 reúne a sua conta, o controle, transmissões ao vivo perto do ao vivo, áudio original e uma caixa Cast no mesmo app. Você abre um título próprio no Aurora e assiste sem manter outro computador ligado ou entrar no Xbox Live.
+
+Os perfis 720p60 e 1080p ampliam as opções; a cadência e a resolução efetivas dependem do vídeo, da rede e da carga do console. O app pode reduzir a qualidade para continuar tocando. A integração com o YouTube é não oficial e pode mudar.
 
 ## Como funciona
 
@@ -79,23 +97,31 @@ MPEG-1 + MP2 fica como compatibilidade fornecida pelo servidor opcional, até 72
 - Para Nest: caixa Google Cast já configurada, com internet e alcançável pelo Xbox na mesma rede local. Para descoberta pelo celular: mesma rede e multicast liberado.
 - Para saída 1080p nativa: HDMI e **1080p progressivo selecionado no painel do Xbox**. Escolher 1080p no Tube360 não muda o sinal HDMI; modos incompatíveis mantêm framebuffer 720p.
 
-## Instalação rápida
+## Instalação em 3 passos
 
 ### 1. Copie a pasta do app
 
-1. Baixe o ZIP do app para Xbox em [Releases](https://github.com/PedroHenrique0713/tube360/releases), ou [compile e empacote](#compilando-do-fonte).
-2. Extraia e copie a pasta `Tube360` inteira para armazenamento gravável do Xbox, por exemplo `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`.
-3. Mantenha `default.xex` e as quatro fontes `inter-*.ttf` juntos. Preserve também os avisos de licença.
-4. **Deixe `server.txt` ausente.** Assim o app funciona só no console e não faz pedidos ao PC. Arquivos `.example.txt` só passam a valer se forem renomeados.
-5. Adicione a pasta aos caminhos de varredura do Aurora/FSD e atualize a lista, ou abra `default.xex` no gerenciador deles ou no XeXMenu. Com internet já é possível navegar.
+Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex`, as quatro fontes `inter-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
 
-### 2. Entre na conta por código de TV (opcional)
+### 2. Abra pelo Aurora, FSD ou XeXMenu
+
+Adicione a pasta aos caminhos do Aurora e faça uma varredura, ou abra `default.xex` no gerenciador de arquivos. O Tube360 tem título próprio: `0x58545542`.
+
+### 3. Escolha um vídeo e assista
+
+Conecte o Xbox à internet, confira data e hora e navegue pelo controle. Não é preciso Xbox Live. Busca e vídeos públicos funcionam sem login; a conta abaixo é opcional.
+
+### Conta do YouTube (opcional)
 
 Abra **Configurações → Conta do YouTube → A**. No navegador do celular ou computador, abra a URL exibida na TV (normalmente [google.com/device](https://www.google.com/device)), digite o código e autorize sua conta. Volte ao Tube360 para usar a conta conectada. A senha não é digitada no Xbox; celular não é requisito para assistir.
 
 A autorização fica em `yt-console-account.json`, ao lado do XEX. Use Sair da conta antes de compartilhar a pasta; nunca inclua esse arquivo, identidades Cast, logs ou registros de posse em uma release. O token de TV não garante acesso a todo vídeo ou endpoint de Música.
 
-### 3. Configure o Nest / caixa Google Cast (opcional)
+> Uso todo dia na minha conta Premium, sem aviso até agora; é um cliente não oficial, pode mudar; use conta secundária se preferir.
+
+O token fica só no console, ao lado do XEX. Não vai para o site nem para um serviço do Tube360. Nunca compartilhe a pasta com a sessão salva.
+
+### Google Nest / caixa Cast (opcional)
 
 Ache o IP em **Google Home → dispositivo → Configurações → Informações do dispositivo** (detalhes de rede/IP), ou na lista de dispositivos conectados/DHCP do roteador. Os nomes dos menus variam com a versão do Home. Reserve o IP no DHCP para ele não mudar.
 
@@ -110,7 +136,7 @@ Google Cast speaker
 
 A caixa baixa o áudio do próprio YouTube. Ela precisa de internet e de Wi-Fi funcionando entre ela e o console. Quedas breves são toleradas, mas a TV só assume depois da confirmação de silêncio da caixa; uma queda pode deixar um intervalo sem som. **Saia do vídeo com B antes de fechar o app**, dando tempo para o STOP chegar à caixa. Saída forçada ou Wi-Fi perdido podem deixar o áudio tocando.
 
-### 4. Transmita pelo celular (opcional)
+### Transmitir pelo celular (opcional)
 
 Abra **Celular** no Tube360. No app oficial do YouTube, use **Configurações → Assistir na TV → Inserir código da TV** e digite o código desse painel. Esse código é diferente do login da conta. Em redes que permitem descoberta, o Tube360 também aparece em Transmitir como `YouTube 360`. Não precisa de receptor Node no modo console.
 
@@ -204,7 +230,7 @@ tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.0
 ```
 
-O build gera `client/build-x360/tube360.xex`. O empacotador copia como `Tube360/default.xex` para `.work/releases/tube360-0.3.0-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
+O build gera `client/build-x360/tube360.xex`. O empacotador copia como `Tube360/default.xex` para `.work/releases/tube360-v0.3.0-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
 
 ## Estrutura do projeto
 
@@ -228,14 +254,26 @@ tools/           builds, empacotamento e instalação opcional de serviços
 - Celular não encontra o Tube360: use o código de TV do painel Celular, permita descoberta local e confira acesso ao YouTube nos dois aparelhos. Código da conta e código Cast são separados.
 - Xbox não desliga a TV: o console não tem HDMI-CEC; use o desligamento sem sinal da TV. O modo console não desliga um PC independente.
 
-## Próximos passos
+## Roadmap v0.4
 
-- [x] Conta, canais, biblioteca, Música, Cast do celular e Nest para VOD nativos
-- [x] Legendas em VOD e escolha de áudio original/dublado
-- [ ] Relógio das legendas ao vivo e sincronia do Nest em live direta
-- [ ] Testes em mais consoles/redes para desempenho HD sustentado
+- [ ] Atualização automática
+- [ ] Música da conta Premium (ampliar e validar o acesso pela conta)
+- [ ] Filtros na busca
+- [ ] Baixar vídeos para o HD
+- [ ] Comentários
+- [ ] Velocidade de reprodução
+- [ ] 4:3 / CRT
+- [ ] Espanhol
 
-Pull requests são bem-vindos. As mudanças desde a última release pública estão em [CHANGELOG.md](CHANGELOG.md).
+Os recursos acima estão planejados; não fazem parte da v0.3.0. [CHANGELOG.md](CHANGELOG.md) registra o que já foi integrado.
+
+## IA e verificação
+
+**AI-assisted, revisado e testado em console real.** A IA ajuda no desenvolvimento; as decisões e a revisão são humanas. A validação final desta build continua com o coordenador no Xbox.
+
+**VirusTotal:** link da análise e SHA-256 do `default.xex` serão preenchidos pelo coordenador depois da análise da build final. Ainda não há resultado publicado para esta build. Os hashes dos pacotes acompanham os arquivos na release.
+
+<!-- VIRUSTOTAL_URL: PENDING · DEFAULT_XEX_SHA256: PENDING -->
 
 ## Créditos e licença
 

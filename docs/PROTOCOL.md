@@ -268,12 +268,13 @@ Cast URLs carry an opaque `s`. A revoked URL receives 410. Small fixed ranges an
 
 ## Sleep timer
 
-With no configured/enabled server, the console counts the selected minutes locally and handles natural end
-of video itself. End-of-video sleep suppresses repeat and automatic next. The same warning, volume fade,
-A (+15 min), B (cancel) and two-second shutdown screen apply. The notebook target requires the optional server.
+In console mode, `requestSleep` handles set/add/cancel locally using `SDL_GetTicks` and the same `SleepState`
+wire representation below. The UI offers 15/30/45/60/90/120 minutes or natural end of video. The target is
+always the Xbox; a saved notebook preference cannot power off a PC in console mode. The final 60 seconds
+show a warning and fade volume; A adds 15 minutes and B cancels. Expiry stops playback and powers down the
+console after a two-second message. The desktop build exits its own process instead. Timer state is volatile. End-of-video sleep suppresses repeat and automatic next; the notebook target requires the optional server.
 
-When the server is enabled, it owns one volatile reserve timer. It continues counting without console polls;
-restarting the server clears it.
+The following HTTP contract applies to the **optional server path**. The server owns one volatile timer. It continues counting without console polls; restarting the server clears it.
 All responses below are `text/plain`, with `Cache-Control: no-store`:
 
 ```
