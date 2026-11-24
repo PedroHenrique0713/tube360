@@ -11,7 +11,7 @@ int checks = 0;
 void check(bool ok, const char* message) { ++checks; if (!ok) { std::cerr << "FAIL " << message << '\n'; std::exit(1); } }
 string read(const string& path) { std::ifstream f(path); check(bool(f),"fixture exists"); std::ostringstream s; s << f.rdbuf(); return s.str(); }
 struct Http : yt::Transport {
-  string page, refusal; unsigned players = 0;
+  string page, refusal; unsigned players = 0; bool accountPlayer = false;
   yt::Response request(const string& url, const string& body = {}, bool form = false) override {
     yt::Request r; r.url=url; r.body=body; return send(r);
   }
@@ -19,7 +19,13 @@ struct Http : yt::Transport {
     if (r.url == "https://www.youtube.com/") return {200,R"({"INNERTUBE_CONTEXT":{"client":{"clientName":"WEB"}}})",{}};
     if (r.url.find("/watch?") != string::npos) return {200,R"({"VISITOR_DATA":"fixture","jsUrl":"/s/player/fixture/base.js"})",{}};
     if (r.url.find("base.js") != string::npos) return {200,"signatureTimestamp:20775",{}};
-    if (r.url.find("/player?") != string::npos) { ++players; return {200,refusal,{}}; }
+    if (r.url.find("/player?") != string::npos) {
+      if (accountPlayer) {
+        check(std::find(r.headers.begin(),r.headers.end(),"Authorization: Bearer fake-a")!=r.headers.end(),"membership player uses existing TV OAuth");
+        check(r.body.find("TVHTML5")!=string::npos && r.body.find("Samsung")!=string::npos,"membership player uses TV Samsung identity");
+      }
+      ++players; return {200,refusal,{}};
+    }
     check(r.url.find("/browse?") != string::npos || r.url.find("/search?") != string::npos,"only recorded catalog requests");
     return {200,page,{}};
   }
@@ -60,6 +66,14 @@ int main(int argc, char** argv) {
     auto reply=account.request(string("/api/nav?kind=")+kind,1000,10);
     check(reply.ok() && reply.body.find("\tmembers\n")!=string::npos,"TV navigation retains members");
   }
+  h.accountPlayer=true;
+  auto authorized=account.request("/api/video/member00001/player",1000,10);
+  check(authorized.ok(),"account supplies authenticated player response");
+  auto calls=h.players;
+  media=client.player("member00001",720,nullptr,0,"original",authorized.body);
+  check(media.status=="OK" && media.playerClient=="TVHTML5" && !media.video.url.empty() && h.players==calls,"authorized media reuses format selection without anonymous requests");
   unlink(path);
+  yt::ConsoleAccount guest(h,path);
+  check(guest.request("/api/video/member00001/player",1000,10).error=="signed_out" && h.players==calls,"signed-out session cannot use member player");
   std::cout << checks << " membership checks passed\n";
 }

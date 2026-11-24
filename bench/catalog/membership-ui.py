@@ -36,7 +36,8 @@ page = {'contents': {'twoColumnBrowseResultsRenderer': {'tabs': [{'tabRenderer':
 web, music = 'https://www.youtube.com/', 'https://music.youtube.com/'
 for origin in (web, music):
     for route in ('browse', 'search', 'next'):
-        rules.insert(0, {'url': origin + 'youtubei/v1/' + route + '?prettyPrint=false', 'file': 'members-ui.json'})
+        for suffix in ('', '&alt=json'):
+            rules.insert(0, {'url': origin + 'youtubei/v1/' + route + '?prettyPrint=false' + suffix, 'file': 'members-ui.json'})
 for i in range(1, 4):
     video = f'member0000{i}'
     rules.append({'url': web + 'watch?v=' + video + '&bpctr=9999999999&has_verified=1', 'file': 'watch.html'})
@@ -46,6 +47,13 @@ for i in range(1, 4):
 player = json.loads((replay / 'player-F12audio001.json').read_text())
 player['videoDetails'].update(videoId='member00002', title='Membro com acesso')
 (replay / 'player-member.json').write_text(json.dumps(player))
+accounts = proof / 'accounts'
+accounts.mkdir(exist_ok=True)
+(accounts / 'responses.json').write_text(json.dumps([
+    {'url': '/youtubei/v1/player?', 'contains': 'member00002', 'authorization': 'fixture-access', 'json': player},
+    {'url': '/account/accounts_list', 'json': {'contents': []}},
+    {'url': '/youtubei/v1/browse?', 'json': page},
+]))
 (replay / 'responses.json').write_text(json.dumps({'requests': rules}))
 
 entries = [dict(id=f'member0000{i+1}', type='video', duration=600, channel='Canal de teste', title=title,
@@ -92,6 +100,8 @@ try:
                  ('music', {'XT_NAV': 'music', 'XT_MUSIC': '1'}),
                  ('denied', {'XT_KEYS': 'A'}), ('access', {'XT_KEYS': 'RA'}),
                  ('music-denied', {'XT_NAV': 'radio', 'XT_NAV_ID': 'member00001', 'XT_MUSIC': '1', 'XT_KEYS': 'A'}),
+                 ('auth-access', {'auth': True, 'XT_KEYS': 'RA'}),
+                 ('auth-audio', {'auth': True, 'XT_NAV': 'radio', 'XT_NAV_ID': 'member00001', 'XT_MUSIC': '1', 'XT_KEYS': 'RA'}),
                  ('server-home', {'server': True}), ('server-library', {'server': True, 'XT_NAV': 'library'})]
         for lang in ('pt', 'en'):
             for name, options in cases:
@@ -101,11 +111,21 @@ try:
                 env = dict(base, SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2', XT_CAST_DISABLE='1',
                            XT_ASSETS=str(assets), XT_SERVER='127.0.0.1:8150', XT_CATALOG_REPLAY=str(replay),
                            XT_SHOT=str(proof / f'{name}-{lang}.ppm'), XT_SHOT_FRAME='2147483647', XT_SHOT_MS='2100', XT_KEYS_MS='550')
+                if options.get('auth'):
+                    (assets / 'yt-console-account.json').write_text(json.dumps({'access_token': 'fixture-access',
+                        'refresh_token': 'fixture-refresh', 'expires_at': 4070908800,
+                        'client': {'client_id': 'fixture-client', 'client_secret': 'fixture-secret'}, 'name': 'Conta fictícia'}))
+                    (assets / 'yt-console-account.json').chmod(0o600)
+                    env.update(XT_ACCOUNT_FIXTURES=str(accounts), XT_ACCOUNT_AUDIT=str(proof / f'{name}-{lang}.audit'))
                 env.update({k: v for k, v in options.items() if k.startswith('XT_')})
                 with (proof / f'{name}-{lang}.log').open('w') as app_log:
                     subprocess.run([str(proof / 'tube360-replay')], env=env, stdout=app_log, stderr=subprocess.STDOUT, timeout=25, check=True)
-                if name == 'access':
+                if name in ('access', 'auth-access'):
                     assert 'primeiro quadro:' in (proof / f'{name}-{lang}.log').read_text(), 'member did not display video'
+                if name == 'auth-access':
+                    assert 'cliente TVHTML5' in (proof / f'{name}-{lang}.log').read_text(), 'member player was anonymous'
+                if name == 'auth-audio':
+                    assert 'musica: primeiro audio' in (proof / f'{name}-{lang}.log').read_text(), 'member audio did not start'
                 subprocess.run(['magick', env['XT_SHOT'], str(proof / f'{name}-{lang}.png')], check=True)
                 print(name, lang, flush=True)
 finally:

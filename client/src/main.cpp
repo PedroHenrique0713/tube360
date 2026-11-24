@@ -632,7 +632,7 @@ int main(int argc, char** argv) {
   }
   auto accountNet = yt::accountTransport();
   auto consoleAccount = std::make_shared<yt::ConsoleAccount>(*accountNet, assets + "yt-console-account.json");
-  consoleAccount->select(!settings.server);
+  consoleAccount->select(!settings.server); pl.memberAccount = consoleAccount;
   Worker worker; worker.srv = srv; worker.consoleAccount = consoleAccount;
   SDL_Thread* wt = yt::worker(Worker::main, "trabalho", &worker);
   // Conta e pareamento não esperam as buscas do feed.
@@ -790,7 +790,7 @@ int main(int argc, char** argv) {
     pl.nestOffset = nestOffsetMs / 1000.0;
     if (screen != PLAYER) nav.musicNow = nav.musicSession;
     pl.audioOnly = nav.musicSession && nav.musicNow;
-    pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track);
+    pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track,v.members != yt::Membership::None);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };

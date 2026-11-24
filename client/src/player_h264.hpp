@@ -69,7 +69,7 @@ inline void Player::decodeOriginal() {
       youtube = std::make_unique<yt::Client>(*transport, cacheBase);
     }
     if (media.id != id || quality != cachedQuality || videoMode != cachedVideoMode || cachedAudio != audioSelection || SDL_GetTicks() >= validUntil) {
-      media = youtube->player(id, quality, nullptr,videoMode,audioSelection);
+      media = youtube->player(id, quality, nullptr,videoMode,audioSelection,memberResponse());
       validUntil = SDL_GetTicks() + 1000ULL * (media.ttl - std::min(30,media.ttl/10));
       cachedQuality = quality;
       cachedVideoMode=videoMode; cachedAudio=audioSelection;
@@ -81,7 +81,7 @@ inline void Player::decodeOriginal() {
       youtube.reset(); transport.reset();
       transport = yt::https(&stop);
       youtube = std::make_unique<yt::Client>(*transport, cacheBase);
-      media = youtube->player(id, quality, nullptr,videoMode,audioSelection);
+      media = youtube->player(id, quality, nullptr,videoMode,audioSelection,memberResponse());
       validUntil = SDL_GetTicks() + 1000ULL * (media.ttl - std::min(30,media.ttl/10));
     }
     if (stop) return;

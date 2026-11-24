@@ -114,7 +114,7 @@ public:
     Page home();
     Page search(const string& query);
     Page next(const string& id);
-    Video player(const string& id, int height = 720, MediaOffers* offers = nullptr, int mode = 0, const string& audio = "original");
+    Video player(const string& id, int height = 720, MediaOffers* offers = nullptr, int mode = 0, const string& audio = "original", const string& accountPlayer = {});
     bool captions(const Track&, std::vector<Cue>&, string& error);
 };
 

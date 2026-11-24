@@ -11,18 +11,22 @@ public:
   yt::Response request(const std::string& url, const std::string& body = {}, bool form = false) override {
     yt::Request q; q.url = url; q.body = body; q.form = form; return send(q);
   }
-  yt::Response send(const yt::Request& q) override {
-    auto r = source.send(q);
-    if (q.url.find("/youtubei/v1/player?") == std::string::npos || r.status != 200) return r;
+  static std::string audioResponse(std::string body) {
     yt::catalog::J data;
-    if (yt::catalog::parse(r.body,data)) {
+    if (yt::catalog::parse(body,data)) {
       auto root = data.get<yt::catalog::Object>();
       const auto& streams = yt::catalog::get(data,"streamingData");
       if (streams.is<yt::catalog::Object>()) {
         auto sd = streams.get<yt::catalog::Object>(); sd.erase("formats");
-        root["streamingData"] = yt::catalog::J(sd); r.body = yt::catalog::J(root).serialize();
+        root["streamingData"] = yt::catalog::J(sd); body = yt::catalog::J(root).serialize();
       }
     }
+    return body;
+  }
+  yt::Response send(const yt::Request& q) override {
+    auto r = source.send(q);
+    if (q.url.find("/youtubei/v1/player?") == std::string::npos || r.status != 200) return r;
+    r.body = audioResponse(std::move(r.body));
     return r;
   }
 };
@@ -35,11 +39,12 @@ struct Player : player::Player {
   std::atomic<double> audioTail{0};
 
   void start(const net::Server& server, const std::string& video, double at, const std::string& name, double length,
-             int height, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}) {
+             int height, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}, bool members = false) {
     halt(!speaker);
+    memberVideo = members || (video == id && memberVideo);
     playingAudio = audioOnly;
     serverAudio = !tryDirect || (speaker && !directSpeaker.configured());
-    if (!playingAudio) { player::Player::start(server,video,at,name,length,height,speaker,tryDirect,renewing,mode,track); return; }
+    if (!playingAudio) { player::Player::start(server,video,at,name,length,height,speaker,tryDirect,renewing,mode,track,members); return; }
     if (mode >= 0) videoMode = mode;
     if (!track.empty()) audioSelection = track; else if (video != id) audioSelection = "original";
     audioTracks.clear(); selectedAudio.clear(); tracksReady = false; adapted = false;
@@ -81,7 +86,7 @@ struct Player : player::Player {
     uint64_t decoded = 0, work = 0;
     int result = 0;
     for (int attempt = 0; attempt < 2 && !stop; ++attempt) {
-      media = client.player(id,quality,nullptr,videoMode,audioSelection);
+      media = client.player(id,quality,nullptr,videoMode,audioSelection,AudioTransport::audioResponse(memberResponse()));
       if (stop) return;
       if (media.status != "OK" || media.audio.url.empty()) {
         if (media.reason == "members") error = "Vídeo só para membros do canal";

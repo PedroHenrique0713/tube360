@@ -223,7 +223,7 @@ bool Client::session(const string& id, string& error, bool fresh) {
     return true;
 }
 
-Video Client::player(const string& id, int height, MediaOffers* offers, int mode, const string& wantedAudio) {
+Video Client::player(const string& id, int height, MediaOffers* offers, int mode, const string& wantedAudio, const string& accountPlayer) {
     if (offers) *offers = {};
     J j;
     Video out;
@@ -240,7 +240,17 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
     const char* agents[]={visionAgent,
         "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
         "com.google.ios.youtube/20.11.6 (iPhone10,4; U; CPU iOS 16_7_7 like Mac OS X)"};
-    for (int client=0; client<3; ++client) {
+    if (!accountPlayer.empty()) {
+        out.playerClient="TVHTML5"; out.playerAttempts=1;
+        if (!parse(accountPlayer,j)) { out.status="ERROR"; out.failure=Failure::JSON; out.reason="invalid_json"; return out; }
+        out.status=str(field(j,"playabilityStatus"),"status");
+        out.reason=str(field(j,"playabilityStatus"),"reason");
+        if (out.status!="OK") {
+            if (membersReason(field(j,"playabilityStatus").serialize())) out.reason="members";
+            out.failure=Failure::REFUSAL; return out;
+        }
+    }
+    for (int client=0; accountPlayer.empty() && client<3; ++client) {
         out.playerClient=clients[client];
         for (int attempt=0; attempt<2; ++attempt) {
             if (!session(id,out.reason,attempt>0)) {

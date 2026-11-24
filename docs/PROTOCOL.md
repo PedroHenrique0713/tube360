@@ -45,7 +45,10 @@ sets `isPlayable: true` on that members-only card. Missing fields from older ser
 A watch endpoint or a channel subscription does not prove paid access. Cards show localized Members/Member
 badges; playback still asks YouTube, and a membership refusal shows a specific message without rotating clients.
 The account JSON API carries the same optional `membership` field; yt-dlp `availability=subscriber_only` maps
-to `members`. Catalog state never grants access or replaces YouTube authorization.
+to `members`. Catalog state never grants access or replaces YouTube authorization. With an active console account, member
+cards request the player through the existing TV Samsung OAuth session on the worker; the returned signed
+formats use the same AVC/AAC selection. Tokens remain inside ConsoleAccount and never enter list responses.
+The internal `/api/video/<id>/player` ConsoleAccount request is not a server HTTP endpoint.
 
 ## YouTube account
 
