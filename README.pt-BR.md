@@ -35,7 +35,7 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | 💬 **Comentários e não gostei** | Leia e role comentários sem sair do vídeo. Contagem de não gostei estimada pelo Return YouTube Dislike, identificada como estimativa. |
 | ⏩ **0,25×–2× e repetir** | Oito velocidades com preservação do tom da voz; Repetir vídeo no player. Velocidade diferente de 1× usa som na TV; o timer tem prioridade sobre a repetição. |
 | 📺 **TV de tubo e texto grande** | Saída 480 em 4:3, área segura e texto ampliado. Ajustar com faixas ou preencher com recorte; texto grande também em HD. 480i/480p segue o painel do Xbox. |
-| 🔐 **Atualização automática assinada** | Regras verificadas por Ed25519 ao abrir e periodicamente na Home, com reserva automática. O app avisa a nova versão; A baixa e confere o arquivo, o launcher instala na próxima abertura e recupera o anterior se o boot falhar. |
+| 🔐 **Atualização automática assinada** | Regras verificadas por Ed25519 ao abrir e periodicamente na Home, com reserva automática. Quando o YouTube muda algo, um arquivo de regras assinado conserta todos os consoles sem versão nova. |
 | 📺 **App nativo** | C++20, Vulkan pelo [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 e navegação pelo controle. Title ID próprio no Aurora: `0x58545542`. |
 | ⚡ **YouTube direto no Xbox** | HTTPS com o YouTube, vídeo H.264 original e áudio AAC decodificados localmente com FFmpeg. Sem conversão no PC no uso normal. |
 | 👤 **Sua conta na TV** | Login por código, recomendações, inscrições, histórico e retomada, Assistir mais tarde, playlists, gostei e não gostei. O token fica no console. |
@@ -113,7 +113,7 @@ MPEG-1 + MP2 fica como compatibilidade fornecida pelo servidor opcional, até 72
 
 ### 1. Copie a pasta do app
 
-Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex` (launcher), `tube360.xex` (app), as quatro fontes `inter-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
+Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex`, as quatro fontes `inter-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
 
 ### 2. Abra pelo Aurora, FSD ou XeXMenu
 
@@ -246,7 +246,7 @@ tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.0
 ```
 
-O build gera o app `client/build-x360/tube360.xex` e `tube360-launcher.xex`. O empacotador inclui o launcher como `Tube360/default.xex` ao lado de `Tube360/tube360.xex` para `.work/releases/tube360-v0.3.0-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
+O build gera `client/build-x360/tube360.xex`. O empacotador instala esse arquivo como `Tube360/default.xex` em `.work/releases/tube360-v0.3.0-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
 
 ## Estrutura do projeto
 

@@ -1,3 +1,5 @@
+> **v0.3.0:** só as regras assinadas estão ativas. O launcher e a troca do executável descritos abaixo não vão no pacote: o launcher travou num console real (caminho relativo no `xsdk_launch`) e volta corrigido na v0.3.1.
+
 # Atualizações assinadas
 
 O app embute `client/src/update/rules-default.json`. Ao abrir e a cada 4 horas na Home, um worker procura `rules.json` + `rules.json.sig` e `app.json` + `app.json.sig` em:

@@ -33,7 +33,7 @@
 | 💬 **Comments and dislike counts** | Read and scroll comments while the video plays. Estimated dislike counts from Return YouTube Dislike are labeled as estimates. |
 | ⏩ **0.25×–2× and repeat** | Eight speeds preserve voice pitch; repeat the current video from the player. Changed speed uses TV sound; the sleep timer takes priority over repeat. |
 | 📺 **CRT TVs and large text** | 480 output in 4:3, safe margins and larger text. Fit with letterboxing or fill by cropping; large text is also available in HD. 480i/480p follows the Xbox dashboard. |
-| 🔐 **Signed automatic updates** | Ed25519-verified YouTube rules at startup and periodically on Home, with automatic fallback. The app announces new versions; A downloads and verifies, the launcher installs on next startup and restores the previous app if boot fails. |
+| 🔐 **Signed automatic updates** | Ed25519-verified YouTube rules at startup and periodically on Home, with automatic fallback. When YouTube changes something, a new signed rule file fixes every console without a new version. |
 | 📺 **Native app** | C++20, Vulkan through [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 and full gamepad navigation. Its own Aurora title ID: `0x58545542`. |
 | ⚡ **YouTube straight to the Xbox** | HTTPS to YouTube, original H.264 video and AAC audio decoded locally with FFmpeg. No real-time PC conversion in normal use. |
 | 👤 **Your account on the TV** | Sign in with a TV code; recommendations, subscriptions, history/resume, Watch later, account playlists, likes and dislikes. Tokens stay on the console. |
@@ -111,7 +111,7 @@ MPEG-1 + MP2 is the compatibility path supplied by the optional server, up to 72
 
 ### 1. Copy the app folder
 
-Download the ZIP or .7z from [Releases](https://github.com/PedroHenrique0713/tube360/releases), extract it and copy the whole `Tube360` folder to `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`. Keep `default.xex` (launcher), `tube360.xex` (app), all four `inter-*.ttf` fonts and the license notices together. **Leave `server.txt` absent** for console-only use; `.example.txt` files remain inactive until renamed.
+Download the ZIP or .7z from [Releases](https://github.com/PedroHenrique0713/tube360/releases), extract it and copy the whole `Tube360` folder to `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`. Keep `default.xex`, all four `inter-*.ttf` fonts and the license notices together. **Leave `server.txt` absent** for console-only use; `.example.txt` files remain inactive until renamed.
 
 ### 2. Launch from Aurora, FSD or XeXMenu
 
@@ -244,7 +244,7 @@ tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.0
 ```
 
-The build produces the app `client/build-x360/tube360.xex` and `tube360-launcher.xex`. The packager includes the launcher as `Tube360/default.xex` alongside `Tube360/tube360.xex` into `.work/releases/tube360-v0.3.0-xbox360.zip`, with fonts, commented examples and license notices. It copies an explicit file list, never a used app folder. It does not publish. [Build dependencies](docs/BUILD.md) · [Packaging and matching source/relink materials](docs/RELEASE.md)
+The build produces `client/build-x360/tube360.xex`. The packager installs it as `Tube360/default.xex` into `.work/releases/tube360-v0.3.0-xbox360.zip`, with fonts, commented examples and license notices. It copies an explicit file list, never a used app folder. It does not publish. [Build dependencies](docs/BUILD.md) · [Packaging and matching source/relink materials](docs/RELEASE.md)
 
 ## Project layout
 
