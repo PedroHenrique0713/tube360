@@ -102,6 +102,12 @@ class LanTests(unittest.TestCase):
         self.search('127.0.0.2')
         self.notification('127.0.0.2')
 
+    def test_transient_membership_failure_is_retried(self):
+        self.start(XT_LAN_MEMBERSHIP_FAILURES='2')
+        self.notification('127.0.0.1')
+        wait_for(lambda: 'membership=1' in self.log_path.read_text(), 'membership retry', 4)
+        self.search()
+
     def test_failed_options_notify_storm_and_repeated_enable_preserve_pairing(self):
         self.start(XT_LAN_FAIL_OPTIONS='1')
         self.notification('127.0.0.1')

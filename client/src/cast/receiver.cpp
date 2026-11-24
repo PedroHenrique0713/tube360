@@ -465,15 +465,17 @@ struct Receiver::Impl {
                     addressAt = SDL_GetTicks()+2000;
                 }
                 if (SDL_GetTicks() >= announceAt) {
-                    if (advertiseIp.empty()) {
-                        advertiseIp = localAddress(group);
+                    if (announcements && !joined && (!loopback || testMulticast) && !testNoMembership && !advertiseIp.empty()) {
                         in_addr address{};
                         if (::inet_pton(AF_INET,advertiseIp.c_str(),&address) == 1) {
                             ::setsockopt(udp,IPPROTO_IP,multicastInterface,&address,sizeof(address));
                             Membership membership{group.sin_addr,address};
-                            if (!joined && !testNoMembership)
+                            joined = ::setsockopt(udp,IPPROTO_IP,addMembership,&membership,sizeof(membership)) == 0;
+                            if (!joined) {
+                                membership.interfaceAddress.s_addr = htonl(INADDR_ANY);
                                 joined = ::setsockopt(udp,IPPROTO_IP,addMembership,&membership,sizeof(membership)) == 0;
-                            SDL_Log("cast: SSDP IP pronto %s membership=%d",advertiseIp.c_str(),joined);
+                            }
+                            SDL_Log("cast: SSDP nova tentativa IP=%s membership=%d errno=%d",advertiseIp.c_str(),joined,joined ? 0 : errno);
                         }
                     }
                     announce(true); ++announcements;
