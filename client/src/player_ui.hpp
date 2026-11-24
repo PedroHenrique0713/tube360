@@ -3,7 +3,7 @@
 
 struct PlayerUI {
   enum Panel { NONE, CAPTIONS, QUALITY, SOUND, TRACKS } panel = NONE;
-  enum Option { CC, VIDEO, AUDIO, TRACK, TIMER, RATE, CHANNEL, COUNT };
+  enum Option { TRANSPORT, CC, VIDEO, AUDIO, TRACK, TIMER, RATE, CHANNEL, EDGE, COUNT };
   bool tracks = false;
   uint64_t until = 0;
   bool options = false;
@@ -14,12 +14,12 @@ struct PlayerUI {
   void touch(uint64_t now) { until = now + timeout; }
   void reset(uint64_t now) { options = false; panel = NONE; sleepRow = 0; if (!tracks && selected==TRACK) selected=VIDEO; touch(now); }
   // Retorna o salto somente quando a trilha já tinha o foco antes do toque.
-  int direction(uint64_t now, int horizontal, int vertical) {
+  int direction(uint64_t now, int horizontal, int vertical, int optionCount = EDGE) {
     if (!visible(now)) { options = false; touch(now); return 0; }
     touch(now);
     if (options) {
-      selected = (selected + horizontal + COUNT) % COUNT;
-      if (!tracks && selected==TRACK) selected=(selected+(horizontal<0 ? -1 : 1)+COUNT)%COUNT;
+      selected = (selected + horizontal + optionCount) % optionCount;
+      if (!tracks && selected == TRACK) selected = (selected + (horizontal < 0 ? -1 : 1) + optionCount) % optionCount;
       if (vertical < 0) options = false;
       return 0;
     }

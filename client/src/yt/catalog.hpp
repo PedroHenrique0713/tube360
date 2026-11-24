@@ -349,15 +349,15 @@ private:
       auto client = get(accountMusic.data,"client").get<Object>();
       client["hl"] = J(language); client["gl"] = J(string(language == "pt" ? "BR" : "US")); context["client"] = J(client);
       Object payload = args; payload["context"] = J(context); payload["isAudioOnly"] = J(true);
-      Request r; r.url = "https://www.youtube.com/youtubei/v1/"+route+"?prettyPrint=false&alt=json";
+      Request r; r.url = "https://music.youtube.com/youtubei/v1/"+route+"?prettyPrint=false&alt=json";
       r.body = J(payload).serialize(); r.agent = agent;
       // Cookie: vazio seleciona o handle sem pote do transporte, preservando a sessão pública.
-      r.headers = {"Accept: */*","Accept-Language: *","Origin: https://www.youtube.com","Cookie:",
+      r.headers = {"Accept: */*","Accept-Language: *","Origin: https://music.youtube.com","Cookie:",
         "X-Youtube-Client-Name: 67","X-Youtube-Client-Version: " + accountMusic.version,
         "Authorization: Bearer " + token};
       r.headers.push_back("X-Goog-Visitor-Id: " + accountMusic.visitor);
       auto res = net.send(r);
-      if (res.status != 401 && res.status != 403) {
+      if (res.status != 400 && res.status != 401 && res.status != 403) {
         auto e = error(res,out); if (e.empty()) authError.clear(); return e;
       }
       musicTokenRejected = true; authError = route + " HTTP " + std::to_string(res.status);

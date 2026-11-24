@@ -21,6 +21,18 @@ int main() {
   assert(ui.direction(7100, 0, 1) == 0 && ui.options);
   int old = ui.selected;
   assert(ui.direction(7200, 1, 0) == 0 && ui.selected != old);
+  for (int count : {PlayerUI::EDGE, PlayerUI::COUNT}) {
+    ui.tracks = true;
+    ui.selected = PlayerUI::TRANSPORT;
+    for (int i = 1; i < count; ++i) {
+      assert(ui.direction(7300, 1, 0, count) == 0);
+      assert(ui.selected == i);
+    }
+    ui.direction(7400, 1, 0, count);
+    assert(ui.selected == PlayerUI::TRANSPORT);
+    ui.direction(7500, -1, 0, count);
+    assert(ui.selected == count - 1);
+  }
   assert(ui.visible(60000));
   ui.panel = PlayerUI::CAPTIONS;
   assert(ui.back(60100) && ui.panel == PlayerUI::NONE && ui.options);

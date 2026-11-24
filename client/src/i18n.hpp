@@ -1,10 +1,25 @@
 #pragma once
 #include <cstddef>
+#include <cstdio>
 #include <string>
 
 namespace i18n {
 enum class Lang { EN, PT };
 inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
+
+inline std::string shortDate(const std::string& iso, Lang lang) {
+  int year, month, day;
+  if (iso.size() != 10 || std::sscanf(iso.c_str(), "%4d-%2d-%2d", &year, &month, &day) != 3 ||
+      month < 1 || month > 12 || day < 1 || day > 31) return iso;
+  static const char* const months[][12] = {
+    {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"},
+    {"jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"}
+  };
+  char date[32];
+  if (lang == Lang::PT) std::snprintf(date, sizeof(date), "%d %s %d", day, months[1][month-1], year);
+  else std::snprintf(date, sizeof(date), "%s %d, %d", months[0][month-1], day, year);
+  return date;
+}
 
 // Texto do app. Títulos, nomes e metadados do servidor continuam sendo dados.
 #define TUBE360_TEXT(X) \
@@ -237,6 +252,7 @@ inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : "en"; }
   X(MusicIntro, "Your next favourite sound.", "Seu próximo som favorito.") \
   X(QueueLimit, "Playlists play up to 256 tracks.", "As playlists tocam até 256 faixas.") \
   X(SubscribeConfirm, "Unsubscribe from this channel?", "Cancelar a inscrição neste canal?") \
+  X(GoLive, "Jump to live", "Ir para o ao vivo") \
   X(ChannelLive, "Live", "Ao vivo") \
   X(MusicSpeakerFallback, "Speaker did not respond: sound on the TV.", "A caixa não respondeu: som na TV.") \
   X(BtnA, "A", "A") X(BtnB, "B", "B") X(BtnX, "X", "X") X(BtnY, "Y", "Y") \

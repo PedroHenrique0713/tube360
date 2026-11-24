@@ -311,7 +311,7 @@ struct ConsoleAccount::Impl {
     struct List {
         std::vector<Item> items;
         std::set<string> seen, continuations;
-        string continuation, title, subtitle, image, channelId, route="browse", fields;
+        string continuation, title, subtitle, image, banner, historyVideo, laterVideo, channelId, route="browse", fields;
         bool started=false, more=true, subscribed=false, videosOnly=false;
         unsigned pages=0;
         int64_t created=0;
@@ -500,6 +500,9 @@ struct ConsoleAccount::Impl {
             list.title=text(get(h,"title")); list.subtitle=text(get(h,"subtitle"));
             list.image=registerImage(image(get(h,"avatar")));
             if (kind=="channel") {
+                list.banner=registerImage(image(get(h,"banner")));
+                if (list.banner.empty()) list.banner=registerImage(image(get(h,"tvBanner")));
+                if (list.banner.empty()) list.banner=registerImage(image(first(j,"tvSurfaceContentBackgroundRenderer")));
                 list.channelId=itemId;
                 list.subscribed=flag(first(h,"subscribeButtonRenderer"),"subscribed");
                 std::vector<const J*> shelves; nodes(j,"shelfRenderer",shelves);
@@ -514,6 +517,17 @@ struct ConsoleAccount::Impl {
             }
         }
         Parsed parsed; walk(j,parsed);
+        if (kind=="library" && !list.started) {
+            for (const auto& preview: {std::pair{"FEhistory", &list.historyVideo}, std::pair{"VLWL", &list.laterVideo}}) {
+                J data;
+                if (call("browse", "\"browseId\":"+J(string(preview.first)).serialize(), data).empty()) {
+                    Parsed cover; walk(data, cover);
+                    auto video=std::find_if(cover.items.begin(),cover.items.end(),[](const Item& item) { return item.type=="video"; });
+                    if (video!=cover.items.end()) *preview.second=video->id;
+                }
+            }
+            parsed.items.erase(std::remove_if(parsed.items.begin(),parsed.items.end(),[](const Item& item) { return item.id=="WL" || item.id=="VLWL"; }),parsed.items.end());
+        }
         if (kind=="subscriptions" && !list.videosOnly && !list.started &&
             std::none_of(parsed.items.begin(),parsed.items.end(),[](const Item& i){return i.type=="channel";})) {
             J channels;
@@ -565,7 +579,7 @@ struct ConsoleAccount::Impl {
         auto end=std::min(list.items.size(),size_t(offset+count));
         bool more=end<list.items.size() || list.more;
         string body=feed ? "ok\t"+kind+"\t"+clean(list.title)+"\t"+(more?"1":"0")+"\n" :
-            "ok\t"+clean(list.title)+"\t"+clean(list.subtitle)+"\t"+list.image+"\t"+(list.subscribed?"1":"0")+"\t"+(more?"1":"0")+"\t"+list.channelId+"\n";
+            "ok\t"+clean(list.title)+"\t"+clean(list.subtitle)+"\t"+list.image+"\t"+(list.subscribed?"1":"0")+"\t"+(more?"1":"0")+"\t"+list.channelId+"\t"+list.banner+"\t"+list.historyVideo+"\t"+list.laterVideo+"\n";
         for (size_t i=size_t(offset); i<end; ++i) {
             const auto& v=list.items[i];
             if (feed) {

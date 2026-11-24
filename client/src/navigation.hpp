@@ -7,10 +7,14 @@ struct NavItem {
   Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = duration; return v; }
 };
 struct NavPage {
-  std::string kind, id, query, tab = "videos", title, subtitle, image, channelId, error, displayTitle, displaySub;
+  std::string kind, id, query, tab = "videos", title, subtitle, image, channelId, error, displayTitle, displaySub, banner, historyVideo, laterVideo;
   std::vector<NavItem> items, channels;
-  bool music = false, direct = false, loading = true, more = false, subscribed = false;
+  bool music = false, direct = false, native = false, loading = true, more = false, subscribed = false;
   int sel = 0, channelSel = 0, zone = 3, tabSel = 0, offset = 0;
+  struct Shelf { int first, end, selected; std::string title; };
+  std::vector<Shelf> shelves;
+  int shelf = 0;
+  bool musicHome() const { return kind == "music"; }
   float scroll = 0;
   uint64_t stamp = 0;
   std::string path() const {
@@ -34,7 +38,7 @@ struct Navigation {
   void load(Worker& worker, i18n::Lang lang, bool fresh = false, bool append = false) {
     auto& p = page(); p.loading = true; p.error.clear(); p.stamp = ++serial;
     p.more = false;
-    if (!append) { p.offset = 0; p.items.clear(); p.channels.clear(); }
+    if (!append) { p.offset = 0; p.items.clear(); p.channels.clear(); p.channelSel = p.shelf = 0; p.shelves.clear(); }
     std::string path = p.path() + "&lang=" + i18n::code(lang) + "&offset=" + std::to_string(p.offset) + "&fresh=" + (fresh ? "1" : "0");
     Job job{6, path, p.stamp};
     job.native = p.kind == "search" && p.tabSel != 2 && !append; job.query = p.query; job.lang = lang; worker.add(job, true);
@@ -53,7 +57,9 @@ struct Navigation {
   static bool parse(const std::string& body, NavPage& p, bool append = false) {
     auto lines = net::split(body, '\n'); auto h = net::split(lines[0], '\t');
     if (h.empty() || h[0] != "ok" || h.size() < 7) { p.error = h.size() > 1 ? h[1] : ""; return false; }
-    if (!append) { p.title = h[1]; p.subtitle = h[2]; p.image = h[3]; p.subscribed = h[4] == "1"; p.channelId = h[6]; }
+    if (!append) { p.title = h[1]; p.subtitle = h[2]; p.image = h[3]; p.subscribed = h[4] == "1"; p.channelId = h[6];
+      p.banner = h.size() > 7 ? h[7] : ""; p.historyVideo = h.size() > 8 ? h[8] : ""; p.laterVideo = h.size() > 9 ? h[9] : "";
+    }
     if (p.kind == "channel" && p.id.empty()) p.id = p.channelId;
     p.more = h[5] == "1";
     for (size_t i = 1; i < lines.size(); i++) {
@@ -70,6 +76,8 @@ struct Navigation {
       p.loading = false;
       if (r.feed.error != K::None) { p.error = i18n::get(lang, K::NoResponse); return; }
       bool first = p.offset == 0;
+      p.native = r.catalog || r.localAccount;
+      size_t start = p.items.size();
       p.direct = r.feed.direct;
       if (p.direct) {
         p.title = p.query; p.subtitle = i18n::get(lang, K::Console); p.more = false;
@@ -80,19 +88,32 @@ struct Navigation {
         NavItem history; history.type = "history"; history.id = "HISTORY"; history.title = i18n::get(lang, K::History);
         NavItem later; later.type = "later"; later.id = "WL"; later.title = i18n::get(lang, K::WatchLater);
         NavItem mixes; mixes.type = "mixes"; mixes.id = "MIXES"; mixes.title = i18n::get(lang, K::Mixes);
+        history.image = p.historyVideo; later.image = p.laterVideo;
+        for (const auto& item : p.items) if (item.id.starts_with("RD") || item.id.starts_with("VLRD")) { mixes.image = item.image; break; }
         p.items.insert(p.items.begin(), {history, later, mixes});
       }
-      for (auto& item : p.items) {
-        item.titleLines = gfx::wrap(g, ui::F_KEY, item.title, 246, 2);
+      for (size_t i = start; i < p.items.size(); i++) {
+        auto& item = p.items[i];
+        if (p.musicHome()) {
+          if (p.shelves.empty() || (i && item.section != p.items[i-1].section)) {
+            const std::string heading = item.section.empty() ? i18n::get(lang, K::Music) : item.section;
+            p.shelves.push_back({(int)i, (int)i, (int)i, gfx::ellipsize(g, ui::F_KEY, heading, 1056)});
+          }
+          p.shelves.back().end = (int)i + 1;
+          item.titleLines = {gfx::ellipsize(g, ui::F_SMALL, item.title, 140)};
+          item.byline = gfx::ellipsize(g, ui::F_TINY, item.channel, 140);
+          continue;
+        }
+        item.titleLines = gfx::wrap(g, ui::F_KEY, item.title, p.kind == "library" ? 220 : 246, 2);
         std::string by = item.type == "album" ? std::string(i18n::get(lang, K::Album)) + (item.channel.empty() ? "" : " · " + item.channel) :
             item.type == "artist" ? i18n::get(lang, K::Artist) : item.channel;
         item.byline = gfx::ellipsize(g, ui::F_CHAN, by, 246);
       }
       for (auto& item : p.channels) item.byline = gfx::ellipsize(g, ui::F_CHAN, item.title, 142);
-      int font = p.music ? ui::F_HERO : ui::F_BIG;
+      int font = p.music && !p.musicHome() ? ui::F_HERO : ui::F_BIG;
       std::string title = p.kind == "music" || p.kind == "library" || p.kind == "subscriptions" || p.kind == "later" || p.kind == "history" || p.title.empty() ? i18n::get(lang, titleKey(p)) : p.title;
       p.displayTitle = gfx::ellipsize(g, font, title, 680 - (p.image.empty() ? 0 : p.music ? 110 : 96));
-      std::string sub = p.kind == "music" ? i18n::get(lang, K::MusicIntro) : p.subtitle;
+      std::string sub = p.subtitle;
       if (p.kind == "playlist" || p.kind == "music_playlist" || p.kind == "album" || p.kind == "later" || p.kind == "radio")
         sub = std::string(i18n::get(lang, K::QueueLimit)) + (sub.empty() ? "" : " · " + sub);
       p.displaySub = gfx::ellipsize(g, ui::F_CHAN, sub, 680);
@@ -104,15 +125,13 @@ struct Navigation {
     if (busy) return;
     busy = true; actionPath = path; actionStamp = ++serial; worker.add({6, path, actionStamp}, true);
   }
-  static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::string& id, uint64_t frame, float x, float y, float w, float h, bool square = false, bool direct = false) {
-    gfx::rect(g, x, y, w, h, ui::SURFACE2, square ? 6 : 12);
-    if (id.empty()) return;
-    if (const auto* s = thumbs.get(worker, id, frame, direct)) {
-      if (square) {
-        float fraction = (float)thumbs.height / thumbs.width;
-        gfx::imagePart(g, s->tex, x, y, w, h, (1 - fraction) / 2, 0, (1 + fraction) / 2, 1, ui::TEXT);
-      } else gfx::image(g, s->tex, x, y, w, h, 12);
-    }
+  static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::string& id, uint64_t frame, float x, float y, float w, float h, bool square = false, bool round = false, bool direct = false) {
+    float radius = round ? w / 2 : square ? 6 : 12;
+    const auto* s = id.empty() ? nullptr : thumbs.get(worker, id, frame, direct);
+    if (s) {
+      float crop = square ? (float)thumbs.height / thumbs.width : 1;
+      gfx::image(g, s->tex, x, y, w, h, radius, {1,1,1,1}, crop);
+    } else gfx::rect(g, x, y, w, h, ui::SURFACE2, radius);
   }
   static K titleKey(const NavPage& p) {
     if (p.kind == "library") return K::Library;
@@ -127,62 +146,94 @@ struct Navigation {
     if (p.kind == "artist") return K::Artist;
     return K::Channel;
   }
-  void draw(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, uint64_t now, i18n::Lang lang) {
+  void draw(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, uint64_t now, i18n::Lang lang, bool contentFocus) {
     if (pages.empty()) return;
     auto tr = [&](K k) { return i18n::get(lang, k); };
     auto& p = page();
-    if (p.music) gfx::hgrad(g, 96, 0, 1184, 224, rgb(0x32161f), ui::BG);
+    bool home = p.musicHome();
+    bool hasBanner = !p.banner.empty();
+    if (hasBanner) {
+      if (const auto* cover = thumbs.get(worker, p.banner, frame, p.direct, true)) {
+        gfx::image(g, cover->tex, 96, 0, Thumbs::bannerWidth, Thumbs::bannerHeight);
+        gfx::hgrad(g, 96, 0, 780, Thumbs::bannerHeight, {0,0,0,0.55f}, {0,0,0,0});
+        gfx::vgrad(g, 96, 0, Thumbs::bannerWidth, Thumbs::bannerHeight, {0,0,0,0.10f}, ui::BG);
+      }
+    }
+    if (p.music && !home) gfx::hgrad(g, 96, 0, 1184, 224, rgb(0x32161f), ui::BG);
     float tx = 136;
-    if (!p.image.empty()) { artwork(g, thumbs, worker, p.image, frame, tx, p.music ? 46 : 28, p.music ? 86 : 72, p.music ? 86 : 72, true); tx += p.music ? 110 : 96; }
+    if (!home && !p.image.empty()) { artwork(g, thumbs, worker, p.image, frame, tx, p.music ? 46 : 28, p.music ? 86 : 72, p.music ? 86 : 72, true, p.kind == "channel" || p.kind == "artist"); tx += p.music ? 110 : 96; }
 
-    int titleFont = p.music ? ui::F_HERO : ui::F_BIG;
-    gfx::text(g, titleFont, p.displayTitle.empty() ? tr(titleKey(p)) : p.displayTitle, tx, p.music ? 42 : 28, ui::TEXT);
-    gfx::text(g, ui::F_CHAN, p.displaySub, tx, p.music ? 103 : 82, ui::MUTED);
+    int titleFont = p.music && !p.musicHome() ? ui::F_HERO : ui::F_BIG;
+    gfx::text(g, titleFont, p.displayTitle.empty() ? tr(titleKey(p)) : p.displayTitle, tx, p.music && !home ? 42 : 28, ui::TEXT);
+    if (!home) gfx::text(g, ui::F_CHAN, p.displaySub, tx, p.music ? 103 : 82, ui::MUTED);
     bool channel = p.kind == "channel", playlist = p.kind == "playlist" || p.kind == "album" || p.kind == "music_playlist" || p.kind == "later" || p.kind == "radio";
     if (channel || playlist) {
-      bool f = p.zone == 0;
-      gfx::rect(g, 964, p.music ? 64 : 32, 252, 54, f ? ui::TEXT : ui::SURFACE2, 27);
-      gfx::text(g, ui::F_KEY, tr(channel ? p.subscribed ? K::Subscribed : K::Subscribe : K::PlayAll), 1090, p.music ? 80 : 48, f ? ui::INK : ui::TEXT, 1);
+      bool f = contentFocus && p.zone == 0;
+      gfx::rect(g, 924, p.music ? 64 : 32, 252, 54, f ? ui::TEXT : ui::SURFACE2, 27);
+      gfx::text(g, ui::F_KEY, tr(channel ? p.subscribed ? K::Subscribed : K::Subscribe : K::PlayAll), 1050, p.music ? 80 : 48, f ? ui::INK : ui::TEXT, 1);
     }
     bool tabs = channel || p.kind == "music" || p.kind == "search" || p.kind == "music_search";
     if (tabs) {
       const K channelTabs[] = {K::Videos,K::ChannelLive,K::Playlists};
-      const K musicTabs[] = {K::QuickPicks,K::Charts,K::Mixes};
+      const K musicTabs[] = {K::Home,K::Charts,K::Mixes};
       const K searchTabs[] = {K::AllResults,K::Videos,K::Channel};
       const K songTabs[] = {K::AllResults,K::Songs,K::Albums,K::Artists};
-      int count = p.kind == "music_search" ? 4 : 3; float x = 136;
+      int count = p.kind == "music_search" ? 4 : 3; float x = home ? 650 : 136;
+      float tabY = home ? 32 : p.music ? 166 : 120;
       for (int i = 0; i < count; i++) {
         K key = channel ? channelTabs[i] : p.kind == "music" ? musicTabs[i] : p.kind == "music_search" ? songTabs[i] : searchTabs[i];
         float w = gfx::textWidth(g, ui::F_KEY, tr(key)) + 40;
-        bool active = i == p.tabSel, focus = active && p.zone == 1;
-        gfx::rect(g, x, p.music ? 166 : 120, w, 42, focus ? ui::TEXT : active ? ui::SURFACE2 : ui::BG, 23);
-        gfx::text(g, ui::F_KEY, tr(key), x + w / 2, p.music ? 177 : 131, focus ? ui::INK : ui::TEXT, 1);
-        if (active && !focus) gfx::hgrad(g, x + 20, p.music ? 211 : 163, w - 40, 3, ui::A1, ui::A2, 1.5f);
+        bool active = i == p.tabSel, focus = contentFocus && active && p.zone == 1;
+        gfx::rect(g, x, tabY, w, 42, focus ? ui::TEXT : active ? ui::SURFACE2 : ui::BG, 23);
+        gfx::text(g, ui::F_KEY, tr(key), x + w / 2, tabY + 11, focus ? ui::INK : ui::TEXT, 1);
+        if (active && !focus) gfx::hgrad(g, x + 20, tabY + 43, w - 40, 3, ui::A1, ui::A2, 1.5f);
         x += w + 14;
       }
     }
-    float top = p.music ? 246 : 178;
+    float top = p.kind == "library" ? 120 : p.music ? 246 : 178;
     if (p.kind == "subscriptions" && !p.channels.empty()) {
       int first = std::max(0, p.channelSel - 6);
       for (int c = first; c < std::min(first + 7, (int)p.channels.size()); c++) {
         float x = 136 + (c - first) * 154; const auto& item = p.channels[(size_t)c];
-        bool f = p.zone == 2 && c == p.channelSel;
+        bool f = contentFocus && p.zone == 2 && c == p.channelSel;
         if (f) gfx::rect(g, x - 5, 166 - 5, 106, 106, ui::TEXT, 53);
-        artwork(g, thumbs, worker, item.image, frame, x, 166, 96, 96, true);
+        artwork(g, thumbs, worker, item.image, frame, x, 166, 96, 96, true, true);
         gfx::text(g, ui::F_CHAN, item.byline, x, 276, f ? ui::TEXT : ui::MUTED);
       }
       top = 342;
     }
-    int cols = 4; float cw = 246, art = p.music ? 216 : 246, h = p.music ? 216 : 138, rowH = p.music ? 314 : 238;
+    int cols = 4; float cw = 246, art = p.music ? 216 : 246, h = p.music ? 216 : 138, rowH = p.music ? 314 : p.kind == "library" ? 166 : 238;
     float want = p.zone != 3 ? 0 : (p.sel / cols) * rowH;
     p.scroll += (want - p.scroll) * 0.24f;
-    for (size_t i = 0; i < p.items.size(); i++) {
+    if (home) {
+      int firstShelf = std::max(0, p.shelf - 2);
+      for (int row = firstShelf; row < std::min(firstShelf + 3, (int)p.shelves.size()); row++) {
+        const auto& shelf = p.shelves[row];
+        float y = 99 + (row - firstShelf) * 184;
+        gfx::text(g, ui::F_KEY, shelf.title, 136, y, ui::TEXT);
+        int first = std::max(shelf.first, shelf.selected - 6);
+        for (int i = first; i < std::min(shelf.end, first + 7); i++) {
+          const auto& item = p.items[i]; float x = 136 + (i - first) * 155;
+          bool f = contentFocus && p.zone == 3 && i == p.sel;
+          if (f) gfx::rect(g, x - 4, y + 26, 118, 118, ui::TEXT, 9);
+          artwork(g, thumbs, worker, item.image, frame, x, y + 30, 110, 110, true);
+          gfx::text(g, ui::F_SMALL, item.titleLines[0], x, y + 143, ui::TEXT);
+          gfx::text(g, ui::F_TINY, item.byline, x, y + 163, ui::MUTED);
+        }
+      }
+    } else for (size_t i = 0; i < p.items.size(); i++) {
       const auto& item = p.items[i];
       float x = 136 + (i % cols) * (cw + 24), y = top + (i / cols) * rowH - p.scroll;
-      if (y < top - 2 || y + h + 92 > 656) continue;
-      bool f = p.zone == 3 && (int)i == p.sel;
+      if (y < top - 2 || y + h + (p.kind == "library" ? 0 : 92) > 656) continue;
+      bool f = contentFocus && p.zone == 3 && (int)i == p.sel;
       if (f) gfx::rect(g, x - 5, y - 5, art + 10, h + 10, ui::TEXT, 12);
-      artwork(g, thumbs, worker, item.image, frame, x, y, art, h, p.music || item.type == "channel" || item.type == "artist", p.direct);
+      artwork(g, thumbs, worker, item.image, frame, x, y, art, h, p.music || item.type == "channel" || item.type == "artist", item.type == "channel" || item.type == "artist", p.direct);
+      if (p.kind == "library") {
+        gfx::vgrad(g, x, y, art, h, {0,0,0,0}, {0,0,0,0.94f}, 12);
+        float labelY = y + h - 12 - 27 * item.titleLines.size();
+        for (const auto& line : item.titleLines) { gfx::text(g, ui::F_KEY, line, x + 12, labelY, ui::TEXT); labelY += 27; }
+        continue;
+      }
       if (item.image.empty()) {
         K k = item.type == "history" ? K::History : item.type == "later" ? K::WatchLater : item.type == "mixes" ? K::Mixes : K::Playlists;
         gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, tr(k), art - 32), x + 16, y + h / 2 - 12, ui::MUTED);
@@ -191,7 +242,7 @@ struct Navigation {
       for (const auto& line : item.titleLines) { gfx::text(g, ui::F_KEY, line, x, ty, ui::TEXT); ty += 27; }
       gfx::text(g, ui::F_CHAN, item.byline, x, ty + 4, ui::MUTED);
     }
-    if (p.items.empty() && !p.loading) {
+    if (p.items.empty() && !p.loading && !p.more) {
       std::string msg = !p.error.empty() ? p.error : tr(channel && p.tab == "live" ? K::NoLive : K::Empty);
       float y = top + 42;
       for (const auto& line : gfx::wrap(g, ui::F_H2, msg, 1010, 3)) { gfx::text(g, ui::F_H2, line, 136, y, ui::MUTED); y += 34; }

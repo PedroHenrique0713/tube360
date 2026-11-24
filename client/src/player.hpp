@@ -166,8 +166,8 @@ struct Player {
   double clockStepMs=24, tvSample=-1, tvSampleAt=0;
   bool nest = false, speakerRequested = false; double nestOffset = 0;
   SDL_Thread* nestThread = nullptr; SDL_Mutex* nmu = nullptr;
-  int nestState = 0;  // 0 aguardando/obsoleto, 1 tocando, 2 pausado, 3 parado, 4 erro, 5 bufferizando
-  double nestPos = 0, nestStampMs = 0;
+  int nestState = 0;  // 0 aguardando/obsoleto, 1 tocando, 2 pausado, 3 parado, 4 erro, 5 bufferizando, 6 sem progresso
+  double nestPos = 0, nestStampMs = 0, nestSeenMs = 0;
   std::atomic<int> session{0}, nestCmd{0}, masterMs{-1}, speakerTargetMs{-1};
   int previousSession = 0;
   std::atomic<bool> nestFailed{false};
@@ -234,7 +234,7 @@ struct Player {
     mutedAt = lastFrameMs = 0;
     tvSound(false);
     nestFailed = false;
-    SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
+    SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = nestSeenMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
     if (direct) {
       output = speaker || !directSpeaker.sample().quiet ? CAST : LOCAL; original = true;
       decThread = yt::worker(decMain, "youtube", this);
@@ -524,7 +524,11 @@ struct Player {
       char path[180];
         std::snprintf(path, sizeof(path), "/api/nest/play?id=%s&t=%.3f&claim=%d%s", id.c_str(), pos, claim, sid.c_str());
       net::Response r;
-      if (!net::get(srv, std::string(path)+"&audio="+net::urlEncode(audioSelection), r, 1500, 1024)) { revision = 0; return false; }
+      if (!net::get(srv, std::string(path)+"&audio="+net::urlEncode(audioSelection), r, 1500, 1024)) {
+        revision = 0;
+        // O LOAD inicial pode ter chegado mesmo sem a resposta. /pos com sid distingue essa sessão.
+        return !claim && session > 0 && (r.status == 0 || r.status == 200);
+      }
       auto fields = net::split(std::string(r.body.begin(), r.body.end()), '\t');
       revision = fields.size() > 1 ? std::atoi(fields[1].c_str()) : 0;
       return fields[0].find("ok") == 0;
@@ -534,7 +538,7 @@ struct Player {
            !stop && state != FAILED && state != ENDED) SDL_Delay(10);
     if (stop || state == FAILED || state == ENDED) return;
     if (speakerRequested && !playAt(live ? 0 : startAt)) output = RELEASING;
-    uint64_t requested = SDL_GetTicks(), cmdAt = 0, badSince = 0, localSince = 0;
+    uint64_t requested = SDL_GetTicks(), cmdAt = 0, localSince = 0;
     int expected = 0, last = 0;
     while (!stop) {
       uint64_t ms = SDL_GetTicks();
@@ -545,7 +549,7 @@ struct Player {
           if (f.size() > 1 && f[0] == "QUIET") {
             claim = std::atoi(f[1].c_str());
             armed = mutedForCast = false; cueMs = -1;
-            output = LOCAL; localSince = ms; badSince = 0; expected = last = 0;
+            output = LOCAL; localSince = ms; expected = last = 0;
             if (!speakerRequested) return;
           }
         }
@@ -573,13 +577,17 @@ struct Player {
       bool ok = net::get(srv, "/api/nest/pos" + query, pr, 900, 1024);
       double b = SDL_GetTicksNS() / 1e6;
       int st = 0;
-      double sample = 0;
-      if (ok && !stop && b - a <= 120) {
+      if (ok && !stop) {
         auto f = net::split(std::string(pr.body.begin(), pr.body.end()), '\t');
-        st = f[0] == "PLAYING" ? 1 : f[0] == "PAUSED" ? 2 : f[0] == "IDLE" ? 3 : f[0] == "ERRO" ? 4 : f[0] == "BUFFERING" ? 5 : 0;
-        sample = f.size() > 1 ? std::atof(f[1].c_str()) - (live ? 0 : startAt) : 0;
+        st = f[0] == "PLAYING" ? 1 : f[0] == "PAUSED" ? 2 : f[0] == "IDLE" ? 3 : f[0] == "ERRO" ? 4 :
+             f[0] == "BUFFERING" ? 5 : f[0] == "STALLED" ? 6 : 0;
+        // PLAYING lento confirma a saída, mas não serve para acertar o relógio.
         SDL_LockMutex(nmu);
-        nestState = st; nestPos = sample; nestStampMs = (a + b) / 2;
+        if (st == 1) nestSeenMs = b;
+        if (f[0] != "STALE" && (st != 1 || (b - a <= 120 && f.size() > 1))) {
+          double sample = f.size() > 1 ? std::atof(f[1].c_str()) - (live ? 0 : startAt) : 0;
+          nestState = st; nestPos = sample; nestStampMs = (a + b) / 2;
+        }
         SDL_UnlockMutex(nmu);
         if (output == PRIMING && f.size() > 3 && revision && std::atoi(f[3].c_str()) == revision) armed = true;
       }
@@ -591,10 +599,13 @@ struct Player {
             if (f.size() < 2) { output = RELEASING; continue; }
             SDL_LockMutex(nmu);
             nestState = 1; nestPos = std::atof(f[1].c_str()) - (live ? 0 : startAt);
-            nestStampMs = SDL_GetTicksNS() / 1e6;
+            nestSeenMs = nestStampMs = SDL_GetTicksNS() / 1e6;
             SDL_UnlockMutex(nmu);
-            output = CAST; badSince = 0; last = 1;
-          } else output = RELEASING;
+            output = CAST; last = 1;
+          } else if (r.status == 503) {
+            // O gate já abriu; o próximo PLAYING da sessão confirma o relógio.
+            output = CAST;
+          } else if (r.status != 0 && r.status != 200) output = RELEASING;
         } else if (paused || ms - requested > 4000 || speakerTargetMs > cueMs + 40) output = RELEASING;
       } else {
         if (st == 1 || st == 2) {
@@ -603,11 +614,8 @@ struct Player {
           else if (!expected && !nestCmd && last && last != st) speakerPause = st == 2 ? 1 : 2;
           last = st;
         }
-        bool healthy = st == 2 || (st == 1 && (speakerTargetMs < 0 ||
-            std::fabs(sample - (speakerTargetMs - wantedOffsetMs) / 1000.0) < 0.50));
-        if (healthy) badSince = 0;
-        else if (!badSince) badSince = ms;
-        else if (!paused && ms - badSince > (last ? 800u : 2800u)) {
+        if (!paused && (st == 3 || st == 4 || st == 6)) {
+          LOG("som: liberando Nest, estado %d", st);
           output = RELEASING; claim = 0;
         }
       }
@@ -685,7 +693,7 @@ struct Player {
     Output route = output.load();
     if (speakerRequested && route == CAST) {
       SDL_LockMutex(nmu);
-      if ((nestState == 1 || (paused && nestState == 2)) && now - nestStampMs < (direct ? 8000 : 650))
+      if ((nestState == 1 || (paused && nestState == 2)) && now - nestSeenMs < 8000)
         speaker = nestPos + (!paused && nestState == 1 ? (now - nestStampMs) / 1000.0 : 0);
       SDL_UnlockMutex(nmu);
     }
@@ -742,7 +750,6 @@ struct Player {
         screenSec = speakerRequested && !audible ? predicted + std::clamp(target - predicted, -dt * 0.15, dt * 0.15) : tv;
       if (route == PRIMING && cue >= 0)
         screenSec = std::min(screenSec, std::max(cue, predicted - dt));
-      if (follow && mutedForCast.exchange(false)) screenSec = std::max(screenSec, speaker + nestOffset);
       tickMs = now; masterMs = (int)std::lround(screenSec * 1000);
       speakerTargetMs = (int)std::lround(screenSec * 1000);
       while (!frames.empty() && frames.front()->pts <= screenSec + 0.010) {
