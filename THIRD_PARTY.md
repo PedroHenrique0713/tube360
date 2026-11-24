@@ -49,7 +49,10 @@ executable `client/build-x360/tube360`, and rerun `tools/build-xbox.sh`. CMake r
 with the same title ID. The release also includes the unlinked application objects for relinking without
 recompiling the application. [FFmpeg licensing](https://ffmpeg.org/legal.html) · [LGPL 2.1, section 6](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
 
-The object kit places `main.cpp.obj`, `shaders_bundle.c.obj` and `ffmpeg-libc.c.obj` in `objects/`,
-the matching `xsdk.ld`, `libxsdk.a`, `libSDL3.a` and `libvulkan4xenon.a` in `support/`, along with the matching libtube360-yt, curl, mbedtls, mbedx509, mbedcrypto, everest and p256m static archives, and the four FFmpeg
+The object kit places `main.cpp.obj`, `shaders_bundle.c.obj`, `ffmpeg-libc.c.obj` and `player-fault.c.obj` in `objects/`,
+the matching `xsdk.ld`, `libxsdk.a`, `libSDL3.a` and `libvulkan4xenon.a` in `support/`, along with the matching libtube360-yt, libtube360-cast, curl, mbedtls, mbedx509, mbedcrypto, everest and p256m static archives, and the four FFmpeg
 archives in `ffmpeg-lib/`. Include the support libraries' licenses. Place `tools/ffmpeg-x360/relink.sh` at the
 kit root. With the matching xsdk and GCC installed, run `FFMPEG_LIB=/path/to/modified/lib ./relink.sh`.
+
+See [release preparation](docs/RELEASE.md) for the current object/archive inventory and host-path
+sanitization. The app ZIP alone is not the complete source/relink distribution described above.

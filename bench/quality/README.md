@@ -24,7 +24,7 @@ HOME="$PWD/.work/quality/home" SDL_VIDEO_DRIVER=offscreen SDL_AUDIO_DRIVER=dummy
   XT_KEYS_MS=1000 XT_KEYS=......R client/build/tube360-quality-fixture
 ```
 
-`PYTHONUSERBASE=/home/pedrohenriquequadro/.local ~/.pyenv/versions/3.12.7/bin/python3 bench/quality/console_e2e.py .work/quality`
+`python3 bench/quality/console_e2e.py .work/quality`
 exercita conta e catálogo gravados, Home/Música/canal/player nas duas saídas, áudio original/dublado no Nest
 TLS falso e troca pausada com imagem, posição e volume preservados. Requer a mídia `both --audio-tracks`
 em `.work/quality/media`. Nomes de casos opcionais após o diretório permitem repetir uma prova.

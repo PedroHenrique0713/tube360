@@ -1,7 +1,34 @@
-# Console ⇄ server protocol
+# Native console paths and optional server protocol
 
-The console app (`client/`) talks to the PC server (`server/`, port **8091**) over plain **HTTP/1.0 on TCP**, with no TLS
-and no chunked encoding. It reads the server address from `server.txt` next to the `.xex` (`<IP> <port>`).
+Tube360 v0.3.0 runs YouTube on the Xbox. No `server.txt` beside the XEX (and no desktop `XT_SERVER`)
+means **console only**, including account, Music, phone Cast and Nest: no HTTP requests to a PC.
+The current timer is an exception in feature coverage: its deadline still requires the server.
+`settings.txt` can additionally force `server=off`; `server=auto` only permits a configured reserve.
+The first line of `server.txt` is `<IP> <port>`, for example `192.0.2.10 8091` (replace the documentation IP).
+
+## Native ownership
+
+| Function | Console path |
+|---|---|
+| YouTube browsing/account | HTTPS InnerTube/catalog requests in `client/src/yt/`; TV OAuth device code, refresh and protected local session in `yt-console-account.json`. No password is entered on Xbox. |
+| Video | Original AVC/H.264 and AAC, direct ranged VOD or segmented HLS, decoded locally by FFmpeg. Adapt source/rate before the configured server reserve. |
+| Audio selection | Original before automatic dubbing; offered language/role catalog used for player selection and direct speaker audio. |
+| Source/output | `video_mode=auto|720p60|1080p30` selects source preferences; `output_height=720|1080` selects framebuffer size. 1080 needs dashboard HDMI 1080p progressive. These are distinct settings, not guaranteed throughput. |
+| Account navigation/Music | Native TV account and public catalog; local queues, history, likes, subscriptions, library, Music and audio-only playback. Music can fall back to public shelves if its endpoint rejects the TV token. |
+| Phone | Native DIAL/SSDP and YouTube lounge receiver; identity files `cast-device.txt` / `cast-screen.txt`. See Cast from the phone below. |
+| Nest | Cast v2 TLS directly from Xbox, configured in two-line `nest.txt`; the speaker fetches YouTube audio. See Direct Cast below. |
+| Sleep | Current deadline/end-of-video state is server-owned. The console shows warnings/fades and executes shutdown commands. Native deadline ownership is still missing. |
+
+Local runtime files (account grants, Cast identities, Nest ownership journal, history, settings and logs)
+are private; ship only the inactive examples in `deploy/xbox/`. Examples for `nest.txt` and `server.txt`
+put values on the first lines because those readers do not skip leading comments.
+
+## Optional PC reserve
+
+The remainder documents the legacy/reserve **HTTP/1.0 TCP** API on port **8091**, without TLS or chunked
+encoding. This API is used only with a configured/enabled server. Its account/navigation bridge and timer
+are separate from the native session. It can remux original AVC/AAC; MPEG-1/MP2 is the converted compatibility
+path, not normal console playback. [Current architecture](STANDALONE.md) · [Installation](../README.md)
 
 ## Text rules
 
@@ -97,10 +124,10 @@ When `Remote.poll` detects a new playback ID (or a new playback session after a 
 once in the background. It sends `/progress` every 30 seconds and when leaving/ending a video. These requests never
 block the console poll, and a YouTube failure does not interrupt playback. Local console history is still saved.
 
-Compatibility observed with 16.0.1 and TV device tokens: TV browse and account info work, but `/player` may respond
-`UNPLAYABLE` ("The page needs to be refreshed") without playback tracking. In that case `/watched` and `/progress`
-return HTTP 502 `{error: "tracking_unavailable"}`; the account history/time update has **not** been confirmed.
-The library has `addToWatchHistory` and `updateWatchTime`, but neither can run without those tracking URLs.
+The Node bridge uses a Samsung TV client identity for player tracking while retaining the TV grant for account
+browsing. `/watched` records the start and `/progress` updates the position. Missing playback tracking returns
+HTTP 502 `{error: "tracking_unavailable"}`; a failed write must not be presented as confirmed history sync.
+This server-side compatibility path is separate from the native console account.
 
 
 ## Server status page
@@ -280,7 +307,7 @@ The minutes deadline applies even when the console has been absent for 60 second
 The client reads `/api/sleep` on a dedicated worker about every five seconds. Settings offer Off, 15, 30, 45, 60, 90,
 120 minutes and At end of video, plus Xbox only / Xbox and notebook. Only that target preference is saved in
 `settings.txt` as `sleep_what=xbox|xbox_notebook`; the timer itself is never saved by the client. In the player,
-D-pad **↑** opens the timer chooser, **← →** selects, **A** applies and **B** closes.
+the focused timer icon opens the timer chooser, **← →** selects, **A** applies and **B** closes.
 
 During the final 60 seconds a card offers **A +15 min** and **B Cancel**, and the SDL stream gradually fades, restoring
 its original gain on cancellation or extension. The server applies the same fade to the Nest through
@@ -306,9 +333,9 @@ curl -A Tube360/1.0 'http://127.0.0.1:8094/api/sleep/cancel'
 ## Player focus and captions
 
 This section supersedes the earlier player D-pad shortcuts. A hidden control bar consumes the first direction
-solely to reveal the timeline. On the timeline, Left/Right seek 10 seconds and A pauses/resumes. Up focuses the
-options row (Play/Pause, Captions, Quality, Sound, Sleep timer, Rate, Go to channel, and Live when behind).
-Left/Right move focus across both groups. A activates the focused control. Down returns to the timeline.
+solely to reveal the timeline. On the timeline, Left/Right seek 10 seconds and A pauses/resumes. Down focuses the
+options row (Play/Pause, Captions, Quality, Sound, Sleep timer, Audio, Like, Dislike, Go to channel, and Live when behind).
+Left/Right move focus across both groups. A activates the focused control. Up returns to the timeline.
 B closes one level at a time, from panel to options, timeline, hidden bar and finally out of the video.
 The bar hides after **5 seconds** without interaction on the timeline, including while paused. Options and panels
 hold it open. The next reveal always focuses the timeline. A/Menu, Y, X, LB/RB and LT/RT retain their playback
@@ -480,11 +507,11 @@ A console using the native YouTube player can configure its own speaker through 
 line contains the display name. For example, a LAN configuration can contain the following lines.
 
 ```text
-192.168.101.41 8009
-Teste Eliot
+192.0.2.20 8009
+Google Cast speaker
 ```
 
-This makes the existing Sound setting available with `server=off`. The native player retains the
+Replace the documentation address with the speaker's actual LAN IP. Find it in Google Home device information or the router's DHCP list. Keep values on the first two lines, without leading comments. This makes the Sound setting available without `server.txt` and with `server=off`. The native player retains the
 selected AAC/m4a audio offer even when the displayed MP4 already contains audio. It passes that
 unchanged signed URL to the Default Media Receiver (`CC1AD845`) using Cast v2 TLS and protobuf.
 The channel implements CONNECT, PING/PONG, receiver/media GET_STATUS, LAUNCH, LOAD, SEEK,
@@ -496,7 +523,7 @@ reserve stream uses the server. Before native playback opens Cast, `GET /api/nes
 cancels the server's pending work and returns `WAIT\t<revision>` until its audio is quiet and its Cast
 socket has closed, then `QUIET\t<revision>`. While delegated, server prepare, play and volume calls
 cannot open Cast. A console with no previous reserve session can use Cast directly when the optional
-server is unreachable. In the reverse direction the console confirms STOP and closes its TLS channel
+server is unreachable. The attempt is bounded to 3.5 seconds; an older server's 404 or lack of confirmation cannot hold native playback hostage. Native LAUNCH replaces an idle/default receiver when needed. In the reverse direction the console confirms STOP and closes its TLS channel
 before requesting `owner=server` (`ok\t<revision>`). Callers must preserve this order; the server
 cannot observe whether an independent sender's socket is closed. Deploy the client and server together.
 
@@ -513,8 +540,9 @@ Each LOAD carries an ownership token in `media.customData.tube360`. Clock sample
 or an already verified media session. Command request IDs fence older clock replies across seeks.
 The observation time advances only when an accepted MEDIA_STATUS contains `currentTime`. Fast
 request/reply pairs use their midpoint (120 ms maximum round trip). Unsolicited status uses receipt
-time. The picture extrapolates PLAYING observations and keeps the local PCM reserve muted. Eight
-seconds without a new clock or position progress requests release. BUFFERING also requires progress.
+time. The picture extrapolates PLAYING observations and keeps the local PCM reserve muted. Short channel interruptions keep the previous speaker clock instead of immediately unmuting the TV.
+The current native player requests release after 25 seconds without an accepted clock; lower-level media
+progress checks can release earlier. BUFFERING also requires progress. A timeout alone does not establish silence.
 A missing media namespace during reconnection waits for a complete receiver status.
 
 The TV takes over after a fresh status confirms IDLE/empty media or an empty application list.
@@ -522,7 +550,7 @@ A timeout by itself retains the mute. Returning to the speaker preloads with `au
 then waits for the selected frame and for the TV device queue to drain before issuing PLAY.
 
 The client writes `nest-owner.json` before LOAD. Leaving the video keeps the Cast worker alive to
-retry STOP during navigation. Application shutdown waits up to 1.8 s for quiet confirmation and
+retry STOP during navigation. Application shutdown waits up to 5 s for quiet confirmation and
 retains an unfinished journal for the next launch. With an unreachable speaker and a direct YouTube
 URL, audio can continue after the application exits. That URL cannot be revoked by the console.
 Volume and mute from the phone and the temporary sleep fade apply through the current Cast owner.

@@ -1,0 +1,10 @@
+192.0.2.20 8009
+Google Cast speaker
+# EN: Rename to nest.txt beside default.xex; replace the documentation IP with your speaker's LAN IP.
+# PT: Renomeie para nest.txt junto do default.xex; troque pelo IP local da sua caixa.
+# Line 1 / linha 1: host [port/porta], default/padrao 8009. Line 2 / linha 2: display name/nome.
+# Keep these first two lines in place: this reader does not skip leading comments.
+# Mantenha as duas primeiras linhas: o leitor nao pula comentarios iniciais.
+# Find IP / ache o IP: Google Home device information, or the router DHCP/connected devices list.
+# Same LAN, working speaker Wi-Fi/internet; press B to leave playback before closing the app.
+# Mesma rede, Wi-Fi/internet da caixa funcionando; saia da reproducao com B antes de fechar.

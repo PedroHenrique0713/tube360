@@ -1,0 +1,8 @@
+192.0.2.10 8091
+# EN: Optional PC reserve only. Replace with the actual PC LAN IP, then rename to server.txt.
+# PT: So para reserva opcional no PC. Troque pelo IP local real do PC e renomeie para server.txt.
+# First line / primeira linha: IP port/porta. No leading comments / sem comentarios antes dela.
+# No server.txt = console only, without PC requests / sem server.txt = so console, sem pedidos ao PC.
+# With server.txt, select Server Automatic / com server.txt, selecione Servidor Automatico.
+# settings.txt server=off disables the reserve even when this address is present.
+# server=off no settings.txt desativa a reserva mesmo com este endereco presente.
