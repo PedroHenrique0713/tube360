@@ -321,7 +321,8 @@ private:
                 mediaCommand("STOP"); stopAt = now;
             }
             if (goal.active && !pending && actionAt && !acknowledged && now-actionAt > 4500) view.state = ERROR;
-            if (goal.active && (view.state == PLAYING || view.state == BUFFERING) && now-advanced > 8000) view.state = STALLED;
+            // Sem notícia do Nest (rede sem fio instável) ele segue tocando o áudio que já guardou: reconecta sem trocar a saída.
+            if (goal.active && (view.state == PLAYING || view.state == BUFFERING) && now-advanced > 25000) view.state = STALLED;
             cast::Message message;
             int received = channel.read(message,20);
             if (received < 0) { connected = false; continue; }

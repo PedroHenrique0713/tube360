@@ -91,7 +91,7 @@ inline void Player::directNestLoop() {
         else if (!expected && last && last != st) speakerPause = st == 2 ? 1 : 2;
         last = st;
       }
-      bool expired = sample.updated > 0 && now-sample.updated > 8000;
+      bool expired = sample.updated > 0 && now-sample.updated > 25000;
       bool neverStarted = !sample.updated && now-requested > 3500;
       if (st == 3 || st == 4 || expired || neverStarted) {
         if (!last) failedStart = true;
