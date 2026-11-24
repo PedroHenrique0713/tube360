@@ -1507,7 +1507,8 @@ int main(int argc, char** argv) {
     } else if (screen == PLAYER) {
       bool any = false;
       int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
-      int vertical = in.hit(Input::UP) ? 1 : in.hit(Input::DOWN) ? -1 : 0;
+      // Na opção 1 aprovada os ícones ficam ABAIXO da barra: ↓ leva aos ícones, ↑ volta para a trilha.
+      int vertical = in.hit(Input::DOWN) ? 1 : in.hit(Input::UP) ? -1 : 0;
       double jump = 0;
       if (horizontal || vertical) { jump = playerUI.direction(now, horizontal, vertical, optionCount) * 10; any = true; }
       if (in.hit(Input::LB)) jump = -60;
