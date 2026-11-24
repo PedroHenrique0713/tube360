@@ -43,7 +43,7 @@ struct OfferCount {
 };
 struct MediaOffers { OfferCount avc720, avc480, aac; };
 struct Video {
-    string id, title, status, reason, hls;
+    string id, title, status, reason, hls, channel, channelId, date;
     int ttl = 0, duration = 0;
     int64_t expiresAt = 0;
     bool highFrameRate720 = false, live = false;

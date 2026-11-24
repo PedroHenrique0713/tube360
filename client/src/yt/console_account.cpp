@@ -303,7 +303,7 @@ struct ConsoleAccount::Impl {
     std::mutex tokenMutex;
     string publishedToken;
     std::atomic_uint64_t tokenGeneration{0};
-    string path, clientId, secret, version="7.20250219.14.00", visitor, name;
+    string path, clientId, secret, version="7.20250219.14.00", visitor, name, avatar;
     DeviceCode code;
     Tokens tokens;
     bool loaded=false, identityKnown=false, tokenDirty=false;
@@ -371,7 +371,7 @@ struct ConsoleAccount::Impl {
         return ok;
     }
     void clear() {
-        code={}; tokens={}; name.clear(); visitor.clear(); identityKnown=false; tokenDirty=false;
+        code={}; tokens={}; name.clear(); avatar.clear(); visitor.clear(); identityKnown=false; tokenDirty=false;
         retryRefresh=0; lists.clear(); tracking.clear(); images.clear();
     }
     string discover() {
@@ -445,6 +445,8 @@ struct ConsoleAccount::Impl {
         std::vector<const J*> accounts; nodes(j,"accountItem",accounts); nodes(j,"accountItemRenderer",accounts);
         for (auto* account:accounts) if (flag(*account,"isSelected") || name.empty()) {
             name=clean(text(get(*account,"accountName")));
+            avatar=registerImage(image(get(*account,"accountPhoto")));
+            if (avatar.empty()) avatar=registerImage(image(get(*account,"avatar")));
             if (flag(*account,"isSelected")) break;
         }
         identityKnown=true;
@@ -465,7 +467,7 @@ struct ConsoleAccount::Impl {
             auto e=auth(); if (!e.empty() && e!="signed_out") return {{},e};
             if (!tokens.refresh.empty()) {
                 identity();
-                if (!tokens.refresh.empty()) return {"ok\tsigned_in\t"+clean(name)+"\t\t\n",{}};
+                if (!tokens.refresh.empty()) return {"ok\tsigned_in\t"+clean(name)+"\t\t\t"+avatar+"\n",{}};
             }
         }
         if (start && code.device.empty()) {
@@ -520,13 +522,30 @@ struct ConsoleAccount::Impl {
         if (kind=="library" && !list.started) {
             for (const auto& preview: {std::pair{"FEhistory", &list.historyVideo}, std::pair{"VLWL", &list.laterVideo}}) {
                 J data;
-                if (call("browse", "\"browseId\":"+J(string(preview.first)).serialize(), data).empty()) {
+                auto error=call("browse", "\"browseId\":"+J(string(preview.first)).serialize(), data);
+                // A revogação também apaga lists; nenhuma referência da página continua válida.
+                if (tokens.refresh.empty()) return "signed_out";
+                if (error.empty()) {
                     Parsed cover; walk(data, cover);
                     auto video=std::find_if(cover.items.begin(),cover.items.end(),[](const Item& item) { return item.type=="video"; });
                     if (video!=cover.items.end()) *preview.second=video->id;
                 }
             }
             parsed.items.erase(std::remove_if(parsed.items.begin(),parsed.items.end(),[](const Item& item) { return item.id=="WL" || item.id=="VLWL"; }),parsed.items.end());
+            int previews=0;
+            for (auto& item:parsed.items) if (item.type=="playlist" && item.image.empty() && previews++<8) {
+                J data;
+                bool mix=item.id.compare(0,2,"RD")==0 || item.id.compare(0,4,"VLRD")==0;
+                string fields=mix ? "\"playlistId\":"+J(item.id.substr(item.id.compare(0,2,"VL")==0 ? 2 : 0)).serialize() :
+                    "\"browseId\":"+J(item.id.compare(0,2,"VL")==0 ? item.id : "VL"+item.id).serialize();
+                auto error=call(mix ? "next" : "browse",fields,data);
+                if (tokens.refresh.empty()) return "signed_out";
+                if (error.empty()) {
+                    Parsed preview; walk(data,preview);
+                    auto video=std::find_if(preview.items.begin(),preview.items.end(),[](const Item& i) { return i.type=="video"; });
+                    if (video!=preview.items.end()) item.image="https://i.ytimg.com/vi/"+video->id+"/mqdefault.jpg";
+                }
+            }
         }
         if (kind=="subscriptions" && !list.videosOnly && !list.started &&
             std::none_of(parsed.items.begin(),parsed.items.end(),[](const Item& i){return i.type=="channel";})) {

@@ -54,6 +54,7 @@ struct Loader {
   net::Server srv;
   std::string path;
   Data ready;
+  Data metadata;
   uint64_t revision = 0, readyRevision = 0;
   bool quit = false, pending = false, available = false;
   bool loading = false, native = false, live = false;
@@ -74,7 +75,11 @@ struct Loader {
   void request(const net::Server& server, const std::string& id, const char* lang, const std::string& track, const yt::Video* media = nullptr, bool reuseTracks = false) {
     SDL_LockMutex(mu);
     native = media != nullptr || (reuseTracks && native);
-    if (media) { tracks = media->captions; live = media->live || (!media->hls.empty() && !media->duration); }
+    if (media) {
+      tracks = media->captions; live = media->live || (!media->hls.empty() && !media->duration);
+      metadata = {}; metadata.title = media->title; metadata.channel = media->channel;
+      metadata.channelId = media->channelId; metadata.date = media->date;
+    } else if (!reuseTracks) metadata = {};
     language = lang; preferred = track;
     srv = server; path = "/api/captions/" + id + "?lang=" + lang;
     if (!track.empty()) path += "&track=" + net::urlEncode(track);
@@ -92,8 +97,9 @@ struct Loader {
       if (quit) { SDL_UnlockMutex(mu); return; }
       std::string url = path; net::Server server = srv; uint64_t ticket = revision; pending = false;
       auto options = tracks; auto lang = language, selected = preferred; bool direct = native, broadcast = live;
+      Data data = metadata;
       SDL_UnlockMutex(mu);
-      net::Response response; Data data;
+      net::Response response;
       if (direct) {
         data.live = broadcast;
         const yt::Track* best = nullptr;

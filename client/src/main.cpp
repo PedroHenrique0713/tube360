@@ -2002,8 +2002,10 @@ int main(int argc, char** argv) {
           playerIcon(g, symbols[i - PlayerUI::CC], cx, focused);
           if (focused) focusX = cx;
           if (i == PlayerUI::VIDEO) {
-            gfx::rect(g, cx - 3, 648, 23, 11, red, 3);
-            gfx::text(g, ui::F_BADGE, pl.actualHeight > 720 ? "HD" : "720", cx + 8.5f, 648, rgb(0xffffff), 1);
+            bool full = pl.actualHeight > 720;
+            float badgeWidth = full ? 29 : 23;
+            gfx::rect(g, cx - 3, 648, badgeWidth, 11, red, 3);
+            gfx::text(g, ui::F_BADGE, full ? "1080" : "720", cx - 3 + badgeWidth / 2, 648, rgb(0xffffff), 1);
           } else if (i == PlayerUI::AUDIO && pl.nest) {
             gfx::rect(g, cx + 6, 652, 8, 8, rgb(0x22c55e), 4);
           }
@@ -2263,6 +2265,7 @@ int main(int argc, char** argv) {
     gfx::end(g, shoot ? shotPath : nullptr);
     if (shoot) {
       LOG("captura: frame %llu, tempo %llu ms, tela %d, vídeo %s, posição %.2f", (unsigned long long)frame, (unsigned long long)(now - runStart), (int)screen, playing.id.c_str(), pl.position());
+      LOG("captura conta: conectada=%d foto=%d", account.signedIn(), !account.avatar.empty());
       if (screen == NAV && !nav.pages.empty()) LOG("captura navegação: %s sel=%d canal=%d zona=%d pilha=%u menu=%d prateleira=%d",
           nav.page().kind.c_str(), nav.page().sel, nav.page().channelSel, nav.page().zone, (unsigned)nav.pages.size(), railFocus, nav.page().shelf);
       quit = true;

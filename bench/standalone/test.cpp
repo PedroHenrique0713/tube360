@@ -48,6 +48,7 @@ void playback(Http& h,yt::Client& c,const string& dir) {
     auto v=c.player(id,720,&offers);
     check(offers.avc720.direct==1 && offers.avc480.direct==1 && offers.aac.direct==2,"recorded direct offers");
     check(v.status=="OK" && v.id==id && !v.title.empty() && v.ttl==21540,"recorded metadata");
+    check(!v.channel.empty(),"native player preserves the recorded channel author");
     check(!v.muxed && v.video.itag==137 && v.fallbackVideo.itag==136 && v.audio.itag==140 && v.video.fps==30,"1080p30 with 720p fallback and AAC");
     auto metadataOnly=json;
     for (size_t i=0; (i=metadataOnly.find("\"url\"",i))!=string::npos; ++i)

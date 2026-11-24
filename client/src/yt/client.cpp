@@ -251,6 +251,10 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
     auto& live = field(details, "isLive");
     out.live = live.is<bool>() && live.get<bool>();
     out.id = str(details,"videoId"); out.title = str(details,"title");
+    out.channel = str(details,"author"); out.channelId = str(details,"channelId");
+    const auto& micro = field(field(j,"microformat"),"playerMicroformatRenderer");
+    out.date = str(micro,"publishDate");
+    if (out.date.empty()) out.date = str(micro,"uploadDate");
     if (out.id != id) { out.status="INVALID_VIDEO_ID"; return out; }
     const auto& sd=field(j,"streamingData");
     out.ttl=integer(sd,"expiresInSeconds");

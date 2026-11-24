@@ -70,9 +70,10 @@ void login(const string& path) {
     n=f.sent.size(); a.request("/api/account",1010,20);
     check(f.sent.size()==n,"slow down enforced");
     f.add("/o/oauth2/token",R"("code":"fake-device")",token);
-    f.add("/account/accounts_list",R"("clientName":"TVHTML5")",R"({"contents":[{"accountItem":{"accountName":{"simpleText":"Outra"},"isSelected":false}},{"accountItem":{"accountName":{"simpleText":"Conta F11"},"isSelected":true}}]})",200,"fake-a");
+    f.add("/account/accounts_list",R"("clientName":"TVHTML5")",R"({"contents":[{"accountItem":{"accountName":{"simpleText":"Outra"},"isSelected":false}},{"accountItem":{"accountName":{"simpleText":"Conta F11"},"isSelected":true,"accountPhoto":{"thumbnails":[{"url":"https://yt3.ggpht.com/fixture-avatar","width":160}]}}}]})",200,"fake-a");
     r=a.request("/api/account",1015,25);
     check(r.ok() && r.body.find("signed_in\tConta F11")!=string::npos,"login completed with selected identity");
+    check(r.body.find("\t\t\t~yt1\n")!=string::npos && a.pictureUrl("~yt1")=="https://yt3.ggpht.com/fixture-avatar","native account exposes its selected avatar artwork");
     check(a.accessToken()=="fake-a" && a.tokenRevision()==1,"completed login publishes Music token");
     J saved; check(picojson::parse(saved,read(path)).empty(),"persisted JSON");
     check(saved.get("expires_at").get<double>()==4615,"expiry persisted as wall clock");
@@ -119,8 +120,13 @@ void feeds(const string& path) {
     r=a.request("/api/nav?kind=subscriptions",1001,11);
     check(r.ok() && r.body.find("channel\t"+chan)!=string::npos && r.body.find("video\t"+video)!=string::npos,"subscriptions include channels and videos");
     f.add("/browse",R"("browseId":"FEplaylist_aggregation")",R"({"contents":[{"gridPlaylistRenderer":{"playlistId":"PLteste","title":{"simpleText":"Minha lista"}}},{"tileRenderer":{"contentType":"TILE_CONTENT_TYPE_PLAYLIST","contentId":"RDmix","onSelectCommand":{"watchEndpoint":{"videoId":"video000001","playlistId":"RDmix"}},"metadata":{"tileMetadataRenderer":{"title":{"simpleText":"Meu mix"}}}}}]})",200,"fake-a");
+    f.add("/browse",R"("browseId":"FEhistory")",R"({"contents":[)"+tile("history0001","Último assistido")+R"(]})",200,"fake-a");
+    f.add("/browse",R"("browseId":"VLWL")",R"({"contents":[)"+tile("later000001","Último salvo")+R"(]})",200,"fake-a");
+    f.add("/browse",R"("browseId":"VLPLteste")",R"({"contents":[)"+tile(video,"Capa da playlist")+R"(]})",200,"fake-a");
+    f.add("/next",R"("playlistId":"RDmix")",R"({"contents":[)"+tile(video,"Capa do mix")+R"(]})",200,"fake-a");
     r=a.request("/api/nav?kind=library",1002,12);
     check(r.ok() && r.body.find("playlist\tPLteste")!=string::npos && r.body.find("playlist\tRDmix")!=string::npos,"library playlists and mixes");
+    check(r.body.find("\thistory0001\tlater000001\n")!=string::npos,"native library shortcut artwork in protocol header");
     f.add("/browse",R"("browseId":"VLWL")",R"({"contents":[)"+tile(video,"Mais tarde")+R"(]})",200,"fake-a");
     check(a.request("/api/nav?kind=later",1003,13).body.find("Mais tarde")!=string::npos,"watch later library");
     check(a.request("/api/nav/play?kind=later",1004,14).body.find("video\t"+video)!=string::npos,"playlist play uses cached native queue");
@@ -141,6 +147,14 @@ void concurrency(const string& path) {
     retry.add("/o/oauth2/token","refresh_token",R"({"access_token":"fake-b","token_type":"Bearer","expires_in":3600})");
     retry.add("/browse",R"("browseId":"FEhistory")",R"({"contents":[]})",200,"fake-b");
     check(b.request("/api/nav?kind=history",1000,10).ok() && retry.steps.empty(),"read retries once after early token expiry");
+}
+void libraryExpiry(const string& path) {
+    seed(path); Fake f; yt::ConsoleAccount a(f,path);
+    f.add("/browse",R"("browseId":"FEplaylist_aggregation")",R"({"contents":[]})",200,"fake-a");
+    f.add("/browse",R"("browseId":"FEhistory")","{}",401,"fake-a");
+    f.add("/o/oauth2/token","refresh_token",R"({"error":"invalid_grant"})",400);
+    auto r=a.request("/api/nav?kind=library",1000,10);
+    check(!r.ok() && r.error=="signed_out" && f.steps.empty(),"revoked library preview stops before using cleared page storage");
 }
 void actions(const string& path) {
     seed(path); Fake f; yt::ConsoleAccount a(f,path);
@@ -189,7 +203,7 @@ void music(const string& path) {
         // Logado, a Música abre a sessão pelo sw.js_data, como a youtubei.js (F16); deslogado, pela página do Music.
         if (!bearer.empty()) f.add("https://www.youtube.com/sw.js_data","",tvSession);
         else f.add("https://music.youtube.com/","",R"({"INNERTUBE_CONTEXT":{"client":{"clientName":"WEB_REMIX","clientVersion":"fixture"}}})");
-        f.add(bearer.empty() ? "https://music.youtube.com/youtubei/v1/browse" : "https://www.youtube.com/youtubei/v1/browse",
+        f.add("https://music.youtube.com/youtubei/v1/browse",
               R"("browseId":"FEmusic_home")",R"({"contents":{}})",200,bearer);
         check(catalog.setToken(a.accessToken()),"account token accepted by Music");
         check(catalog.browse({{"kind","music"}}).error.empty(),"account Music Home loads");
@@ -215,7 +229,7 @@ int main(int argc,char** argv) {
     if (argc!=2) return 1;
     string path=string(argv[1])+"/test-token.json";
     unlink(path.c_str());
-    login(path); refresh(path); feeds(path); concurrency(path); actions(path); history(path); music(path);
+    login(path); refresh(path); feeds(path); libraryExpiry(path); concurrency(path); actions(path); history(path); music(path);
     unlink(path.c_str());
     std::cout<<checks<<" checks passed\n";
 }
