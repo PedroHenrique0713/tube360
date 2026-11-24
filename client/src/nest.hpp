@@ -150,13 +150,14 @@ public:
     void shutdown() {
         if (!mutex) return;
         release();
-        if (thread) { waitQuiet(1800); quit = true; SDL_WaitThread(thread,nullptr); thread = nullptr; }
+        if (thread) { waitQuiet(5000); quit = true; SDL_WaitThread(thread,nullptr); thread = nullptr; }
         SDL_DestroyMutex(mutex); mutex = nullptr;
     }
 private:
     void run() {
         cast::Connection channel;
         Config endpoint = config;
+        bool launched = false;
         struct Sent { double time; uint64_t generation; };
         std::map<int,Sent> requests;
         Status view;
@@ -203,7 +204,7 @@ private:
             auto kind = text(J(message),"type");
             if (kind != "GET_STATUS" && kind != "PING" && kind != "PONG")
                 SDL_Log("Nest: console %s gen=%llu req=%d",kind.c_str(),(unsigned long long)generation,id);
-            if (std::getenv("XT_CAST_DEBUG") && kind == "LOAD") SDL_Log("cast tx %.400s",J(message).serialize().c_str());
+            if (std::getenv("XT_CAST_DEBUG") && kind != "GET_STATUS" && kind != "PING" && kind != "PONG") SDL_Log("cast tx -> %s %.300s",destination.c_str(),J(message).serialize().c_str());
             if (!channel.send(sender,destination,space,J(message).serialize())) {
                 SDL_Log("Nest: console erro enviando %s",kind.c_str()); connected = false;
             }
@@ -305,6 +306,7 @@ private:
                         Object resource{{"contentId",J(goal.url)},{"contentType",J(std::string("audio/mp4"))},
                                         {"streamType",J(std::string("BUFFERED"))},{"customData",J(Object{{"tube360",J(token)}})}};
                         if (goal.duration > 0) resource["duration"] = J(goal.duration);
+                        launched = true;
                         barrier = send(transport,cast::media,{{"type",J(std::string("LOAD"))},{"media",J(resource)},
                                         {"currentTime",J(goal.position)},{"autoplay",J(!goal.paused)}});
                     } else {
@@ -417,6 +419,12 @@ private:
                 if (goal.active && !pending && acknowledged && fresh && !owned) { view.state = IDLE; view.updated = 0; }
             }
             publish(view);
+        }
+        // Ao sair do app o Nest não pode continuar com o áudio guardado: fecha o receptor que este console abriu.
+        SDL_Log("Nest: console saindo conectado=%d abriu=%d sessao=%s",connected,launched,receiverSession.c_str());
+        if (connected && launched && !receiverSession.empty()) {
+            send("receiver-0",cast::receiver,{{"type",J(std::string("STOP"))},{"sessionId",J(receiverSession)}});
+            SDL_Delay(200);
         }
         channel.close();
     }
