@@ -19,6 +19,7 @@
 #include "yt/media.hpp"
 #include "yt/console_account.hpp"
 #include "nest.hpp"
+#include "audio_tempo.hpp"
 #ifdef __XSDK__
 #include "xsdk/thread.h"
 #include "xsdk/audio.h"
@@ -74,6 +75,9 @@ struct Player {
   net::Server srv;
   std::string id, title, error;
   double startAt = 0, duration = 0;
+  std::atomic<double> speed{1};
+  bool loop = false;
+  audio::Tempo tempo;
   int quality = 720;
   int videoMode = playback::AUTO, cachedVideoMode = -1;
   std::string audioSelection = "original", cachedAudio;
@@ -221,8 +225,11 @@ struct Player {
 
   void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}, bool members = false) {
     if (vid != id || state == IDLE || quality != q) allowOriginal = true;
+    if (vid != id) { speed=1; loop=false; }
+    speaker = speaker && speed == 1;
     halt(!speaker);
     memberVideo = members || (vid == id && memberVideo);
+    tempo.reset(speed);
     if (mode >= 0) videoMode=mode;
     if (!track.empty()) audioSelection=track;
     else if (vid != id) audioSelection="original";
@@ -403,6 +410,28 @@ struct Player {
 
   double audioQueuedSec() { return audio ? SDL_GetAudioStreamQueued(audio) / (44100.0 * 2 * 4) : 0; }
 
+  bool putAudio(const float* pcm, int count, double pts) {
+    if (!audio || count < 0 || !std::isfinite(pts)) return false;
+    if (!count) return true;
+    SDL_LockAudioStream(audio);
+    if (SDL_GetAtomicInt(&audioBaseMs)<0) SDL_SetAtomicInt(&audioBaseMs,int(std::lround(pts*1000)));
+    auto sink=[&](const float* data, int frames) {
+      if (!SDL_PutAudioStreamData(audio,data,frames*2*sizeof(float))) return false;
+      SDL_AddAtomicInt(&pushed,frames); return true;
+    };
+    bool ok=speed==1 ? sink(pcm,count) : tempo.push(pcm,count,sink);
+    SDL_UnlockAudioStream(audio); return ok;
+  }
+  bool finishAudio() {
+    if (!audio || speed==1) return true;
+    SDL_LockAudioStream(audio);
+    bool ok=tempo.push(nullptr,0,[&](const float* pcm,int frames) {
+      if (!SDL_PutAudioStreamData(audio,pcm,frames*2*sizeof(float))) return false;
+      SDL_AddAtomicInt(&pushed,frames); return true;
+    },true);
+    SDL_UnlockAudioStream(audio); return ok;
+  }
+
   void trimReserve() {
     // Descartar PCM realmente enfileirado, no formato do dispositivo, somente enquanto a reserva está muda.
     int trim = trimMs.exchange(-1);
@@ -458,11 +487,7 @@ struct Player {
       for (int k = 0; k < audioBudget && !audioDone && !stop && audioQueuedSec() < reserve; k++) {
         plm_samples_t* s = plm_decode_audio(plm);
         if (!s) { if (plm_has_ended(plm)) audioDone = true; break; }
-        SDL_LockAudioStream(audio);
-        SDL_PutAudioStreamData(audio, s->interleaved, (int)(s->count * 2 * sizeof(float)));
-        SDL_AddAtomicInt(&pushed, (int)s->count);
-        if (SDL_GetAtomicInt(&audioBaseMs) < 0) SDL_SetAtomicInt(&audioBaseMs, (int)std::lround(s->time * 1000));
-        SDL_UnlockAudioStream(audio);
+        putAudio(s->interleaved,(int)s->count,s->time);
         did = true;
       }
       trimReserve();
@@ -489,6 +514,7 @@ struct Player {
         statAt = SDL_GetTicks(); statFrames = 0; statNs = 0; statIdle = 0; statSkip0 = plm_video_skipped_b_total;
       }
     }
+    if (hasAudio && !stop) finishAudio();
     SDL_LockMutex(mu); decEnded = true; SDL_UnlockMutex(mu);
     plm_destroy(plm);
   }
@@ -662,7 +688,7 @@ struct Player {
     int base = SDL_GetAtomicInt(&audioBaseMs);
     if (!hasAudio || base < 0) return wall;
     double played = SDL_GetAtomicInt(&pushed) / 44100.0 - queued - deviceMs / 1000.0;
-    return base / 1000.0 + std::max(0.0, played);
+    return base / 1000.0 + std::max(0.0, played) * speed;
   }
 
   void setPaused(bool p, bool notifySpeaker = true) {
@@ -748,17 +774,17 @@ struct Player {
       }
     }
     if (firstPts >= 0 && !paused) {
-      double wall = firstPts + (ms - wallStart - pausedTotal) / 1000.0;
+      double wall = firstPts + (ms - wallStart - pausedTotal) / 1000.0 * speed;
       if (audio) SDL_LockAudioStream(audio);
       double queued = audioQueuedSec(), tv = tvClock(wall, queued);
       if (audio) SDL_UnlockAudioStream(audio);
       // SDL entrega o consumo em blocos. Entre callbacks, o mesmo bloco continua saindo no dispositivo.
       if (!speakerRequested && hasAudio && queued>0 && !refill && tv>firstPts+.0001) {
         if (tvSampleAt<=0 || std::fabs(tv-tvSample)>.000001) { tvSample=tv;tvSampleAt=now; }
-        tv+=std::min(std::max(0.0,now-tvSampleAt),clockStepMs)/1000.0;
+        tv+=std::min(std::max(0.0,now-tvSampleAt),clockStepMs)/1000.0 * speed;
       }
       double dt = std::max(0.0, (now - tickMs) / 1000.0);
-      double predicted = screenSec + dt;
+      double predicted = screenSec + dt * speed;
       // O último PCM já foi entregue ao dispositivo. Apresenta também a cauda do vídeo até o último PTS.
       if (original && decEnded && queued <= 0) tv = std::max(tv, predicted);
       bool follow = speaker >= 0 && route == CAST;

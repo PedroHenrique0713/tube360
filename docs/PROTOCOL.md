@@ -573,3 +573,33 @@ fixtures. `bench/standalone/cast_e2e.py <repo>` prepares synthetic
 Run `python3 bench/standalone/cast_test.py client/build/nest-test` for channel, ownership and recovery
 tests after building the `nest-test` target. The Python tests use the installed pychromecast protobuf
 binding and OpenSSL to create a temporary certificate.
+
+## Native player extras (server=off)
+
+Comments and Return YouTube Dislike counts use HTTPS directly from the console; no PC routes are added.
+The comments worker boots a public WEB context, posts the comments-section continuation to InnerTube `/next`,
+and accepts both `commentRenderer` and entity-backed `commentViewModel` threads. Only the comments target can
+supply a page token; reply and related-video tokens are ignored. Up/Down scrolls the text and moves between
+comments; A on More comments loads the next page. The current page is replaced, bounded to 60 comments with
+16 KiB of text each. Closing the panel leaves playback running. Late results from another video are discarded.
+
+`https://returnyoutubedislikeapi.com/votes?videoId=<id>` supplies like/dislike counts in the corresponding
+player tooltips. The dislike value is an estimate attributed in the interface to
+[Return YouTube Dislike](https://returnyoutubedislike.com). The worker caches success for five minutes and failure
+for 30 seconds, at most 32 videos. Network, HTTP and parse errors leave counts absent without interrupting playback.
+Source: [API documentation](https://github.com/Anarios/return-youtube-dislike#api-documentation).
+
+Playback speed has eight steps from 0.25x through 2x, local to the current video. A speed change reopens at the
+current position and preserves pause. The Xbox FFmpeg build disables libavfilter, so the decoder worker applies
+bounded-memory stereo WSOLA at 44.1 kHz. Video/captions/history follow the consumed PCM clock in source seconds.
+Changed speed caps presentation at 30 pictures per wall second where the source provides enough pictures.
+At speeds other than 1x the TV owns audio; the interface explains this when a Nest is selected. Returning to 1x
+restores the selected output. Live streams keep speed 1x and disable the selector. Loop repeats the current VOD
+before automatic-next/phone-queue advancement; an end-of-video sleep timer takes priority. Both reset for a new ID.
+
+The comments bootstrap token follows the public
+[YouTube.js protobuf schema](https://github.com/LuanRT/YouTube.js/blob/main/protos/misc/params.proto).
+Desktop proof: `python3 bench/quality/prepare.py .work/extras-media --mode 60 --seconds 24`,
+`cmake --build client/build -j4 --target player-extras-test tube360-extras-fixture`,
+`client/build/player-extras-test`, then `python3 bench/player-extras/e2e.py`.
+All test media/accounts/transports are isolated; the production executable does not contain the fixture transport.

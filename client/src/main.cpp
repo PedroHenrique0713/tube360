@@ -30,6 +30,7 @@
 #include "player.hpp"
 #include "music_player.hpp"
 #include "player_ui.hpp"
+#include "player_extras.hpp"
 #include "player_text.hpp"
 #include "captions.hpp"
 #include "settings.hpp"
@@ -687,6 +688,9 @@ int main(int argc, char** argv) {
   int zone = 0;  // 0 grade, 1 categorias
   float scroll = 0; static float selAnim[600] = {};
   bool railFocus = false; int railSel = 0; float railOpen = 0;
+  PlayerExtras extras; extras.init();
+  std::vector<std::string> commentLines; int commentIndex=-1;
+  PlayerText commentAuthor, commentMeta; std::string commentPosition;
   bool phonePanel = false;
   int settingsRow = 0; bool loginPanel = false, logoutPanel = false;
   K loginError = K::None;
@@ -798,6 +802,9 @@ int main(int argc, char** argv) {
       nav.ownsQueue = nav.musicSession = nav.musicNow = false;
       navWorker.add({6, "/api/nav/transport?action=clear", ++nav.serial}, true);
     }
+    if (v.id != playing.id || screen != PLAYER) {
+      extras.select(v.id,i18n::code(settings.lang)); commentLines.clear(); commentIndex=-1;
+    }
     if (v.id != playing.id) {
       nestSkip = false; likeState.clear(); upNext = Video{};
       if (!nav.localQueue) {
@@ -814,12 +821,14 @@ int main(int argc, char** argv) {
     pl.nestOffset = nestOffsetMs / 1000.0;
     if (screen != PLAYER) nav.musicNow = nav.musicSession;
     pl.audioOnly = nav.musicSession && nav.musicNow;
+    if (pl.audioOnly) { pl.speed=1; pl.loop=false; }
     pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track,v.members != yt::Membership::None);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
   auto stopVideo = [&]() {
     recordHistory(); historyVideo.clear(); historyStarted = false;
+    extras.select("",i18n::code(settings.lang));
     if (nav.localQueue) { nav.clearLocalQueue(); nav.musicSession = nav.musicNow = false; }
     if (nav.ownsQueue && pl.state != player::ENDED) {
       nav.ownsQueue = nav.musicSession = nav.musicNow = false; nav.busy = false; nav.cancelQueue = true;
@@ -1206,6 +1215,7 @@ int main(int argc, char** argv) {
     const char* keys[] = {tr(K::Keyboard1), tr(K::Keyboard2), tr(K::Keyboard3), tr(K::Keyboard4)};
     bool behindLive = screen == PLAYER && pl.live && (pl.paused || (pl.shownFrames &&
         (pl.liveDebt >= 1.0 || (pl.lastFrameMs && now > pl.lastFrameMs + 1000))));
+    if (extras.poll()) { commentIndex=-1; }
     int optionCount = behindLive ? PlayerUI::COUNT : PlayerUI::EDGE;
     if (playerUI.selected >= optionCount) playerUI.selected = PlayerUI::CHANNEL;
     if (shutdownAt) {
@@ -1242,7 +1252,32 @@ int main(int argc, char** argv) {
       overlayUntil = now + 4000;
     } else if (screen == PLAYER && playerUI.panel != PlayerUI::NONE) {
       if (in.hit(Input::B)) playerUI.panel = PlayerUI::NONE;
-      else if (playerUI.panel == PlayerUI::CAPTIONS) {
+      else if (playerUI.panel == PlayerUI::COMMENTS_PANEL) {
+        int count=(int)extras.page.items.size();
+        if (in.hit(Input::DOWN)) {
+          if (extras.selected<count && extras.line+10<(int)commentLines.size()) ++extras.line;
+          else if (extras.selected+1<count || !extras.page.continuation.empty()) { extras.selected=std::min(count,extras.selected+1); extras.line=0; }
+        }
+        if (in.hit(Input::UP)) {
+          if (extras.line>0) --extras.line;
+          else { extras.selected=std::max(0,extras.selected-1); extras.line=0; }
+        }
+        if (in.hit(Input::A) && !extras.loading && (!extras.page.error.empty() || extras.selected>=count)) extras.request(!extras.page.continuation.empty());
+      } else if (playerUI.panel == PlayerUI::SPEED_PANEL) {
+        if (in.hit(Input::UP) || in.hit(Input::LEFT)) playerUI.panelSel=(playerUI.panelSel+7)%8;
+        if (in.hit(Input::DOWN) || in.hit(Input::RIGHT)) playerUI.panelSel=(playerUI.panelSel+1)%8;
+        if (in.hit(Input::A) && !pl.live && !pl.waiting()) {
+          double speed=audio::speeds[playerUI.panelSel], pos=pl.position(); bool paused=pl.paused;
+          bool changed=pl.speed!=speed;
+          if (changed) {
+            pl.halt(); pl.speed=speed;
+            startVideo(playing,pos,playerFromRemote); pl.setPaused(paused);
+            LOG("velocidade: %.2fx em %.3f, som TV=%d",speed,pos,speed!=1);
+            if (nestOut && speed!=1) { toast=tr(K::SpeedTV); toastUntil=now+5000; }
+          }
+          playerUI.panel=PlayerUI::NONE; playerUI.options=true;
+        }
+      } else if (playerUI.panel == PlayerUI::CAPTIONS) {
         if (in.hit(Input::UP)) playerUI.panelSel = 0;
         if (in.hit(Input::DOWN)) playerUI.panelSel = 1;
         int direction = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
@@ -1273,6 +1308,7 @@ int main(int argc, char** argv) {
             startVideo(playing,pl.live ? 0 : position,playerFromRemote,track);
             if (wasPaused) pl.setPaused(true);
             LOG("audio: faixa %s em %.3f s",track.c_str(),position);
+          } else if (playerUI.panelSel && pl.speed!=1) { toast=tr(K::SpeedNest); toastUntil=now+3500;
           } else if (!playerUI.panelSel || nestAvailable) {
             bool speaker = playerUI.panelSel == 1;
             change = speaker != pl.nest; nestOut = speaker; nestSkip = false;
@@ -1600,6 +1636,15 @@ int main(int argc, char** argv) {
         } else if (playerUI.selected == PlayerUI::TRACK && audioTracks.size()>1) {
           playerUI.panel=PlayerUI::TRACKS;
           for (int i=0;i<(int)audioTracks.size();++i) if (audioTracks[i].code==selectedAudio) playerUI.panelSel=i;
+        } else if (playerUI.selected == PlayerUI::COMMENTS) {
+          playerUI.panel=PlayerUI::COMMENTS_PANEL;
+          if (!extras.loaded) extras.request();
+        } else if (playerUI.selected == PlayerUI::SPEED) {
+          if (pl.live) { toast=tr(K::SpeedLive); toastUntil=now+3000; }
+          else if (!pl.waiting()) { playerUI.panel=PlayerUI::SPEED_PANEL; playerUI.panelSel=audio::speedIndex(pl.speed); }
+        } else if (playerUI.selected == PlayerUI::LOOP) {
+          if (!pl.live) pl.loop=!pl.loop;
+          else { toast=tr(K::SpeedLive); toastUntil=now+3000; }
         } else if (playerUI.selected == PlayerUI::EDGE) {
           LOG("live: retorno manual à borda"); resumeLive();
         } else openPlayerChannel(captions.channelId, playing.id);
@@ -1618,7 +1663,8 @@ int main(int argc, char** argv) {
         toast = std::string(tr(K::QualityPrefix)) + tr(videoModeLabel(settings.videoMode)); toastUntil = now + 2500; saveSettings(); any = true;
       }
       if (in.hit(Input::X)) {
-        if (!nestAvailable) toast = tr(K::NoSpeaker);
+        if (pl.speed!=1) toast=tr(K::SpeedNest);
+        else if (!nestAvailable) toast = tr(K::NoSpeaker);
         else {
           bool row = playerUI.options;
           if (nestOut && (nestSkip || (pl.speakerRequested && !pl.nest))) nestSkip = false;
@@ -1687,6 +1733,9 @@ int main(int argc, char** argv) {
       Job j{7, "/api/account/watched?id=" + playing.id + "&pos=" + std::to_string(pl.position()) +
           "&progress=" + (historyStarted ? "1" : "0"), 0};
       control.add(j); historyStarted = true; historyAt = now + 30000;
+    }
+    if (screen==PLAYER && pl.state==player::ENDED && !shutdownAt && audio::repeatAtEnd(pl.loop,pl.live,sleep.active && sleep.end)) {
+      LOG("repetir: %s",playing.id.c_str()); startVideo(playing,0,playerFromRemote);
     }
     // Fim natural continua sendo informado mesmo com um cartão aberto.
     if (screen == PLAYER && nav.localQueue && pl.state == player::ENDED) {
@@ -2052,7 +2101,7 @@ int main(int argc, char** argv) {
         }
 
         constexpr icons::PlayerIcon symbols[] = {icons::CLOSED_CAPTIONING, icons::GEAR, icons::SPEAKER_HIGH, icons::TRANSLATE_PLAYER,
-                                                 icons::MOON, icons::THUMBS_UP, icons::THUMBS_DOWN, icons::USER_CIRCLE, icons::BROADCAST};
+                                                 icons::MOON, icons::THUMBS_UP, icons::THUMBS_DOWN, icons::CHAT_CIRCLE_TEXT, icons::GAUGE, icons::REPEAT, icons::USER_CIRCLE, icons::BROADCAST};
         float rightW = 8 + (optionCount - 1 - (playerUI.tracks ? 0 : 1)) * 48, rightX = 1248 - rightW;
         gfx::playerIsland(g, rightX, rightW);
         float focusX = 60;
@@ -2062,7 +2111,7 @@ int main(int argc, char** argv) {
           float cx = rightX + 28 + slot++ * 48;
           bool focused = options && playerUI.selected == i;
           // Avaliação já dada fica com o joinha cheio, como no YouTube.
-          bool marked = (i == PlayerUI::RATE && likeState == "LIKE") || (i == PlayerUI::DISLIKE && likeState == "DISLIKE");
+          bool marked = (i == PlayerUI::RATE && likeState == "LIKE") || (i == PlayerUI::DISLIKE && likeState == "DISLIKE") || (i == PlayerUI::LOOP && pl.loop) || (i == PlayerUI::SPEED && pl.speed!=1);
           playerIcon(g, symbols[i - PlayerUI::CC], cx, focused, marked);
           if (focused) focusX = cx;
           if (i == PlayerUI::VIDEO) {
@@ -2076,7 +2125,7 @@ int main(int argc, char** argv) {
         }
         if (options) {
           const K labels[] = {pl.paused ? K::Resume : K::Pause, K::Captions, K::PlayerQuality, K::Sound,
-                              K::AudioTrack, K::SleepTimer, K::Like, K::Dislike, K::Channel, K::ChannelLive};
+                              K::AudioTrack, K::SleepTimer, K::Like, K::Dislike, K::Comments, K::PlaybackSpeed, K::RepeatVideo, K::Channel, K::ChannelLive};
           const char* value = "";
           std::string timerValue;
           switch (playerUI.selected) {
@@ -2106,14 +2155,25 @@ int main(int argc, char** argv) {
               if (sleep.active && !sleep.end) { timerValue = fmtTime(std::ceil(sleepLeft)); value = timerValue.c_str(); }
               else value = tr(sleep.active ? K::SleepEnd : K::SleepOff);
               break;
-            case PlayerUI::RATE: if (likeState == "LIKE") value = tr(K::Liked); break;
-            case PlayerUI::DISLIKE: if (likeState == "DISLIKE") value = tr(K::Disliked); break;
+            case PlayerUI::RATE:
+              if (extras.votes.available) value=extras.likesLabel.c_str();
+              else if (likeState == "LIKE") value=tr(K::Liked);
+              break;
+            case PlayerUI::DISLIKE:
+              if (extras.votes.available) value=extras.dislikesLabel.c_str();
+              else if (likeState == "DISLIKE") value=tr(K::Disliked);
+              break;
+            case PlayerUI::COMMENTS: break;
+            case PlayerUI::SPEED: value=tr(K::SpeedLive); if (!live) value=audio::speedLabels[audio::speedIndex(pl.speed)]; break;
+            case PlayerUI::LOOP: value=tr(live ? K::SpeedLive : pl.loop ? K::RepeatOn : K::RepeatOff); break;
             case PlayerUI::CHANNEL: value = channel.c_str(); break;
             case PlayerUI::EDGE: value = tr(K::GoLive); break;
           }
           tipLabel.update(g, ui::F_CARD, tr(labels[playerUI.selected]), 310);
           tipValue.update(g, ui::F_DETAIL, value, 360);
           playerTip(g, focusX, tipLabel, tipValue, transportFocus);
+          if (playerUI.selected==PlayerUI::DISLIKE && extras.votes.available)
+            gfx::text(g,ui::F_DETAIL,tr(K::DislikeEstimate),40,533,ui::MUTED);
         }
       }
       if (settings.captions && !captions.failed && !panelOpen && videoTex.ready) {
@@ -2137,7 +2197,44 @@ int main(int argc, char** argv) {
           }
         }
       }
-      if (playerUI.panel != PlayerUI::NONE) {
+      if (playerUI.panel==PlayerUI::COMMENTS_PANEL) {
+        constexpr float x=100,y=58,w=1080,h=536;
+        gfx::rect(g,0,0,ui::W,ui::H,{0,0,0,.35f});
+        gfx::shadow(g,x,y+10,w,h,24,32,.6f); gfx::rect(g,x,y,w,h,ui::SURFACE,24);
+        gfx::text(g,ui::F_BIG,tr(K::Comments),x+36,y+26,ui::TEXT);
+        int count=(int)extras.page.items.size();
+        if (extras.loading || !extras.page.error.empty() || (!count && extras.page.continuation.empty())) {
+          gfx::text(g,ui::F_BODY,tr(extras.loading ? K::Loading : !extras.page.error.empty() ? K::CommentsFailed : K::CommentsEmpty),x+36,y+120,ui::MUTED);
+        } else if (extras.selected<count) {
+          const auto& comment=extras.page.items[extras.selected];
+          if (commentIndex!=extras.selected) {
+            commentIndex=extras.selected; commentLines=gfx::wrap(g,ui::F_BODY,comment.text,w-90,500);
+            commentAuthor.update(g,ui::F_H2,comment.author.c_str(),w-100);
+            commentMeta.update(g,ui::F_SMALL,(comment.time+"   ·   "+comment.likes+" "+tr(K::Like)).c_str(),w-100);
+            commentPosition=std::to_string(extras.selected+1)+" / "+std::to_string(count);
+          }
+          gfx::text(g,ui::F_H2,commentAuthor.text,x+36,y+86,ui::TEXT);
+          gfx::text(g,ui::F_SMALL,commentMeta.text,x+36,y+119,ui::MUTED);
+          for (int i=extras.line;i<std::min((int)commentLines.size(),extras.line+10);++i)
+            gfx::text(g,ui::F_BODY,commentLines[i],x+36,y+157+(i-extras.line)*27,ui::TEXT);
+          gfx::text(g,ui::F_SMALL,commentPosition,x+w-95,y+36,ui::MUTED);
+        } else gfx::text(g,ui::F_H2,tr(K::CommentsMore),x+36,y+130,ui::TEXT);
+        float hx=hint(g,x+36,y+h-44,tr(K::BtnVertical),XG,tr(K::Scroll));
+        if (!extras.page.error.empty() || extras.selected>=count) hx=hint(g,hx,y+h-44,"A",XA,tr(K::Open));
+        hint(g,hx,y+h-44,"B",XB,tr(K::Back));
+      } else if (playerUI.panel==PlayerUI::SPEED_PANEL) {
+        constexpr float x=350,y=155,w=580,h=370;
+        gfx::rect(g,0,0,ui::W,ui::H,{0,0,0,.55f}); gfx::shadow(g,x,y+10,w,h,24,32,.6f);
+        gfx::rect(g,x,y,w,h,ui::SURFACE,24); gfx::text(g,ui::F_BIG,tr(K::PlaybackSpeed),x+36,y+26,ui::TEXT);
+        for (int i=0;i<8;++i) {
+          float bx=x+36+(i%4)*128,by=y+105+(i/4)*66; bool focus=playerUI.panelSel==i;
+          gfx::rect(g,bx,by,118,54,focus ? ui::TEXT : ui::SURFACE2,10);
+          gfx::text(g,ui::F_H2,audio::speedLabels[i],bx+59,by+15,focus ? ui::INK : ui::TEXT,1);
+        }
+        if (nestOut) gfx::text(g,ui::F_SMALL,tr(K::SpeedTV),x+36,y+254,ui::MUTED);
+        float hx=hint(g,x+36,y+h-44,tr(K::BtnHorizontal),XG,tr(K::ChooseRow));
+        hx=hint(g,hx,y+h-44,"A",XA,tr(K::SleepApply)); hint(g,hx,y+h-44,"B",XB,tr(K::Back));
+      } else if (playerUI.panel != PlayerUI::NONE) {
         float w = 720, h = playerUI.panel==PlayerUI::TRACKS ? 430 : 330, x = (ui::W - w) / 2, y = playerUI.panel==PlayerUI::TRACKS ? 140 : 190;
         gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.55f});
         gfx::shadow(g, x, y + 10, w, h, 24, 32, 0.6f);
@@ -2341,6 +2438,7 @@ int main(int argc, char** argv) {
   recordHistory();
   phone.stop();
   captionLoader.stop();
+  extras.close();
   pl.halt();
   pl.directSpeaker.shutdown();
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);

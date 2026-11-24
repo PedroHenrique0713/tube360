@@ -115,6 +115,19 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(VideoOpenError, "The server could not open this video", "O servidor não conseguiu abrir este vídeo") \
   X(VideoClosed, "The server closed the video connection", "O servidor fechou a conexão do vídeo") \
   X(Rate, "Rate", "Avaliar") \
+  X(Comments, "Comments", "Comentários") \
+  X(CommentsEmpty, "Comments are unavailable for this video.", "Comentários indisponíveis para este vídeo.") \
+  X(CommentsFailed, "Could not load comments. Press A to retry.", "Não deu para carregar comentários. Aperte A para tentar de novo.") \
+  X(CommentsMore, "More comments", "Mais comentários") \
+  X(Scroll, "Scroll", "Rolar") \
+  X(PlaybackSpeed, "Playback speed", "Velocidade") \
+  X(SpeedLive, "Unavailable during live broadcasts", "Indisponível em transmissões ao vivo") \
+  X(SpeedTV, "Changed speed: sound on the TV.", "Velocidade alterada: som na TV.") \
+  X(SpeedNest, "Select 1x to use the speaker.", "Selecione 1x para usar a caixa.") \
+  X(RepeatVideo, "Repeat video", "Repetir vídeo") \
+  X(RepeatOn, "On", "Ligado") \
+  X(RepeatOff, "Off", "Desligado") \
+  X(DislikeEstimate, "Estimate · returnyoutubedislike.com", "Estimativa · returnyoutubedislike.com") \
   X(RateTitle, "Rate this video", "Avaliar este vídeo") \
   X(Like, "Like", "Gostei") \
   X(Dislike, "Dislike", "Não gostei") \

@@ -2,8 +2,8 @@
 #include <cstdint>
 
 struct PlayerUI {
-  enum Panel { NONE, CAPTIONS, QUALITY, SOUND, TRACKS } panel = NONE;
-  enum Option { TRANSPORT, CC, VIDEO, AUDIO, TRACK, TIMER, RATE, DISLIKE, CHANNEL, EDGE, COUNT };
+  enum Panel { NONE, CAPTIONS, QUALITY, SOUND, TRACKS, COMMENTS_PANEL, SPEED_PANEL } panel = NONE;
+  enum Option { TRANSPORT, CC, VIDEO, AUDIO, TRACK, TIMER, RATE, DISLIKE, COMMENTS, SPEED, LOOP, CHANNEL, EDGE, COUNT };
   bool tracks = false;
   uint64_t until = 0;
   bool options = false;
