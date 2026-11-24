@@ -4,6 +4,7 @@
   const locale = document.documentElement.lang;
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const tv = $('#tv');
   const native = $('#app-native');
   const home = $('#home-screen');
@@ -95,6 +96,10 @@
   const ratings = new Map();
   const focus = element => element?.focus({ preventScroll: true });
   function announce(text) { status.textContent = text; }
+  function animateIn(element, offset = 16) {
+    if (!window.gsap || reducedMotion.matches) return;
+    window.gsap.fromTo(element, { autoAlpha: 0, y: offset }, { autoAlpha: 1, y: 0, duration: .28, ease: 'power2.out', overwrite: 'auto' });
+  }
   function marker() { tv.dataset.state = state.mode === 'home' ? state.page : state.mode; tv.dataset.zone = state.zone; }
   let toastTimer;
   function showToast(text) {
@@ -180,7 +185,7 @@
     railButtons.forEach(button => button.classList.toggle('active', button.dataset.page === page));
     const activeIndex = railButtons.findIndex(button => button.dataset.page === page);
     if (activeIndex >= 0) state.rail = activeIndex;
-    if (page === 'home') { state.zone = 'grid'; select(state.selected, moveFocus); marker(); startLoop(); return; }
+    if (page === 'home') { state.zone = 'grid'; select(state.selected, moveFocus); animateIn(home, 0); marker(); startLoop(); return; }
     state.zone = 'page'; $('#browse-title').textContent = page === 'channel' ? 'TV Palmeiras' : page === 'account' ? t.demo_account : t[page];
     const content = $('#browse-content'); content.replaceChildren();
     if (page === 'subscriptions') {
@@ -227,7 +232,7 @@
       const disclaimer = document.createElement('p'); disclaimer.className = 'browse-note'; disclaimer.textContent = t.demo_note;
       content.append(note, code, disclaimer, makeButton(t.back, () => showPage('home')));
     }
-    if (moveFocus) focus(pageButtons()[0]); marker(); startLoop();
+    if (moveFocus) focus(pageButtons()[0]); animateIn(browse); marker(); startLoop();
   }
   $$('[data-page]').forEach(button => button.addEventListener('click', () => showPage(button.dataset.page)));
   options.forEach(([name, symbol]) => {
@@ -266,14 +271,14 @@
     $('#player-title').textContent = videos[state.selected].title; $('#player-channel').textContent = videos[state.selected].channel;
     state.rating = ratings.get(videos[state.selected].id) || '';
     ['like','dislike'].forEach(value => $(`[data-player-action="${value}"]`).setAttribute('aria-pressed', String(state.rating === value)));
-    updatePause(); updateProgress(); focus(progress); announce(t.player_open); marker(); startLoop();
+    updatePause(); updateProgress(); focus(progress); animateIn(player, 0); announce(t.player_open); marker(); startLoop();
   }
   function closePanel() { panel.hidden = true; state.mode = 'player'; state.zone = 'options'; updateOptions(true); startLoop(); }
   function openPanel(name, choices) {
     state.mode = 'player-panel'; state.panelIndex = 0; panel.hidden = false;
     $('#player-panel-title').textContent = t[name]; const content = $('#player-panel-content'); content.replaceChildren();
     choices.forEach(([label, action]) => content.append(makeButton(label, action, 'panel-choice')));
-    focus($('.panel-choice', content)); marker();
+    focus($('.panel-choice', content)); animateIn(panel); marker();
   }
   function activatePlayer(name) {
     if (name === 'transport') { state.paused = !state.paused; updatePause(); startLoop(); return; }
@@ -419,6 +424,8 @@
     $('#feature-image').alt = data.alt;
     $('#feature-caption').textContent = data.caption;
     $('#feature-panel').setAttribute('aria-labelledby', button.id);
+    animateIn($('#feature-image'), 8);
+    if (window.ScrollTrigger) window.ScrollTrigger.refresh();
   }
   featureTabs.forEach((button, index) => {
     button.addEventListener('click', () => selectFeature(button));
@@ -560,5 +567,39 @@
     setTimeout(() => { button.textContent = t.copy; }, 2000);
   }));
 
+  if (window.gsap) {
+    const gsap = window.gsap;
+    const motionTargets = '[data-reveal], .hero-intro, .tv-frame, .playground-caption, #home-screen, #browse-screen, #player-screen, #player-panel, #feature-image';
+    const media = gsap.matchMedia();
+    if (window.ScrollTrigger) {
+      const ScrollTrigger = window.ScrollTrigger;
+      gsap.registerPlugin(ScrollTrigger);
+      media.add('(prefers-reduced-motion: no-preference)', () => {
+        const entrance = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        entrance.fromTo('.hero-intro', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: .65 })
+          .fromTo('.tv-frame', { autoAlpha: 0, y: 20, scale: .985 }, { autoAlpha: 1, y: 0, scale: 1, duration: .8 }, .12)
+          .fromTo('.playground-caption', { autoAlpha: 0 }, { autoAlpha: 1, duration: .4 }, .55);
+        $$('[data-reveal]').forEach(element => gsap.fromTo(element,
+          { autoAlpha: 0, y: 24 },
+          { autoAlpha: 1, y: 0, duration: .65, ease: 'power3.out',
+            scrollTrigger: { trigger: element, start: 'top 88%', once: true } }));
+        gsap.fromTo('.signal-wire i', { x: 0 }, {
+          x: () => $('.signal-wire').clientWidth - 14, duration: 1.2, ease: 'power1.inOut',
+          scrollTrigger: { trigger: '.signal-flow', start: 'top 85%', once: true, invalidateOnRefresh: true }
+        });
+      });
+      document.fonts.ready.then(() => ScrollTrigger.refresh());
+      window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
+    }
+    media.add('(prefers-reduced-motion: reduce)', () => {
+      gsap.killTweensOf(motionTargets);
+      gsap.set(motionTargets, { autoAlpha: 1, y: 0, scale: 1 });
+      gsap.set('.signal-wire i', { x: 0 });
+    });
+    window.addEventListener('beforeprint', () => {
+      gsap.killTweensOf(motionTargets);
+      gsap.set(motionTargets, { autoAlpha: 1, y: 0, scale: 1 });
+    });
+  }
   document.documentElement.dataset.tube360Ready = 'true';
 })();
