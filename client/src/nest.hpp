@@ -46,7 +46,7 @@ enum State { UNKNOWN, LOADING, PLAYING, PAUSED, BUFFERING, IDLE, ERROR, STALLED 
 struct Status {
     uint64_t generation = 0;
     State state = UNKNOWN;
-    double position = 0, updated = 0, rate = 1;
+    double position = 0, updated = 0, observed = 0, rate = 1;
     bool quiet = true, connected = false, released = true;
     double volume = -1;
     bool muted = false;
@@ -93,7 +93,7 @@ public:
         SDL_LockMutex(mutex);
         ++intent.generation; intent.url = url; intent.key = key; intent.position = position;
         intent.duration = duration; intent.active = true; intent.paused = !autoplay;
-        status.generation = intent.generation; status.state = LOADING; status.updated = 0;
+        status.generation = intent.generation; status.state = LOADING; status.updated = status.observed = 0;
         status.released = false;
         auto generation = intent.generation;
         SDL_UnlockMutex(mutex); return generation;
@@ -147,7 +147,7 @@ private:
         bool connected = false, receiverKnown = false, receiverPresent = false, mediaKnown = false;
         bool possible = false, pending = false, acknowledged = false;
         uint64_t generation = 0, command = 0, retryAt = 0, pollAt = 0, receiverAt = 0, pingAt = 0, heardAt = 0, actionAt = 0, stopAt = 0, began = 0;
-        int requestId = 0, barrier = 0, stopBarrier = 0;
+        int requestId = 0, barrier = 0, stopBarrier = 0, lastMediaReply = 0;
         const auto sender = "sender-tube360-" + std::to_string(SDL_GetPerformanceCounter());
         auto journal = [&]() {
             Object record{{"token",J(token)},{"url",J(ownedUrl)},{"key",J(ownedKey)},
@@ -229,7 +229,7 @@ private:
                 began = now; view.released = false;
                 SDL_Log("Nest: console dono=%s gen=%llu",goal.active ? "console" : "liberando",(unsigned long long)generation);
                 stopBarrier = requestId; view.generation = generation;
-                view.state = goal.active ? LOADING : UNKNOWN; view.updated = 0;
+                view.state = goal.active ? LOADING : UNKNOWN; view.updated = view.observed = 0; lastMediaReply = 0;
             }
             view.released = false;
             if (!goal.active && !possible) {
@@ -330,8 +330,11 @@ private:
                 SDL_Log("Nest: console LAUNCH_ERROR"); view.state = ERROR; pending = false; publish(view); continue;
             }
             double stamp = SDL_GetTicksNS()/1e6;
-            bool fast = fresh && stamp-request->second.time <= 120;
-            if (fast) stamp = (stamp+request->second.time)/2;
+            double roundTrip = fresh ? stamp-request->second.time : 0;
+            // O tempo do receptor foi amostrado entre envio e resposta. O ponto médio também vale em Wi-Fi >120 ms.
+            // Respostas muito atrasadas confirmam atividade, mas não deslocam o relógio da imagem.
+            bool clock = fresh && roundTrip <= 1000;
+            if (clock) stamp = (stamp+request->second.time)/2;
             if (message.space == cast::heartbeat) {
                 if (type == "PING") send(message.source,cast::heartbeat,{{"type",J(std::string("PONG"))}},false);
             } else if (message.space == cast::connection && type == "CLOSE") connected = false;
@@ -386,16 +389,20 @@ private:
                     // Logo após o LOAD o receptor diz IDLE com extendedStatus LOADING: ainda está abrindo o áudio.
                     if (state == "IDLE" && text(field(entry,"extendedStatus"),"playerState") == "LOADING") state = "BUFFERING";
                     if (goal.active && !pending && (fresh && replyId >= barrier)) acknowledged = true;
-                    if (goal.active && acknowledged && (replyId == 0 || (fresh && replyId >= barrier))) {
+                    if (goal.active && acknowledged && (replyId == 0 || (fresh && replyId >= barrier && replyId >= lastMediaReply))) {
                         auto previousState = view.state;
                         if (!state.empty())
                             view.state = state == "PLAYING" ? PLAYING : state == "PAUSED" ? PAUSED : state == "BUFFERING" ? BUFFERING : state == "IDLE" ? IDLE : UNKNOWN;
-                        if (view.state != previousState) SDL_Log("Nest: console status=%s gen=%llu",state.c_str(),(unsigned long long)generation);
+                        if (view.state != previousState) SDL_Log("Nest: console status=%s gen=%llu RTT=%.0f ms relogio=%d",state.c_str(),(unsigned long long)generation,roundTrip,clock || replyId == 0);
                         if (previousState == PAUSED && (view.state == PLAYING || view.state == BUFFERING)) advanced = now;
                         double position = number(entry,"currentTime",NAN);
-                        if (std::isfinite(position) && position >= 0 && (fast || replyId == 0)) {
+                        if (!state.empty() && std::isfinite(position) && position >= 0) {
+                            view.observed = SDL_GetTicksNS()/1e6;
+                            if (replyId) lastMediaReply = replyId;
                             if (std::fabs(position-previousPosition) > .005) { advanced = now; previousPosition = position; }
-                            view.position = position; view.updated = stamp; view.rate = std::clamp(number(entry,"playbackRate",1),0.0,4.0);
+                            if (clock || replyId == 0) {
+                                view.position = position; view.updated = stamp; view.rate = std::clamp(number(entry,"playbackRate",1),0.0,4.0);
+                            }
                         }
                         if ((view.state == PLAYING || view.state == BUFFERING) && now-advanced > 8000) view.state = STALLED;
                     }

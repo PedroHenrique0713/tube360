@@ -38,6 +38,10 @@ class Receiver:
         self.namespaces = True
         self.bad_frame = False
         self.consume = None
+        self.request_delay = self.response_delay = 0
+        self.drop_media = False
+        self.media_replies = self.dropped = 0
+        self.pending_frames = []
         self.launched = False
         self.resource = None
         self.state = 'IDLE'
@@ -78,6 +82,11 @@ class Receiver:
     def reply(self, client, request, payload, source=None):
         if not self.replies and request.namespace != HEARTBEAT:
             return
+        if payload.get('type') == 'MEDIA_STATUS':
+            self.media_replies += 1
+            if self.drop_media and self.media_replies % 10 in (0, 1, 2):
+                self.dropped += 1
+                return
         if self.bad_frame:
             self.bad_frame = False
             client.sendall(struct.pack('!I', 65537))
@@ -87,6 +96,12 @@ class Receiver:
                                payload_type=0, payload_utf8=json.dumps(payload))
         body = response.SerializeToString()
         frame = struct.pack('!I', len(body))+body
+        if self.response_delay:
+            self.pending_frames.append((time.monotonic()+self.response_delay, client, frame))
+        else:
+            self.send_frame(client, frame)
+
+    def send_frame(self, client, frame):
         # Fragmenta inclusive o prefixo de tamanho. O sender precisa preservar a leitura parcial.
         if self.fragment:
             for part in (frame[:1], frame[1:3], frame[3:19], frame[19:]):
@@ -164,9 +179,18 @@ class Receiver:
                     continue
                 with self.context.wrap_socket(raw, server_side=True) as client:
                     self.clients.append(client)
-                    client.settimeout(.1)
+                    client.settimeout(.01)
                     pending = b''
+                    incoming = []
                     while not self.quit and self.online:
+                        now = time.monotonic()
+                        with self.lock:
+                            while incoming and incoming[0][0] <= now:
+                                self.handle(client, incoming.pop(0)[1])
+                            for due, destination, frame in list(self.pending_frames):
+                                if due <= now:
+                                    self.pending_frames.remove((due, destination, frame))
+                                    self.send_frame(destination, frame)
                         try:
                             block = client.recv(65536)
                         except socket.timeout:
@@ -182,12 +206,16 @@ class Receiver:
                             message = CastMessage.FromString(pending[4:length+4])
                             pending = pending[length+4:]
                             with self.lock:
-                                self.handle(client, message)
+                                if self.request_delay:
+                                    incoming.append((time.monotonic()+self.request_delay, message))
+                                else:
+                                    self.handle(client, message)
             except (OSError, ssl.SSLError):
                 pass
             except Exception as error:
                 self.errors.append(repr(error))
             finally:
+                self.pending_frames.clear()
                 self.clients = [c for c in self.clients if c.fileno() >= 0]
                 raw.close()
 
@@ -316,6 +344,47 @@ class CastTests(unittest.TestCase):
         self.receiver.replies = True
         self.driver.until(lambda s: s['updated'] > sample['updated'])
 
+    def test_wifi_130ms_and_30_percent_status_loss_keeps_clock(self):
+        self.receiver.request_delay = self.receiver.response_delay = .065
+        self.receiver.drop_media = True
+        sample = self.play()
+        first = sample['updated']
+        errors = []
+        until = time.monotonic()+6
+        while time.monotonic() < until:
+            sample = self.driver.command('sample')
+            self.assertEqual(sample['state'], 2)
+            self.assertFalse(sample['quiet'])
+            predicted = sample['position']+(sample['now']-sample['updated'])/1000
+            errors.append(abs(predicted-self.receiver.at()))
+            time.sleep(.05)
+        self.assertGreater(sample['updated'], first+4000)
+        self.assertGreater(self.receiver.dropped, 2)
+        self.assertLess(max(errors), .12)
+        self.assertEqual(len(self.receiver.commands('LOAD')), 1)
+        print(f'Wi-Fi: RTT>=130 ms, dropped={self.receiver.dropped}/{self.receiver.media_replies}, clock error max={max(errors)*1000:.1f} ms')
+
+    def test_very_late_status_is_activity_without_retiming_video(self):
+        sample = self.play()
+        self.receiver.request_delay = self.receiver.response_delay = .65
+        time.sleep(1)
+        before = self.driver.command('sample')
+        after = self.driver.until(lambda s: s['observed'] > before['observed']+1000, timeout=4)
+        self.assertEqual(after['state'], 2)
+        self.assertEqual(after['updated'], before['updated'])
+        self.assertGreater(after['observed'], after['updated'])
+
+    def test_silence_tolerates_more_than_eight_seconds(self):
+        sample = self.play()
+        self.receiver.replies = False
+        time.sleep(9)
+        after = self.driver.command('sample')
+        self.assertEqual(after['state'], 2)
+        self.assertEqual(after['updated'], sample['updated'])
+        self.assertFalse(after['quiet'])
+        self.receiver.replies = True
+        self.driver.until(lambda s: s['updated'] > sample['updated'])
+
     def test_quiet_needs_fresh_reply(self):
         self.play()
         self.receiver.replies = False
@@ -412,6 +481,25 @@ class CastTests(unittest.TestCase):
         for _ in range(20):
             self.assertGreaterEqual(self.driver.command('sample')['position'], 80)
             time.sleep(.03)
+
+    def test_reordered_reply_in_same_generation_cannot_rewind_clock(self):
+        first = self.play()
+        old_id = self.receiver.commands('LOAD')[0]['requestId']
+        self.driver.until(lambda s: s['updated'] > first['updated']+200)
+        original = self.receiver.reply
+
+        def reply(client, request, payload, source=None):
+            if payload.get('type') == 'MEDIA_STATUS':
+                payload = dict(payload, requestId=old_id,
+                               status=[dict(item, currentTime=1) for item in payload['status']])
+            original(client, request, payload, source)
+        self.receiver.reply = reply
+        try:
+            for _ in range(12):
+                self.assertGreaterEqual(self.driver.command('sample')['position'], 12)
+                time.sleep(.04)
+        finally:
+            self.receiver.reply = original
 
     def test_content_id_identifies_receiver_without_custom_data(self):
         original = self.receiver.reply

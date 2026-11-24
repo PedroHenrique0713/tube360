@@ -33,6 +33,7 @@ inline void Player::directNestLoop() {
   const auto& audioUrl = media.speakerAudio.url;
   bool supported = speakerRequested && !live && !audioUrl.empty();
   if (!supported) {
+    if (speakerRequested && live) LOG("Nest: live na TV; HLS sem origem comum entre imagem e relogio Cast");
     directSpeaker.release(); output = RELEASING;
     while (!stop && !directSpeaker.sample().quiet) SDL_Delay(20);
     if (!stop) {
@@ -91,11 +92,12 @@ inline void Player::directNestLoop() {
         else if (!expected && last && last != st) speakerPause = st == 2 ? 1 : 2;
         last = st;
       }
-      bool expired = sample.updated > 0 && now-sample.updated > 25000;
-      bool neverStarted = !sample.updated && now-requested > 3500;
+      bool expired = sample.observed > 0 && now-sample.observed > 25000;
+      bool neverStarted = !sample.updated && now-requested > 25000;
       if (st == 3 || st == 4 || expired || neverStarted) {
         if (!last) failedStart = true;
-        LOG("Nest: console erro/status=%d; liberando para TV",st);
+        LOG("Nest: console erro/status=%d; liberando para TV (%s)",st,
+            expired ? "sem noticia por 25 s" : neverStarted ? "sem relogio por 25 s" : "estado do receptor");
         release();
       }
     }
