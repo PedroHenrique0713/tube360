@@ -164,17 +164,23 @@ int digitsAfter(const string& s, const char* key) {
     return n;
 }
 }
-bool Client::session(const string& id, string& error) {
+bool Client::session(const string& id, string& error, bool fresh) {
+    sessionFailure=Failure::NONE; sessionRetryable=false;
     if (!visitor.empty() && sts) return true;
     Request page;
     page.url="https://www.youtube.com/watch?v="+id+"&bpctr=9999999999&has_verified=1";
-    page.agent=browserAgent;
+    page.agent=browserAgent; page.freshConnection=fresh;
     page.headers={"Accept-Language: en-us,en;q=0.5"};
     auto r=net.send(page);
-    if (!r.error.empty() || r.status!=200) { error=!r.error.empty() ? r.error : "HTTP "+std::to_string(r.status); return false; }
+    if (!r.error.empty() || r.status!=200) {
+        error=!r.error.empty() ? r.error : "HTTP "+std::to_string(r.status);
+        sessionFailure=failureOf(r); sessionRetryable=retryable(r); return false;
+    }
     visitor=quoted(r.body,"\"VISITOR_DATA\":\"");
     auto js=quoted(r.body,"\"jsUrl\":\"");
-    if (visitor.empty() || js.size()<2 || js[0]!='/' || js[1]=='/') { visitor.clear(); error="visitor_session_missing"; return false; }
+    if (visitor.empty() || js.size()<2 || js[0]!='/' || js[1]=='/') {
+        visitor.clear(); error="visitor_session_missing"; sessionFailure=Failure::SESSION; sessionRetryable=true; return false;
+    }
     if (js!=playerJs || !sts) {
         // Uma revisão do player identifica o JS e o timestamp. Publica o índice por último.
         const auto& base = cacheBase;
@@ -195,7 +201,11 @@ bool Client::session(const string& id, string& error) {
         auto b=net.send(code);
         int n=b.error.empty() && b.status==200 ? digitsAfter(b.body,"signatureTimestamp:") : 0;
         if (!n && b.error.empty()) n=digitsAfter(b.body,"sts:");
-        if (!n) { visitor.clear(); error="signature_timestamp_missing"; return false; }
+        if (!n) {
+            visitor.clear(); error=!b.error.empty() ? b.error : b.status!=200 ? "HTTP "+std::to_string(b.status) : "signature_timestamp_missing";
+            sessionFailure=b.error.empty() && b.status==200 ? Failure::SESSION : failureOf(b);
+            sessionRetryable=sessionFailure==Failure::SESSION || retryable(b); return false;
+        }
         sts=n; playerJs=js;
         if (!cacheBase.empty()) {
             if (auto* f = std::fopen((base + ".js.tmp").c_str(), "wb")) {
@@ -223,28 +233,60 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
     // O cliente VISIONOS recebe links prontos (sem decifrar JavaScript) quando o pedido leva a sessão de visitante
     // da página do vídeo: cookies, X-Goog-Visitor-Id e o signatureTimestamp do player JS. É o mesmo pedido que o
     // yt-dlp do servidor faz (medido em 2026-11-23: itag 136 direto deste IP, sem login nem PO token).
-    for (int attempt=0; attempt<2; ++attempt) {
-        if (!session(id,out.reason)) break;
-        Request q;
-        q.url="https://www.youtube.com/youtubei/v1/player?prettyPrint=false";
-        q.agent=visionAgent;
-        q.headers={"X-Youtube-Client-Name: 101","X-Youtube-Client-Version: 1.02","Origin: https://www.youtube.com",
-                   "X-Goog-Visitor-Id: "+visitor};
-        q.body="{\"context\":{\"client\":{\"clientName\":\"VISIONOS\",\"clientVersion\":\"1.02\","
-               "\"deviceMake\":\"Apple\",\"deviceModel\":\"RealityDevice17,1\",\"userAgent\":"+J(string(visionAgent)).serialize()+","
-               "\"osName\":\"visionOS\",\"osVersion\":\"26.5.23O471\",\"hl\":\"en\",\"timeZone\":\"UTC\",\"utcOffsetMinutes\":0}},"
-               +member("videoId",id)+",\"playbackContext\":{\"contentPlaybackContext\":{\"html5Preference\":\"HTML5_PREF_WANTS\","
-               "\"signatureTimestamp\":"+std::to_string(sts)+"}},\"contentCheckOk\":true,\"racyCheckOk\":true}";
-        j=J();
-        out.reason=content(net.send(q),j);
-        if (!out.reason.empty() || attempt || str(field(j,"playabilityStatus"),"status")!="LOGIN_REQUIRED") break;
-        visitor.clear(); // sessão recusada: abre uma nova uma única vez
+    const char* clients[]={"VISIONOS","ANDROID_VR","IOS"};
+    const char* ids[]={"101","28","5"};
+    const char* versions[]={"1.02","1.65.10","20.11.6"};
+    const char* agents[]={visionAgent,
+        "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
+        "com.google.ios.youtube/20.11.6 (iPhone10,4; U; CPU iOS 16_7_7 like Mac OS X)"};
+    for (int client=0; client<3; ++client) {
+        out.playerClient=clients[client];
+        for (int attempt=0; attempt<2; ++attempt) {
+            if (!session(id,out.reason,attempt>0)) {
+                out.failure=sessionFailure;
+                out.status="ERROR";
+                if (attempt || !sessionRetryable || !net.backoff(200)) return out;
+                continue;
+            }
+            Request q;
+            q.url="https://www.youtube.com/youtubei/v1/player?prettyPrint=false";
+            q.agent=agents[client]; q.freshConnection=attempt>0;
+            q.headers={string("X-Youtube-Client-Name: ")+ids[client],string("X-Youtube-Client-Version: ")+versions[client],
+                       "Origin: https://www.youtube.com","X-Goog-Visitor-Id: "+visitor};
+            string device=client==0 ? "\"deviceMake\":\"Apple\",\"deviceModel\":\"RealityDevice17,1\",\"osName\":\"visionOS\",\"osVersion\":\"26.5.23O471\"" :
+                client==1 ? "\"deviceMake\":\"Oculus\",\"deviceModel\":\"Quest 3\",\"osName\":\"Android\",\"osVersion\":\"12L\",\"androidSdkVersion\":32" :
+                "\"deviceMake\":\"Apple\",\"deviceModel\":\"iPhone10,4\",\"osName\":\"iOS\",\"osVersion\":\"16.7.7.20H330\"";
+            q.body="{\"context\":{\"client\":{"+member("clientName",clients[client])+","+member("clientVersion",versions[client])+","+
+                device+","+member("userAgent",agents[client])+",\"hl\":\"en\",\"timeZone\":\"UTC\",\"utcOffsetMinutes\":0}},"+
+                member("videoId",id)+",\"playbackContext\":{\"contentPlaybackContext\":{\"html5Preference\":\"HTML5_PREF_WANTS\",\"signatureTimestamp\":"+
+                std::to_string(sts)+"}},\"contentCheckOk\":true,\"racyCheckOk\":true}";
+            j=J(); ++out.playerAttempts;
+            auto reply=net.send(q);
+            out.reason=content(reply,j);
+            auto kind=out.reason=="invalid_json" ? Failure::JSON : failureOf(reply);
+            out.playerTrace+=string(clients[client])+":"+failureName(kind)+"/"+std::to_string(reply.status)+" ";
+            if (!out.reason.empty()) {
+                out.status="ERROR"; out.failure=out.reason=="invalid_json" ? Failure::JSON : failureOf(reply);
+                if (!attempt && (out.failure==Failure::JSON || retryable(reply)) && net.backoff(200)) continue;
+                return out;
+            }
+            out.status=str(field(j,"playabilityStatus"),"status");
+            out.reason=str(field(j,"playabilityStatus"),"reason");
+            out.playerTrace+=out.status+" ";
+            if (out.status.empty()) { out.status="INVALID_RESPONSE"; out.failure=Failure::JSON; return out; }
+            if (out.status=="OK") { out.failure=Failure::NONE; break; }
+            out.failure=Failure::REFUSAL;
+            if (client==0 && !attempt && out.status=="LOGIN_REQUIRED") {
+                visitor.clear();
+                if (!net.backoff(200)) return out;
+                continue;
+            }
+            break;
+        }
+        if (out.status=="OK") break;
+        // Alterna só após recusa do cliente. Falha de rede não justifica multiplicar pedidos InnerTube.
+        if (out.failure!=Failure::REFUSAL || (out.status!="LOGIN_REQUIRED" && out.status!="UNPLAYABLE")) return out;
     }
-    if (!out.reason.empty()) { out.status="ERROR"; return out; }
-    const auto& p = field(j,"playabilityStatus");
-    out.status = str(p,"status");
-    out.reason = str(p,"reason");
-    if (out.status.empty()) out.status="INVALID_RESPONSE";
     if (out.status!="OK") return out;
     const auto& details = field(j,"videoDetails");
     out.duration = integer(details, "lengthSeconds");
@@ -262,6 +304,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
     if (httpsUrl(hls)) out.hls=std::move(hls);
     int audioRate=0, audioRank=-1;
     Format bestAdaptive, bestMuxed, fallback;
+    std::vector<Format> adaptive;
     auto better = [mode](const Format& candidate, const Format& best) {
         if (candidate.height != best.height) return candidate.height > best.height;
         if (mode != 1 && (candidate.fps <= 30.1) != (best.fps <= 30.1)) return candidate.fps <= 30.1;
@@ -274,7 +317,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
             if (!f.is<Object>() || !array(field(f,"drmFamilies")).empty() || f.contains("licenseInfos")) continue;
             bool direct = httpsUrl(url);
             const auto& fps = field(f, "fps");
-            Format fmt{url,integer(f,"itag"),integer(f,"height"),fps.is<double>() ? fps.get<double>() : 0.0};
+            Format fmt{url,integer(f,"itag"),integer(f,"height"),fps.is<double>() ? fps.get<double>() : 0.0,integer(f,"bitrate")};
             if (fmt.height == 720 && fmt.fps > 30 && mime.find("avc1") != string::npos) out.highFrameRate720 = true;
             if (mime.find("audio/mp4")==0 && mime.find("mp4a")!=string::npos) {
                 if (offers) {
@@ -315,6 +358,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
                 if (!direct || fmt.height>(height>=720 ? (mode==1 ? 720 : 1080) : height) ||
                     (muxed && (fmt.height>720 || mime.find("mp4a")==string::npos))) continue;
                 if (fmt.height<=720 && better(fmt,fallback)) fallback=fmt;
+                if (!muxed) adaptive.push_back(fmt);
                 auto& best=muxed ? bestMuxed : bestAdaptive;
                 if (better(fmt,best)) best=fmt;
             }
@@ -338,7 +382,19 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
         out.muxed=false;
         out.video=bestAdaptive.url.empty() ? bestMuxed : bestAdaptive;
     }
-    if (out.video.height>720) out.fallbackVideo=fallback;
+    if (!out.muxed) {
+        // Uma fonte distinta reduz os bytes de rede. Filtrar quadros do mesmo 298 não reduz sua vazão.
+        for (const auto& fmt : adaptive) if (fmt.url!=out.video.url &&
+            (fmt.height<out.video.height || (fmt.height==out.video.height && fmt.fps<=30.1 && out.video.fps>30.1))) out.lowerVideo.push_back(fmt);
+        std::sort(out.lowerVideo.begin(),out.lowerVideo.end(),[](const Format& a,const Format& b) {
+            return a.height!=b.height ? a.height>b.height : a.fps!=b.fps ? a.fps<b.fps : a.bitrate<b.bitrate;
+        });
+        out.lowerVideo.erase(std::unique(out.lowerVideo.begin(),out.lowerVideo.end(),[](const Format& a,const Format& b) {
+            return a.height==b.height;
+        }),out.lowerVideo.end());
+        if (!out.lowerVideo.empty()) out.fallbackVideo=out.lowerVideo.front();
+        else if (out.video.height>720) { out.fallbackVideo=fallback; if (!fallback.url.empty()) out.lowerVideo.push_back(fallback); }
+    }
     out.speakerAudio = out.audio;
     if (out.muxed) out.audio={};
     if (out.hls.empty()) {

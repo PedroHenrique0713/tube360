@@ -2,6 +2,7 @@
 #include "roots.hpp"
 #include <curl/curl.h>
 #include <strings.h>
+#include <sys/socket.h>
 #ifndef __XSDK__
 #include "replay.hpp"
 #endif
@@ -28,14 +29,22 @@ size_t header(char* bytes, size_t unit, size_t count, void* data) {
     return n;
 }
 int progress(void* ptr, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
-    return ptr && static_cast<const std::atomic_bool*>(ptr)->load();
+    return static_cast<const Transport*>(ptr)->cancelled();
+}
+int socketOptions(void*, curl_socket_t fd, curlsocktype) {
+    int bytes=256*1024;
+    // O xsdk pode limitar o valor. O resultado efetivo sai nas métricas, sem rejeitar o socket.
+    setsockopt(fd,SOL_SOCKET,SO_RCVBUF,&bytes,sizeof(bytes));
+    setsockopt(fd,SOL_SOCKET,SO_SNDBUF,&bytes,sizeof(bytes));
+    return CURL_SOCKOPT_OK;
 }
 class Https final : public Transport {
     CURL* easy = nullptr;
     CURL* explicitCookies = nullptr;
-    const std::atomic_bool* cancel;
+    const std::atomic_bool* cancelFlag;
+    std::atomic_bool aborted{false};
 public:
-    explicit Https(const std::atomic_bool* flag) : cancel(flag) {
+    explicit Https(const std::atomic_bool* flag) : cancelFlag(flag) {
         static const auto init = curl_global_init(CURL_GLOBAL_DEFAULT);
         if (init == CURLE_OK) easy = curl_easy_init();
     }
@@ -43,6 +52,8 @@ public:
         if (explicitCookies) curl_easy_cleanup(explicitCookies);
         if (easy) curl_easy_cleanup(easy);
     }
+    bool cancelled() const override { return aborted || (cancelFlag && cancelFlag->load()); }
+    void cancel() override { aborted=true; }
     Response request(const string& url, const string& body, bool form) override {
         Request r; r.url = url; r.body = body; r.form = form;
         return send(r);
@@ -53,7 +64,7 @@ public:
         const bool form = r.form;
         Response res;
         if (!easy) { res.error = "tls_init"; return res; }
-        if (cancel && cancel->load()) { res.error = "cancelled"; return res; }
+        if (cancelled()) { res.error = "cancelled"; return res; }
         bool customCookies = false;
         for (const auto& h : r.headers) if (!strncasecmp(h.c_str(),"Cookie:",7)) customCookies = true;
         // O curl-xenon ainda envia o pote com Cookie: explícito, até vazio. Outro handle não cria esse pote.
@@ -79,15 +90,22 @@ public:
         set(CURLOPT_TIMEOUT_MS, 15000L);
         set(CURLOPT_CONNECTTIMEOUT_MS, 8000L);
         set(CURLOPT_NOSIGNAL, 1L);
+        set(CURLOPT_FRESH_CONNECT, r.freshConnection ? 1L : 0L);
+        if (r.media) {
+            set(CURLOPT_BUFFERSIZE, r.readBuffer);
+            set(CURLOPT_TIMEOUT_MS, 12000L);
+            set(CURLOPT_LOW_SPEED_LIMIT, 16L*1024);
+            set(CURLOPT_LOW_SPEED_TIME, 4L);
+            set(CURLOPT_TCP_KEEPALIVE, 1L);
+            set(CURLOPT_SOCKOPTFUNCTION, socketOptions);
+        }
         set(CURLOPT_HEADERFUNCTION, header);
         set(CURLOPT_HEADERDATA, &res);
         set(CURLOPT_WRITEFUNCTION, append);
         set(CURLOPT_WRITEDATA, &res.body);
-        if (cancel) {
-            set(CURLOPT_NOPROGRESS, 0L);
-            set(CURLOPT_XFERINFOFUNCTION, progress);
-            set(CURLOPT_XFERINFODATA, cancel);
-        }
+        set(CURLOPT_NOPROGRESS, 0L);
+        set(CURLOPT_XFERINFOFUNCTION, progress);
+        set(CURLOPT_XFERINFODATA, this);
         for (const auto& h : r.headers) {
             auto next = curl_slist_append(headers, h.c_str());
             if (!next) { curl_slist_free_all(headers); res.error = "memory"; return res; }
@@ -106,10 +124,22 @@ public:
         auto rc = setup == CURLE_OK ? curl_easy_perform(handle) : setup;
         curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &res.status);
         curl_easy_getinfo(handle, CURLINFO_NUM_CONNECTS, &res.newConnections);
+        curl_easy_getinfo(handle, CURLINFO_TOTAL_TIME, &res.seconds);
+        curl_socket_t fd=CURL_SOCKET_BAD;
+        if (curl_easy_getinfo(handle,CURLINFO_ACTIVESOCKET,&fd)==CURLE_OK && fd!=CURL_SOCKET_BAD) {
+            socklen_t n=sizeof(int);
+            getsockopt(fd,SOL_SOCKET,SO_RCVBUF,&res.receiveBuffer,&n);
+            n=sizeof(int); getsockopt(fd,SOL_SOCKET,SO_SNDBUF,&res.sendBuffer,&n);
+        }
         curl_slist_free_all(headers);
         if (rc != CURLE_OK) {
-            res.body.clear();
             res.error = rc == CURLE_PEER_FAILED_VERIFICATION ? "tls_peer_verification" : curl_easy_strerror(rc);
+            res.failure = rc==CURLE_ABORTED_BY_CALLBACK ? Failure::CANCELLED :
+                rc==CURLE_PEER_FAILED_VERIFICATION || rc==CURLE_SSL_CONNECT_ERROR || rc==CURLE_SSL_CERTPROBLEM || rc==CURLE_SSL_CACERT_BADFILE ? Failure::TLS : Failure::NETWORK;
+            res.retryable = rc==CURLE_OPERATION_TIMEDOUT || rc==CURLE_PARTIAL_FILE || rc==CURLE_RECV_ERROR ||
+                rc==CURLE_SEND_ERROR || rc==CURLE_COULDNT_CONNECT || rc==CURLE_COULDNT_RESOLVE_HOST || rc==CURLE_SSL_CONNECT_ERROR;
+            // Só Range pode aproveitar um prefixo, depois de validar Content-Range. JSON continua atômico.
+            if (!r.media || !res.retryable) res.body.clear();
         }
         return res;
     }
