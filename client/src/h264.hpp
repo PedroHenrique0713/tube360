@@ -46,11 +46,12 @@ inline std::shared_ptr<video::Surface> mappedSurface(const AVFrame* frame) {
     if (frame->data[i] != (*owner)->data[i] || frame->linesize[i] != (*owner)->stride[i]) return {};
   return *owner;
 }
-inline bool dropAt30(int64_t frame, double rate) {
-  if (rate <= 30.1 || !std::isfinite(rate)) return false;
-  if (rate >= 59 && rate <= 60.1) return (frame & 1) != 0;
-  return std::floor(frame * 30 / rate + .00001) == std::floor((frame - 1) * 30 / rate + .00001);
+inline bool dropAtRate(int64_t frame, double rate, double target) {
+  if (rate <= target+.1 || !std::isfinite(rate)) return false;
+  if (target==30 && rate >= 59 && rate <= 60.1) return (frame & 1) != 0;
+  return std::floor(frame * target / rate + .00001) == std::floor((frame - 1) * target / rate + .00001);
 }
+inline bool dropAt30(int64_t frame,double rate) { return dropAtRate(frame,rate,30); }
 #ifdef __XSDK__
 extern "C" void ffmpeg_workers(int active);
 extern "C" void ffmpeg_work_metrics(unsigned* us, unsigned* frames);

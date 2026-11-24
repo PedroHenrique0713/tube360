@@ -32,15 +32,7 @@ inline bool Player::putOriginalAudio(h264::Stream& s, int count, double pts) {
   if (count < 0 || !std::isfinite(pts)) return false;
   int skip = (int)std::min<double>(count, std::max(0.0, std::ceil(-pts * 44100)));
   if (skip == count) return true;
-  SDL_LockAudioStream(audio);
-  bool ok = SDL_PutAudioStreamData(audio, s.pcm.data() + 2 * skip, (count - skip) * 2 * sizeof(float));
-  if (ok) {
-    if (SDL_GetAtomicInt(&audioBaseMs) < 0)
-      SDL_SetAtomicInt(&audioBaseMs, (int)std::lround((pts + skip / 44100.0) * 1000));
-    SDL_AddAtomicInt(&pushed, count - skip);
-  }
-  SDL_UnlockAudioStream(audio);
-  return ok;
+  return putAudio(s.pcm.data()+2*skip,count-skip,pts+skip/44100.0);
 }
 
 inline void Player::decodeOriginal() {
@@ -91,6 +83,7 @@ inline void Player::decodeOriginal() {
     }
     LOG("console: player OK, cliente %s, %u pedidos: %s",media.playerClient.c_str(),media.playerAttempts,media.playerTrace.c_str());
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
+    if (live) { speed=1; loop=false; tempo.reset(1); }
     castMediaReady = true;
     state = BUFFERING;
     mediaReady = true;
@@ -190,8 +183,9 @@ inline void Player::decodeOriginal() {
                  s.video->thread_type,s.video->active_thread_type,videoBuffers ? "diretos" : "copiados",h264LoopFilter);
   if (sourceRate > 0) presentFps=std::min(presentFps.load(),std::max(1,(int)std::lround(sourceRate)));
   auto alternate = [&](int64_t pts, AVRational base) {
-    if (sourceRate <= presentFps + .1 || pts == AV_NOPTS_VALUE || phase == AV_NOPTS_VALUE) return false;
-    return h264::dropAt30(std::llround((pts - phase) * av_q2d(base) * sourceRate),sourceRate);
+    double target=speed==1 ? double(presentFps.load()) : std::min(30,presentFps.load())/speed.load();
+    if (sourceRate <= target + .1 || pts == AV_NOPTS_VALUE || phase == AV_NOPTS_VALUE) return false;
+    return h264::dropAtRate(std::llround((pts - phase) * av_q2d(base) * sourceRate),sourceRate,speed==1 ? 30 : target);
   };
   uint64_t ns = 0, copyNs = 0, flushNs = 0, since = SDL_GetTicks();
   int directFrames = 0, nonrefPackets = 0;
@@ -327,6 +321,7 @@ inline void Player::decodeOriginal() {
       r = decode(input, input.video, nullptr);
       if (r >= 0) r = decode(input, input.audio, nullptr);
       if (r >= 0 && input.audio && !putOriginalAudio(input, input.convert(nullptr), last)) r = AVERROR_INVALIDDATA;
+      if (r >= 0 && input.audio && !finishAudio()) r = AVERROR_INVALIDDATA;
       if (readAudio) audioEnd = true; else videoEnd = true;
       if (videoEnd && audioEnd) {
         double expected = direct ? media.duration : duration;

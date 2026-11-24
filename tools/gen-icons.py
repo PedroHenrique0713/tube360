@@ -7,8 +7,8 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "client/third_party/phosphor"
 RATINGS = ["thumbs-up-fill", "thumbs-up-bold", "thumbs-down-fill", "thumbs-down-bold", "translate-bold"]
 SIZES = [48, 24, 72, 36]
-OPTIONS = ["closed-captioning", "gear", "speaker-high", "translate", "moon", "thumbs-up", "thumbs-down", "user-circle", "broadcast", "play", "pause"]
-sizes = [22] * 9 + [26, 26]
+OPTIONS = ["closed-captioning", "gear", "speaker-high", "translate", "moon", "thumbs-up", "thumbs-down", "chat-circle-text", "gauge", "repeat", "user-circle", "broadcast", "play", "pause"]
+sizes = [22] * 12 + [26, 26]
 width, height = max(72 * len(RATINGS), sum(sizes) * 3 // 2), sum(SIZES) + 2 * 26 + 2 * 39
 atlas = bytearray(width * height)
 
