@@ -39,7 +39,15 @@ identity = {'url': '/account/accounts_list?', 'contains': '', 'json': {'contents
 rules = json.loads((account/'responses.json').read_text())
 rules.insert(0, identity)
 (account/'responses.json').write_text(json.dumps(rules))
-for name, signed in [('account', True), ('guest', False), ('charts-account', True)]:
+for name, signed in [('account', True), ('guest', False), ('charts-account', True), ('rejected-account', True)]:
+    if len(sys.argv) > 2 and name not in sys.argv[2:]:
+        continue
+    case_manifest = json.loads(json.dumps(manifest))
+    if name == 'rejected-account':
+        for entry in case_manifest['requests']:
+            if entry.get('authorization') and entry.get('fields', {}).get('browseId') == 'FEmusic_home':
+                entry['status'] = 400
+    (replay/'responses.json').write_text(json.dumps(case_manifest))
     assets = proof/('assets-'+name)
     shutil.copytree(replay/'assets', assets, dirs_exist_ok=True)
     if signed:
@@ -60,7 +68,8 @@ for name, signed in [('account', True), ('guest', False), ('charts-account', Tru
     with (proof/(name+'.log')).open('w') as log:
         subprocess.run([str(proof/'tube360-replay')], env=env, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=35)
     log = (proof/(name+'.log')).read_text()
-    assert 'catalogo console: /api/nav,' in log and 'conta recusada:' not in log, log
+    assert 'catalogo console: /api/nav,' in log, log
+    assert ('conta recusada: browse HTTP 400' in log) if name == 'rejected-account' else ('conta recusada:' not in log), log
     if signed:
         entries = audit.read_text().splitlines()
         assert entries and all(line.endswith('\tauthorized_fixture') for line in entries), entries
