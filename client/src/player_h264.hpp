@@ -58,7 +58,7 @@ inline void Player::decodeOriginal() {
     }
     if (stop) return;
     if (media.status != "OK") {
-      LOG("console: player %s", media.status.c_str()); retryConverted = true; return;
+      LOG("console: player %s: %s", media.status.c_str(), media.reason.c_str()); retryConverted = true; return;
     }
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
     castMediaReady = true;
