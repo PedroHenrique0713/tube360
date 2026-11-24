@@ -1,7 +1,7 @@
 # Native playback on Xbox 360
 
 The v0.3.0 client runs YouTube on the console. A PC is an optional reserve. Without `server.txt` beside
-the XEX, or with `server=off`, account, catalogue, Music, phone receiver, timer and speaker control do not
+the XEX, or with `server=off`, account, catalogue, Music, phone receiver and speaker control do not
 need Python/Node services. This supersedes the pre-integration plan formerly kept in this document.
 Its dated measurements remain in Git (`git show 8236373:docs/STANDALONE.md`) and the benchmark fixtures;
 they describe those earlier experiments, not the current feature boundary.
@@ -17,13 +17,17 @@ they describe those earlier experiments, not the current feature boundary.
 | Audio-only Music | `music_player.hpp`: AAC-only decode, local radio/playlist queue, optional lyrics and return to video at the current position. |
 | Phone Cast | `client/src/cast/`: DIAL TCP 8134, SSDP UDP 1900 and YouTube lounge. Pairing, commands, queue state, volume/mute and persistent device/screen identity. |
 | Nest | `nest.hpp`, `player_nest.hpp`: direct Cast v2 TLS on port 8009, Default Media Receiver, selected YouTube audio URL and speaker-clock picture. |
-| Sleep | Local timer in `net.hpp` when server requests are disabled; warning, fade, end-of-video priority and kernel shutdown through `sleep.hpp`. |
+| Sleep | Server deadline via `Worker` HTTP jobs in `main.cpp`; warning/fade and kernel shutdown through `sleep.hpp`. A native deadline is not implemented in this base. |
 | Captions | Native caption discovery/JSON3, language selection and cues against the displayed clock. Live captions remain unavailable. |
 | Reserve | `server/` + `cast/`: original AVC/AAC remux when eligible, otherwise MPEG-1/MP2 conversion and the legacy HTTP control protocol. |
 
 A media URL is distinct from the account grant. Successful browse, sign-in or player metadata does not prove
 CDN byte delivery. YouTube can block clients or media independently. Saved grants, signed URLs, Cast identity
 and Nest ownership files must not enter releases.
+
+**Integration gap:** `requestSleep` still queues `/api/sleep/*` HTTP jobs; `net::connectTo` refuses them
+when server requests are disabled. `SleepState` is only a server snapshot. The native receiver tests inject
+server timer responses. Do not call this build fully feature-complete without a PC until that path is ported.
 
 ## Sources, presentation and output
 

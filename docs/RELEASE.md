@@ -1,7 +1,9 @@
 # Preparing an Xbox release
 
 v0.3.0 is prepared locally; creating artifacts does not publish them. The coordinator integrates other fronts,
-checks the privacy findings, qualifies the console and chooses when to publish. See [changelog](../CHANGELOG.md)
+checks the privacy findings, qualifies the console and chooses when to publish. **Native sleep timer parity is
+not complete in this base: `/api/sleep/*` still requires a server. Integrate and exercise a local timer before
+claiming that every feature works without a PC.** See [changelog](../CHANGELOG.md)
 and [privacy audit](PRIVACY-AUDIT.md). Compare the last public baseline with `git log 89a7158..HEAD`.
 
 ## App ZIP
@@ -89,5 +91,5 @@ No publication, console upload, reboot or real-device tests are performed by the
 build the coordinator should install the ZIP to fresh writable storage and check fonts/startup without
 `server.txt`, account sign-in/out, history, library, subscriptions, Music, captions, both HD profiles/output
 sizes and original/dubbed audio. Check native phone pairing separately from account login. Test Nest Wi-Fi
-recovery and B/exit STOP, then a sleep shutdown with the owner. Follow the hardware measurements in
+recovery and B/exit STOP, then a sleep shutdown with the owner after native timer integration. Follow the hardware measurements in
 [STANDALONE.md](STANDALONE.md#transport-and-qualification). Rebuild and regenerate artifacts after integration.

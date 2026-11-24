@@ -1,0 +1,25 @@
+# EN: Optional. Rename to settings.txt beside default.xex, or configure through the app.
+# PT: Opcional. Renomeie para settings.txt junto do default.xex, ou configure pelo app.
+# The app rewrites this file without comments / o app regrava este arquivo sem comentarios.
+lang=en
+cols=4
+quality=720
+sound=tv
+sync_ms=0
+# auto permits a configured reserve; no server.txt still means console only.
+# auto permite reserva configurada; sem server.txt continua so no console.
+server=auto
+# auto / 720p60 / 1080p30: source preference, not a guaranteed presented frame rate.
+# Preferencia de fonte, nao garantia de cadencia apresentada.
+video_mode=auto
+# 720 / 1080. 1080 requires HDMI + 1080p progressive in the Xbox dashboard.
+# 1080 exige HDMI + 1080p progressivo no painel do Xbox.
+output_height=720
+# original / interface (falls back to original / recua para original se indisponivel).
+audio_preference=original
+captions=off
+caption_lang=
+# xbox / xbox_notebook. PC shutdown only applies on the optional server path.
+# Desligar o PC so vale no caminho com servidor opcional. The timer itself is not saved.
+# Current timer requires the server / o timer atual exige servidor; prazo nativo pendente.
+sleep_what=xbox

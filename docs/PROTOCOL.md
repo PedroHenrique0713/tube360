@@ -1,7 +1,8 @@
 # Native console paths and optional server protocol
 
 Tube360 v0.3.0 runs YouTube on the Xbox. No `server.txt` beside the XEX (and no desktop `XT_SERVER`)
-means **console only**, including account, Music, phone Cast, Nest and timer: no HTTP requests to a PC.
+means **console only**, including account, Music, phone Cast and Nest: no HTTP requests to a PC.
+The current timer is an exception in feature coverage: its deadline still requires the server.
 `settings.txt` can additionally force `server=off`; `server=auto` only permits a configured reserve.
 The first line of `server.txt` is `<IP> <port>`, for example `192.0.2.10 8091` (replace the documentation IP).
 
@@ -16,7 +17,7 @@ The first line of `server.txt` is `<IP> <port>`, for example `192.0.2.10 8091` (
 | Account navigation/Music | Native TV account and public catalog; local queues, history, likes, subscriptions, library, Music and audio-only playback. Music can fall back to public shelves if its endpoint rejects the TV token. |
 | Phone | Native DIAL/SSDP and YouTube lounge receiver; identity files `cast-device.txt` / `cast-screen.txt`. See Cast from the phone below. |
 | Nest | Cast v2 TLS directly from Xbox, configured in two-line `nest.txt`; the speaker fetches YouTube audio. See Direct Cast below. |
-| Sleep | Local deadline/end-of-video state, fade and Xbox shutdown; no PC needed. PC shutdown only applies to the optional server path. |
+| Sleep | Current deadline/end-of-video state is server-owned. The console shows warnings/fades and executes shutdown commands. Native deadline ownership is still missing. |
 
 Local runtime files (account grants, Cast identities, Nest ownership journal, history, settings and logs)
 are private; ship only the inactive examples in `deploy/xbox/`. Examples for `nest.txt` and `server.txt`

@@ -16,7 +16,7 @@
 > [!TIP]
 > **O Tube360 é grátis e tem licença MIT.** Se ele ressuscitou o seu console, **deixa uma ⭐ no repositório**. É a única coisa que eu peço, e é assim que outras pessoas acham o projeto.
 
-O **Tube360** é um cliente nativo do YouTube para Xbox 360. Abra o `.xex` pelo Aurora, FSD ou XeXMenu e assista ao YouTube **direto no console, sem PC**. Conta, histórico, inscrições, biblioteca, Música, transmissão pelo celular, som no Google Nest e timer também rodam no Xbox. O servidor no PC vira uma reserva opcional.
+O **Tube360** é um cliente nativo do YouTube para Xbox 360. Abra o `.xex` pelo Aurora, FSD ou XeXMenu e assista ao YouTube **direto no console, sem PC**. Conta, histórico, inscrições, biblioteca, Música, transmissão pelo celular e som no Google Nest também rodam no Xbox. O servidor no PC vira reserva opcional de reprodução. **Nesta base, o timer ainda exige servidor; o prazo totalmente nativo permanece uma pendência de integração.**
 
 Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 
@@ -35,7 +35,7 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | 🔊 **Google Nest / caixa Google Cast** | O console manda a URL da faixa do YouTube à caixa e segue o relógio dela. Sem PC ou pareamento Bluetooth. Lives diretas usam som na TV por enquanto. |
 | 🎞️ **Imagem e faixa de áudio** | Perfis Automático, 720p60 e 1080p30; saída 720p/1080p; faixa original por padrão e dublagens oferecidas pelo vídeo no player. Resolução e cadência se adaptam à fonte, à rede e à carga do console. |
 | 💬 **Legendas e lives** | Legendas em VOD, busca de posição, botão para voltar ao vivo e próximo automático. Legendas ao vivo ainda não são suportadas. |
-| 🌙 **Timer** | De 15 minutos a 2 horas, ou fim do vídeo, com aviso e redução de volume. O Xbox controla o prazo sem PC. |
+| 🌙 **Timer (exige servidor nesta base)** | De 15 minutos a 2 horas, ou fim do vídeo, com aviso e redução de volume. O prazo local ainda precisa ser integrado. |
 | ⚙️ **Configurações na TV** | Português/inglês, 3/4 colunas, qualidade, tamanho da saída, som, sincronia e legendas. Dicas de botões no estilo Xbox One / Series. |
 
 ## Telas
@@ -156,7 +156,7 @@ Use Configurações na TV; os valores ficam em `settings.txt` ao lado do XEX. Os
 
 ## Servidor no PC opcional (reserva)
 
-Configure apenas se quiser uma reserva para mídia direta bloqueada ou incompatível. Conta, transmissão do celular, Nest e timer funcionam sem ele. Algumas operações de conta/navegação em `server=auto` ainda usam serviços do PC; deixar `server.txt` ausente é o caminho mais claro para manter tudo nativo.
+Configure apenas se quiser uma reserva para mídia direta bloqueada ou incompatível. Conta, transmissão do celular e Nest funcionam sem ele. O timer atual ainda exige servidor. Algumas operações de conta/navegação em `server=auto` ainda usam serviços do PC; deixar `server.txt` ausente é o caminho mais claro para manter tudo nativo.
 
 O host testado é Linux (Fedora). Instale Python 3.11+, FFmpeg e Node.js 22+ no PATH:
 
@@ -221,6 +221,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 
 - A integração com o YouTube é não oficial e pode mudar ou ser bloqueada. Restrições de idade/região, DRM e conteúdo pago não são contornadas; login não garante acesso à mídia. Atualize o feed ou tente mais tarde; a reserva opcional pode ajudar.
 - 720p60/1080p30 são perfis de fonte. O Xbox pode reduzir cadência ou resolução sob carga. Confira o estado real no player; 1080p nativo exige o modo HDMI do painel descrito acima. Sem promessa de 1080p60, HDR, VP9 ou AV1.
+- O timer da interface ainda chama o servidor opcional. Sem ele, a configuração do timer falha; esta base não oferece desligamento temporizado nativo.
 - Música pode recuar para navegação pública se o serviço recusar o token de TV da conta. Letras são opcionais. Legendas ao vivo e Nest em live direta ainda não estão implementados; lives usam som na TV.
 - Texto vazio ou saída ao abrir: copie as quatro fontes junto de `default.xex`. Falha de HTTPS: confira relógio do console e internet/DNS.
 - Caixa indisponível ou sem som: confira IP, internet e Wi-Fi dela; desative isolamento de convidados/clientes entre Xbox e caixa, depois tente X. Não é pareamento Bluetooth. Falta de confirmação de silêncio pode atrasar o som na TV.
@@ -232,6 +233,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 
 - [x] Conta, canais, biblioteca, Música, Cast do celular e Nest para VOD nativos
 - [x] Legendas em VOD e escolha de áudio original/dublado
+- [ ] Timer nativo (o atual exige servidor)
 - [ ] Relógio das legendas ao vivo e sincronia do Nest em live direta
 - [ ] Testes em mais consoles/redes para desempenho HD sustentado
 

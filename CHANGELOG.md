@@ -16,7 +16,8 @@ This entry describes the integrated console branch; publication and hardware acc
   seek, volume and mute; account, Music and timer priorities survive phone commands.
 - Direct Google Cast v2 control from the console, selected audio sent to the speaker, speaker-clock video,
   ownership handoff with an optional server and a saved pending STOP journal.
-- Local sleep timer, final warning, volume fade and Xbox shutdown without a PC.
+- Sleep controls, warning, volume fade and Xbox shutdown command handling retained alongside native playback.
+  The deadline still lives on the optional server; a native timer is an outstanding integration requirement.
 - VOD captions, track/language selection, chapters and player metadata.
 - Automatic / 720p60 / 1080p30 source profiles, 720p/1080p output selection and original/dubbed audio choices.
   Original audio is preferred over automatic dubbing, including on Nest and in server reserve streams.
@@ -40,6 +41,8 @@ This entry describes the integrated console branch; publication and hardware acc
 - Bilingual console-first installation and troubleshooting, versioned allowlist packaging and release/privacy notes.
 
 ### Known limits
+
+- Full console-only feature parity is pending: the sleep timer still requires the server in this branch.
 
 - HD source profiles do not guarantee sustained 60 fps or 1080p on every console/video/network. Hardware
   acceptance includes actual source, presented rate, audio continuity and both output sizes.

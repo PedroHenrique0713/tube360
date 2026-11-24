@@ -16,7 +16,7 @@
 > [!TIP]
 > **Tube360 is free and MIT licensed.** If it brought your old console back to life, **give the repo a ⭐**. It's the only thing I ask, and it's how other people find it.
 
-**Tube360** is a native YouTube client for the Xbox 360. Open the `.xex` from Aurora, FSD or XeXMenu and watch YouTube **directly on the console, without a PC**. Your account, history, subscriptions, library, Music, phone Cast, Google Nest sound and sleep timer run on the Xbox too. A PC server is an optional reserve.
+**Tube360** is a native YouTube client for the Xbox 360. Open the `.xex` from Aurora, FSD or XeXMenu and watch YouTube **directly on the console, without a PC**. Your account, history, subscriptions, library, Music, phone Cast and Google Nest sound run on the Xbox too. A PC server is an optional playback reserve. **In this build, the sleep timer still requires the server; a fully native timer remains an integration requirement.**
 
 No TV stick, no smart TV, no browser. Just the Xbox 360 you already have.
 
@@ -35,7 +35,7 @@ No TV stick, no smart TV, no browser. Just the Xbox 360 you already have.
 | 🔊 **Google Nest / Google Cast speaker** | The console sends the selected YouTube audio URL directly to the speaker and follows its clock. No PC or Bluetooth pairing needed. Direct live streams currently use TV sound. |
 | 🎞️ **Playback and audio choices** | Automatic, 720p60 and 1080p30 source profiles; 720p/1080p output; original audio by default, with offered dubbed tracks selectable in the player. Actual resolution and frame rate adapt to the source, network and console load. |
 | 💬 **Captions and live** | VOD caption selection, seeking, live-edge action and autoplay. Live captions are not supported yet. |
-| 🌙 **Sleep timer** | 15 minutes to 2 hours, or end of video, with a final warning and volume fade. The Xbox owns the timer without a PC. |
+| 🌙 **Sleep timer (server required in this build)** | 15 minutes to 2 hours, or end of video, with a final warning and volume fade. Native deadline ownership remains to be integrated. |
 | ⚙️ **Settings on the TV** | English/Portuguese, 3/4 columns, quality, output size, sound, sync and captions. Xbox One / Series button prompts. |
 
 ## Screenshots
@@ -156,7 +156,7 @@ Legacy `quality.txt` / `audio.txt` are read when `settings.txt` is absent. Origi
 
 ## Optional PC server (reserve)
 
-Set this up only if you want a reserve for blocked or incompatible direct media. Console account, phone Cast, Nest and timer work without it. Some account/navigation operations in `server=auto` still use PC services; no `server.txt` is the clearest way to keep everything native.
+Set this up only if you want a reserve for blocked or incompatible direct media. Console account, phone Cast and Nest work without it. The current sleep timer still needs it. Some account/navigation operations in `server=auto` still use PC services; no `server.txt` is the clearest way to keep everything native.
 
 Linux is the tested host (Fedora). Install Python 3.11+, FFmpeg and Node.js 22+ in PATH:
 
@@ -221,6 +221,7 @@ tools/           builds, packaging and optional service installation
 
 - YouTube is an unofficial integration and can change or block clients. Age/region restrictions, DRM and paid content are not bypassed; account sign-in does not guarantee media access. Reload a failed feed or retry later; an optional server reserve may help.
 - 720p60/1080p30 are source profiles. The Xbox may lower rate or resolution under load. Check the actual player status; native 1080p needs the dashboard HDMI mode described above. No promise of 1080p60, HDR, VP9 or AV1 decoding.
+- The sleep timer UI still calls the optional server. Without it, setting a timer fails; this build does not provide native timed shutdown.
 - Music can fall back to public browsing when the account's TV grant is refused by Music. Lyrics are optional. Live captions and direct live Nest audio are not implemented; live uses TV sound.
 - Empty text or app exits at startup: copy all four fonts beside `default.xex`. HTTPS failures: check the console clock and internet/DNS access.
 - Speaker unavailable or silent: check its IP, internet access and Wi-Fi; disable guest/client isolation between Xbox and speaker, then retry X. Do not use Bluetooth pairing. A missing silence confirmation can delay TV sound.
@@ -232,6 +233,7 @@ tools/           builds, packaging and optional service installation
 
 - [x] Native account, channels, library, Music, phone Cast and Nest for VOD
 - [x] VOD subtitles and original/dubbed audio choices
+- [ ] Native sleep timer (current timer requires the server)
 - [ ] Live caption clock and direct live Nest synchronization
 - [ ] Broader console/network testing for sustained HD performance
 
