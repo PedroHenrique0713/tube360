@@ -14,7 +14,13 @@ int main(int argc,char** argv) {
     if (argc<2) return 2;
     std::string command=argv[1]; std::atomic_bool cancel{false};
     uint64_t start=SDL_GetTicks();
-    if (command=="scan" || command=="cancel") {
+    if (command=="plan" && argc==4) {
+        in_addr address{}, mask{};
+        if (inet_pton(AF_INET,argv[2],&address)!=1 || inet_pton(AF_INET,argv[3],&mask)!=1) return 2;
+        picojson::array hosts;
+        for (const auto& host:nest::addresses({ntohl(address.s_addr),ntohl(mask.s_addr)})) hosts.push_back(J(host));
+        std::cout<<J(O{{"hosts",J(hosts)}}).serialize()<<std::endl;
+    } else if (command=="scan" || command=="cancel") {
         nest::Network network; if (!nest::localNetwork(network)) return 3;
         std::thread timer;
         if (command=="cancel") timer=std::thread([&] { SDL_Delay(70); cancel=true; });

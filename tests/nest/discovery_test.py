@@ -204,6 +204,15 @@ class DiscoveryTest(unittest.TestCase):
         self.assertEqual(result['state'], 2)
         self.assertEqual(result['uuid'], '1' * 32)
 
+    def test_saved_host_survives_console_prefix_change(self):
+        config = self.folder / 'console-moved'
+        config.mkdir(exist_ok=True)
+        (config / 'nest.txt').write_text('127.77.24.2 8009\nSala\n')
+        with receiver(self.folder, '127.77.24.2'):
+            result = self.run_probe('recover', config, network='127.77.26.1/0.0.0.0')
+        self.assertEqual(result['state'], 2)
+        self.assertEqual(result['host'], '127.77.24.2')
+
     def test_ip_changed_and_old_ip_reused(self):
         config = self.folder / 'moved'
         config.mkdir(exist_ok=True)

@@ -42,19 +42,21 @@ subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-da
                 '-keyout', str(key), '-out', str(cert)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def run(name, silence=False):
+def run(name, silence=False, permanent=False, missing_time=False):
     assets = WORK/name
     assets.mkdir(exist_ok=True)
+    (assets/'nest-owner.json').unlink(missing_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets/font.name)
     (assets/'settings.txt').write_text('lang=pt\nquality=720\nsound=nest\nserver=off\nsync_ms=0\n')
     (assets/'autoplay.txt').write_text('F25fixture0 0\n')
     receiver = Receiver(cert, key)
     receiver.request_delay = receiver.response_delay = .065
-    receiver.drop_media = not silence
+    receiver.drop_media = not (silence or missing_time)
     (assets/'nest.txt').write_text(f'127.0.0.1 {receiver.port}\nNest simulado F25\n')
     began_silence = [None]
     stop_times = []
+    release_times = []
     original = receiver.handle
 
     def handle(client, request):
@@ -63,7 +65,7 @@ def run(name, silence=False):
             stop_times.append(time.monotonic())
         original(client, request)
     receiver.handle = handle
-    seconds = 32 if silence else 10
+    seconds = 34 if permanent else 32 if silence or missing_time else 10
     env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
     home = WORK/'home'
     home.mkdir(exist_ok=True)
@@ -85,12 +87,31 @@ def run(name, silence=False):
             if quit_worker.wait(.8):
                 return
             began_silence[0] = time.monotonic()
+            if missing_time:
+                original_reply = receiver.reply
+
+                def reply(client, request, payload, source=None):
+                    if payload.get('type') == 'MEDIA_STATUS':
+                        payload = dict(payload, status=[{key: value for key, value in item.items()
+                                                        if key != 'currentTime'} for item in payload['status']])
+                    original_reply(client, request, payload, source)
+                receiver.reply = reply
+                return
             receiver.replies = False
-            if not quit_worker.wait(26):
+            if permanent:
+                receiver.online = False
+                receiver.disconnect()
+                until = time.monotonic()+28
+                while not quit_worker.wait(.03) and time.monotonic() < until:
+                    if 'liberando para TV' in (WORK/(name+'.log')).read_text():
+                        release_times.append(time.monotonic())
+                        return
+                raise AssertionError('no release attempt after permanent outage')
+            if not quit_worker.wait(26) and not permanent:
                 receiver.replies = True
         except Exception as error:
             failures.append(repr(error))
-    worker = threading.Thread(target=outage) if silence else None
+    worker = threading.Thread(target=outage) if silence or missing_time else None
     process = None
     try:
         with (WORK/(name+'.log')).open('w') as log:
@@ -109,13 +130,23 @@ def run(name, silence=False):
     assert not receiver.errors and not failures, (receiver.errors, failures)
     log = (WORK/(name+'.log')).read_text()
     assert 'som: Nest' in log and 'primeiro quadro' in log
-    assert len(receiver.commands('LOAD')) == 1
-    assert receiver.commands('STOP') and not (assets/'nest-owner.json').exists()
-    if silence:
-        delay = min(stop_times)-began_silence[0]
+    if missing_time:
+        commands = [data['type'] for namespace, data in receiver.events if namespace.endswith('.media')]
+        assert commands[:commands.index('STOP')].count('LOAD') == 1
+    else:
+        assert len(receiver.commands('LOAD')) == 1
+    assert permanent or receiver.commands('STOP')
+    assert (assets/'nest-owner.json').exists() == permanent
+    if silence or missing_time:
+        delay = min(release_times if permanent else stop_times)-began_silence[0]
         assert 24 < delay < 27, delay
-        assert 'liberando para TV' in log and 'som: TV' in log
-        print(f'PASS player silence: first STOP after {delay:.3f}s; TV only after quiet confirmation')
+        assert 'liberando para TV' in log
+        if permanent:
+            assert 'som: TV' not in log
+            print(f'CONFIRMADO: perda permanente, liberação solicitada após {delay:.3f}s, TV ainda muda aos {seconds-2}s; aguarda quiet indefinidamente')
+        else:
+            assert 'som: TV' in log
+            print(f'PASS player {"missing currentTime" if missing_time else "silence"}: first STOP after {delay:.3f}s; TV only after quiet confirmation')
     else:
         assert 'liberando para TV' not in log and 'som: TV' not in log
         assert receiver.dropped > 5
@@ -124,5 +155,7 @@ def run(name, silence=False):
     subprocess.run(['magick', str(WORK/(name+'.ppm')), str(WORK/(name+'.png'))], check=True)
 
 
-run('wifi-130ms-loss30')
-run('silence-25s', silence=True)
+if __name__ == '__main__':
+    run('wifi-130ms-loss30')
+    run('silence-25s', silence=True)
+    run('missing-current-time', missing_time=True)

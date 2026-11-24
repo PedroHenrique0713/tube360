@@ -30,5 +30,11 @@ if(NOT XSDK AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   target_link_libraries(cast-lan-test PRIVATE tube360-cast tube360-yt SDL3::SDL3)
   target_link_options(cast-lan-test PRIVATE -Wl,--wrap=getsockname -Wl,--wrap=bind
     -Wl,--wrap=setsockopt -Wl,--wrap=sendto)
-
+  add_executable(nest-scan-fault-test EXCLUDE_FROM_ALL "${CMAKE_CURRENT_LIST_DIR}/../nest/discovery.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../nest/socket_faults.cpp")
+  target_include_directories(nest-scan-fault-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../client/src"
+    "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
+  target_compile_options(nest-scan-fault-test PRIVATE -UNDEBUG)
+  target_link_libraries(nest-scan-fault-test PRIVATE tube360-cast tube360-yt SDL3::SDL3)
+  target_link_options(nest-scan-fault-test PRIVATE -Wl,--wrap=connect -Wl,--wrap=select -Wl,--wrap=close)
 endif()
