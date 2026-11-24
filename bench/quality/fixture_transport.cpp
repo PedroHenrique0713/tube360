@@ -43,7 +43,7 @@ public:
             std::ifstream f(dir+"/player.json"); std::ostringstream out; out<<f.rdbuf();
             return f ? Response{200,out.str()} : Response{404,"","missing fixture"};
         }
-        const string base="https://media.example/";
+        const string base="https://fixture.googlevideo.com/";
         if (r.url.find(base)==0 && r.url.find("..",base.size())==string::npos) {
             string name=r.url.substr(base.size());
             std::ifstream f(dir+"/"+name,std::ios::binary);

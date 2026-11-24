@@ -54,7 +54,8 @@ audio_server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Audio)
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 context.load_cert_chain(cert, key)
 audio_server.socket = context.wrap_socket(audio_server.socket, server_side=True)
-audio_url = f'https://127.0.0.1:{audio_server.server_port}/audio.m4a'
+local_audio_url = f'https://127.0.0.1:{audio_server.server_port}/audio.m4a'
+audio_url = 'https://fixture.googlevideo.com/audio.m4a'
 manifest = json.loads((replay/'responses.json').read_text())
 for entry in manifest['requests']:
     if entry['url'].startswith('https://music.youtube.com/youtubei/'):
@@ -164,7 +165,7 @@ def app(name, seconds, mode='off', race=False):
 
     def consume(url):
         assert url == audio_url
-        with urllib.request.urlopen(url, context=ssl._create_unverified_context(), timeout=3) as response:
+        with urllib.request.urlopen(local_audio_url, context=ssl._create_unverified_context(), timeout=3) as response:
             data = response.read()
             assert data[4:8] == b'ftyp'
             downloads.append(len(data))

@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
   h.refusal=read(dir+"/members-player.json");
   auto media=client.player("member00001");
   check(media.status=="UNPLAYABLE" && media.reason=="members" && h.players==1,"real refusal is specific and never rotates clients");
-  h.refusal=R"({"playabilityStatus":{"status":"OK","reason":"Members only"},"videoDetails":{"videoId":"member00001","lengthSeconds":"600"},"streamingData":{"formats":[{"itag":22,"width":1280,"height":720,"fps":30,"mimeType":"video/mp4; codecs=\"avc1, mp4a\"","url":"https://media.example/fixture"}]}})";
+  h.refusal=R"({"playabilityStatus":{"status":"OK","reason":"Members only"},"videoDetails":{"videoId":"member00001","lengthSeconds":"600"},"streamingData":{"formats":[{"itag":22,"width":1280,"height":720,"fps":30,"mimeType":"video/mp4; codecs=\"avc1, mp4a\"","url":"https://fixture.googlevideo.com/fixture"}]}})";
   media=client.player("member00001");
   check(media.status=="OK" && !media.video.url.empty(),"authorized player response follows normal playback");
   check(i18n::playerError("Vídeo só para membros do canal")==i18n::Key::VideoMembers,"player error translates");

@@ -30,19 +30,19 @@ if not (root / "audio.m4a").exists():
 
 def video(tag, height, fps, name):
     return dict(itag=tag, height=height, width=height * 16 // 9, fps=fps,
-                mimeType='video/mp4; codecs="avc1.640028"', url=f"https://media.example/{name}")
+                mimeType='video/mp4; codecs="avc1.640028"', url=f"https://fixture.googlevideo.com/{name}")
 
 
 formats = ([video(137, 1080, 30, "1080.mp4"), video(136, 720, 30, "720.mp4")]
            if args.mode in ("1080","both") else [video(298, 720, 60, "72060.mp4")])
 if args.mode=="both": formats.append(video(298,720,60,"72060.mp4"))
 formats.append(dict(itag=140, mimeType='audio/mp4; codecs="mp4a.40.2"', bitrate=128000,
-                    url="https://media.example/audio.m4a"))
+                    url="https://fixture.googlevideo.com/audio.m4a"))
 if args.audio_tracks:
     formats[-1]["audioTrack"]=dict(id="en.4",displayName="English (original)",audioIsDefault=False)
     if not (root/"audio-pt.m4a").exists():
         ffmpeg("-f","lavfi","-i","sine=frequency=440:sample_rate=44100","-t",str(args.seconds),"-c:a","aac","-b:a","128k","-movflags","+faststart",str(root/"audio-pt.m4a"))
-    formats.append(dict(itag=140,mimeType='audio/mp4; codecs="mp4a.40.2"',bitrate=128000,url="https://media.example/audio-pt.m4a",audioTrack=dict(id="pt.4",displayName="Portuguese (auto-dubbed)",audioIsDefault=True)))
+    formats.append(dict(itag=140,mimeType='audio/mp4; codecs="mp4a.40.2"',bitrate=128000,url="https://fixture.googlevideo.com/audio-pt.m4a",audioTrack=dict(id="pt.4",displayName="Portuguese (auto-dubbed)",audioIsDefault=True)))
 streaming = dict(expiresInSeconds="3600", adaptiveFormats=formats)
 if args.mode == "live":
     ffmpeg("-i", str(root / "72060.mp4"), "-i", str(root / "audio.m4a"), "-c", "copy", "-f", "hls",
@@ -50,7 +50,7 @@ if args.mode == "live":
            str(root / "video.m3u8"))
     (root / "master.m3u8").write_text('#EXTM3U\n#EXT-X-STREAM-INF:CODECS="avc1.640028,mp4a.40.2",'
                                      'RESOLUTION=1280x720,FRAME-RATE=60\nvideo.m3u8\n')
-    streaming["hlsManifestUrl"] = "https://media.example/master.m3u8"
+    streaming["hlsManifestUrl"] = "https://fixture.googlevideo.com/master.m3u8"
 (root / "player.json").write_text(json.dumps(dict(playabilityStatus=dict(status="OK"),
     videoDetails=dict(videoId="4p_9OPKgcDE", title=f"F15 — fonte {args.mode}", isLive=args.mode == "live",
                       lengthSeconds=str(args.seconds)), streamingData=streaming)))

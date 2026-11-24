@@ -43,7 +43,7 @@ public:
             std::ifstream f(dir+"/player.json"); std::ostringstream out; out<<f.rdbuf();
             return f ? Response{200,out.str()} : Response{404,"","missing fixture"};
         }
-        const string base="https://media.example/";
+        const string base="https://fixture.googlevideo.com/";
         if (r.url.find(base)==0 && r.url.find("..",base.size())==string::npos) {
             string name=r.url.substr(base.size());
             std::ifstream f(dir+"/"+name,std::ios::binary);
@@ -72,6 +72,7 @@ public:
             if (!range) return {200,std::move(data)};
             return {206,std::move(data),"","bytes "+std::to_string(first)+"-"+std::to_string(last)+"/"+std::to_string(size)};
         }
+        if (r.url.find("raw.githubusercontent.com")!=string::npos) return {404,{},""};
         if (r.url=="https://www.youtube.com/?hl=pt" || r.url=="https://www.youtube.com/?hl=en" || r.url=="https://www.youtube.com/?hl=es")
             return {200,R"(<script>ytcfg.set({"INNERTUBE_CONTEXT":{"client":{"clientName":"WEB","clientVersion":"fixture"}}})</script>)"};
         if (r.url.find("/youtubei/v1/next?")!=string::npos) {

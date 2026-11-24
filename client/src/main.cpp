@@ -582,6 +582,7 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
 }
 
 #include "music_navigation.hpp"
+#include "update/ui.hpp"
 
 int main(int argc, char** argv) {
   (void)argc; (void)argv;
@@ -656,6 +657,8 @@ int main(int argc, char** argv) {
     }
     std::fclose(f);
   }
+  updates::Service updater(assets);
+  updates::UI updateUI;
   auto accountNet = yt::accountTransport();
   auto consoleAccount = std::make_shared<yt::ConsoleAccount>(*accountNet, assets + "yt-console-account.json");
   consoleAccount->select(!settings.server); pl.memberAccount = consoleAccount;
@@ -999,6 +1002,9 @@ int main(int argc, char** argv) {
       }
     }
 
+    updateUI.poll(updater,g,settings.lang);
+    updater.tick(screen==HOME,frame>60 && now-runStart>=3000);
+
     // ---------------------------------------------------------------- resultados do trabalho em segundo plano
     if (accountBackend != consoleAccount->revision()) {
       accountBackend = consoleAccount->revision();
@@ -1250,6 +1256,7 @@ int main(int argc, char** argv) {
         if (powerDownXbox()) quit = true;
         else { shutdownAt = 0; toast = tr(K::SleepError); toastUntil = now + 6000; }
       }
+    } else if (updateUI.input(updater,in,screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !sleepPanel && !sleepWarning && !shutdownAt)) {
     } else if (sleepWarning) {
       if (in.hit(Input::A) && !sleepPending) requestSleep("/api/sleep/add?min=15");
       if (in.hit(Input::B) && !sleepPending) requestSleep("/api/sleep/cancel");
@@ -2472,6 +2479,8 @@ int main(int argc, char** argv) {
         hint(g, hx, hy, "B", XB, tr(K::Back));
       }
     }
+
+    if (screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !sleepPanel && !sleepWarning && !shutdownAt) updateUI.draw(g,settings.lang);
 
     bool shoot = shotPath && (int)frame == shotFrame;
 #ifndef __XSDK__

@@ -1,5 +1,7 @@
 #include "client.hpp"
 #include "roots.hpp"
+#include "update-roots.hpp"
+#include "update/rules.hpp"
 #include <curl/curl.h>
 #include <strings.h>
 #include <sys/socket.h>
@@ -9,10 +11,11 @@
 
 namespace yt {
 namespace {
-constexpr size_t maxBody = 6 * 1024 * 1024; // o base.js do player passa de 3 MB
+struct Body { string* data; size_t max; };
 size_t append(char* bytes, size_t count, size_t unit, void* data) {
-    auto& body = *static_cast<string*>(data);
-    if (unit && count > (maxBody - body.size()) / unit) return 0;
+    auto& target = *static_cast<Body*>(data);
+    auto& body = *target.data;
+    if (unit && count > (target.max - body.size()) / unit) return 0;
     body.append(bytes, count * unit);
     return count * unit;
 }
@@ -63,6 +66,8 @@ public:
         const string& body = r.body;
         const bool form = r.form;
         Response res;
+        if (r.update && !updates::updateUrl(url)) { res.error="update_url"; return res; }
+        Body target{&res.body, r.maxBytes ? std::min(r.maxBytes,size_t(6*1024*1024)) : size_t(updates::rules()->n("responseBytes"))};
         if (!easy) { res.error = "tls_init"; return res; }
         if (cancelled()) { res.error = "cancelled"; return res; }
         bool customCookies = false;
@@ -72,7 +77,7 @@ public:
         CURL* handle = customCookies ? explicitCookies : easy;
         if (!handle) { res.error = "tls_init"; return res; }
         curl_easy_reset(handle); // Mantém DNS, sessões TLS e conexões do mesmo worker e identidade.
-        curl_blob ca{const_cast<char*>(ytRoots), sizeof(ytRoots), CURL_BLOB_NOCOPY};
+        curl_blob ca{const_cast<char*>(r.update ? updateRoots : ytRoots), r.update ? sizeof(updateRoots) : sizeof(ytRoots), CURL_BLOB_NOCOPY};
         curl_slist* headers = nullptr;
         CURLcode setup = CURLE_OK;
         auto set = [&](auto option, auto value) {
@@ -102,7 +107,7 @@ public:
         set(CURLOPT_HEADERFUNCTION, header);
         set(CURLOPT_HEADERDATA, &res);
         set(CURLOPT_WRITEFUNCTION, append);
-        set(CURLOPT_WRITEDATA, &res.body);
+        set(CURLOPT_WRITEDATA, &target);
         set(CURLOPT_NOPROGRESS, 0L);
         set(CURLOPT_XFERINFOFUNCTION, progress);
         set(CURLOPT_XFERINFODATA, this);

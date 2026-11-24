@@ -28,12 +28,12 @@ if not args.check_only:
                             "-b:v", f"{bitrate}k", "-maxrate", f"{bitrate}k", "-bufsize", f"{2*bitrate}k",
                             "-x264-params", "nal-hrd=cbr", "-g", str(fps), "-an", "-movflags", "+faststart", str(path)], check=True)
         formats.append(dict(itag=tag, width=width, height=height, fps=fps, bitrate=bitrate*1000,
-                            mimeType='video/mp4; codecs="avc1"', url=f"https://media.example/{path.name}"))
+                            mimeType='video/mp4; codecs="avc1"', url=f"https://fixture.googlevideo.com/{path.name}"))
     audio = work / "media/audio.m4a"
     if not audio.exists():
         subprocess.run(["ffmpeg", "-v", "error", "-f", "lavfi", "-i", "sine=frequency=1000:sample_rate=44100", "-t", "55",
                         "-c:a", "aac", "-b:a", "128k", "-movflags", "+faststart", str(audio)], check=True)
-    formats.append(dict(itag=140, mimeType='audio/mp4; codecs="mp4a"', bitrate=128000, url="https://media.example/audio.m4a"))
+    formats.append(dict(itag=140, mimeType='audio/mp4; codecs="mp4a"', bitrate=128000, url="https://fixture.googlevideo.com/audio.m4a"))
     (work / "media/player.json").write_text(json.dumps(dict(playabilityStatus=dict(status="OK"),
         videoDetails=dict(videoId="4p_9OPKgcDE", title="F19 - rede 2,5 Mbit/s - sem PC", lengthSeconds="55"),
         streamingData=dict(expiresInSeconds="3600", adaptiveFormats=formats))))

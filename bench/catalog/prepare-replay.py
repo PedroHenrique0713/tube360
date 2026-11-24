@@ -63,7 +63,7 @@ subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-f', 'lav
                 'sine=frequency=440:sample_rate=44100:duration=4', '-ac', '2', '-c:v', 'libx264',
                 '-threads', '2', '-preset', 'ultrafast', '-pix_fmt', 'yuv420p', '-g', '30',
                 '-c:a', 'aac', '-movflags', '+faststart', str(dest / 'video.mp4')], check=True)
-requests.append({'url': 'https://media.example.invalid/unused-video', 'file': 'video.mp4', 'range': True})
+requests.append({'url': 'https://fixture.googlevideo.com/unused-video', 'file': 'video.mp4', 'range': True})
 
 subprocess.run(['magick', '-size', '320x180', 'gradient:#67396b-#d39465', str(dest / 'art.png')], check=True)
 subprocess.run(['magick', '-size', '1060x175', 'gradient:#124748-#572b62', str(dest / 'banner.png')], check=True)
@@ -104,17 +104,17 @@ for i in range(1, 4):
         'videoDetails': {'videoId': vid, 'title': 'Faixa de teste ' + str(i), 'lengthSeconds': '4'},
         'streamingData': {'expiresInSeconds': '3600', 'formats': [
             {'itag': 22, 'mimeType': 'video/mp4; codecs="avc1, mp4a"', 'height': 720,
-             'width': 1280, 'fps': 30, 'url': 'https://media.example.invalid/unused-video'}],
+             'width': 1280, 'fps': 30, 'url': 'https://fixture.googlevideo.com/unused-video'}],
             'adaptiveFormats': [
                 {'itag': 136, 'mimeType': 'video/mp4; codecs="avc1"', 'height': 720,
-                 'width': 1280, 'fps': 30, 'url': 'https://media.example.invalid/unused-video'},
+                 'width': 1280, 'fps': 30, 'url': 'https://fixture.googlevideo.com/unused-video'},
                 {'itag': 140, 'mimeType': 'audio/mp4; codecs="mp4a"', 'bitrate': 128000,
-                 'url': 'https://media.example.invalid/audio-' + vid + '.m4a'}]},
+                 'url': 'https://fixture.googlevideo.com/audio-' + vid + '.m4a'}]},
     }
     filename = 'player-' + vid + '.json'
     (dest / filename).write_text(json.dumps(data))
     route(web, 'youtubei/v1/player?prettyPrint=false', {'videoId': vid}, filename)
-    requests.append({'url': 'https://media.example.invalid/audio-' + vid + '.m4a', 'file': 'audio.m4a', 'range': True})
+    requests.append({'url': 'https://fixture.googlevideo.com/audio-' + vid + '.m4a', 'file': 'audio.m4a', 'range': True})
 (dest / 'responses.json').write_text(json.dumps({'requests': requests}))
 assets = dest / 'assets'
 assets.mkdir(exist_ok=True)

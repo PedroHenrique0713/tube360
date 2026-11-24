@@ -56,7 +56,7 @@ for i in range(1, 9):
 for path in media.glob('*'):
     if path.suffix in ('.mp4', '.m4a'):
         shutil.copyfile(path, replay/path.name)
-        manifest['requests'].append({'url': 'https://media.example/'+path.name, 'file': path.name, 'range': True})
+        manifest['requests'].append({'url': 'https://fixture.googlevideo.com/'+path.name, 'file': path.name, 'range': True})
 player = json.loads((media/'player.json').read_text())
 player['videoDetails'].update(title='Vídeo de bancada · Original e dublagem', author='Canal de bancada', channelId='UC_x5XG1OV2P6uZZ5FSM9Ttw')
 player['microformat'] = {'playerMicroformatRenderer': {'publishDate': '2026-11-22'}}
@@ -66,7 +66,7 @@ subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(media/'720.mp4'), '-i',
     '-hls_segment_filename', str(replay/'live%03d.ts'), str(replay/'live.m3u8')], check=True)
 (replay/'master.m3u8').write_text('#EXTM3U\n#EXT-X-STREAM-INF:CODECS="avc1.640028,mp4a.40.2",RESOLUTION=1280x720,FRAME-RATE=30\nlive.m3u8\n')
 for path in [*replay.glob('*.m3u8'), *replay.glob('live*.ts')]:
-    manifest['requests'].append({'url': 'https://media.example/'+path.name, 'file': path.name})
+    manifest['requests'].append({'url': 'https://fixture.googlevideo.com/'+path.name, 'file': path.name})
 manifest['requests'].insert(0, {'url': 'https://www.youtube.com/youtubei/v1/player?prettyPrint=false',
     'fields': {'videoId': '4p_9OPKgcDE'}, 'file': 'player-visual.json'})
 manifest['requests'].append({'url': 'https://www.youtube.com/watch?v=4p_9OPKgcDE&bpctr=9999999999&has_verified=1', 'file': 'watch.html'})
@@ -100,7 +100,7 @@ for height in (720, 1080):
             data = json.loads(json.dumps(player))
             if label.startswith('live'):
                 data['videoDetails']['isLive'] = True
-                data['streamingData']['hlsManifestUrl'] = 'https://media.example/master.m3u8'
+                data['streamingData']['hlsManifestUrl'] = 'https://fixture.googlevideo.com/master.m3u8'
             (replay/'player-visual.json').write_text(json.dumps(data))
             assets = work/('assets-'+name)
             shutil.copytree(replay/'assets', assets, dirs_exist_ok=True)

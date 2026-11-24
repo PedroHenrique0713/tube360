@@ -95,26 +95,29 @@ class Client {
   Transport& net;
   J context;
   string language;
+  std::shared_ptr<const updates::Rules> policy;
   struct Cache { Votes votes; uint64_t expires; };
   std::map<string,Cache> cache;
   Response next(const string& fields, const string& lang) {
+    auto current=updates::rules();
+    if (!policy || current->version!=policy->version) {context=J();policy=std::move(current);}
     if (!context.is<Object>() || language != lang) {
-      Request page; page.url="https://www.youtube.com/?hl="+lang;
-      page.agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
+      Request page; page.url=policy->s("webOrigin")+"/?hl="+lang;
+      page.agent=policy->s("catalogAgent");
       auto r = net.send(page);
       if (failureOf(r) != Failure::NONE) return r;
-      auto key = r.body.find("\"INNERTUBE_CONTEXT\"");
-      auto begin = key == string::npos ? string::npos : r.body.find('{',key+19);
+      auto key = r.body.find(policy->s("contextMarker"));
+      auto begin = key == string::npos ? string::npos : r.body.find('{',key+policy->s("contextMarker").size());
       auto end = jsonEnd(r.body,begin);
       if (end == string::npos || end-begin > 65536 || !parse(r.body.substr(begin,end-begin),context) ||
-          str(get(context,"client"),"clientName") != "WEB") return {0,{},"comments_context"};
+          str(get(context,"client"),"clientName") != policy->s("webName")) return {0,{},"comments_context"};
       context.get<Object>()["client"].get<Object>()["hl"] = J(lang);
       context.get<Object>()["client"].get<Object>()["gl"] = J(string(localeRegion(lang)));
       language=lang;
     }
-    Request r; r.url="https://www.youtube.com/youtubei/v1/next?prettyPrint=false";
+    Request r; r.url=policy->api("next");r.agent=policy->s("catalogAgent");
     r.body="{\"context\":"+context.serialize()+","+fields+"}";
-    r.headers={"X-Youtube-Client-Name: 1","X-Youtube-Client-Version: "+str(get(context,"client"),"clientVersion")};
+    r.headers={policy->s("clientNameHeader")+": "+policy->s("webCode"),policy->s("clientVersionHeader")+": "+str(get(context,"client"),"clientVersion")};
     return net.send(r);
   }
 public:

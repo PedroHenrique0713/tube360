@@ -1,6 +1,7 @@
 #include "client.hpp"
 #include "membership_json.hpp"
 #include "locale.hpp"
+#include "update/rules.hpp"
 #include "picojson.h"
 #include <algorithm>
 #include <climits>
@@ -43,6 +44,8 @@ string label(const J& j) {
 }
 // Limita a pilha do parser recursivo e o número de nós que o DOM pode alocar.
 size_t objectEnd(const string& s, size_t begin) {
+    const auto limits=updates::rules();
+    const int maxDepth=limits->n("parserDepth"), maxNodes=limits->n("parserNodes");
     bool quoted = false, escaped = false;
     int depth = 0, nodes = 0;
     if (begin >= s.size() || s[begin] != '{') return string::npos;
@@ -54,16 +57,16 @@ size_t objectEnd(const string& s, size_t begin) {
             else if (c == '"') quoted = false;
         } else if (c == '"') quoted = true;
         else if (c == '{' || c == '[') {
-            if (++depth > 80 || ++nodes > 160000) break;
+            if (++depth > maxDepth || ++nodes > maxNodes) break;
         } else if (c == ',') {
-            if (++nodes > 160000) break;
+            if (++nodes > maxNodes) break;
         } else if ((c == '}' || c == ']') && --depth == 0) return i + 1;
     }
     return string::npos;
 }
 bool parse(const string& s, J& j) {
     size_t b = s.find_first_not_of(" \t\r\n");
-    if (s.size() > 3 * 1024 * 1024 || b == string::npos) return false;
+    if (s.size() > size_t(updates::rules()->n("jsonBytes")) || b == string::npos) return false;
     auto end = objectEnd(s,b);
     if (end == string::npos || s.find_first_not_of(" \t\r\n",end) != string::npos) return false;
     string err;
@@ -81,13 +84,12 @@ string member(const char* name, const string& value) {
     return J(string(name)).serialize()+":"+J(value).serialize();
 }
 bool httpsUrl(const string& u) {
-    return u.size()>8 && u.compare(0,8,"https://")==0 &&
-        std::none_of(u.begin(), u.end(), [](unsigned char c){return c <= 32 || c == 127 || c == '\\';});
+    return updates::youtubeUrl(u);
 }
-void collect(const J& j, Page& out, std::set<string>& seen) {
-    if (out.cards.size() >= 60) return;
+void collect(const J& j, Page& out, std::set<string>& seen, size_t limit) {
+    if (out.cards.size() >= limit) return;
     if (j.is<Array>()) {
-        for (const auto& v : array(j)) collect(v,out,seen);
+        for (const auto& v : array(j)) collect(v,out,seen,limit);
     } else if (j.is<Object>()) {
         for (const auto& kv : j.get<Object>()) {
             const J& v = kv.second;
@@ -100,20 +102,26 @@ void collect(const J& j, Page& out, std::set<string>& seen) {
                     id = str(v,"contentId");
                     title = str(field(field(field(v,"metadata"),"lockupMetadataViewModel"),"title"),"content");
                 }
-                if (!id.empty() && !title.empty() && seen.insert(id).second && out.cards.size()<60)
+                if (!id.empty() && !title.empty() && seen.insert(id).second && out.cards.size()<limit)
                     out.cards.push_back({id,title,membership(v)});
-            } else collect(v,out,seen);
+            } else collect(v,out,seen,limit);
         }
     }
 }
 }
 
 void Client::setLanguage(const string& value) { language = localeLanguage(value); }
+void Client::bindRules() {
+    auto next=updates::rules();
+    if (!policy || next->version!=policy->version) {
+        context.clear(); visitor.clear(); playerJs.clear(); sts=0; policy=std::move(next);
+    }
+}
 Response Client::post(const string& route, const string& fields) {
     if (context.empty()) {
-        auto r = net.request("https://www.youtube.com/");
+        auto r = net.send(Request{policy->s("webOrigin")+"/",{},policy->s("browserAgent")});
         if (!r.error.empty() || r.status!=200) return r;
-        const string key = "\"INNERTUBE_CONTEXT\"";
+        const string key = policy->s("contextMarker");
         auto pos = r.body.find(key);
         if (pos==string::npos) return {0,{}, "web_context_missing"};
         auto colon = r.body.find_first_not_of(" \t\r\n",pos+key.size());
@@ -123,40 +131,40 @@ Response Client::post(const string& route, const string& fields) {
             return {0,{}, "web_context_invalid"};
         J j;
         auto value = r.body.substr(begin,end-begin);
-        if (!parse(value,j) || str(field(j,"client"),"clientName")!="WEB")
+        if (!parse(value,j) || str(field(j,"client"),"clientName")!=policy->s("webName"))
             return {0,{}, "web_context_invalid"};
         context = std::move(value);
     }
     J localized; parse(context,localized);
     auto& client = localized.get<Object>()["client"].get<Object>();
     client["hl"] = J(language); client["gl"] = J(string(localeRegion(language)));
-    return net.request("https://www.youtube.com/youtubei/v1/"+route+"?prettyPrint=false",
+    return net.request(policy->api(route),
         "{\"context\":"+localized.serialize()+","+fields+"}");
 }
 Page Client::page(const string& route, const string& fields, const string& exclude) {
+    bindRules();
     J j;
     Page out;
     out.error = content(post(route,fields),j);
-    if (!out.error.empty()) return out;
-    if (j.contains("error") || !j.contains("contents")) { out.error="invalid_page"; return out; }
+    if (!out.error.empty()) { updates::observe(policy->version,false,out.error=="invalid_json" || out.error=="web_context_missing" || out.error=="web_context_invalid" || out.error=="HTTP 400" || out.error=="HTTP 403"); return out; }
+    if (j.contains("error") || !j.contains("contents")) { out.error="invalid_page"; updates::observe(policy->version,false,true); return out; }
     std::set<string> seen{exclude};
-    collect(field(j,"contents"),out,seen);
+    collect(field(j,"contents"),out,seen,size_t(policy->n("cards")));
+    updates::observe(policy->version,true,false);
     return out;
 }
-Page Client::home() { return page("browse",member("browseId","FEwhat_to_watch")); }
+Page Client::home() { return page("browse",member("browseId",updates::rules()->s("homeBrowseId"))); }
 Page Client::search(const string& query) { return page("search",member("query",query)); }
 Page Client::next(const string& id) { return page("next",member("videoId",id),id); }
 
 namespace {
-const char* const browserAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
-const char* const visionAgent="Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15";
 // Valor de "chave":"valor" no HTML do YouTube, com as barras escapadas desfeitas.
 string quoted(const string& html, const string& key) {
     auto pos=html.find(key);
     if (pos==string::npos) return {};
     pos+=key.size();
     auto end=html.find('"',pos);
-    if (end==string::npos || end-pos>4096) return {};
+    if (end==string::npos || end-pos>size_t(updates::rules()->n("markerBytes"))) return {};
     string v=html.substr(pos,end-pos);
     for (size_t i; (i=v.find("\\/"))!=string::npos;) v.erase(i,1);
     return v;
@@ -165,31 +173,33 @@ int digitsAfter(const string& s, const char* key) {
     auto pos=s.find(key);
     if (pos==string::npos) return 0;
     pos+=std::strlen(key);
-    int n=0;
-    while (pos<s.size() && s[pos]>='0' && s[pos]<='9' && n<100000000) n=n*10+(s[pos++]-'0');
-    return n;
+    int64_t n=0;int max=updates::rules()->n("timestampMax");
+    while(pos<s.size() && s[pos]>='0' && s[pos]<='9') {
+        n=n*10+(s[pos++]-'0');if(n>max)return 0;
+    }
+    return int(n);
 }
 }
 bool Client::session(const string& id, string& error, bool fresh) {
     sessionFailure=Failure::NONE; sessionRetryable=false;
     if (!visitor.empty() && sts) return true;
     Request page;
-    page.url="https://www.youtube.com/watch?v="+id+"&bpctr=9999999999&has_verified=1";
-    page.agent=browserAgent; page.freshConnection=fresh;
-    page.headers={"Accept-Language: en-us,en;q=0.5"};
+    page.url=policy->s("webOrigin")+policy->s("watchPath")+id+policy->s("watchSuffix");
+    page.agent=policy->s("browserAgent"); page.freshConnection=fresh;
+    page.headers={"Accept-Language: "+policy->s("acceptLanguage")};
     auto r=net.send(page);
     if (!r.error.empty() || r.status!=200) {
         error=!r.error.empty() ? r.error : "HTTP "+std::to_string(r.status);
         sessionFailure=failureOf(r); sessionRetryable=retryable(r); return false;
     }
-    visitor=quoted(r.body,"\"VISITOR_DATA\":\"");
-    auto js=quoted(r.body,"\"jsUrl\":\"");
-    if (visitor.empty() || js.size()<2 || js[0]!='/' || js[1]=='/') {
+    visitor=quoted(r.body,policy->s("visitorMarker"));
+    auto js=quoted(r.body,policy->s("jsMarker"));
+    if (!updates::ascii(visitor,size_t(policy->n("markerBytes"))) || js.size()<2 || js[0]!='/' || js[1]=='/') {
         visitor.clear(); error="visitor_session_missing"; sessionFailure=Failure::SESSION; sessionRetryable=true; return false;
     }
     if (js!=playerJs || !sts) {
         // Uma revisão do player identifica o JS e o timestamp. Publica o índice por último.
-        const auto& base = cacheBase;
+        const auto base = cacheBase+".v"+std::to_string(policy->version);
         if (!cacheBase.empty()) {
             if (auto* f = std::fopen((base + ".idx").c_str(), "rb")) {
                 char path[4098]{};
@@ -202,11 +212,11 @@ bool Client::session(const string& id, string& error, bool fresh) {
             }
         }
         Request code;
-        code.url="https://www.youtube.com"+js;
-        code.agent=browserAgent;
+        code.url=policy->s("webOrigin")+js;
+        code.agent=policy->s("browserAgent");
         auto b=net.send(code);
-        int n=b.error.empty() && b.status==200 ? digitsAfter(b.body,"signatureTimestamp:") : 0;
-        if (!n && b.error.empty()) n=digitsAfter(b.body,"sts:");
+        int n=0;
+        if (b.error.empty() && b.status==200) for (const auto& marker:policy->timestampMarkers) { n=digitsAfter(b.body,marker.c_str()); if(n)break; }
         if (!n) {
             visitor.clear(); error=!b.error.empty() ? b.error : b.status!=200 ? "HTTP "+std::to_string(b.status) : "signature_timestamp_missing";
             sessionFailure=b.error.empty() && b.status==200 ? Failure::SESSION : failureOf(b);
@@ -229,6 +239,7 @@ bool Client::session(const string& id, string& error, bool fresh) {
 }
 
 Video Client::player(const string& id, int height, MediaOffers* offers, int mode, const string& wantedAudio, const string& accountPlayer) {
+    bindRules();
     if (offers) *offers = {};
     J j;
     Video out;
@@ -236,15 +247,19 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
         out.status="INVALID_VIDEO_ID";
         return out;
     }
+    struct Report {
+        Video& v; std::shared_ptr<const updates::Rules> policy;
+        ~Report() {
+            bool ok=v.status=="OK" && (!v.hls.empty() || (!v.video.url.empty() && (v.muxed || !v.audio.url.empty())));
+            bool bad=v.failure==Failure::JSON || v.failure==Failure::SESSION || v.reason=="HTTP 400" || v.reason=="HTTP 403" ||
+                v.reason=="no_direct_avc" || v.reason=="no_direct_aac" ||
+                (v.failure==Failure::REFUSAL && std::find(policy->fallbackStatuses.begin(),policy->fallbackStatuses.end(),v.status)!=policy->fallbackStatuses.end());
+            updates::observe(policy->version,ok,bad);
+        }
+    } report{out,policy};
     // O cliente VISIONOS recebe links prontos (sem decifrar JavaScript) quando o pedido leva a sessão de visitante
     // da página do vídeo: cookies, X-Goog-Visitor-Id e o signatureTimestamp do player JS. É o mesmo pedido que o
     // yt-dlp do servidor faz (medido em 2026-11-23: itag 136 direto deste IP, sem login nem PO token).
-    const char* clients[]={"VISIONOS","ANDROID_VR","IOS"};
-    const char* ids[]={"101","28","5"};
-    const char* versions[]={"1.02","1.65.10","20.11.6"};
-    const char* agents[]={visionAgent,
-        "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
-        "com.google.ios.youtube/20.11.6 (iPhone10,4; U; CPU iOS 16_7_7 like Mac OS X)"};
     if (!accountPlayer.empty()) {
         out.playerClient="TVHTML5"; out.playerAttempts=1;
         if (!parse(accountPlayer,j)) { out.status="ERROR"; out.failure=Failure::JSON; out.reason="invalid_json"; return out; }
@@ -255,35 +270,35 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
             out.failure=Failure::REFUSAL; return out;
         }
     }
-    for (int client=0; accountPlayer.empty() && client<3; ++client) {
-        out.playerClient=clients[client];
-        for (int attempt=0; attempt<2; ++attempt) {
+    for (size_t client=0; accountPlayer.empty() && client<policy->players.size(); ++client) {
+        const auto& identity=policy->players[client];
+        out.playerClient=identity.name;
+        for (int attempt=0; attempt<policy->n("retries"); ++attempt) {
             if (!session(id,out.reason,attempt>0)) {
                 out.failure=sessionFailure;
                 out.status="ERROR";
-                if (attempt || !sessionRetryable || !net.backoff(200)) return out;
+                if (attempt+1>=policy->n("retries") || !sessionRetryable || !net.backoff(unsigned(policy->n("backoffMs")))) return out;
                 continue;
             }
             Request q;
-            q.url="https://www.youtube.com/youtubei/v1/player?prettyPrint=false";
-            q.agent=agents[client]; q.freshConnection=attempt>0;
-            q.headers={string("X-Youtube-Client-Name: ")+ids[client],string("X-Youtube-Client-Version: ")+versions[client],
-                       "Origin: https://www.youtube.com","X-Goog-Visitor-Id: "+visitor};
-            string device=client==0 ? "\"deviceMake\":\"Apple\",\"deviceModel\":\"RealityDevice17,1\",\"osName\":\"visionOS\",\"osVersion\":\"26.5.23O471\"" :
-                client==1 ? "\"deviceMake\":\"Oculus\",\"deviceModel\":\"Quest 3\",\"osName\":\"Android\",\"osVersion\":\"12L\",\"androidSdkVersion\":32" :
-                "\"deviceMake\":\"Apple\",\"deviceModel\":\"iPhone10,4\",\"osName\":\"iOS\",\"osVersion\":\"16.7.7.20H330\"";
-            q.body="{\"context\":{\"client\":{"+member("clientName",clients[client])+","+member("clientVersion",versions[client])+","+
-                device+","+member("userAgent",agents[client])+","+member("hl",language)+","+member("gl",localeRegion(language))+",\"timeZone\":\"UTC\",\"utcOffsetMinutes\":0}},"+
+            q.url=policy->api("player");
+            q.agent=identity.agent; q.freshConnection=attempt>0;
+            q.headers={policy->s("clientNameHeader")+": "+identity.code,policy->s("clientVersionHeader")+": "+identity.version,
+                       "Origin: "+policy->s("webOrigin"),policy->s("visitorHeader")+": "+visitor};
+            q.headers.insert(q.headers.end(),identity.headers.begin(),identity.headers.end());
+            auto device=identity.device.serialize(); device=device.substr(1,device.size()-2);
+            q.body="{\"context\":{\"client\":{"+member("clientName",identity.name)+","+member("clientVersion",identity.version)+","+
+                (device.empty()?"":device+",")+member("userAgent",identity.agent)+","+member("hl",language)+","+member("gl",localeRegion(language))+",\"timeZone\":\"UTC\",\"utcOffsetMinutes\":0}},"+
                 member("videoId",id)+",\"playbackContext\":{\"contentPlaybackContext\":{\"html5Preference\":\"HTML5_PREF_WANTS\",\"signatureTimestamp\":"+
                 std::to_string(sts)+"}},\"contentCheckOk\":true,\"racyCheckOk\":true}";
             j=J(); ++out.playerAttempts;
             auto reply=net.send(q);
             out.reason=content(reply,j);
             auto kind=out.reason=="invalid_json" ? Failure::JSON : failureOf(reply);
-            out.playerTrace+=string(clients[client])+":"+failureName(kind)+"/"+std::to_string(reply.status)+" ";
+            out.playerTrace+=identity.name+":"+failureName(kind)+"/"+std::to_string(reply.status)+" ";
             if (!out.reason.empty()) {
                 out.status="ERROR"; out.failure=out.reason=="invalid_json" ? Failure::JSON : failureOf(reply);
-                if (!attempt && (out.failure==Failure::JSON || retryable(reply)) && net.backoff(200)) continue;
+                if (attempt+1<policy->n("retries") && (out.failure==Failure::JSON || retryable(reply)) && net.backoff(unsigned(policy->n("backoffMs")))) continue;
                 return out;
             }
             out.status=str(field(j,"playabilityStatus"),"status");
@@ -297,14 +312,14 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
             out.failure=Failure::REFUSAL;
             if (client==0 && !attempt && out.status=="LOGIN_REQUIRED") {
                 visitor.clear();
-                if (!net.backoff(200)) return out;
+                if (!net.backoff(unsigned(policy->n("backoffMs")))) return out;
                 continue;
             }
             break;
         }
         if (out.status=="OK") break;
         // Alterna só após recusa do cliente. Falha de rede não justifica multiplicar pedidos InnerTube.
-        if (out.failure!=Failure::REFUSAL || (out.status!="LOGIN_REQUIRED" && out.status!="UNPLAYABLE")) return out;
+        if (out.failure!=Failure::REFUSAL || std::find(policy->fallbackStatuses.begin(),policy->fallbackStatuses.end(),out.status)==policy->fallbackStatuses.end()) return out;
     }
     if (out.status!="OK") return out;
     const auto& details = field(j,"videoDetails");
@@ -441,7 +456,8 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
 }
 bool Client::captions(const Track& t,std::vector<Cue>& cues,string& error) {
     cues.clear();
-    const string base="https://www.youtube.com/api/timedtext?";
+    const auto p=updates::rules();
+    const string base=p->s("webOrigin")+p->s("captionsPath");
     if (!httpsUrl(t.url) || t.url.compare(0,base.size(),base)!=0) { error="invalid_track_url"; return false; }
     auto url=t.url;
     auto fmt=url.find("&fmt=");
@@ -453,13 +469,14 @@ bool Client::captions(const Track& t,std::vector<Cue>& cues,string& error) {
     }
     J j;
     error=content(net.request(url),j);
-    if (!error.empty()) return false;
-    if (!field(j,"events").is<Array>()) { error="invalid_captions"; return false; }
+    if (!error.empty()) {updates::observe(p->version,false,error=="invalid_json" || error=="HTTP 400" || error=="HTTP 403");return false;}
+    if (!field(j,"events").is<Array>()) {error="invalid_captions";updates::observe(p->version,false,true);return false;}
     for (const auto& event : array(field(j,"events"))) {
         string line;
         for (const auto& seg : array(field(event,"segs"))) line+=str(seg,"utf8");
         if (!line.empty()) cues.push_back({integer(event,"tStartMs"),integer(event,"dDurationMs"),line});
     }
+    updates::observe(p->version,true,false);
     return true;
 }
 
@@ -475,7 +492,7 @@ string formValue(const string& s) {
     return out;
 }
 string oauth(Transport& net,const char* route,const string& body,J& out) {
-    auto r=net.request(string("https://oauth2.googleapis.com/")+route,body,true);
+    auto r=net.request(updates::rules()->s("oauthOrigin")+"/"+route,body,true);
     if (!r.error.empty()) return "temporarily_unavailable";
     if (r.status==429 || r.status>=500) return "temporarily_unavailable";
     if (!parse(r.body,out)) return "invalid_oauth_response";
@@ -499,8 +516,8 @@ string DeviceLogin::start(int64_t now, DeviceCode& code) {
     code={};
     if (clientId.empty() || secret.empty()) return "missing_client_credentials";
     J j;
-    auto e=oauth(net,"device/code","client_id="+formValue(clientId)+
-        "&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fyoutube.readonly",j);
+    auto e=oauth(net,updates::rules()->s("deviceRoute").c_str(),"client_id="+formValue(clientId)+
+        "&scope="+formValue(updates::rules()->s("publicOAuthScope")),j);
     if (!e.empty()) return e;
     DeviceCode c;
     c.device=str(j,"device_code"); c.user=str(j,"user_code"); c.verificationUrl=str(j,"verification_url");
@@ -515,7 +532,7 @@ string DeviceLogin::poll(int64_t now, DeviceCode& code, Tokens& tokens) {
     if (now<code.nextPoll) return "authorization_pending";
     J j;
     code.nextPoll=now+code.interval;
-    auto e=oauth(net,"token","client_id="+formValue(clientId)+"&client_secret="+formValue(secret)+
+    auto e=oauth(net,updates::rules()->s("tokenRoute").c_str(),"client_id="+formValue(clientId)+"&client_secret="+formValue(secret)+
         "&device_code="+formValue(code.device)+"&grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code",j);
     if (e=="slow_down" || e=="temporarily_unavailable") {
         code.interval=std::min(INT_MAX-5,code.interval)+5;
@@ -529,7 +546,7 @@ string DeviceLogin::poll(int64_t now, DeviceCode& code, Tokens& tokens) {
 string DeviceLogin::refresh(int64_t now, Tokens& tokens) {
     if (tokens.refresh.empty()) return "missing_refresh_token";
     J j;
-    auto e=oauth(net,"token","client_id="+formValue(clientId)+"&client_secret="+formValue(secret)+
+    auto e=oauth(net,updates::rules()->s("tokenRoute").c_str(),"client_id="+formValue(clientId)+"&client_secret="+formValue(secret)+
         "&refresh_token="+formValue(tokens.refresh)+"&grant_type=refresh_token",j);
     if (e=="invalid_grant") tokens={};
     if (!e.empty()) return e;

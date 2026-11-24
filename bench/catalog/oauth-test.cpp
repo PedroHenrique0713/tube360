@@ -42,6 +42,7 @@ struct Http : yt::Transport {
     if (s.oracle.is<Object>()) {
       check(!r.body.empty() && str(s.oracle,"method") == "POST","method matches oracle");
       J body; check(parse(r.body,body),"native request parses");
+      if (body != get(s.oracle,"body")) std::cerr << "actual: " << body.serialize() << "\nexpected: " << get(s.oracle,"body").serialize() << "\n";
       check(body == get(s.oracle,"body"),"complete JSON equals real youtubei.js output");
       auto actual = headers(r), expected = get(s.oracle,"headers").get<Object>();
       check(str(J(actual),"authorization") == "Bearer console-fixture-token","console fake token sent");

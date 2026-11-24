@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "kind": "tube360-rules",
+  "version": 1,
+  "strings": {
+    "webOrigin": "https://www.youtube.com",
+    "musicOrigin": "https://music.youtube.com",
+    "oauthOrigin": "https://oauth2.googleapis.com",
+    "apiPath": "/youtubei/v1/",
+    "apiQuery": "?prettyPrint=false",
+    "apiKey": "",
+    "watchPath": "/watch?v=",
+    "watchSuffix": "&bpctr=9999999999&has_verified=1",
+    "captionsPath": "/api/timedtext?",
+    "tvPath": "/tv",
+    "tvOAuthPath": "/o/oauth2/",
+    "swPath": "/sw.js_data",
+    "swReferer": "/sw.js",
+    "contextMarker": "\"INNERTUBE_CONTEXT\"",
+    "visitorMarker": "\"VISITOR_DATA\":\"",
+    "jsMarker": "\"jsUrl\":\"",
+    "tvScriptMarker": "id=\"base-js\"",
+    "tvIdMarker": "clientId:\"",
+    "tvSecretMarker": ":\"",
+    "tvVersionMarker": "\"INNERTUBE_CLIENT_VERSION\"",
+    "homeBrowseId": "FEwhat_to_watch",
+    "browserAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
+    "acceptLanguage": "en-us,en;q=0.5",
+    "webName": "WEB",
+    "webCode": "1",
+    "musicName": "WEB_REMIX",
+    "musicCode": "67",
+    "musicVersion": "1.20250219.01.00",
+    "oauthScope": "http://gdata.youtube.com https://www.googleapis.com/auth/youtube-paid-content",
+    "oauthDeviceModel": "ytlr::",
+    "oauthGrant": "http://oauth.net/grant_type/device/1.0",
+    "deviceRoute": "device/code",
+    "tokenRoute": "token",
+    "revokeRoute": "revoke",
+    "visitorHeader": "X-Goog-Visitor-Id",
+    "clientNameHeader": "X-Youtube-Client-Name",
+    "clientVersionHeader": "X-Youtube-Client-Version",
+    "tvFallbackVersion": "7.20250219.14.00",
+    "musicHomeId": "FEmusic_home",
+    "musicExploreId": "FEmusic_explore",
+    "musicChartsId": "FEmusic_charts",
+    "musicSearchSongs": "EgWKAQIIAQ%3D%3D",
+    "musicSearchAlbums": "EgWKAQIYAQ%3D%3D",
+    "musicSearchArtists": "EgWKAQIgAQ%3D%3D",
+    "subscriptionsId": "FEsubscriptions",
+    "libraryId": "FEplaylist_aggregation",
+    "historyId": "FEhistory",
+    "laterId": "VLWL",
+    "channelsId": "FEchannels",
+    "subscribeParams": "EgIIAhgA",
+    "unsubscribeParams": "CgIIAhgA",
+    "publicOAuthScope": "https://www.googleapis.com/auth/youtube.readonly",
+    "tvClientId": "",
+    "tvClientSecret": "",
+    "catalogAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36"
+  },
+  "limits": {
+    "responseBytes": 6291456,
+    "jsonBytes": 3145728,
+    "cards": 60,
+    "retries": 2,
+    "backoffMs": 200,
+    "markerBytes": 4096,
+    "timestampMax": 100000000,
+    "checkHours": 4,
+    "failures": 3,
+    "successes": 3,
+    "pageItems": 24,
+    "listPages": 40,
+    "listItems": 1024,
+    "queueItems": 256,
+    "catalogItems": 240,
+    "parserDepth": 80,
+    "parserNodes": 160000
+  },
+  "timestampMarkers": [
+    "signatureTimestamp:",
+    "sts:"
+  ],
+  "players": [
+    {
+      "name": "VISIONOS",
+      "code": "101",
+      "version": "1.02",
+      "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15",
+      "device": {
+        "deviceMake": "Apple",
+        "deviceModel": "RealityDevice17,1",
+        "osName": "visionOS",
+        "osVersion": "26.5.23O471"
+      },
+      "headers": []
+    },
+    {
+      "name": "ANDROID_VR",
+      "code": "28",
+      "version": "1.65.10",
+      "agent": "com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip",
+      "device": {
+        "deviceMake": "Oculus",
+        "deviceModel": "Quest 3",
+        "osName": "Android",
+        "osVersion": "12L",
+        "androidSdkVersion": 32
+      },
+      "headers": []
+    },
+    {
+      "name": "IOS",
+      "code": "5",
+      "version": "20.11.6",
+      "agent": "com.google.ios.youtube/20.11.6 (iPhone10,4; U; CPU iOS 16_7_7 like Mac OS X)",
+      "device": {
+        "deviceMake": "Apple",
+        "deviceModel": "iPhone10,4",
+        "osName": "iOS",
+        "osVersion": "16.7.7.20H330"
+      },
+      "headers": []
+    }
+  ],
+  "tv": {
+    "name": "TVHTML5",
+    "code": "7",
+    "version": "",
+    "agent": "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version",
+    "device": {},
+    "headers": []
+  },
+  "samsung": {
+    "name": "TVHTML5",
+    "code": "7",
+    "version": "5.20260707",
+    "agent": "Mozilla/5.0 (SMART-TV; Linux; Tizen 2.4.0) AppleWebKit/538.1 (KHTML, like Gecko) Version/2.4.0 TV Safari/538.1",
+    "device": {
+      "deviceMake": "Samsung",
+      "deviceModel": "UKS9800",
+      "osName": "Tizen",
+      "osVersion": "2.4.0"
+    },
+    "headers": []
+  },
+  "fallbackStatuses": [
+    "LOGIN_REQUIRED",
+    "UNPLAYABLE"
+  ]
+}

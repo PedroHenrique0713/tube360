@@ -19,7 +19,7 @@ for index in range(1, 9):
 for path in (work/'media').iterdir():
     if path.suffix in ('.mp4', '.m4a'):
         shutil.copyfile(path, replay/path.name)
-        manifest['requests'].append({'url': 'https://media.example/'+path.name, 'file': path.name, 'range': True})
+        manifest['requests'].append({'url': 'https://fixture.googlevideo.com/'+path.name, 'file': path.name, 'range': True})
 player=json.loads((work/'media/player.json').read_text())
 player['captions']={'playerCaptionsTracklistRenderer': {'captionTracks': [{'baseUrl': 'https://www.youtube.com/api/timedtext?v=4p_9OPKgcDE&lang=es', 'languageCode':'es', 'name':{'simpleText':'Español'}}]}}
 (replay/'player-display.json').write_text(json.dumps(player))

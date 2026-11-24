@@ -79,7 +79,7 @@ void playback(Http& h,yt::Client& c,const string& dir) {
     h.add(player,"\"clientName\":\"VISIONOS\"",tooFast);
     v=c.player(id);
     check(v.video.itag==136 && v.video.fps==60,"720p60 beats 480p30; 1080p60 is excluded");
-    const string login=R"({"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Sign in"},"streamingData":{"hlsManifestUrl":"https://media.example/old"}})";
+    const string login=R"({"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Sign in"},"streamingData":{"hlsManifestUrl":"https://fixture.googlevideo.com/old"}})";
     // A sessão nova vem antes dos outros clientes; o JS da mesma revisão não é baixado outra vez.
     h.add(player,"\"clientName\":\"VISIONOS\"",login);
     h.add(watch,"",session);
@@ -92,11 +92,11 @@ void playback(Http& h,yt::Client& c,const string& dir) {
     h.add(player,"\"clientName\":\"VISIONOS\"","oops",503);
     check(c.player(id).status=="ERROR","player failure");
     check(c.player("bad").status=="INVALID_VIDEO_ID","bad ID locally rejected");
-    const string onlyFast=R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"adaptiveFormats":[{"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":60,"url":"https://media.example/fast"}]}})";
+    const string onlyFast=R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"adaptiveFormats":[{"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":60,"url":"https://fixture.googlevideo.com/fast"}]}})";
     h.add(player,"\"clientName\":\"VISIONOS\"",onlyFast);
     v=c.player(id);
     check(v.status=="OK" && v.video.itag==298 && v.reason=="no_direct_aac","60 fps qualifies but still requires AAC");
-    const string bothRates=R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"adaptiveFormats":[{"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":59.94,"url":"https://media.example/fast"},{"itag":136,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":29.97,"url":"https://media.example/normal"}]}})";
+    const string bothRates=R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"adaptiveFormats":[{"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":59.94,"url":"https://fixture.googlevideo.com/fast"},{"itag":136,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":29.97,"url":"https://fixture.googlevideo.com/normal"}]}})";
     h.add(player,"\"clientName\":\"VISIONOS\"",bothRates);
     check(c.player(id).video.itag==136,"720p30 avoids needless 60 fps decoding when both exist");
     auto muxed=json.substr(0,json.find("\"adaptiveFormats\""))+json.substr(json.find("\"formats\":"));
@@ -106,26 +106,26 @@ void playback(Http& h,yt::Client& c,const string& dir) {
 }
 void audioProfiles(Http& h,yt::Client& c) {
     const string reply=R"json({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"adaptiveFormats":[
-      {"itag":137,"mimeType":"video/mp4; codecs=\"avc1\"","width":1920,"height":1080,"fps":30,"url":"https://media.example/1080"},
-      {"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":60,"url":"https://media.example/72060"},
-      {"itag":136,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":30,"url":"https://media.example/72030"},
-      {"itag":135,"mimeType":"video/mp4; codecs=\"avc1\"","width":854,"height":480,"fps":30,"url":"https://media.example/48030"},
-      {"itag":140,"mimeType":"audio/mp4; codecs=\"mp4a\"","bitrate":128000,"audioTrack":{"id":"pt.4","displayName":"Portuguese (auto-dubbed)","audioIsDefault":true},"url":"https://media.example/pt"},
-      {"itag":140,"mimeType":"audio/mp4; codecs=\"mp4a\"","bitrate":128000,"audioTrack":{"id":"en.4","displayName":"English (original)","audioIsDefault":false},"url":"https://media.example/en"}]}})json";
+      {"itag":137,"mimeType":"video/mp4; codecs=\"avc1\"","width":1920,"height":1080,"fps":30,"url":"https://fixture.googlevideo.com/1080"},
+      {"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":60,"url":"https://fixture.googlevideo.com/72060"},
+      {"itag":136,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":30,"url":"https://fixture.googlevideo.com/72030"},
+      {"itag":135,"mimeType":"video/mp4; codecs=\"avc1\"","width":854,"height":480,"fps":30,"url":"https://fixture.googlevideo.com/48030"},
+      {"itag":140,"mimeType":"audio/mp4; codecs=\"mp4a\"","bitrate":128000,"audioTrack":{"id":"pt.4","displayName":"Portuguese (auto-dubbed)","audioIsDefault":true},"url":"https://fixture.googlevideo.com/pt"},
+      {"itag":140,"mimeType":"audio/mp4; codecs=\"mp4a\"","bitrate":128000,"audioTrack":{"id":"en.4","displayName":"English (original)","audioIsDefault":false},"url":"https://fixture.googlevideo.com/en"}]}})json";
     for (int mode : {0,1,2}) {
         h.add(player,"\"clientName\":\"VISIONOS\"",reply);
         auto v=c.player(id,720,nullptr,mode);
         check(v.video.itag==(mode==1 ? 298 : 137),"saved playback profile selects 720p60 or 1080p30");
         check(mode!=1 || v.fallbackVideo.itag==136,"720p60 has a distinct 720p30 network fallback");
         check(mode!=1 || (v.lowerVideo.size()==2 && v.lowerVideo[1].itag==135),"720p30 falls to 480p30 before a server");
-        check(v.audio.url=="https://media.example/en" && v.selectedAudio=="en-original","27f6785: original beats default automatic dub");
+        check(v.audio.url=="https://fixture.googlevideo.com/en" && v.selectedAudio=="en-original","27f6785: original beats default automatic dub");
         check(v.audioTracks.size()==2 && !v.muxed,"audio catalog has both independent languages");
         check(v.speakerAudio.url==v.audio.url,"native Nest uses original audio in each video profile");
     }
     for (const auto& choice : {string("pt-auto"),string("pt-BR-auto"),string("lang:pt"),string("lang:ja")}) {
         h.add(player,"\"clientName\":\"VISIONOS\"",reply);
         auto v=c.player(id,720,nullptr,1,choice);
-        check(v.audio.url==(choice=="lang:ja" ? "https://media.example/en" : "https://media.example/pt"),"explicit dub or interface language; unavailable language keeps original");
+        check(v.audio.url==(choice=="lang:ja" ? "https://fixture.googlevideo.com/en" : "https://fixture.googlevideo.com/pt"),"explicit dub or interface language; unavailable language keeps original");
         check(v.speakerAudio.url==v.audio.url,"native Nest follows explicit and interface audio selection");
     }
 }
@@ -181,7 +181,7 @@ void browse(Http& h,yt::Client& c) {
 }
 void captions(Http& h,yt::Client& c) {
     const string base=web+"api/timedtext?v=example";
-    h.add(player,"\"clientName\":\"VISIONOS\"",R"({"videoDetails":{"videoId":"4p_9OPKgcDE"},"playabilityStatus":{"status":"OK"},"streamingData":{"hlsManifestUrl":"https://media.example/live"},"captions":{"playerCaptionsTracklistRenderer":{"captionTracks":[{"languageCode":"pt","name":{"simpleText":"Português"},"baseUrl":"https://www.youtube.com/api/timedtext?v=example&fmt=srv3"}]}}})");
+    h.add(player,"\"clientName\":\"VISIONOS\"",R"({"videoDetails":{"videoId":"4p_9OPKgcDE"},"playabilityStatus":{"status":"OK"},"streamingData":{"hlsManifestUrl":"https://fixture.googlevideo.com/live"},"captions":{"playerCaptionsTracklistRenderer":{"captionTracks":[{"languageCode":"pt","name":{"simpleText":"Português"},"baseUrl":"https://www.youtube.com/api/timedtext?v=example&fmt=srv3"}]}}})");
     auto v=c.player(id);
     check(!v.hls.empty() && v.captions.size()==1 && v.captions[0].language=="pt","manifest and caption tracks");
     h.add(base+"&fmt=json3","","{\"events\":[{\"tStartMs\":120,\"dDurationMs\":700,\"segs\":[{\"utf8\":\"olá\"},{\"utf8\":\" mundo\"}]}]}");

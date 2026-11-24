@@ -28,7 +28,9 @@ and video-memory changes. Keep those copies with the matching build for source/r
 The release title ID is `0x58545542`; the XEX metadata version is currently `1.0.0.0`, separate from the
 distribution version in the ZIP name. Do not infer a public release number from that metadata.
 
-The result is `client/build-x360/tube360.xex`. Use the packager to name it `default.xex` for installation:
+The results are `client/build-x360/tube360.xex` (app) and `tube360-launcher.xex` (stable launcher).
+The packager installs the launcher as `default.xex` alongside `tube360.xex`; keep both files together.
+Set `TUBE360_BUILD_ID=1 TUBE360_VERSION=0.3.0` for this initial signed release. See [signed updates](UPDATES.md).
 
 ```bash
 python3 tools/package-xbox.py --version 0.3.0

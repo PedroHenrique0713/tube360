@@ -59,7 +59,7 @@ for path in media.glob('*'):
     if path.suffix not in ('.mp4', '.m4a'):
         continue
     shutil.copyfile(path, replay/path.name)
-    url = origin+'/'+path.name if path.suffix == '.m4a' else 'https://media.example/'+path.name
+    url = origin+'/'+path.name if path.suffix == '.m4a' else 'https://fixture.googlevideo.com/'+path.name
     manifest['requests'].append({'url': url, 'file': path.name, 'range': True})
 for fmt in player['streamingData']['adaptiveFormats']:
     if 'audio/' in fmt['mimeType']:

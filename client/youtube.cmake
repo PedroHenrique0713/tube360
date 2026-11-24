@@ -5,3 +5,7 @@ set(CURL_SOURCE "${yt_root}/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08
 add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/src/yt" yt EXCLUDE_FROM_ALL)
 target_link_libraries(tube360 PRIVATE tube360-yt)
 include("${CMAKE_CURRENT_LIST_DIR}/cast.cmake")
+
+add_library(tube360-update STATIC "${yt_root}/client/src/update/service.cpp")
+target_link_libraries(tube360-update PUBLIC tube360-yt SDL3::SDL3)
+target_link_libraries(tube360 PRIVATE tube360-update)

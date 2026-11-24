@@ -1,6 +1,7 @@
 #include "locale.hpp"
 #include "console_account.hpp"
 #include "membership_json.hpp"
+#include "update/rules.hpp"
 #include "picojson.h"
 #include <algorithm>
 #include <chrono>
@@ -21,9 +22,6 @@ namespace {
 using J = picojson::value;
 using O = picojson::object;
 using A = picojson::array;
-const string origin = "https://www.youtube.com";
-const string tvAgent = "Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version";
-const string samsungAgent = "Mozilla/5.0 (SMART-TV; Linux; Tizen 2.4.0) AppleWebKit/538.1 (KHTML, like Gecko) Version/2.4.0 TV Safari/538.1";
 const J& get(const J& j, const char* k) { static const J nil; return j.is<O>() ? j.get(k) : nil; }
 const A& arr(const J& j) { static const A empty; return j.is<A>() ? j.get<A>() : empty; }
 string str(const J& j) { return j.is<string>() ? j.get<string>() : ""; }
@@ -81,7 +79,9 @@ bool headerValue(const string& s) {
     return s.size()<=8192 && std::all_of(s.begin(),s.end(),[](unsigned char c){return c>32 && c<127;});
 }
 bool parse(const string& raw, J& j) {
-    if (raw.size()>3*1024*1024) return false;
+    const auto limits=updates::rules();
+    const int maxDepth=limits->n("parserDepth"), maxNodes=limits->n("parserNodes");
+    if (raw.size()>size_t(updates::rules()->n("jsonBytes"))) return false;
     bool quoted=false, escaped=false;
     int depth=0, nodes=0;
     for (char c:raw) {
@@ -90,9 +90,9 @@ bool parse(const string& raw, J& j) {
             else if (c=='\\') escaped=true;
             else if (c=='"') quoted=false;
         } else if (c=='"') quoted=true;
-        else if (c=='{' || c=='[') { if (++depth>80 || ++nodes>160000) return false; }
+        else if (c=='{' || c=='[') { if (++depth>maxDepth || ++nodes>maxNodes) return false; }
         else if (c=='}' || c==']') { if (--depth<0) return false; }
-        else if (c==',' && ++nodes>160000) return false;
+        else if (c==',' && ++nodes>maxNodes) return false;
     }
     if (depth || quoted) return false;
     try { return picojson::parse(j,raw).empty() && j.is<O>(); }
@@ -159,18 +159,19 @@ public:
         deviceId="tube360-"+std::to_string(static_cast<unsigned long long>(now));
     }
     Response request(const string& url, const string& body, bool) override {
+        auto policy=updates::rules();
         auto form=params(body); O payload;
         for (auto& kv:form) payload[kv.first]=J(kv.second);
-        if (url.find("device/code")!=string::npos) {
-            payload["scope"]=J(string("http://gdata.youtube.com https://www.googleapis.com/auth/youtube-paid-content"));
-            payload["device_id"]=J(deviceId); payload["device_model"]=J(string("ytlr::"));
+        bool device=url==policy->s("oauthOrigin")+"/"+policy->s("deviceRoute");
+        if (device) {
+            payload["scope"]=J(policy->s("oauthScope"));
+            payload["device_id"]=J(deviceId); payload["device_model"]=J(policy->s("oauthDeviceModel"));
         } else if (form.count("device_code")) {
             payload.erase("device_code"); payload["code"]=J(form["device_code"]);
-            payload["grant_type"]=J(string("http://oauth.net/grant_type/device/1.0"));
+            payload["grant_type"]=J(policy->s("oauthGrant"));
         }
-        auto route=url.substr(url.find_last_of('/')+1);
-        if (url.find("device/code")!=string::npos) route="device/code";
-        Request r; r.url=origin+"/o/oauth2/"+route; r.body=J(payload).serialize(); r.agent=tvAgent;
+        auto route=policy->s(device?"deviceRoute":"tokenRoute");
+        Request r; r.url=policy->s("webOrigin")+policy->s("tvOAuthPath")+route; r.body=J(payload).serialize(); r.agent=policy->tv.agent;
         return net.send(r);
     }
 };
@@ -303,11 +304,16 @@ string replaceQuery(string url, const std::map<string,string>& values) {
 struct ConsoleAccount::Impl {
     Transport& net;
     TVOAuth oauth;
+    std::shared_ptr<const updates::Rules> policy=updates::rules();
+    void bindRules() {
+        auto next=updates::rules();
+        if(next->version!=policy->version){policy=next;version=policy->s("tvFallbackVersion");clientId=policy->s("tvClientId");secret=policy->s("tvClientSecret");visitor.clear();lists.clear();tracking.clear();}
+    }
     std::mutex mutex;
     std::mutex tokenMutex;
     string publishedToken;
     std::atomic_uint64_t tokenGeneration{0};
-    string path, clientId, secret, version="7.20250219.14.00", visitor, name, avatar;
+    string path, clientId, secret, version=updates::rules()->s("tvFallbackVersion"), visitor, name, avatar;
     DeviceCode code;
     Tokens tokens;
     bool loaded=false, identityKnown=false, tokenDirty=false;
@@ -379,29 +385,47 @@ struct ConsoleAccount::Impl {
         retryRefresh=0; lists.clear(); tracking.clear(); images.clear();
     }
     string discover() {
-        Request r; r.url=origin+"/tv"; r.agent=tvAgent;
-        r.headers={"Referer: https://www.youtube.com/tv","Accept-Language: en-US"};
+        if(!policy->s("tvClientId").empty() && !policy->s("tvClientSecret").empty()) {
+            clientId=policy->s("tvClientId");secret=policy->s("tvClientSecret");return {};
+        }
+        Request r; r.url=policy->s("webOrigin")+policy->s("tvPath"); r.agent=policy->tv.agent;
+        r.headers={"Referer: "+policy->s("webOrigin")+policy->s("tvPath"),"Accept-Language: en-US"};
         auto html=net.send(r);
         if (html.status!=200 || !html.error.empty()) return "unavailable";
-        std::smatch match;
-        if (!std::regex_search(html.body,match,std::regex(R"rx(<script\s+id="base-js"\s+src="([^"]+)"[^>]*>)rx"))) return "tv_identity_missing";
-        auto url=match[1].str();
-        if (url.compare(0,2,"//")==0) url="https:"+url;
-        else if (!url.empty() && url[0]=='/') url=origin+url;
-        if (url.compare(0,origin.size()+1,origin+"/")!=0 || url.find_first_of("\r\n\\ ")!=string::npos) return "tv_identity_missing";
+        auto take=[](const string& body,const string& marker,size_t start=0) {
+            auto at=body.find(marker,start); if(at==string::npos)return string{}; at+=marker.size();
+            auto end=body.find('"',at); return end!=string::npos && end-at<=8192 ? body.substr(at,end-at) : string{};
+        };
+        auto tag=html.body.find(policy->s("tvScriptMarker"));
+        auto end=tag==string::npos?string::npos:html.body.find('>',tag);
+        auto source=tag==string::npos?string::npos:html.body.find("src=\"",tag);
+        if(source==string::npos || source>end)return "tv_identity_missing";
+        auto url=take(html.body,"src=\"",source);
+        if(url.compare(0,2,"//")==0)url="https:"+url;
+        else if(!url.empty() && url[0]=='/')url=policy->s("webOrigin")+url;
+        if(!updates::youtubeUrl(url) || updates::host(url)!=updates::host(policy->s("webOrigin")))return "tv_identity_missing";
         r.url=url; auto script=net.send(r);
-        if (script.status!=200 || !script.error.empty()) return "unavailable";
-        if (!std::regex_search(script.body,match,std::regex(R"rx(clientId:"([^"]+)",[^"]*?:"([^"]+)")rx"))) return "tv_identity_missing";
-        clientId=match[1]; secret=match[2];
-        if (!headerValue(clientId) || !headerValue(secret)) return "tv_identity_missing";
-        // A versão do bundle acompanha a identidade que esse mesmo app publica.
-        if (std::regex_search(html.body,match,std::regex(R"rx("INNERTUBE_CLIENT_VERSION"\s*:\s*"([^"]+)")rx"))) { if (headerValue(match[1])) version=match[1]; }
+        if(script.status!=200 || !script.error.empty())return "unavailable";
+        clientId=take(script.body,policy->s("tvIdMarker"));
+        auto at=script.body.find(policy->s("tvIdMarker"));
+        if(at==string::npos)return "tv_identity_missing";
+        at+=policy->s("tvIdMarker").size()+clientId.size()+1;
+        secret=take(script.body,policy->s("tvSecretMarker"),at);
+        if(!headerValue(clientId) || !headerValue(secret))return "tv_identity_missing";
+        at=html.body.find(policy->s("tvVersionMarker"));
+        if(at!=string::npos){
+            at=html.body.find(':',at+policy->s("tvVersionMarker").size());
+            auto q=at==string::npos?string::npos:html.body.find('"',at+1);
+            auto v=q==string::npos?string{}:take(html.body,"\"",q);
+            if(headerValue(v))version=v;
+        }
         return {};
     }
     string auth() {
         if (tokens.refresh.empty()) return "signed_out";
         if (wall<tokens.expires-60) return tokenDirty && !save() ? "token_save_failed" : "";
         if (wall<retryRefresh) return "unavailable";
+        if(clientId.empty()){auto e=discover();if(!e.empty())return e;}
         DeviceLogin login(oauth,clientId,secret);
         auto e=login.refresh(wall,tokens);
         if (e=="invalid_grant" || e=="invalid_token") { clear(); std::remove(path.c_str()); return "signed_out"; }
@@ -412,23 +436,24 @@ struct ConsoleAccount::Impl {
     }
     string call(const string& route,const string& fields,J& j,bool samsung=false) {
         if (!tokens.refresh.empty()) { auto e=auth(); if (!e.empty()) return e; }
-        O client{{"clientName",J(string("TVHTML5"))},{"clientVersion",J(samsung ? string("5.20260707") : version)},
+        const auto& identity=samsung?policy->samsung:policy->tv;
+        auto selectedVersion=identity.version.empty()?version:identity.version;
+        O client{{"clientName",J(identity.name)},{"clientVersion",J(selectedVersion)},
             {"hl",J(language)},{"gl",J(string(localeRegion(language)))},
             {"timeZone",J(string("UTC"))},{"utcOffsetMinutes",J(0.0)}};
         if (!visitor.empty()) client["visitorData"]=J(visitor);
-        if (samsung) {
-            client["deviceMake"]=J(string("Samsung")); client["deviceModel"]=J(string("UKS9800"));
-            client["osName"]=J(string("Tizen")); client["osVersion"]=J(string("2.4.0"));
-            client["userAgent"]=J(samsungAgent);
-        }
+        for(const auto& kv:identity.device.get<O>())client[kv.first]=kv.second;
+        if(samsung)client["userAgent"]=J(identity.agent);
         O context{{"client",J(client)},{"user",J(O{{"enableSafetyMode",J(false)}})}};
-        Request r; r.url=origin+"/youtubei/v1/"+route+"?prettyPrint=false"; r.agent=samsung ? samsungAgent : tvAgent;
-        r.headers={"Origin: "+origin,"X-Youtube-Client-Name: 7","X-Youtube-Client-Version: "+(samsung ? string("5.20260707") : version)};
+        Request r; r.url=policy->api(route); r.agent=identity.agent;
+        r.headers={"Origin: "+policy->s("webOrigin"),policy->s("clientNameHeader")+": "+identity.code,policy->s("clientVersionHeader")+": "+selectedVersion};
+        r.headers.insert(r.headers.end(),identity.headers.begin(),identity.headers.end());
         if (!tokens.access.empty()) r.headers.push_back("Authorization: Bearer "+tokens.access);
-        if (!visitor.empty()) r.headers.push_back("X-Goog-Visitor-Id: "+visitor);
+        if (!visitor.empty()) r.headers.push_back(policy->s("visitorHeader")+": "+visitor);
         r.body="{\"context\":"+J(context).serialize()+(fields.empty() ? "" : ","+fields)+"}";
         auto res=net.send(r);
         auto e=response(res,j);
+        updates::observe(policy->version,e.empty(),e=="invalid_response");
         bool readable=route=="browse" || route=="next" || route=="player" || route=="account/accounts_list";
         if (e=="unauthorized" && !readable) tokens.expires=wall;
         if (e=="unauthorized" && readable && !tokens.refresh.empty()) {
@@ -524,7 +549,7 @@ struct ConsoleAccount::Impl {
         }
         Parsed parsed; walk(j,parsed);
         if (kind=="library" && !list.started) {
-            for (const auto& preview: {std::pair{"FEhistory", &list.historyVideo}, std::pair{"VLWL", &list.laterVideo}}) {
+            for (const auto& preview: {std::pair{policy->s("historyId"), &list.historyVideo}, std::pair{policy->s("laterId"), &list.laterVideo}}) {
                 J data;
                 auto error=call("browse", "\"browseId\":"+J(string(preview.first)).serialize(), data);
                 // A revogação também apaga lists; nenhuma referência da página continua válida.
@@ -554,15 +579,15 @@ struct ConsoleAccount::Impl {
         if (kind=="subscriptions" && !list.videosOnly && !list.started &&
             std::none_of(parsed.items.begin(),parsed.items.end(),[](const Item& i){return i.type=="channel";})) {
             J channels;
-            e=call("browse","\"browseId\":\"FEchannels\"",channels);
+            e=call("browse","\"browseId\":"+J(policy->s("channelsId")).serialize(),channels);
             if (!e.empty()) return e;
             Parsed extra; walk(channels,extra);
             for (auto it=extra.items.rbegin();it!=extra.items.rend();++it) if (it->type=="channel") parsed.items.insert(parsed.items.begin(),*it);
         }
-        for (auto& item:parsed.items) if ((!list.videosOnly || item.type=="video") && list.items.size()<1024 && list.seen.insert(item.type+item.id).second) list.items.push_back(std::move(item));
+        for (auto& item:parsed.items) if ((!list.videosOnly || item.type=="video") && list.items.size()<size_t(policy->n("listItems")) && list.seen.insert(item.type+item.id).second) list.items.push_back(std::move(item));
         list.started=true; list.pages++;
         list.continuation=parsed.token;
-        list.more=!parsed.token.empty() && list.pages<40 && list.items.size()<1024 && list.continuations.insert(parsed.token).second;
+        list.more=!parsed.token.empty() && list.pages<unsigned(policy->n("listPages")) && list.items.size()<size_t(policy->n("listItems")) && list.continuations.insert(parsed.token).second;
         return {};
     }
     AccountReply listing(const std::map<string,string>& p, bool feed, bool play=false) {
@@ -573,19 +598,19 @@ struct ConsoleAccount::Impl {
         if (privateList && tokens.refresh.empty()) return {{}, "signed_out"};
         if (!itemId.empty() && !id(itemId)) return {{}, "invalid_id"};
         int offset=std::atoi(value("offset").c_str());
-        if (offset<0 || offset>1024) return {{}, "invalid_offset"};
-        int count=play ? 256 : 24;
+        if (offset<0 || offset>policy->n("listItems")) return {{}, "invalid_offset"};
+        int count=play ? policy->n("queueItems") : policy->n("pageItems");
         auto key=string(feed ? "feed|" : "nav|")+kind+"|"+itemId+"|"+tab+"|"+language;
         auto existing=lists.find(key);
         if (existing==lists.end() || (!offset && (value("fresh")=="1" || wall-existing->second.created>=300))) {
             if (lists.size()>=8) lists.erase(lists.begin());
             List list; list.created=wall; list.videosOnly=feed;
             string browseId;
-            if (kind=="home") browseId="FEwhat_to_watch";
-            else if (kind=="subscriptions") browseId="FEsubscriptions";
-            else if (kind=="library") browseId="FEplaylist_aggregation";
-            else if (kind=="history") browseId="FEhistory";
-            else if (kind=="later") browseId="VLWL";
+            if (kind=="home") browseId=policy->s("homeBrowseId");
+            else if (kind=="subscriptions") browseId=policy->s("subscriptionsId");
+            else if (kind=="library") browseId=policy->s("libraryId");
+            else if (kind=="history") browseId=policy->s("historyId");
+            else if (kind=="later") browseId=policy->s("laterId");
             else if (kind=="channel") { if (!channel(itemId)) return {{}, "invalid_channel"}; browseId=itemId; }
             else if (kind=="playlist") {
                 if (itemId.compare(0,2,"RD")==0) {
@@ -639,9 +664,9 @@ struct ConsoleAccount::Impl {
         auto& t=found->second;
         auto send=[&](string url,std::map<string,string> values) {
             if (url.compare(0,18,"https://s.youtube.")==0) url.replace(0,10,"https://www.");
-            values["ver"]="2"; values["c"]="tvhtml5"; values["cver"]="5.20260707";
-            values["cbrver"]="5.20260707"; values["cpn"]=t.cpn;
-            Request r; r.url=replaceQuery(url,values); r.agent=samsungAgent;
+            values["ver"]="2"; values["c"]="tvhtml5"; values["cver"]=policy->samsung.version;
+            values["cbrver"]=policy->samsung.version; values["cpn"]=t.cpn;
+            Request r; r.url=replaceQuery(url,values); r.agent=policy->samsung.agent;
             r.headers={"Authorization: Bearer "+tokens.access};
             auto res=net.send(r);
             return res.error.empty() && res.status>=200 && res.status<300;
@@ -687,6 +712,7 @@ AccountReply ConsoleAccount::request(const string& path,int64_t wall,int64_t mon
     s.wall=wall ? wall : std::time(nullptr);
     s.monotonic=monotonic>=0 ? monotonic : std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     s.load();
+    s.bindRules();
     auto q=path.find('?'); auto route=path.substr(0,q); auto p=params(q==string::npos ? "" : path.substr(q+1));
     auto language=localeLanguage(p["lang"]);
     s.language=language;
@@ -696,7 +722,7 @@ AccountReply ConsoleAccount::request(const string& path,int64_t wall,int64_t mon
         if (std::remove(s.path.c_str())!=0 && errno!=ENOENT) return {{}, "token_remove_failed"};
         std::remove((s.path+".tmp").c_str()); s.clear();
         if (!token.empty()) {
-            Request r; r.url=origin+"/o/oauth2/revoke"; r.body="token="+enc(token); r.form=true; r.agent=tvAgent;
+            Request r; r.url=s.policy->s("webOrigin")+s.policy->s("tvOAuthPath")+s.policy->s("revokeRoute"); r.body="token="+enc(token); r.form=true; r.agent=s.policy->tv.agent;
             s.net.send(r);
         }
         return {"ok\tsigned_out\t\t\t\n",{}};
@@ -718,7 +744,7 @@ AccountReply ConsoleAccount::request(const string& path,int64_t wall,int64_t mon
         if (p["action"]=="subscribe" && channel(p["id"])) {
             bool enabled=p["value"]!="0";
             e=s.call(enabled ? "subscription/subscribe" : "subscription/unsubscribe",
-                "\"channelIds\":["+J(p["id"]).serialize()+"],\"params\":\""+(enabled ? "EgIIAhgA" : "CgIIAhgA")+"\"",j);
+                "\"channelIds\":["+J(p["id"]).serialize()+"],\"params\":\""+s.policy->s(enabled ? "subscribeParams" : "unsubscribeParams")+"\"",j);
         } else if (p["action"]=="later" && id(p["id"],11))
             e=s.call("browse/edit_playlist","\"playlistId\":\"WL\",\"actions\":[{\"action\":\"ACTION_ADD_VIDEO\",\"addedVideoId\":"+J(p["id"]).serialize()+"}]",j);
         else return {{}, "invalid_action"};
