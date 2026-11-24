@@ -92,6 +92,7 @@ lounge = Lounge(work)
 lounge.sleep_wire = 'ok\toff\t0\txbox\tminutos\n'
 lounge.remote_commands = []
 lounge.ended = []
+lounge.owner_claims = 0
 
 
 class Combined(Handler):
@@ -101,6 +102,12 @@ class Combined(Handler):
             self.response('', 503)  # Seleção nativa da conta com reserva de PC habilitada.
         elif path == '/api/sleep':
             self.response(lounge.sleep_wire)
+        elif path == '/api/nest/owner':
+            assert parse_qs(urlsplit(self.path).query) == {'owner': ['console']}
+            assert self.headers['User-Agent'] == 'Tube360/1.0'
+            # Este servidor falso não abre Cast: o único remetente está no app.
+            lounge.owner_claims += 1
+            self.response('QUIET\t1\n')
         elif path == '/api/feed':
             self.response('ok\t1\tReserva de demonstração\n'+IDS[2]+'\t12\tDemonstração\t\tVídeo da reserva\n')
         elif path.startswith('/api/thumb/'):
@@ -184,6 +191,7 @@ def app(name, seconds, mode='off', race=False):
     with lounge.cv:
         lounge.pending.clear()
         code = lounge.code_count
+    owner_claims = lounge.owner_claims
     log_path = work/(name+'.log')
     started = time.monotonic()
     with log_path.open('w') as log:
@@ -192,6 +200,8 @@ def app(name, seconds, mode='off', race=False):
             wait_for(lambda: lounge.code_count > code, 'new lounge session')
             yield receiver, log_path, audit, time.monotonic()
             assert process.wait(seconds+20) == 0
+            if mode == 'auto':
+                assert lounge.owner_claims > owner_claims, 'native Nest ownership was never granted'
         finally:
             if process.poll() is None:
                 process.terminate()

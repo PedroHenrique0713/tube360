@@ -11,7 +11,9 @@ extern "C" {
 }
 
 namespace h264 {
+inline char mappedFrameTag;
 inline int mappedBuffer(AVCodecContext* ctx, AVFrame* frame, int flags) {
+  frame->opaque = nullptr;
   if (!ctx->opaque || (frame->format != AV_PIX_FMT_YUV420P && frame->format != AV_PIX_FMT_YUVJ420P) ||
       !(ctx->codec->capabilities & AV_CODEC_CAP_DR1)) return avcodec_default_get_buffer2(ctx,frame,flags);
   int w = frame->width, h = frame->height, alignment[AV_NUM_DATA_POINTERS] = {};
@@ -19,7 +21,7 @@ inline int mappedBuffer(AVCodecContext* ctx, AVFrame* frame, int flags) {
   int visibleW = ctx->width > 0 ? std::min(ctx->width,frame->width) : frame->width;
   int visibleH = ctx->height > 0 ? std::min(ctx->height,frame->height) : frame->height;
   auto surface = static_cast<video::Allocator*>(ctx->opaque)->acquire(visibleW,visibleH,w,h,alignment);
-  if (!surface) return AVERROR(ENOMEM);
+  if (!surface) return avcodec_default_get_buffer2(ctx,frame,flags);
   auto* owner = new std::shared_ptr<video::Surface>(std::move(surface));
   // buf[] exige que cada data[] pertença ao intervalo da sua alocação Vulkan.
   for (int i = 0; i < 3; ++i) {
@@ -32,10 +34,12 @@ inline int mappedBuffer(AVCodecContext* ctx, AVFrame* frame, int flags) {
     frame->data[i] = (*planeOwner)->data[i]; frame->linesize[i] = (*planeOwner)->stride[i];
   }
   frame->extended_data = frame->data;
+  frame->opaque = &mappedFrameTag;
   return 0;
 }
+// O buffer padrão também tem opaque; só o quadro marcado pertence ao pool Vulkan.
 inline std::shared_ptr<video::Surface> mappedSurface(const AVFrame* frame) {
-  if (!frame->buf[0]) return {};
+  if (frame->opaque != &mappedFrameTag || !frame->buf[0]) return {};
   auto* owner = static_cast<std::shared_ptr<video::Surface>*>(av_buffer_get_opaque(frame->buf[0]));
   if (!owner) return {};
   for (int i = 0; i < 3; ++i)

@@ -1,4 +1,5 @@
 #pragma once
+#include <array>
 #include "gfx.hpp"
 
 namespace gfx {
@@ -33,6 +34,8 @@ struct DecodePool : video::Allocator {
   Gfx& g;
   SDL_Mutex* mu = SDL_CreateMutex();
   std::vector<std::shared_ptr<MappedVideo>> slots;
+  std::vector<std::array<int,4>> incompatible;
+  bool rejectedLayout = false;
   bool enabled = false;
   size_t bytes = 0;
   explicit DecodePool(Gfx& renderer) : g(renderer) {
@@ -44,7 +47,11 @@ struct DecodePool : video::Allocator {
   ~DecodePool() override { slots.clear(); SDL_DestroyMutex(mu); }
   std::shared_ptr<video::Surface> acquire(int w,int h,int aw,int ah,const int* alignment) override {
     SDL_LockMutex(mu);
+    std::array<int,4> key{w,h,aw,ah};
+    if (std::find(incompatible.begin(),incompatible.end(),key) != incompatible.end()) { SDL_UnlockMutex(mu); return {}; }
+    rejectedLayout = false;
     auto result = allocate(w,h,aw,ah,alignment);
+    if (rejectedLayout) { incompatible.push_back(key); LOG("video-memoria: %dx%d sem layout compativel; usando staging",w,h); }
     SDL_UnlockMutex(mu);
     return result;
   }
@@ -69,7 +76,10 @@ struct DecodePool : video::Allocator {
       VkImageSubresource sub{VK_IMAGE_ASPECT_COLOR_BIT,0,0}; VkSubresourceLayout layout{};
       vkGetImageSubresourceLayout(g.dev,t.img,&sub,&layout);
       if (!layout.rowPitch || layout.rowPitch > INT32_MAX || layout.rowPitch % std::max(1,alignment[i]) ||
-          layout.rowPitch < (VkDeviceSize)(i ? (aw+1)/2 : aw)) return {};
+          layout.rowPitch < (VkDeviceSize)(i ? (aw+1)/2 : aw)) {
+        LOG("video-memoria: plano %d, pitch %u, alinhamento %d, largura codec %d",i,(unsigned)layout.rowPitch,alignment[i],aw);
+        rejectedLayout = true; return {};
+      }
       slot->stride[i] = int(layout.rowPitch);
       VkMemoryAllocateInfo ai{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO};
       ai.allocationSize = std::max(req.size,layout.offset + layout.rowPitch * (i ? (ah+1)/2 : ah) + 64);
@@ -81,7 +91,8 @@ struct DecodePool : video::Allocator {
           ai.memoryTypeIndex = m; found = true; break;
         }
       }
-      if (!found || bytes + slot->bytes + ai.allocationSize > (160u<<20)) return {};
+      if (!found) { rejectedLayout = true; return {}; }
+      if (bytes + slot->bytes + ai.allocationSize > (160u<<20)) return {};
       if (vkAllocateMemory(g.dev,&ai,nullptr,&t.mem) != VK_SUCCESS) return {};
       slot->bytes += ai.allocationSize;
       if (vkBindImageMemory(g.dev,t.img,t.mem,0) != VK_SUCCESS ||

@@ -8,14 +8,18 @@
 
 int main(int argc,char** argv) {
   if (argc != 4) return 2;
-  bool direct = std::atoi(argv[2]) != 0;
+  int mode = std::atoi(argv[2]);
+  bool direct = mode == 1;
   if (!SDL_Init(SDL_INIT_VIDEO)) return 2;
   gfx::Gfx g; g.readback = true;
   if (!gfx::init(g,1920,1080,"video memory")) return 2;
   gfx::DecodePool pool(g);
   if (direct && !pool.enabled) return 3;
   gfx::Video v; g.video = &v;
-  h264::Stream s; s.videoBuffers = direct ? &pool : nullptr;
+  struct Reject : video::Allocator {
+    std::shared_ptr<video::Surface> acquire(int,int,int,int,const int*) override { return {}; }
+  } reject;
+  h264::Stream s; s.videoBuffers = mode == 2 ? static_cast<video::Allocator*>(&reject) : direct ? &pool : nullptr;
   FILE* file = std::fopen(argv[1],"rb"); if (!file) return 2;
   auto read = [](void* p,uint8_t* bytes,int n) { size_t got = std::fread(bytes,1,n,(FILE*)p); return got ? int(got) : AVERROR_EOF; };
   auto seek = [](void* p,int64_t offset,int whence) -> int64_t {
@@ -58,6 +62,7 @@ int main(int argc,char** argv) {
     while ((r = avcodec_receive_frame(s.video,s.frame)) >= 0) {
       auto* f = s.frame; if (f->decode_error_flags) return AVERROR_INVALIDDATA;
       Pending pending{}; pending.w = f->width; pending.h = f->height; pending.number = ++count;
+      if (mode == 2 && h264::mappedSurface(f)) return AVERROR_INVALIDDATA;
       pending.hash = hash(f->data,f->linesize,f->width,f->height);
       if (direct) { pending.surface = h264::mappedSurface(f); if (!pending.surface) return AVERROR_INVALIDDATA; pending.surface->publish(); }
       else for (int i = 0; i < 3; ++i)

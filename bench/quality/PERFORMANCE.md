@@ -10,6 +10,8 @@ contíguo, cacheado e não coerente, amostragem linear R8 e flush explícito de 
 o flush após receber o quadro completo, fora da thread de desenho. O pitch vem de `vkGetImageSubresourceLayout`.
 A alocação cobre a altura alinhada do FFmpeg e 64 bytes adicionais; a extensão da textura usa a altura visível.
 No desktop, o caminho depende de suporte a imagens R8 lineares amostradas com memória host-visible/cacheada.
+Se o pitch de uma resolução não satisfizer o alinhamento do codec, o decoder usa os buffers do FFmpeg e staging
+nessa resolução, mantendo a reprodução local. O layout recusado fica em cache para não recriar imagens por quadro.
 
 O upload antigo é uma cópia dos planos no decoder, outra para staging no desenho e três cópias R8 CPU/tiled
 executadas pelo driver durante `vkQueueSubmit`. O desenho já usava uma submissão por quadro. A via direta
@@ -54,6 +56,8 @@ python3 bench/quality/performance.py .work/f17
 SDL_VIDEO_DRIVER=offscreen client/build/video-memory-test .work/f17/media/1080.mp4 0 .work/f17/staging
 SDL_VIDEO_DRIVER=offscreen client/build/video-memory-test .work/f17/media/1080.mp4 1 .work/f17/mapped
 cmp .work/f17/staging-031.ppm .work/f17/mapped-031.ppm
+SDL_VIDEO_DRIVER=offscreen client/build/video-memory-test .work/f17/media/1080.mp4 2 .work/f17/rejected
+cmp .work/f17/staging-031.ppm .work/f17/rejected-031.ppm
 client/build/h264-decode-bench .work/f17/media/1080.mp4 4 1 0
 client/build/h264-decode-bench .work/f17/media/1080.mp4 4 1 1
 ```
@@ -61,6 +65,7 @@ client/build/h264-decode-bench .work/f17/media/1080.mp4 4 1 1
 Repita o teste de memória com `72060.mp4`. Ele exige todos os quadros apresentados e verifica que os pixels
 de cada superfície ficaram intactos enquanto dez quadros aguardavam na fila. Os quadros 31, 91 e 151 são
 capturados pelo shader real; os hashes e os PPMs devem coincidir entre staging e direto com o mesmo filtro.
+O modo `2` força a recusa do allocator Vulkan e verifica a continuidade pelos buffers convencionais.
 
 O bench imprime CSV: arquivo, largura, altura, threads, tipo solicitado/ativo, NONREF, pacotes, quadros,
 tempo total ms, ms/quadro, ms/s de vídeo, hash e resultado. Sem argumento extra mede o loop inteiro sem pacing,
