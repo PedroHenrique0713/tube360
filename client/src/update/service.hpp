@@ -8,7 +8,7 @@
 #include <mutex>
 
 namespace updates {
-enum class State { IDLE, AVAILABLE, DOWNLOADING, READY, ERROR };
+enum class State { IDLE, CHECKING, AVAILABLE, DOWNLOADING, READY, ERROR, CHECK_FAILED };
 struct Status {State state=State::IDLE; Manifest app; int progress=0; string error;};
 class Service {
     string dir,base,manifestBytes,manifestSig;
@@ -17,7 +17,7 @@ class Service {
     SDL_Thread* thread=nullptr;
     std::mutex mu;
     Status state;
-    std::atomic_bool stop{false},download{false},abortDownload{false},home{true},healthy{false};
+    std::atomic_bool stop{false},download{false},abortDownload{false},home{true},healthy{false},refresh{false};
     std::atomic<unsigned> revision{0};
     static int run(void*);
     void work();
@@ -25,6 +25,7 @@ class Service {
     void check();
     void install();
     void publish(Status);
+    void event(const string&);
 public:
     explicit Service(string directory);
     ~Service();
@@ -32,5 +33,6 @@ public:
     unsigned poll(Status&,unsigned previous);
     void requestDownload() {abortDownload=false;download=true;}
     void cancelDownload() {abortDownload=true;}
+    void requestCheck() {refresh=true;}
 };
 }

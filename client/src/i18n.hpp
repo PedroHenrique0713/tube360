@@ -30,7 +30,12 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(None, "", "", "") \
   X(LauncherOpening, "Tube360 – opening…", "Tube360 – abrindo…", "Tube360 – abriendo…") \
   X(UpdateAvailable, "Update · ", "Atualização · ", "Actualización · ") \
-  X(UpdateDownload, "Download update", "Baixar atualização", "Descargar actualización") \
+  X(Updates, "App updates", "Atualizações do app", "Actualizaciones de la app") \
+  X(UpdateInstalled, "Installed · ", "Instalada · ", "Instalada · ") \
+  X(UpdateCurrent, "No newer signed version found. X checks again.", "Nenhuma versão assinada mais recente encontrada. X verifica de novo.", "No se encontró una versión firmada más reciente. X vuelve a comprobar.") \
+  X(UpdateChecking, "Checking for signed updates…", "Verificando atualizações assinadas…", "Buscando actualizaciones firmadas…") \
+  X(UpdateCheckFailed, "Could not verify updates. X tries again.", "Não foi possível verificar atualizações. X tenta de novo.", "No se pudieron verificar las actualizaciones. X reintenta.") \
+  X(UpdateDownload, "Update", "Atualizar", "Actualizar") \
   X(UpdateDownloading, "Downloading and checking…", "Baixando e conferindo…", "Descargando y verificando…") \
   X(UpdateNextStart, "The update will be installed the next time you open Tube360.", "A atualização será instalada na próxima abertura do Tube360.", "La actualización se instalará la próxima vez que abras Tube360.") \
   X(UpdateReady, "Update ready · reopen Tube360", "Atualização pronta · reabra o Tube360", "Actualización lista · vuelve a abrir Tube360") \
