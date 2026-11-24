@@ -54,3 +54,6 @@ target_link_libraries(video-memory-test PRIVATE tube360-ffmpeg SDL3::SDL3 Vulkan
 add_executable(player-state-test EXCLUDE_FROM_ALL ../bench/quality/player_state.cpp)
 target_include_directories(player-state-test PRIVATE src third_party)
 target_link_libraries(player-state-test PRIVATE tube360-yt tube360-ffmpeg SDL3::SDL3)
+add_executable(display-layout-test EXCLUDE_FROM_ALL ../bench/display/test.cpp)
+target_include_directories(display-layout-test PRIVATE src third_party)
+target_link_libraries(display-layout-test PRIVATE tube360-yt)
