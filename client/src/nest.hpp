@@ -402,15 +402,17 @@ private:
                             view.state = state == "PLAYING" ? PLAYING : state == "PAUSED" ? PAUSED : state == "BUFFERING" ? BUFFERING : state == "IDLE" ? IDLE : UNKNOWN;
                         if (view.state != previousState) SDL_Log("Nest: console status=%s gen=%llu RTT=%.0f ms relogio=%d",state.c_str(),(unsigned long long)generation,roundTrip,clock || replyId == 0);
                         if (previousState == PAUSED && (view.state == PLAYING || view.state == BUFFERING)) advanced = now;
+                        if (!state.empty() && view.state != UNKNOWN) view.observed = SDL_GetTicksNS()/1e6;
                         double position = number(entry,"currentTime",NAN);
-                        if (!state.empty() && std::isfinite(position) && position >= 0) {
-                            view.observed = SDL_GetTicksNS()/1e6;
+                        bool positionKnown = !state.empty() && std::isfinite(position) && position >= 0;
+                        if (positionKnown) {
                             if (std::fabs(position-previousPosition) > .005) { advanced = now; previousPosition = position; }
                             if (clock || replyId == 0) {
                                 view.position = position; view.updated = stamp; view.rate = std::clamp(number(entry,"playbackRate",1),0.0,4.0);
                             }
                         }
-                        if ((view.state == PLAYING || view.state == BUFFERING) && now-advanced > 8000) view.state = STALLED;
+                        if ((view.state == PLAYING || view.state == BUFFERING) &&
+                            now-advanced > (positionKnown ? 8000u : 25000u)) view.state = STALLED;
                     }
                 }
                 if (fresh) mediaKnown = true;

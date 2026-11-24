@@ -711,6 +711,26 @@ class CastTests(unittest.TestCase):
         self.assertEqual(after['updated'], before['updated'])
         self.receiver.reply = original
 
+    def test_status_without_current_time_is_not_a_confirmed_stall(self):
+        self.play()
+        original = self.receiver.reply
+
+        def reply(client, request, payload, source=None):
+            if payload.get('type') == 'MEDIA_STATUS':
+                payload = dict(payload, status=[{key: value for key, value in item.items()
+                                                if key != 'currentTime'} for item in payload['status']])
+            original(client, request, payload, source)
+        self.receiver.reply = reply
+        try:
+            time.sleep(.5)
+            before = self.driver.command('sample')
+            time.sleep(8.3)
+            after = self.driver.command('sample')
+            self.assertEqual(after['state'], 2, 'missing currentTime falsely confirmed an 8s stall')
+            self.assertEqual(after['updated'], before['updated'])
+        finally:
+            self.receiver.reply = original
+
 
 if __name__ == '__main__':
     unittest.main(argv=[sys.argv[0]], verbosity=2)
