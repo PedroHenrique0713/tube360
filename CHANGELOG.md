@@ -17,6 +17,7 @@ This entry describes the integrated console branch; publication and hardware acc
 - Direct Google Cast v2 control from the console, selected audio sent to the speaker, speaker-clock video,
   ownership handoff with an optional server and a saved pending STOP journal.
 - Sleep timer runs on the console: 15 min to 2 h or end of video, 60 s warning with volume fade, then the Xbox powers off. No PC needed.
+- Members-only badges in home/search/channel grids, explicit access notices and account-backed playback for eligible channel members. Paid access is not bypassed.
 - VOD captions, track/language selection, chapters and player metadata.
 - Automatic / 720p60 / 1080p30 source profiles, 720p/1080p output selection and original/dubbed audio choices.
   Original audio is preferred over automatic dubbing, including on Nest and in server reserve streams.

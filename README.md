@@ -1,8 +1,11 @@
+# YouTube on Xbox 360. No PC needed.
+
 <p align="center">
   <img src="docs/img/hero.jpg" alt="Tube360 running on an Xbox 360: a YouTube-style home grid" width="100%">
 </p>
 
 <p align="center">
+  <a href="https://github.com/PedroHenrique0713/tube360/releases"><img src="https://img.shields.io/github/v/release/PedroHenrique0713/tube360?style=for-the-badge&amp;labelColor=111&amp;color=ff0f3c" alt="Release"></a>
   <a href="https://github.com/PedroHenrique0713/tube360/stargazers"><img src="https://img.shields.io/github/stars/PedroHenrique0713/tube360?style=for-the-badge&logo=github&color=ff0f3c&labelColor=111" alt="Stars"></a>
   <img src="https://img.shields.io/badge/Xbox%20360-BadUpdate%20%C2%B7%20RGH%20%C2%B7%20JTAG-107C10?style=for-the-badge&logo=xbox&logoColor=white&labelColor=111" alt="Xbox 360">
   <img src="https://img.shields.io/badge/Console-first-H.264-ff5a52?style=for-the-badge&labelColor=111" alt="Console-first H.264">
@@ -18,14 +21,15 @@
 
 **Tube360** is a native YouTube client for the Xbox 360. Open the `.xex` from Aurora, FSD or XeXMenu and watch YouTube **directly on the console, without a PC**. Your account, history, subscriptions, library, Music, phone Cast and Google Nest sound run on the Xbox too. A PC server is an optional playback reserve.
 
-No TV stick, no smart TV, no browser. Just the Xbox 360 you already have.
-
 ---
 
 ## Highlights
 
 | | |
 |---|---|
+| 🎮 **100% on Xbox, no Xbox Live** | Install, browse and watch on the console itself. No running PC, Xbox Live login or Xbox Live subscription required. |
+| 🏷️ **Members-only badge** | Identifies channel members-only videos while browsing. Uses your account for playback when you have access; a badge does not unlock paid content. |
+| 📡 **Unreliable networks** | Resumes interrupted connections and switches to a lighter quality when needed. |
 | 📺 **Native app** | C++20, Vulkan through [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 and full gamepad navigation. Its own Aurora title ID: `0x58545542`. |
 | ⚡ **YouTube straight to the Xbox** | HTTPS to YouTube, original H.264 video and AAC audio decoded locally with FFmpeg. No real-time PC conversion in normal use. |
 | 👤 **Your account on the TV** | Sign in with a TV code; recommendations, subscriptions, history/resume, Watch later, account playlists, likes and dislikes. Tokens stay on the console. |
@@ -52,9 +56,21 @@ No TV stick, no smart TV, no browser. Just the Xbox 360 you already have.
 | **Like or dislike a video** | **Up next automatically** |
 | ![Rate this video](docs/img/rate.jpg) | ![Up next countdown](docs/img/up-next.jpg) |
 
-<sub>These images illustrate the earlier interface; v0.3.0 adds the native paths and revised player described here. These screenshots come from the PC build of the client, which runs the same code and renderer as the console build. The demo feed is the author's choice: Palmeiras 4×1 Corinthians and Flamengo 0×3 Palmeiras. 🟢⚪ The account is a demo one, and the sign-in and Cast codes are placeholders.</sub>
+| **TV Palmeiras channel** | **Members-only badge** |
+|---|---|
+| ![TV Palmeiras channel](docs/img/channel.jpg) | ![Members-only video badge](docs/img/members-badge.jpg) |
+| **Google Nest sound** | **Members-only notice** |
+| ![Sound output](docs/img/nest.jpg) | ![Members-only notice](docs/img/members-only.jpg) |
+
+<sub>Captured from the current PC app in console mode (`server=off`), using the same code and renderer as Xbox. Public Palmeiras content; where needed, a fictional Demo account and illustrative codes. Membership badge/refusal examples use synthetic responses and are labeled Demo; the Nest print shows configuration, not a connection to a real speaker. No personal account was used. Captures do not measure Xbox performance.</sub>
 
 ---
+
+## Why Tube360
+
+Your Xbox 360 can still be the living-room TV. Tube360 brings your account, controller, live streams close to the live edge, original audio and a Cast speaker into one app. Launch its own title in Aurora and watch without keeping another computer on or signing in to Xbox Live.
+
+720p60 and 1080p profiles give you more choices; actual frame rate and resolution depend on the video, network and console load. The app can lower quality to keep playing. The YouTube integration is unofficial and may change.
 
 ## How it works
 
@@ -79,23 +95,31 @@ MPEG-1 + MP2 is the compatibility path supplied by the optional server, up to 72
 - For a Nest: a configured Google Cast speaker with internet access, reachable from the Xbox on the same LAN. For phone discovery: phone and Xbox on the same LAN with multicast allowed.
 - For native 1080p output: HDMI and **1080p progressive selected in the Xbox dashboard**. Selecting 1080p in Tube360 does not change HDMI timings; unsupported dashboard modes retain a 720p framebuffer.
 
-## Quick start
+## Install in 3 steps
 
 ### 1. Copy the app folder
 
-1. Download the Xbox app ZIP from [Releases](https://github.com/PedroHenrique0713/tube360/releases), or [build and package it](#building-from-source).
-2. Extract it and copy the whole `Tube360` folder to writable Xbox storage, for example `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`.
-3. Keep `default.xex` and the four `inter-*.ttf` fonts together. Keep the included license notices too.
-4. **Leave `server.txt` absent.** This selects console-only operation, with no requests to a PC. The `.example.txt` files do nothing until renamed.
-5. Add the folder to Aurora/FSD's scan paths and rescan, or open `default.xex` in their file manager or XeXMenu. Internet access is enough to start browsing.
+Download the ZIP or .7z from [Releases](https://github.com/PedroHenrique0713/tube360/releases), extract it and copy the whole `Tube360` folder to `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`. Keep `default.xex`, all four `inter-*.ttf` fonts and the license notices together. **Leave `server.txt` absent** for console-only use; `.example.txt` files remain inactive until renamed.
 
-### 2. Sign in with a TV code (optional)
+### 2. Launch from Aurora, FSD or XeXMenu
+
+Add the folder to Aurora’s scan paths and rescan, or open `default.xex` in the file manager. Tube360 has its own title ID: `0x58545542`.
+
+### 3. Pick a video and watch
+
+Connect Xbox to the internet, check its date and time, and browse with your controller. Xbox Live is not required. Search and public videos work without sign-in; your account below is optional.
+
+### YouTube account (optional)
 
 Open **Settings → YouTube account → A**. In a browser on your phone or computer, open the URL shown on the TV (normally [google.com/device](https://www.google.com/device)), enter the displayed code and approve your account. Return to Tube360 for the connected account. No password is entered on the Xbox; a phone is optional for playback.
 
 The local grant is saved in `yt-console-account.json` beside the XEX. Use the app's sign-out action before sharing the folder; never include this file, Cast identities, logs or ownership journals in a release. A TV grant does not guarantee access to every video or every Music endpoint.
 
-### 3. Configure a Nest / Google Cast speaker (optional)
+> I use it every day with my Premium account, with no warning so far. It is an unofficial client and things can change; use a secondary account if you prefer.
+
+The token stays only on the console, beside the XEX. It is not sent to this website or a Tube360 service. Never share the folder with a saved session.
+
+### Google Nest / Cast speaker (optional)
 
 Find the speaker's IP in **Google Home → device → Settings → Device information** (look for network/IP details), or in your router's connected-device/DHCP list. Menu names vary by Home version. A DHCP reservation keeps the address from changing.
 
@@ -110,7 +134,7 @@ Google Cast speaker
 
 The speaker downloads audio from YouTube itself. It needs its own internet connection as well as working Wi-Fi between the speaker and console. Brief Wi-Fi drops are tolerated, but TV fallback waits for confirmed speaker silence, so an outage can cause a silent interval. **Press B back to browsing before closing the app**, letting STOP reach the speaker. Forced exits or lost Wi-Fi can leave direct audio playing.
 
-### 4. Send from the phone (optional)
+### Send from your phone (optional)
 
 Open Tube360's **Phone** panel. In the official YouTube phone app, use **Settings → Watch on TV → Enter TV code** and enter the code from that panel. This is a separate code from account sign-in. On networks with discovery enabled, Tube360 also appears in the Cast menu as `YouTube 360`. No Node receiver is needed in console mode.
 
@@ -204,7 +228,7 @@ tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.0
 ```
 
-The build produces `client/build-x360/tube360.xex`. The packager copies it as `Tube360/default.xex` into `.work/releases/tube360-0.3.0-xbox360.zip`, with fonts, commented examples and license notices. It copies an explicit file list, never a used app folder. It does not publish. [Build dependencies](docs/BUILD.md) · [Packaging and matching source/relink materials](docs/RELEASE.md)
+The build produces `client/build-x360/tube360.xex`. The packager copies it as `Tube360/default.xex` into `.work/releases/tube360-v0.3.0-xbox360.zip`, with fonts, commented examples and license notices. It copies an explicit file list, never a used app folder. It does not publish. [Build dependencies](docs/BUILD.md) · [Packaging and matching source/relink materials](docs/RELEASE.md)
 
 ## Project layout
 
@@ -228,14 +252,26 @@ tools/           builds, packaging and optional service installation
 - Phone cannot find Tube360: use the Phone panel's TV code; allow local discovery and check that both devices can reach YouTube. Keep account and Cast pairing codes separate.
 - Xbox won't turn off the TV: the console has no HDMI-CEC; use your TV's no-signal power-off option. Console mode cannot turn off an unrelated PC.
 
-## Roadmap
+## v0.4 roadmap
 
-- [x] Native account, channels, library, Music, phone Cast and Nest for VOD
-- [x] VOD subtitles and original/dubbed audio choices
-- [ ] Live caption clock and direct live Nest synchronization
-- [ ] Broader console/network testing for sustained HD performance
+- [ ] Automatic updates
+- [ ] Premium account Music (broader, verified account access)
+- [ ] Search filters
+- [ ] Download videos to the HDD
+- [ ] Comments
+- [ ] Playback speed
+- [ ] 4:3 / CRT support
+- [ ] Spanish
 
-Pull requests are welcome. Changes since the last public release are in [CHANGELOG.md](CHANGELOG.md).
+These features are planned, not part of v0.3.0. [CHANGELOG.md](CHANGELOG.md) records what has already been integrated.
+
+## AI and verification
+
+**AI-assisted, reviewed and tested on a real console.** AI helps with development; decisions and review are human. Final acceptance of this build remains with the coordinator on Xbox.
+
+**VirusTotal:** the coordinator will fill in the scan link and `default.xex` SHA-256 after scanning the final build. No scan result is published for this build yet. Package hashes accompany the release files.
+
+<!-- VIRUSTOTAL_URL: PENDING · DEFAULT_XEX_SHA256: PENDING -->
 
 ## Credits & license
 

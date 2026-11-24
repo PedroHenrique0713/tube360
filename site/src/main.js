@@ -19,71 +19,71 @@
   // Data from the demo feed used to capture the current docs/img/home.jpg.
   const videos = [
   {
-    "id": "-k_oFUujRSs",
-    "title": "CORINTHIANS FANS' REACTIONS - PALMEIRAS 4-1 CORINTHIANS - BRASILEIRÃO 2026 - LET'S LAUGH!",
-    "channel": "A Voz da Torcida",
-    "views": "1.1M views",
+    "id": "68WY6G_wjoY",
+    "title": "Palmeiras 8 x 1 Ind. Petrolero - Melhores Momentos",
+    "channel": "SBT Sports",
+    "views": "2715561 views",
     "x": 136,
     "y": 150
   },
   {
-    "id": "glbLUBtrL8E",
-    "title": "PALMEIRAS 4 X 1 CORINTHIANS | HIGHLIGHTS | ROUND 30 | 2026 BRASILEIRÃO | ge.globo",
-    "channel": "ge tv",
-    "views": "1.9M views",
+    "id": "jzeFpEF6FQ8",
+    "title": "BASTIDORES DA GOLEADA HISTÓRICA | PALMEIRAS 5 X 0 SÃO PAULO | BRASILEIRO 2023",
+    "channel": "TV Palmeiras",
+    "views": "335248 views",
     "x": 412,
     "y": 150
   },
   {
-    "id": "CWFlRPmg9-8",
-    "title": "FLAMENGO 0 X 3 PALMEIRAS | HIGHLIGHTS | 2026 BRASILEIRÃO MATCHDAY 17 | ge.globo",
-    "channel": "ge tv",
-    "views": "4.1M views",
+    "id": "6ElN1CStOUE",
+    "title": "BASTIDORES CIMED | PALMEIRAS 6 X 1 REMO | BRASILEIRO 2026",
+    "channel": "TV Palmeiras",
+    "views": "81051 views",
     "x": 688,
     "y": 150
   },
   {
-    "id": "tDxIr5s3pTQ",
-    "title": "REACT PALMEIRAS 4-1 CORINTHIANS - 2026 BRASILEIRÃO (MATCHDAY 30) - 10/11/2026",
-    "channel": "A Quarta Força",
-    "views": "159.9K views",
+    "id": "5sVEcIZQlL0",
+    "title": "BASTIDORES - PALMEIRAS 6 X 2 CSA - BRASILEIRO 2019",
+    "channel": "TV Palmeiras",
+    "views": "93990 views",
     "x": 964,
     "y": 150
   },
   {
-    "id": "4p_9OPKgcDE",
-    "title": "PALMEIRAS 4 X 1 CORINTHIANS | HIGHLIGHTS | ROUND 30 | 2026 BRASILEIRÃO | ge tv",
-    "channel": "ge tv",
-    "views": "1.8M views",
+    "id": "JQ_uHzugp8c",
+    "title": "BASTIDORES | IND. PETROLERO 0 X 5 PALMEIRAS | CONMEBOL LIBERTADORES 2022",
+    "channel": "TV Palmeiras",
+    "views": "68616 views",
     "x": 136,
     "y": 398
   },
   {
-    "id": "O-6GDlg98x8",
-    "title": "REACT FLAMENGO 0-3 PALMEIRAS !!! SILENCED THE MARACA !!!",
-    "channel": "Hugão Corintiano",
-    "views": "131.9K views",
+    "id": "fvtmO_yaXHQ",
+    "title": "NOITE MÁGICA DE VIRADA HISTÓRICA | PALMEIRAS 4 X 0 LDU | CONMEBOL LIBERTADORES 2025",
+    "channel": "TV Palmeiras",
+    "views": "756995 views",
     "x": 412,
     "y": 398
   },
   {
-    "id": "sCmtNwJhHCc",
-    "title": "REACT PALMEIRAS 4X1 CORINTHIANS - WHAT A ROUT! PALMEIRAS FINALLY SANK CORINTHIANS!",
-    "channel": "VICTOR HUGO REACT",
-    "views": "205K views",
+    "id": "E5Yn6JdFC9A",
+    "title": "PALMEIRAS 5 X 0 SÃO PAULO | MELHORES MOMENTOS | 29ª RODADA DO BRASILEIRÃO 2023 | ge.globo",
+    "channel": "ge tv",
+    "views": "2855410 views",
     "x": 688,
     "y": 398
   },
   {
-    "id": "me4LFY_epK0",
-    "title": "TIMÃO FAZ GOL CONTRA BIZARRO, GIAY EM NOITE ARTILHEIRA E VERDÃO ATROPELA | PALMEIRAS 4X1 CORINTHIANS",
-    "channel": "TNT Sports Brasil",
-    "views": "83.4K views",
+    "id": "g-ZhIznI0eg",
+    "title": "PALMEIRAS 5 X 1 VITÓRIA | MELHORES MOMENTOS | 2ª RODADA BRASILEIRÃO 2026 | ge.globo",
+    "channel": "ge tv",
+    "views": "941661 views",
     "x": 964,
     "y": 398
   }
 ];
-  const upcomingVideo = videos[2];
+  const upcomingVideo = videos[1];
   function localizedViews(raw) {
     if (locale !== 'pt-BR') return raw;
     // Same thresholds and precision as server localized_views / views_text for pt.
@@ -420,7 +420,7 @@
     const release = data?.release;
     const asset = release?.assets?.find?.((a) => typeof a?.name === 'string' && a.name.endsWith('.zip'));
     const url = asset && safeReleaseURL(asset.browser_download_url);
-    if (url && typeof release.tag_name === 'string' && release.tag_name.trim() && Number.isInteger(asset.size) && asset.size > 0) {
+    if (release?.tag_name === document.body.dataset.version && url && typeof release.tag_name === 'string' && release.tag_name.trim() && Number.isInteger(asset.size) && asset.size > 0) {
       const version = release.tag_name.slice(0, 64);
       $$('[data-download]').forEach(link => { link.href = url; });
       $$('[data-release]').forEach(label => {

@@ -79,9 +79,10 @@ def get_data(args):
     except (KeyError, TypeError, ValueError) as error:
         raise ValueError("Complete offline values required: --version TAG "
                          "--download-url URL --size BYTES --stars COUNT") from error
-    temp = CACHE.with_suffix(".json.tmp")
-    temp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    temp.replace(CACHE)
+    if not args.no_cache_write:
+        temp = CACHE.with_suffix(".json.tmp")
+        temp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        temp.replace(CACHE)
     return data
 
 
@@ -97,6 +98,7 @@ def render(template, values):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--offline", action="store_true", help="Use arguments or src/github.json without network requests")
+    parser.add_argument("--no-cache-write", action="store_true", help="Render supplied release values without changing the saved GitHub cache")
     parser.add_argument("--version")
     parser.add_argument("--download-url")
     parser.add_argument("--size", type=int, help="Release asset size in bytes")
