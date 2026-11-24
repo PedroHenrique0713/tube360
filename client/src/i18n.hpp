@@ -28,6 +28,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
 // Texto do app. Títulos, nomes e metadados do servidor continuam sendo dados.
 #define TUBE360_TEXT(X) \
   X(None, "", "", "") \
+  X(LauncherOpening, "Tube360 – opening…", "Tube360 – abrindo…", "Tube360 – abriendo…") \
   X(UpdateAvailable, "Update · ", "Atualização · ", "Actualización · ") \
   X(UpdateDownload, "Download update", "Baixar atualização", "Descargar actualización") \
   X(UpdateDownloading, "Downloading and checking…", "Baixando e conferindo…", "Descargando y verificando…") \
@@ -312,6 +313,7 @@ enum class Key {
 #undef TEXT_KEY
   Count
 };
+static_assert(size_t(Key::None)==0);
 inline constexpr const char* texts[][3] = {
 #define TEXT_VALUE(k, en, pt, es) {en, pt, es},
   TUBE360_TEXT(TEXT_VALUE)

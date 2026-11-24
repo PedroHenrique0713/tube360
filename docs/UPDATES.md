@@ -1,4 +1,4 @@
-> **v0.3.0:** só as regras assinadas estão ativas. O launcher e a troca do executável descritos abaixo não vão no pacote: o launcher travou num console real (caminho relativo no `xsdk_launch`) e volta corrigido na v0.3.1.
+> **v0.3.0:** só as regras assinadas estão ativas. O launcher e a troca do executável descritos abaixo não vão no pacote: o launcher travou num console real e a causa ainda não foi isolada. A branch v031 prepara um pacote separado de teste; o launcher depende de validação no Xbox antes de uma publicação.
 
 # Atualizações assinadas
 
@@ -68,6 +68,14 @@ Anexe o payload à release e publique `app.json`/`app.json.sig` no ramo de regra
 Home: **LB** abre versão e novidades, **A** baixa, **B** volta/cancela. A troca acontece na próxima abertura pelo launcher. `tube360.previous.xex` guarda o anterior, `tube360.next.xex` o candidato e `update-app-state.json` o journal. O launcher revalida assinatura e hash, grava o estado antes dos renames e marca tentativa de boot. O app só confirma depois de renderizar por pelo menos 3 s, com fontes carregadas, ID de build e hash correspondentes.
 
 Sem confirmação (travamento, encerramento precoce ou XAM recusando o arquivo), **a próxima abertura pelo Aurora restaura automaticamente o anterior**. Erros de caminho que retornam ao launcher restauram imediatamente. O launcher não pode reiniciar um console travado por conta própria. Interrupção entre os renames é retomada. O ID rejeitado não é oferecido novamente; publique outro ID. Um journal ilegível abre diretamente a reserva instalada, se existir, ou o app já instalado; nunca promove `.next`. Nesse caso, a atualização permanece bloqueada até reparar/remover o journal local. Um arquivo `tube360.failed.xex` de falha anterior é substituído antes de outra restauração, inclusive em FATX. Backup/candidato ocupam até duas cópias extras do app. FATX não oferece fsync/ACL POSIX; falta de energia real precisa ser medida no console.
+
+## Lançador instrumentado (teste local v031)
+
+`launcher.log` é exclusivo do lançador, acrescenta uma sessão a cada abertura e recebe `fflush` por linha. Os mesmos eventos passam por `xsdk_log_write` e pelo UDP configurado em `net_log.txt` (sequência de 4 bytes em ordem de rede, seguida de UTF-8). O log do SDK usa o nome do XEX: `default.log` para o lançador e `tube360.log` para o app no pacote de teste. Eles não substituem `launcher.log`.
+
+O lançador desenha um quadro com “Tube360 – abrindo…” (pt/en/es, conforme `settings.txt`) usando o texto embutido do xsdk, registra journal, prepare, progresso de SHA-256 por MiB, renames e cada chamada/retorno de launch. A primeira execução sem journal abre o app instalado sem calcular hash. GPU e apresentação são fechadas antes de lançar `game:\tube360.xex`. Caminhos relativos também são resolvidos pelo xsdk: não há prova de que fossem a causa do travamento.
+
+Um erro que retorna tenta a reserva uma vez quando existe um trial e encerra o título ao falhar. Após devolver a GPU ao XAM, o handoff arma um worker de 20 s para pedir `XamLoaderTerminateTitle` se o título continuar vivo. Esse pedido não recupera um travamento do kernel/XAM nem garante qual dashboard será retomado; tela, watchdog e transição real continuam pendentes de teste no console. Não há espera por rede ou entrada do usuário no lançador.
 
 ## Provas reproduzíveis
 

@@ -14,24 +14,30 @@ bool decodeManifest(const string& raw,Manifest& m) {
     return m.build>0 && m.size>=4 && ascii(m.version,40) && m.version.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ.-+")==string::npos &&
         updateUrl(m.url) && m.hash.size()==64 && m.hash.find_first_not_of("0123456789abcdef")==string::npos && note(m.notesEn) && note(m.notesPt);
 }
-AppUpdate::AppUpdate(string directory,string pub):dir(std::move(directory)),key(std::move(pub)) {
+AppUpdate::AppUpdate(string directory,string pub,Trace observer):dir(std::move(directory)),key(std::move(pub)),trace(std::move(observer)) {
+    if(trace)trace("journal leitura: "+dir+"update-app-state.json");
     auto raw=read(dir+"update-app-state.json",maxDocument*3);
-    if(raw.empty()) {valid=!exists(dir+"update-app-state.json");return;}
+    if(raw.empty()) {valid=!exists(dir+"update-app-state.json");if(trace)trace(valid?"journal ausente: primeira execucao":"journal invalido: vazio ou ilegivel");return;}
     J j; Manifest m;
     valid=parse(raw,j) && fields(j,{"phase","highest","bytes","signature"});
-    if(!valid)return;
+    if(!valid){if(trace)trace("journal invalido: JSON/schema");return;}
     phase=text(j,"phase");bytes=text(j,"bytes");sig=text(j,"signature");
     int h=number(get(j,"highest"),1,INT_MAX);
     valid=h>0 && verify(bytes,sig,key) && decodeManifest(bytes,m) && h>=m.build &&
         (phase=="staged" || phase=="swapping" || phase=="trial" || phase=="good" || phase=="rollback");
     if(valid)highest=std::max(h,buildId);
+    if(trace)trace(string("journal ")+(valid?"valido":"invalido")+" fase="+phase+" highest="+std::to_string(highest));
 }
-bool AppUpdate::save() {return write(dir+"update-app-state.json",J(O{{"phase",J(phase)},{"highest",J(double(highest))},{"bytes",J(bytes)},{"signature",J(sig)}}).serialize());}
+bool AppUpdate::save() {
+    bool ok=write(dir+"update-app-state.json",J(O{{"phase",J(phase)},{"highest",J(double(highest))},{"bytes",J(bytes)},{"signature",J(sig)}}).serialize());
+    if(trace)trace("journal gravacao fase="+phase+(ok?" ok":" erro"));
+    return ok;
+}
 bool AppUpdate::checkPending(const Manifest& m) {
     auto* f=std::fopen(pending().c_str(),"rb");if(!f)return false;
     char magic[4];bool ok=std::fread(magic,1,4,f)==4 && string(magic,4)=="XEX2";
     if(std::fseek(f,0,SEEK_END)!=0 || std::ftell(f)!=m.size)ok=false;
-    std::fclose(f);return ok && fileHash(pending())==m.hash;
+    std::fclose(f);return ok && fileHash(pending(),trace)==m.hash;
 }
 bool AppUpdate::stage(const string& raw,const string& signature,string& error) {
     Manifest m;
@@ -46,6 +52,7 @@ bool AppUpdate::stage(const string& raw,const string& signature,string& error) {
     error.clear();return true;
 }
 bool AppUpdate::restore(string& error) {
+    if(trace)trace("rollback inicio");
     phase="rollback";if(!save()){error="journal";return false;}
     auto backup=dir+"tube360.previous.xex";
     if(exists(backup)) {
@@ -54,19 +61,22 @@ bool AppUpdate::restore(string& error) {
         if(std::rename(backup.c_str(),executable().c_str())){error="restore";return false;}
     }
     if(!exists(executable())){error="missing_backup";return false;}
+    if(trace)trace("rollback fim: "+executable());
     error.clear();return true;
 }
 string AppUpdate::prepare(string& error) {
+    if(trace)trace("prepare inicio fase="+(phase.empty()?string("initial"):phase));
     error.clear();
     if(!valid){
         // Journal ilegível não pode impedir a abertura da reserva já instalada, nem promover .next.
         auto backup=dir+"tube360.previous.xex";
-        if(exists(backup))return backup;
+        if(exists(backup)){if(trace)trace("prepare journal invalido: reserva instalada");return backup;}
         if(exists(executable()))return executable();
         error="state";return {};
     }
     if(phase=="trial" || phase=="rollback")return restore(error)?executable():"";
     if(phase=="staged" || phase=="swapping") {
+        bool checked=false;
         Manifest m;if(!verify(bytes,sig,key) || !decodeManifest(bytes,m)){error="signature";return {};}
         auto backup=dir+"tube360.previous.xex";
         if(phase=="staged") {
@@ -75,18 +85,21 @@ string AppUpdate::prepare(string& error) {
                 phase="good";if(!save()){error="journal";return {};}
                 std::remove(pending().c_str());error="pending";return executable();
             }
+            checked=true;
             if(exists(backup) && std::remove(backup.c_str())){error="backup";return {};}
             phase="swapping";if(!save()){error="journal";return {};}
         }
         // O journal antecede cada rename: retoma inclusive após queda entre os dois movimentos.
         if(exists(pending())) {
-            if(!checkPending(m)){error="hash";return exists(backup) && restore(error)?executable():"";}
+            if(!checked && !checkPending(m)){error="hash";return exists(backup) && restore(error)?executable():"";}
             if(!exists(backup)) {
+                if(trace)trace("prepare rename app -> previous");
                 if(std::rename(executable().c_str(),backup.c_str())){error="backup";return {};}
             } else if(exists(executable())) {error="ambiguous_swap";return {};}
+            if(trace)trace("prepare rename next -> app");
             if(std::rename(pending().c_str(),executable().c_str())){restore(error);return error.empty()?executable():"";}
         }
-        if(!exists(backup) || fileHash(executable())!=m.hash){error="swap_hash";return restore(error)?executable():"";}
+        if(!exists(backup) || fileHash(executable(),trace)!=m.hash){error="swap_hash";return restore(error)?executable():"";}
         phase="trial";if(!save()){restore(error);return error.empty()?executable():"";}
     }
     if(!exists(executable())){error="missing_app";return {};}
