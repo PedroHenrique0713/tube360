@@ -590,7 +590,9 @@ int main(int argc, char** argv) {
     std::fclose(f);
   }
   if (const char* e = std::getenv("XT_SERVER")) { char ip[64] = {0}; int port = 0; if (std::sscanf(e, "%63[^:]:%d", ip, &port) == 2) { srv.ip = ip; srv.port = port; } }
-  LOG("servidor %s:%d", srv.ip.c_str(), srv.port);
+  // Sem server.txt (nem XT_SERVER) o app é só do console: nenhum pedido ao PC, nem para o Nest ou o timer.
+  if (srv.ip == "0.0.0.0") net::serverEnabled = false;
+  LOG("servidor %s:%d%s", srv.ip.c_str(), srv.port, net::serverEnabled ? "" : " (desligado: só console)");
 
   gfx::Gfx g;
   if (FILE* f = std::fopen((assets + "video-metrics.txt").c_str(),"r")) { std::fscanf(f,"%d",&g.videoMetrics); std::fclose(f); }
