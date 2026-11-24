@@ -21,7 +21,7 @@ struct SearchResult {
     std::vector<Config> devices;
     uint64_t revision = 0;
 };
-SearchResult scan(Network, const std::atomic_bool& cancel);
+SearchResult scan(Network, const std::atomic_bool& cancel, const Config& known = {});
 bool identify(Config&, const std::atomic_bool& cancel);
 int matching(const Config&, const std::vector<Config>&);
 

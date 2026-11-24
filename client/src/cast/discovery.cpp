@@ -52,6 +52,14 @@ std::string ip(uint32_t host) {
     in_addr a{htonl(host)}; char out[INET_ADDRSTRLEN]{};
     return inet_ntop(AF_INET,&a,out,sizeof(out)) ? out : "";
 }
+bool networkMask(Network& net) {
+    if (!net.address || net.address==0xffffffffu || (net.address>>24)>=224) return false;
+    if (!validMask(net.mask)) {
+        net.mask=0xffffff00u;
+        SDL_Log("Nest: mascara indisponivel; usando /24 do IP atual %s",ip(net.address).c_str());
+    }
+    return true;
+}
 // Limite antes do parser recursivo, inclusive para um serviço HTTP que não seja Cast.
 bool parse(const std::string& s,J& j) {
     int depth=0; bool quoted=false,escaped=false;
@@ -136,22 +144,23 @@ bool localNetwork(Network& net) {
     // XAM 0x65 lê a configuração; nunca chamamos XnpConfig nem SaveConfigParams.
     // Layout público de XNetConfigParams: IP em 0x54, máscara em 0x58 (492 bytes).
     HANDLE module=0; void* proc=nullptr;
-    if (XexGetModuleHandle("xam.xex",&module) || XexGetProcedureAddress(module,0x65,&proc)<0 || !proc) return false;
     alignas(8) unsigned char config[492]{};
-    reinterpret_cast<int(*)(int,void*,uint32_t,uint32_t)>(proc)(1,config,0,0);
+    if (!XexGetModuleHandle("xam.xex",&module) && XexGetProcedureAddress(module,0x65,&proc)>=0 && proc)
+        reinterpret_cast<int(*)(int,void*,uint32_t,uint32_t)>(proc)(1,config,0,0);
     uint32_t saved=0,mask=0; std::memcpy(&saved,config+0x54,4); std::memcpy(&mask,config+0x58,4);
     net={ntohl(address.s_addr),ntohl(mask)};
     if (saved!=address.s_addr || !validMask(net.mask)) {
         SDL_Log("Nest: mascara local indisponivel (IP atual %s, IP salvo %s, mascara %s)",ip(net.address).c_str(),ip(ntohl(saved)).c_str(),ip(net.mask).c_str());
-        return false;
+        net.mask=0;
     }
-    return true;
+    return networkMask(net);
 #else
     // O override de loopback só existe no PC, para usar o mesmo scanner nos testes.
     if (const char* value=std::getenv("XT_NEST_NETWORK")) {
         std::string s=value; auto slash=s.find('/'); in_addr a{},m{};
         if (slash==std::string::npos || inet_pton(AF_INET,s.substr(0,slash).c_str(),&a)!=1 || inet_pton(AF_INET,s.substr(slash+1).c_str(),&m)!=1) return false;
-        net={ntohl(a.s_addr),ntohl(m.s_addr)}; return validMask(net.mask);
+        net={ntohl(a.s_addr),ntohl(m.s_addr)};
+        return (!net.mask || validMask(net.mask)) && networkMask(net);
     }
     ifaddrs* list=nullptr; if (getifaddrs(&list)) return false;
     bool found=false;
@@ -196,9 +205,13 @@ bool identify(Config& device,const std::atomic_bool& cancel) {
     if (device.model.empty()) device.model="Google Cast";
     return !cancel;
 }
-SearchResult scan(Network net,const std::atomic_bool& cancel) {
+SearchResult scan(Network net,const std::atomic_bool& cancel,const Config& known) {
     SearchResult result; result.state=SearchState::Done;
     auto hosts=addresses(net); if (hosts.empty()) { result.state=SearchState::NetworkError; return result; }
+    if (!known.host.empty()) {
+        result.devices.push_back(known);
+        hosts.erase(std::remove(hosts.begin(),hosts.end(),known.host),hosts.end());
+    }
     uint64_t began=SDL_GetTicks();
     SDL_Log("Nest: busca unicast IP=%s mascara=%s hosts=%u limite=16",ip(net.address).c_str(),ip(net.mask).c_str(),(unsigned)hosts.size());
     struct Probe { int fd; std::string host; uint64_t until; };
@@ -310,9 +323,14 @@ void Discovery::run() {
         bool user=manual; auto saved=config; auto version=selection; requested=false;
         result.state=SearchState::Searching; ++result.revision; SDL_UnlockMutex(mutex);
         SearchResult found; Config live=saved;
-        bool same=!user && identify(live,cancelFlag) && (saved.uuid.empty() || live.uuid==saved.uuid);
+        if (!saved.host.empty()) SDL_Log("Nest: verificando IP salvo %s antes da busca",saved.host.c_str());
+        bool same=!saved.host.empty() && identify(live,cancelFlag) && (saved.uuid.empty() || live.uuid==saved.uuid);
         if (same) { found.state=SearchState::Done; found.devices.push_back(live); }
-        else { Network net; found=localNetwork(net) ? scan(net,cancelFlag) : SearchResult{SearchState::NetworkError,{}}; }
+        if (user || !same) {
+            Network net;
+            if (localNetwork(net)) found=scan(net,cancelFlag,same ? live : Config{});
+            else if (!same) found.state=SearchState::NetworkError;
+        }
         SDL_LockMutex(mutex);
         int match=same ? 0 : matching(saved,found.devices);
         if (!user && !cancelFlag && version==selection && match>=0 && (same || found.state==SearchState::Done || !saved.uuid.empty())) {

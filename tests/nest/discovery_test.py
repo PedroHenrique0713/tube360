@@ -185,6 +185,25 @@ class DiscoveryTest(unittest.TestCase):
         self.assertLess(result['ms'], 5000)
         print('multiple devices:', result['ms'], 'ms')
 
+    def test_missing_mask_falls_back_to_current_ip_slash24(self):
+        with receiver(self.folder, '127.77.24.254', name='Fim da rede'):
+            result = self.run_probe('scan', network='127.77.24.1/0.0.0.0')
+        self.assertEqual(result['state'], 2)
+        self.assertEqual([d['host'] for d in result['devices']], ['127.77.24.254'])
+        self.assertLess(result['ms'], 5000)
+        print('missing mask, last host /24:', result['ms'], 'ms')
+
+    def test_saved_host_is_tried_before_network_detection(self):
+        config = self.folder / 'saved-first'
+        config.mkdir(exist_ok=True)
+        # A interface simulada é inválida; o IP salvo ainda deve bastar.
+        (config / 'nest.txt').write_text('127.77.24.2 8009\nSala\n')
+        with receiver(self.folder, '127.77.24.2'):
+            result = self.run_probe('recover', config, network='unavailable')
+        self.assertEqual(result['host'], '127.77.24.2')
+        self.assertEqual(result['state'], 2)
+        self.assertEqual(result['uuid'], '1' * 32)
+
     def test_ip_changed_and_old_ip_reused(self):
         config = self.folder / 'moved'
         config.mkdir(exist_ok=True)
