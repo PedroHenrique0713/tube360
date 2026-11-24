@@ -1681,7 +1681,7 @@ int main(int argc, char** argv) {
           if (pl.live) { toast=tr(K::SpeedLive); toastUntil=now+3000; }
           else if (!pl.waiting()) { playerUI.panel=PlayerUI::SPEED_PANEL; playerUI.panelSel=audio::speedIndex(pl.speed); }
         } else if (playerUI.selected == PlayerUI::LOOP) {
-          if (!pl.live) pl.loop=!pl.loop;
+          if (!pl.live) { pl.loop=!pl.loop; LOG("repetição: %d",pl.loop); }
           else { toast=tr(K::SpeedLive); toastUntil=now+3000; }
         } else if (playerUI.selected == PlayerUI::EDGE) {
           LOG("live: retorno manual à borda"); resumeLive();

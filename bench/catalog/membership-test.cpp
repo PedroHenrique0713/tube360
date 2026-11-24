@@ -11,7 +11,7 @@ int checks = 0;
 void check(bool ok, const char* message) { ++checks; if (!ok) { std::cerr << "FAIL " << message << '\n'; std::exit(1); } }
 string read(const string& path) { std::ifstream f(path); check(bool(f),"fixture exists"); std::ostringstream s; s << f.rdbuf(); return s.str(); }
 struct Http : yt::Transport {
-  string page, refusal; unsigned players = 0; bool accountPlayer = false;
+  string page, refusal, language="en"; unsigned players = 0; bool accountPlayer = false;
   yt::Response request(const string& url, const string& body = {}, bool form = false) override {
     yt::Request r; r.url=url; r.body=body; return send(r);
   }
@@ -23,6 +23,7 @@ struct Http : yt::Transport {
       if (accountPlayer) {
         check(std::find(r.headers.begin(),r.headers.end(),"Authorization: Bearer fake-a")!=r.headers.end(),"membership player uses existing TV OAuth");
         check(r.body.find("TVHTML5")!=string::npos && r.body.find("Samsung")!=string::npos,"membership player uses TV Samsung identity");
+        check(r.body.find("\"hl\":\""+language+"\"")!=string::npos,"membership player retains requested language");
       }
       ++players; return {200,refusal,{}};
     }
@@ -72,6 +73,9 @@ int main(int argc, char** argv) {
   auto calls=h.players;
   media=client.player("member00001",720,nullptr,0,"original",authorized.body);
   check(media.status=="OK" && media.playerClient=="TVHTML5" && !media.video.url.empty() && h.players==calls,"authorized media reuses format selection without anonymous requests");
+  h.language="es";
+  check(account.request("/api/video/member00001/player?lang=es",1000,10).ok(),"Spanish authenticated member playback");
+  calls=h.players;
   unlink(path);
   yt::ConsoleAccount guest(h,path);
   check(guest.request("/api/video/member00001/player",1000,10).error=="signed_out" && h.players==calls,"signed-out session cannot use member player");

@@ -17,7 +17,7 @@ for f in (ROOT/'bench/player-extras/fixtures').glob('*.json'):
     shutil.copyfile(f, MEDIA/f.name)
 results = json.loads((WORK/"results.json").read_text()) if (WORK/"results.json").exists() else []
 
-def run(name, keys='', seconds=6, lang='pt', at=0, speaker=False, height=720, large=False, **extra):
+def run(name, keys='', seconds=6, lang='pt', at=0, speaker=False, height=720, large=False, shutdown=False, **extra):
     assets = WORK/name
     assets.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
@@ -58,6 +58,11 @@ def run(name, keys='', seconds=6, lang='pt', at=0, speaker=False, height=720, la
     assert 'primeiro quadro' in text, text[-2500:]
     assert '(desligado: só console)' in text, 'server must be off'
     assert 'unexpected fixture URL' not in text, text[-2500:]
+    if shutdown:
+        assert 'repetição: 1' in text and 'timer: prazo do console venceu' in text and 'build PC fecha o app' in text, text[-2500:]
+        assert 'repetir: ' not in text, 'loop defeated the native end timer'
+        print('PASS', name, 'native end timer overrides enabled loop and exits the PC app',flush=True)
+        return text
     subprocess.run(['magick', str(WORK/(name+'.ppm')), str(WORK/(name+'.png'))], check=True)
     with (WORK/(name+'.ppm')).open('rb') as shot:
         shot.readline()
@@ -71,6 +76,13 @@ def run(name, keys='', seconds=6, lang='pt', at=0, speaker=False, height=720, la
         loads=nest.commands('LOAD')
         if 'roundtrip' in name: assert len(loads)==2, 'returning to 1x did not restore Nest'
         else: assert len(loads)==1, 'changed speed incorrectly loaded Nest'
+    if name in ('speed-150','nest-speed','nest-roundtrip'):
+        changed=text.split('velocidade: 1.50x',1)[1].split('velocidade: 1.00x',1)[0]
+        assert 'som: TV' in changed, 'changed speed left TV audio muted'
+    if name=='speed-paused':
+        at=float(re.search(r'velocidade: 1.50x em ([\d.]+)',text)[1])
+        shown=float(re.search(r'captura: .*posição ([\d.]+)',text)[1])
+        assert abs(shown-at)<.08, 'speed change resumed paused playback'
     print('PASS', name, f'CPU {cpu:.3f}s/{elapsed:.3f}s', flush=True)
     return text
 
@@ -99,6 +111,7 @@ if __name__=='__main__':
       'speed-150': dict(keys='....DRRRRARRA',seconds=12),
       'speed-paused': dict(keys='....ADRRRRARRA',seconds=8),
       'loop': dict(keys='....DRRRRRA',seconds=9,at=19),
+      'loop-timer': dict(keys='....DRRRRRA',seconds=12,at=19,shutdown=True,XT_SLEEP_PATH='/api/sleep/set?end=1&what=xbox'),
       'base-100': dict(seconds=12),
       'live-disabled': dict(keys='....DRRRRA',seconds=6,XT_QUALITY_FIXTURES=str(ROOT/'.work/extras-live')),
       'nest-speed': dict(keys='........DRRRRARRA',seconds=9,speaker=True),

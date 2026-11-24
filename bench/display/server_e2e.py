@@ -38,6 +38,7 @@ def serve():
     threading.Thread(target=account.serve_forever, daemon=True).start()
     spec = importlib.util.spec_from_file_location('display_server', ROOT/'server/tube360_server.py')
     m = importlib.util.module_from_spec(spec)
+    sys.path.insert(0,str(ROOT/'server'))
     spec.loader.exec_module(m)
     async def home(*args, **kwargs):
         return [dict(id=f'video{i:06}', duration=125, channel='Canal de prueba', views='1200 views',

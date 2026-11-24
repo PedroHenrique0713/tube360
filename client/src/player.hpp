@@ -106,7 +106,7 @@ struct Player {
   bool memberVideo = false;
   std::string memberResponse() {
     if (!memberVideo || !memberAccount || !memberAccount->active()) return {};
-    auto reply = memberAccount->request("/api/video/" + id + "/player");
+    auto reply = memberAccount->request("/api/video/" + id + "/player?lang=" + requestLanguage);
     return reply.ok() ? std::move(reply.body) : std::string{};
   }
   std::unique_ptr<yt::Transport> transport;

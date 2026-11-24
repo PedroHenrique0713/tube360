@@ -16,6 +16,7 @@ python3 bench/quality/prepare.py .work/extras-media --mode 60 --seconds 24
 python3 bench/player-extras/e2e.py comments-pt comments-en comments-scroll comments-page2 comments-error
 python3 bench/player-extras/e2e.py dislikes dislikes-offline speed-panel speed-150 speed-paused loop base-100
 python3 bench/player-extras/e2e.py comments-long comments-back nest-speed nest-roundtrip
+python3 bench/player-extras/e2e.py comments-es comments-sd comments-sd-long comments-sd-error comments-large speed-es speed-sd speed-large loop-timer
 ```
 
 Para a live sintética, copie `72060.mp4`, `720.mp4`, `1080.mp4` e `audio.m4a` da pasta de mídia
@@ -28,6 +29,9 @@ O teste de áudio usa tons estéreo independentes de 440/660 Hz, verifica duraç
 nas oito velocidades e rejeita PCM inválido. O teste de worker exercita troca de vídeo durante
 pedido bloqueado, comandos separados de cabeçalho/corpo e recuperação de falha na continuação.
 O teste de Cast confirma STOP ao mudar para 1,5x e um novo LOAD ao voltar para 1x.
+A rodada combinada verifica idioma/região dos comentários em espanhol, dimensões 640×480,
+retomada audível na TV, pausa preservada e prioridade do timer nativo sobre repetição ligada.
+`loop-timer` termina pelo timer (sem captura e sem desligar o PC); os demais casos geram PNGs.
 
 `public-shape-sanitized.json` conserva a forma de uma resposta pública observada em 2026-11-24,
 com cabeçalho e corpo usando o mesmo `targetId`; identificadores, autores, textos e tokens foram

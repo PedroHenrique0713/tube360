@@ -15,3 +15,4 @@ add_executable(cast-protocol-test EXCLUDE_FROM_ALL
 target_compile_features(cast-protocol-test PRIVATE cxx_std_17)
 target_include_directories(cast-protocol-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../client/src"
   "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
+target_link_libraries(cast-protocol-test PRIVATE SDL3::SDL3)
