@@ -242,14 +242,15 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
         return out;
     }
     struct Report {
-        Video& v; int version;
+        Video& v; std::shared_ptr<const updates::Rules> policy;
         ~Report() {
             bool ok=v.status=="OK" && (!v.hls.empty() || (!v.video.url.empty() && (v.muxed || !v.audio.url.empty())));
             bool bad=v.failure==Failure::JSON || v.failure==Failure::SESSION || v.reason=="HTTP 400" || v.reason=="HTTP 403" ||
-                v.reason=="no_direct_avc" || v.reason=="no_direct_aac";
-            updates::observe(version,ok,bad);
+                v.reason=="no_direct_avc" || v.reason=="no_direct_aac" ||
+                (v.failure==Failure::REFUSAL && std::find(policy->fallbackStatuses.begin(),policy->fallbackStatuses.end(),v.status)!=policy->fallbackStatuses.end());
+            updates::observe(policy->version,ok,bad);
         }
-    } report{out,policy->version};
+    } report{out,policy};
     // O cliente VISIONOS recebe links prontos (sem decifrar JavaScript) quando o pedido leva a sessão de visitante
     // da página do vídeo: cookies, X-Goog-Visitor-Id e o signatureTimestamp do player JS. É o mesmo pedido que o
     // yt-dlp do servidor faz (medido em 2026-11-23: itag 136 direto deste IP, sem login nem PO token).

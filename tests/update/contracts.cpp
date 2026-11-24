@@ -11,12 +11,13 @@ int checks=0;
 void check(bool v,const char* message){++checks;if(!v){std::cerr<<"FAIL "<<message<<"\n";std::exit(1);}}
 struct Net:yt::Transport {
     std::vector<yt::Request> sent;
-    bool broken=false;
+    bool broken=false, refused=false;
     yt::Response request(const string& u,const string& b={},bool f=false) override{return send({u,b,{},f});}
     yt::Response send(const yt::Request& r) override {
         sent.push_back(r);
         if(r.url.find("/watch?")!=string::npos)return {200,"{\"VISITOR_DATA\":\"fake\",\"jsUrl\":\"/s/player/fake/base.js\"}",{}};
         if(r.url.find("base.js")!=string::npos)return {200,"remoteTimestamp:99999;signatureTimestamp:77777;",{}};
+        if(refused)return {200,R"({"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Unsupported client"}})",{}};
         if(broken)return {200,"not json",{}};
         return {200,R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"4p_9OPKgcDE"},"streamingData":{"formats":[{"itag":18,"width":640,"height":360,"fps":30,"mimeType":"video/mp4; codecs=\"avc1, mp4a\"","url":"https://fixture.googlevideo.com/test"}]}})",{}};
     }
@@ -97,6 +98,10 @@ int main(int argc,char** argv) {
     late.observe(2,false,true);late.observe(2,false,true);
     RuleStore lateRestart(p,key);lateRestart.observe(2,false,true);
     check(lateRestart.snapshot()->version==1 && lateRestart.highWater()==2,"backup remains available after early successes and counters survive restart");
+    p=dir+"refused-rules/";::mkdir(p.c_str(),0700);auto refused=std::make_shared<RuleStore>(p,key);refused->accept(bytes,sig,error);setRuleStore(refused);
+    Net refusedNet;refusedNet.refused=true;yt::Client refusedClient(refusedNet);
+    for(int i=0;i<3;i++)refusedClient.player("4p_9OPKgcDE");
+    check(refused->snapshot()->version==1 && refused->highWater()==2,"valid JSON with all clients refused also triggers rollback");
     setRuleStore(nullptr);
     std::cout<<checks<<" signed update checks passed\n";
 }
