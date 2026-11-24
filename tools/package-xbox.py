@@ -129,6 +129,10 @@ def main():
         raise ValueError("Test trust configuration requires --test-package; production packages refuse test binaries")
     launcher, launcher_original, launcher_replacements = clean_xex(
         args.build_dir, args.xex_converter, app_name, "tube360-launcher")
+    production_key = re.search(rb'publicKeyHex = "([0-9a-f]{64})"',
+                               read_file(ROOT / "client/src/update/public_key.hpp"))[1]
+    if not args.test_package and (production_key not in executable or production_key not in launcher):
+        raise ValueError("Public app and launcher must both embed the production public key")
     files["default.xex"] = launcher
     files["tube360.xex"] = executable
     files["START-HERE.txt"] = (

@@ -17,6 +17,8 @@ def run(*args):
 
 
 def public_url(url):
+    if any(ord(c) < 33 or ord(c) > 126 for c in url):
+        return False
     parsed = urlsplit(url)
     if (parsed.scheme != 'https' or parsed.username or parsed.password or parsed.port
             or parsed.fragment or any(c in url for c in ('%', '\\', '/./', '/../'))):
@@ -26,6 +28,8 @@ def public_url(url):
 
 
 def test_url(url):
+    if any(ord(c) < 33 or ord(c) > 126 for c in url):
+        return False
     parsed = urlsplit(url)
     try:
         address = ipaddress.IPv4Address(parsed.hostname)
@@ -71,9 +75,8 @@ def main():
         a.key.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
         fd = os.open(a.key, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         try:
-            pem = run('openssl', 'genpkey', '-algorithm', 'ED25519')
             with os.fdopen(fd, 'wb') as stream:
-                stream.write(pem)
+                stream.write(run('openssl', 'genpkey', '-algorithm', 'ED25519'))
         except BaseException:
             a.key.unlink(missing_ok=True)
             raise
