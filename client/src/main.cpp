@@ -732,7 +732,31 @@ int main(int argc, char** argv) {
   auto sleepLabel = [&](int choice) -> std::string {
     return choice == 0 ? tr(K::SleepOff) : choice == 7 ? tr(K::SleepEnd) : std::to_string(sleepMinutes[choice]) + " min";
   };
-  auto requestSleep = [&](const std::string& path) { sleepWorker.add({5, path, ++sleepRevision}); sleepPending++; };
+  // Sem PC o timer é do próprio console: mesmo formato da resposta do servidor, prazo contado aqui.
+  auto localSleep = [&](const std::string& path) {
+    uint64_t at = SDL_GetTicks();
+    if (path.find("target_only=1") != std::string::npos || path == "/api/sleep") return;
+    bool active = sleep.active, end = sleep.end; double seconds = sleep.remaining(at);
+    if (path.rfind("/api/sleep/cancel", 0) == 0) { active = false; end = false; seconds = 0; }
+    else if (path.rfind("/api/sleep/add", 0) == 0) {
+      size_t m = path.find("min="); double add = m == std::string::npos ? 15 : std::atof(path.c_str() + m + 4);
+      active = true; end = false; seconds = std::max(0.0, seconds) + add * 60;
+    } else if (path.rfind("/api/sleep/set", 0) == 0) {
+      active = true; end = path.find("end=1") != std::string::npos;
+      size_t m = path.find("min="); seconds = end ? -1 : (m == std::string::npos ? 0 : std::atof(path.c_str() + m + 4) * 60);
+    }
+    char text[96];
+    std::snprintf(text, sizeof(text), "ok\t%s\t%.0f\txbox\t%s", active ? "on" : "off", seconds, end ? "fim_do_video" : "minutos");
+    sleep.parse(text, at);
+    LOG("timer: %s %.0f s %s (console)", sleep.active ? "on" : "off", sleep.seconds, sleep.end ? "fim_do_video" : "minutos");
+  };
+  auto requestSleep = [&](const std::string& path) {
+    if (!net::serverEnabled) { localSleep(path); return; }
+    sleepWorker.add({5, path, ++sleepRevision}); sleepPending++;
+  };
+#ifndef __XSDK__
+  if (const char* t = std::getenv("XT_SLEEP_PATH")) requestSleep(t);  // teste: ex. /api/sleep/set?what=xbox&min=0.05
+#endif
   auto applySleep = [&]() {
     std::string target = settings.sleepNotebook ? "xbox_notebook" : "xbox";
     requestSleep(sleepChoice == 0 ? "/api/sleep/cancel" : "/api/sleep/set?what=" + target +
@@ -964,6 +988,12 @@ int main(int argc, char** argv) {
     pl.sleepGain((float)gain * phoneGain);
     pl.directSpeaker.fade(gain);
     if (!sleep.active || !sleep.end) endTimerPending = false;
+    if (!net::serverEnabled && sleep.active && !shutdownAt &&
+        ((!sleep.end && sleepLeft <= 0) || (sleep.end && endTimerPending))) {
+      LOG("timer: prazo do console venceu, desligando");
+      if (screen == PLAYER) stopVideo();
+      sleep = {}; shutdownAt = now + 2000; sleepPanel = false;
+    }
     while (control.pop(r)) {
       if (r.accountRoute && r.backend != consoleAccount->revision()) continue;
       if (r.key == "/api/nest/info") {
