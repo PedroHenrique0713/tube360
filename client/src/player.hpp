@@ -33,7 +33,7 @@ inline void moveToHardwareThread(int hw) {
 #endif
 }
 
-struct Frame { double pts = 0; int w = 0, h = 0, sourceFps = 0; bool bt709 = false, fullRange = false; std::vector<uint8_t> yuv; };
+struct Frame { double pts = 0; int w = 0, h = 0, sourceFps = 0; bool bt709 = false, fullRange = false; std::vector<uint8_t> yuv; std::shared_ptr<video::Surface> surface; };
 
 // Ajudantes da decodificação por fatias do pl_mpeg (plm_video_run_parallel): a thread do decodificador roda a faixa 0
 // e cada ajudante roda a sua num núcleo livre do 360 (hardware threads 3, 1 e 4; o decodificador fica na 2 e a tela na 0).
@@ -106,6 +106,8 @@ struct Player {
   std::atomic<int> actualHeight{0};
   std::atomic<int> actualFps{0};
   int videoMetrics = 0;
+  video::Allocator* videoBuffers = nullptr;
+  int h264Threads = 4, h264ThreadType = FF_THREAD_FRAME, h264LoopFilter = -1;
   int queueMin = 0;
   uint64_t originalWatch = 0;
   std::atomic<unsigned> pauseChanges{0};
@@ -305,7 +307,7 @@ struct Player {
   }
 
   void netLoop() {
-    moveToHardwareThread(4);
+    moveToHardwareThread(1);
     net::Response r; std::vector<uint8_t> extra;
     char path[512];
     int requested=allowOriginal && videoMode==playback::DETAIL ? 1080 : quality;
@@ -483,13 +485,16 @@ struct Player {
     enqueuePlanes(f->width, f->height, f->time, planes, strides, false, false);
   }
 
-  void enqueuePlanes(int w, int h, double pts, const uint8_t* const* planes, const int* strides, bool bt709, bool full, int fps = 0) {
+  void enqueuePlanes(int w, int h, double pts, const uint8_t* const* planes, const int* strides, bool bt709, bool full, int fps = 0,
+                     std::shared_ptr<video::Surface> surface = {}) {
     SDL_LockMutex(mu);
     Frame* fr = spare.empty() ? new Frame() : spare.back();
     if (!spare.empty()) spare.pop_back();
     SDL_UnlockMutex(mu);
     int cw = (w + 1) / 2, ch = (h + 1) / 2;
     fr->w = w; fr->h = h; fr->pts = pts; fr->bt709 = bt709; fr->fullRange = full; fr->sourceFps = fps;
+    fr->surface = std::move(surface);
+    if (fr->surface) { SDL_LockMutex(mu); frames.push_back(fr); SDL_UnlockMutex(mu); return; }
     fr->yuv.resize((size_t)w * h + 2 * (size_t)cw * ch);
     uint8_t* dst = fr->yuv.data();
     for (int i = 0; i < 3; ++i) {
@@ -753,7 +758,7 @@ struct Player {
       tickMs = now; masterMs = (int)std::lround(screenSec * 1000);
       speakerTargetMs = (int)std::lround(screenSec * 1000);
       while (!frames.empty() && frames.front()->pts <= screenSec + 0.010) {
-        if (show) { spare.push_back(show); droppedFrames++; }
+        if (show) { show->surface.reset(); spare.push_back(show); droppedFrames++; }
         show = frames.front(); frames.pop_front();
       }
       if (original) {
@@ -804,7 +809,7 @@ struct Player {
     if (drained && !retryConverted && state != FAILED && (!hasAudio || audioQueuedSec() < 0.05)) state = ENDED;
     return show;
   }
-  void recycle(Frame* f) { SDL_LockMutex(mu); spare.push_back(f); SDL_UnlockMutex(mu); }
+  void recycle(Frame* f) { f->surface.reset(); SDL_LockMutex(mu); spare.push_back(f); SDL_UnlockMutex(mu); }
 
   double position() const { return lastPos; }
   bool waiting() const { return state == CONNECTING || state == BUFFERING; }

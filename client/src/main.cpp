@@ -25,6 +25,7 @@
 #undef PL_MPEG_IMPLEMENTATION
 
 #include "gfx.hpp"
+#include "gfx_video_memory.hpp"
 #include "net.hpp"
 #include "player.hpp"
 #include "music_player.hpp"
@@ -564,6 +565,7 @@ int main(int argc, char** argv) {
   (void)argc; (void)argv;
 #ifdef __XSDK__
   install_player_fault_handler();
+  SDL_SetHint("SDL_AUDIO_XSDK_HARDWARE_THREAD","1");
   if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_EVENTS | SDL_INIT_AUDIO)) { LOG("SDL: %s", SDL_GetError()); return 1; }
   std::string assets = "";
 #else
@@ -604,7 +606,18 @@ int main(int argc, char** argv) {
   loadIcons(g);
 
   gfx::Video videoTex; g.video = &videoTex;
+  gfx::DecodePool videoPool(g);
   music::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); pl.videoMetrics = g.videoMetrics; pl.directSpeaker.init(assets);
+  pl.videoBuffers = videoPool.enabled ? &videoPool : nullptr;
+  if (FILE* f = std::fopen((assets + "decode-config.txt").c_str(),"r")) {
+    int direct = 1, type = 1, threads = 4, loop = -1;
+    if (std::fscanf(f,"%d %d %d %d",&direct,&threads,&type,&loop) == 4) {
+      if (!direct) pl.videoBuffers = nullptr;
+      pl.h264Threads = std::clamp(threads,1,6); pl.h264ThreadType = type == 2 ? FF_THREAD_SLICE : FF_THREAD_FRAME;
+      pl.h264LoopFilter = std::clamp(loop,-1,1);
+    }
+    std::fclose(f);
+  }
   auto accountNet = yt::accountTransport();
   auto consoleAccount = std::make_shared<yt::ConsoleAccount>(*accountNet, assets + "yt-console-account.json");
   consoleAccount->select(!settings.server);
@@ -1679,9 +1692,12 @@ int main(int argc, char** argv) {
     gfx::rect(g, 0, 0, ui::W, ui::H, ui::BG);
     if (screen == PLAYER) {
       if (player::Frame* f = pl.take()) {
-        if (f->w != videoTex.w || f->h != videoTex.h) { if (videoTex.set) gfx::videoDestroy(g, videoTex); gfx::videoCreate(g, videoTex, f->w, f->h); LOG("vídeo %dx%d", f->w, f->h); }
+        if (f->surface) gfx::videoUse(g,videoTex,f->surface,f->pts);
+        else {
+          if (videoTex.surface || f->w != videoTex.w || f->h != videoTex.h) { if (videoTex.set) gfx::videoDestroy(g, videoTex); gfx::videoCreate(g, videoTex, f->w, f->h); LOG("vídeo %dx%d", f->w, f->h); }
+          gfx::videoUpload(g, videoTex, f->yuv.data(), f->yuv.size(), f->pts);
+        }
         videoTex.bt709 = f->bt709; videoTex.fullRange = f->fullRange;
-        gfx::videoUpload(g, videoTex, f->yuv.data(), f->yuv.size(), f->pts);
         pl.recycle(f);
       }
     }
@@ -2292,6 +2308,7 @@ int main(int argc, char** argv) {
   for (auto* th : tw) SDL_WaitThread(th, nullptr);
   SDL_WaitThread(rt, nullptr);
   vkDeviceWaitIdle(g.dev);
+  gfx::videoDestroy(g,videoTex);
   LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes + thumbs.bannerBytes), (unsigned)thumbs.peakPending);
   LOG("%s saindo", brandName.c_str());
   SDL_Quit();

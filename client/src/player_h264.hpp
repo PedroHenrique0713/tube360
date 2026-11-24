@@ -32,11 +32,17 @@ inline bool Player::putOriginalAudio(h264::Stream& s, int count, double pts) {
 }
 
 inline void Player::decodeOriginal() {
-  int threads = 6;
+  moveToHardwareThread(1);
+  int threads = h264Threads;
 #ifndef __XSDK__
-  if (const char* v = std::getenv("XT_H264_THREADS")) threads = std::clamp(std::atoi(v), 4, 6);
+  if (const char* v = std::getenv("XT_H264_THREADS")) threads = std::clamp(std::atoi(v), 1, 6);
+  if (const char* v = std::getenv("XT_H264_THREAD_TYPE")) h264ThreadType = std::atoi(v) == 2 ? FF_THREAD_SLICE : FF_THREAD_FRAME;
+  if (const char* v = std::getenv("XT_H264_LOOP_FILTER")) h264LoopFilter = std::atoi(v);
 #endif
   h264::Stream s, separate;
+  s.videoBuffers = videoBuffers; s.threadType = h264ThreadType;
+  unsigned workUs = 0, workFrames = 0;
+  h264::ffmpeg_work_metrics(&workUs,&workFrames);
   std::unique_ptr<yt::RangeFile> videoFile, audioFile;
   std::unique_ptr<yt::Transport> liveTransport, playlistTransport;
   std::unique_ptr<yt::LiveFile> broadcast;
@@ -74,7 +80,7 @@ inline void Player::decodeOriginal() {
         reader = yt::worker([](void* data) {
           auto& source = *static_cast<LiveInput*>(data);
           auto& p = *source.player;
-          moveToHardwareThread(4);
+          moveToHardwareThread(1);
           int result = 0;
           std::deque<uint64_t> starts;
           uint64_t written = 0;
@@ -144,12 +150,15 @@ inline void Player::decodeOriginal() {
   double sourceRate = broadcast ? broadcast->frameRate : direct ? media.video.fps : sourceFpsHint;
   if (r >= 0 && s.video && sourceRate <= 0) sourceRate = av_q2d(s.fmt->streams[s.vi]->avg_frame_rate);
   if (!std::isfinite(sourceRate) || sourceRate < 0) sourceRate = 0;
+  if (s.video) LOG("decod-config: threads %d, tipo solicitado %d ativo %d, buffers %s, loop %d",s.video->thread_count,
+                 s.video->thread_type,s.video->active_thread_type,videoBuffers ? "diretos" : "copiados",h264LoopFilter);
   if (sourceRate > 0) presentFps=std::min(presentFps.load(),std::max(1,(int)std::lround(sourceRate)));
   auto alternate = [&](int64_t pts, AVRational base) {
     if (sourceRate <= presentFps + .1 || pts == AV_NOPTS_VALUE || phase == AV_NOPTS_VALUE) return false;
     return h264::dropAt30(std::llround((pts - phase) * av_q2d(base) * sourceRate),sourceRate);
   };
-  uint64_t ns = 0, copyNs = 0, since = SDL_GetTicks();
+  uint64_t ns = 0, copyNs = 0, flushNs = 0, since = SDL_GetTicks();
+  int directFrames = 0, nonrefPackets = 0;
   double videoSeconds = 0, handoffFloor = -1;
   bool lowered = false;
   auto decode = [&](h264::Stream& input, AVCodecContext* codec, AVPacket* packet) -> int {
@@ -157,6 +166,10 @@ inline void Player::decodeOriginal() {
     bool video = codec == s.video;
     if (video && packet) {
       ++packets;
+      SDL_LockMutex(mu); int ready = (int)frames.size(); SDL_UnlockMutex(mu);
+      bool relax = h264LoopFilter < 0 ? actualHeight >= 1080 || codec->height >= 1080 || (state == PLAYING && !paused && ready < 2) : h264LoopFilter != 0;
+      codec->skip_loop_filter = relax ? AVDISCARD_NONREF : AVDISCARD_DEFAULT;
+      if (relax) ++nonrefPackets;
       AVRational base = input.fmt->streams[input.vi]->time_base;
       if (packet->duration > 0) {
         double measured = 1.0 / (packet->duration * av_q2d(base));
@@ -202,9 +215,13 @@ inline void Player::decodeOriginal() {
         SDL_UnlockMutex(mu);
         if (stop) return AVERROR_EXIT;
         bool bt709 = f->colorspace == AVCOL_SPC_BT709 || (f->colorspace == AVCOL_SPC_UNSPECIFIED && f->height > 576);
+        auto surface = codec->get_buffer2 == h264::mappedBuffer ? h264::mappedSurface(f) : std::shared_ptr<video::Surface>{};
+        if (surface) {
+          begin = SDL_GetTicksNS(); surface->publish(); flushNs += SDL_GetTicksNS() - begin; ++directFrames;
+        }
         begin = SDL_GetTicksNS();
         enqueuePlanes(f->width, f->height, pts, f->data, f->linesize, bt709,
-                      f->color_range == AVCOL_RANGE_JPEG || f->format == AV_PIX_FMT_YUVJ420P, (int)std::lround(sourceRate));
+                      f->color_range == AVCOL_RANGE_JPEG || f->format == AV_PIX_FMT_YUVJ420P, (int)std::lround(sourceRate),std::move(surface));
         copyNs += SDL_GetTicksNS() - begin; last = pts; count++;
         if (videoMetrics) {
           SDL_LockMutex(mu); int queued = (int)frames.size(); SDL_UnlockMutex(mu);
@@ -272,6 +289,11 @@ inline void Player::decodeOriginal() {
       LOG("qualidade: %s %dp %.3f fps, alvo %d, %.1f fps na TV, pacotes %d, decodificados %d, filtrados %d, decode %.1f ms/s de video, copia %.2f ms/quadro, perdidos +%lld",
           broadcast ? "live" : "VOD", actualHeight.load(), sourceRate, presentFps.load(), displayRate, packets, decoded, filtered,
           videoSeconds > 0 ? ns / 1e6 / videoSeconds : 0, count ? copyNs / 1e6 / count : 0, lost - previousLost);
+      LOG("decod-memoria: direto %d/%d, flush %.3f ms/quadro, loop NONREF %d/%d pacotes, tipo %d, workers %d",
+          directFrames,count,count ? flushNs/1e6/count : 0,nonrefPackets,packets,s.video ? s.video->active_thread_type : 0,threads);
+      h264::ffmpeg_work_metrics(&workUs,&workFrames);
+      if (workFrames) LOG("decod-workers: %u quadros, soma parede %.2f ms, %.2f ms/quadro (paralelos, inclui dependencia)",
+                          workFrames,workUs/1000.0,workUs/1000.0/workFrames);
       int clock = masterMs.load();
       unsigned epoch = pauseChanges.load();
       bool behind = clock >= 0 && last < clock / 1000.0 - .25;
@@ -306,7 +328,7 @@ inline void Player::decodeOriginal() {
         LOG("qualidade: video reaberto em %llu ms, resultado %d", (unsigned long long)(SDL_GetTicks() - began), r);
       }
       if (slow >= 5 && (!direct || (net::serverEnabled && (broadcast || avg > 33.34)))) { r = AVERROR(ETIMEDOUT); break; }
-      since = SDL_GetTicks(); count = packets = decoded = filtered = 0; ns = copyNs = 0; videoSeconds = 0;
+      since = SDL_GetTicks(); count = packets = decoded = filtered = directFrames = nonrefPackets = 0; ns = copyNs = flushNs = 0; videoSeconds = 0;
     }
   }
   if (reader) {
