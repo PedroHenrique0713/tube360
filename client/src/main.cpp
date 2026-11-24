@@ -1563,7 +1563,7 @@ int main(int argc, char** argv) {
         if (!nestAvailable) toast = tr(K::NoSpeaker);
         else {
           bool row = playerUI.options;
-          if (nestSkip && nestOut) nestSkip = false;
+          if (nestOut && (nestSkip || (pl.speakerRequested && !pl.nest))) nestSkip = false;
           else nestOut = !nestOut;
           startVideo(playing, pl.position(), playerFromRemote); playerUI.options = row;
           toast = tr(K::SoundPrefix) + (nestOut ? nestName : std::string(tr(K::TV)));
@@ -1593,6 +1593,9 @@ int main(int argc, char** argv) {
 
     }
     if (screen == PLAYER) {
+      if (pl.speakerFallback.exchange(false)) {
+        toast = tr(nav.musicNow ? K::MusicSpeakerFallback : K::SpeakerFallback); toastUntil = now + 5000;
+      }
       bool newTracks=pl.tracksReady.exchange(false);
       if (newTracks) { audioTracks=pl.audioTracks; selectedAudio=pl.selectedAudio; playerUI.tracks=audioTracks.size()>1; }
       if (newTracks || trackLang!=settings.lang) {

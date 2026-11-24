@@ -2055,6 +2055,7 @@ class Nest:
         self.state, self.pos, self.stamp, self.error = "IDLE", 0.0, time.monotonic(), ""
         self.active = False
         self.ours = False  # o receptor aberto no Nest é o que este servidor abriu
+        self.owner = "server"
         self.video_id, self.t0, self.host_ip = "", 0.0, ""  # o que está tocando e de que ponto (posição absoluta = t0 + tempo do Nest)
         self.token = ""  # marca "s=<ms>" da URL do último áudio pedido ao Nest
         self.intent = threading.Lock()  # protege a intenção sem esperar a rede do Cast
@@ -2135,6 +2136,8 @@ class Nest:
 
     def request_play(self, video_id, target, duration, live, host_ip, sid, gated=False, audio_selection="original"):
         with self.intent:
+            if self.owner != "server":
+                return False
             self.revision += 1
             self.gated_revision = self.revision if gated else 0
             self.reader_ready = 0
@@ -2144,9 +2147,10 @@ class Nest:
             self.state, self.pos, self.error, self.requested_at = "LOADING", 0.0, "", time.monotonic()
             rev = self.revision
         threading.Thread(target=self.play, args=(rev, video_id, target, duration, live), daemon=True).start()
+        return True
 
     def receiver(self, cc, rev, force=False):
-        if rev != self.revision:
+        if rev != self.revision or self.owner != "server":
             return False
         if self.ours and self.media_ready(cc) and not force:
             return True
@@ -2155,6 +2159,7 @@ class Nest:
             cc.quit_app()
         if rev != self.revision:
             return False
+        LOG.info("Nest: dono=server LAUNCH rev=%d", rev)
         cc.start_app(self.APP)
         deadline = time.monotonic() + 8
         while rev == self.revision and time.monotonic() < deadline:
@@ -2227,11 +2232,14 @@ class Nest:
                         opts["current_time"] = target - base
                         if duration > base:
                             opts["media_info"] = {"duration": duration - base}
-                    self.owner_file.parent.mkdir(parents=True, exist_ok=True)
-                    pending = self.owner_file.with_suffix(".tmp")
-                    pending.write_text(json.dumps({"host": (CONFIG.get("nest") or {}).get("host"), "token": self.token}))
-                    pending.replace(self.owner_file)
-                    self.may_sound = True
+                    with self.intent:
+                        if rev != self.revision or self.owner != "server":
+                            return
+                        self.owner_file.parent.mkdir(parents=True, exist_ok=True)
+                        pending = self.owner_file.with_suffix(".tmp")
+                        pending.write_text(json.dumps({"host": (CONFIG.get("nest") or {}).get("host"), "token": self.token}))
+                        pending.replace(self.owner_file)
+                        self.may_sound = True
                     mc.play_media(url, "audio/mpeg", title="YouTube 360", stream_type="LIVE" if live else "BUFFERED", **opts)
                     deadline = time.monotonic() + (12 if attempt else 9)
                     while rev == self.revision and time.monotonic() < deadline:
@@ -2253,13 +2261,15 @@ class Nest:
         with self.lock:
             try:
                 rev = self.revision
-                if not self.active and not self.want_stop:
+                if self.owner == "server" and not self.active and not self.want_stop:
                     self.receiver(self.connect(), rev)
             except Exception as error:
                 LOG.warning("Nest prepare: %s", error)
 
     def volume(self, level):
         with self.lock:
+            if self.owner != "server":
+                return
             try:
                 if self.sleep_base is not None:
                     self.sleep_base = level / 100
@@ -2448,7 +2458,11 @@ class Nest:
                 orphan_since = 0.0
             if self.confirmed_revision != self.revision or not self.connected() or self.lock.locked():
                 continue
+            if not self.lock.acquire(blocking=False):
+                continue
             try:
+                if not self.active or self.owner != "server":
+                    continue
                 cc = self.cc
                 rev = self.revision
                 if not self.media_ready(cc):
@@ -2484,6 +2498,8 @@ class Nest:
                         self.state = "IDLE"
             except Exception as error:
                 LOG.debug("Nest status: %s", type(error).__name__)
+            finally:
+                self.lock.release()
 
     def position(self):
         with self.intent:
@@ -2521,6 +2537,8 @@ async def nest_play(video_id: str = Query(..., alias="id"), t: float = Query(0, 
                     sid: int | None = None, claim: int = 0, audio: str = "original"):
     valid_id(video_id)
     audio_choice(audio)
+    if nest.owner != "server":
+        raise HTTPException(409, "O console está com o Nest.")
     host = (CONFIG.get("nest") or {}).get("host")
     if not host:
         return PlainTextResponse("erro\t" + tr("Nenhum Nest configurado.", "No Nest configured.") + "\n")
@@ -2541,10 +2559,34 @@ async def nest_play(video_id: str = Query(..., alias="id"), t: float = Query(0, 
         raise HTTPException(409, "Esta autorização de áudio expirou.")
     if sid is not None and audio=="original": audio=info.get("audio_selection","original")
     if audio=="original":
-        nest.request_play(video_id, t, info["duration"], info["live"], lan_ip_towards(host), sid, gated=bool(claim))
+        accepted = nest.request_play(video_id, t, info["duration"], info["live"], lan_ip_towards(host), sid, gated=bool(claim))
     else:
-        nest.request_play(video_id, t, info["duration"], info["live"], lan_ip_towards(host), sid, gated=bool(claim),audio_selection=audio)
+        accepted = nest.request_play(video_id, t, info["duration"], info["live"], lan_ip_towards(host), sid, gated=bool(claim),audio_selection=audio)
+    if accepted is False:
+        raise HTTPException(409, "O console está com o Nest.")
     return PlainTextResponse(f"ok\t{nest.revision}\n")
+
+
+@app.get("/api/nest/owner", response_class=PlainTextResponse)
+async def nest_owner(owner: Literal["console", "server"]):
+    if nest.owner != owner:
+        nest.owner = owner
+        LOG.info("Nest: dono=%s solicitado", owner)
+        rev = nest.stop_intent(closing=False)
+        threading.Thread(target=nest.command, args=("stop", rev), daemon=True).start()
+    rev = nest.revision
+    if owner == "server":
+        # O chamador só pede a posse depois que o worker nativo fechou o seu Cast.
+        return PlainTextResponse(f"ok\t{rev}\n")
+    quiet = not nest.lock.locked() and await asyncio.to_thread(nest.confirm_quiet, rev)
+    if quiet and nest.owner == owner and nest.revision == rev:
+        with nest.lock:
+            if nest.owner == owner and nest.revision == rev:
+                nest.drop()
+                nest.ours = False
+                LOG.info("Nest: dono=console; servidor silencioso e Cast fechado rev=%d", rev)
+                return PlainTextResponse(f"QUIET\t{rev}\n")
+    return PlainTextResponse(f"WAIT\t{rev}\n")
 
 
 @app.get("/api/nest/local", response_class=PlainTextResponse)
@@ -2556,9 +2598,14 @@ async def nest_local(sid: int, rev: int = 0):
             raise HTTPException(409, "Esta troca de áudio terminou.")
         nest.local_sid = sid
         stop_rev = nest.stop_intent(sid, closing=False)
-        threading.Thread(target=nest.command, args=("stop", stop_rev), daemon=True).start()
+        if nest.may_sound:
+            threading.Thread(target=nest.command, args=("stop", stop_rev), daemon=True).start()
+        else:
+            nest.want_stop = False
+            nest.stopping_token = ""
     current = nest.revision
-    quiet = not nest.lock.locked() and await asyncio.to_thread(nest.confirm_quiet, current)
+    # Sem LOAD pendente, a revisão já cancelou o LAUNCH. Não prender a TV ao timeout da pychromecast.
+    quiet = not nest.may_sound or not nest.lock.locked() and await asyncio.to_thread(nest.confirm_quiet, current)
     if current != nest.revision or sid != nest.local_sid:
         raise HTTPException(409, "Esta troca de áudio terminou.")
     return PlainTextResponse(f"{'QUIET' if quiet else 'WAIT'}\t{current}\n")

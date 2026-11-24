@@ -24,7 +24,8 @@ int main(int argc, char** argv) {
         auto status = speaker.sample();
         nest::Object out{{"state",nest::J(double(status.state))},{"generation",nest::J(double(status.generation))},
                          {"position",nest::J(status.position)},{"updated",nest::J(status.updated)},
-                         {"quiet",nest::J(status.quiet)},{"connected",nest::J(status.connected)}};
+                         {"quiet",nest::J(status.quiet)},{"connected",nest::J(status.connected)},
+                         {"released",nest::J(status.released)}};
         std::cout << nest::J(out).serialize() << std::endl;
     }
     speaker.shutdown();
