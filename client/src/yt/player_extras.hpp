@@ -141,7 +141,10 @@ public:
     if (!videoId(id)) return {};
     auto it=cache.find(id);
     if (it!=cache.end() && now<it->second.expires) return it->second.votes;
-    auto r=net.request("https://returnyoutubedislikeapi.com/votes?videoId="+id);
+    Request request; request.url="https://returnyoutubedislikeapi.com/votes?videoId="+id;
+    // O endpoint público recusa o agente genérico do app com HTTP 403.
+    request.agent=updates::rules()->s("catalogAgent");
+    auto r=net.send(request);
     J root; Votes out;
     if (failureOf(r)==Failure::NONE && parse(r.body,root) && str(root,"id")==id && !flag(root,"deleted")) {
       auto number=[&](const char* k) { const auto& n=get(root,k); return n.is<double>() && std::isfinite(n.get<double>()) &&

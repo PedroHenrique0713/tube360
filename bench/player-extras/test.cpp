@@ -13,7 +13,11 @@ void require(bool value,const char* message) { if (!value) throw std::runtime_er
 using namespace yt::extras;
 using namespace yt::catalog;
 struct Fake : yt::Transport {
-  int calls=0, nextCalls=0; std::string root, page, response; std::vector<std::string> bodies, sequence;
+  int calls=0, nextCalls=0; std::string root, page, response, votesAgent; std::vector<std::string> bodies, sequence;
+  yt::Response send(const yt::Request& r) override {
+    if (r.url.find("/votes?")!=std::string::npos) votesAgent=r.agent;
+    return request(r.url,r.body,r.form);
+  }
   yt::Response request(const std::string& url,const std::string& body,bool) override {
     ++calls;
     if (url.find("/votes?")!=std::string::npos) return {200,response};
@@ -50,6 +54,7 @@ void parser() {
   net.response=R"({"id":"fixture0001","likes":123,"dislikes":0})";
   auto votes=client.votes("fixture0001",1000); int calls=net.calls;
   require(votes.available && votes.dislikes==0,"zero votes is valid");
+  require(!net.votesAgent.empty(),"public votes request carries its browser identity");
   require(client.votes("fixture0001",300999).available && net.calls==calls,"5 minute cache");
   net.response=R"({"id":"fixture0001","likes":123,"dislikes":-1})";
   require(!client.votes("fixture0001",301000).available && net.calls==calls+1,"expired invalid vote silently unavailable");
