@@ -4,6 +4,7 @@
 #include "update/rules.hpp"
 #include "picojson.h"
 #include <algorithm>
+#include <cctype>
 #include <climits>
 #include <cstdlib>
 #include <cstring>
@@ -180,6 +181,40 @@ int digitsAfter(const string& s, const char* key) {
     return int(n);
 }
 }
+bool Client::visitorFallback(string& js) {
+    Request sw;
+    sw.url=policy->s("webOrigin")+policy->s("swPath"); sw.agent=policy->s("browserAgent");
+    sw.headers={"Accept: */*","Accept-Language: "+policy->s("acceptLanguage"),"Referer: "+policy->s("webOrigin")+policy->s("swReferer")};
+    auto r=net.send(sw);
+    if (!r.error.empty() || r.status!=200 || r.body.compare(0,4,")]}'")!=0) { std::fprintf(stderr,"yt: sw.js_data status %ld erro %s inicio %.12s\n",(long)r.status,r.error.c_str(),r.body.c_str()); return false; }
+    J data;
+    if (!picojson::parse(data,"{\"d\":"+r.body.substr(4)+"}").empty()) return false;
+    auto at=[](const J& v,size_t i)->const J&{ static const J nil; if(!v.is<picojson::array>()) return nil; const auto& a=v.get<picojson::array>(); return i<a.size()?a[i]:nil; };
+    const auto& device=at(at(at(at(data.get("d"),0),2),0),0);
+    const auto& v=at(device,13);
+    if (!v.is<string>() || !updates::ascii(v.get<string>(),size_t(policy->n("markerBytes")))) { std::fprintf(stderr,"yt: sw.js_data sem visitante (%s)\n",device.serialize().substr(0,120).c_str()); return false; }
+    visitor=v.get<string>();
+    // O player JS: primeiro o índice guardado (qualquer versão das regras), senão a versão anunciada no iframe_api.
+    for (const string& idx : {cacheBase+".v"+std::to_string(policy->version)+".idx",cacheBase+".v1.idx",cacheBase+".idx"}) {
+        if (cacheBase.empty()) break;
+        if (auto* f=std::fopen(idx.c_str(),"rb")) {
+            char path[4098]{}; int cached=0;
+            if (std::fscanf(f,"%4096s%d",path,&cached)==2 && path[0]=='/' && cached>0) { js=path; std::fclose(f); return true; }
+            std::fclose(f);
+        }
+    }
+    Request api; api.url=policy->s("webOrigin")+"/iframe_api"; api.agent=policy->s("browserAgent");
+    auto a=net.send(api);
+    // O iframe_api traz a versão com barras escapadas: s\/player\/<versão>\/.
+    const string mark="s\\/player\\/";
+    auto at0=a.status==200 ? a.body.find(mark) : string::npos;
+    if (at0==string::npos) { visitor.clear(); return false; }
+    auto from=at0+mark.size(), end=from;
+    while (end<a.body.size() && end-from<16 && std::isalnum((unsigned char)a.body[end])) ++end;
+    if (end==from) { visitor.clear(); return false; }
+    js="/s/player/"+a.body.substr(from,end-from)+"/player_ias.vflset/en_US/base.js";
+    return true;
+}
 bool Client::session(const string& id, string& error, bool fresh) {
     sessionFailure=Failure::NONE; sessionRetryable=false;
     if (!visitor.empty() && sts) return true;
@@ -188,12 +223,22 @@ bool Client::session(const string& id, string& error, bool fresh) {
     page.agent=policy->s("browserAgent"); page.freshConnection=fresh;
     page.headers={"Accept-Language: "+policy->s("acceptLanguage")};
     auto r=net.send(page);
-    if (!r.error.empty() || r.status!=200) {
+    string js;
+    if (r.error.empty() && (r.status==429 || (r.status/100==3 && r.location.find("/sorry")!=string::npos))) {
+        // A página HTML caiu na checagem de tráfego incomum do Google. A sessão de visitante sai do sw.js_data
+        // (rota da API, sem essa checagem) e o player JS do índice guardado ou da versão anunciada no iframe_api.
+        if (!visitorFallback(js)) {
+            error="HTTP "+std::to_string(r.status)+" (checagem do Google)";
+            sessionFailure=failureOf(r); sessionRetryable=retryable(r); return false;
+        }
+        std::fprintf(stderr,"yt: pagina do video na checagem do Google; sessao pelo sw.js_data\n");
+    } else if (!r.error.empty() || r.status!=200) {
         error=!r.error.empty() ? r.error : "HTTP "+std::to_string(r.status);
         sessionFailure=failureOf(r); sessionRetryable=retryable(r); return false;
+    } else {
+        visitor=quoted(r.body,policy->s("visitorMarker"));
+        js=quoted(r.body,policy->s("jsMarker"));
     }
-    visitor=quoted(r.body,policy->s("visitorMarker"));
-    auto js=quoted(r.body,policy->s("jsMarker"));
     if (!updates::ascii(visitor,size_t(policy->n("markerBytes"))) || js.size()<2 || js[0]!='/' || js[1]=='/') {
         visitor.clear(); error="visitor_session_missing"; sessionFailure=Failure::SESSION; sessionRetryable=true; return false;
     }

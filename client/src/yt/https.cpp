@@ -1,3 +1,5 @@
+#include <cstdio>
+#include <cstdlib>
 #include "client.hpp"
 #include "roots.hpp"
 #include "update-roots.hpp"
@@ -128,6 +130,7 @@ public:
         }
         auto rc = setup == CURLE_OK ? curl_easy_perform(handle) : setup;
         curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &res.status);
+        if (std::getenv("XT_HTTP_DEBUG") && res.status != 200) std::fprintf(stderr, "http %ld %s -> %s\n", (long)res.status, url.c_str(), res.location.c_str());
         curl_easy_getinfo(handle, CURLINFO_NUM_CONNECTS, &res.newConnections);
         curl_easy_getinfo(handle, CURLINFO_TOTAL_TIME, &res.seconds);
         curl_socket_t fd=CURL_SOCKET_BAD;

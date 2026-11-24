@@ -112,6 +112,7 @@ class Client {
     Failure sessionFailure = Failure::NONE;
     bool sessionRetryable = false;
     bool session(const string& id, string& error, bool fresh = false);
+    bool visitorFallback(string& js);
     Response post(const string& route, const string& fields);
     Page page(const string& route, const string& fields, const string& exclude = {});
 public:
