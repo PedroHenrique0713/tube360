@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <atomic>
 #include <string>
 
 namespace cast {
@@ -16,7 +17,7 @@ class Connection {
 public:
     Connection();
     ~Connection();
-    bool open(const std::string& host, int port);
+    bool open(const std::string& host, int port, int timeoutMs = 1500, const std::atomic_bool* cancel = nullptr);
     void close();
     bool send(const std::string& source, const std::string& destination,
               const std::string& space, const std::string& json);

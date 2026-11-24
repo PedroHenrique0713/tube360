@@ -168,6 +168,17 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(CastRemember, "The code changes every 5 minutes. Pair once and your phone remembers this TV.", "O código muda a cada 5 minutos. Pareie uma vez e o celular lembra desta TV.", "El código cambia cada 5 minutos. Vincula tu teléfono una vez para recordar esta TV.") \
   X(NoPhone, "No phone connected yet.", "Nenhum celular conectado ainda.", "Todavía no hay un teléfono conectado.") \
   X(ServerOffline, "The server is offline right now.", "Sem conexão com o servidor agora.", "El servidor está desconectado.") \
+  X(SearchSpeakers, "Find speakers", "Procurar alto-falantes", "Buscar altavoces") \
+  X(SpeakerSearchHelp, "Choose a speaker on your local network.", "Escolha um alto-falante na sua rede local.", "Elige un altavoz en tu red local.") \
+  X(SpeakerSearching, "Searching your network...", "Procurando na sua rede...", "Buscando en tu red...") \
+  X(SpeakerNone, "None (TV sound)", "Nenhum (som na TV)", "Ninguno (sonido en la TV)") \
+  X(SpeakerEmpty, "No speakers found. Check that they are on the same network.", "Nenhum alto-falante encontrado. Confira se está na mesma rede.", "No se encontraron altavoces. Comprueba que estén en la misma red.") \
+  X(SpeakerNetworkError, "Could not read the local network. Check the console connection.", "Não deu para ler a rede local. Confira a conexão do console.", "No se pudo leer la red local. Comprueba la conexión de la consola.") \
+  X(SpeakerIncomplete, "Search incomplete. Try again to find all speakers.", "Busca incompleta. Tente novamente para encontrar todos os alto-falantes.", "Búsqueda incompleta. Intenta de nuevo para encontrar todos los altavoces.") \
+  X(SpeakerCancelled, "Search cancelled", "Busca cancelada", "Búsqueda cancelada") \
+  X(SpeakerSelected, "Selected", "Selecionado", "Seleccionado") \
+  X(SpeakerSearchAgain, "Search again", "Procurar de novo", "Buscar de nuevo") \
+  X(SpeakerChoose, "Select", "Escolher", "Elegir") \
   X(SettingsIntro, "Make yourself at home.", "Do seu jeito, no seu console.", "A tu gusto, en tu consola.") \
   X(YouTubeAccount, "YouTube account", "Conta do YouTube", "Cuenta de YouTube") \
   X(VideosPerRow, "Videos per row", "Vídeos por linha", "Videos por fila") \
