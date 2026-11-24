@@ -3,15 +3,37 @@ namespace player {
 inline void Player::directNestLoop() {
   while (!stop && !castMediaReady && state != FAILED) SDL_Delay(10);
   if (stop || state == FAILED) return;
-  if (previousSession > 0) {
-    while (!stop) {
+  if (net::serverEnabled) {
+    uint64_t deadline = SDL_GetTicks()+3500;
+    bool claimed = false;
+    LOG("Nest: dono=console; solicitando silencio e fechamento do servidor");
+    while (!stop && SDL_GetTicks() < deadline) {
       net::Response reply;
-      if (net::get(srv,"/api/nest/local?sid="+std::to_string(previousSession),reply,900,1024) &&
-          std::string(reply.body.begin(),reply.body.end()).find("QUIET\t") == 0) break;
+      bool answered = net::get(srv,"/api/nest/owner?owner=console",reply,700,1024);
+      if (answered &&
+          std::string(reply.body.begin(),reply.body.end()).find("QUIET\t") == 0) { claimed = true; break; }
+      if (!answered && !reply.status && previousSession == 0) {
+        LOG("Nest: servidor ausente, sem sessao de reserva anterior; console direto");
+        claimed = true; break;
+      }
       SDL_Delay(100);
     }
     previousSession = 0;
     if (stop) return;
+    if (!claimed) {
+      LOG("Nest: console erro servidor nao liberou em 3500 ms; TV apos silencio");
+      // A rota local continua revogando o MP3 do servidor mesmo se a resposta da posse se perdeu.
+      while (!stop) {
+        net::Response reply;
+        bool serverQuiet = net::get(srv,"/api/nest/owner?owner=console",reply,700,1024) &&
+                           std::string(reply.body.begin(),reply.body.end()).find("QUIET\t") == 0;
+        directSpeaker.release();
+        if (serverQuiet && directSpeaker.sample().released) { output = LOCAL; speakerFallback = speakerRequested; return; }
+        SDL_Delay(100);
+      }
+      return;
+    }
+    LOG("Nest: dono=console autorizado");
   }
   // HLS não oferece um relógio comum entre duas aberturas independentes do manifesto.
   const auto& audioUrl = media.speakerAudio.url;
@@ -21,7 +43,7 @@ inline void Player::directNestLoop() {
     while (!stop && !directSpeaker.sample().quiet) SDL_Delay(20);
     if (!stop) {
       output = LOCAL;
-      if (speakerRequested) { nestFailed = true; state = FAILED; }
+      if (speakerRequested) speakerFallback = true;
     }
     return;
   }
@@ -29,7 +51,7 @@ inline void Player::directNestLoop() {
   if (stop) return;
   uint64_t generation = directSpeaker.play(audioUrl,id,startAt,media.duration,!paused);
   uint64_t requested = SDL_GetTicks(), localSince = 0, lastAttempt = requested;
-  bool starting = false;
+  bool starting = false, failedStart = false;
   int last = 0, expected = 0;
   auto release = [&]() {
     directSpeaker.release(); output = RELEASING; armed = false;
@@ -43,11 +65,12 @@ inline void Player::directNestLoop() {
         armed = mutedForCast = false; cueMs = -1;
         output = LOCAL; localSince = now; last = expected = 0;
         LOG("som: Cast confirmou silêncio");
+        speakerFallback = true;
       }
       SDL_Delay(20); continue;
     }
     if (output == LOCAL) {
-      if (!paused && localPlaying && now-localSince > 1200 && now-lastAttempt > 5000 && speakerTargetMs >= 0) {
+      if (!failedStart && !paused && localPlaying && now-localSince > 1200 && now-lastAttempt > 5000 && speakerTargetMs >= 0) {
         cueMs = int(std::lround(std::round((speakerTargetMs+2000)*.030)*(1000.0/30)));
         output = PRIMING; armed = mutedForCast = false; starting = false;
         generation = directSpeaker.play(audioUrl,id,startAt+(cueMs-wantedOffsetMs)/1000.0,media.duration,false);
@@ -67,7 +90,7 @@ inline void Player::directNestLoop() {
       if (st == 2) armed = true;
       if (mutedForCast && armed && !starting) { directSpeaker.pause(false); starting = true; requested = now; }
       if (starting && st == 1) { output = CAST; last = 1; expected = 0; }
-      else if (paused || now-requested > 4500 || st == 3 || st == 4) release();
+      else if (paused || now-requested > 3500 || (!starting && speakerTargetMs > cueMs+40) || st == 3 || st == 4) release();
     } else {
       if (st == 1 || st == 2) {
         if (expected == st) expected = 0;
@@ -75,8 +98,12 @@ inline void Player::directNestLoop() {
         last = st;
       }
       bool expired = sample.updated > 0 && now-sample.updated > 8000;
-      bool neverStarted = !sample.updated && now-requested > 5000;
-      if (st == 3 || st == 4 || expired || neverStarted) release();
+      bool neverStarted = !sample.updated && now-requested > 3500;
+      if (st == 3 || st == 4 || expired || neverStarted) {
+        if (!last) failedStart = true;
+        LOG("Nest: console erro/status=%d; liberando para TV",st);
+        release();
+      }
     }
     SDL_Delay(20);
   }

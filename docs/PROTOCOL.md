@@ -480,6 +480,24 @@ The channel implements CONNECT, PING/PONG, receiver/media GET_STATUS, LAUNCH, LO
 PAUSE, PLAY and STOP. A seek within the same URL retains the Cast media session. A new resource
 waits for the previous playback to stop. Discovery currently uses the configured host.
 
+The video source selects the only Cast sender: native YouTube playback uses the console; a server
+reserve stream uses the server. Before native playback opens Cast, `GET /api/nest/owner?owner=console`
+cancels the server's pending work and returns `WAIT\t<revision>` until its audio is quiet and its Cast
+socket has closed, then `QUIET\t<revision>`. While delegated, server prepare, play and volume calls
+cannot open Cast. A console with no previous reserve session can use Cast directly when the optional
+server is unreachable. In the reverse direction the console confirms STOP and closes its TLS channel
+before requesting `owner=server` (`ok\t<revision>`). Callers must preserve this order; the server
+cannot observe whether an independent sender's socket is closed. Deploy the client and server together.
+
+Initial LAUNCH/media confirmation is limited to 3.5 seconds. Missing confirmation releases the speaker
+and continues the current video with TV audio and a short notice; an initial failure is retried with X.
+The server limits blocking Cast connection and receiver commands to 2.5 seconds so a pending
+pychromecast LAUNCH cannot keep a later ownership handoff waiting for its default ten-second timeout.
+The video clock keeps advancing during setup and release. Preloading does not hold the picture while
+waiting for Cast; only the local audio device drain may hold the transfer frame (device latency + 120 ms
+maximum). An unacknowledged LOAD that could already be audible still needs positive STOP/quiet evidence
+before unmuting the TV. This preserves single audio output during a network partition.
+
 Each LOAD carries an ownership token in `media.customData.tube360`. Clock samples require that token, the exact loaded content URL
 or an already verified media session. Command request IDs fence older clock replies across seeks.
 The observation time advances only when an accepted MEDIA_STATUS contains `currentTime`. Fast
@@ -496,11 +514,18 @@ The client writes `nest-owner.json` before LOAD. Leaving the video keeps the Cas
 retry STOP during navigation. Application shutdown waits up to 1.8 s for quiet confirmation and
 retains an unfinished journal for the next launch. With an unreachable speaker and a direct YouTube
 URL, audio can continue after the application exits. That URL cannot be revoked by the console.
-The implementation sends no volume commands.
+Volume and mute from the phone and the temporary sleep fade apply through the current Cast owner.
 
 Direct live HLS playback currently uses TV sound after speaker release. The native HLS reader's
 zero-based video PTS and the receiver's event-relative `currentTime` need a verified common origin
 before independent YouTube HLS playback can use the Nest clock.
+
+`python3 bench/standalone/nest_owner_wire.py client/build/nest-test` exercises simultaneous native
+and pychromecast senders against a threaded TLS/protobuf receiver, including a deliberate collision
+control. `python3 bench/standalone/nest_owner_e2e.py` runs the desktop app with an isolated real
+server on 8138, a fake account on 8238 and synthetic media. It covers rejected/silent LAUNCH, TV
+continuity, optional/offline server, source handoff and X retry; captures and wire traces go to
+`.work/owner-e2e`. Optional arguments select individual scenario names.
 
 The desktop-only `XT_YT_REPLAY=<directory>` replaces YouTube responses with sanitized local
 fixtures. `bench/standalone/cast_e2e.py <repo>` prepares synthetic

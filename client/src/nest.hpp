@@ -71,7 +71,7 @@ struct Status {
     uint64_t generation = 0;
     State state = UNKNOWN;
     double position = 0, updated = 0, rate = 1;
-    bool quiet = true, connected = false;
+    bool quiet = true, connected = false, released = true;
     double volume = -1;
     bool muted = false;
 };
@@ -106,7 +106,7 @@ public:
         config.load(dir);
         mutex = SDL_CreateMutex();
         bool pending = false;
-        if (FILE* file = std::fopen(ownerPath.c_str(),"r")) { pending = true; status.quiet = false; std::fclose(file); }
+        if (FILE* file = std::fopen(ownerPath.c_str(),"r")) { pending = true; status.quiet = status.released = false; std::fclose(file); }
         if (configured() || pending) thread = yt::worker([](void* p) { static_cast<Speaker*>(p)->run(); return 0; },"cast-v2",this);
     }
     Status sample() {
@@ -118,6 +118,7 @@ public:
         ++intent.generation; intent.url = url; intent.key = key; intent.position = position;
         intent.duration = duration; intent.active = true; intent.paused = !autoplay;
         status.generation = intent.generation; status.state = LOADING; status.updated = 0;
+        status.released = false;
         auto generation = intent.generation;
         SDL_UnlockMutex(mutex); return generation;
     }
@@ -137,7 +138,7 @@ public:
         SDL_LockMutex(mutex);
         if (intent.active) {
             intent.active = false; ++intent.generation;
-            status.generation = intent.generation; status.state = UNKNOWN;
+            status.generation = intent.generation; status.state = UNKNOWN; status.released = false;
         }
         SDL_UnlockMutex(mutex);
     }
@@ -166,7 +167,7 @@ private:
         uint64_t volumeAt = 0;
         bool connected = false, receiverKnown = false, receiverPresent = false, mediaKnown = false;
         bool possible = false, pending = false, acknowledged = false;
-        uint64_t generation = 0, command = 0, retryAt = 0, pollAt = 0, receiverAt = 0, pingAt = 0, heardAt = 0, actionAt = 0, stopAt = 0;
+        uint64_t generation = 0, command = 0, retryAt = 0, pollAt = 0, receiverAt = 0, pingAt = 0, heardAt = 0, actionAt = 0, stopAt = 0, began = 0;
         int requestId = 0, barrier = 0, stopBarrier = 0;
         const auto sender = "sender-tube360-" + std::to_string(SDL_GetPerformanceCounter());
         auto journal = [&]() {
@@ -199,7 +200,12 @@ private:
                 requests[id] = {SDL_GetTicksNS()/1e6,generation};
                 while (requests.size() > 64) requests.erase(requests.begin());
             }
-            if (!channel.send(sender,destination,space,J(message).serialize())) connected = false;
+            auto kind = text(J(message),"type");
+            if (kind != "GET_STATUS" && kind != "PING" && kind != "PONG")
+                SDL_Log("Nest: console %s gen=%llu req=%d",kind.c_str(),(unsigned long long)generation,id);
+            if (!channel.send(sender,destination,space,J(message).serialize())) {
+                SDL_Log("Nest: console erro enviando %s",kind.c_str()); connected = false;
+            }
             return id;
         };
         auto setVolume = [&](double level, bool muted) {
@@ -232,17 +238,27 @@ private:
             if (goal.generation != generation) {
                 generation = goal.generation; command = goal.command;
                 pending = goal.active; acknowledged = false; actionAt = stopAt = 0;
+                began = now; view.released = false;
+                SDL_Log("Nest: console dono=%s gen=%llu",goal.active ? "console" : "liberando",(unsigned long long)generation);
                 stopBarrier = requestId; view.generation = generation;
                 view.state = goal.active ? LOADING : UNKNOWN; view.updated = 0;
             }
+            view.released = false;
             if (!goal.active && !possible) {
-                view.state = IDLE; view.quiet = true; view.connected = connected; publish(view); SDL_Delay(20); continue;
+                if (connected) SDL_Log("Nest: console silencio confirmado; fechando Cast");
+                channel.close(); connected = false;
+                view.state = IDLE; view.quiet = view.released = true; view.connected = false;
+                publish(view); SDL_Delay(20); continue;
+            }
+            if (goal.active && pending && !possible && now-began > 3500) {
+                SDL_Log("Nest: console erro aguardando LAUNCH/namespace (3500 ms)");
+                view.state = ERROR; publish(view); SDL_Delay(20); continue;
             }
             if (!connected) {
                 view.connected = false; publish(view);
                 if (now < retryAt) { SDL_Delay(20); continue; }
                 channel.close(); connected = channel.open(endpoint.host,endpoint.port); retryAt = SDL_GetTicks()+500;
-                if (!connected) continue;
+                if (!connected) { SDL_Log("Nest: console erro conectando Cast"); continue; }
                 receiverKnown = receiverPresent = mediaKnown = false; transport.clear(); receiverSession.clear(); mediaSession = 0;
                 sentVolume = -1;
                 requests.clear(); pollAt = receiverAt = pingAt = 0; heardAt = now;
@@ -318,6 +334,9 @@ private:
             int replyId = replyNumber > 0 && replyNumber <= INT_MAX ? int(replyNumber) : 0;
             auto request = requests.find(replyId);
             bool fresh = request != requests.end() && request->second.generation == generation;
+            if (fresh && message.space == cast::receiver && message.source == "receiver-0" && type == "LAUNCH_ERROR") {
+                SDL_Log("Nest: console LAUNCH_ERROR"); view.state = ERROR; pending = false; publish(view); continue;
+            }
             double stamp = SDL_GetTicksNS()/1e6;
             bool fast = fresh && stamp-request->second.time <= 120;
             if (fast) stamp = (stamp+request->second.time)/2;
@@ -351,7 +370,7 @@ private:
                 if (fresh && replyId > stopBarrier && apps.get<Array>().empty() && possible && (!goal.active || pending)) quiet();
             } else if (message.space == cast::media && message.source == transport) {
                 if (type == "LOAD_FAILED" || type == "LOAD_CANCELLED" || type == "INVALID_REQUEST") {
-                    if (fresh && replyId >= barrier) view.state = ERROR;
+                    if (fresh && replyId >= barrier) { SDL_Log("Nest: console %s",type.c_str()); view.state = ERROR; }
                     continue;
                 }
                 const auto& list = field(json,"status");
@@ -375,6 +394,7 @@ private:
                         auto previousState = view.state;
                         if (!state.empty())
                             view.state = state == "PLAYING" ? PLAYING : state == "PAUSED" ? PAUSED : state == "BUFFERING" ? BUFFERING : state == "IDLE" ? IDLE : UNKNOWN;
+                        if (view.state != previousState) SDL_Log("Nest: console status=%s gen=%llu",state.c_str(),(unsigned long long)generation);
                         if (previousState == PAUSED && (view.state == PLAYING || view.state == BUFFERING)) advanced = now;
                         double position = number(entry,"currentTime",NAN);
                         if (std::isfinite(position) && position >= 0 && (fast || replyId == 0)) {

@@ -172,6 +172,7 @@ struct Player {
   std::atomic<int> session{0}, nestCmd{0}, masterMs{-1}, speakerTargetMs{-1};
   int previousSession = 0;
   std::atomic<bool> nestFailed{false};
+  std::atomic<bool> speakerFallback{false};
   std::atomic<int> speakerPause{0};  // mudança feita no alto-falante, aplicada pela thread da tela
   uint64_t openedMs = 0, readyMs = 0, lastLiveOpen = 0, tuneAt = 0;
   double screenSec = -1, tickMs = 0, liveDebt = 0, nextLiveFrame = 0;
@@ -235,6 +236,7 @@ struct Player {
     mutedAt = lastFrameMs = 0; tvMutedSince = 0;
     tvSound(false);
     nestFailed = false;
+    speakerFallback = false;
     SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = nestSeenMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
     if (direct) {
       output = speaker || !directSpeaker.sample().quiet ? CAST : LOCAL; original = true;
@@ -514,14 +516,20 @@ struct Player {
     moveToHardwareThread(5);
     if (direct) { directNestLoop(); return; }
     directSpeaker.release();
-    while (!stop && !directSpeaker.sample().quiet) SDL_Delay(20);
+    LOG("Nest: dono=server; aguardando Cast do console fechar");
+    while (!stop && !directSpeaker.sample().released) SDL_Delay(20);
     while (!stop && state == CONNECTING) SDL_Delay(15);
     if (stop || state == FAILED) return;
+    net::Response owner;
+    bool claimed = net::get(srv,"/api/nest/owner?owner=server",owner,900,1024) &&
+                   std::string(owner.body.begin(),owner.body.end()).find("ok\t") == 0;
+    LOG("Nest: dono=server %s",claimed ? "confirmado" : "sem confirmacao; usando TV");
     std::string sid = session > 0 ? "&sid=" + std::to_string(session.load()) : "";
     std::string query = sid.empty() ? "" : "?" + sid.substr(1);
     if (!speakerRequested && output == LOCAL) return;
     int revision = 0, claim = 0;
     auto playAt = [&](double pos) {
+      LOG("Nest: server LAUNCH/LOAD delegado sessao=%d pos=%.3f",session.load(),pos);
       char path[180];
         std::snprintf(path, sizeof(path), "/api/nest/play?id=%s&t=%.3f&claim=%d%s", id.c_str(), pos, claim, sid.c_str());
       net::Response r;
@@ -538,9 +546,10 @@ struct Player {
     while (speakerRequested && (!pictureReady || SDL_GetTicks() - openedMs < (uint64_t)deviceMs || !deviceDrained()) &&
            !stop && state != FAILED && state != ENDED) SDL_Delay(10);
     if (stop || state == FAILED || state == ENDED) return;
-    if (speakerRequested && !playAt(live ? 0 : startAt)) output = RELEASING;
+    bool failedStart = !claimed;
+    if (speakerRequested && (!claimed || !playAt(live ? 0 : startAt))) { output = RELEASING; failedStart = true; }
     uint64_t requested = SDL_GetTicks(), cmdAt = 0, localSince = 0;
-    int expected = 0, last = 0;
+    int expected = 0, last = 0, observed = -1;
     while (!stop) {
       uint64_t ms = SDL_GetTicks();
       if (output == RELEASING) {
@@ -551,13 +560,15 @@ struct Player {
             claim = std::atoi(f[1].c_str());
             armed = mutedForCast = false; cueMs = -1;
             output = LOCAL; localSince = ms; expected = last = 0;
+            LOG("Nest: dono=TV; server confirmou silencio sessao=%d",session.load());
+            if (speakerRequested) speakerFallback = true;
             if (!speakerRequested) return;
           }
         }
         SDL_Delay(100); continue;
       }
       if (output == LOCAL) {
-        if (!paused && localPlaying && ms - localSince > 1200 && speakerTargetMs >= 0) {
+        if (!failedStart && !paused && localPlaying && ms - localSince > 1200 && speakerTargetMs >= 0) {
           // O MP3 da nova URL espera o primeiro GET antes de receber autorização para sair.
           cueMs = (int)std::lround(std::round((speakerTargetMs + 2000) * 0.030) * (1000.0 / 30));
           output = PRIMING; armed = mutedForCast = false;
@@ -582,6 +593,8 @@ struct Player {
         auto f = net::split(std::string(pr.body.begin(), pr.body.end()), '\t');
         st = f[0] == "PLAYING" ? 1 : f[0] == "PAUSED" ? 2 : f[0] == "IDLE" ? 3 : f[0] == "ERRO" ? 4 :
              f[0] == "BUFFERING" ? 5 : f[0] == "STALLED" ? 6 : 0;
+        if (st != observed) { LOG("Nest: server status=%s sessao=%d",f[0].c_str(),session.load()); observed = st; }
+        if (st == 4 && f.size() > 2 && !f[2].empty()) LOG("Nest: server erro=%s",f[2].c_str());
         // PLAYING lento confirma a saída, mas não serve para acertar o relógio.
         SDL_LockMutex(nmu);
         if (st == 1) nestSeenMs = b;
@@ -609,6 +622,10 @@ struct Player {
           } else if (r.status != 0 && r.status != 200) output = RELEASING;
         } else if (paused || ms - requested > 4000 || speakerTargetMs > cueMs + 40) output = RELEASING;
       } else {
+        if (!last && ms-requested > 3500 && st != 1 && st != 2) {
+          LOG("Nest: server erro sem confirmacao em 3500 ms; liberando para TV");
+          failedStart = true; output = RELEASING;
+        }
         if (st == 1 || st == 2) {
           if (expected && expected == st) expected = 0;
           else if (expected && ms - cmdAt > 2500 && !nestCmd) nestCmd = expected == 2 ? 1 : 2;
@@ -618,6 +635,7 @@ struct Player {
         if (!paused && (st == 3 || st == 4 || st == 6)) {
           LOG("som: liberando Nest, estado %d", st);
           output = RELEASING; claim = 0;
+          if (!last) failedStart = true;
         }
       }
       SDL_Delay(output == CAST ? 85 : 15);
@@ -734,7 +752,7 @@ struct Player {
       bool follow = speaker >= 0 && route == CAST;
       bool local = route == LOCAL || route == PRIMING;
       double cue = cueMs / 1000.0;
-      if (route == PRIMING && (mutedAt || (audible ? tv : predicted) >= cue - deviceMs / 1000.0)) {
+      if (route == PRIMING && armed && (mutedAt || (audible ? tv : predicted) >= cue - deviceMs / 1000.0)) {
         local = false;
         if (!mutedAt) mutedAt = ms;
       } else if (route != PRIMING) mutedAt = 0;
@@ -749,7 +767,8 @@ struct Player {
       // Sem saltos na troca de relógio. Na TV sozinha o PCM efetivamente consumido continua sendo o mestre.
       if (!refill)
         screenSec = speakerRequested && !audible ? predicted + std::clamp(target - predicted, -dt * 0.15, dt * 0.15) : tv;
-      if (route == PRIMING && cue >= 0)
+      // Só segura a imagem para drenar o dispositivo local; uma confirmação Cast nunca prende o vídeo.
+      if (route == PRIMING && armed && !mutedForCast && mutedAt && ms-mutedAt <= (uint64_t)deviceMs+120 && cue >= 0)
         screenSec = std::min(screenSec, std::max(cue, predicted - dt));
       tickMs = now; masterMs = (int)std::lround(screenSec * 1000);
       speakerTargetMs = (int)std::lround(screenSec * 1000);
