@@ -119,11 +119,17 @@ public:
   explicit Client(Transport& t) : net(t) {}
   Comments comments(const string& id, const string& continuation, const string& lang) {
     if (!videoId(id) || continuation.size()>16384) return {{},{},"comments_input"};
-    auto r=next("\"continuation\":"+J(continuation.empty() ? firstToken(id) : continuation).serialize(),lang);
-    J root;
-    if (failureOf(r)!=Failure::NONE || !parse(r.body,root) || root.contains("error")) return {{},{},"comments_request"};
-    auto out=parseComments(root);
-    if (out.continuation == continuation) out.continuation.clear();
+    string cursor=continuation.empty() ? firstToken(id) : continuation;
+    Comments out; std::set<string> visited;
+    for (int page=0;page<3;++page) {
+      visited.insert(cursor);
+      auto r=next("\"continuation\":"+J(cursor).serialize(),lang); J root;
+      if (failureOf(r)!=Failure::NONE || !parse(r.body,root) || root.contains("error")) return {{},{},"comments_request"};
+      out=parseComments(root);
+      if (visited.count(out.continuation)) out.continuation.clear();
+      if (!out.items.empty() || out.continuation.empty()) break;
+      cursor=out.continuation;
+    }
     return out;
   }
   Votes votes(const string& id, uint64_t now) {

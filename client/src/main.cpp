@@ -1222,7 +1222,7 @@ int main(int argc, char** argv) {
           if (extras.line>0) --extras.line;
           else { extras.selected=std::max(0,extras.selected-1); extras.line=0; }
         }
-        if (in.hit(Input::A) && !extras.loading && (!extras.page.error.empty() || extras.selected>=count)) extras.request(!extras.page.continuation.empty() && count>0);
+        if (in.hit(Input::A) && !extras.loading && (!extras.page.error.empty() || extras.selected>=count)) extras.request(!extras.page.continuation.empty());
       } else if (playerUI.panel == PlayerUI::SPEED_PANEL) {
         if (in.hit(Input::UP) || in.hit(Input::LEFT)) playerUI.panelSel=(playerUI.panelSel+7)%8;
         if (in.hit(Input::DOWN) || in.hit(Input::RIGHT)) playerUI.panelSel=(playerUI.panelSel+1)%8;
@@ -2162,7 +2162,7 @@ int main(int argc, char** argv) {
         gfx::shadow(g,x,y+10,w,h,24,32,.6f); gfx::rect(g,x,y,w,h,ui::SURFACE,24);
         gfx::text(g,ui::F_BIG,tr(K::Comments),x+36,y+26,ui::TEXT);
         int count=(int)extras.page.items.size();
-        if (extras.loading || !extras.page.error.empty() || !count) {
+        if (extras.loading || !extras.page.error.empty() || (!count && extras.page.continuation.empty())) {
           gfx::text(g,ui::F_BODY,tr(extras.loading ? K::Loading : !extras.page.error.empty() ? K::CommentsFailed : K::CommentsEmpty),x+36,y+120,ui::MUTED);
         } else if (extras.selected<count) {
           const auto& comment=extras.page.items[extras.selected];
