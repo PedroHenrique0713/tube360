@@ -1,3 +1,4 @@
+#include "locale.hpp"
 #include "console_account.hpp"
 #include "picojson.h"
 #include <algorithm>
@@ -409,7 +410,7 @@ struct ConsoleAccount::Impl {
     string call(const string& route,const string& fields,J& j,bool samsung=false) {
         if (!tokens.refresh.empty()) { auto e=auth(); if (!e.empty()) return e; }
         O client{{"clientName",J(string("TVHTML5"))},{"clientVersion",J(samsung ? string("5.20260707") : version)},
-            {"hl",J(language)},{"gl",J(language=="pt" ? string("BR") : string("US"))},
+            {"hl",J(language)},{"gl",J(string(localeRegion(language)))},
             {"timeZone",J(string("UTC"))},{"utcOffsetMinutes",J(0.0)}};
         if (!visitor.empty()) client["visitorData"]=J(visitor);
         if (samsung) {
@@ -684,7 +685,7 @@ AccountReply ConsoleAccount::request(const string& path,int64_t wall,int64_t mon
     s.monotonic=monotonic>=0 ? monotonic : std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
     s.load();
     auto q=path.find('?'); auto route=path.substr(0,q); auto p=params(q==string::npos ? "" : path.substr(q+1));
-    auto language=p["lang"]=="pt" ? "pt" : "en";
+    auto language=localeLanguage(p["lang"]);
     s.language=language;
     if (route=="/api/account" || route=="/api/account/login") return s.status(route=="/api/account/login");
     if (route=="/api/account/logout") {

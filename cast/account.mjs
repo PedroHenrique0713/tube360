@@ -24,7 +24,7 @@ const SAMSUNG = {
 };
 
 function language() {
-  try { return JSON.parse(fs.readFileSync(CONFIG, 'utf8')).language === 'pt' ? 'pt' : 'en'; }
+  try { const lang = JSON.parse(fs.readFileSync(CONFIG, 'utf8')).language; return ['pt', 'en', 'es'].includes(lang) ? lang : 'en'; }
   catch { return 'en'; }
 }
 
@@ -236,7 +236,7 @@ export class Account {
         throw error;
       }
     };
-    const yt = await Innertube.create({ client_type: ClientType.TV, lang, location: lang === 'pt' ? 'BR' : 'US',
+    const yt = await Innertube.create({ client_type: ClientType.TV, lang, location: lang === 'pt' ? 'BR' : lang === 'es' ? 'MX' : 'US',
       retrieve_player: false, enable_session_cache: false, fetch: fetcher });
     context.yt = yt;
     const active = () => this.current === context && !context.cancelled;
@@ -519,7 +519,7 @@ export class Account {
         return fetch(input, { ...init, headers, signal: AbortSignal.timeout(20000) });
       };
       const lang = language();
-      const yt = await Innertube.create({ client_type: ClientType.TV, lang, location: lang === 'pt' ? 'BR' : 'US',
+      const yt = await Innertube.create({ client_type: ClientType.TV, lang, location: lang === 'pt' ? 'BR' : lang === 'es' ? 'MX' : 'US',
         retrieve_player: false, enable_session_cache: false, user_agent: SAMSUNG.userAgent, fetch: fetcher });
       Object.assign(yt.session.context.client, SAMSUNG);
       await yt.session.signIn(JSON.parse(fs.readFileSync(TOKEN, 'utf8')));
@@ -534,7 +534,7 @@ export class Account {
   guest() {
     if (!this.guestYt) {
       const lang = language();
-      this.guestYt = Innertube.create({ client_type: ClientType.TV, lang, location: lang === 'pt' ? 'BR' : 'US',
+      this.guestYt = Innertube.create({ client_type: ClientType.TV, lang, location: lang === 'pt' ? 'BR' : lang === 'es' ? 'MX' : 'US',
         retrieve_player: false, enable_session_cache: false, fetch: (input, init) => fetch(input, { ...init, signal: AbortSignal.timeout(20000) }) });
       this.guestYt.catch(() => { this.guestYt = null; });
     }

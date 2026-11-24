@@ -36,7 +36,7 @@ No TV stick, no smart TV, no browser. Just the Xbox 360 you already have.
 | 👍 **Like, dislike and autoplay** | Rate in the player's options row likes or dislikes the video on your account. When a video ends, the next one YouTube suggests starts after an 8 s countdown (A to watch now, B to cancel). Members-only videos stay out of the grid. |
 | 🔴 **Live streams** | A live opens like any video, close to the live edge, with picture and sound from the same segment (on the speaker too). Pausing and resuming jumps back to live. |
 | 🌙 **Sleep timer** | 15 min to 2 h, or "end of this video". A warning 60 s before (A for +15 min, B to cancel) while the sound fades out. Then the console turns itself off, and optionally the PC too. |
-| ⚙️ **Settings on the TV** | 3 or 4 videos per row, default quality, sound on the TV or the speaker, speaker sync, English or Portuguese. Button prompts in the Xbox One / Series style. |
+| ⚙️ **Settings on the TV** | Adaptive 4:3/SD layout with a safe TV margin, large text, fit or cropped video, default quality, sound on the TV or the speaker, speaker sync, English, Portuguese or Spanish. Button prompts in the Xbox One / Series style. |
 | 🪶 **Light on your PC, or off it** | Idle: ~140 MB RAM and ~0% CPU. Streaming 720p: about three quarters of one CPU core. Runs as a low-priority service, or on [a small VPS or an old Android phone](#run-it-without-your-pc). |
 
 ## Screenshots

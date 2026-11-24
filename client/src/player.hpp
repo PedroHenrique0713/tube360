@@ -96,7 +96,7 @@ struct Player {
   std::atomic<bool> original{false}, retryConverted{false};
   std::atomic<bool> allowOriginal{true};
   bool direct = false, refreshed = false;
-  std::string cacheBase;
+  std::string cacheBase, requestLanguage = "en";
   std::unique_ptr<yt::Transport> transport;
   std::unique_ptr<yt::Client> youtube;
   yt::Video media;

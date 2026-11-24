@@ -1,4 +1,5 @@
 #pragma once
+#include "locale.hpp"
 #include "client.hpp"
 #ifndef PICOJSON_USE_LOCALE
 #define PICOJSON_USE_LOCALE 0
@@ -319,7 +320,7 @@ private:
     string visitor = str(at(device,13));
     if (!device.is<Array>() || visitor.empty() || visitor.size() > 8192 ||
         !std::all_of(visitor.begin(),visitor.end(),[](unsigned char c) { return c > 32 && c < 127; })) return "invalid_context";
-    Object client{{"hl",J(language)},{"gl",J(string(language == "pt" ? "BR" : "US"))},
+    Object client{{"hl",J(language)},{"gl",J(string(localeRegion(language)))},
       {"screenDensityFloat",J(1.0)},{"screenHeightPoints",J(1440.0)},
       {"screenPixelDensity",J(1.0)},{"screenWidthPoints",J(2560.0)},{"visitorData",at(device,13)},
       {"clientName",J(string("WEB_REMIX"))},{"clientVersion",J(string("1.20250219.01.00"))},
@@ -347,7 +348,7 @@ private:
       auto e = bootstrapAccountMusic(); if (!e.empty()) return e;
       auto context = accountMusic.data.get<Object>();
       auto client = get(accountMusic.data,"client").get<Object>();
-      client["hl"] = J(language); client["gl"] = J(string(language == "pt" ? "BR" : "US")); context["client"] = J(client);
+      client["hl"] = J(language); client["gl"] = J(string(localeRegion(language))); context["client"] = J(client);
       Object payload = args; payload["context"] = J(context); payload["isAudioOnly"] = J(true);
       Request r; r.url = "https://music.youtube.com/youtubei/v1/"+route+"?prettyPrint=false&alt=json";
       r.body = J(payload).serialize(); r.agent = agent;
@@ -367,7 +368,7 @@ private:
     auto& c = isMusic ? music : web;
     auto context = c.data.get<Object>();
     auto client = get(c.data,"client").get<Object>();
-    client["hl"] = J(language); client["gl"] = J(string("BR")); context["client"] = J(client);
+    client["hl"] = J(language); client["gl"] = J(string(localeRegion(language))); context["client"] = J(client);
     args["context"] = J(context);
     string origin = isMusic ? "https://music.youtube.com" : "https://www.youtube.com";
     Request r; r.url = origin + "/youtubei/v1/" + route + "?prettyPrint=false"; r.body = J(args).serialize(); r.agent = agent;
@@ -420,7 +421,7 @@ public:
   Page browse(const std::map<string,string>& q) {
     auto value = [&](const char* name) { auto it = q.find(name); return it == q.end() ? string{} : it->second; };
     string kind = value("kind"), id = value("id"), search = value("q"), tab = value("tab"), filter = value("filter");
-    language = value("lang") == "pt" ? "pt" : "en";
+    language = localeLanguage(value("lang"));
     bool isMusic = kind != "channel" && kind != "playlist";
     Page failed;
     if ((kind == "channel" || kind == "artist") ? !channelId(id) : kind == "radio" ? !videoId(id) : (kind == "playlist" || kind == "music_playlist" || kind == "album") ? !identifier(id) : false) { failed.error = "invalid_navigation"; return failed; }
@@ -487,7 +488,7 @@ public:
     }
     if (path.compare(0,16,"/api/nav/lyrics?") == 0) {
       if (!videoId(q["id"])) return "error\tinvalid_video\n";
-      language = q["lang"] == "pt" ? "pt" : "en";
+      language = localeLanguage(q["lang"]);
       J data; Object args; args["videoId"] = J(q["id"]);
       auto e = post(true,"next",args,data);
       if (!e.empty()) return "error\t"+e+"\n";

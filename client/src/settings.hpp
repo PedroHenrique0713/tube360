@@ -10,7 +10,7 @@ struct Settings {
   i18n::Lang lang = i18n::Lang::EN;
   int cols = 4, quality = 720, syncMs = 0;
   int videoMode = playback::AUTO, outputHeight = 720;
-  bool originalAudio = true;
+  bool originalAudio = true, largeText = false, videoFill = false;
   bool server = true, nest = false, sleepNotebook = false, captions = false;
   std::string captionLang;
 
@@ -23,7 +23,9 @@ struct Settings {
         while (!s.empty() && (s.back() == '\r' || s.back() == '\n' || s.back() == ' ')) s.pop_back();
         size_t eq = s.find('='); if (eq == std::string::npos) continue;
         std::string key = s.substr(0, eq), val = s.substr(eq + 1);
-        if (key == "lang") { if (val == "pt") lang = i18n::Lang::PT; else if (val == "en") lang = i18n::Lang::EN; }
+        if (key == "lang") lang = i18n::language(val);
+        else if (key == "large_text") largeText = val == "on";
+        else if (key == "video_fit") videoFill = val == "fill";
         else if (key == "server") server = val != "off";
         else if (key == "video_mode") videoMode = val == "720p60" ? playback::FAST : val == "1080p30" ? playback::DETAIL : playback::AUTO;
         else if (key == "audio_preference") originalAudio = val != "interface";
@@ -37,7 +39,7 @@ struct Settings {
           if (key == "cols" && (n == 3 || n == 4)) cols = (int)n;
           if (key == "quality" && (n == 720 || n == 480 || n == 360)) quality = (int)n;
           if (key == "sync_ms") syncMs = (int)std::clamp(n, -2000L, 2000L);
-          if (key == "output_height" && (n == 720 || n == 1080)) outputHeight = (int)n;
+          if (key == "output_height" && (n == 480 || n == 720 || n == 1080)) outputHeight = (int)n;
         }
       }
       std::fclose(f); return;
@@ -59,6 +61,7 @@ struct Settings {
     FILE* f = std::fopen(tmp.c_str(), "w"); if (!f) return false;
     bool ok = std::fprintf(f, "lang=%s\ncols=%d\nquality=%d\nsound=%s\nsync_ms=%d\nsleep_what=%s\ncaptions=%s\ncaption_lang=%s\nserver=%s\n", i18n::code(lang), cols, quality, nest ? "nest" : "tv", syncMs, sleepNotebook ? "xbox_notebook" : "xbox", captions ? "on" : "off", captionLang.c_str(), server ? "auto" : "off") > 0;
     ok = ok && std::fprintf(f,"video_mode=%s\noutput_height=%d\naudio_preference=%s\n",videoMode == playback::FAST ? "720p60" : videoMode == playback::DETAIL ? "1080p30" : "auto",outputHeight,originalAudio ? "original" : "interface") > 0;
+    ok = ok && std::fprintf(f,"large_text=%s\nvideo_fit=%s\n",largeText ? "on" : "off",videoFill ? "fill" : "fit") > 0;
     if (std::fclose(f) != 0) ok = false;
     if (ok) ok = std::rename(tmp.c_str(), dest.c_str()) == 0;
     if (!ok) std::remove(tmp.c_str());

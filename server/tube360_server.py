@@ -46,7 +46,7 @@ BASE = Path(__file__).resolve().parent
 # config.json é seu (fica fora do Git); sem ele, vale o config.example.json
 CONFIG_PATH = Path(os.environ.get("TUBE360_CONFIG", BASE / "config.json"))
 CONFIG = json.loads((CONFIG_PATH if CONFIG_PATH.exists() else BASE / "config.example.json").read_text(encoding="utf-8"))
-LANGUAGE = "pt" if CONFIG.get("language") == "pt" else "en"
+LANGUAGE = CONFIG.get("language") if CONFIG.get("language") in ("pt", "en", "es") else "en"
 PORT = int(os.environ.get("TUBE360_PORT", "8091"))
 ACCOUNT_URL = os.environ.get("TUBE360_ACCOUNT_URL", "http://127.0.0.1:8099").rstrip("/")
 THUMBS = Path.home() / ".cache/tube360/thumbs"
@@ -81,8 +81,54 @@ class QuietYDL:
         pass
 
 
+SPANISH = {
+    " ago": " atrás",
+    "Account connected": "Cuenta conectada",
+    "Album": "Álbum",
+    "At end of video": "Al terminar el video",
+    "Cancel timer": "Cancelar temporizador",
+    "Cast · TV code": "Transmitir · Código de TV",
+    "Connected now": "Conectado ahora",
+    "Continue watching": "Seguir viendo",
+    "Could not reach YouTube. Press X to retry.": "No se pudo conectar con YouTube. Presiona X para reintentar.",
+    "Could not reach YouTube. Try again.": "No se pudo conectar con YouTube. Inténtalo de nuevo.",
+    "Enter a valid search.": "Ingresa una búsqueda válida.",
+    "Invalid feed parameters.": "Parámetros de lista no válidos.",
+    "Invalid language.": "Idioma no válido.",
+    "Last seen": "Última conexión",
+    "No Nest configured.": "No hay un Nest configurado.",
+    "No contact yet": "Sin conexión todavía",
+    "No views": "Sin vistas",
+    "Not configured": "Sin configurar",
+    "Off": "Desactivado",
+    "Playback cancelled.": "Reproducción cancelada.",
+    "Receiver unavailable": "Receptor no disponible",
+    "Recommended": "Recomendados",
+    "Search: ": "Búsqueda: ",
+    "Server online": "Servidor conectado",
+    "Sign in to YouTube": "Iniciar sesión en YouTube",
+    "Sign in to YouTube in Settings.": "Inicia sesión en YouTube desde Configuración.",
+    "Sign in to your YouTube account.": "Inicia sesión en tu cuenta de YouTube.",
+    "Signed out": "Sesión cerrada",
+    "Sleep timer": "Temporizador de apagado",
+    "Subscriptions": "Suscripciones",
+    "The YouTube receiver is offline.": "El receptor de YouTube está desconectado.",
+    "This page refreshes every 15 seconds.": "Esta página se actualiza cada 15 segundos.",
+    "Waiting for confirmation": "Esperando confirmación",
+    "Watch later": "Ver más tarde",
+    "Watched on ": "Visto el ",
+    "Xbox and notebook": "Xbox y computadora",
+    "Xbox only": "Solo Xbox",
+    "Xbox shutting down; notebook shortly": "Xbox se está apagando; la computadora se apagará después",
+    "YouTube account": "Cuenta de YouTube",
+    "music": "música en español",
+    "en-US,en;q=0.9": "es-MX,es;q=0.9",
+}
+
+
 def tr(pt, en, lang=None):
-    return pt if (lang or LANGUAGE) == "pt" else en
+    language = lang or LANGUAGE
+    return pt if language == "pt" else SPANISH.get(en, en) if language == "es" else en
 
 
 def ydl_options(lang=None, cookies=False, skip_clients=(), live_clients=False, **extra):
@@ -161,6 +207,11 @@ def views_text(count, lang=None):
     if count is None:
         return ""
     count = max(0, int(count))
+    if (lang or LANGUAGE) == "es":
+        for divisor, unit in ((1_000_000_000, " mil M"), (1_000_000, " M"), (1000, " mil")):
+            if count >= divisor:
+                return f"{count / divisor:.1f}".removesuffix(".0") + unit + " vistas"
+        return f"{count} vista{'s' if count != 1 else ''}"
     if (lang or LANGUAGE) == "en":
         for divisor, unit in ((1_000_000_000, "B"), (1_000_000, "M"), (1000, "K")):
             if count >= divisor:
@@ -208,7 +259,7 @@ async def search_videos(query, count=100, lang=None):
     return await search_cache.get((query, count, lang), load, stale_ok=True)
 
 
-home_extra = {"pt": [], "en": []}  # páginas a mais da home (rolagem sem fim): buscas de temas sorteados, anexadas sem repetir
+home_extra = {"pt": [], "en": [], "es": []}  # páginas a mais da home (rolagem sem fim): buscas de temas sorteados, anexadas sem repetir
 
 
 async def home_more(have, lang=None):
@@ -1099,7 +1150,7 @@ async def parameter_error(request: Request, error: RequestValidationError):
     # Mesmo parâmetros inválidos preservam o tipo de erro combinado com o console.
     if request.url.path == "/api/feed":
         return PlainTextResponse("erro\t" + tr("Parâmetros de feed inválidos.", "Invalid feed parameters.",
-            request.query_params.get("lang") if request.query_params.get("lang") in ("pt", "en") else None) + "\n")
+            request.query_params.get("lang") if request.query_params.get("lang") in ("pt", "en", "es") else None) + "\n")
     if request.url.path.startswith("/api/thumb/"):
         return PlainTextResponse("Miniatura indisponível.\n", status_code=404)
     return await request_validation_exception_handler(request, error)
@@ -1269,8 +1320,8 @@ def nav_subtitle(value, lang):
             number += ((" mil", " mi", " bi") if lang == "pt" else ("K", "M", "B"))[scale]
         key = 0 if label.lower().startswith(("subscr", "inscri")) else 1 if label.lower().startswith(("view", "visualiza")) else 2
         if scale is None and float(number.replace(",", ".")) == 1:
-            return number + " " + (("inscrito", "visualização", "vídeo") if lang == "pt" else ("subscriber", "view", "video"))[key]
-        return number + " " + (("inscritos", "visualizações", "vídeos") if lang == "pt" else ("subscribers", "views", "videos"))[key]
+            return number + " " + (("inscrito", "visualização", "vídeo") if lang == "pt" else ("suscriptor", "vista", "video") if lang == "es" else ("subscriber", "view", "video"))[key]
+        return number + " " + (("inscritos", "visualizações", "vídeos") if lang == "pt" else ("suscriptores", "vistas", "videos") if lang == "es" else ("subscribers", "views", "videos"))[key]
     value = re.sub(r"(\d+(?:[.,]\d+)?)\s*(K|M|B|mil|mi|bi)?\s+(?:de\s+)?(subscribers?|inscritos?|views?|visualizações|videos?|vídeos?)\b", count, clean(value), flags=re.I)
     return re.sub(r"^(Album|Álbum)(?=\s*[•·])", tr("Álbum", "Album", lang), value, flags=re.I)
 
@@ -1301,7 +1352,7 @@ def nav_error(error, lang):
 @app.get("/api/nav", response_class=PlainTextResponse)
 async def navigation(kind: str, id: str = "", q: str = Query("", max_length=200), tab: Literal["videos", "live", "playlists"] = "videos",
                      offset: int = Query(0, ge=0, le=2000), n: int = Query(24, ge=1, le=100), fresh: bool = False,
-                     lang: Literal["pt", "en"] = LANGUAGE, filter: int = Query(0, ge=0, le=3)):
+                     lang: Literal["pt", "en", "es"] = LANGUAGE, filter: int = Query(0, ge=0, le=3)):
     if kind not in NAV_KINDS or (id and not re.fullmatch(r"[A-Za-z0-9_-]{2,160}", id)):
         raise HTTPException(400, "Invalid navigation.")
     try:
@@ -1311,7 +1362,7 @@ async def navigation(kind: str, id: str = "", q: str = Query("", max_length=200)
 
 
 @app.get("/api/nav/channel", response_class=PlainTextResponse)
-async def navigation_channel(id: str, lang: Literal["pt", "en"] = LANGUAGE):
+async def navigation_channel(id: str, lang: Literal["pt", "en", "es"] = LANGUAGE):
     valid_id(id)
     try:
         data = await account_request("/channel_for_video?id=" + id)
@@ -1322,7 +1373,7 @@ async def navigation_channel(id: str, lang: Literal["pt", "en"] = LANGUAGE):
 
 @app.get("/api/nav/action", response_class=PlainTextResponse)
 async def navigation_action(request: Request, action: Literal["subscribe", "later"], id: str, value: bool = True,
-                            lang: Literal["pt", "en"] = LANGUAGE):
+                            lang: Literal["pt", "en", "es"] = LANGUAGE):
     account_native_request(request)
     if not re.fullmatch(r"UC[A-Za-z0-9_-]{22}" if action == "subscribe" else r"[A-Za-z0-9_-]{11}", id):
         raise HTTPException(400, "Invalid item.")
@@ -1337,7 +1388,7 @@ async def navigation_action(request: Request, action: Literal["subscribe", "late
 
 @app.get("/api/nav/play", response_class=PlainTextResponse)
 async def navigation_play(request: Request, kind: Literal["playlist", "album", "radio", "music_playlist", "later"], id: str = "",
-                          start: int = Query(0, ge=0, le=255), lang: Literal["pt", "en"] = LANGUAGE):
+                          start: int = Query(0, ge=0, le=255), lang: Literal["pt", "en", "es"] = LANGUAGE):
     global nav_queue_serial
     account_native_request(request)
     if id and not re.fullmatch(r"[A-Za-z0-9_-]{2,160}", id):
@@ -1579,7 +1630,7 @@ async def feed(kind: str = "home", q: str = "", n: int = Query(24, ge=1, le=100)
                offset: int = Query(0, ge=0, le=5000), lang: str | None = None):
     last_console[0] = time.monotonic()
     lang = lang or LANGUAGE
-    if lang not in ("pt", "en"):
+    if lang not in ("pt", "en", "es"):
         return PlainTextResponse("erro\t" + tr("Idioma inválido.", "Invalid language.") + "\n")
     if kind not in ("home", "search", "subs", "history", "later") or (kind == "search" and not clean(q)):
         return PlainTextResponse("erro\t" + tr("Informe uma busca válida.", "Enter a valid search.", lang) + "\n")
@@ -1605,7 +1656,7 @@ async def feed(kind: str = "home", q: str = "", n: int = Query(24, ge=1, le=100)
                 if kind == "history":
                     items = []
                     for entry in history.recent(300)[offset:offset + n]:
-                        when = time.strftime("%d/%m" if lang == "pt" else "%m/%d", time.localtime(entry["ts"]))
+                        when = time.strftime("%m/%d" if lang == "en" else "%d/%m", time.localtime(entry["ts"]))
                         items.append({"id": entry["id"], "duration": int(entry.get("dur") or 0),
                             "channel": entry.get("channel", ""), "views": tr("Visto em ", "Watched on ", lang) + when,
                             "title": entry.get("title", entry["id"]), "pos": entry.get("pos", 0)})
@@ -2858,7 +2909,7 @@ async def caption_download(source, headers):
 
 
 @app.get("/api/captions/{video_id}", response_class=PlainTextResponse)
-async def captions(video_id: str, lang: Literal["pt", "en"] = "en", track: str = ""):
+async def captions(video_id: str, lang: Literal["pt", "en", "es"] = "en", track: str = ""):
     valid_id(video_id)
     if track and not re.fullmatch(r"[A-Za-z0-9_-]{1,32}", track):
         raise HTTPException(400, "Idioma inválido.")
