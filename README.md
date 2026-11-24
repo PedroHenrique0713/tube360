@@ -8,7 +8,7 @@
   <a href="https://github.com/PedroHenrique0713/tube360/releases"><img src="https://img.shields.io/github/v/release/PedroHenrique0713/tube360?style=for-the-badge&amp;labelColor=111&amp;color=ff0f3c" alt="Release"></a>
   <a href="https://github.com/PedroHenrique0713/tube360/stargazers"><img src="https://img.shields.io/github/stars/PedroHenrique0713/tube360?style=for-the-badge&logo=github&color=ff0f3c&labelColor=111" alt="Stars"></a>
   <img src="https://img.shields.io/badge/Xbox%20360-BadUpdate%20%C2%B7%20RGH%20%C2%B7%20JTAG-107C10?style=for-the-badge&logo=xbox&logoColor=white&labelColor=111" alt="Xbox 360">
-  <img src="https://img.shields.io/badge/Console-first-H.264-ff5a52?style=for-the-badge&labelColor=111" alt="Console-first H.264">
+  <img src="https://img.shields.io/badge/Console--first%20H.264-ff5a52?style=for-the-badge&labelColor=111" alt="Console-first H.264">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=for-the-badge&labelColor=111" alt="MIT"></a>
 </p>
 
@@ -28,22 +28,22 @@
 | | |
 |---|---|
 | 🎮 **100% on Xbox, no Xbox Live** | Install, browse and watch on the console itself. No running PC, Xbox Live login or Xbox Live subscription required. |
-| 🏷️ **Members-only badge** | Identifies channel members-only videos while browsing. Uses your account for playback when you have access; a badge does not unlock paid content. |
-| 📡 **Unreliable networks** | Resumes interrupted connections and switches to a lighter quality when needed. |
+| 👤 **Your account on the TV** | Sign in with a TV code; recommendations, subscriptions, history/resume, Watch later, account playlists, likes and dislikes. Tokens stay on the console. |
+| 🎞️ **Playback and audio choices** | Automatic, 720p60 and 1080p30 source profiles; 480/720p/1080p output; original audio by default, with offered dubbed tracks selectable in the player. Actual resolution and frame rate adapt to the source, network and console load. |
+| 🔴 **Captions and live** | VOD caption selection, seeking, live-edge action and autoplay. Live captions are not supported yet. |
+| 🔊 **Google Nest / Google Cast speaker** | The console sends the selected YouTube audio URL directly to the speaker and follows its clock. No PC or Bluetooth pairing needed. Direct live streams currently use TV sound. |
+| 📱 **Official YouTube phone app** | Pair with a TV code or find Tube360 on the local network. Play, pause, seek, volume and queues use the native Xbox receiver. |
 | 💬 **Comments and dislike counts** | Read and scroll comments while the video plays. Estimated dislike counts from Return YouTube Dislike are labeled as estimates. |
 | ⏩ **0.25×–2× and repeat** | Eight speeds preserve voice pitch; repeat the current video from the player. Changed speed uses TV sound; the sleep timer takes priority over repeat. |
 | 📺 **CRT TVs and large text** | 480 output in 4:3, safe margins and larger text. Fit with letterboxing or fill by cropping; large text is also available in HD. 480i/480p follows the Xbox dashboard. |
 | 🔐 **Signed automatic updates** | Ed25519-verified YouTube rules at startup and periodically on Home, with automatic fallback. When YouTube changes something, a new signed rule file fixes every console without a new version. |
-| 📺 **Native app** | C++20, Vulkan through [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 and full gamepad navigation. Its own Aurora title ID: `0x58545542`. |
-| ⚡ **YouTube straight to the Xbox** | HTTPS to YouTube, original H.264 video and AAC audio decoded locally with FFmpeg. No real-time PC conversion in normal use. |
-| 👤 **Your account on the TV** | Sign in with a TV code; recommendations, subscriptions, history/resume, Watch later, account playlists, likes and dislikes. Tokens stay on the console. |
-| 🧭 **Channels and library** | Channel videos, live streams and playlists, subscription actions, round channel avatars and library artwork. |
-| 🎵 **Music** | Quick picks, Explore/charts, mixes, song/album/artist search, radio and local queues, audio-only Now playing and optional lyrics. |
-| 📱 **Official YouTube phone app** | Pair with a TV code or find Tube360 on the local network. Play, pause, seek, volume and queues use the native Xbox receiver. |
-| 🔊 **Google Nest / Google Cast speaker** | The console sends the selected YouTube audio URL directly to the speaker and follows its clock. No PC or Bluetooth pairing needed. Direct live streams currently use TV sound. |
-| 🎞️ **Playback and audio choices** | Automatic, 720p60 and 1080p30 source profiles; 480/720p/1080p output; original audio by default, with offered dubbed tracks selectable in the player. Actual resolution and frame rate adapt to the source, network and console load. |
-| 💬 **Captions and live** | VOD caption selection, seeking, live-edge action and autoplay. Live captions are not supported yet. |
 | 🌙 **Sleep timer** | 15 minutes to 2 hours, or end of video. A warning 60 s before (A adds 15 min, B cancels) while the volume fades, then the console turns itself off. |
+| 🏷️ **Members-only badge** | Identifies channel members-only videos while browsing. Uses your account for playback when you have access; a badge does not unlock paid content. |
+| 🎵 **Music** | Quick picks, Explore/charts, mixes, song/album/artist search, radio and local queues, audio-only Now playing and optional lyrics. |
+| 🧭 **Channels and library** | Channel videos, live streams and playlists, subscription actions, round channel avatars and library artwork. |
+| 📡 **Unreliable networks** | Resumes interrupted connections and switches to a lighter quality when needed. |
+| ⚡ **YouTube straight to the Xbox** | HTTPS to YouTube, original H.264 video and AAC audio decoded locally with FFmpeg. No real-time PC conversion in normal use. |
+| 🛠️ **Native app** | C++20, Vulkan through [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 and full gamepad navigation. Its own Aurora title ID: `0x58545542`. |
 | ⚙️ **Settings on the TV** | English/Portuguese/Spanish, 2 columns in 4:3, 3/4 in HD, quality, output size, sound, sync and captions. Xbox One / Series button prompts. |
 
 ## Screenshots

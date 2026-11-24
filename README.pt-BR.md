@@ -8,7 +8,7 @@
   <a href="https://github.com/PedroHenrique0713/tube360/releases"><img src="https://img.shields.io/github/v/release/PedroHenrique0713/tube360?style=for-the-badge&amp;labelColor=111&amp;color=ff0f3c" alt="Release"></a>
   <a href="https://github.com/PedroHenrique0713/tube360/stargazers"><img src="https://img.shields.io/github/stars/PedroHenrique0713/tube360?style=for-the-badge&logo=github&color=ff0f3c&labelColor=111" alt="Estrelas"></a>
   <img src="https://img.shields.io/badge/Xbox%20360-BadUpdate%20%C2%B7%20RGH%20%C2%B7%20JTAG-107C10?style=for-the-badge&logo=xbox&logoColor=white&labelColor=111" alt="Xbox 360">
-  <img src="https://img.shields.io/badge/Console-first-H.264-ff5a52?style=for-the-badge&labelColor=111" alt="Console-first H.264">
+  <img src="https://img.shields.io/badge/Console--first%20H.264-ff5a52?style=for-the-badge&labelColor=111" alt="Console-first H.264">
   <a href="LICENSE"><img src="https://img.shields.io/badge/licen%C3%A7a-MIT-blue?style=for-the-badge&labelColor=111" alt="MIT"></a>
 </p>
 
@@ -30,22 +30,22 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | | |
 |---|---|
 | 🎮 **100% no Xbox, sem Xbox Live** | Instale, navegue e assista no próprio console. Sem PC ligado e sem assinatura ou login no Xbox Live. |
-| 🏷️ **Selo de membros** | Identifica vídeos exclusivos do canal na navegação. Usa a sua conta para tentar reproduzir quando ela tem acesso; o selo não libera conteúdo pago. |
-| 📡 **Rede fraca** | Retoma conexões interrompidas e troca para uma qualidade mais leve quando necessário. |
+| 👤 **Sua conta na TV** | Login por código, recomendações, inscrições, histórico e retomada, Assistir mais tarde, playlists, gostei e não gostei. O token fica no console. |
+| 🎞️ **Imagem e faixa de áudio** | Perfis Automático, 720p60 e 1080p30; saída 480/720p/1080p; faixa original por padrão e dublagens oferecidas pelo vídeo no player. Resolução e cadência se adaptam à fonte, à rede e à carga do console. |
+| 🔴 **Legendas e lives** | Legendas em VOD, busca de posição, botão para voltar ao vivo e próximo automático. Legendas ao vivo ainda não são suportadas. |
+| 🔊 **Google Nest / caixa Google Cast** | O console manda a URL da faixa do YouTube à caixa e segue o relógio dela. Sem PC ou pareamento Bluetooth. Lives diretas usam som na TV por enquanto. |
+| 📱 **App oficial do YouTube no celular** | Pareamento por código de TV ou descoberta na rede. Play, pausa, busca de posição, volume e filas usam o receptor nativo do Xbox. |
 | 💬 **Comentários e não gostei** | Leia e role comentários sem sair do vídeo. Contagem de não gostei estimada pelo Return YouTube Dislike, identificada como estimativa. |
 | ⏩ **0,25×–2× e repetir** | Oito velocidades com preservação do tom da voz; Repetir vídeo no player. Velocidade diferente de 1× usa som na TV; o timer tem prioridade sobre a repetição. |
 | 📺 **TV de tubo e texto grande** | Saída 480 em 4:3, área segura e texto ampliado. Ajustar com faixas ou preencher com recorte; texto grande também em HD. 480i/480p segue o painel do Xbox. |
 | 🔐 **Atualização automática assinada** | Regras verificadas por Ed25519 ao abrir e periodicamente na Home, com reserva automática. Quando o YouTube muda algo, um arquivo de regras assinado conserta todos os consoles sem versão nova. |
-| 📺 **App nativo** | C++20, Vulkan pelo [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 e navegação pelo controle. Title ID próprio no Aurora: `0x58545542`. |
-| ⚡ **YouTube direto no Xbox** | HTTPS com o YouTube, vídeo H.264 original e áudio AAC decodificados localmente com FFmpeg. Sem conversão no PC no uso normal. |
-| 👤 **Sua conta na TV** | Login por código, recomendações, inscrições, histórico e retomada, Assistir mais tarde, playlists, gostei e não gostei. O token fica no console. |
-| 🧭 **Canais e biblioteca** | Vídeos, lives e playlists do canal, inscrição, avatares redondos e capas da biblioteca. |
-| 🎵 **Música** | Escolhas rápidas, Explorar/paradas, mixes, busca de música/álbum/artista, rádio, filas locais, Tocando agora só com áudio e letras opcionais. |
-| 📱 **App oficial do YouTube no celular** | Pareamento por código de TV ou descoberta na rede. Play, pausa, busca de posição, volume e filas usam o receptor nativo do Xbox. |
-| 🔊 **Google Nest / caixa Google Cast** | O console manda a URL da faixa do YouTube à caixa e segue o relógio dela. Sem PC ou pareamento Bluetooth. Lives diretas usam som na TV por enquanto. |
-| 🎞️ **Imagem e faixa de áudio** | Perfis Automático, 720p60 e 1080p30; saída 480/720p/1080p; faixa original por padrão e dublagens oferecidas pelo vídeo no player. Resolução e cadência se adaptam à fonte, à rede e à carga do console. |
-| 💬 **Legendas e lives** | Legendas em VOD, busca de posição, botão para voltar ao vivo e próximo automático. Legendas ao vivo ainda não são suportadas. |
 | 🌙 **Timer de dormir** | De 15 minutos a 2 horas, ou fim do vídeo, com aviso 60 s antes (A soma 15 min, B cancela) e o volume baixando. Depois o console se desliga sozinho. |
+| 🏷️ **Selo de membros** | Identifica vídeos exclusivos do canal na navegação. Usa a sua conta para tentar reproduzir quando ela tem acesso; o selo não libera conteúdo pago. |
+| 🎵 **Música** | Escolhas rápidas, Explorar/paradas, mixes, busca de música/álbum/artista, rádio, filas locais, Tocando agora só com áudio e letras opcionais. |
+| 🧭 **Canais e biblioteca** | Vídeos, lives e playlists do canal, inscrição, avatares redondos e capas da biblioteca. |
+| 📡 **Rede fraca** | Retoma conexões interrompidas e troca para uma qualidade mais leve quando necessário. |
+| ⚡ **YouTube direto no Xbox** | HTTPS com o YouTube, vídeo H.264 original e áudio AAC decodificados localmente com FFmpeg. Sem conversão no PC no uso normal. |
+| 🛠️ **App nativo** | C++20, Vulkan pelo [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 e navegação pelo controle. Title ID próprio no Aurora: `0x58545542`. |
 | ⚙️ **Configurações na TV** | Português/inglês/espanhol, 2 colunas em 4:3, 3/4 em HD, qualidade, tamanho da saída, som, sincronia e legendas. Dicas de botões no estilo Xbox One / Series. |
 
 ## Telas
