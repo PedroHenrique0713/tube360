@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Servidor do Tube360. Contrato: ../docs/PROTOCOL.md."""
 
+from membership import membership
+
 import asyncio
 import contextlib
 import io
@@ -187,7 +189,7 @@ def normalize(entry, lang=None):
     if not ID_PATTERN.fullmatch(video_id) or "/shorts/" in url or 0 < duration < 61:
         return None
     return remember({
-        "id": video_id, "duration": duration,
+        "id": video_id, "duration": duration, "membership": membership(entry),
         "channel": clean(entry.get("channel") or entry.get("uploader")),
         "views": views_text(entry.get("view_count"), lang),
         "title": clean(entry.get("title") or video_id),
@@ -705,7 +707,8 @@ class History:
         entry = self.items.pop(video_id, {"id": video_id})
         entry.update(pos=round(dur if finished else pos, 1), dur=round(dur or entry.get("dur", 0) or meta.get("duration", 0)),
                      ts=time.time(), title=meta.get("title") or entry.get("title", video_id),
-                     channel=meta.get("channel") or entry.get("channel", ""))
+                     channel=meta.get("channel") or entry.get("channel", ""),
+                     membership="members" if membership(meta) or membership(entry) else "")
         self.items[video_id] = entry  # reinserido no fim = mais recente
         while len(self.items) > 300:
             self.items.pop(next(iter(self.items)))
@@ -1010,7 +1013,7 @@ async def account_items(kind, offset, n, fresh, identity):
                     continue
                 item = remember({"id": entry["id"], "duration": max(0, int(entry.get("duration") or 0)),
                     "channel": clean(entry.get("channel")), "title": clean(entry.get("title")),
-                    "views": clean(entry.get("views_text")), "pos": max(0, float(entry.get("pos") or 0))})
+                    "membership": membership(entry), "views": clean(entry.get("views_text")), "pos": max(0, float(entry.get("pos") or 0))})
                 cache["items"].append(item)
                 cache["seen"].add(item["id"])
             cache["more"] = bool(result.get("more")) and page < 1000
@@ -1244,7 +1247,7 @@ async def nav_data(kind, item_id, query, tab, offset, n, fresh=False, filter=0):
                     continue
                 item = {"type": item_type, "id": entry_id, "title": clean(entry.get("title")), "channel": clean(entry.get("channel")),
                         "duration": max(0, int(entry.get("duration") or 0)), "channel_id": clean(entry.get("channel_id")),
-                        "section": clean(entry.get("section")), "image": nav_image(entry.get("image"))}
+                        "section": clean(entry.get("section")), "image": nav_image(entry.get("image")), "membership": membership(entry) if item_type == "video" else ""}
                 if kind == "library" and item_type == "playlist":
                     item["image"] = collection_art(entry_id, item["image"], cache["at"])
                 if item_type == "video":
@@ -1287,7 +1290,7 @@ def nav_response(data, lang=LANGUAGE):
         elif item.get("type") == "album":
             item["channel"] = re.sub(r"^(Album|Álbum)\s*[•·]\s*", "", item.get("channel", ""), flags=re.I)
         lines.append("\t".join(clean(item.get(k, "")) for k in
-                     ("type", "id", "title", "channel", "duration", "image", "channel_id", "section")))
+                     ("type", "id", "title", "channel", "duration", "image", "channel_id", "section", "membership")))
     return PlainTextResponse("\n".join(lines) + "\n", headers={"Cache-Control": "no-store"})
 
 
@@ -1608,7 +1611,8 @@ async def feed(kind: str = "home", q: str = "", n: int = Query(24, ge=1, le=100)
                         when = time.strftime("%d/%m" if lang == "pt" else "%m/%d", time.localtime(entry["ts"]))
                         items.append({"id": entry["id"], "duration": int(entry.get("dur") or 0),
                             "channel": entry.get("channel", ""), "views": tr("Visto em ", "Watched on ", lang) + when,
-                            "title": entry.get("title", entry["id"]), "pos": entry.get("pos", 0)})
+                            "title": entry.get("title", entry["id"]), "pos": entry.get("pos", 0),
+                            "membership": "members" if membership(entry) else ""})
         if items is None:
             if kind == "home":
                 base = await home_videos(bool(fresh), lang)
@@ -1634,7 +1638,7 @@ async def feed(kind: str = "home", q: str = "", n: int = Query(24, ge=1, le=100)
     lines = [f"ok\t{len(items)}\t{titles[kind]}"]
     for item in items:
         fields = [item["id"], item["duration"], item["channel"], localized_views(item["views"], lang), item["title"]]
-        lines.append("\t".join([*(clean(v) for v in fields), f"{item.get('pos', history.position(item['id'])):.1f}"]))
+        lines.append("\t".join([*(clean(v) for v in fields), f"{item.get('pos', history.position(item['id'])):.1f}", membership(item)]))
     return PlainTextResponse("\n".join(lines) + "\n", headers={"Cache-Control": "no-store"})
 
 

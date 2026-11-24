@@ -1,4 +1,5 @@
 #include "console_account.hpp"
+#include "membership_json.hpp"
 #include "picojson.h"
 #include <algorithm>
 #include <chrono>
@@ -176,6 +177,7 @@ public:
 struct Item {
     string type, id, title, byline, image, channelId, section;
     int duration=0, pos=0;
+    Membership members=Membership::None;
 };
 struct Parsed {
     std::vector<Item> items;
@@ -198,7 +200,7 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     const auto& browse=get(ep,"browseEndpoint");
     const auto& watch=get(ep,"watchEndpoint");
     auto type=str(v,"contentType");
-    Item item; item.section=section;
+    Item item; item.section=section; item.members=membership(v);
     item.id=str(v,"videoId");
     if (item.id.empty()) item.id=str(watch,"videoId");
     if (item.id.empty()) item.id=str(browse,"browseId");
@@ -234,7 +236,7 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     const auto& overlays=key=="tileRenderer" ? get(get(get(v,"header"),"tileHeaderRenderer"),"thumbnailOverlays") : get(v,"thumbnailOverlays");
     bool hidden=flag(v,"isUpcoming") || v.contains("upcomingEventData") || get(ep,"reelWatchEndpoint").is<O>();
     const auto& playable=get(v,"isPlayable");
-    hidden=hidden || (playable.is<bool>() && !playable.get<bool>());
+    hidden=hidden || (playable.is<bool>() && !playable.get<bool>() && item.members==Membership::None);
     for (auto& overlay:arr(overlays)) {
         const auto& timing=get(overlay,"thumbnailOverlayTimeStatusRenderer");
         auto style=str(timing,"style");
@@ -246,7 +248,7 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     std::vector<const J*> badges; nodes(get(v,"badges"),"metadataBadgeRenderer",badges); nodes(get(meta,"lines"),"metadataBadgeRenderer",badges);
     for (auto* badge:badges) {
         auto style=str(*badge,"style");
-        hidden=hidden || style.find("MEMBERS_ONLY")!=string::npos || style.find("SHORTS")!=string::npos || style.find("UPCOMING")!=string::npos;
+        hidden=hidden || style.find("SHORTS")!=string::npos || style.find("UPCOMING")!=string::npos;
     }
     if (hidden || !id(item.id)) return;
     if (playlist) item.type="playlist";
@@ -254,6 +256,7 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     else if (type=="LOCKUP_CONTENT_TYPE_PLAYLIST" || item.id.compare(0,2,"VL")==0 || item.id.compare(0,2,"PL")==0 || item.id.compare(0,2,"RD")==0) item.type="playlist";
     else if (id(item.id,11)) item.type="video";
     else return;
+    if (item.type!="video") item.members=Membership::None;
     if (out.seen.insert(item.type+item.id).second && out.items.size()<256) out.items.push_back(std::move(item));
 }
 void walk(const J& j, Parsed& out, const string& section="", int depth=0) {
@@ -602,8 +605,8 @@ struct ConsoleAccount::Impl {
         for (size_t i=size_t(offset); i<end; ++i) {
             const auto& v=list.items[i];
             if (feed) {
-                if (v.type=="video") body+=v.id+"\t"+std::to_string(v.duration)+"\t"+clean(v.byline)+"\t\t"+clean(v.title)+"\t"+std::to_string(v.pos)+"\n";
-            } else if (!play || v.type=="video") body+=v.type+"\t"+v.id+"\t"+clean(v.title)+"\t"+clean(v.byline)+"\t"+std::to_string(v.duration)+"\t"+itemImage(v)+"\t"+v.channelId+"\t"+clean(v.section)+"\n";
+                if (v.type=="video") body+=v.id+"\t"+std::to_string(v.duration)+"\t"+clean(v.byline)+"\t\t"+clean(v.title)+"\t"+std::to_string(v.pos)+"\t"+membershipWire(v.members)+"\n";
+            } else if (!play || v.type=="video") body+=v.type+"\t"+v.id+"\t"+clean(v.title)+"\t"+clean(v.byline)+"\t"+std::to_string(v.duration)+"\t"+itemImage(v)+"\t"+v.channelId+"\t"+clean(v.section)+"\t"+membershipWire(v.members)+"\n";
         }
         return {body,{}};
     }
@@ -730,6 +733,11 @@ AccountReply ConsoleAccount::request(const string& path,int64_t wall,int64_t mon
     if (route.compare(0,11,"/api/video/")==0) {
         auto videoId=route.substr(11,11);
         if (!id(videoId,11)) return {{}, "invalid_video"};
+        if (route.substr(22)=="/player") {
+            if (s.tokens.refresh.empty()) return {{}, "signed_out"};
+            J j; auto e=s.call("player","\"videoId\":"+J(videoId).serialize()+",\"contentCheckOk\":true,\"racyCheckOk\":true",j,true);
+            return e.empty() ? AccountReply{j.serialize(),{}} : AccountReply{{},e};
+        }
         if (route.substr(22)=="/next") return s.next(videoId);
         if (route.substr(22)=="/rate") {
             if (s.tokens.refresh.empty()) return {{}, "signed_out"};

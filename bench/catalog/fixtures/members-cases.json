@@ -1,0 +1,331 @@
+{
+  "cases": [
+    {
+      "name": "Members only",
+      "renderer": "videoRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Um vídeo"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "badges": [
+          {
+            "metadataBadgeRenderer": {
+              "label": "Members only"
+            }
+          }
+        ]
+      },
+      "expected": "members"
+    },
+    {
+      "name": "Apenas para membros",
+      "renderer": "videoRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Um vídeo"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "badges": [
+          {
+            "metadataBadgeRenderer": {
+              "label": "Apenas para membros"
+            }
+          }
+        ]
+      },
+      "expected": "members"
+    },
+    {
+      "name": "Só para membros",
+      "renderer": "videoRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Um vídeo"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "badges": [
+          {
+            "metadataBadgeRenderer": {
+              "label": "Só para membros"
+            }
+          }
+        ]
+      },
+      "expected": "members"
+    },
+    {
+      "name": "locked tile badge",
+      "renderer": "playlistVideoRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Um vídeo"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "badges": [
+          {
+            "metadataBadgeRenderer": {
+              "style": "BADGE_STYLE_TYPE_MEMBERS_ONLY"
+            }
+          }
+        ],
+        "isPlayable": false
+      },
+      "expected": "members"
+    },
+    {
+      "name": "explicit access",
+      "renderer": "gridVideoRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Um vídeo"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "badges": [
+          {
+            "metadataBadgeRenderer": {
+              "style": "BADGE_STYLE_TYPE_MEMBERS_ONLY"
+            }
+          }
+        ],
+        "isPlayable": true
+      },
+      "expected": "member"
+    },
+    {
+      "name": "title is not a badge",
+      "renderer": "videoRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Members only"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "descriptionSnippet": {
+          "simpleText": "Apenas para membros"
+        }
+      },
+      "expected": ""
+    },
+    {
+      "name": "owner and menu are not this video",
+      "renderer": "videoRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Um vídeo"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "ownerBadges": [
+          {
+            "metadataBadgeRenderer": {
+              "label": "Members only"
+            }
+          }
+        ],
+        "menu": {
+          "badges": [
+            {
+              "metadataBadgeRenderer": {
+                "label": "Members only"
+              }
+            }
+          ]
+        }
+      },
+      "expected": ""
+    },
+    {
+      "name": "subscription is not membership",
+      "renderer": "videoRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Um vídeo"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "badges": [
+          {
+            "metadataBadgeRenderer": {
+              "style": "BADGE_STYLE_TYPE_VERIFIED",
+              "label": "Official artist channel"
+            }
+          }
+        ],
+        "subscribeButtonRenderer": {
+          "subscribed": true
+        }
+      },
+      "expected": ""
+    },
+    {
+      "name": "musicTwoRowItemRenderer",
+      "renderer": "musicTwoRowItemRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Um vídeo"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "badges": [
+          {
+            "musicInlineBadgeRenderer": {
+              "icon": {
+                "iconType": "SPONSORSHIP_STAR"
+              }
+            }
+          }
+        ]
+      },
+      "expected": "members"
+    },
+    {
+      "name": "musicResponsiveListItemRenderer",
+      "renderer": "musicResponsiveListItemRenderer",
+      "node": {
+        "videoId": "member00001",
+        "title": {
+          "simpleText": "Um vídeo"
+        },
+        "lengthText": {
+          "simpleText": "10:00"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "badges": [
+          {
+            "musicInlineBadgeRenderer": {
+              "icon": {
+                "iconType": "SPONSORSHIP_STAR"
+              }
+            }
+          }
+        ]
+      },
+      "expected": "members"
+    },
+    {
+      "name": "TV metadata line",
+      "renderer": "tileRenderer",
+      "node": {
+        "contentType": "TILE_CONTENT_TYPE_VIDEO",
+        "contentId": "member00001",
+        "onSelectCommand": {
+          "watchEndpoint": {
+            "videoId": "member00001"
+          }
+        },
+        "metadata": {
+          "tileMetadataRenderer": {
+            "title": {
+              "simpleText": "Exclusivo TV"
+            },
+            "lines": [
+              {
+                "lineRenderer": {
+                  "items": [
+                    {
+                      "lineItemRenderer": {
+                        "badge": {
+                          "metadataBadgeRenderer": {
+                            "style": "BADGE_STYLE_TYPE_MEMBERS_ONLY"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        },
+        "header": {
+          "tileHeaderRenderer": {
+            "thumbnailOverlays": [
+              {
+                "thumbnailOverlayTimeStatusRenderer": {
+                  "style": "DEFAULT",
+                  "text": {
+                    "simpleText": "10:00"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
+      "expected": "members"
+    }
+  ]
+}

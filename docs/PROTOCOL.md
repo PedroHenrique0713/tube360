@@ -15,7 +15,7 @@ ever contains a TAB or a line break (the server replaces them with spaces). The 
 
 ```
 ok\t<count>\t<feed title>
-<id>\t<duration s>\t<channel>\t<formatted views>\t<title>\t<resume position s>
+<id>\t<duration s>\t<channel>\t<formatted views>\t<title>\t<resume position s>\t<membership>
 ...
 ```
 
@@ -38,6 +38,17 @@ ok\t<count>\t<feed title>
 - The 6th field is the resume position in seconds (may be fractional), 0 if unavailable. For account lists the TV
   thumbnail overlay's watched percentage is multiplied by the duration, so the position is approximate. For local
   history it is the last console position. Thumbnails from all kinds enter the same prefetch queue.
+
+The optional 7th feed field and 9th navigation item field are membership states: empty for ordinary videos,
+`members` for members-only content with unknown/denied access, and `member` only when YouTube explicitly
+sets `isPlayable: true` on that members-only card. Missing fields from older servers mean ordinary content.
+A watch endpoint or a channel subscription does not prove paid access. Cards show localized Members/Member
+badges; playback still asks YouTube, and a membership refusal shows a specific message without rotating clients.
+The account JSON API carries the same optional `membership` field; yt-dlp `availability=subscriber_only` maps
+to `members`. Catalog state never grants access or replaces YouTube authorization. With an active console account, member
+cards request the player through the existing TV Samsung OAuth session on the worker; the returned signed
+formats use the same AVC/AAC selection. Tokens remain inside ConsoleAccount and never enter list responses.
+The internal `/api/video/<id>/player` ConsoleAccount request is not a server HTTP endpoint.
 
 ## YouTube account
 
@@ -379,7 +390,7 @@ Account lists and channel actions use TV credentials. Subscriptions, library, hi
 
 ```
 ok\t<title>\t<subtitle>\t<art key>\t<subscribed 0|1>\t<more 0|1>\t<channel ID>\t<banner key>\t<history art key>\t<watch later art key>
-<type>\t<id>\t<title>\t<byline>\t<duration s>\t<art key>\t<channel ID>\t<section>
+<type>\t<id>\t<title>\t<byline>\t<duration s>\t<art key>\t<channel ID>\t<section>\t<membership>
 ```
 
 Item types are `video`, `channel`, `playlist`, `album`, `artist`. Empty fields remain present. Lists keep YouTube's

@@ -17,6 +17,7 @@
 #include "h264.hpp"
 #include "playback_mode.hpp"
 #include "yt/media.hpp"
+#include "yt/console_account.hpp"
 #include "nest.hpp"
 #ifdef __XSDK__
 #include "xsdk/thread.h"
@@ -97,6 +98,13 @@ struct Player {
   std::atomic<bool> allowOriginal{true};
   bool direct = false, refreshed = false;
   std::string cacheBase;
+  std::shared_ptr<yt::ConsoleAccount> memberAccount;
+  bool memberVideo = false;
+  std::string memberResponse() {
+    if (!memberVideo || !memberAccount || !memberAccount->active()) return {};
+    auto reply = memberAccount->request("/api/video/" + id + "/player");
+    return reply.ok() ? std::move(reply.body) : std::string{};
+  }
   std::unique_ptr<yt::Transport> transport;
   std::unique_ptr<yt::Client> youtube;
   yt::Video media;
@@ -211,9 +219,10 @@ struct Player {
   static int nestMain(void* p) { ((Player*)p)->nestLoop(); return 0; }
   bool directFailed(bool fatal = true);
 
-  void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}) {
+  void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}, bool members = false) {
     if (vid != id || state == IDLE || quality != q) allowOriginal = true;
     halt(!speaker);
+    memberVideo = members || (vid == id && memberVideo);
     if (mode >= 0) videoMode=mode;
     if (!track.empty()) audioSelection=track;
     else if (vid != id) audioSelection="original";
