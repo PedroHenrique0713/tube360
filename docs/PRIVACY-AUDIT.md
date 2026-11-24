@@ -56,3 +56,9 @@ a bounded pattern/visual audit; it does not claim that every possible secret for
 
 The original matching-source/relink obligations still apply before public distribution. This front prepares
 the installable app archives; the table above retains source-tree findings for the integration owner.
+
+## Final signed-update integration
+
+The final package adds a separate stable launcher and app, plus the Monocypher license. Both executables receive the same ELF/XEX correspondence and diagnostic-path checks; `default.xex` is now the launcher. Public update manifests sign the sanitized `tube360.xex` payload that is also installed by ZIP/7z. The signing key stays outside the repository and artifacts. Desktop QA payloads and journals stay under ignored `.work/integrador-final/`, outside `.work/releases/`.
+
+The final seven additional images cover comments, estimated dislike counts, speed, Spanish, CRT fit/fill and large text. They use public footage and explicitly fictional Demo comments/counts. The final audit examines archive members, raw public XEX payloads, signed documents, `site/dist`, image metadata and PNG text chunks; exact counts and SHA-256 results are in the ignored integration report. Source/relink materials require their own review; the historical source findings above are retained.

@@ -32,6 +32,10 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | 🎮 **100% no Xbox, sem Xbox Live** | Instale, navegue e assista no próprio console. Sem PC ligado e sem assinatura ou login no Xbox Live. |
 | 🏷️ **Selo de membros** | Identifica vídeos exclusivos do canal na navegação. Usa a sua conta para tentar reproduzir quando ela tem acesso; o selo não libera conteúdo pago. |
 | 📡 **Rede fraca** | Retoma conexões interrompidas e troca para uma qualidade mais leve quando necessário. |
+| 💬 **Comentários e não gostei** | Leia e role comentários sem sair do vídeo. Contagem de não gostei estimada pelo Return YouTube Dislike, identificada como estimativa. |
+| ⏩ **0,25×–2× e repetir** | Oito velocidades com preservação do tom da voz; Repetir vídeo no player. Velocidade diferente de 1× usa som na TV; o timer tem prioridade sobre a repetição. |
+| 📺 **TV de tubo e texto grande** | Saída 480 em 4:3, área segura e texto ampliado. Ajustar com faixas ou preencher com recorte; texto grande também em HD. 480i/480p segue o painel do Xbox. |
+| 🔐 **Atualização automática assinada** | Regras verificadas por Ed25519 ao abrir e periodicamente na Home, com reserva automática. O app avisa a nova versão; A baixa e confere o arquivo, o launcher instala na próxima abertura e recupera o anterior se o boot falhar. |
 | 📺 **App nativo** | C++20, Vulkan pelo [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 e navegação pelo controle. Title ID próprio no Aurora: `0x58545542`. |
 | ⚡ **YouTube direto no Xbox** | HTTPS com o YouTube, vídeo H.264 original e áudio AAC decodificados localmente com FFmpeg. Sem conversão no PC no uso normal. |
 | 👤 **Sua conta na TV** | Login por código, recomendações, inscrições, histórico e retomada, Assistir mais tarde, playlists, gostei e não gostei. O token fica no console. |
@@ -39,10 +43,10 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | 🎵 **Música** | Escolhas rápidas, Explorar/paradas, mixes, busca de música/álbum/artista, rádio, filas locais, Tocando agora só com áudio e letras opcionais. |
 | 📱 **App oficial do YouTube no celular** | Pareamento por código de TV ou descoberta na rede. Play, pausa, busca de posição, volume e filas usam o receptor nativo do Xbox. |
 | 🔊 **Google Nest / caixa Google Cast** | O console manda a URL da faixa do YouTube à caixa e segue o relógio dela. Sem PC ou pareamento Bluetooth. Lives diretas usam som na TV por enquanto. |
-| 🎞️ **Imagem e faixa de áudio** | Perfis Automático, 720p60 e 1080p30; saída 720p/1080p; faixa original por padrão e dublagens oferecidas pelo vídeo no player. Resolução e cadência se adaptam à fonte, à rede e à carga do console. |
+| 🎞️ **Imagem e faixa de áudio** | Perfis Automático, 720p60 e 1080p30; saída 480/720p/1080p; faixa original por padrão e dublagens oferecidas pelo vídeo no player. Resolução e cadência se adaptam à fonte, à rede e à carga do console. |
 | 💬 **Legendas e lives** | Legendas em VOD, busca de posição, botão para voltar ao vivo e próximo automático. Legendas ao vivo ainda não são suportadas. |
 | 🌙 **Timer de dormir** | De 15 minutos a 2 horas, ou fim do vídeo, com aviso 60 s antes (A soma 15 min, B cancela) e o volume baixando. Depois o console se desliga sozinho. |
-| ⚙️ **Configurações na TV** | Português/inglês, 3/4 colunas, qualidade, tamanho da saída, som, sincronia e legendas. Dicas de botões no estilo Xbox One / Series. |
+| ⚙️ **Configurações na TV** | Português/inglês/espanhol, 2 colunas em 4:3, 3/4 em HD, qualidade, tamanho da saída, som, sincronia e legendas. Dicas de botões no estilo Xbox One / Series. |
 
 ## Telas
 
@@ -64,7 +68,15 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | **Som no Google Nest** | **Vídeo exclusivo** |
 | ![Saída de som](docs/img/nest.jpg) | ![Aviso de vídeo exclusivo](docs/img/members-only.jpg) |
 
-<sub>Capturas do app de PC atual em modo console (`server=off`), com o mesmo código e renderizador do Xbox. Conteúdo público do Palmeiras; onde necessário, conta fictícia Demo e códigos ilustrativos. O selo e a recusa de membros usam respostas sintéticas e são identificados como Demo; o print do Nest mostra configuração, sem conectar a uma caixa real. Nenhuma conta pessoal foi usada. As capturas não medem o desempenho do Xbox.</sub>
+| **Comentários pelo controle** | **Velocidade de 0,25× a 2×** |
+|---|---|
+| ![Comentários fictícios Demo](docs/img/comments.jpg) | ![Menu de velocidade](docs/img/speed.jpg) |
+| **Interface em espanhol** | **TV 4:3 com ajustar** |
+| ![Configurações em espanhol](docs/img/spanish.jpg) | ![Player em 640×480 com faixas](docs/img/crt.jpg) |
+| **Contagem estimada de não gostei** | **Texto grande em HD** |
+| ![Contagem demonstrativa RYD](docs/img/dislikes.jpg) | ![Texto grande](docs/img/large-text.jpg) |
+
+<sub>Capturas do app de PC atual em modo console (`server=off`), com o mesmo código e renderizador do Xbox. Conteúdo público do Palmeiras; onde necessário, conta fictícia Demo e códigos ilustrativos. O selo e a recusa de membros usam respostas sintéticas e são identificados como Demo; o print do Nest mostra configuração, sem conectar a uma caixa real. Comentários e contagens demonstrativas são fictícios e identificados no [registro das capturas](docs/SCREENSHOTS.md). Nenhuma conta pessoal foi usada. As capturas não medem o desempenho do Xbox.</sub>
 
 ---
 
@@ -101,7 +113,7 @@ MPEG-1 + MP2 fica como compatibilidade fornecida pelo servidor opcional, até 72
 
 ### 1. Copie a pasta do app
 
-Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex`, as quatro fontes `inter-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
+Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex` (launcher), `tube360.xex` (app), as quatro fontes `inter-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
 
 ### 2. Abra pelo Aurora, FSD ou XeXMenu
 
@@ -140,6 +152,10 @@ A caixa baixa o áudio do próprio YouTube. Ela precisa de internet e de Wi-Fi f
 
 Abra **Celular** no Tube360. No app oficial do YouTube, use **Configurações → Assistir na TV → Inserir código da TV** e digite o código desse painel. Esse código é diferente do login da conta. Em redes que permitem descoberta, o Tube360 também aparece em Transmitir como `YouTube 360`. Não precisa de receptor Node no modo console.
 
+### Atualizações assinadas
+
+A Home avisa quando há uma versão nova: **LB** abre as novidades, **A** baixa e confere a assinatura/hash, **B** volta ou cancela. Reabra pelo `default.xex` para instalar. O pacote inicial completo é necessário para quem usava um XEX único. Se o novo app não confirmar um boot saudável, a próxima abertura restaura o anterior. [Detalhes e recuperação](docs/UPDATES.md).
+
 ## Controles
 
 As dicas usam o estilo Xbox One / Series (Menu / View correspondem a Start / Back no controle do 360).
@@ -172,7 +188,7 @@ Use Configurações na TV; os valores ficam em `settings.txt` ao lado do XEX. Os
 
 | Arquivo | Função |
 |---|---|
-| `settings.txt` | `lang=en|pt`, `cols=3|4`, `quality=720|480|360`, `sound=tv|nest`, `sync_ms`, `server=auto|off`, `video_mode=auto|720p60|1080p30`, `output_height=720|1080`, `audio_preference=original|interface`, legendas e alvo do timer. |
+| `settings.txt` | `lang=en\|pt\|es`, `cols=3\|4`, `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `video_mode=auto\|720p60\|1080p30`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, legendas e alvo do timer. |
 | `nest.txt` | Host e porta opcional da caixa na linha 1; nome exibido na linha 2. |
 | `server.txt` | IP e porta do PC de reserva na primeira linha, por exemplo `192.0.2.10 8091`. Sem ele, só console. `server=off` também desativa a reserva mesmo com o endereço presente. |
 | `marca.txt` | Nome personalizado na linha 1 e `retangulo` opcional na linha 2. |
@@ -230,7 +246,7 @@ tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.0
 ```
 
-O build gera `client/build-x360/tube360.xex`. O empacotador copia como `Tube360/default.xex` para `.work/releases/tube360-v0.3.0-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
+O build gera o app `client/build-x360/tube360.xex` e `tube360-launcher.xex`. O empacotador inclui o launcher como `Tube360/default.xex` ao lado de `Tube360/tube360.xex` para `.work/releases/tube360-v0.3.0-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
 
 ## Estrutura do projeto
 
@@ -256,16 +272,12 @@ tools/           builds, empacotamento e instalação opcional de serviços
 
 ## Roadmap v0.4
 
-- [ ] Atualização automática
 - [ ] Música da conta Premium (ampliar e validar o acesso pela conta)
-- [ ] Filtros na busca
+- [ ] Filtros e sugestões na busca
 - [ ] Baixar vídeos para o HD
-- [ ] Comentários
-- [ ] Velocidade de reprodução
-- [ ] 4:3 / CRT
-- [ ] Espanhol
+- [ ] Achar o alto-falante sozinho
 
-Os recursos acima estão planejados; não fazem parte da v0.3.0. [CHANGELOG.md](CHANGELOG.md) registra o que já foi integrado.
+Comentários, contagem estimada de não gostei, velocidade, repetir, TV de tubo, texto grande, espanhol e atualização assinada já fazem parte da v0.3.0. [CHANGELOG.md](CHANGELOG.md) registra a entrega.
 
 ## IA e verificação
 

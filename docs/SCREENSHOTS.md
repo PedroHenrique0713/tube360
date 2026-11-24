@@ -1,6 +1,6 @@
 # v0.3.0 screenshot notes
 
-All app images are 1280×720 JPEGs, captured from the current desktop app with the production UI/player,
+App images are JPEGs (1280×720, or 640×480 for the CRT captures), captured from the current desktop app with the production UI/player,
 `server=off`, a dedicated HOME/assets directory and recorded transports. They illustrate console mode;
 they do not measure Xbox frame rate or prove access to a real account, phone or speaker.
 
@@ -41,3 +41,9 @@ The new `rate.jpg` therefore captures the actual current icon row. All images we
 titles deliberately use the app’s normal ellipsis, and the home’s next row remains partly visible as its
 normal scrolling affordance. JPEG/PNG metadata is stripped before distribution. The website copies match
 `docs/img/`; `player-clean.jpg` is a still from the same public excerpt. Its interactive preview is simplified.
+
+## Final integration captures
+
+The final merged app adds `comments.jpg`, `speed.jpg`, `spanish.jpg`, `crt.jpg`, `crt-fill.jpg`, `large-text.jpg` and `dislikes.jpg`, with byte-identical website copies. All were opened and inspected. Comments use clearly fictional “Torcedor · Demo” names and synthetic text/counts; the RYD count is a demonstration value, not a measured count for the public clip. Footage is the same public Palmeiras excerpt used by the release captures. No account login, external speaker or console was used.
+
+Comments, speed, Spanish settings, large text and dislike count: 1280×720. CRT fit/fill: actual 640×480 framebuffer, with letterboxing or crop respectively. JPEG metadata was stripped and the final metadata/byte audit covers the copies in the built website too. These images prove layout on the PC renderer; they do not certify physical CRT overscan, Xbox performance or listening quality.

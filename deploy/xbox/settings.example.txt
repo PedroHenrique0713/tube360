@@ -1,6 +1,7 @@
 # EN: Optional. Rename to settings.txt beside default.xex, or configure through the app.
 # PT: Opcional. Renomeie para settings.txt junto do default.xex, ou configure pelo app.
 # The app rewrites this file without comments / o app regrava este arquivo sem comentarios.
+# en / pt / es
 lang=en
 cols=4
 quality=720
@@ -12,7 +13,7 @@ server=auto
 # auto / 720p60 / 1080p30: source preference, not a guaranteed presented frame rate.
 # Preferencia de fonte, nao garantia de cadencia apresentada.
 video_mode=auto
-# 720 / 1080. 1080 requires HDMI + 1080p progressive in the Xbox dashboard.
+# 480 / 720 / 1080. 1080 requires HDMI + 1080p progressive in the Xbox dashboard.
 # 1080 exige HDMI + 1080p progressivo no painel do Xbox.
 output_height=720
 # original / interface (falls back to original / recua para original se indisponivel).
@@ -23,3 +24,9 @@ caption_lang=
 # Desligar o PC so vale no caminho com servidor opcional. The timer itself is not saved.
 # The timer runs on the console, including without a PC / o timer roda no console, inclusive sem PC.
 sleep_what=xbox
+
+# on / off; SD always uses large text / SD sempre usa texto grande.
+large_text=off
+
+# fit (letterbox/faixas) / fill (crop/recorte).
+video_fit=fit

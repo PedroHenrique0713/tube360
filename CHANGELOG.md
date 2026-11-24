@@ -7,6 +7,11 @@ This entry describes the integrated console branch; publication and hardware acc
 
 ### Added
 
+- Comments with controller scrolling/pagination and labeled Return YouTube Dislike estimates.
+- Eight playback speeds from 0.25× to 2× with pitch preservation, TV sound at changed speed, and repeat-video with native timer priority.
+- 4:3 / 480 CRT layout with safe margins, fit/fill picture modes, large text in SD/HD, and Spanish alongside English/Portuguese.
+- Signed Ed25519 rule updates with compatibility rollback; signed app manifests, size/SHA-256 verification, stable launcher, transactional replacement and automatic recovery after an unconfirmed boot. Corrupt journals retain access to the installed backup.
+
 - Console-only YouTube over HTTPS, with native H.264/AAC playback and no PC requests when `server.txt` is absent.
 - TV-code account sign-in stored on the console, recommendations, subscriptions, library, Watch later,
   history/resume, ratings, channel actions and account playlists.

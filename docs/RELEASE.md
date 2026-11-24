@@ -19,7 +19,7 @@ Both archives contain the same files. Install 7z/7zz on the build host.
 The default destination is `.work/releases/`; `--output-dir` and `--build-dir` select alternate directories.
 `--app-name` overrides the title detected from the build cache and must match the build. The package contains one `Tube360/` folder with:
 
-- `default.xex`, copied/converted from the current `client/build-x360` build;
+- `default.xex`, the stable `tube360-launcher.xex`, and `tube360.xex`, the app, both copied/converted from the current `client/build-x360` build;
 - the four Inter TTF weights 300, 400, 600 and 700;
 - inactive `settings.example.txt`, `nest.example.txt`, `server.example.txt`;
 - `START-HERE.txt`, `LICENSE`, `THIRD_PARTY.md`, third-party notices and a hash manifest.
@@ -67,6 +67,8 @@ from the final integrated commit, after addressing the findings in [the audit](P
 | `support/xsdk.ld`, `support/libxsdk.a` | `.work/native-display/xsdk/src/xsdk.ld`, `build/libxsdk.a` |
 | `support/libvulkan4xenon.a` | `.work/native-display/vulkan4xenon/build/libvulkan4xenon.a` |
 | `support/libSDL3.a` | The SDL library identified by this build's link command/cache |
+| `objects/launcher.cpp.obj` | `client/build-x360/CMakeFiles/tube360-launcher.dir/…/client/src/update/launcher.cpp.obj` |
+| `support/libtube360-update.a`, `libtube360-update-core.a` | `client/build-x360/libtube360-update.a`, `client/build-x360/yt/libtube360-update-core.a` |
 | `support/libtube360-yt.a` | `client/build-x360/yt/libtube360-yt.a` |
 | `support/libtube360-cast.a` | `client/build-x360/libtube360-cast.a` |
 | `support/libcurl.a` | `client/build-x360/yt/curl/lib/libcurl.a` |
@@ -109,3 +111,11 @@ python3 site/build.py --offline --no-cache-write --version v0.3.0 \
 Runtime GitHub refresh never replaces a prepared page with a different release version. Rebuild after
 publication, then inspect both languages at desktop and phone widths before deployment.
 See [screenshot provenance](SCREENSHOTS.md).
+
+## Signed release handoff
+
+The initial signed v0.3.0 uses build ID 1. Keep the stable launcher as `default.xex`; the update payload is the sanitized `.work/releases/tube360.xex`, identical to `Tube360/tube360.xex` in the ZIP/7z. Never sign the raw private build and then publish a different sanitized payload.
+
+On the public repository's `rules` branch publish `rules.json`, `rules.json.sig`, `app.json`, `app.json.sig` at the root, preserving the exact signed bytes. Initial remote rules use version 2 (embedded defaults use version 1). The app manifest points to the v0.3.0 release asset `tube360.xex`. The initial app does not offer itself as an upgrade; future releases need strictly higher build IDs in both binary and manifest. Rule versions must also increase, including after a rejected update. Do not publish desktop QA payloads or the private signing key. See [UPDATES.md](UPDATES.md).
+
+Release assets: `tube360-v0.3.0-xbox360.zip`, `.zip.sha256`, `tube360-v0.3.0-xbox360.7z`, `.7z.sha256`, `tube360.xex`, `tube360.xex.sha256`, plus the corresponding source/relink materials described above. Install complete archives once for older single-XEX installations. The exact local artifact paths and checksums are recorded in the coordinator's integration report. This preparation performs no publication.

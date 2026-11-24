@@ -29,13 +29,13 @@ def digest(data):
     return hashlib.sha256(data).hexdigest()
 
 
-def clean_xex(build, converter, app_name):
-    original = read_file(build / "tube360.xex")
+def clean_xex(build, converter, app_name, stem="tube360"):
+    original = read_file(build / (stem + ".xex"))
     if not original.startswith(b"XEX2"):
         raise ValueError("Build output is not an XEX2 executable")
     if not HOME_PREFIX.search(original):
         return original, original, 0
-    elf = read_file(build / "tube360")
+    elf = read_file(build / stem)
     if not elf.startswith(b"\x7fELF"):
         raise ValueError("A matching linked ELF is required to remove host paths")
     # Mantém comprimentos e endereços: só troca o prefixo literal das strings de diagnóstico.
@@ -92,6 +92,7 @@ def main():
     for name in ("LICENSE", "THIRD_PARTY.md"):
         files[name] = read_file(ROOT / name)
     notices = {
+        "Monocypher-LICENSE.txt": "client/third_party/monocypher/LICENCE.md",
         "OFL-Inter.txt": "client/assets/OFL-Inter.txt",
         "Phosphor-MIT.txt": "client/third_party/phosphor/LICENSE",
         "FFmpeg-LGPL-2.1.txt": "tools/ffmpeg-x360/COPYING.LGPLv2.1",
@@ -122,16 +123,22 @@ def main():
         files["licenses/" + name + ".txt"] = read_file(ROOT / "client/third_party" / name)
 
     executable, original, replacements = clean_xex(args.build_dir, args.xex_converter, app_name)
-    files["default.xex"] = executable
+    launcher, original_launcher, launcher_replacements = clean_xex(args.build_dir, args.xex_converter, "Tube360", "tube360-launcher")
+    files["default.xex"] = launcher
+    files["tube360.xex"] = executable
     files["START-HERE.txt"] = (
         f"Tube360 {args.version} - Xbox 360\n\n"
         "EN: Copy this entire folder to writable Xbox storage. Open default.xex with Aurora, FSD or XeXMenu.\n"
+        "Keep default.xex (stable launcher), tube360.xex (app), and all four fonts together.\n"
+        "LB on Home shows signed updates; A downloads, B cancels. Reopen default.xex to install.\n"
         "No server.txt = console only. Example files are inactive; rename and edit only if needed.\n"
         "Nest: host + port on line 1, display name on line 2. Use your speaker's real LAN IP.\n"
         "TV-code account login is in Settings; phone Cast has a separate code in Phone.\n"
         "Press B back to browsing before closing the app, so the speaker receives STOP.\n\n"
         "Sleep timer: 15 min to 2 h or end of video; the console powers itself off, without a PC.\n\n"
         "PT: Copie esta pasta inteira para armazenamento gravavel do Xbox. Abra default.xex no Aurora/FSD/XeXMenu.\n"
+        "Mantenha default.xex (launcher), tube360.xex (app) e as quatro fontes juntos.\n"
+        "LB no Inicio mostra atualizacoes assinadas; A baixa, B cancela. Reabra default.xex para instalar.\n"
         "Sem server.txt = so console. Exemplos sao inativos; renomeie e edite apenas se precisar.\n"
         "Nest: host + porta na linha 1, nome na linha 2. Use o IP local real da caixa.\n"
         "Login por codigo em Configuracoes; Cast do celular tem outro codigo no painel Celular.\n"
@@ -145,8 +152,10 @@ def main():
         "version": args.version, "source_commit": revision,
         "title_name": app_name, "title_id": "0x58545542", "xex_version": "1.0.0.0",
         "source_dirty": bool(subprocess.check_output(["git", "-C", str(ROOT), "status", "--porcelain"])),
-        "build_xex_sha256": digest(original), "packaged_xex_sha256": digest(executable),
-        "home_prefix_replacements_in_elf": replacements,
+        "build_xex_sha256": digest(original_launcher), "packaged_xex_sha256": digest(launcher),
+        "build_app_sha256": digest(original), "packaged_app_sha256": digest(executable),
+        "build_launcher_sha256": digest(original_launcher), "packaged_launcher_sha256": digest(launcher),
+        "home_prefix_replacements_in_elf": replacements + launcher_replacements,
         "files": {name: digest(data) for name, data in sorted(files.items())},
     }
     files["manifest.json"] = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode()
@@ -155,6 +164,9 @@ def main():
             raise ValueError(f"Private home path or 192.168 address found in package member: {name}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    for name, data in (("tube360.xex", executable), ("default.xex", launcher)):
+        (args.output_dir / name).write_bytes(data)
+        (args.output_dir / (name + ".sha256")).write_text(f"{digest(data)}  {name}\n")
     output = args.output_dir / f"tube360-v{args.version}-xbox360.zip"
     fd, temporary = tempfile.mkstemp(prefix=output.name + ".", dir=args.output_dir)
     try:

@@ -30,6 +30,10 @@
 | 🎮 **100% on Xbox, no Xbox Live** | Install, browse and watch on the console itself. No running PC, Xbox Live login or Xbox Live subscription required. |
 | 🏷️ **Members-only badge** | Identifies channel members-only videos while browsing. Uses your account for playback when you have access; a badge does not unlock paid content. |
 | 📡 **Unreliable networks** | Resumes interrupted connections and switches to a lighter quality when needed. |
+| 💬 **Comments and dislike counts** | Read and scroll comments while the video plays. Estimated dislike counts from Return YouTube Dislike are labeled as estimates. |
+| ⏩ **0.25×–2× and repeat** | Eight speeds preserve voice pitch; repeat the current video from the player. Changed speed uses TV sound; the sleep timer takes priority over repeat. |
+| 📺 **CRT TVs and large text** | 480 output in 4:3, safe margins and larger text. Fit with letterboxing or fill by cropping; large text is also available in HD. 480i/480p follows the Xbox dashboard. |
+| 🔐 **Signed automatic updates** | Ed25519-verified YouTube rules at startup and periodically on Home, with automatic fallback. The app announces new versions; A downloads and verifies, the launcher installs on next startup and restores the previous app if boot fails. |
 | 📺 **Native app** | C++20, Vulkan through [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 and full gamepad navigation. Its own Aurora title ID: `0x58545542`. |
 | ⚡ **YouTube straight to the Xbox** | HTTPS to YouTube, original H.264 video and AAC audio decoded locally with FFmpeg. No real-time PC conversion in normal use. |
 | 👤 **Your account on the TV** | Sign in with a TV code; recommendations, subscriptions, history/resume, Watch later, account playlists, likes and dislikes. Tokens stay on the console. |
@@ -37,10 +41,10 @@
 | 🎵 **Music** | Quick picks, Explore/charts, mixes, song/album/artist search, radio and local queues, audio-only Now playing and optional lyrics. |
 | 📱 **Official YouTube phone app** | Pair with a TV code or find Tube360 on the local network. Play, pause, seek, volume and queues use the native Xbox receiver. |
 | 🔊 **Google Nest / Google Cast speaker** | The console sends the selected YouTube audio URL directly to the speaker and follows its clock. No PC or Bluetooth pairing needed. Direct live streams currently use TV sound. |
-| 🎞️ **Playback and audio choices** | Automatic, 720p60 and 1080p30 source profiles; 720p/1080p output; original audio by default, with offered dubbed tracks selectable in the player. Actual resolution and frame rate adapt to the source, network and console load. |
+| 🎞️ **Playback and audio choices** | Automatic, 720p60 and 1080p30 source profiles; 480/720p/1080p output; original audio by default, with offered dubbed tracks selectable in the player. Actual resolution and frame rate adapt to the source, network and console load. |
 | 💬 **Captions and live** | VOD caption selection, seeking, live-edge action and autoplay. Live captions are not supported yet. |
 | 🌙 **Sleep timer** | 15 minutes to 2 hours, or end of video. A warning 60 s before (A adds 15 min, B cancels) while the volume fades, then the console turns itself off. |
-| ⚙️ **Settings on the TV** | English/Portuguese, 3/4 columns, quality, output size, sound, sync and captions. Xbox One / Series button prompts. |
+| ⚙️ **Settings on the TV** | English/Portuguese/Spanish, 2 columns in 4:3, 3/4 in HD, quality, output size, sound, sync and captions. Xbox One / Series button prompts. |
 
 ## Screenshots
 
@@ -62,7 +66,15 @@
 | **Google Nest sound** | **Members-only notice** |
 | ![Sound output](docs/img/nest.jpg) | ![Members-only notice](docs/img/members-only.jpg) |
 
-<sub>Captured from the current PC app in console mode (`server=off`), using the same code and renderer as Xbox. Public Palmeiras content; where needed, a fictional Demo account and illustrative codes. Membership badge/refusal examples use synthetic responses and are labeled Demo; the Nest print shows configuration, not a connection to a real speaker. No personal account was used. Captures do not measure Xbox performance.</sub>
+| **Comments from your controller** | **0.25× to 2× speed** |
+|---|---|
+| ![Fictional Demo comments](docs/img/comments.jpg) | ![Playback speed menu](docs/img/speed.jpg) |
+| **Spanish interface** | **4:3 TV with fit** |
+| ![Spanish settings](docs/img/spanish.jpg) | ![640×480 player with letterboxing](docs/img/crt.jpg) |
+| **Estimated dislike count** | **Large text in HD** |
+| ![Demonstration RYD count](docs/img/dislikes.jpg) | ![Large text](docs/img/large-text.jpg) |
+
+<sub>Captured from the current PC app in console mode (`server=off`), using the same code and renderer as Xbox. Public Palmeiras content; where needed, a fictional Demo account and illustrative codes. Membership badge/refusal examples use synthetic responses and are labeled Demo; the Nest print shows configuration, not a connection to a real speaker. Demonstration comments and counts are fictional, as documented in [capture provenance](docs/SCREENSHOTS.md). No personal account was used. Captures do not measure Xbox performance.</sub>
 
 ---
 
@@ -99,7 +111,7 @@ MPEG-1 + MP2 is the compatibility path supplied by the optional server, up to 72
 
 ### 1. Copy the app folder
 
-Download the ZIP or .7z from [Releases](https://github.com/PedroHenrique0713/tube360/releases), extract it and copy the whole `Tube360` folder to `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`. Keep `default.xex`, all four `inter-*.ttf` fonts and the license notices together. **Leave `server.txt` absent** for console-only use; `.example.txt` files remain inactive until renamed.
+Download the ZIP or .7z from [Releases](https://github.com/PedroHenrique0713/tube360/releases), extract it and copy the whole `Tube360` folder to `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`. Keep `default.xex` (launcher), `tube360.xex` (app), all four `inter-*.ttf` fonts and the license notices together. **Leave `server.txt` absent** for console-only use; `.example.txt` files remain inactive until renamed.
 
 ### 2. Launch from Aurora, FSD or XeXMenu
 
@@ -138,6 +150,10 @@ The speaker downloads audio from YouTube itself. It needs its own internet conne
 
 Open Tube360's **Phone** panel. In the official YouTube phone app, use **Settings → Watch on TV → Enter TV code** and enter the code from that panel. This is a separate code from account sign-in. On networks with discovery enabled, Tube360 also appears in the Cast menu as `YouTube 360`. No Node receiver is needed in console mode.
 
+### Signed updates
+
+Home announces new versions: **LB** opens release notes, **A** downloads and verifies the signature/hash, **B** goes back or cancels. Reopen through `default.xex` to install. Existing single-XEX installations need the complete package once. If the new app does not confirm a healthy boot, the next launch restores the previous app. [Details and recovery](docs/UPDATES.md).
+
 ## Controls
 
 Button prompts use the Xbox One / Series style (Menu / View are Start / Back on a 360 controller).
@@ -170,7 +186,7 @@ Use Settings on the TV; values are saved beside the XEX in `settings.txt`. The p
 
 | File | Purpose |
 |---|---|
-| `settings.txt` | `lang=en|pt`, `cols=3|4`, `quality=720|480|360`, `sound=tv|nest`, `sync_ms`, `server=auto|off`, `video_mode=auto|720p60|1080p30`, `output_height=720|1080`, `audio_preference=original|interface`, captions and timer target. |
+| `settings.txt` | `lang=en\|pt\|es`, `cols=3\|4`, `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `video_mode=auto\|720p60\|1080p30`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, captions and timer target. |
 | `nest.txt` | Speaker host and optional port on line 1; display name on line 2. |
 | `server.txt` | Optional reserve PC IP and port on the first line, e.g. `192.0.2.10 8091`. Without it, console only. `server=off` also disables the reserve when the address is present. |
 | `marca.txt` | Optional custom name on line 1 and `retangulo` on line 2. |
@@ -228,7 +244,7 @@ tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.0
 ```
 
-The build produces `client/build-x360/tube360.xex`. The packager copies it as `Tube360/default.xex` into `.work/releases/tube360-v0.3.0-xbox360.zip`, with fonts, commented examples and license notices. It copies an explicit file list, never a used app folder. It does not publish. [Build dependencies](docs/BUILD.md) · [Packaging and matching source/relink materials](docs/RELEASE.md)
+The build produces the app `client/build-x360/tube360.xex` and `tube360-launcher.xex`. The packager includes the launcher as `Tube360/default.xex` alongside `Tube360/tube360.xex` into `.work/releases/tube360-v0.3.0-xbox360.zip`, with fonts, commented examples and license notices. It copies an explicit file list, never a used app folder. It does not publish. [Build dependencies](docs/BUILD.md) · [Packaging and matching source/relink materials](docs/RELEASE.md)
 
 ## Project layout
 
@@ -254,16 +270,12 @@ tools/           builds, packaging and optional service installation
 
 ## v0.4 roadmap
 
-- [ ] Automatic updates
 - [ ] Premium account Music (broader, verified account access)
-- [ ] Search filters
+- [ ] Search filters and suggestions
 - [ ] Download videos to the HDD
-- [ ] Comments
-- [ ] Playback speed
-- [ ] 4:3 / CRT support
-- [ ] Spanish
+- [ ] Automatic speaker discovery
 
-These features are planned, not part of v0.3.0. [CHANGELOG.md](CHANGELOG.md) records what has already been integrated.
+Comments, estimated dislike counts, playback speed, repeat, CRT support, large text, Spanish and signed updates are included in v0.3.0. [CHANGELOG.md](CHANGELOG.md) records the delivery.
 
 ## AI and verification
 
