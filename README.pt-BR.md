@@ -261,7 +261,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 
 ## Limitações e solução de problemas
 
-- Transmitir pelo app do YouTube no celular pareia, mas na 0.3.0 o vídeo pode não começar no console. A correção está prevista para a 0.3.1.
+- Transmitir pelo celular: pareie com o código de TV do painel **Celular** (app do YouTube → Configurações → Assistir na TV → Inserir código da TV). O console ainda não aparece sozinho na lista de transmissão do celular, porque não consegue entrar no grupo de descoberta da rede. Se outro receptor da sua rede usar o mesmo nome, o celular pode transmitir para ele.
 - A integração com o YouTube é não oficial e pode mudar ou ser bloqueada. Restrições de idade/região, DRM e conteúdo pago não são contornadas; login não garante acesso à mídia. Atualize o feed ou tente mais tarde; a reserva opcional pode ajudar.
 - 720p60/1080p30 são perfis de fonte. O Xbox pode reduzir cadência ou resolução sob carga. Confira o estado real no player; 1080p nativo exige o modo HDMI do painel descrito acima. Sem promessa de 1080p60, HDR, VP9 ou AV1.
 - Música pode recuar para navegação pública se o serviço recusar o token de TV da conta. Letras são opcionais. Legendas ao vivo e Nest em live direta ainda não estão implementados; lives usam som na TV.
@@ -271,12 +271,15 @@ tools/           builds, empacotamento e instalação opcional de serviços
 - Celular não encontra o Tube360: use o código de TV do painel Celular, permita descoberta local e confira acesso ao YouTube nos dois aparelhos. Código da conta e código Cast são separados.
 - Xbox não desliga a TV: o console não tem HDMI-CEC; use o desligamento sem sinal da TV. O modo console não desliga um PC independente.
 
-## Roadmap v0.4
+## Próximos passos
 
-- [ ] Música da conta Premium (ampliar e validar o acesso pela conta)
+- [ ] Atualizar o próprio app de dentro do app
+- [ ] O console aparecer sozinho na lista de transmissão do celular
+- [ ] Achar o alto-falante sozinho, e som no Nest durante a live
+- [ ] As suas recomendações do YouTube Music com conta Premium
+- [ ] SponsorBlock: botão Pular ou pulo automático, à sua escolha
 - [ ] Filtros e sugestões na busca
-- [ ] Baixar vídeos para o HD
-- [ ] Achar o alto-falante sozinho
+- [ ] Assistir mais tarde e continuar de onde parou sem conta
 
 Comentários, contagem estimada de não gostei, velocidade, repetir, TV de tubo, texto grande, espanhol e atualização assinada já fazem parte da v0.3.0. [CHANGELOG.md](CHANGELOG.md) registra a entrega.
 

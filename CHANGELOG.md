@@ -1,9 +1,20 @@
 # Changelog
 
-## [0.3.0] — Unreleased
+## [0.3.1] — 2026-11-24
+
+### Fixed
+
+- Videos open again when Google flags your IP for unusual traffic: the watch page redirects to `google.com/sorry`, so the visitor session and the player script now come from routes outside that check.
+- Estimated dislike counts load: the public Return YouTube Dislike endpoint refused the app's generic agent with HTTP 403.
+- The phone's cast list shows the app's own name (Tube360, or the name in `marca.txt`) instead of a fixed "YouTube 360".
+
+### Known
+
+- Phone casting works with the TV code from the Phone panel; the console is not yet listed by itself in the phone's cast list.
+
+## [0.3.0] — 2026-11-24
 
 Prepared against the last public release baseline, `89a7158` (`git log 89a7158..HEAD`).
-This entry describes the integrated console branch; publication and hardware acceptance remain with the release coordinator.
 
 ### Added
 

@@ -259,7 +259,7 @@ tools/           builds, packaging and optional service installation
 
 ## Limitations & troubleshooting
 
-- Casting from the phone's YouTube app pairs, but in 0.3.0 the video may not start on the console yet. The fix is planned for 0.3.1.
+- Phone casting: pair with the TV code from the **Phone** panel (YouTube app → Settings → Watch on TV → Enter TV code). The console does not show up by itself in the phone's cast list yet, because it cannot join the network's discovery group. If another receiver on your network uses the same name, the phone may cast to it instead.
 - YouTube is an unofficial integration and can change or block clients. Age/region restrictions, DRM and paid content are not bypassed; account sign-in does not guarantee media access. Reload a failed feed or retry later; an optional server reserve may help.
 - 720p60/1080p30 are source profiles. The Xbox may lower rate or resolution under load. Check the actual player status; native 1080p needs the dashboard HDMI mode described above. No promise of 1080p60, HDR, VP9 or AV1 decoding.
 - Music can fall back to public browsing when the account's TV grant is refused by Music. Lyrics are optional. Live captions and direct live Nest audio are not implemented; live uses TV sound.
@@ -269,12 +269,15 @@ tools/           builds, packaging and optional service installation
 - Phone cannot find Tube360: use the Phone panel's TV code; allow local discovery and check that both devices can reach YouTube. Keep account and Cast pairing codes separate.
 - Xbox won't turn off the TV: the console has no HDMI-CEC; use your TV's no-signal power-off option. Console mode cannot turn off an unrelated PC.
 
-## v0.4 roadmap
+## Roadmap
 
-- [ ] Premium account Music (broader, verified account access)
+- [ ] App updates from inside the app
+- [ ] The console listed by itself in the phone's cast list
+- [ ] Automatic speaker discovery, and Nest sound during live streams
+- [ ] Your own YouTube Music recommendations with a Premium account
+- [ ] SponsorBlock: a Skip button or automatic skip, your choice
 - [ ] Search filters and suggestions
-- [ ] Download videos to the HDD
-- [ ] Automatic speaker discovery
+- [ ] Watch later and resume without an account
 
 Comments, estimated dislike counts, playback speed, repeat, CRT support, large text, Spanish and signed updates are included in v0.3.0. [CHANGELOG.md](CHANGELOG.md) records the delivery.
 
