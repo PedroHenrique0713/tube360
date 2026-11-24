@@ -533,7 +533,7 @@ inline void makeSwapchain(Gfx& g, int w, int h) {
 inline bool init(Gfx& g, int W, int H, const char* title) {
 #ifdef __XSDK__
   int requested=H; H=tube360_set_output(H); W=H*16/9;
-  LOG("saida: solicitada %dp, framebuffer %dx%d; 1080p requer painel/HDMI 1080p progressivo",requested,W,H);
+  LOG("saida: solicitada %dp, altura selecionada %d; framebuffer real na extensao display",requested,H);
 #endif
   VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO}; app.pApplicationName = title; app.apiVersion = VK_API_VERSION_1_0;
   VkInstanceCreateInfo ici{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}; ici.pApplicationInfo = &app;
