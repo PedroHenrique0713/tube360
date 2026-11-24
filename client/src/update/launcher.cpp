@@ -1,15 +1,43 @@
-#include "app.hpp"
-#include "public_key.hpp"
-#include <xsdk/xam.h>
-#include <cstdio>
-int main() {
-    updates::AppUpdate app("",updates::publicKeyHex);
-    std::string error;
-    auto path=app.prepare(error);
-    if(path.empty()){std::printf("Tube360 updater: %s\n",error.c_str());return 1;}
-    xsdk_launch(path.c_str(),nullptr,0);
-    // ENOENT/path errors retornam aqui. Uma falha depois de XAM encerrar o launcher é recuperada na próxima abertura.
-    if(app.failed(error))xsdk_launch(app.executable().c_str(),nullptr,0);
-    std::printf("Tube360 updater: launch failed (%s)\n",error.c_str());
+#include "launcher.hpp"
+#include <cerrno>
+#include <cstring>
+#include <ctime>
+
+namespace updates {
+static uint64_t millis() {
+    timespec now{};clock_gettime(CLOCK_MONOTONIC,&now);
+    return uint64_t(now.tv_sec)*1000+uint64_t(now.tv_nsec)/1000000;
+}
+LauncherLog::LauncherLog(const string& directory,Trace sink):file(std::fopen((directory+"launcher.log").c_str(),"a")),network(std::move(sink)),started(millis()) {}
+LauncherLog::~LauncherLog(){if(file)std::fclose(file);}
+void LauncherLog::line(const string& message) {
+    string line="launcher +"+std::to_string(millis()-started)+"ms: "+message;
+    if(file){std::fprintf(file,"%s\n",line.c_str());std::fflush(file);}
+    if(network)network(line);
+}
+int launchApp(const string& directory,const string& key,LauncherHost& host) {
+    host.log("inicio build="+std::to_string(buildId)+" version="+appVersion);
+    host.log("tela inicio: Tube360 – abrindo…");
+    if(!host.screen()){host.log("tela erro; saindo para Aurora/dashboard");host.closeScreen();return 1;}
+    host.log("tela pronta");
+    AppUpdate app(directory,key,[&](const string& s){host.log(s);});
+    string error,path=app.prepare(error);
+    host.log("prepare fim caminho="+path+" erro="+(error.empty()?"nenhum":error));
+    host.log("tela fechando antes do launch");
+    if(!host.closeScreen()){host.log("tela fechamento falhou; saindo para Aurora/dashboard");return 1;}
+    if(path.empty()){host.log("sem app; saindo para Aurora/dashboard");return 1;}
+    auto attempt=[&](const string& target) {
+        // game: explicita a pasta do titulo; o xsdk tambem resolve caminhos relativos para ela.
+        string resolved=directory.empty()?"game:\\"+target:target;
+        host.log("caminho resolvido="+resolved);
+        host.log("launch chamada: "+resolved);
+        errno=0;int result=host.launch(resolved);int saved=errno;
+        host.log("launch retorno="+std::to_string(result)+" errno="+std::to_string(saved)+" ("+std::strerror(saved)+")");
+    };
+    attempt(path);
+    host.log("launch falhou; verificando rollback");
+    if(app.failed(error))attempt(app.executable());
+    host.log("fim erro="+(error.empty()?string("launch"):error)+"; saindo para Aurora/dashboard");
     return 1;
+}
 }

@@ -1,10 +1,12 @@
 #pragma once
 #include "picojson.h"
 #include <cstdint>
+#include <functional>
 #include <string>
 
 namespace updates {
 using std::string;
+using Trace = std::function<void(const string&)>;
 using J = picojson::value;
 using O = picojson::object;
 using A = picojson::array;
@@ -23,7 +25,7 @@ string read(const string&, size_t max = maxDocument);
 bool write(const string&, const string&);
 bool exists(const string&);
 string sha256(const string&);
-string fileHash(const string&);
+string fileHash(const string&, const Trace& trace = {});
 bool verify(const string& bytes, const string& signature, const string& key);
 string envelope(const string&, const string&);
 bool unpack(const string&, string& bytes, string& signature);

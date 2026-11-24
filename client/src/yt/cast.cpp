@@ -56,6 +56,7 @@ bool decode(const std::string& bytes, Message& message) {
 }
 struct Connection::Impl {
     CURL* easy = nullptr;
+    const std::atomic_bool* cancel = nullptr;
     curl_socket_t socket = CURL_SOCKET_BAD;
     std::string pending;
     bool wait(bool writing, int ms) {
@@ -71,13 +72,19 @@ void Connection::close() {
     if (impl->easy) curl_easy_cleanup(impl->easy);
     impl->easy = nullptr; impl->socket = CURL_SOCKET_BAD; impl->pending.clear();
 }
-bool Connection::open(const std::string& host, int port) {
+bool Connection::open(const std::string& host, int port, int timeoutMs, const std::atomic_bool* cancel) {
     close();
     if (host.empty() || host.size() > 253 || host.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-") != std::string::npos ||
         port < 1 || port > 65535) return false;
     static const auto init = curl_global_init(CURL_GLOBAL_DEFAULT);
     if (init != CURLE_OK || !(impl->easy = curl_easy_init())) return false;
+    impl->cancel = cancel;
     auto* easy = impl->easy;
+    curl_easy_setopt(easy, CURLOPT_NOPROGRESS, 0L);
+    curl_easy_setopt(easy, CURLOPT_XFERINFODATA, cancel);
+    curl_easy_setopt(easy, CURLOPT_XFERINFOFUNCTION, +[](void* p, curl_off_t, curl_off_t, curl_off_t, curl_off_t) {
+        return p && static_cast<const std::atomic_bool*>(p)->load() ? 1 : 0;
+    });
     auto url = "https://" + host + ":" + std::to_string(port) + "/";
     curl_easy_setopt(easy, CURLOPT_URL, url.c_str());
     curl_easy_setopt(easy, CURLOPT_CONNECT_ONLY, 1L);
@@ -86,8 +93,8 @@ bool Connection::open(const std::string& host, int port) {
     curl_easy_setopt(easy, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(easy, CURLOPT_PROXY, "");
     curl_easy_setopt(easy, CURLOPT_NOSIGNAL, 1L);
-    curl_easy_setopt(easy, CURLOPT_CONNECTTIMEOUT_MS, 1500L);
-    curl_easy_setopt(easy, CURLOPT_TIMEOUT_MS, 1500L);
+    curl_easy_setopt(easy, CURLOPT_CONNECTTIMEOUT_MS, long(timeoutMs));
+    curl_easy_setopt(easy, CURLOPT_TIMEOUT_MS, long(timeoutMs));
     if (curl_easy_perform(easy) != CURLE_OK ||
         curl_easy_getinfo(easy, CURLINFO_ACTIVESOCKET, &impl->socket) != CURLE_OK || impl->socket == CURL_SOCKET_BAD) {
         close(); return false;
@@ -108,6 +115,7 @@ bool Connection::send(const std::string& source, const std::string& destination,
     size_t at = 0;
     auto deadline = Clock::now() + std::chrono::milliseconds(750);
     while (at < frame.size()) {
+        if (impl->cancel && impl->cancel->load()) { close(); return false; }
         size_t sent = 0;
         auto rc = curl_easy_send(impl->easy, frame.data() + at, frame.size() - at, &sent);
         if (rc != CURLE_OK && rc != CURLE_AGAIN) { close(); return false; }
@@ -123,6 +131,7 @@ int Connection::read(Message& message, int timeoutMs) {
     if (!impl->easy) return -1;
     auto deadline = Clock::now() + std::chrono::milliseconds(timeoutMs);
     do {
+        if (impl->cancel && impl->cancel->load()) { close(); return -1; }
         auto& pending = impl->pending;
         if (pending.size() >= 4) {
             uint32_t length = 0;

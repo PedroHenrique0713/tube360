@@ -123,7 +123,7 @@ def main():
         files["licenses/" + name + ".txt"] = read_file(ROOT / "client/third_party" / name)
 
     executable, original, replacements = clean_xex(args.build_dir, args.xex_converter, app_name)
-    # v0.3.0: o launcher travou num console real (caminho relativo no xsdk_launch); o app vai como default.xex.
+    # O launcher experimental travou num console real, sem causa isolada; a distribuicao publica usa o app direto.
     files["default.xex"] = executable
     files["START-HERE.txt"] = (
         f"Tube360 {args.version} - Xbox 360\n\n"

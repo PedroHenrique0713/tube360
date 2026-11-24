@@ -1,5 +1,6 @@
 #pragma once
 #include "yt/cast.hpp"
+#include "cast/discovery.hpp"
 #include "yt/thread.hpp"
 #include "picojson.h"
 #include <atomic>
@@ -41,31 +42,6 @@ inline bool parse(const std::string& s, J& j) {
     }
     return !quoted && depth == 0 && picojson::parse(j,s).empty() && j.is<Object>();
 }
-struct Config {
-    std::string host, name = "Nest";
-    int port = 8009;
-    bool load(const std::string& dir) {
-        FILE* f = std::fopen((dir + "nest.txt").c_str(),"r");
-        if (!f) return false;
-        char address[254]{}, label[128]{};
-        if (std::fgets(address,sizeof(address),f)) {
-            std::string line = address;
-            auto end = line.find_first_of(" \r\n\t");
-            host = line.substr(0,end);
-            if (end != std::string::npos) {
-                int p = 0;
-                if (std::sscanf(line.c_str()+end," %d",&p) == 1) port = p;
-            }
-        }
-        if (std::fgets(label,sizeof(label),f)) {
-            name = label; name.erase(name.find_last_not_of("\r\n")+1);
-            if (name.empty()) name = "Nest";
-        }
-        std::fclose(f);
-        if (port < 1 || port > 65535 || host.empty() || host.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.-") != std::string::npos) host.clear();
-        return !host.empty();
-    }
-};
 enum State { UNKNOWN, LOADING, PLAYING, PAUSED, BUFFERING, IDLE, ERROR, STALLED };
 struct Status {
     uint64_t generation = 0;
@@ -85,7 +61,7 @@ class Speaker {
         bool muted = false;
         bool active = false, paused = false;
     } intent;
-    Config config;
+    Discovery discovery;
     Status status;
     SDL_Mutex* mutex = nullptr;
     SDL_Thread* thread = nullptr;
@@ -99,15 +75,15 @@ class Speaker {
     Intent wanted() { SDL_LockMutex(mutex); auto value = intent; SDL_UnlockMutex(mutex); return value; }
 public:
     ~Speaker() { shutdown(); }
-    const Config& settings() const { return config; }
-    bool configured() const { return !config.host.empty(); }
+    Config settings() { return discovery.selected(); }
+    bool configured() { return discovery.configured(); }
+    Discovery& finder() { return discovery; }
     void init(const std::string& dir) {
         ownerPath = dir + "nest-owner.json";
-        config.load(dir);
+        discovery.init(dir);
         mutex = SDL_CreateMutex();
-        bool pending = false;
-        if (FILE* file = std::fopen(ownerPath.c_str(),"r")) { pending = true; status.quiet = status.released = false; std::fclose(file); }
-        if (configured() || pending) thread = yt::worker([](void* p) { static_cast<Speaker*>(p)->run(); return 0; },"cast-v2",this);
+        if (FILE* file = std::fopen(ownerPath.c_str(),"r")) { status.quiet = status.released = false; std::fclose(file); }
+        thread = yt::worker([](void* p) { static_cast<Speaker*>(p)->run(); return 0; },"cast-v2",this);
     }
     Status sample() {
         if (!mutex) return {};
@@ -149,14 +125,16 @@ public:
     }
     void shutdown() {
         if (!mutex) return;
+        discovery.cancel();
         release();
         if (thread) { waitQuiet(5000); quit = true; SDL_WaitThread(thread,nullptr); thread = nullptr; }
+        discovery.stop();
         SDL_DestroyMutex(mutex); mutex = nullptr;
     }
 private:
     void run() {
         cast::Connection channel;
-        Config endpoint = config;
+        Config config = settings(), endpoint = config;
         bool launched = false;
         struct Sent { double time; uint64_t generation; };
         std::map<int,Sent> requests;
@@ -235,6 +213,14 @@ private:
         while (!quit) {
             uint64_t now = SDL_GetTicks();
             Intent goal = wanted();
+            auto selected = settings();
+            bool changed = selected.host != config.host || selected.port != config.port;
+            config = selected;
+            if (changed) {
+                channel.close(); connected = false; endpoint = config; retryAt = 0;
+                if (pending && !possible) { began = now; view.state = LOADING; }
+                if (possible) journal();
+            }
             view.volume = goal.volume >= 0 ? goal.volume : baseVolume;
             view.muted = goal.volume >= 0 ? goal.muted : baseMuted;
             if (goal.generation != generation) {
@@ -252,15 +238,16 @@ private:
                 view.state = IDLE; view.quiet = view.released = true; view.connected = false;
                 publish(view); SDL_Delay(20); continue;
             }
-            if (goal.active && pending && !possible && now-began > 3500) {
-                SDL_Log("Nest: console erro aguardando LAUNCH/namespace (3500 ms)");
+            if (goal.active && pending && !possible && now-began > 8000) {
+                SDL_Log("Nest: console erro aguardando descoberta/LAUNCH/namespace (8000 ms)");
                 view.state = ERROR; publish(view); SDL_Delay(20); continue;
             }
             if (!connected) {
                 view.connected = false; publish(view);
                 if (now < retryAt) { SDL_Delay(20); continue; }
+                if (!possible && !discovery.ready()) { discovery.recover(); SDL_Delay(20); continue; }
                 channel.close(); connected = channel.open(endpoint.host,endpoint.port); retryAt = SDL_GetTicks()+500;
-                if (!connected) { SDL_Log("Nest: console erro conectando Cast"); continue; }
+                if (!connected) { discovery.recover(); SDL_Log("Nest: console erro conectando Cast"); continue; }
                 receiverKnown = receiverPresent = mediaKnown = false; transport.clear(); receiverSession.clear(); mediaSession = 0;
                 sentVolume = -1;
                 requests.clear(); pollAt = receiverAt = pingAt = 0; heardAt = now;

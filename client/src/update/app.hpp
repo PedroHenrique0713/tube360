@@ -16,13 +16,14 @@ struct Manifest {
 bool decodeManifest(const string&,Manifest&);
 class AppUpdate {
     string dir,key,bytes,sig,phase;
+    Trace trace;
     int highest=buildId;
     bool valid=true;
     bool save();
     bool checkPending(const Manifest&);
     bool restore(string&);
 public:
-    AppUpdate(string directory,string publicKey);
+    AppUpdate(string directory,string publicKey,Trace observer = {});
     string pending() const {return dir+"tube360.next.xex";}
     string executable() const {return dir+"tube360.xex";}
     int highWater() const {return highest;}

@@ -583,6 +583,7 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
 
 #include "music_navigation.hpp"
 #include "update/ui.hpp"
+#include "nest_picker.hpp"
 
 int main(int argc, char** argv) {
   (void)argc; (void)argv;
@@ -754,6 +755,8 @@ int main(int argc, char** argv) {
   };
   std::string nestName = pl.directSpeaker.configured() ? pl.directSpeaker.settings().name : tr(K::Nest);
   bool nestAvailable = pl.directSpeaker.configured(), nestChecked = nestAvailable;
+  SpeakerPicker speakerPicker;
+  nest::Config speakerChoice = pl.directSpeaker.settings();
   bool nestSkip = false;  // o Nest falhou neste vídeo: segue com o som da TV até trocar de vídeo ou apertar X
   std::string castCode, castWho;  // castWho: quem está conectado pelo Transmitir  // código de "Assistir na TV" do receptor (cast/receptor.mjs)
   if (nestOut && !pl.directSpeaker.configured()) control.add({5, "/api/nest/prepare", 0});
@@ -1011,6 +1014,15 @@ int main(int argc, char** argv) {
       accountBusy = false; accountKnown = false; accountAt = 0; account = {}; rebuildCats();
       nav.pages.clear(); nav.queue.clear(); nav.busy = false;
       if (screen == NAV) screen = HOME;
+    }
+    if (speakerPicker.poll(pl.directSpeaker.finder())) {
+      auto choice = pl.directSpeaker.settings();
+      speakerChoice = choice;
+      if (!choice.host.empty() || !net::serverEnabled) {
+        nestAvailable = !choice.host.empty(); nestChecked = true;
+        nestName = nestAvailable ? choice.name : tr(K::Nest);
+      }
+      if (speakerPicker.result.state == nest::SearchState::SaveError) { toast=tr(K::SaveFailed); toastUntil=now+4000; }
     }
     syncMusicToken();
     Result r;
@@ -1470,17 +1482,31 @@ int main(int argc, char** argv) {
         if (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0) nav.cancelQueue = true;
         navBack();
       }
+    } else if (screen == SETTINGS && speakerPicker.open) {
+      if (in.hit(Input::UP)) speakerPicker.selected = std::max(0,speakerPicker.selected-1);
+      if (in.hit(Input::DOWN)) speakerPicker.selected = std::min((int)speakerPicker.result.devices.size(),speakerPicker.selected+1);
+      if (in.hit(Input::X)) speakerPicker.begin(pl.directSpeaker.finder());
+      if (in.hit(Input::B)) { pl.directSpeaker.finder().cancel(); speakerPicker.open=false; }
+      else if (in.hit(Input::A)) {
+        auto choice = speakerPicker.choice();
+        if (pl.directSpeaker.finder().choose(choice)) {
+          speakerChoice=choice; nestAvailable=!choice.host.empty(); nestChecked=true;
+          nestName=nestAvailable ? choice.name : tr(K::Nest); nestOut=nestAvailable;
+          nestSkip=false; saveSettings(); speakerPicker.open=false;
+        } else { toast=tr(K::SaveFailed); toastUntil=now+4000; }
+      }
     } else if (screen == SETTINGS) {
       if (in.hit(Input::UP) && settingsRow > 0) settingsRow--;
-      if (in.hit(Input::DOWN) && settingsRow < 12) settingsRow++;
+      if (in.hit(Input::DOWN) && settingsRow < 13) settingsRow++;
       int direction = 0;
       if (in.hit(Input::LEFT)) direction = -1;
       if (in.hit(Input::RIGHT)) direction = 1;
-      if (in.hit(Input::A) && settingsRow == 0 && !accountBusy) {
+      if (settingsRow == 0 && !accountBusy && in.hit(Input::A)) {
         if (account.signedIn()) logoutPanel = true;
         else beginLogin();
       }
-      if (direction && settingsRow > 0) {
+      if (settingsRow == 13 && in.hit(Input::A)) speakerPicker.begin(pl.directSpeaker.finder());
+      if (direction && settingsRow > 0 && settingsRow < 13) {
         bool changed = true;
         if (settingsRow == 1) {
           settings.cols = settings.cols == 4 ? 3 : 4;
@@ -2013,15 +2039,15 @@ int main(int argc, char** argv) {
       hint(g, hx2, ui::H - 40, "B", XB, tr(K::Back));
     }
 
-    if (screen == SETTINGS) {
+    if (screen == SETTINGS && !speakerPicker.open) {
       glow();
       gfx::text(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::TEXT);
       if (!ui::large) gfx::text(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::MUTED);
       else gfx::text(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::MUTED);
-      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit};
-      int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,13-visible);
+      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers};
+      int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,14-visible);
       float step=ui::large ? 94 : 59, rowH=step-6;
-      for (int i=first;i<std::min(13,first+visible);++i) {
+      for (int i=first;i<std::min(14,first+visible);++i) {
         float x=ui::X0, y=122+(i-first)*step, w=ui::W-ui::X0-64;
         bool selected=i==settingsRow, disabled=i==3 && !nestAvailable;
         if (selected) gfx::rect(g,x-3,y-3,w+6,rowH+6,ui::A1,20);
@@ -2039,21 +2065,24 @@ int main(int argc, char** argv) {
         else if (i==9) value=std::to_string(g.extent.width)+"×"+std::to_string(g.extent.height);
         else if (i==10) value=tr(settings.originalAudio ? K::AudioAlwaysOriginal : K::AudioInterface);
         else if (i==11) value=tr(ui::large ? K::Enabled : K::SleepOff);
+        else if (i==13) value=tr(K::Open);
         else value=tr(settings.videoFill ? K::VideoFitFill : K::VideoFitLetterbox);
         float right=x+w-46, maxValue=ui::large ? w-92 : w*.48f;
         gfx::text(g,ui::F_CHAN,gfx::ellipsize(g,ui::F_CHAN,tr(labels[i]),ui::large ? w-56 : w*.43f),x+28,y+(ui::large ? 10 : 17),disabled ? ui::MUTED : ui::TEXT);
         std::string shown=gfx::ellipsize(g,ui::F_KEY,value,maxValue);
         gfx::text(g,ui::F_KEY,shown,ui::large ? x+28 : right,y+(ui::large ? 47 : 15),disabled ? ui::MUTED : selected ? ui::A2 : ui::TEXT,ui::large ? 0 : 2);
-        if (selected && i>0 && !disabled) gfx::text(g,ui::F_KEY,"< >",x+w-20,y+(ui::large ? 47 : 15),ui::MUTED,2);
+        if (selected && i>0 && i<13 && !disabled) gfx::text(g,ui::F_KEY,"< >",x+w-20,y+(ui::large ? 47 : 15),ui::MUTED,2);
       }
       K help=settingsRow==9 ? (g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
       float hy=ui::large ? 608 : 610;
       for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::text(g,ui::F_SMALL,line,ui::X0,hy,ui::MUTED); hy+=ui::large ? 26 : 22; }
       float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
       hx=hint(g,hx,678,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
-      if (settingsRow==0) hx=hint(g,hx,678,"A",XA,tr(K::Open));
+      if (settingsRow==0 || settingsRow==13) hx=hint(g,hx,678,"A",XA,tr(K::Open));
       hint(g,hx,678,"B",XB,tr(K::Back));
     }
+
+    if (screen == SETTINGS && speakerPicker.open) { glow(); speakerPicker.draw(g,settings.lang,speakerChoice); }
 
     if (screen == NAV) { nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus); accountPhoto(); }
 

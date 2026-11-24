@@ -81,13 +81,20 @@ bool write(const string& path,const string& s) {
 bool exists(const string& p) { auto* f=std::fopen(p.c_str(),"rb"); if (!f) return false; std::fclose(f); return true; }
 static string hex(const unsigned char* b,size_t n) { const char* d="0123456789abcdef"; string s; for(size_t i=0;i<n;i++){s+=d[b[i]>>4];s+=d[b[i]&15];} return s; }
 string sha256(const string& s) { unsigned char h[32]; return mbedtls_sha256(reinterpret_cast<const unsigned char*>(s.data()),s.size(),h,0)==0 ? hex(h,32) : ""; }
-string fileHash(const string& path) {
-    auto* f=std::fopen(path.c_str(),"rb"); if (!f) return {};
+string fileHash(const string& path,const Trace& trace) {
+    if(trace)trace("hash inicio: "+path);
+    auto* f=std::fopen(path.c_str(),"rb"); if (!f) {if(trace)trace("hash erro: abrir "+path);return {};}
     mbedtls_sha256_context c; mbedtls_sha256_init(&c); bool ok=mbedtls_sha256_starts(&c,0)==0;
     unsigned char b[32768], h[32]; size_t n=0,total=0;
-    while (ok && (n=std::fread(b,1,sizeof(b),f))) { total+=n; ok=total<=64*1024*1024 && mbedtls_sha256_update(&c,b,n)==0; }
+    size_t report=1024*1024;
+    while (ok && (n=std::fread(b,1,sizeof(b),f))) {
+        total+=n; ok=total<=64*1024*1024 && mbedtls_sha256_update(&c,b,n)==0;
+        if(trace && total>=report){trace("hash bytes="+std::to_string(total)+": "+path);report+=1024*1024;}
+    }
     ok=ok && !std::ferror(f) && mbedtls_sha256_finish(&c,h)==0;
-    std::fclose(f); mbedtls_sha256_free(&c); return ok ? hex(h,32) : "";
+    std::fclose(f); mbedtls_sha256_free(&c);
+    if(trace)trace(string("hash ")+(ok?"fim":"erro")+" bytes="+std::to_string(total)+": "+path);
+    return ok ? hex(h,32) : "";
 }
 static bool unhex(string s,unsigned char* b,size_t n) {
     if (!s.empty() && s.back()=='\n') s.pop_back();

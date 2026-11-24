@@ -19,6 +19,6 @@ include(../youtube.cmake)
 set(APP_NAME "Tube360" CACHE STRING "Nome que o Aurora e o painel mostram")
 xsdk_add_xex(tube360 TITLE_ID 0x58545542 NAME "${APP_NAME}" VERSION 1.0.0.0)
 
-add_executable(tube360-launcher ../src/update/launcher.cpp)
+add_executable(tube360-launcher ../src/update/launcher.cpp ../src/update/launcher_x360.cpp)
 target_link_libraries(tube360-launcher PRIVATE tube360-update-core)
-xsdk_add_xex(tube360-launcher TITLE_ID 0x58545542 NAME "Tube360" VERSION 1.0.0.0)
+xsdk_add_xex(tube360-launcher TITLE_ID 0x58545542 NAME "${APP_NAME}" VERSION 1.0.0.0)

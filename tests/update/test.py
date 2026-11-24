@@ -35,9 +35,11 @@ with tempfile.TemporaryDirectory(prefix='tube360-update-') as temp:
     sign('domain.json',invalid)
     invalid['strings']['webOrigin']='https://www.youtube.com';invalid['script']='eval(1)'
     sign('script.json',invalid)
-    payload=base/'download.xex';payload.write_bytes(b'XEX2signed candidate\x00'+b'A'*1024)
+    payload=base/'download.xex';payload.write_bytes(b'XEX2'+b'A'*(10*1024*1024-4))
     run(sys.executable,ROOT/'tools/sign-updates.py','--key',key,'manifest',payload,
         '--build','2','--version','0.3.1','--url','https://github.com/PedroHenrique0713/tube360/releases/download/v0.3.1/tube360.xex',
         '--notes-en','Fixture update.','--notes-pt','Atualização de teste.','--output',base/'app.json')
     print(run(sys.argv[1],base,ROOT/'client/src/update/rules-default.json').decode(),end='')
+    if len(sys.argv)>2:
+        print(run(sys.argv[2],base).decode(),end='')
     print('Signed update contracts passed (OpenSSL → C++, disposable private key).')

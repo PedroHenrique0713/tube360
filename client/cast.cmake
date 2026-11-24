@@ -1,4 +1,5 @@
 add_library(tube360-cast STATIC
+  "${CMAKE_CURRENT_LIST_DIR}/src/cast/discovery.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/src/cast/lounge.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/src/cast/receiver.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/src/cast/stream.cpp")
