@@ -16,3 +16,7 @@ target_compile_features(cast-protocol-test PRIVATE cxx_std_17)
 target_include_directories(cast-protocol-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../client/src"
   "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
 target_link_libraries(cast-protocol-test PRIVATE SDL3::SDL3)
+add_executable(nest-live-clock-test EXCLUDE_FROM_ALL "${CMAKE_CURRENT_LIST_DIR}/../nest/live_clock.cpp")
+target_include_directories(nest-live-clock-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../client/src"
+  "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
+target_link_libraries(nest-live-clock-test PRIVATE tube360-yt tube360-ffmpeg SDL3::SDL3)
