@@ -1,4 +1,5 @@
 #include "client.hpp"
+#include "membership_json.hpp"
 #include "picojson.h"
 #include <algorithm>
 #include <climits>
@@ -99,7 +100,7 @@ void collect(const J& j, Page& out, std::set<string>& seen) {
                     title = str(field(field(field(v,"metadata"),"lockupMetadataViewModel"),"title"),"content");
                 }
                 if (!id.empty() && !title.empty() && seen.insert(id).second && out.cards.size()<60)
-                    out.cards.push_back({id,title});
+                    out.cards.push_back({id,title,membership(v)});
             } else collect(v,out,seen);
         }
     }
@@ -272,6 +273,9 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
             }
             out.status=str(field(j,"playabilityStatus"),"status");
             out.reason=str(field(j,"playabilityStatus"),"reason");
+            if (out.status != "OK" && membersReason(field(j,"playabilityStatus").serialize())) {
+                out.reason="members"; out.failure=Failure::REFUSAL; return out;
+            }
             out.playerTrace+=out.status+" ";
             if (out.status.empty()) { out.status="INVALID_RESPONSE"; out.failure=Failure::JSON; return out; }
             if (out.status=="OK") { out.failure=Failure::NONE; break; }

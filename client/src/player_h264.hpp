@@ -87,7 +87,9 @@ inline void Player::decodeOriginal() {
     if (stop) return;
     if (media.status != "OK") {
       LOG("console: player %s, classe %s, cliente %s, %u pedidos: %s", media.status.c_str(), yt::failureName(media.failure),
-          media.playerClient.c_str(), media.playerAttempts, media.reason.c_str()); directFailed(); return;
+          media.playerClient.c_str(), media.playerAttempts, media.reason.c_str());
+      if (media.reason == "members") { error = "Vídeo só para membros do canal"; state = FAILED; return; }
+      directFailed(); return;
     }
     LOG("console: player OK, cliente %s, %u pedidos: %s",media.playerClient.c_str(),media.playerAttempts,media.playerTrace.c_str());
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);

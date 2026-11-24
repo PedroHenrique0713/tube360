@@ -61,7 +61,7 @@ inline Color alpha(Color c, float a) { return {c.r, c.g, c.b, c.a * a}; }
 inline Color mix(Color a, Color b, float t) { return {a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t}; }
 }  // namespace ui
 
-struct Video { std::string id, channel, views, title; int dur = -1; double pos = 0; };
+struct Video { std::string id, channel, views, title; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; };
 struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; bool more = true, loadingMore = false, direct = false; };
 struct Shelf { std::string title, query; Feed feed; int sel = 0; std::string kind = "search"; uint64_t stamp = 0; };
 
@@ -71,6 +71,15 @@ static std::string fmtTime(double s) {
   char b[32];
   if (h) std::snprintf(b, sizeof(b), "%d:%02d:%02d", h, m, sec); else std::snprintf(b, sizeof(b), "%d:%02d", m, sec);
   return b;
+}
+
+static void memberBadge(gfx::Gfx& g, yt::Membership members, i18n::Lang lang, float x, float y) {
+  if (members == yt::Membership::None) return;
+  bool access = members == yt::Membership::Accessible;
+  const char* label = i18n::get(lang, access ? K::Member : K::Members);
+  float w = gfx::textWidth(g, ui::F_TINY, label) + 12;
+  gfx::rect(g, x, y, w, 20, access ? rgb(0x20563f) : Color{0,0,0,0.86f}, 5);
+  gfx::text(g, ui::F_TINY, label, x + w / 2, y + 3, access ? rgb(0xb5f3cd) : ui::TEXT, 1);
 }
 
 // ---------------------------------------------------------------- trabalho em segundo plano
@@ -89,6 +98,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
     if (f.size() < 5 || f[0].empty()) continue;
     Video v; v.id = f[0]; v.dur = std::atoi(f[1].c_str()); v.channel = f[2]; v.views = f[3]; v.title = f[4];
     if (f.size() > 5) { double pos = std::atof(f[5].c_str()); if (std::isfinite(pos)) v.pos = std::max(0.0, pos); }
+    if (f.size() > 6) v.members = yt::membershipWire(f[6]);
     feed.items.push_back(v);
   }
 }
@@ -176,7 +186,7 @@ struct Worker {
         if (page.error.empty() && (j.kind != 5 || !page.cards.empty())) {
           r.feed.direct = true;
           for (auto& card : page.cards) {
-            Video v; v.id = std::move(card.id); v.title = std::move(card.title);
+            Video v; v.id = std::move(card.id); v.title = std::move(card.title); v.members = card.members;
             r.feed.items.push_back(std::move(v));
           }
           r.feed.title = j.kind == 6 ? j.query : j.a;
@@ -1751,6 +1761,7 @@ int main(int argc, char** argv) {
           gfx::rect(g, ix + w - 70, iy + h - 27, 63, 20, ui::A1, 5);
           gfx::text(g, ui::F_TINY, tr(K::Live), ix + w - 38, iy + h - 24, rgb(0xffffff), 1);
         }
+        memberBadge(g, v.members, settings.lang, ix + 7, iy + 7);
         float ty = y + th + 14;
         for (auto& l : gfx::wrap(g, ui::F_CARD, v.title, cw, 2)) { gfx::text(g, ui::F_CARD, l, x, ty, focused ? ui::TEXT : rgb(0xe4e4e7)); ty += 23; }
         std::string meta = v.channel + (v.views.empty() ? "" : "  \xC2\xB7  " + v.views);

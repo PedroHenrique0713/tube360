@@ -1,5 +1,6 @@
 #pragma once
 #include "client.hpp"
+#include "membership_json.hpp"
 #ifndef PICOJSON_USE_LOCALE
 #define PICOJSON_USE_LOCALE 0
 #endif
@@ -111,7 +112,7 @@ inline int seconds(const string& s) {
   for (char c : s) { if (c == ':') { out = (out + n) * 60; n = 0; } else n = n * 10 + c - '0'; }
   return int(std::min<int64_t>(out+n,86400*7));
 }
-struct Item { string type, id, title, channel, image, channelId, section; int duration = 0; };
+struct Item { string type, id, title, channel, image, channelId, section; int duration = 0; Membership members = Membership::None; };
 struct Page {
   string title, subtitle, image, banner, channelId, continuation, error;
   std::vector<Item> items;
@@ -127,7 +128,7 @@ inline string channel(const J& v) {
   return {};
 }
 inline Item item(const J& v, const string& key, bool music, const string& section) {
-  Item out; out.section = section;
+  Item out; out.section = section; out.members = membership(v);
   const auto& cols = array(get(v,"flexColumns"));
   const auto& meta = get(get(v,"metadata"),"tileMetadataRenderer");
   const auto& lock = get(get(v,"metadata"),"lockupMetadataViewModel");
@@ -163,12 +164,14 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   else if (pageType.find("ALBUM") != string::npos || out.id.compare(0,4,"MPRE") == 0) out.type = "album";
   else if (channelId(out.id)) out.type = music ? "artist" : "channel";
   else if (pageType.find("PLAYLIST") != string::npos || out.id.compare(0,2,"VL") == 0 || out.id.compare(0,2,"PL") == 0 || out.id.compare(0,2,"RD") == 0 || out.id.compare(0,4,"OLAK") == 0) out.type = "playlist";
-  if (!identifier(out.id) || out.type.empty() || find(get(v,"navigationEndpoint"),"reelWatchEndpoint") || flag(v,"isUpcoming") || find(v,"upcomingEventData") || flag(v,"isUnplayable")) out.id.clear();
+  if (out.type != "video") out.members = Membership::None;
+  if (!identifier(out.id) || out.type.empty() || find(get(v,"navigationEndpoint"),"reelWatchEndpoint") || flag(v,"isUpcoming") || find(v,"upcomingEventData") || (flag(v,"isUnplayable") && out.members == Membership::None)) out.id.clear();
   out.image = thumbnail(get(v,"thumbnail"));
   for (auto k : {"thumbnailRenderer","header","contentImage"}) if (out.image.empty()) out.image = thumbnail(get(v,k));
   if (out.image.empty() && out.type == "video") out.image = "https://i.ytimg.com/vi/" + out.id + "/mqdefault.jpg";
   out.channelId = channel(cols.empty() ? v : get(v,"flexColumns"));
   out.duration = seconds(text(get(v,"lengthText")));
+  if (!out.duration) if (const auto* badge = find(get(v,"contentImage"),"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
   if (!out.duration) for (const auto& c : array(get(v,"fixedColumns"))) out.duration = seconds(text(get(get(c,"musicResponsiveListItemFixedColumnRenderer"),"text")));
   if (!out.duration && cols.size() > 1) {
     for (const auto& c : cols) {
@@ -237,7 +240,7 @@ inline Page decode(const J& data, bool music) {
 inline string wire(const Page& p) {
   if (!p.error.empty()) return "error\t" + clean(p.error) + "\n";
   string out = "ok\t" + clean(p.title) + "\t" + clean(p.subtitle) + "\t" + p.image + "\t" + (p.subscribed ? "1" : "0") + "\t" + (p.continuation.empty() ? "0" : "1") + "\t" + p.channelId + "\t" + p.banner + "\n";
-  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\n";
+  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + "\n";
   return out;
 }
 inline std::map<string,string> query(const string& path) {

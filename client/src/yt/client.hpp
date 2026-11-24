@@ -1,5 +1,6 @@
 // Uma instância por worker de rede. O dono pode cancelar uma operação pela flag.
 #pragma once
+#include "membership.hpp"
 #include <atomic>
 #include <cstdint>
 #include <memory>
@@ -65,7 +66,7 @@ inline bool Transport::backoff(unsigned ms) {
 }
 std::unique_ptr<Transport> https(const std::atomic_bool* cancel = nullptr);
 
-struct Card { string id, title; };
+struct Card { string id, title; Membership members = Membership::None; };
 struct Track { string url, language, name; };
 struct Cue { int startMs, durationMs; string text; };
 struct Format { string url; int itag = 0, height = 0; double fps = 0; int bitrate = 0; };

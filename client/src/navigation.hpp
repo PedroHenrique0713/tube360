@@ -3,8 +3,9 @@
 struct NavItem {
   std::string type, id, title, channel, image, channelId, section;
   int duration = 0;
+  yt::Membership members = yt::Membership::None;
   std::vector<std::string> titleLines; std::string byline;
-  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = duration; return v; }
+  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = duration; v.members = members; return v; }
 };
 struct NavPage {
   std::string kind, id, query, tab = "videos", title, subtitle, image, channelId, error, displayTitle, displaySub, banner, historyVideo, laterVideo;
@@ -65,6 +66,7 @@ struct Navigation {
     for (size_t i = 1; i < lines.size(); i++) {
       auto f = net::split(lines[i], '\t'); if (f.size() < 8 || f[1].empty()) continue;
       NavItem item{f[0], f[1], f[2], f[3], f[5], f[6], f[7], std::atoi(f[4].c_str())};
+      if (f.size() > 8) item.members = yt::membershipWire(f[8]);
       p.offset++;
       if (p.kind == "subscriptions" && item.type == "channel") p.channels.push_back(item);
       else p.items.push_back(item);
@@ -81,7 +83,7 @@ struct Navigation {
       p.direct = r.feed.direct;
       if (p.direct) {
         p.title = p.query; p.subtitle = i18n::get(lang, K::Console); p.more = false;
-        for (const auto& v : r.feed.items) p.items.push_back({"video",v.id,v.title,v.channel,v.id,"","",v.dur});
+        for (const auto& v : r.feed.items) p.items.push_back({"video",v.id,v.title,v.channel,v.id,"","",v.dur,v.members});
         p.offset = (int)p.items.size();
       } else if (!parse(r.feed.title, p, !first) && p.error.empty()) p.error = i18n::get(lang, K::BadResponse);
       if (first && p.kind == "library" && p.error.empty()) {
@@ -217,6 +219,7 @@ struct Navigation {
           bool f = contentFocus && p.zone == 3 && i == p.sel;
           if (f) gfx::rect(g, x - 4, y + 26, 118, 118, ui::TEXT, 9);
           artwork(g, thumbs, worker, item.image, frame, x, y + 30, 110, 110, true);
+          memberBadge(g, item.members, lang, x + 5, y + 35);
           gfx::text(g, ui::F_SMALL, item.titleLines[0], x, y + 143, ui::TEXT);
           gfx::text(g, ui::F_TINY, item.byline, x, y + 163, ui::MUTED);
         }
@@ -228,6 +231,7 @@ struct Navigation {
       bool f = contentFocus && p.zone == 3 && (int)i == p.sel;
       if (f) gfx::rect(g, x - 5, y - 5, art + 10, h + 10, ui::TEXT, 12);
       artwork(g, thumbs, worker, item.image, frame, x, y, art, h, p.music || item.type == "channel" || item.type == "artist", item.type == "channel" || item.type == "artist", p.direct);
+      memberBadge(g, item.members, lang, x + 7, y + 7);
       if (p.kind == "library") {
         gfx::vgrad(g, x, y, art, h, {0,0,0,0}, {0,0,0,0.94f}, 12);
         float labelY = y + h - 12 - 27 * item.titleLines.size();

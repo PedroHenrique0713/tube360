@@ -1,5 +1,6 @@
 // Conta do YouTube por código de TV. Também roda sozinho, sem DIAL nem código de Cast.
 import fs from 'node:fs';
+import { membership } from './membership.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import http from 'node:http';
@@ -39,31 +40,28 @@ const label = (value) => text(typeof value === 'string' ? value : value?.simpleT
 export function normalizeVideo(video, renderer = 'tileRenderer') {
   const tile = renderer === 'tileRenderer';
   if (tile && video.contentType !== 'TILE_CONTENT_TYPE_VIDEO') return null;
-  const endpoint = tile ? video.onSelectCommand : video.navigationEndpoint;
+  const endpoint = tile ? video.onSelectCommand : video.navigationEndpoint || video.rendererContext?.commandContext?.onTap?.innertubeCommand;
   const id = video.videoId || video.contentId || endpoint?.watchEndpoint?.videoId;
   const header = video.header?.tileHeaderRenderer;
-  const meta = video.metadata?.tileMetadataRenderer;
+  const meta = video.metadata?.tileMetadataRenderer || video.metadata?.lockupMetadataViewModel;
   const overlays = header?.thumbnailOverlays || video.thumbnailOverlays || [];
   const timing = overlays.map((o) => o.thumbnailOverlayTimeStatusRenderer).filter(Boolean);
-  // "Só para membros" vem como selo numa linha de metadados do tile; a conta não abre esses vídeos (yt-dlp: "Seja
-  // membro do canal") e a home ainda os promove como "Destaques do YouTube" (2026-11-22).
-  const lineBadges = (meta?.lines || []).flatMap((line) => (line.lineRenderer?.items || [])
-    .map((i) => i.lineItemRenderer?.badge?.metadataBadgeRenderer?.style).filter(Boolean));
-  if (lineBadges.includes('BADGE_STYLE_TYPE_MEMBERS_ONLY')) return null;
+  const members = membership(video);
   const badges = video.badges || [];
   if (!ID.test(id || '') || endpoint?.reelWatchEndpoint ||
       endpoint?.commandMetadata?.webCommandMetadata?.url?.includes('/shorts/') ||
-      video.isLive || video.isUpcoming || video.upcomingEventData || video.isPlayable === false ||
+      video.isLive || video.isUpcoming || video.upcomingEventData || (video.isPlayable === false && !members) ||
       timing.some((o) => /LIVE|UPCOMING|SHORTS/.test(o.style || '')) ||
       badges.some((o) => /LIVE|UPCOMING|SHORTS/.test(o.metadataBadgeRenderer?.style || ''))) return null;
-  const duration = seconds(label(video.lengthText)) || timing.map((o) => seconds(label(o.text))).find(Boolean) || 0;
+  const duration = seconds(label(video.lengthText)) || timing.map((o) => seconds(label(o.text))).find(Boolean) ||
+    findNodes(video.contentImage, 'thumbnailBadgeViewModel').map(b => seconds(b.text)).find(Boolean) || 0;
   if (!duration) return null;
   const lines = (meta?.lines || []).map((line) => (line.lineRenderer?.items || [])
     .map((i) => label(i.lineItemRenderer?.text)).filter(Boolean));
   const progress = overlays.find((o) => o.thumbnailOverlayResumePlaybackRenderer)
     ?.thumbnailOverlayResumePlaybackRenderer.percentDurationWatched;
   const pos = Math.round(duration * Math.max(0, Math.min(100, Number(progress) || 0)) / 100);
-  return { id, title: label(meta?.title || video.title) || id,
+  return { id, membership: members, title: label(meta?.title || video.title) || id,
     channel: lines[0]?.join(' ') || label(video.shortBylineText || video.longBylineText || video.ownerText), duration,
     views_text: label(video.shortViewCountText || video.viewCountText) ||
       lines.slice(1).flat().find((v) => /view|visualiza/i.test(v)) || '', pos };
@@ -76,7 +74,7 @@ export function parseTVFeed(data) {
     if (!value || typeof value !== 'object') return;
     if (Array.isArray(value)) { for (const v of value) walk(v, depth + 1); return; }
     for (const [key, child] of Object.entries(value)) {
-      if (['tileRenderer', 'videoRenderer', 'gridVideoRenderer', 'playlistVideoRenderer'].includes(key)) {
+      if (['tileRenderer', 'videoRenderer', 'gridVideoRenderer', 'playlistVideoRenderer', 'lockupViewModel'].includes(key)) {
         const item = normalizeVideo(child, key);
         if (item) items.push(item);
       } else if (key === 'tabRenderer') {
@@ -122,7 +120,7 @@ export function parseNavigation(data, music = false) {
   const items = [], tokens = [], seen = new Set();
   function add(item) {
     if (!item || !NAV_ID.test(item.id || '') || seen.has(item.type + item.id)) return;
-    seen.add(item.type + item.id); items.push(item);
+    seen.add(item.type + item.id); items.push({ ...item, membership: item.type === 'video' ? item.membership || '' : '' });
   }
   function render(v, key, section) {
     const meta = v.metadata?.tileMetadataRenderer;
@@ -135,7 +133,7 @@ export function parseNavigation(data, music = false) {
     const browse = ep.browseEndpoint || {};
     const id = v.videoId || (/(PLAYLIST|CHANNEL)/.test(v.contentType || "") ? browse.browseId || v.contentId || watch.playlistId : watch.videoId || browse.browseId || v.playlistId || v.channelId || v.contentId || watch.playlistId);
     const base = { id, title: title || id, channel: sub, duration: 0, image: thumbnail(v.header || v.contentImage || v.thumbnailRenderer || v.thumbnail || v),
-      channel_id: browseId([cols, v.shortBylineText, v.longBylineText, meta?.lines]), section };
+      channel_id: browseId([cols, v.shortBylineText, v.longBylineText, meta?.lines]), section, membership: membership(v) };
     const artist = cols.flatMap((c) => c?.runs || []).filter((r) => CHANNEL_ID.test(r.navigationEndpoint?.browseEndpoint?.browseId || '')).map((r) => r.text).join(' / ');
     if (music && artist) base.channel = artist;
     if (/PLAYLIST/.test(v.contentType || '')) { add({ ...base, type: 'playlist' }); }

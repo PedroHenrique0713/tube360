@@ -125,6 +125,8 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(RateSignIn, "Sign in to YouTube in Settings to rate videos", "Conecte sua conta do YouTube nas configurações para avaliar") \
   X(UpNextIn, "Up next in ", "A seguir em ") \
   X(WatchNow, "Watch now", "Assistir agora") \
+  X(Members, "Members", "Membros") \
+  X(Member, "Member", "Membro") \
   X(VideoMembers, "This video is only for channel members", "Este vídeo é só para membros do canal") \
   X(VideoPrivate, "This video is private", "Este vídeo é privado") \
   X(VideoAge, "YouTube asks to confirm your age for this video", "O YouTube pede confirmação de idade para este vídeo") \

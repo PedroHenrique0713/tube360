@@ -83,7 +83,10 @@ struct Player : player::Player {
     for (int attempt = 0; attempt < 2 && !stop; ++attempt) {
       media = client.player(id,quality,nullptr,videoMode,audioSelection);
       if (stop) return;
-      if (media.status != "OK" || media.audio.url.empty()) { audioFailure = AVERROR_STREAM_NOT_FOUND; return; }
+      if (media.status != "OK" || media.audio.url.empty()) {
+        if (media.reason == "members") error = "Vídeo só para membros do canal";
+        audioFailure = AVERROR_STREAM_NOT_FOUND; return;
+      }
       if (!attempt) { audioTracks = media.audioTracks; selectedAudio = media.selectedAudio; tracksReady = true; }
       mediaReady = true; castMediaReady = true;
       yt::RangeFile file(yt::catalog::transport(&stop),media.audio.url,&netBytes);
@@ -229,13 +232,13 @@ struct Player : player::Player {
   }
   player::Frame* take() {
     if (!playingAudio) return player::Player::take();
-    if (audioFailure && !serverAudio && net::serverEnabled) {
+    if (audioFailure && !serverAudio && net::serverEnabled && error.empty()) {
       auto server = srv; auto video = id, name = title;
       double at = position(), length = duration; int height = quality; bool hold = paused;
       LOG("musica: reserva no PC em %.3f s",at);
       start(server,video,at,name,length,height,false,false); setPaused(hold); return nullptr;
     }
-    if (audioFailure) { error = "console"; state = player::FAILED; if (audio) SDL_PauseAudioStreamDevice(audio); return nullptr; }
+    if (audioFailure) { if (error.empty()) error = "console"; state = player::FAILED; if (audio) SDL_PauseAudioStreamDevice(audio); return nullptr; }
     int external = speakerPause.exchange(0);
     if (external) setPaused(external == 1,false);
     if (paused || state == player::FAILED || state == player::ENDED) return nullptr;
