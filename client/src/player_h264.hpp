@@ -57,6 +57,16 @@ inline void Player::decodeOriginal() {
       cachedVideoMode=videoMode; cachedAudio=audioSelection;
     }
     if (stop) return;
+    if (media.status == "ERROR" && !stop) {
+      // Falha de rede ou sessão (não é recusa do YouTube): tenta de novo pelo console com conexão e sessão novas.
+      LOG("console: player ERROR: %s; nova tentativa direta", media.reason.c_str());
+      youtube.reset(); transport.reset();
+      transport = yt::https(&stop);
+      youtube = std::make_unique<yt::Client>(*transport, cacheBase);
+      media = youtube->player(id, quality, nullptr,videoMode,audioSelection);
+      validUntil = SDL_GetTicks() + 1000ULL * (media.ttl - std::min(30,media.ttl/10));
+    }
+    if (stop) return;
     if (media.status != "OK") {
       LOG("console: player %s: %s", media.status.c_str(), media.reason.c_str()); retryConverted = true; return;
     }

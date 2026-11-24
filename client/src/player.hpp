@@ -114,6 +114,7 @@ struct Player {
   SDL_AudioStream* audio = nullptr; std::atomic<bool> hasAudio{false};
   float normalGain = 1, fadeGain = 1;
   std::atomic<bool> audible{true};
+  uint64_t tvMutedSince = 0;
 #ifdef __XSDK__
   std::atomic<bool> drainingDriver{false};
   std::atomic<uint32_t> playedAtMute{0};
@@ -231,7 +232,7 @@ struct Player {
     if (audio) { SDL_PauseAudioStreamDevice(audio); SDL_ClearAudioStream(audio); SDL_SetAudioStreamFrequencyRatio(audio, 1.0f); }
     output = speaker ? CAST : RELEASING;
     trimMs = cueMs = -1; armed = mutedForCast = localPlaying = pictureReady = false;
-    mutedAt = lastFrameMs = 0;
+    mutedAt = lastFrameMs = 0; tvMutedSince = 0;
     tvSound(false);
     nestFailed = false;
     SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = nestSeenMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
@@ -763,6 +764,15 @@ struct Player {
       double display = show ? show->pts : lastPos - (live ? 0 : startAt);
       bool aligned = std::fabs(tv - display) <= 0.022 && (queued >= 0.10 || decEnded);
       bool on = local && (!hasAudio || audible || aligned);
+      // Rede de segurança: só na TV, com PCM na fila, o som nunca fica mudo mais de 1,5 s esperando alinhar.
+      if (!on && local && hasAudio && !speakerRequested && route == LOCAL && queued >= 0.10) {
+        if (!tvMutedSince) tvMutedSince = ms;
+        else if (ms - tvMutedSince > 1500) {
+          LOG("som: TV forçada após %llu ms mudo, TV %.3f imagem %.3f", (unsigned long long)(ms - tvMutedSince), tv, display);
+          on = true;
+        }
+      }
+      if (on) tvMutedSince = 0;
       if (route == PRIMING && armed && mutedAt && ms - mutedAt >= (uint64_t)deviceMs && deviceDrained() &&
           std::fabs(lastPos - (live ? 0 : startAt) - cue) < 0.020 && std::fabs(display - cue) < 0.020 && (decEnded || (!frames.empty() &&
           frames.back()->pts - display >= 0.15 && queued >= 0.18))) mutedForCast = true;
