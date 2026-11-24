@@ -203,6 +203,7 @@ private:
             auto kind = text(J(message),"type");
             if (kind != "GET_STATUS" && kind != "PING" && kind != "PONG")
                 SDL_Log("Nest: console %s gen=%llu req=%d",kind.c_str(),(unsigned long long)generation,id);
+            if (std::getenv("XT_CAST_DEBUG") && kind == "LOAD") SDL_Log("cast tx %.400s",J(message).serialize().c_str());
             if (!channel.send(sender,destination,space,J(message).serialize())) {
                 SDL_Log("Nest: console erro enviando %s",kind.c_str()); connected = false;
             }
@@ -326,6 +327,7 @@ private:
             if (received < 0) { connected = false; continue; }
             if (received == 0) { publish(view); continue; }
             heardAt = now;
+            if (std::getenv("XT_CAST_DEBUG")) SDL_Log("cast rx %s -> %s [%s] %.6000s",message.source.c_str(),message.destination.c_str(),message.space.c_str(),message.json.c_str());
             if (message.destination != sender && message.destination != "*") continue;
             J json;
             if (!parse(message.json,json)) { connected = false; continue; }
@@ -350,8 +352,10 @@ private:
                     baseVolume = level;
                     const auto& muted = field(volume,"muted"); baseMuted = muted.is<bool>() && muted.get<bool>();
                 }
-                const auto& apps = field(field(json,"status"),"applications");
-                if (!apps.is<Array>()) continue;
+                // Receptor ocioso omite "applications": é uma lista vazia, não uma resposta inválida.
+                static const J none{Array{}};
+                const auto& listed = field(field(json,"status"),"applications");
+                const auto& apps = listed.is<Array>() ? listed : none;
                 receiverKnown = true;
                 receiverPresent = false;
                 std::string destination, session;
@@ -378,7 +382,7 @@ private:
                 // Uma resposta nova estabelece a posse. Notificações antigas não liberam a TV.
                 bool owned = false, stopped = true;
                 for (const auto& entry : list.get<Array>()) {
-                    stopped = stopped && text(entry,"playerState") == "IDLE";
+                    stopped = stopped && text(entry,"playerState") == "IDLE" && text(field(entry,"extendedStatus"),"playerState") != "LOADING";
                     double sid = number(entry,"mediaSessionId");
                     if (sid <= 0 || std::floor(sid) != sid) continue;
                     const auto& resource = field(entry,"media");
@@ -389,6 +393,8 @@ private:
                     if (!matches) continue;
                     owned = true; mediaSession = sid;
                     auto state = text(entry,"playerState");
+                    // Logo após o LOAD o receptor diz IDLE com extendedStatus LOADING: ainda está abrindo o áudio.
+                    if (state == "IDLE" && text(field(entry,"extendedStatus"),"playerState") == "LOADING") state = "BUFFERING";
                     if (goal.active && !pending && (fresh && replyId >= barrier)) acknowledged = true;
                     if (goal.active && acknowledged && (replyId == 0 || (fresh && replyId >= barrier))) {
                         auto previousState = view.state;
