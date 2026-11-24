@@ -2048,6 +2048,7 @@ class Nest:
     enquanto toca; o console lê a última posição (com o instante em que foi lida) em /api/nest/pos."""
     APP = "CC1AD845"  # Default Media Receiver
     AUDIO_TIMEOUT = 8.0  # maior que os 4 s de MP3 liberados na partida e a cadência de status de 5 s
+    START_TIMEOUT = 2.5
 
     def __init__(self):
         self.cc = None
@@ -2098,7 +2099,7 @@ class Nest:
         o antigo deixava vários vivos ao mesmo tempo (3 heartbeats caindo no mesmo instante, 2026-11-23)."""
         cc = self.cc
         if cc is not None and not cc.socket_client.stop.is_set():
-            deadline = time.monotonic() + 4
+            deadline = time.monotonic() + self.START_TIMEOUT
             while not cc.socket_client.is_connected and time.monotonic() < deadline:
                 time.sleep(0.1)
             if cc.socket_client.is_connected:
@@ -2111,9 +2112,9 @@ class Nest:
             raise RuntimeError("Nenhum Nest configurado (config.json, nest.host).")
         info = CastInfo(services={HostServiceInfo(host, 8009)}, uuid=uuid.uuid4(), model_name="Nest",
                         friendly_name=cfg.get("name", "Nest"), host=host, port=8009, cast_type="audio", manufacturer="Google")
-        cc = pychromecast.get_chromecast_from_cast_info(info, zconf=None, tries=None, retry_wait=0.7, timeout=6)
+        cc = pychromecast.get_chromecast_from_cast_info(info, zconf=None, tries=None, retry_wait=0.7, timeout=self.START_TIMEOUT)
         try:
-            cc.wait(timeout=10)
+            cc.wait(timeout=self.START_TIMEOUT)
         except Exception as error:
             try:
                 cc.disconnect(timeout=1)
@@ -2156,11 +2157,11 @@ class Nest:
             return True
         # Um DMR aberto por outro remetente pode ignorar LOAD. Depois do launch basta o canal de mídia estar pronto.
         if cc.status and cc.status.app_id:
-            cc.quit_app()
+            cc.quit_app(timeout=self.START_TIMEOUT)
         if rev != self.revision:
             return False
         LOG.info("Nest: dono=server LAUNCH rev=%d", rev)
-        cc.start_app(self.APP)
+        cc.start_app(self.APP, timeout=self.START_TIMEOUT)
         deadline = time.monotonic() + 8
         while rev == self.revision and time.monotonic() < deadline:
             if self.media_ready(cc):
@@ -2573,7 +2574,11 @@ async def nest_owner(owner: Literal["console", "server"]):
         nest.owner = owner
         LOG.info("Nest: dono=%s solicitado", owner)
         rev = nest.stop_intent(closing=False)
-        threading.Thread(target=nest.command, args=("stop", rev), daemon=True).start()
+        if nest.may_sound:
+            threading.Thread(target=nest.command, args=("stop", rev), daemon=True).start()
+        else:
+            nest.want_stop = False
+            nest.stopping_token = ""
     rev = nest.revision
     if owner == "server":
         # O chamador só pede a posse depois que o worker nativo fechou o seu Cast.

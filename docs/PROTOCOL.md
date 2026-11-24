@@ -491,6 +491,8 @@ cannot observe whether an independent sender's socket is closed. Deploy the clie
 
 Initial LAUNCH/media confirmation is limited to 3.5 seconds. Missing confirmation releases the speaker
 and continues the current video with TV audio and a short notice; an initial failure is retried with X.
+The server limits blocking Cast connection and receiver commands to 2.5 seconds so a pending
+pychromecast LAUNCH cannot keep a later ownership handoff waiting for its default ten-second timeout.
 The video clock keeps advancing during setup and release. Preloading does not hold the picture while
 waiting for Cast; only the local audio device drain may hold the transfer frame (device latency + 120 ms
 maximum). An unacknowledged LOAD that could already be audible still needs positive STOP/quiet evidence

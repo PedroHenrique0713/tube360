@@ -143,6 +143,29 @@ class WireTests(unittest.TestCase):
         self.assertTrue(any(t <= first_native and kind == 'DISCONNECT' and sender == 'sender-0' for t, sender, kind in wire), wire)
         print('PASS: server fechou -> console LOAD/STOP/fechou -> server LOAD; zero LAUNCH_ERROR', flush=True)
 
+    def test_console_handoff_cancels_pending_server_launch_within_budget(self):
+        self.receiver.ignore_launch = True
+        worker = threading.Thread(target=self.nest.prepare)
+        worker.start()
+        try:
+            wait_for(lambda: any(kind == 'LAUNCH' for _, _, kind in self.receiver.wire))
+            began = time.monotonic()
+
+            async def claim():
+                while time.monotonic()-began < 3.5:
+                    response = await self.m.nest_owner('console')
+                    if response.body.startswith(b'QUIET\t'):
+                        return True
+                    await asyncio.sleep(.03)
+                return False
+
+            self.assertTrue(asyncio.run(claim()), 'pending server LAUNCH kept ownership beyond 3.5 s')
+            self.assertIsNone(self.nest.cc)
+            self.assertFalse(self.receiver.commands('LOAD'))
+        finally:
+            self.nest.drop()
+            worker.join(12)
+
 
 if __name__ == '__main__':
     unittest.main(argv=[sys.argv[0], *sys.argv[2:]], verbosity=2)
