@@ -1,21 +1,21 @@
 # Preparing an Xbox release
 
 v0.3.0 is prepared locally; creating artifacts does not publish them. The coordinator integrates other fronts,
-checks the privacy findings, qualifies the console and chooses when to publish. **Native sleep timer parity is
-not complete in this base: `/api/sleep/*` still requires a server. Integrate and exercise a local timer before
-claiming that every feature works without a PC.** See [changelog](../CHANGELOG.md)
+checks the privacy findings, qualifies the console and chooses when to publish. The sleep timer is native on this branch; final physical shutdown acceptance remains with the coordinator. See [changelog](../CHANGELOG.md)
 and [privacy audit](PRIVACY-AUDIT.md). Compare the last public baseline with `git log 89a7158..HEAD`.
 
-## App ZIP
+## App ZIP and 7z
 
 After the [Xbox build](BUILD.md), from the repository root:
 
 ```bash
 python3 tools/package-xbox.py --version 0.3.0
-python3 -m zipfile -t .work/releases/tube360-0.3.0-xbox360.zip
-(cd .work/releases && sha256sum -c tube360-0.3.0-xbox360.zip.sha256)
+python3 -m zipfile -t .work/releases/tube360-v0.3.0-xbox360.zip
+7z t .work/releases/tube360-v0.3.0-xbox360.7z
+(cd .work/releases && sha256sum -c tube360-v0.3.0-xbox360.zip.sha256 tube360-v0.3.0-xbox360.7z.sha256)
 ```
 
+Both archives contain the same files. Install 7z/7zz on the build host.
 The default destination is `.work/releases/`; `--output-dir` and `--build-dir` select alternate directories.
 `--app-name` overrides the title detected from the build cache and must match the build. The package contains one `Tube360/` folder with:
 
@@ -91,5 +91,21 @@ No publication, console upload, reboot or real-device tests are performed by the
 build the coordinator should install the ZIP to fresh writable storage and check fonts/startup without
 `server.txt`, account sign-in/out, history, library, subscriptions, Music, captions, both HD profiles/output
 sizes and original/dubbed audio. Check native phone pairing separately from account login. Test Nest Wi-Fi
-recovery and B/exit STOP, then a sleep shutdown with the owner after native timer integration. Follow the hardware measurements in
+recovery and B/exit STOP, then a native sleep shutdown with the owner. Follow the hardware measurements in
 [STANDALONE.md](STANDALONE.md#transport-and-qualification). Rebuild and regenerate artifacts after integration.
+
+## Static website candidate
+
+Run `python3 site/build.py` to build from the latest public release. Before v0.3.0 is published, prepare its
+local candidate explicitly (the future asset link will only resolve after the coordinator publishes it):
+
+```bash
+python3 site/build.py --offline --no-cache-write --version v0.3.0 \
+  --download-url https://github.com/PedroHenrique0713/tube360/releases/download/v0.3.0/tube360-v0.3.0-xbox360.zip \
+  --size "$(stat -c %s .work/releases/tube360-v0.3.0-xbox360.zip)"
+```
+
+`--no-cache-write` keeps final artifact sizes out of the tracked cache while rendering the exact local values.
+Runtime GitHub refresh never replaces a prepared page with a different release version. Rebuild after
+publication, then inspect both languages at desktop and phone widths before deployment.
+See [screenshot provenance](SCREENSHOTS.md).

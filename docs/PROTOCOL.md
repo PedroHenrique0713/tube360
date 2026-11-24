@@ -2,7 +2,7 @@
 
 Tube360 v0.3.0 runs YouTube on the Xbox. No `server.txt` beside the XEX (and no desktop `XT_SERVER`)
 means **console only**, including account, Music, phone Cast and Nest: no HTTP requests to a PC.
-The current timer is an exception in feature coverage: its deadline still requires the server.
+The sleep deadline/end-of-video state is also local in console mode.
 `settings.txt` can additionally force `server=off`; `server=auto` only permits a configured reserve.
 The first line of `server.txt` is `<IP> <port>`, for example `192.0.2.10 8091` (replace the documentation IP).
 
@@ -17,7 +17,7 @@ The first line of `server.txt` is `<IP> <port>`, for example `192.0.2.10 8091` (
 | Account navigation/Music | Native TV account and public catalog; local queues, history, likes, subscriptions, library, Music and audio-only playback. Music can fall back to public shelves if its endpoint rejects the TV token. |
 | Phone | Native DIAL/SSDP and YouTube lounge receiver; identity files `cast-device.txt` / `cast-screen.txt`. See Cast from the phone below. |
 | Nest | Cast v2 TLS directly from Xbox, configured in two-line `nest.txt`; the speaker fetches YouTube audio. See Direct Cast below. |
-| Sleep | Current deadline/end-of-video state is server-owned. The console shows warnings/fades and executes shutdown commands. Native deadline ownership is still missing. |
+| Sleep | Native deadline/end-of-video state in `main.cpp`; warning/fade and kernel shutdown on Xbox. No PC requests when the server is disabled. |
 
 Local runtime files (account grants, Cast identities, Nest ownership journal, history, settings and logs)
 are private; ship only the inactive examples in `deploy/xbox/`. Examples for `nest.txt` and `server.txt`
@@ -268,7 +268,13 @@ Cast URLs carry an opaque `s`. A revoked URL receives 410. Small fixed ranges an
 
 ## Sleep timer
 
-The server owns one volatile timer. It continues counting without console polls; restarting the server clears it.
+In console mode, `requestSleep` handles set/add/cancel locally using `SDL_GetTicks` and the same `SleepState`
+wire representation below. The UI offers 15/30/45/60/90/120 minutes or natural end of video. The target is
+always the Xbox; a saved notebook preference cannot power off a PC in console mode. The final 60 seconds
+show a warning and fade volume; A adds 15 minutes and B cancels. Expiry stops playback and powers down the
+console after a two-second message. The desktop build exits its own process instead. Timer state is volatile.
+
+The following HTTP contract applies to the **optional server path**. The server owns one volatile timer. It continues counting without console polls; restarting the server clears it.
 All responses below are `text/plain`, with `Cache-Control: no-store`:
 
 ```
