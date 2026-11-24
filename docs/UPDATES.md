@@ -71,7 +71,7 @@ Uma build pública precisa estar sem `TUBE360_UPDATE_TEST_CONFIG` nas flags:
 
 ```bash
 # Em cache já configurado, limpa a configuração descartável da bancada, se houve.
-cmake -S client/x360 -B client/build-x360 -DCMAKE_CXX_FLAGS= \
+cmake -S client/x360 -B client/build-x360 '-DCMAKE_CXX_FLAGS=-mcpu=cell -fno-pic' \
   -DTUBE360_BUILD_ID=3 -DTUBE360_VERSION=0.3.2
 TUBE360_BUILD_ID=3 TUBE360_VERSION=0.3.2 tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.2

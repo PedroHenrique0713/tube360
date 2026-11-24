@@ -49,7 +49,7 @@ def build_kit(args):
     base = f'http://{args.host}:{args.port}/'
     header = '#pragma once\n#define TUBE360_UPDATE_TEST_KEY "' + pub + '"\n#define TUBE360_UPDATE_TEST_BASE "' + base + '"\n'
     curl_include = next((ROOT / '.work/src').glob('curl-xenon-*/include'))
-    flags = '-DTUBE360_UPDATE_TEST_CONFIG=' + shlex.quote('"' + str(config) + '"') + ' -I' + shlex.quote(str(curl_include))
+    flags = '-mcpu=cell -fno-pic -DTUBE360_UPDATE_TEST_CONFIG=' + shlex.quote('"' + str(config) + '"') + ' -I' + shlex.quote(str(curl_include))
     spec = importlib.util.spec_from_file_location('package_xbox', ROOT / 'tools/package-xbox.py')
     pack = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(pack)

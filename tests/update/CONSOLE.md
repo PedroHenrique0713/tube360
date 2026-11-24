@@ -23,7 +23,7 @@ sem `--test-package`. Para voltar a um build público, remova a flag de teste do
 cache e recompile; nunca copie um XEX do kit para uma release.
 
 ```bash
-cmake -S client/x360 -B client/build-x360 -DCMAKE_CXX_FLAGS= \
+cmake -S client/x360 -B client/build-x360 '-DCMAKE_CXX_FLAGS=-mcpu=cell -fno-pic' \
   -DTUBE360_BUILD_ID=3 -DTUBE360_VERSION=0.3.2
 # depois rode o build Xbox público com seu ID/versão finais e APP_NAME correto
 ```
