@@ -28,10 +28,26 @@ def valid_data(data):
         raise ValueError("download_url must be a release asset from this repository")
     if not isinstance(data["tag_name"], str) or not data["tag_name"].strip():
         raise ValueError("missing release tag")
-    for key in ("size", "stargazers_count"):
+    for key in ("size", "stargazers_count", "download_count"):
         if type(data[key]) is not int or data[key] < (1 if key == "size" else 0):
             raise ValueError(f"invalid {key}")
     return data
+
+
+def download_count():
+    total, page = 0, 1
+    while True:
+        releases = github(f"/releases?per_page=100&page={page}")
+        for release in releases:
+            for asset in release["assets"]:
+                if asset["name"].lower().endswith((".zip", ".7z", ".xex")):
+                    count = asset["download_count"]
+                    if type(count) is not int or count < 0:
+                        raise ValueError("invalid asset download_count")
+                    total += count
+        if len(releases) < 100:
+            return total
+        page += 1
 
 
 def github(path):
@@ -59,11 +75,12 @@ def get_data(args):
                                "download_url": asset["browser_download_url"],
                                "size": asset["size"],
                                "stargazers_count": repo["stargazers_count"],
+                               "download_count": download_count(),
                                "fetched_at": datetime.now(timezone.utc).isoformat()})
         except Exception as error:
             if not cached:
                 raise ValueError("GitHub unavailable and no cache. Run --offline with "
-                                 "--version, --download-url, --size and --stars.") from error
+                                 "--version, --download-url, --size, --stars and --downloads.") from error
             print(f"GitHub unavailable ({error}); using saved build values. "
                   "Use --offline to skip requests.", file=sys.stderr)
             if isinstance(error, HTTPError) and error.code in (403, 429):
@@ -71,14 +88,15 @@ def get_data(args):
                 reset = error.headers.get("X-RateLimit-Reset", "")
                 data["retry_after"] = int(reset) if reset.isdigit() else int(datetime.now(timezone.utc).timestamp()) + 3600
     for arg, key in ((args.version, "tag_name"), (args.download_url, "download_url"),
-                     (args.size, "size"), (args.stars, "stargazers_count")):
+                     (args.size, "size"), (args.stars, "stargazers_count"),
+                     (args.downloads, "download_count")):
         if arg is not None:
             data[key] = arg
     try:
         valid_data(data)
     except (KeyError, TypeError, ValueError) as error:
         raise ValueError("Complete offline values required: --version TAG "
-                         "--download-url URL --size BYTES --stars COUNT") from error
+                         "--download-url URL --size BYTES --stars COUNT --downloads COUNT") from error
     if not args.no_cache_write:
         temp = CACHE.with_suffix(".json.tmp")
         temp.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -103,6 +121,7 @@ def main():
     parser.add_argument("--download-url")
     parser.add_argument("--size", type=int, help="Release asset size in bytes")
     parser.add_argument("--stars", type=int)
+    parser.add_argument("--downloads", type=int, help="Total downloads of release ZIP, 7z and XEX packages")
     args = parser.parse_args()
     data = get_data(args)
     template = (SRC / "template.html").read_text(encoding="utf-8")
@@ -115,8 +134,10 @@ def main():
         translations = json.loads((SRC / "i18n" / f"{lang}.json").read_text(encoding="utf-8"))
         size = f'{data["size"] / 1_000_000:.1f}'
         stars = f'{data["stargazers_count"]:,}'
+        downloads = f'{data["download_count"]:,}'
         if lang == "pt-BR":
             size, stars = size.replace(".", ","), stars.replace(",", ".")
+            downloads = downloads.replace(",", ".")
         values = {**translations, "lang": lang, "canonical": ORIGIN + route,
                   "og_image": ORIGIN + "/assets/" + og_file,
                   "og_locale": locale, "other_locale": "pt_BR" if lang == "en" else "en_US",
@@ -124,6 +145,7 @@ def main():
                   "pt_current": "page" if lang == "pt-BR" else "false",
                   "version": data["tag_name"], "download_url": data["download_url"],
                   "size_bytes": data["size"], "stars_raw": data["stargazers_count"],
+                  "downloads_raw": data["download_count"], "downloads_text": downloads,
                   "github_retry_after": data.get("retry_after", 0),
                   "release_text": f'{data["tag_name"]} · {size} MB ZIP', "stars_text": stars,
                   "runtime_json": json.dumps(translations, ensure_ascii=False).replace("<", "\\u003c"),
@@ -140,7 +162,8 @@ def main():
     for filename in ("style.css", "main.js"):
         shutil.copyfile(SRC / filename, DIST / filename)
     print(f'Built EN + PT-BR: {data["tag_name"]}, {data["size"]} bytes, '
-          f'{data["stargazers_count"]} stars. Demo: {"included" if demo else "absent"}.')
+          f'{data["stargazers_count"]} stars, {data["download_count"]} downloads. '
+          f'Demo: {"included" if demo else "absent"}.')
 
 
 if __name__ == "__main__":
