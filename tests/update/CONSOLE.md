@@ -16,6 +16,10 @@ python3 tests/update/console-kit.py build --directory .work/update-console \
   --host 192.168.101.27 --port 8266
 ```
 
+Com o build de PC disponível, `python3 tests/update/kit-test.py` confere os
+pacotes, a assinatura/hash dos XEX reais, a troca/reserva usando esses bytes no
+PC e as respostas HTTP. Isso não executa XEX nem substitui a prova no console.
+
 O script gera sua própria chave descartável, passa a configuração de confiança por
 flag de compilação e serializa as três compilações pelo lock da frota. O cache
 `client/build-x360` passa a ser DE TESTE. O empacotador público recusa esse binário
