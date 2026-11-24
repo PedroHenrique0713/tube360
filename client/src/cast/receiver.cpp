@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cstring>
 #ifdef __XSDK__
+#include <xsdk/net.h>
 #include <xsdk/thread.h>
 #endif
 
@@ -34,8 +35,10 @@ struct Membership { in_addr group, interfaceAddress; };
 static_assert(sizeof(Membership) == 8);
 #ifdef __XSDK__
 constexpr int addMembership = 12;
+constexpr int multicastInterface = 9, multicastTtl = 10;
 #else
 constexpr int addMembership = IP_ADD_MEMBERSHIP;
+constexpr int multicastInterface = IP_MULTICAST_IF, multicastTtl = IP_MULTICAST_TTL;
 #endif
 void affinity() {
 #ifdef __XSDK__
@@ -150,6 +153,11 @@ void timeout(int fd, int ms) {
     ::setsockopt(fd,SOL_SOCKET,SO_SNDTIMEO,&tv,sizeof(tv));
 }
 string localAddress(const sockaddr_in& remote) {
+#ifdef __XSDK__
+    // XNet pode recusar connect UDP para multicast; a interface não depende dessa rota.
+    in_addr address{}; char ip[INET_ADDRSTRLEN]{};
+    return !xsdk_net_address(&address) && ::inet_ntop(AF_INET,&address,ip,sizeof(ip)) ? string(ip) : string{};
+#else
     int fd = ::socket(AF_INET,SOCK_DGRAM,0);
     if (fd < 0) return {};
     sockaddr_in local{}; socklen_t size = sizeof(local);
@@ -158,6 +166,7 @@ string localAddress(const sockaddr_in& remote) {
     ::close(fd);
     char ip[INET_ADDRSTRLEN]{};
     return ok && ::inet_ntop(AF_INET,&local.sin_addr,ip,sizeof(ip)) ? string(ip) : string{};
+#endif
 }
 }
 struct Receiver::Impl {
@@ -177,12 +186,15 @@ struct Receiver::Impl {
     bool pairingOk = false;
     int dialPort = 8134, ssdpPort = 1900;
     bool loopback = false;
+    bool testMulticast = false, testNoMembership = false;
 
     explicit Impl(string assets, string screenName) : directory(std::move(assets)), name(std::move(screenName)) {
         identity = load(directory + "cast-device.txt");
         if (!identifier(identity)) { identity = uuid(); save(directory + "cast-device.txt",identity); }
 #ifdef TUBE360_CAST_TEST
         ssdpPort = 1934; loopback = true;
+        testMulticast = std::getenv("XT_CAST_TEST_MULTICAST") != nullptr;
+        testNoMembership = std::getenv("XT_CAST_TEST_NO_MEMBERSHIP") != nullptr;
 #endif
         controlThread = yt::worker([](void* p) { static_cast<Impl*>(p)->control(); return 0; },"cast-post",this);
         rpcThread = yt::worker([](void* p) { static_cast<Impl*>(p)->rpc(); return 0; },"cast-rpc",this);
@@ -386,7 +398,7 @@ struct Receiver::Impl {
             if (!enabled) { SDL_Delay(50); continue; }
             int tcp = ::socket(AF_INET,SOCK_STREAM,0), udp = ::socket(AF_INET,SOCK_DGRAM,0);
             sockaddr_in address{}; address.sin_family = AF_INET;
-            address.sin_addr.s_addr = htonl(loopback ? INADDR_LOOPBACK : INADDR_ANY);
+            address.sin_addr.s_addr = htonl(loopback && !testMulticast ? INADDR_LOOPBACK : INADDR_ANY);
             int yes = 1;
             if (tcp >= 0) ::setsockopt(tcp,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
             if (udp >= 0) ::setsockopt(udp,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(yes));
@@ -396,10 +408,31 @@ struct Receiver::Impl {
             ok = ok && ::bind(udp,reinterpret_cast<sockaddr*>(&address),sizeof(address)) == 0;
             sockaddr_in group{}; group.sin_family = AF_INET; group.sin_port = htons(uint16_t(ssdpPort));
             ::inet_pton(AF_INET,"239.255.255.250",&group.sin_addr);
-            if (ok && !loopback) {
-                Membership membership{group.sin_addr,{htonl(INADDR_ANY)}};
-                if (::setsockopt(udp,IPPROTO_IP,addMembership,&membership,sizeof(membership)) != 0)
-                    SDL_Log("cast: multicast indisponivel, DIAL e codigo de TV ativos (errno %d)",errno);
+            string advertiseIp = loopback ? "127.0.0.1" : localAddress(group);
+            bool joined = false;
+            if (ok && (!loopback || testMulticast)) {
+                in_addr interfaceAddress{};
+                ::inet_pton(AF_INET,advertiseIp.c_str(),&interfaceAddress);
+                int ttl = 2;
+                int outgoing = ::setsockopt(udp,IPPROTO_IP,multicastInterface,&interfaceAddress,sizeof(interfaceAddress));
+                int outgoingError = outgoing ? errno : 0;
+                ::setsockopt(udp,IPPROTO_IP,multicastTtl,&ttl,sizeof(ttl));
+                if (::setsockopt(udp,SOL_SOCKET,SO_BROADCAST,&yes,sizeof(yes)))
+                    SDL_Log("cast: SO_BROADCAST errno=%d",errno);
+                Membership membership{group.sin_addr,interfaceAddress};
+                int error = ENOPROTOOPT;
+                if (!testNoMembership) {
+                    joined = ::setsockopt(udp,IPPROTO_IP,addMembership,&membership,sizeof(membership)) == 0;
+                    error = joined ? 0 : errno;
+                    if (!joined && interfaceAddress.s_addr) {
+                        membership.interfaceAddress.s_addr = htonl(INADDR_ANY);
+                        joined = ::setsockopt(udp,IPPROTO_IP,addMembership,&membership,sizeof(membership)) == 0;
+                        error = joined ? 0 : errno;
+                    }
+                }
+                SDL_Log("cast: SSDP grupo=%s IP=%s membership=%d errno=%d%s saida_errno=%d UDP=%d",
+                    "239.255.255.250",advertiseIp.c_str(),joined,error,error == ENOPROTOOPT ? " (ENOPROTOOPT)" : "",outgoingError,ssdpPort);
+                if (!joined) SDL_Log("cast: SSDP sem membership; mantendo recepcao UDP e NOTIFY; DIAL e codigo de TV ativos");
             }
             if (!ok) {
                 if (tcp >= 0) ::close(tcp);
@@ -410,17 +443,34 @@ struct Receiver::Impl {
             }
             { Lock lock(mutex); status.discovery = true; ++status.revision; }
             uint64_t announceAt = 0;
-            string advertiseIp = loopback ? "127.0.0.1" : localAddress(group);
             std::vector<string> types{service,deviceType,"upnp:rootdevice","uuid:"+identity};
             auto announce = [&](bool alive) {
-                if (loopback || advertiseIp.empty()) return;
+                if ((loopback && !testMulticast) || advertiseIp.empty()) return;
+                unsigned sent = 0; int error = 0;
                 for (const auto& type : types) {
                     string packet = ssdp(advertiseIp,type,true,alive);
-                    ::sendto(udp,packet.data(),packet.size(),0,reinterpret_cast<sockaddr*>(&group),sizeof(group));
+                    if (::sendto(udp,packet.data(),packet.size(),0,reinterpret_cast<sockaddr*>(&group),sizeof(group)) == ssize_t(packet.size())) ++sent;
+                    else error = errno;
                 }
+                SDL_Log("cast: SSDP NOTIFY %s enviados=%u/%u errno=%d",alive ? "alive" : "byebye",sent,unsigned(types.size()),error);
             };
+            unsigned announcements = 0;
             while (!quit && enabled) {
-                if (SDL_GetTicks() >= announceAt) { announce(true); announceAt = SDL_GetTicks() + 120000; }
+                if (SDL_GetTicks() >= announceAt) {
+                    if (advertiseIp.empty()) {
+                        advertiseIp = localAddress(group);
+                        in_addr address{};
+                        if (::inet_pton(AF_INET,advertiseIp.c_str(),&address) == 1) {
+                            ::setsockopt(udp,IPPROTO_IP,multicastInterface,&address,sizeof(address));
+                            Membership membership{group.sin_addr,address};
+                            if (!joined && !testNoMembership)
+                                joined = ::setsockopt(udp,IPPROTO_IP,addMembership,&membership,sizeof(membership)) == 0;
+                            SDL_Log("cast: SSDP IP pronto %s membership=%d",advertiseIp.c_str(),joined);
+                        }
+                    }
+                    announce(true); ++announcements;
+                    announceAt = SDL_GetTicks() + (announcements < 3 ? 1000 : joined ? 120000 : 30000);
+                }
                 fd_set read; FD_ZERO(&read); FD_SET(tcp,&read); FD_SET(udp,&read);
                 timeval wait{0,100000};
                 if (::select(std::max(tcp,udp)+1,&read,nullptr,nullptr,&wait) <= 0) continue;
@@ -431,10 +481,13 @@ struct Receiver::Impl {
                         string raw(bytes,size_t(n)); auto h = headers(raw); auto type = h["st"];
                         if (raw.rfind("M-SEARCH * HTTP/1.1\r\n",0) == 0 && h["man"] == "\"ssdp:discover\"") {
                             string ip = loopback ? "127.0.0.1" : localAddress(sender);
+                            unsigned replies = 0; int error = 0;
                             if (!ip.empty()) for (const auto& supported : types) if (type == supported || type == "ssdp:all") {
                                 string packet = ssdp(ip,supported,false);
-                                ::sendto(udp,packet.data(),packet.size(),0,reinterpret_cast<sockaddr*>(&sender),size);
+                                if (::sendto(udp,packet.data(),packet.size(),0,reinterpret_cast<sockaddr*>(&sender),size) == ssize_t(packet.size())) ++replies;
+                                else error = errno;
                             }
+                            SDL_Log("cast: SSDP M-SEARCH ST=%s respostas=%u errno=%d",clean(type,128).c_str(),replies,error);
                         }
                     }
                 }
