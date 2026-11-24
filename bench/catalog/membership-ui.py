@@ -51,7 +51,8 @@ accounts = proof / 'accounts'
 accounts.mkdir(exist_ok=True)
 (accounts / 'responses.json').write_text(json.dumps([
     {'url': '/youtubei/v1/player?', 'contains': 'member00002', 'authorization': 'fixture-access', 'json': player},
-    {'url': '/account/accounts_list', 'json': {'contents': []}},
+    {'url': '/account/accounts_list', 'json': {'contents': [{'accountItemRenderer': {'accountName': {'simpleText': 'Conta fictícia'}, 'isSelected': True}}]}},
+    {'url': '/youtubei/v1/next?', 'json': {'contents': []}},
     {'url': '/youtubei/v1/browse?', 'json': page},
 ]))
 (replay / 'responses.json').write_text(json.dumps({'requests': rules}))
@@ -112,6 +113,7 @@ try:
                            XT_ASSETS=str(assets), XT_SERVER='127.0.0.1:8150', XT_CATALOG_REPLAY=str(replay),
                            XT_SHOT=str(proof / f'{name}-{lang}.ppm'), XT_SHOT_FRAME='2147483647', XT_SHOT_MS='2100', XT_KEYS_MS='550')
                 if options.get('auth'):
+                    env['XT_SHOT_MS'] = '4200'
                     (assets / 'yt-console-account.json').write_text(json.dumps({'access_token': 'fixture-access',
                         'refresh_token': 'fixture-refresh', 'expires_at': 4070908800,
                         'client': {'client_id': 'fixture-client', 'client_secret': 'fixture-secret'}, 'name': 'Conta fictícia'}))
