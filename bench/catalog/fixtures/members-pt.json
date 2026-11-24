@@ -1,0 +1,60 @@
+{
+  "contents": [
+    {
+      "lockupViewModel": {
+        "contentId": "member00001",
+        "contentType": "LOCKUP_CONTENT_TYPE_VIDEO",
+        "metadata": {
+          "lockupMetadataViewModel": {
+            "title": {
+              "content": "Vídeo exclusivo"
+            },
+            "metadata": {
+              "contentMetadataViewModel": {
+                "metadataRows": [
+                  {
+                    "badges": [
+                      {
+                        "badgeViewModel": {
+                          "badgeText": "Só para membros",
+                          "badgeStyle": "BADGE_MEMBERS_ONLY",
+                          "iconName": "SPONSORSHIP_STAR"
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "contentImage": {
+          "thumbnailViewModel": {
+            "image": {
+              "sources": [
+                {
+                  "url": "https://i.ytimg.com/vi/member00001/mqdefault.jpg",
+                  "width": 320,
+                  "height": 180
+                }
+              ]
+            },
+            "overlays": [
+              {
+                "thumbnailBottomOverlayViewModel": {
+                  "badges": [
+                    {
+                      "thumbnailBadgeViewModel": {
+                        "text": "1:09:42"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
