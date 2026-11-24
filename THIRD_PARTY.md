@@ -53,3 +53,8 @@ The object kit places `main.cpp.obj`, `shaders_bundle.c.obj` and `ffmpeg-libc.c.
 the matching `xsdk.ld`, `libxsdk.a`, `libSDL3.a` and `libvulkan4xenon.a` in `support/`, along with the matching libtube360-yt, curl, mbedtls, mbedx509, mbedcrypto, everest and p256m static archives, and the four FFmpeg
 archives in `ffmpeg-lib/`. Include the support libraries' licenses. Place `tools/ffmpeg-x360/relink.sh` at the
 kit root. With the matching xsdk and GCC installed, run `FFMPEG_LIB=/path/to/modified/lib ./relink.sh`.
+
+## Signed updates
+
+- **Monocypher 4.0.3** (`client/third_party/monocypher/`), by Loup Vaillant et al., BSD-2-Clause OR CC0-1.0; upstream sources unmodified, license included. Only Ed25519 verification is called by Tube360. [Source and manual](https://monocypher.org/manual/ed25519), [Cure53 audit](https://monocypher.org/quality-assurance/audit). Archive SHA-512: `40904ada5c7ee4f7741733e38b69a30a4b0561cbffba5ffe7c2dce16136d540251ec0d9056ff606510d3b5b708fb8a40db7e0870d4a0b2dc17ba2bfb880f8965` (`https://monocypher.org/download/monocypher-4.0.3.tar.gz`, checked against upstream `.sha512`).
+- **Mozilla CA certificate bundle**, extracted by curl (`client/src/update/roots.pem`), downloaded from [curl CA Extract](https://curl.se/docs/caextract.html) on 2026-11-24; source/license headers preserved. Used only for signed update downloads; YouTube retains its existing GTS roots.

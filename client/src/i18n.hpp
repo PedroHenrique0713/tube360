@@ -24,6 +24,13 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
 // Texto do app. Títulos, nomes e metadados do servidor continuam sendo dados.
 #define TUBE360_TEXT(X) \
   X(None, "", "") \
+  X(UpdateAvailable, "Update · ", "Atualização · ") \
+  X(UpdateDownload, "Download update", "Baixar atualização") \
+  X(UpdateDownloading, "Downloading and checking…", "Baixando e conferindo…") \
+  X(UpdateNextStart, "The update will be installed the next time you open Tube360.", "A atualização será instalada na próxima abertura do Tube360.") \
+  X(UpdateReady, "Update ready · reopen Tube360", "Atualização pronta · reabra o Tube360") \
+  X(UpdateFailed, "Could not verify or save the update. Try again.", "Não foi possível conferir ou salvar. Tente novamente.") \
+  X(UpdateSetup, "Install the complete app package once to enable automatic updates.", "Instale o pacote completo uma vez para ativar as atualizações.") \
   X(ServerOriginal, "Server · original", "Servidor · original") \
   X(ServerConverted, "Server · converted", "Servidor · convertido") \
   X(ConsoleVideoError, "Could not open the YouTube stream on this console.", "O console não conseguiu abrir o fluxo do YouTube.") \

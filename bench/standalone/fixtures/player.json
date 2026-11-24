@@ -18,7 +18,7 @@
         "width": 1920,
         "height": 1080,
         "fps": 30,
-        "url": "https://media.example/fixture/137"
+        "url": "https://fixture.googlevideo.com/fixture/137"
       },
       {
         "itag": 248,
@@ -27,7 +27,7 @@
         "width": 1920,
         "height": 1080,
         "fps": 30,
-        "url": "https://media.example/fixture/248"
+        "url": "https://fixture.googlevideo.com/fixture/248"
       },
       {
         "itag": 399,
@@ -36,7 +36,7 @@
         "width": 1920,
         "height": 1080,
         "fps": 30,
-        "url": "https://media.example/fixture/399"
+        "url": "https://fixture.googlevideo.com/fixture/399"
       },
       {
         "itag": 136,
@@ -45,7 +45,7 @@
         "width": 1280,
         "height": 720,
         "fps": 30,
-        "url": "https://media.example/fixture/136"
+        "url": "https://fixture.googlevideo.com/fixture/136"
       },
       {
         "itag": 247,
@@ -54,7 +54,7 @@
         "width": 1280,
         "height": 720,
         "fps": 30,
-        "url": "https://media.example/fixture/247"
+        "url": "https://fixture.googlevideo.com/fixture/247"
       },
       {
         "itag": 398,
@@ -63,7 +63,7 @@
         "width": 1280,
         "height": 720,
         "fps": 30,
-        "url": "https://media.example/fixture/398"
+        "url": "https://fixture.googlevideo.com/fixture/398"
       },
       {
         "itag": 135,
@@ -72,7 +72,7 @@
         "width": 854,
         "height": 480,
         "fps": 30,
-        "url": "https://media.example/fixture/135"
+        "url": "https://fixture.googlevideo.com/fixture/135"
       },
       {
         "itag": 244,
@@ -81,7 +81,7 @@
         "width": 854,
         "height": 480,
         "fps": 30,
-        "url": "https://media.example/fixture/244"
+        "url": "https://fixture.googlevideo.com/fixture/244"
       },
       {
         "itag": 397,
@@ -90,7 +90,7 @@
         "width": 854,
         "height": 480,
         "fps": 30,
-        "url": "https://media.example/fixture/397"
+        "url": "https://fixture.googlevideo.com/fixture/397"
       },
       {
         "itag": 134,
@@ -99,7 +99,7 @@
         "width": 640,
         "height": 360,
         "fps": 30,
-        "url": "https://media.example/fixture/134"
+        "url": "https://fixture.googlevideo.com/fixture/134"
       },
       {
         "itag": 243,
@@ -108,7 +108,7 @@
         "width": 640,
         "height": 360,
         "fps": 30,
-        "url": "https://media.example/fixture/243"
+        "url": "https://fixture.googlevideo.com/fixture/243"
       },
       {
         "itag": 396,
@@ -117,7 +117,7 @@
         "width": 640,
         "height": 360,
         "fps": 30,
-        "url": "https://media.example/fixture/396"
+        "url": "https://fixture.googlevideo.com/fixture/396"
       },
       {
         "itag": 133,
@@ -126,7 +126,7 @@
         "width": 426,
         "height": 240,
         "fps": 30,
-        "url": "https://media.example/fixture/133"
+        "url": "https://fixture.googlevideo.com/fixture/133"
       },
       {
         "itag": 242,
@@ -135,7 +135,7 @@
         "width": 426,
         "height": 240,
         "fps": 30,
-        "url": "https://media.example/fixture/242"
+        "url": "https://fixture.googlevideo.com/fixture/242"
       },
       {
         "itag": 395,
@@ -144,7 +144,7 @@
         "width": 426,
         "height": 240,
         "fps": 30,
-        "url": "https://media.example/fixture/395"
+        "url": "https://fixture.googlevideo.com/fixture/395"
       },
       {
         "itag": 160,
@@ -153,7 +153,7 @@
         "width": 256,
         "height": 144,
         "fps": 30,
-        "url": "https://media.example/fixture/160"
+        "url": "https://fixture.googlevideo.com/fixture/160"
       },
       {
         "itag": 278,
@@ -162,7 +162,7 @@
         "width": 256,
         "height": 144,
         "fps": 30,
-        "url": "https://media.example/fixture/278"
+        "url": "https://fixture.googlevideo.com/fixture/278"
       },
       {
         "itag": 394,
@@ -171,31 +171,31 @@
         "width": 256,
         "height": 144,
         "fps": 30,
-        "url": "https://media.example/fixture/394"
+        "url": "https://fixture.googlevideo.com/fixture/394"
       },
       {
         "itag": 139,
         "mimeType": "audio/mp4; codecs=\"mp4a.40.5\"",
         "bitrate": 50271,
-        "url": "https://media.example/fixture/139"
+        "url": "https://fixture.googlevideo.com/fixture/139"
       },
       {
         "itag": 140,
         "mimeType": "audio/mp4; codecs=\"mp4a.40.2\"",
         "bitrate": 130710,
-        "url": "https://media.example/fixture/140"
+        "url": "https://fixture.googlevideo.com/fixture/140"
       },
       {
         "itag": 249,
         "mimeType": "audio/webm; codecs=\"opus\"",
         "bitrate": 65542,
-        "url": "https://media.example/fixture/249"
+        "url": "https://fixture.googlevideo.com/fixture/249"
       },
       {
         "itag": 251,
         "mimeType": "audio/webm; codecs=\"opus\"",
         "bitrate": 158246,
-        "url": "https://media.example/fixture/251"
+        "url": "https://fixture.googlevideo.com/fixture/251"
       }
     ],
     "formats": [
@@ -206,7 +206,7 @@
         "width": 640,
         "height": 360,
         "fps": 30,
-        "url": "https://media.example/fixture/18"
+        "url": "https://fixture.googlevideo.com/fixture/18"
       }
     ]
   }

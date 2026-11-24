@@ -1,5 +1,6 @@
 #pragma once
 #include "client.hpp"
+#include "update/rules.hpp"
 #ifndef PICOJSON_USE_LOCALE
 #define PICOJSON_USE_LOCALE 0
 #endif
@@ -45,6 +46,8 @@ inline string clean(string s) {
 }
 // O DOM remoto tem teto de bytes, profundidade e nós antes de entrar no picojson.
 inline size_t jsonEnd(const string& s, size_t start) {
+  const auto limits=updates::rules();
+  const int maxDepth=limits->n("parserDepth"), maxNodes=limits->n("parserNodes");
   if (start >= s.size() || s[start] != '{') return string::npos;
   int depth = 0, nodes = 0; bool quoted = false, escaped = false;
   for (size_t i = start; i < s.size(); ++i) {
@@ -54,14 +57,14 @@ inline size_t jsonEnd(const string& s, size_t start) {
       else if (c == '\\') escaped = true;
       else if (c == '"') quoted = false;
     } else if (c == '"') quoted = true;
-    else if (c == '{' || c == '[') { if (++depth > 80 || ++nodes > 160000) return string::npos; }
-    else if (c == ',') { if (++nodes > 160000) return string::npos; }
+    else if (c == '{' || c == '[') { if (++depth > maxDepth || ++nodes > maxNodes) return string::npos; }
+    else if (c == ',') { if (++nodes > maxNodes) return string::npos; }
     else if ((c == '}' || c == ']') && --depth == 0) return i + 1;
   }
   return string::npos;
 }
 inline bool parse(const string& s, J& out) {
-  if (s.size() > 3u * 1024 * 1024) return false;
+  if (s.size() > size_t(updates::rules()->n("jsonBytes"))) return false;
   size_t start = s.find_first_not_of(" \r\n\t"), end = jsonEnd(s,start);
   if (end == string::npos || s.find_first_not_of(" \r\n\t",end) != string::npos) return false;
   string error;
@@ -200,7 +203,7 @@ inline void walk(const J& v, Page& p, bool music, std::set<string>& seen, string
       if (p.continuation.empty() && token.size() <= 16384) p.continuation = token;
     } else if (key == "videoRenderer" || key == "gridVideoRenderer" || key == "playlistVideoRenderer" || key == "playlistPanelVideoRenderer" || key == "musicTwoRowItemRenderer" || key == "musicResponsiveListItemRenderer" || key == "lockupViewModel" || key == "tileRenderer" || key == "channelRenderer" || key == "gridChannelRenderer" || key == "playlistRenderer" || key == "gridPlaylistRenderer") {
       Item it = item(x,key,music,section);
-      if (!it.id.empty() && p.items.size() < 240 && seen.insert(it.type+it.id).second) p.items.push_back(std::move(it));
+      if (!it.id.empty() && p.items.size() < size_t(updates::rules()->n("catalogItems")) && seen.insert(it.type+it.id).second) p.items.push_back(std::move(it));
     } else if (key != "header" && key != "menu" && key != "navigationEndpoint" && key != "onSelectCommand" && key != "onLongPressCommand" && key != "frameworkUpdates" && key != "playerOverlays" && key != "currentVideoEndpoint") walk(x,p,music,seen,section);
   }
 }
@@ -274,7 +277,7 @@ public:
   string authError; // último motivo de recusa do token (vazio se aceito)
 private:
   // Com o UA Tube360 o Music devolve a página de navegador incompatível, sem contexto InnerTube.
-  static constexpr const char* agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36";
+  std::shared_ptr<const updates::Rules> policy=updates::rules();
   struct List {
     Page header;
     std::map<int,Page> pages;
@@ -289,27 +292,31 @@ private:
     if (r.status != 200) return "HTTP " + std::to_string(r.status);
     return parse(r.body,data) ? "" : "invalid_json";
   }
+  void bindRules() {
+    auto next=updates::rules();
+    if(next->version!=policy->version){policy=next;web={};music={};accountMusic={};lists.clear();tokenRejected=musicTokenRejected=false;}
+  }
   string bootstrap(bool isMusic) {
     auto& c = isMusic ? music : web;
     if (!c.version.empty()) return {};
-    Request request; request.url = isMusic ? "https://music.youtube.com/" : "https://www.youtube.com/"; request.agent = agent;
+    Request request; request.url = policy->s(isMusic ? "musicOrigin" : "webOrigin")+"/"; request.agent = policy->s("browserAgent");
     auto r = net.send(request);
     if (r.status != 200 || !r.error.empty()) return "session_unavailable";
-    auto at = r.body.find("\"INNERTUBE_CONTEXT\"");
+    auto at = r.body.find(policy->s("contextMarker"));
     if (at == string::npos) return "context_missing";
-    at = r.body.find('{',at+19);
+    at = r.body.find('{',at+policy->s("contextMarker").size());
     auto end = jsonEnd(r.body,at);
     if (end == string::npos || !parse(r.body.substr(at,end-at),c.data)) return "invalid_context";
     const auto& client = get(c.data,"client");
-    if (str(client,"clientName") != (isMusic ? "WEB_REMIX" : "WEB")) return "invalid_client";
+    if (str(client,"clientName") != policy->s(isMusic?"musicName":"webName")) return "invalid_client";
     c.version = str(client,"clientVersion"); c.visitor = str(client,"visitorData");
     return c.version.empty() ? "version_missing" : "";
   }
   string bootstrapAccountMusic() {
     if (!accountMusic.version.empty()) return {};
-    Request r; r.url = "https://www.youtube.com/sw.js_data"; r.agent = agent;
+    Request r; r.url = policy->s("webOrigin")+policy->s("swPath"); r.agent = policy->s("browserAgent");
     // A sessão OAuth não herda os cookies da navegação pública no mesmo transporte.
-    r.headers = {"Accept: */*","Accept-Language: " + language,"Referer: https://www.youtube.com/sw.js","Cookie: PREF=tz=UTC;"};
+    r.headers = {"Accept: */*","Accept-Language: " + language,"Referer: "+policy->s("webOrigin")+policy->s("swReferer"),"Cookie: PREF=tz=UTC;"};
     auto res = net.send(r);
     if (res.status != 200 || !res.error.empty()) return "session_unavailable";
     J data;
@@ -322,13 +329,13 @@ private:
     Object client{{"hl",J(language)},{"gl",J(string(language == "pt" ? "BR" : "US"))},
       {"screenDensityFloat",J(1.0)},{"screenHeightPoints",J(1440.0)},
       {"screenPixelDensity",J(1.0)},{"screenWidthPoints",J(2560.0)},{"visitorData",at(device,13)},
-      {"clientName",J(string("WEB_REMIX"))},{"clientVersion",J(string("1.20250219.01.00"))},
-      {"userAgent",J(string(agent))},
+      {"clientName",J(policy->s("musicName"))},{"clientVersion",J(policy->s("musicVersion"))},
+      {"userAgent",J(policy->s("browserAgent"))},
       {"platform",J(string("DESKTOP"))},{"clientFormFactor",J(string("UNKNOWN_FORM_FACTOR"))},
       {"userInterfaceTheme",J(string("USER_INTERFACE_THEME_LIGHT"))},{"timeZone",J(str(at(device,79)).empty() ? string("UTC") : str(at(device,79)))},
-      {"originalUrl",J(string("https://www.youtube.com"))},{"utcOffsetMinutes",J(0.0)},
+      {"originalUrl",J(policy->s("webOrigin"))},{"utcOffsetMinutes",J(0.0)},
       {"memoryTotalKbytes",J(string("8000000"))},
-      {"mainAppWebInfo",J(Object{{"graftUrl",J(string("https://www.youtube.com"))},
+      {"mainAppWebInfo",J(Object{{"graftUrl",J(policy->s("webOrigin"))},
         {"pwaInstallabilityStatus",J(string("PWA_INSTALLABILITY_STATUS_UNKNOWN"))},
         {"webDisplayMode",J(string("WEB_DISPLAY_MODE_BROWSER"))},{"isWebNativeShareAvailable",J(true)}})}};
     // Campos opcionais ficam ausentes, como no JSON.stringify da youtubei.js 16.0.1.
@@ -349,13 +356,13 @@ private:
       auto client = get(accountMusic.data,"client").get<Object>();
       client["hl"] = J(language); client["gl"] = J(string(language == "pt" ? "BR" : "US")); context["client"] = J(client);
       Object payload = args; payload["context"] = J(context); payload["isAudioOnly"] = J(true);
-      Request r; r.url = "https://music.youtube.com/youtubei/v1/"+route+"?prettyPrint=false&alt=json";
-      r.body = J(payload).serialize(); r.agent = agent;
+      Request r; r.url = policy->api(route,true)+"&alt=json";
+      r.body = J(payload).serialize(); r.agent = policy->s("browserAgent");
       // Cookie: vazio seleciona o handle sem pote do transporte, preservando a sessão pública.
-      r.headers = {"Accept: */*","Accept-Language: *","Origin: https://music.youtube.com","Cookie:",
-        "X-Youtube-Client-Name: 67","X-Youtube-Client-Version: " + accountMusic.version,
+      r.headers = {"Accept: */*","Accept-Language: *","Origin: "+policy->s("musicOrigin"),"Cookie:",
+        policy->s("clientNameHeader")+": "+policy->s("musicCode"),policy->s("clientVersionHeader")+": " + accountMusic.version,
         "Authorization: Bearer " + token};
-      r.headers.push_back("X-Goog-Visitor-Id: " + accountMusic.visitor);
+      r.headers.push_back(policy->s("visitorHeader")+": " + accountMusic.visitor);
       auto res = net.send(r);
       if (res.status != 400 && res.status != 401 && res.status != 403) {
         auto e = error(res,out); if (e.empty()) authError.clear(); return e;
@@ -369,10 +376,10 @@ private:
     auto client = get(c.data,"client").get<Object>();
     client["hl"] = J(language); client["gl"] = J(string("BR")); context["client"] = J(client);
     args["context"] = J(context);
-    string origin = isMusic ? "https://music.youtube.com" : "https://www.youtube.com";
-    Request r; r.url = origin + "/youtubei/v1/" + route + "?prettyPrint=false"; r.body = J(args).serialize(); r.agent = agent;
-    r.headers = {"Origin: " + origin,"X-Youtube-Client-Name: " + string(isMusic ? "67" : "1"),"X-Youtube-Client-Version: " + c.version};
-    if (!c.visitor.empty() && c.visitor.find_first_of("\r\n") == string::npos) r.headers.push_back("X-Goog-Visitor-Id: " + c.visitor);
+    string origin = policy->s(isMusic?"musicOrigin":"webOrigin");
+    Request r; r.url = policy->api(route,isMusic); r.body = J(args).serialize(); r.agent = policy->s("browserAgent");
+    r.headers = {"Origin: " + origin,policy->s("clientNameHeader")+": "+policy->s(isMusic?"musicCode":"webCode"),policy->s("clientVersionHeader")+": " + c.version};
+    if (!c.visitor.empty() && c.visitor.find_first_of("\r\n") == string::npos) r.headers.push_back(policy->s("visitorHeader")+": " + c.visitor);
     bool authorized = !isMusic && !token.empty() && !tokenRejected;
     if (authorized) r.headers.push_back("Authorization: Bearer " + token);
     auto res = net.send(r);
@@ -382,7 +389,9 @@ private:
       r.headers.pop_back();
       res = net.send(r);
     }
-    return error(res,out);
+    auto result=error(res,out);
+    updates::observe(policy->version,result.empty(),result=="invalid_json" || result=="HTTP 400" || result=="HTTP 403");
+    return result;
   }
   string channelTab(J& data, const string& tab, bool isMusic) {
     const J* tabs = find(get(data,"contents"),"tabs");
@@ -418,6 +427,7 @@ public:
     return true;
   }
   Page browse(const std::map<string,string>& q) {
+    bindRules();
     auto value = [&](const char* name) { auto it = q.find(name); return it == q.end() ? string{} : it->second; };
     string kind = value("kind"), id = value("id"), search = value("q"), tab = value("tab"), filter = value("filter");
     language = value("lang") == "pt" ? "pt" : "en";
@@ -437,7 +447,7 @@ public:
       route = "search";
       if (!offset) {
         args["query"] = J(search);
-        static const char* params[] = {"","EgWKAQIIAQ%3D%3D","EgWKAQIYAQ%3D%3D","EgWKAQIgAQ%3D%3D"};
+        const string params[]={"",policy->s("musicSearchSongs"),policy->s("musicSearchAlbums"),policy->s("musicSearchArtists")};
         int n = std::atoi(filter.c_str());
         if (n > 0 && n < 4) args["params"] = J(string(params[n]));
       }
@@ -446,7 +456,7 @@ public:
       if (!offset) { args["videoId"] = J(id); args["playlistId"] = J("RDAMVM"+id); }
     } else if (!offset) {
       string browseId = id;
-      if (kind == "music") browseId = search == "charts" ? "FEmusic_explore" : "FEmusic_home";
+      if (kind == "music") browseId = search == "charts" ? policy->s("musicExploreId") : policy->s("musicHomeId");
       if ((kind == "playlist" || kind == "music_playlist") && id.compare(0,2,"VL") != 0) browseId = "VL"+id;
       args["browseId"] = J(browseId);
     }
@@ -454,10 +464,10 @@ public:
     if (!failed.error.empty()) return failed;
     if (!offset && kind == "channel") failed.error = channelTab(data,tab,isMusic);
     if (!offset && kind == "music" && search == "charts") {
-      const auto* browse = findValue(data,"browseId","FEmusic_charts");
-      if (!browse || str(*browse,"browseId") != "FEmusic_charts") failed.error = "charts_unavailable";
+      const auto* browse = findValue(data,"browseId",policy->s("musicChartsId"));
+      if (!browse || str(*browse,"browseId") != policy->s("musicChartsId")) failed.error = "charts_unavailable";
       else {
-        Object charts; charts["browseId"] = J(string("FEmusic_charts"));
+        Object charts; charts["browseId"] = J(string(policy->s("musicChartsId")));
         if (!str(*browse,"params").empty()) charts["params"] = get(*browse,"params");
         failed.error = post(true,"browse",charts,data);
       }
@@ -470,11 +480,12 @@ public:
     else { p.title = list.header.title; p.subtitle = list.header.subtitle; p.image = list.header.image; p.banner = list.header.banner; p.channelId = list.header.channelId; p.subscribed = list.header.subscribed; }
     if (kind == "music" && search == "mixes") p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[](const Item& i) { return i.type != "playlist"; }),p.items.end());
     p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[&](const Item& i) { return !list.seen.insert(i.type+i.id).second; }),p.items.end());
-    if (++list.count >= 40 || list.seen.size() >= 600 || p.items.empty() || !list.tokens.insert(p.continuation).second) p.continuation.clear();
+    if (++list.count >= policy->n("listPages") || list.seen.size() >= size_t(policy->n("listItems")) || p.items.empty() || !list.tokens.insert(p.continuation).second) p.continuation.clear();
     list.next = p.continuation; list.offset += int(p.items.size()); list.pages[offset] = p;
     return p;
   }
   string handle(const string& path) {
+    bindRules();
     auto q = query(path);
     if (path.compare(0,17,"/api/nav/channel?") == 0) {
       if (!videoId(q["id"])) return "error\tinvalid_video\n";
@@ -514,7 +525,7 @@ public:
         offset += int(next.items.size()); queue.continuation = next.continuation;
         for (auto& i : next.items) if (i.type == "video" && queue.items.size() < 256) queue.items.push_back(std::move(i));
       }
-      if (queue.items.size() > 256) queue.items.resize(256);
+      if (queue.items.size() > size_t(policy->n("queueItems"))) queue.items.resize(size_t(policy->n("queueItems")));
       queue.continuation.clear(); return wire(queue);
     }
     return wire(browse(q));

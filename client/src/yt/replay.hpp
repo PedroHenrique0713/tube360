@@ -18,7 +18,21 @@ public:
         const auto& url = request.url;
         string file;
         bool media = false;
-        if (url.find("/watch?v=") != string::npos) file = "watch.html";
+        if (request.update) {
+            if(const auto* path=std::getenv("XT_UPDATE_AUDIT"))if(auto* f=std::fopen(path,"a")) {
+                std::fprintf(f,"%s\n",url.c_str());for(const auto& h:request.headers)if(h.compare(0,6,"Range:")==0)std::fprintf(f,"%s\n",h.c_str());std::fclose(f);
+            }
+            if (url.find("/rules.json.sig")!=string::npos) file="rules.json.sig";
+            else if (url.find("/rules.json")!=string::npos) file="rules.json";
+            else if (url.find("/app.json.sig")!=string::npos) file="app.json.sig";
+            else if (url.find("/app.json")!=string::npos) file="app.json";
+            else {
+                file="app.xex";media=true;
+                if(const auto* delay=std::getenv("XT_UPDATE_REPLAY_DELAY_MS"))backoff(unsigned(std::clamp(std::atoi(delay),0,2000)));
+            }
+        }
+        else if (url.find("https://i.ytimg.com/vi/")==0) file="thumb.jpg";
+        else if (url.find("/watch?v=") != string::npos) file = "watch.html";
         else if (url.size() >= 8 && url.compare(url.size()-8,8,"/base.js") == 0) file = "base.js";
         else if (url.find("/youtubei/v1/player?") != string::npos) file = "player.json";
         else if (url.find("/youtubei/v1/") != string::npos) file = "browse.json";

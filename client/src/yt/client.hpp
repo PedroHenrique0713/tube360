@@ -7,6 +7,7 @@
 #include <vector>
 #include <time.h>
 
+namespace updates { struct Rules; }
 namespace yt {
 using std::string;
 enum class Failure { NONE, NETWORK, TLS, HTTP, JSON, REFUSAL, SESSION, CANCELLED };
@@ -26,6 +27,8 @@ struct Request {
     std::vector<string> headers;
     bool freshConnection = false, media = false;
     long readBuffer = 64 * 1024;
+    bool update = false;
+    size_t maxBytes = 0;
 };
 struct Transport {
     virtual ~Transport() = default;
@@ -100,6 +103,8 @@ struct Page { std::vector<Card> cards; string error; };
 class Client {
     Transport& net;
     string context;
+    std::shared_ptr<const updates::Rules> policy;
+    void bindRules();
     // Sessão de visitante (cookies ficam no transporte) e o signatureTimestamp do player JS atual.
     string visitor, playerJs, cacheBase;
     int sts = 0;
