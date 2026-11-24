@@ -99,7 +99,13 @@ class Handler(BaseHTTPRequestHandler):
     def get(self):
         lounge = self.lounge
         path = urlsplit(self.path).path
-        if path.endswith('/generate_screen_id'):
+        if path in {f'/PedroHenrique0713/tube360/rules/{name}' for name in ('rules.json', 'rules.json.sig', 'app.json', 'app.json.sig')}:
+            self.response('', 404)
+        elif path == '/votes':
+            video = parse_qs(urlsplit(self.path).query)['videoId'][0]
+            assert len(video) == 11
+            self.response({'id': video, 'likes': 3210, 'dislikes': 87})
+        elif path.endswith('/generate_screen_id'):
             self.response('FAKE-SCREEN-F14')
         elif path == '/api/lounge/bc/bind':
             query = parse_qs(urlsplit(self.path).query)

@@ -206,7 +206,7 @@ def main():
         checksum = digest(artifact.read_bytes())
         artifact.with_suffix(artifact.suffix + ".sha256").write_text(f"{checksum}  {artifact.name}\n")
         print(f"{artifact}\n{checksum}  {artifact.name}")
-    print(f"{len(files)} files per archive; {replacements} home prefixes removed in linked ELF")
+    print(f"{len(files)} files per archive; {replacements + launcher_replacements} home prefixes removed in linked ELFs")
     return 0
 
 
