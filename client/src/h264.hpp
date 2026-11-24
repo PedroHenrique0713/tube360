@@ -1,7 +1,9 @@
 // MPEG-TS chega pelo anel do player. Os dois codecs compartilham o mesmo cursor e a mesma origem de PTS.
 #pragma once
+#include <algorithm>
 #include <cmath>
 #include <vector>
+#include "decoded_video.hpp"
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -9,6 +11,37 @@ extern "C" {
 }
 
 namespace h264 {
+inline int mappedBuffer(AVCodecContext* ctx, AVFrame* frame, int flags) {
+  if (!ctx->opaque || (frame->format != AV_PIX_FMT_YUV420P && frame->format != AV_PIX_FMT_YUVJ420P) ||
+      !(ctx->codec->capabilities & AV_CODEC_CAP_DR1)) return avcodec_default_get_buffer2(ctx,frame,flags);
+  int w = frame->width, h = frame->height, alignment[AV_NUM_DATA_POINTERS] = {};
+  avcodec_align_dimensions2(ctx,&w,&h,alignment);
+  int visibleW = ctx->width > 0 ? std::min(ctx->width,frame->width) : frame->width;
+  int visibleH = ctx->height > 0 ? std::min(ctx->height,frame->height) : frame->height;
+  auto surface = static_cast<video::Allocator*>(ctx->opaque)->acquire(visibleW,visibleH,w,h,alignment);
+  if (!surface) return AVERROR(ENOMEM);
+  auto* owner = new std::shared_ptr<video::Surface>(std::move(surface));
+  // buf[] exige que cada data[] pertença ao intervalo da sua alocação Vulkan.
+  for (int i = 0; i < 3; ++i) {
+    auto* planeOwner = i == 0 ? owner : new std::shared_ptr<video::Surface>(*owner);
+    size_t bytes = size_t((*planeOwner)->stride[i]) * (i ? (h+1)/2 : h) + 64;
+    frame->buf[i] = av_buffer_create((*planeOwner)->data[i],bytes,[](void* p,uint8_t*) {
+      delete static_cast<std::shared_ptr<video::Surface>*>(p);
+    },planeOwner,0);
+    if (!frame->buf[i]) { delete planeOwner; av_frame_unref(frame); return AVERROR(ENOMEM); }
+    frame->data[i] = (*planeOwner)->data[i]; frame->linesize[i] = (*planeOwner)->stride[i];
+  }
+  frame->extended_data = frame->data;
+  return 0;
+}
+inline std::shared_ptr<video::Surface> mappedSurface(const AVFrame* frame) {
+  if (!frame->buf[0]) return {};
+  auto* owner = static_cast<std::shared_ptr<video::Surface>*>(av_buffer_get_opaque(frame->buf[0]));
+  if (!owner) return {};
+  for (int i = 0; i < 3; ++i)
+    if (frame->data[i] != (*owner)->data[i] || frame->linesize[i] != (*owner)->stride[i]) return {};
+  return *owner;
+}
 inline bool dropAt30(int64_t frame, double rate) {
   if (rate <= 30.1 || !std::isfinite(rate)) return false;
   if (rate >= 59 && rate <= 60.1) return (frame & 1) != 0;
@@ -16,11 +49,15 @@ inline bool dropAt30(int64_t frame, double rate) {
 }
 #ifdef __XSDK__
 extern "C" void ffmpeg_workers(int active);
+extern "C" void ffmpeg_work_metrics(unsigned* us, unsigned* frames);
 #else
 inline void ffmpeg_workers(int) {}
+inline void ffmpeg_work_metrics(unsigned* us,unsigned* frames) { *us = *frames = 0; }
 #endif
 
 struct Stream {
+  video::Allocator* videoBuffers = nullptr;
+  int threadType = FF_THREAD_FRAME;
   AVFormatContext* fmt = avformat_alloc_context();
   AVIOContext* io = nullptr;
   AVCodecContext *video = nullptr, *audio = nullptr;
@@ -62,7 +99,8 @@ struct Stream {
     if (r < 0) return r;
     ctx->pkt_timebase = stream->time_base;
     ctx->thread_count = threads;
-    ctx->thread_type = FF_THREAD_FRAME;
+    ctx->thread_type = threadType;
+    if (id == AV_CODEC_ID_H264 && videoBuffers) { ctx->opaque = videoBuffers; ctx->get_buffer2 = mappedBuffer; }
     ctx->max_pixels = 1920 * 1088;  // 1080p completa o último macrobloco; a saída da TV permanece 720p.
     ffmpeg_workers(id == AV_CODEC_ID_H264);
     r = avcodec_open2(ctx, codec, nullptr);

@@ -13,6 +13,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "decoded_video.hpp"
 
 #ifdef __XSDK__
 #include "xsdk/log.h"
@@ -50,6 +51,7 @@ struct Font { float size = 0, ascent = 0, lineH = 0; std::map<uint32_t, Glyph> g
 
 // Quadro do vídeo: três texturas de um canal e o descritor que liga as três.
 struct Video {
+  std::shared_ptr<video::Surface> surface;
   Tex y, cb, cr; VkDescriptorSet set = VK_NULL_HANDLE; Buf staging[2]; int w = 0, h = 0; bool ready = false;
   bool bt709 = false, fullRange = false;
   bool pending[2] = {false, false};
@@ -66,6 +68,7 @@ struct Gfx {
   VkPipeline pipes[PIPE_COUNT]; VkDescriptorPool pool; VkSampler sampler;
   VkCommandPool cmdPool; VkCommandBuffer cbs[2]; VkFence fences[2]; VkSemaphore acqs[2], rends[2];
   Buf vbuf[2]; uint32_t vcap = 80000; VkPhysicalDeviceMemoryProperties memProps;
+  std::shared_ptr<video::Surface> retained[2];
   int fi = 0; uint32_t img = 0; bool readback = false;
   std::vector<Vtx> verts; std::vector<Cmd> cmds;
   Tex white, atlas; std::vector<Font> fonts;
@@ -79,6 +82,7 @@ struct Gfx {
   uint64_t timestampMask = UINT64_MAX;
   struct VideoSample { bool pending = false; double pts = 0, copyMs = 0; int w = 0, h = 0; } samples[2];
   uint64_t uploadAt = 0, uploadCount = 0, uploadBytes = 0, uploadNs = 0, uploadMaxNs = 0, submitNs = 0, presentNs = 0;
+  uint64_t fenceNs = 0, acquireNs = 0, recordNs = 0, directCount = 0;
 };
 
 inline uint32_t memType(Gfx& g, uint32_t bits, VkMemoryPropertyFlags want) {
@@ -127,8 +131,8 @@ inline VkDescriptorSet allocSet(Gfx& g, VkDescriptorSetLayout layout) {
   VkDescriptorSetAllocateInfo da{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO}; da.descriptorPool = g.pool; da.descriptorSetCount = 1; da.pSetLayouts = &layout;
   VkDescriptorSet s; VK(vkAllocateDescriptorSets(g.dev, &da, &s)); return s;
 }
-inline void bindImage(Gfx& g, VkDescriptorSet set, uint32_t binding, VkImageView view) {
-  VkDescriptorImageInfo di{g.sampler, view, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+inline void bindImage(Gfx& g, VkDescriptorSet set, uint32_t binding, VkImageView view, VkImageLayout layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+  VkDescriptorImageInfo di{g.sampler, view, layout};
   VkWriteDescriptorSet wr{VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET}; wr.dstSet = set; wr.dstBinding = binding; wr.descriptorCount = 1;
   wr.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; wr.pImageInfo = &di;
   vkUpdateDescriptorSets(g.dev, 1, &wr, 0, nullptr);
@@ -469,8 +473,12 @@ inline void videoCreate(Gfx& g, Video& v, int w, int h) {
 }
 inline void videoDestroy(Gfx& g, Video& v) {
   vkDeviceWaitIdle(g.dev);
-  for (Tex* t : {&v.y, &v.cb, &v.cr}) { if (t->img) { vkDestroyImageView(g.dev, t->view, nullptr); vkDestroyImage(g.dev, t->img, nullptr); vkFreeMemory(g.dev, t->mem, nullptr); } *t = Tex{}; }
-  if (v.set) vkFreeDescriptorSets(g.dev, g.pool, 1, &v.set);
+  for (auto& held : g.retained) held.reset();
+  if (!v.surface) {
+    for (Tex* t : {&v.y, &v.cb, &v.cr}) { if (t->img) { vkDestroyImageView(g.dev, t->view, nullptr); vkDestroyImage(g.dev, t->img, nullptr); vkFreeMemory(g.dev, t->mem, nullptr); } }
+    if (v.set) vkFreeDescriptorSets(g.dev, g.pool, 1, &v.set);
+  }
+  v.y = {}; v.cb = {}; v.cr = {}; v.surface.reset();
   v.set = VK_NULL_HANDLE;
   for (auto& s : v.staging) freeBuf(g, s);
   v.ready = false; v.pending[0] = v.pending[1] = false;
@@ -617,6 +625,8 @@ inline void output(Gfx& g, int height) {
 inline void begin(Gfx& g) {
   uint64_t began = SDL_GetTicksNS();
   VK(vkWaitForFences(g.dev, 1, &g.fences[g.fi], VK_TRUE, UINT64_MAX));
+  g.fenceNs = SDL_GetTicksNS() - began;
+  g.retained[g.fi].reset();
   auto& sample = g.samples[g.fi];
   if (sample.pending) {
     uint64_t stamps[3]{};
@@ -631,7 +641,10 @@ inline void begin(Gfx& g) {
 
 // Grava e apresenta. Se shotPath, copia a imagem para um PPM (só no PC, para conferir a interface).
 inline void end(Gfx& g, const char* shotPath = nullptr) {
+  uint64_t acquireAt = SDL_GetTicksNS();
   VK(vkAcquireNextImageKHR(g.dev, g.swap, UINT64_MAX, g.acqs[g.fi], VK_NULL_HANDLE, &g.img));
+  g.acquireNs = SDL_GetTicksNS() - acquireAt;
+  uint64_t recordAt = SDL_GetTicksNS();
   VK(vkResetFences(g.dev, 1, &g.fences[g.fi]));
   VkCommandBuffer c = g.cbs[g.fi];
   VK(vkResetCommandBuffer(c, 0));
@@ -646,6 +659,13 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
   }
   if (g.video && g.video->pending[g.fi]) {
     Video& v = *g.video; v.pending[g.fi] = false;
+    if (v.surface) {
+      for (Tex* t : {&v.y, &v.cb, &v.cr})
+        barrier(c,t->img,v.surface->submitted ? VK_IMAGE_LAYOUT_GENERAL : VK_IMAGE_LAYOUT_PREINITIALIZED,
+                VK_IMAGE_LAYOUT_GENERAL,VK_ACCESS_HOST_WRITE_BIT,VK_ACCESS_SHADER_READ_BIT,
+                VK_PIPELINE_STAGE_HOST_BIT,VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+      v.surface->submitted = true;
+    } else {
     VkDeviceSize off = 0;
     for (Tex* t : {&v.y, &v.cb, &v.cr}) {
       barrier(c, t->img, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_ACCESS_SHADER_READ_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT);
@@ -653,6 +673,7 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
       vkCmdCopyBufferToImage(c, v.staging[g.fi].b, t->img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &r);
       barrier(c, t->img, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_ACCESS_TRANSFER_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
       off += (VkDeviceSize)t->w * t->h;
+    }
     }
   }
   if (measure) vkCmdWriteTimestamp(c,VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,g.videoQueries,query+1);
@@ -683,6 +704,8 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
     barrier(c, g.images[g.img], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_ACCESS_TRANSFER_READ_BIT, 0, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT);
   }
   VK(vkEndCommandBuffer(c));
+  g.recordNs = SDL_GetTicksNS() - recordAt;
+  if (g.video && g.video->surface) g.retained[g.fi] = g.video->surface;
   VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
   VkSubmitInfo si{VK_STRUCTURE_TYPE_SUBMIT_INFO}; si.waitSemaphoreCount = 1; si.pWaitSemaphores = &g.acqs[g.fi]; si.pWaitDstStageMask = &waitStage;
   si.commandBufferCount = 1; si.pCommandBuffers = &c; si.signalSemaphoreCount = 1; si.pSignalSemaphores = &g.rends[g.fi];
@@ -700,7 +723,10 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
           g.video->w,g.video->h,(unsigned long long)g.uploadCount,g.uploadBytes / 1000.0 / (now - g.uploadAt),
           g.uploadNs / 1e6 / g.uploadCount,g.uploadMaxNs / 1e6,g.submitNs / 1e6 / g.uploadCount,g.presentNs / 1e6 / g.uploadCount,
           g.videoQueries ? "timestamps ligados" : "sem sonda");
+      LOG("pipeline: direto %llu/%llu, ultimo fence %.3f ms, acquire %.3f ms, gravacao %.3f ms; 1 submit/quadro",
+          (unsigned long long)g.directCount,(unsigned long long)g.uploadCount,g.fenceNs/1e6,g.acquireNs/1e6,g.recordNs/1e6);
       g.uploadAt = now; g.uploadCount = g.uploadBytes = g.uploadNs = g.uploadMaxNs = g.submitNs = g.presentNs = 0;
+      g.directCount = 0;
     }
   }
   if (shot.b) {
