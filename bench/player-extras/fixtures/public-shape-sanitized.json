@@ -1,0 +1,94 @@
+{
+  "onResponseReceivedEndpoints": [
+    {
+      "reloadContinuationItemsCommand": {
+        "targetId": "comments-section",
+        "slot": "RELOAD_CONTINUATION_SLOT_HEADER",
+        "continuationItems": []
+      }
+    },
+    {
+      "reloadContinuationItemsCommand": {
+        "targetId": "comments-section",
+        "slot": "RELOAD_CONTINUATION_SLOT_BODY",
+        "continuationItems": [
+          {
+            "commentThreadRenderer": {
+              "commentViewModel": {
+                "commentViewModel": {
+                  "commentKey": "fixture-0",
+                  "commentId": "sanitized-0"
+                }
+              }
+            }
+          },
+          {
+            "commentThreadRenderer": {
+              "commentViewModel": {
+                "commentViewModel": {
+                  "commentKey": "fixture-1",
+                  "commentId": "sanitized-1"
+                }
+              }
+            }
+          },
+          {
+            "continuationItemRenderer": {
+              "continuationEndpoint": {
+                "continuationCommand": {
+                  "token": "SANITIZED_NEXT"
+                }
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "frameworkUpdates": {
+    "entityBatchUpdate": {
+      "mutations": [
+        {
+          "entityKey": "fixture-0",
+          "payload": {
+            "commentEntityPayload": {
+              "properties": {
+                "commentId": "fixture-0",
+                "content": {
+                  "content": "Comentário público sanitizado."
+                },
+                "publishedTime": "há 1 dia"
+              },
+              "author": {
+                "displayName": "Autor de bancada"
+              },
+              "toolbar": {
+                "likeCountNotliked": "123"
+              }
+            }
+          }
+        },
+        {
+          "entityKey": "fixture-1",
+          "payload": {
+            "commentEntityPayload": {
+              "properties": {
+                "commentId": "fixture-1",
+                "content": {
+                  "content": "Comentário público sanitizado."
+                },
+                "publishedTime": "há 1 dia"
+              },
+              "author": {
+                "displayName": "Autor de bancada"
+              },
+              "toolbar": {
+                "likeCountNotliked": "123"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
