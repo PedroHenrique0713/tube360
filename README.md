@@ -259,6 +259,7 @@ tools/           builds, packaging and optional service installation
 
 ## Limitations & troubleshooting
 
+- Casting from the phone's YouTube app pairs, but in 0.3.0 the video may not start on the console yet. The fix is planned for 0.3.1.
 - YouTube is an unofficial integration and can change or block clients. Age/region restrictions, DRM and paid content are not bypassed; account sign-in does not guarantee media access. Reload a failed feed or retry later; an optional server reserve may help.
 - 720p60/1080p30 are source profiles. The Xbox may lower rate or resolution under load. Check the actual player status; native 1080p needs the dashboard HDMI mode described above. No promise of 1080p60, HDR, VP9 or AV1 decoding.
 - Music can fall back to public browsing when the account's TV grant is refused by Music. Lyrics are optional. Live captions and direct live Nest audio are not implemented; live uses TV sound.

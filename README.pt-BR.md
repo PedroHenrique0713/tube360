@@ -261,6 +261,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 
 ## Limitações e solução de problemas
 
+- Transmitir pelo app do YouTube no celular pareia, mas na 0.3.0 o vídeo pode não começar no console. A correção está prevista para a 0.3.1.
 - A integração com o YouTube é não oficial e pode mudar ou ser bloqueada. Restrições de idade/região, DRM e conteúdo pago não são contornadas; login não garante acesso à mídia. Atualize o feed ou tente mais tarde; a reserva opcional pode ajudar.
 - 720p60/1080p30 são perfis de fonte. O Xbox pode reduzir cadência ou resolução sob carga. Confira o estado real no player; 1080p nativo exige o modo HDMI do painel descrito acima. Sem promessa de 1080p60, HDR, VP9 ou AV1.
 - Música pode recuar para navegação pública se o serviço recusar o token de TV da conta. Letras são opcionais. Legendas ao vivo e Nest em live direta ainda não estão implementados; lives usam som na TV.
