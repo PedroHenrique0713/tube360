@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
   exchange(6,"lyrics-next.json"); exchange(7,"lyrics.json");
   check(c.handle("/api/nav/lyrics?id=F12audio001&lang=pt").find("Letra de teste") != string::npos,"authenticated lyrics decoded");
   check(h.steps.empty() && h.sent.size() == 9 && c.authError.empty(),"one shared bootstrap; every captured request consumed");
-  for (int status : {401,403}) {
+  for (int status : {400,401,403}) {
     Http fallback; Client f(fallback); f.setToken("console-fixture-token");
     fallback.add(sw,session); fallback.add(str(requests[0],"url"),"{}",status,requests[0]);
     fallback.add(guest,read(dir,"music-context.html")); fallback.add(guest+browse,home);

@@ -439,6 +439,11 @@ current access token on login, refresh and logout; the token never appears in th
 catalog caches and discards navigation responses from the previous token. Public channel/playlist requests use the
 native catalog first; a failed account playlist request can use the TV session, including private library playlists.
 
+Both Node and native Music requests use `music.youtube.com`, the YTMUSIC/WEB_REMIX identity and the TV session's
+OAuth Bearer without browser cookies. HTTP 400/401/403 fall back to public Music while the YouTube account stays
+signed in. The native account navigation header includes banner, latest history video and latest Watch later video,
+matching the server header used for channel banners and library artwork.
+
 Now playing decodes only AAC, including when the console controls a Nest directly. The muted PCM reserve follows
 the speaker clock and becomes audible only after Cast confirms silence. The PC audio reserve accepts AAC or MP2
 without decoding video. B stops and clears the local queue, returning to the source page. Show video reopens at the

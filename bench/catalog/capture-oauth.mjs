@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { Innertube, ClientType } from '../../cast/node_modules/youtubei.js/dist/src/platform/node.js';
+import { musicEndpoint } from '../../cast/account.mjs';
 
 process.env.TZ = 'UTC';
 assert.equal(JSON.parse(await readFile(new URL('../../cast/node_modules/youtubei.js/package.json', import.meta.url))).version, '16.0.1');
@@ -18,7 +19,7 @@ const fetcher = async (input, init = {}) => {
     bootstrap.push({ url, method: init.method || 'GET', headers, ...(init.body ? { body: JSON.parse(init.body) } : {}) });
     return url.endsWith('/sw.js_data') ? new Response(session) : Response.json({});
   }
-  assert.match(url, /^https:\/\/www\.youtube\.com\/youtubei\/v1\/(browse|search|next)\?prettyPrint=false&alt=json$/);
+  assert.match(url, /^https:\/\/music\.youtube\.com\/youtubei\/v1\/(browse|search|next)\?prettyPrint=false&alt=json$/);
   requests.push({ url, method: input.method, headers: Object.fromEntries(new Headers(init.headers)), body: JSON.parse(init.body) });
   return Response.json({ contents: {} });
 };
@@ -35,7 +36,7 @@ for (const [route, args] of [
   ['/next', { videoId: 'F12audio001', playlistId: 'RDAMVMF12audio001' }],
   ['/next', { videoId: 'F12audio001' }],
   ['/browse', { browseId: 'MPLYfixture' }],
-]) await yt.actions.execute(route, { ...args, client: 'YTMUSIC' });
+]) await yt.actions.execute(musicEndpoint(route), { ...args, client: 'YTMUSIC' });
 assert.equal(requests.length, 8);
 assert.equal(bootstrap.length, 2);
 for (const r of requests) {

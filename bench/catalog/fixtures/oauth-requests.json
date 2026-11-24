@@ -78,14 +78,14 @@
   ],
   "requests": [
     {
-      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "url": "https://music.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
       "method": "POST",
       "headers": {
         "accept": "*/*",
         "accept-language": "*",
         "authorization": "Bearer fixture-token",
         "content-type": "application/json",
-        "origin": "https://www.youtube.com",
+        "origin": "https://music.youtube.com",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
         "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
         "x-youtube-client-name": "67",
@@ -141,14 +141,14 @@
       }
     },
     {
-      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "url": "https://music.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
       "method": "POST",
       "headers": {
         "accept": "*/*",
         "accept-language": "*",
         "authorization": "Bearer fixture-token",
         "content-type": "application/json",
-        "origin": "https://www.youtube.com",
+        "origin": "https://music.youtube.com",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
         "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
         "x-youtube-client-name": "67",
@@ -204,14 +204,14 @@
       }
     },
     {
-      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "url": "https://music.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
       "method": "POST",
       "headers": {
         "accept": "*/*",
         "accept-language": "*",
         "authorization": "Bearer fixture-token",
         "content-type": "application/json",
-        "origin": "https://www.youtube.com",
+        "origin": "https://music.youtube.com",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
         "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
         "x-youtube-client-name": "67",
@@ -267,14 +267,14 @@
       }
     },
     {
-      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "url": "https://music.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
       "method": "POST",
       "headers": {
         "accept": "*/*",
         "accept-language": "*",
         "authorization": "Bearer fixture-token",
         "content-type": "application/json",
-        "origin": "https://www.youtube.com",
+        "origin": "https://music.youtube.com",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
         "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
         "x-youtube-client-name": "67",
@@ -331,14 +331,14 @@
       }
     },
     {
-      "url": "https://www.youtube.com/youtubei/v1/search?prettyPrint=false&alt=json",
+      "url": "https://music.youtube.com/youtubei/v1/search?prettyPrint=false&alt=json",
       "method": "POST",
       "headers": {
         "accept": "*/*",
         "accept-language": "*",
         "authorization": "Bearer fixture-token",
         "content-type": "application/json",
-        "origin": "https://www.youtube.com",
+        "origin": "https://music.youtube.com",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
         "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
         "x-youtube-client-name": "67",
@@ -394,14 +394,14 @@
       }
     },
     {
-      "url": "https://www.youtube.com/youtubei/v1/next?prettyPrint=false&alt=json",
+      "url": "https://music.youtube.com/youtubei/v1/next?prettyPrint=false&alt=json",
       "method": "POST",
       "headers": {
         "accept": "*/*",
         "accept-language": "*",
         "authorization": "Bearer fixture-token",
         "content-type": "application/json",
-        "origin": "https://www.youtube.com",
+        "origin": "https://music.youtube.com",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
         "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
         "x-youtube-client-name": "67",
@@ -458,14 +458,14 @@
       }
     },
     {
-      "url": "https://www.youtube.com/youtubei/v1/next?prettyPrint=false&alt=json",
+      "url": "https://music.youtube.com/youtubei/v1/next?prettyPrint=false&alt=json",
       "method": "POST",
       "headers": {
         "accept": "*/*",
         "accept-language": "*",
         "authorization": "Bearer fixture-token",
         "content-type": "application/json",
-        "origin": "https://www.youtube.com",
+        "origin": "https://music.youtube.com",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
         "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
         "x-youtube-client-name": "67",
@@ -521,14 +521,14 @@
       }
     },
     {
-      "url": "https://www.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
+      "url": "https://music.youtube.com/youtubei/v1/browse?prettyPrint=false&alt=json",
       "method": "POST",
       "headers": {
         "accept": "*/*",
         "accept-language": "*",
         "authorization": "Bearer fixture-token",
         "content-type": "application/json",
-        "origin": "https://www.youtube.com",
+        "origin": "https://music.youtube.com",
         "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36",
         "x-goog-visitor-id": "CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",
         "x-youtube-client-name": "67",

@@ -54,7 +54,24 @@ Premium fictícia” são sintéticos para distinguir a origem da resposta, não
 de acesso ao Premium real. A auditoria exige pedidos OAuth aceitos nos casos com
 conta. Os testes não acessam a conta do dono nem o Xbox.
 
-## Diferenças medidas
+## Contrato após a integração visual/Música
+
+O helper `musicEndpoint` em `cast/account.mjs` fornece uma URL absoluta em
+`music.youtube.com` à `actions.execute`. O `HTTPClient` da 16.0.1 preserva assim
+o ajuste YTMUSIC, o contexto da sessão TV e o Bearer, usando o Origin do Music.
+`music.getHomeFeed()` por si só usa o host padrão `www.youtube.com`, que devolveu
+400 na produção. O catálogo C++ e a captura offline agora usam o host corrigido.
+400/401/403 reservam a navegação pública sem encerrar a conta do YouTube.
+No Node, a reserva reinicia a paginação para não enviar o cursor privado à sessão
+pública. Os testes TLS conferem Host, Origin e ausência de cookies no fio.
+
+`visual-integration.py <pasta>` produz canal, inscrições, biblioteca, Música,
+player aprovado, qualidade e áudio em pt/en e 1280×720/1920×1080. Use imagens
+públicas opcionais em `<pasta>/art/{avatar.png,banner.jpg,thumb.jpg}` para conferir
+o recorte. A conta e a mídia de reprodução são fictícias. `visual-results.json`
+registra dimensões físicas e o consumo de GPU das miniaturas.
+
+## Diferenças medidas antes da correção de host
 
 | Campo | Catálogo anterior com token | youtubei.js TV + `client: 'YTMUSIC'` |
 |---|---|---|
@@ -68,7 +85,7 @@ conta. Os testes não acessam a conta do dono nem o Xbox.
 | `X-Goog-AuthUser` | Ausente | Ausente com OAuth; a biblioteca só o acrescenta ao autenticar com SAPISID |
 | Autorização | Bearer | Bearer |
 
-O console agora usa esse contrato para pedidos Music com conta. A consulta
+O console usa esse corpo e esses cabeçalhos com o host/Origin corrigidos acima. A consulta
 `/config` da biblioteca não é necessária aqui: ela só acrescenta `configInfo`,
 que o ajuste para YTMUSIC remove antes de enviar o pedido. A reserva pública
 reconstrói seu próprio pedido, contexto e cookies em caso de 401/403.

@@ -126,13 +126,14 @@ int main(int argc, char** argv) {
   check(!c.setToken("invalid\r\nheader"),"token rejects header injection");
   check(c.setToken("fixture-token"),"token accepted");
   h.add(web,"sw.js_data",read(dir,"tv-session.txt"));
-  h.add(web,browse+"&alt=json",read(dir,"music-home.json"),{{"browseId",J(string("FEmusic_home"))}},true);
+  h.add(music,browse+"&alt=json",read(dir,"music-home.json"),{{"browseId",J(string("FEmusic_home"))}},true);
   check(!c.browse(request("music")).items.empty(),"account change invalidates cache");
-  for (int refusal : {401,403}) {
+  for (int refusal : {400,401,403}) {
     Http rejected; Client guest(rejected);
     check(guest.setToken("fixture-token"),"refused token is syntactically valid");
+    rejected.add(web,"sw.js_data",read(dir,"tv-session.txt"));
+    rejected.add(music,browse+"&alt=json","{}",{},true,refusal);
     rejected.add(music,"",read(dir,"music-context.html"));
-    rejected.add(music,browse,"{}",{},true,refusal);
     rejected.add(music,browse,read(dir,"music-home.json"));
     check(!guest.browse(request("music")).items.empty(),"refused account token retries Music as guest");
     check(guest.authError.find(std::to_string(refusal))!=string::npos,"token refusal remains observable");

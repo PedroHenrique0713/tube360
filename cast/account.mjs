@@ -12,6 +12,8 @@ const CONFIG = process.env.TUBE360_CONFIG || path.join(BASE, '../server/config.j
 const ID = /^[A-Za-z0-9_-]{11}$/;
 const text = (value) => String(value ?? '').replace(/[\x00-\x1f\x7f]+/g, ' ').trim();
 const fail = (status, code) => Object.assign(new Error(code), { status, code });
+// URL absoluta conserva o contexto e o OAuth da biblioteca, mudando também o Origin.
+export const musicEndpoint = route => new URL('https://music.youtube.com/youtubei/v1' + route);
 Log.setLevel(Log.Level.ERROR);
 // O player do cliente TV desta youtubei.js (7.20250219) recebe "A página precisa ser atualizada", sem o rastreio que grava
 // o histórico. Como TV Samsung, a identidade do tv_samsung do yt-dlp, vem completo (2026-11-22). Só para player e
@@ -383,22 +385,27 @@ export class Account {
         else args.browseId = { subscriptions: 'FEsubscriptions', library: 'FEplaylist_aggregation', history: 'FEhistory', later: 'VLWL',
           music: query === 'charts' ? 'FEmusic_explore' : 'FEmusic_home' }[kind] || (['playlist','music_playlist'].includes(kind) && !id.startsWith('VL') ? 'VL' + id : id);
         let data;
+        const execute = async (route, args) => {
+          const session = music && (cache.guest || owner?.musicRejected) ? await this.guest() : yt;
+          const result = await session.actions.execute(music ? musicEndpoint(route) : route, args);
+          if (result.data.error) throw fail(result.data.error.code || 502, 'youtube_unavailable');
+          return result;
+        };
         try {
-          ({ data } = await yt.actions.execute(route, args));
-          if ([401, 403].includes(data.error?.code)) throw fail(data.error.code, 'music_auth');
+          ({ data } = await execute(route, args));
+          if (!previous && kind === 'music' && query === 'charts') {
+            const endpoint = findNodes(data, 'musicNavigationButtonRenderer').map((v) => v.clickCommand?.browseEndpoint)
+              .find((v) => v?.browseId === 'FEmusic_charts');
+            if (!endpoint) throw fail(502, 'charts_unavailable');
+            ({ data } = await execute('/browse', { ...endpoint, client: 'YTMUSIC' }));
+          }
         } catch (error) {
-          // Alguns tokens de pareamento só são aceitos com a identidade TV. Mesmo feed e mesma conta.
-          if (!signedIn || previous || args.browseId !== 'FEmusic_home' ||
-              !(error.status === 401 || error.status === 403 || /status code (401|403)\b/.test(error.message))) throw error;
-          ({ data } = await yt.actions.execute(route, { ...args, client: 'TV' }));
-          cache.client = 'TV';
-        }
-        if (data.error) throw fail(502, 'youtube_unavailable');
-        if (!previous && kind === 'music' && query === 'charts') {
-          const endpoint = findNodes(data, 'musicNavigationButtonRenderer').map((v) => v.clickCommand?.browseEndpoint)
-            .find((v) => v?.browseId === 'FEmusic_charts');
-          if (!endpoint) throw fail(502, 'charts_unavailable');
-          ({ data } = await yt.actions.execute('/browse', { ...endpoint, client: 'YTMUSIC' }));
+          if (!music || !signedIn || cache.guest || owner?.musicRejected) throw error;
+          const status = error.status || Number(error.message?.match(/status code (\d+)/)?.[1]);
+          if ([400, 401, 403].includes(status)) owner.musicRejected = true;
+          // A continuação da conta não pertence à sessão pública; reconstruir desde a primeira página.
+          cache.guest = true; cache.pages = []; cache.seen.clear(); cache.tokens.clear(); cache.header = {};
+          continue;
         }
         if (!previous && kind === 'channel') {
           const header = findNodes(data, 'channelHeaderRenderer')[0] || findNodes(data, 'c4TabbedHeaderRenderer')[0] || findNodes(data, 'interactiveTabbedHeaderRenderer')[0] || {};

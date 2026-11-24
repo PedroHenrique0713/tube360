@@ -65,7 +65,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         seen.append(self.path)
         body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
         headers = {k.lower(): v for k, v in self.headers.items()}
-        if headers.pop('host') != 'www.youtube.com':
+        if headers.pop('host') != 'music.youtube.com':
             errors.append('wrong Host')
         headers.pop('content-length')
         if headers.pop('authorization', None) != 'Bearer console-fixture-token':
@@ -76,7 +76,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             errors.append('wire headers differ from youtubei.js: '+repr(headers))
         if body != oracle['body']:
             errors.append('wire context/body differ from youtubei.js')
-        if self.path != oracle['url'].split('www.youtube.com', 1)[1]:
+        if self.path != oracle['url'].split('music.youtube.com', 1)[1]:
             errors.append('wrong route/query')
         self.reply((fixtures/'music-home.json').read_bytes(), 'OAUTH_RESPONSE=ignored')
 

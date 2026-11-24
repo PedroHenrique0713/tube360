@@ -50,6 +50,10 @@ for token in ('CONT_channel_videos', 'CONT_channel_live', 'CONT_channel_playlist
 # A primeira continuação pública da Home é encerrada nesta prova de interface.
 (dest / 'empty.json').write_text('{"continuationContents":{"sectionListContinuation":{"contents":[]}}}')
 route(music, browse, {'continuation': 'CONT_music_home'}, 'empty.json')
+route(web, 'sw.js_data', {}, 'tv-session.txt')
+for request in list(requests):
+    if request['url'].startswith(music+'youtubei/'):
+        requests.append({**request, 'url': request['url']+'&alt=json'})
 
 subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-f', 'lavfi', '-i',
                 'sine=frequency=440:sample_rate=44100:duration=4', '-ac', '2', '-c:a', 'aac',
