@@ -156,7 +156,8 @@ string localAddress(const sockaddr_in& remote) {
 #ifdef __XSDK__
     // XNet pode recusar connect UDP para multicast; a interface não depende dessa rota.
     in_addr address{}; char ip[INET_ADDRSTRLEN]{};
-    return !xsdk_net_address(&address) && ::inet_ntop(AF_INET,&address,ip,sizeof(ip)) ? string(ip) : string{};
+    return !xsdk_net_address(&address) && address.s_addr && address.s_addr != htonl(INADDR_BROADCAST) &&
+        ::inet_ntop(AF_INET,&address,ip,sizeof(ip)) ? string(ip) : string{};
 #else
     int fd = ::socket(AF_INET,SOCK_DGRAM,0);
     if (fd < 0) return {};
@@ -165,7 +166,8 @@ string localAddress(const sockaddr_in& remote) {
         ::getsockname(fd,reinterpret_cast<sockaddr*>(&local),&size) == 0;
     ::close(fd);
     char ip[INET_ADDRSTRLEN]{};
-    return ok && ::inet_ntop(AF_INET,&local.sin_addr,ip,sizeof(ip)) ? string(ip) : string{};
+    return ok && local.sin_addr.s_addr && local.sin_addr.s_addr != htonl(INADDR_BROADCAST) &&
+        ::inet_ntop(AF_INET,&local.sin_addr,ip,sizeof(ip)) ? string(ip) : string{};
 #endif
 }
 }
@@ -442,7 +444,7 @@ struct Receiver::Impl {
                 continue;
             }
             { Lock lock(mutex); status.discovery = true; ++status.revision; }
-            uint64_t announceAt = 0;
+            uint64_t announceAt = 0, addressAt = 0;
             std::vector<string> types{service,deviceType,"upnp:rootdevice","uuid:"+identity};
             auto announce = [&](bool alive) {
                 if ((loopback && !testMulticast) || advertiseIp.empty()) return;
@@ -456,6 +458,12 @@ struct Receiver::Impl {
             };
             unsigned announcements = 0;
             while (!quit && enabled) {
+                if (SDL_GetTicks() >= addressAt) {
+                    // Uma troca de interface exige renovar a adesão e o socket de saída.
+                    auto currentIp = loopback ? string("127.0.0.1") : localAddress(group);
+                    if (currentIp != advertiseIp) break;
+                    addressAt = SDL_GetTicks()+2000;
+                }
                 if (SDL_GetTicks() >= announceAt) {
                     if (advertiseIp.empty()) {
                         advertiseIp = localAddress(group);

@@ -20,3 +20,15 @@ add_executable(nest-live-clock-test EXCLUDE_FROM_ALL "${CMAKE_CURRENT_LIST_DIR}/
 target_include_directories(nest-live-clock-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../client/src"
   "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
 target_link_libraries(nest-live-clock-test PRIVATE tube360-yt tube360-ffmpeg SDL3::SDL3)
+if(NOT XSDK AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  add_executable(cast-lan-test EXCLUDE_FROM_ALL
+    "${CMAKE_CURRENT_LIST_DIR}/lan_faults.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/transport.cpp"
+    "${CMAKE_CURRENT_LIST_DIR}/../../client/src/cast/receiver.cpp")
+  target_include_directories(cast-lan-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../client/src"
+    "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
+  target_link_libraries(cast-lan-test PRIVATE tube360-cast tube360-yt SDL3::SDL3)
+  target_link_options(cast-lan-test PRIVATE -Wl,--wrap=getsockname -Wl,--wrap=bind
+    -Wl,--wrap=setsockopt -Wl,--wrap=sendto)
+
+endif()
