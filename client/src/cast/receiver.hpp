@@ -12,7 +12,7 @@ class Receiver {
     struct Impl;
     std::unique_ptr<Impl> impl;
 public:
-    explicit Receiver(const string& assets);
+    explicit Receiver(const string& assets, const string& name = "Tube360");
     ~Receiver();
     void enable(bool);
     // Somente uma cópia do estado por amostra. Nenhuma rede na thread de desenho.

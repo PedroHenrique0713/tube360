@@ -87,8 +87,8 @@ bool Frames::feed(const char* data, size_t size, const std::function<bool(const 
         if (!deliver(frame)) return false;
     }
 }
-Lounge::Lounge(yt::Transport& t, string identity, string savedScreen)
-    : transport(t), device(std::move(identity)), screen(std::move(savedScreen)) {}
+Lounge::Lounge(yt::Transport& t, string identity, string savedScreen, string screenName)
+    : transport(t), device(std::move(identity)), screen(std::move(savedScreen)), name(std::move(screenName)) {}
 bool Lounge::request(const string& route, const Fields& fields, string& body) {
     auto r = transport.request(base + route, form(fields), !fields.empty());
     if (!r.error.empty() || r.status < 200 || r.status >= 300) return false;
@@ -96,7 +96,7 @@ bool Lounge::request(const string& route, const Fields& fields, string& body) {
     return true;
 }
 string Lounge::query(const string& kind) {
-    Fields f{{"device","LOUNGE_SCREEN"},{"id",device},{"name","YouTube 360"},{"app","ytcr"},
+    Fields f{{"device","LOUNGE_SCREEN"},{"id",device},{"name",name},{"app","ytcr"},
         {"theme",theme},{"capabilities","dsp,mic,dpa,ntb"},{"cst","m"},{"mdxVersion","2"},
         {"loungeIdToken",token},{"VER","8"},{"v","2"},{"zx",device.substr(0,8) + std::to_string(rid)},{"t","1"}};
     if (kind == "init") {
@@ -140,12 +140,12 @@ string Lounge::streamUrl() { return base + "bc/bind?" + query("rpc"); }
 bool Lounge::pair(const string& pairing) {
     string body;
     return request("pairing/register_pairing_code", {{"access_type","permanent"},{"app","ytcr"},
-        {"pairing_code",pairing},{"screen_id",screen},{"screen_name","YouTube 360"},{"device_id",device}}, body);
+        {"pairing_code",pairing},{"screen_id",screen},{"screen_name",name},{"device_id",device}}, body);
 }
 bool Lounge::pairingCode() {
     string body;
     if (!request("pairing/get_pairing_code?ctx=pair", {{"access_type","permanent"},{"app","ytcr"},
-        {"lounge_token",token},{"screen_id",screen},{"screen_name","YouTube 360"},{"device_id",device}}, body)) return false;
+        {"lounge_token",token},{"screen_id",screen},{"screen_name",name},{"device_id",device}}, body)) return false;
     body = clean(body, 64);
     body.erase(std::remove(body.begin(), body.end(), ' '), body.end());
     if (body.size() != 12 || body.find_first_not_of("0123456789") != string::npos) return false;

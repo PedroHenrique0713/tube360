@@ -32,7 +32,7 @@ struct Playback {
 struct LoungeMessage { string name; Object payload; };
 class Lounge {
     yt::Transport& transport;
-    string device, screen, token, sid, gsession, theme = "cl", list, current, cpn, params, ctt;
+    string device, screen, name, token, sid, gsession, theme = "cl", list, current, cpn, params, ctt;
     int aid = -1, rid = 41000, offset = 0, index = -1, listIndex = -1;
     uint64_t tokenUntil = 0, serial = 0;
     bool seen = false, autoplay = false, supportsAutoplay = false, muted = false;
@@ -51,7 +51,7 @@ class Lounge {
     void incoming(int, const picojson::array&);
 public:
     string code, who;
-    explicit Lounge(yt::Transport& t, string identity, string savedScreen = {});
+    explicit Lounge(yt::Transport& t, string identity, string savedScreen = {}, string screenName = "Tube360");
     bool begin(uint64_t now, const string& selectedTheme = "cl");
     bool receive(const string& frame);
     bool flush();

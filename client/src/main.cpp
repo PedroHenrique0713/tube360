@@ -678,7 +678,7 @@ int main(int argc, char** argv) {
   for (auto& th : tw) th = yt::worker(Worker::main, "miniaturas", &thumbsWorker);
   Remote remote; remote.srv = srv;
   SDL_Thread* rt = SDL_CreateThread(Remote::main, "controle", &remote);
-  cast::Receiver phone(assets); phone.enable(true);
+  cast::Receiver phone(assets, brandName); phone.enable(true);
   cast::Status phoneStatus; uint64_t phoneStateAt = 0, phonePlaybackSerial = 0;
   float phoneGain = 1;
   bool endTimerPending = false;

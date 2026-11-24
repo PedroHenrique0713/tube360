@@ -177,7 +177,7 @@ class Handler(BaseHTTPRequestHandler):
                 self.response({'screens': [{'loungeToken': 'FAKE-LOUNGE-TOKEN', 'expiration': 2400}]})
             elif path.endswith('/get_pairing_code'):
                 assert fields['lounge_token'] == 'FAKE-LOUNGE-TOKEN'
-                assert fields['screen_name'] == 'YouTube 360'
+                assert fields['screen_name'] == 'Tube360'
                 lounge.code_count += 1
                 self.response('123456789012')
             elif path.endswith('/register_pairing_code'):
@@ -287,7 +287,7 @@ def exercise(lounge):
     status, headers, body = dial('GET', '/ssdp/device-desc.xml')
     assert status == 200 and headers['Application-URL'] == 'http://127.0.0.1:8134/apps/'
     root = ET.fromstring(body)
-    assert root.find('.//{*}friendlyName').text == 'YouTube 360'
+    assert root.find('.//{*}friendlyName').text == 'Tube360'
     status, _, body = dial('GET', '/apps/YouTube')
     assert status == 200 and ET.fromstring(body).find('{*}state').text == 'running'
     assert dial('POST', '/apps/YouTube', 'pairingCode=%00bad')[0] == 400

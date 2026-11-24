@@ -21,6 +21,14 @@ namespace cast {
 namespace {
 const string service = "urn:dial-multiscreen-org:service:dial:1";
 const string deviceType = "urn:dial-multiscreen-org:device:dial:1";
+string xml(const string& text) {
+    string out;
+    for (char c : text) {
+        if (c == '&') out += "&amp;"; else if (c == '<') out += "&lt;"; else if (c == '>') out += "&gt;";
+        else if (c == '"') out += "&quot;"; else out += c;
+    }
+    return out;
+}
 // O XSDK repassa as opções ao XAM, mas omite as declarações de multicast do Winsock.
 struct Membership { in_addr group, interfaceAddress; };
 static_assert(sizeof(Membership) == 8);
@@ -156,7 +164,7 @@ struct Receiver::Impl {
     SDL_Mutex* mutex = SDL_CreateMutex();
     SDL_Thread *controlThread = nullptr, *rpcThread = nullptr, *lanThread = nullptr;
     std::atomic_bool quit{false}, enabled{false}, cancel{false}, rpcCancel{true};
-    string directory, identity, rpcUrl;
+    string directory, identity, rpcUrl, name;
     Status status;
     Playback playback;
     string endedId; uint64_t endedSerial = 0;
@@ -170,7 +178,7 @@ struct Receiver::Impl {
     int dialPort = 8134, ssdpPort = 1900;
     bool loopback = false;
 
-    explicit Impl(string assets) : directory(std::move(assets)) {
+    explicit Impl(string assets, string screenName) : directory(std::move(assets)), name(std::move(screenName)) {
         identity = load(directory + "cast-device.txt");
         if (!identifier(identity)) { identity = uuid(); save(directory + "cast-device.txt",identity); }
 #ifdef TUBE360_CAST_TEST
@@ -210,7 +218,7 @@ struct Receiver::Impl {
         auto transport = yt::https(&cancel);
         string savedScreen = load(directory + "cast-screen.txt");
         if (!identifier(savedScreen)) savedScreen.clear();
-        Lounge lounge(*transport,identity,savedScreen);
+        Lounge lounge(*transport,identity,savedScreen,name);
         yt::Client youtube(*transport);
         uint64_t retryAt = 0, codeAt = 0, stateAt = 0, nextAt = 0, notifyAt = 0;
         unsigned failures = 0;
@@ -342,7 +350,7 @@ struct Receiver::Impl {
         bool app = path == "/apps/YouTube" || path == "/apps/YouTube/";
         if (method == "GET" && description) {
             string body = "<?xml version=\"1.0\"?><root xmlns=\"urn:schemas-upnp-org:device-1-0\"><specVersion><major>1</major><minor>0</minor></specVersion><device><deviceType>" + deviceType +
-                "</deviceType><friendlyName>YouTube 360</friendlyName><manufacturer>Microsoft</manufacturer><modelName>Xbox 360</modelName><UDN>uuid:" + identity +
+                "</deviceType><friendlyName>" + xml(name) + "</friendlyName><manufacturer>Microsoft</manufacturer><modelName>Xbox 360</modelName><UDN>uuid:" + identity +
                 "</UDN><serviceList><service><serviceType>" + service + "</serviceType><serviceId>urn:dial-multiscreen-org:serviceId:dial</serviceId><controlURL>/ssdp/notfound</controlURL><eventSubURL>/ssdp/notfound</eventSubURL><SCPDURL>/ssdp/notfound</SCPDURL></service></serviceList></device></root>";
             reply(200,"OK",body,"Application-URL: " + endpoint(ip) + "/apps/\r\n");
         } else if (method == "GET" && (app || path == "/apps/YouTube/run")) {
@@ -441,7 +449,7 @@ struct Receiver::Impl {
         }
     }
 };
-Receiver::Receiver(const string& assets) : impl(std::make_unique<Impl>(assets)) {}
+Receiver::Receiver(const string& assets, const string& name) : impl(std::make_unique<Impl>(assets, name)) {}
 Receiver::~Receiver() = default;
 void Receiver::enable(bool on) {
 #ifndef __XSDK__
