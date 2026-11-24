@@ -134,6 +134,11 @@ class Receiver:
                 assert 0 <= data['volume']['level'] <= 1 and isinstance(data['volume']['muted'], bool)
                 self.volume = data['volume']['level']
                 self.muted = data['volume']['muted']
+            elif kind == 'STOP':
+                assert data['sessionId'] == 'app-fixture'
+                self.launched = False
+                self.resource = None
+                self.state = 'IDLE'
             else:
                 assert kind == 'GET_STATUS'
             apps = [{'appId': APP, 'transportId': 'transport-fixture', 'sessionId': 'app-fixture',
@@ -302,6 +307,31 @@ class CastTests(unittest.TestCase):
         self.driver.command('stop')
         self.driver.until(lambda s: s['quiet'])
         self.assertTrue(self.receiver.commands('STOP'))
+        self.assertFalse((self.assets/'nest-owner.json').exists())
+
+    def test_receiver_pause_resume_without_local_command(self):
+        self.play()
+        with self.receiver.lock:
+            self.receiver.position = self.receiver.at()
+            self.receiver.stamp = time.monotonic()
+            self.receiver.state = 'PAUSED'
+        paused = self.driver.until(lambda s: s['state'] == 3)
+        time.sleep(.4)
+        self.assertAlmostEqual(self.driver.command('sample')['position'], paused['position'], delta=.03)
+        with self.receiver.lock:
+            self.receiver.stamp = time.monotonic()
+            self.receiver.state = 'PLAYING'
+        self.driver.until(lambda s: s['state'] == 2 and s['position'] > paused['position']+.1)
+        self.assertFalse(self.receiver.commands('PAUSE') or self.receiver.commands('PLAY'))
+
+    def test_receiver_idle_with_error_can_confirm_release(self):
+        self.play()
+        self.receiver.state = 'IDLE'
+        original = self.receiver.status
+        self.receiver.status = lambda: [dict(item, idleReason='ERROR') for item in original()]
+        self.driver.until(lambda s: s['state'] == 5)
+        self.driver.command('stop')
+        self.driver.until(lambda s: s['quiet'])
         self.assertFalse((self.assets/'nest-owner.json').exists())
 
     def test_phone_volume_mute_and_timer_gain_compose(self):
@@ -498,6 +528,98 @@ class CastTests(unittest.TestCase):
             for _ in range(12):
                 self.assertGreaterEqual(self.driver.command('sample')['position'], 12)
                 time.sleep(.04)
+        finally:
+            self.receiver.reply = original
+
+    def test_reordered_empty_status_cannot_release_playing_media(self):
+        first = self.play()
+        old_id = self.receiver.commands('LOAD')[0]['requestId']
+        self.driver.until(lambda s: s['updated'] > first['updated']+200)
+        original = self.receiver.reply
+
+        def reply(client, request, payload, source=None):
+            if payload.get('type') == 'MEDIA_STATUS':
+                payload = dict(payload, requestId=old_id, status=[])
+            original(client, request, payload, source)
+        self.receiver.reply = reply
+        try:
+            time.sleep(.6)
+            sample = self.driver.command('sample')
+            self.assertEqual(sample['state'], 2, 'old empty MEDIA_STATUS released current audio')
+            self.assertEqual(sample['updated'], self.driver.command('sample')['updated'])
+        finally:
+            self.receiver.reply = original
+
+    def test_reordered_receiver_status_cannot_forget_active_transport(self):
+        original = self.receiver.reply
+        idle = []
+
+        def capture(client, request, payload, source=None):
+            if payload.get('type') == 'RECEIVER_STATUS' and not payload['status'].get('applications'):
+                idle.append(payload)
+            original(client, request, payload, source)
+        self.receiver.reply = capture
+        self.play()
+        self.assertTrue(idle)
+
+        def reply(client, request, payload, source=None):
+            if payload.get('type') == 'RECEIVER_STATUS':
+                payload = idle[-1]
+            original(client, request, payload, source)
+        self.receiver.reply = reply
+        try:
+            time.sleep(2.6)
+            before = self.driver.command('sample')
+            time.sleep(.7)
+            after = self.driver.command('sample')
+            self.assertGreater(after['updated'], before['updated'], 'old receiver status erased the active transport')
+        finally:
+            self.receiver.reply = original
+
+    def test_status_without_time_still_orders_state_changes(self):
+        self.play()
+        original = self.receiver.reply
+        deferred = []
+
+        def reply(client, request, payload, source=None):
+            if payload.get('type') == 'MEDIA_STATUS':
+                if not deferred:
+                    deferred.append(dict(payload, status=[dict(item, currentTime=1)
+                                                          for item in payload['status']]))
+                    return
+                current = [dict(item, playerState='PAUSED') for item in payload['status']]
+                for item in current:
+                    item.pop('currentTime', None)
+                original(client, request, dict(payload, status=current), source)
+                payload = deferred[0]
+            original(client, request, payload, source)
+        self.receiver.reply = reply
+        try:
+            time.sleep(.7)
+            self.assertEqual(self.driver.command('sample')['state'], 3,
+                             'old PLAYING overtook a newer PAUSED without currentTime')
+        finally:
+            self.receiver.reply = original
+
+    def test_reordered_status_cannot_replace_media_session(self):
+        first = self.play()
+        old_id = self.receiver.commands('LOAD')[0]['requestId']
+        self.driver.until(lambda s: s['updated'] > first['updated']+200)
+        original = self.receiver.reply
+
+        def reply(client, request, payload, source=None):
+            if payload.get('type') == 'MEDIA_STATUS' and payload.get('status') and not self.receiver.commands('STOP'):
+                payload = dict(payload, requestId=old_id,
+                               status=[dict(item, mediaSessionId=999) for item in payload['status']])
+            original(client, request, payload, source)
+        self.receiver.reply = reply
+        try:
+            time.sleep(.6)
+            self.driver.command('stop')
+            # O receptor externo rejeita STOP para uma sessão que ele nunca abriu.
+            self.driver.until(lambda _: bool(self.receiver.commands('STOP')), timeout=2)
+            self.assertEqual(self.receiver.commands('STOP')[0]['mediaSessionId'], self.receiver.session)
+            self.driver.until(lambda s: s['quiet'], timeout=2)
         finally:
             self.receiver.reply = original
 

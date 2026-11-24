@@ -147,7 +147,7 @@ private:
         bool connected = false, receiverKnown = false, receiverPresent = false, mediaKnown = false;
         bool possible = false, pending = false, acknowledged = false;
         uint64_t generation = 0, command = 0, retryAt = 0, pollAt = 0, receiverAt = 0, pingAt = 0, heardAt = 0, actionAt = 0, stopAt = 0, began = 0;
-        int requestId = 0, barrier = 0, stopBarrier = 0, lastMediaReply = 0;
+        int requestId = 0, barrier = 0, stopBarrier = 0, lastMediaReply = 0, lastReceiverReply = 0;
         const auto sender = "sender-tube360-" + std::to_string(SDL_GetPerformanceCounter());
         auto journal = [&]() {
             Object record{{"token",J(token)},{"url",J(ownedUrl)},{"key",J(ownedKey)},
@@ -229,7 +229,8 @@ private:
                 began = now; view.released = false;
                 SDL_Log("Nest: console dono=%s gen=%llu",goal.active ? "console" : "liberando",(unsigned long long)generation);
                 stopBarrier = requestId; view.generation = generation;
-                view.state = goal.active ? LOADING : UNKNOWN; view.updated = view.observed = 0; lastMediaReply = 0;
+                view.state = goal.active ? LOADING : UNKNOWN; view.updated = view.observed = 0;
+                lastMediaReply = lastReceiverReply = 0;
             }
             view.released = false;
             if (!goal.active && !possible) {
@@ -339,6 +340,8 @@ private:
                 if (type == "PING") send(message.source,cast::heartbeat,{{"type",J(std::string("PONG"))}},false);
             } else if (message.space == cast::connection && type == "CLOSE") connected = false;
             else if (message.space == cast::receiver && message.source == "receiver-0" && type == "RECEIVER_STATUS") {
+                if (replyId && (!fresh || replyId < lastReceiverReply)) continue;
+                if (fresh) lastReceiverReply = replyId;
                 const auto& volume = field(field(json,"status"),"volume");
                 double level = number(volume,"level",-1);
                 if (baseVolume < 0 && level >= 0 && level <= 1) {
@@ -366,12 +369,16 @@ private:
                 }
                 if (fresh && replyId > stopBarrier && apps.get<Array>().empty() && possible && (!goal.active || pending)) quiet();
             } else if (message.space == cast::media && message.source == transport) {
+                // A ordem vale para o estado, a sessão e a ausência de mídia, não só para currentTime.
+                if (replyId && (!fresh || replyId < lastMediaReply ||
+                    (goal.active && !pending && replyId < barrier))) continue;
                 if (type == "LOAD_FAILED" || type == "LOAD_CANCELLED" || type == "INVALID_REQUEST") {
                     if (fresh && replyId >= barrier) { SDL_Log("Nest: console %s",type.c_str()); view.state = ERROR; }
                     continue;
                 }
                 const auto& list = field(json,"status");
                 if (type != "MEDIA_STATUS" || !list.is<Array>()) continue;
+                if (fresh) lastMediaReply = replyId;
                 // Uma resposta nova estabelece a posse. Notificações antigas não liberam a TV.
                 bool owned = false, stopped = true;
                 for (const auto& entry : list.get<Array>()) {
@@ -398,7 +405,6 @@ private:
                         double position = number(entry,"currentTime",NAN);
                         if (!state.empty() && std::isfinite(position) && position >= 0) {
                             view.observed = SDL_GetTicksNS()/1e6;
-                            if (replyId) lastMediaReply = replyId;
                             if (std::fabs(position-previousPosition) > .005) { advanced = now; previousPosition = position; }
                             if (clock || replyId == 0) {
                                 view.position = position; view.updated = stamp; view.rate = std::clamp(number(entry,"playbackRate",1),0.0,4.0);
