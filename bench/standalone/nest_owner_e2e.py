@@ -80,8 +80,24 @@ async def feed(*args, **kwargs):
     return [{'id': VIDEO, 'title': 'Bancada Nest F18', 'duration': 24, 'channel': 'Simulação local', 'views': ''}]
 
 
+async def empty_extract(*args, **kwargs):
+    return {'entries': []}
+
+
+async def no_more(*args, **kwargs):
+    pass
+
+
+def thumbnail(video_id, width, height, path):
+    m.Image.new('RGB', (width, height), (30, 35, 40)).save(path, 'JPEG')
+    return path
+
+
 m.resolve_video = resolve
 m.home_videos = m.search_videos = feed
+m.home_more = no_more
+m.extract_video = empty_extract
+m.make_thumb = thumbnail
 m.source_args = lambda info, source, start: ['-ss', str(start), '-i', source['url']]
 m.prefetch_later = lambda items: None
 server = uvicorn.Server(uvicorn.Config(m.app, host='127.0.0.1', port=8138, log_level='warning', lifespan='off'))
