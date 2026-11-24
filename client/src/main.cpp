@@ -493,10 +493,10 @@ static void glyph(gfx::Gfx& g, int which, bool big, float x, float y, Color c) {
 }
 
 // O UV usa a linha do peso escolhido; o tamanho do quad é o da rasterização.
-static void playerIcon(gfx::Gfx& g, icons::PlayerIcon iconId, float cx, bool focused) {
+static void playerIcon(gfx::Gfx& g, icons::PlayerIcon iconId, float cx, bool focused, bool marked = false) {
   int level = g.scale > 1 ? 1 : 0;
   const auto& sprite = icons::PLAYER[level][iconId];
-  float size = sprite.size / g.scale, y = focused ? icons::FILL_Y[level] : icons::REGULAR_Y[level];
+  float size = sprite.size / g.scale, y = focused || marked ? icons::FILL_Y[level] : icons::REGULAR_Y[level];
   if (focused) gfx::rect(g, cx - 22, 644, 44, 44, rgb(0xf4f4f5), 22);
   gfx::imagePart(g, iconTex, cx - size / 2, 666 - size / 2, size, size,
       float(sprite.x) / icons::W, y / icons::H, float(sprite.x + sprite.size) / icons::W, (y + sprite.size) / icons::H,
@@ -1530,9 +1530,12 @@ int main(int argc, char** argv) {
       if (open && playerUI.selected != PlayerUI::TRANSPORT) {
         playerUI.panelSel = 0;
         if (playerUI.selected == PlayerUI::TIMER) { sleepPanel = true; playerUI.sleepRow = 0; }
-        else if (playerUI.selected == PlayerUI::RATE) {
-          if (account.signedIn()) { ratePanel = true; rateSel = likeState == "DISLIKE" ? 1 : 0; }
-          else { toast = tr(K::RateSignIn); toastUntil = now + 3500; }
+        else if (playerUI.selected == PlayerUI::RATE || playerUI.selected == PlayerUI::DISLIKE) {
+          if (account.signedIn()) {
+            const char* want = playerUI.selected == PlayerUI::RATE ? "LIKE" : "DISLIKE";
+            bool same = likeState == want;
+            control.add({5, "/api/video/" + playing.id + "/rate?r=" + (same ? "none" : playerUI.selected == PlayerUI::RATE ? "like" : "dislike"), 0});
+          } else { toast = tr(K::RateSignIn); toastUntil = now + 3500; }
         } else if (playerUI.selected == PlayerUI::CC) {
           if (captions.failed || captionLoader.loading || (!captions.live && !captions.tracks.empty())) playerUI.panel = PlayerUI::CAPTIONS;
         } else if (playerUI.selected == PlayerUI::VIDEO) {
@@ -1932,10 +1935,6 @@ int main(int argc, char** argv) {
       bool show = playerUI.visible(now) || panelOpen;
       if (show) {
         const Color red = rgb(0xff0033), island = {0,0,0,0.63f};
-        if (account.signedIn() && !account.avatar.empty()) {
-          gfx::vgrad(g, 0, 0, ui::W, 160, {0,0,0,0.66f}, {0,0,0,0});
-          accountPhoto();
-        }
         gfx::vgrad(g, 0, 420, ui::W, 300, {0,0,0,0}, {0,0,0,0.87f});
         bool options = playerUI.options && !panelOpen;
         bool transportFocus = options && playerUI.selected == PlayerUI::TRANSPORT;
@@ -1991,7 +1990,7 @@ int main(int argc, char** argv) {
         }
 
         constexpr icons::PlayerIcon symbols[] = {icons::CLOSED_CAPTIONING, icons::GEAR, icons::SPEAKER_HIGH, icons::TRANSLATE_PLAYER,
-                                                 icons::MOON, icons::THUMBS_UP, icons::USER_CIRCLE, icons::BROADCAST};
+                                                 icons::MOON, icons::THUMBS_UP, icons::THUMBS_DOWN, icons::USER_CIRCLE, icons::BROADCAST};
         float rightW = 8 + (optionCount - 1 - (playerUI.tracks ? 0 : 1)) * 48, rightX = 1248 - rightW;
         gfx::playerIsland(g, rightX, rightW);
         float focusX = 60;
@@ -2000,7 +1999,9 @@ int main(int argc, char** argv) {
           if (i == PlayerUI::TRACK && !playerUI.tracks) continue;
           float cx = rightX + 28 + slot++ * 48;
           bool focused = options && playerUI.selected == i;
-          playerIcon(g, symbols[i - PlayerUI::CC], cx, focused);
+          // Avaliação já dada fica com o joinha cheio, como no YouTube.
+          bool marked = (i == PlayerUI::RATE && likeState == "LIKE") || (i == PlayerUI::DISLIKE && likeState == "DISLIKE");
+          playerIcon(g, symbols[i - PlayerUI::CC], cx, focused, marked);
           if (focused) focusX = cx;
           if (i == PlayerUI::VIDEO) {
             bool full = pl.actualHeight > 720;
@@ -2013,7 +2014,7 @@ int main(int argc, char** argv) {
         }
         if (options) {
           const K labels[] = {pl.paused ? K::Resume : K::Pause, K::Captions, K::PlayerQuality, K::Sound,
-                              K::AudioTrack, K::SleepTimer, K::Rate, K::Channel, K::ChannelLive};
+                              K::AudioTrack, K::SleepTimer, K::Like, K::Dislike, K::Channel, K::ChannelLive};
           const char* value = "";
           std::string timerValue;
           switch (playerUI.selected) {
@@ -2043,7 +2044,8 @@ int main(int argc, char** argv) {
               if (sleep.active && !sleep.end) { timerValue = fmtTime(std::ceil(sleepLeft)); value = timerValue.c_str(); }
               else value = tr(sleep.active ? K::SleepEnd : K::SleepOff);
               break;
-            case PlayerUI::RATE: if (!likeState.empty() && likeState != "INDIFFERENT") value = tr(likeState == "LIKE" ? K::Liked : K::Disliked); break;
+            case PlayerUI::RATE: if (likeState == "LIKE") value = tr(K::Liked); break;
+            case PlayerUI::DISLIKE: if (likeState == "DISLIKE") value = tr(K::Disliked); break;
             case PlayerUI::CHANNEL: value = channel.c_str(); break;
             case PlayerUI::EDGE: value = tr(K::GoLive); break;
           }
