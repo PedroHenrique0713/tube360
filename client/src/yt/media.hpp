@@ -15,8 +15,8 @@ extern "C" {
 #include <SDL3/SDL.h>
 
 namespace yt {
-inline Response mediaGet(Transport& net, string& url, std::vector<string> headers = {}) {
-    Request req; req.url = url; req.headers = std::move(headers);
+inline Response mediaGet(Transport& net, string& url, std::vector<string> headers = {}, bool fresh = false) {
+    Request req; req.url = url; req.headers = std::move(headers); req.freshConnection=fresh; req.media=true;
     long connections = 0;
     for (int hop = 0; ; hop++) {
         auto r = net.send(req);
@@ -31,61 +31,143 @@ inline Response mediaGet(Transport& net, string& url, std::vector<string> header
     }
 }
 struct RangeFile {
+    static constexpr int chunk = 512 * 1024;
     struct Window {
         int64_t base = 0, total = -1;
         long status = 0;
+        Failure failure = Failure::NONE;
+        string error;
         string bytes;
         bool contains(int64_t offset) const { return offset >= base && offset-base < int64_t(bytes.size()); }
     };
-    std::unique_ptr<Transport> net;
-    string url;
+    struct Lane {
+        RangeFile* owner = nullptr;
+        std::unique_ptr<Transport> net;
+        string url;
+        Window window;
+        SDL_Thread* worker = nullptr;
+        std::atomic<uint64_t> bytes{0}, transferMs{0};
+    } lanes[2];
+    int laneCount = 1;
     int64_t pos = 0, length = -1;
     long status = 0;
     bool failed = false;
-    Window current, next;
-    SDL_Thread* worker = nullptr;
+    bool aheadEnabled = true;
+    Failure failure = Failure::NONE;
+    string error;
+    Window current;
     SDL_AtomicInt* received;
-    RangeFile(std::unique_ptr<Transport> connection, string address, SDL_AtomicInt* count)
-        : net(std::move(connection)), url(std::move(address)), received(count) {}
-    ~RangeFile() { join(); }
-    void join() { if (worker) { SDL_WaitThread(worker, nullptr); worker = nullptr; } }
-    void fetch(Window& w) {
-        auto end = w.base + (1024 * 1024 - 1);
-        if (length > 0) end = std::min(end,length-1);
-        auto r = mediaGet(*net, url, {"Range: bytes=" + std::to_string(w.base) + "-" + std::to_string(end)});
-        w.status = r.status;
-        long long first, last, total;
-        if (!r.error.empty() || r.status != 206 ||
-            std::sscanf(r.contentRange.c_str(), " bytes %lld-%lld/%lld", &first, &last, &total) != 3 ||
-            first != w.base || last < first || last > end || total <= last ||
-            (length >= 0 && total != length) || last-first+1 != int64_t(r.body.size())) return;
-        w.total = total; w.bytes = std::move(r.body);
-        SDL_AddAtomicInt(received, int(w.bytes.size()));
+    std::atomic<unsigned> requests{0}, resumes{0}, connections{0};
+    std::atomic<uint64_t> bytes{0}, transferMs{0};
+    uint64_t waitMs = 0;
+    std::atomic<int> receiveBuffer{0}, sendBuffer{0};
+    RangeFile(std::unique_ptr<Transport> connection, string address, SDL_AtomicInt* count,
+              std::unique_ptr<Transport> parallel = {}) : received(count) {
+        lanes[0].net=std::move(connection);
+        if (parallel) { lanes[1].net=std::move(parallel); laneCount=2; }
+        for (int i=0; i<laneCount; ++i) { lanes[i].owner=this; lanes[i].url=address; }
+    }
+    ~RangeFile() {
+        for (int i=0; i<laneCount; ++i) lanes[i].net->cancel();
+        join();
+    }
+    static void join(Lane& lane) {
+        if (lane.worker) { SDL_WaitThread(lane.worker,nullptr); lane.worker=nullptr; }
+    }
+    void join() { for (int i=0; i<laneCount; ++i) join(lanes[i]); }
+    void fetch(Lane& lane) {
+        auto& w=lane.window;
+        int64_t end=w.base+std::min<int64_t>(chunk-1,INT64_MAX-w.base);
+        if (w.total>=0) end=std::min(end,w.total-1);
+        for (int attempt=0; attempt<4 && !lane.net->cancelled(); ++attempt) {
+            int64_t begin=w.base+int64_t(w.bytes.size());
+            Request req; req.media=true; req.freshConnection=attempt>0;
+            req.url=lane.url;
+            req.headers={"Range: bytes="+std::to_string(begin)+"-"+std::to_string(end)};
+            auto r=mediaGet(*lane.net,lane.url,req.headers,req.freshConnection);
+            requests++; connections+=r.newConnections;
+            transferMs+=uint64_t(r.seconds*1000);
+            lane.transferMs+=uint64_t(r.seconds*1000);
+            receiveBuffer=r.receiveBuffer; sendBuffer=r.sendBuffer;
+            w.status=r.status;
+            w.failure=failureOf(r); w.error=r.error;
+            long long first=0,last=0,total=0;
+            bool valid=r.status==206 &&
+                std::sscanf(r.contentRange.c_str()," bytes %lld-%lld/%lld",&first,&last,&total)==3 &&
+                first==begin && last>=first && last<=end && total>last &&
+                (w.total<0 || total==w.total) && int64_t(r.body.size())<=last-first+1 &&
+                (!r.error.empty() || int64_t(r.body.size())==last-first+1);
+            if (valid && (r.error.empty() || retryable(r))) {
+                w.total=total;
+                end=std::min(end,int64_t(total-1));
+                if (!r.body.empty()) {
+                    bytes+=r.body.size();
+                    lane.bytes+=r.body.size();
+                    if (received) SDL_AddAtomicInt(received,int(r.body.size()));
+                    w.bytes+=r.body;
+                }
+                if (r.error.empty() && int64_t(r.body.size())==last-first+1) return;
+                if (w.base+int64_t(w.bytes.size())>end) return;
+            } else if (r.status==206 || !retryable(r)) {
+                if (r.status==206 && !valid) { w.failure=Failure::HTTP; w.error="invalid_content_range"; }
+                break;
+            }
+            if (attempt==3 || !lane.net->backoff(150u << attempt)) break;
+            resumes++;
+        }
+        // Nunca publica uma janela incompleta como EOF: o demuxer deve receber erro na posição exata.
+        w.bytes.clear();
+    }
+    void prefetch() {
+        int64_t next=current.base+int64_t(current.bytes.size());
+        for (int i=0; i<laneCount && next<length; ++i) {
+            bool exists=false;
+            for (int j=0; j<laneCount; ++j)
+                if (lanes[j].window.base==next && (lanes[j].worker || !lanes[j].window.bytes.empty())) exists=true;
+            if (!exists) for (int j=0; j<laneCount; ++j) {
+                auto& lane=lanes[j];
+                if (lane.worker || !lane.window.bytes.empty()) continue;
+                lane.window={}; lane.window.base=next; lane.window.total=length;
+                lane.worker=yt::worker([](void* p) {
+                    auto& lane=*static_cast<Lane*>(p); lane.owner->fetch(lane); return 0;
+                },"range",&lane);
+                // Falha de criação de thread mantém a leitura síncrona disponível.
+                if (!lane.worker) lane.window={};
+                break;
+            }
+            next+=chunk;
+        }
     }
     int read(uint8_t* dst, int size) {
+        if (size<=0) return AVERROR(EINVAL);
+        if (lanes[0].net->cancelled()) return AVERROR_EXIT;
         if (failed) return AVERROR(EIO);
-        if (length >= 0 && pos >= length) return AVERROR_EOF;
+        if (length>=0 && pos>=length) return AVERROR_EOF;
         if (!current.contains(pos)) {
-            if (worker) {
-                join();
-                if (next.base == pos || next.contains(pos)) current = std::move(next);
+            bool found=false;
+            for (int i=0; i<laneCount; ++i) {
+                auto& lane=lanes[i];
+                // base não muda enquanto o worker está ativo; bytes só são lidos após join.
+                if ((lane.worker || !lane.window.bytes.empty()) && lane.window.base==pos) {
+                    uint64_t began=SDL_GetTicks(); join(lane); waitMs+=SDL_GetTicks()-began;
+                    current=std::move(lane.window); lane.window={}; found=true; break;
+                }
             }
-            if (!current.contains(pos) && (current.base != pos || current.status == 0)) {
-                current = {}; current.base = pos; fetch(current);
+            if (!found) {
+                uint64_t began=SDL_GetTicks(); join(); waitMs+=SDL_GetTicks()-began;
+                for (int i=0; i<laneCount; ++i) lanes[i].window={};
+                auto& lane=lanes[0]; lane.window.base=pos; lane.window.total=length;
+                began=SDL_GetTicks(); fetch(lane); waitMs+=SDL_GetTicks()-began;
+                current=std::move(lane.window); lane.window={};
             }
-            if (!current.contains(pos)) { status = current.status; failed = true; return AVERROR(EIO); }
-            length = current.total;
+            if (!current.contains(pos)) {
+                status=current.status; failure=current.failure; error=current.error; failed=true; return AVERROR(EIO);
+            }
+            length=current.total;
         }
-        size_t off = size_t(pos-current.base);
-        size_t n = std::min(size_t(size), current.bytes.size()-off);
-        std::memcpy(dst,current.bytes.data()+off,n); pos += n;
-        // Só antecipa após o consumo de parte da janela: a sondagem do índice MP4 pode saltar imediatamente.
-        if (!worker && off+n >= current.bytes.size()/3 && current.base+int64_t(current.bytes.size()) < length) {
-            next = {}; next.base = current.base + int64_t(current.bytes.size());
-            worker = yt::worker([](void* data) {
-                auto& f = *static_cast<RangeFile*>(data); f.fetch(f.next); return 0;
-            }, "range", this);
-        }
+        size_t off=size_t(pos-current.base), n=std::min(size_t(size),current.bytes.size()-off);
+        std::memcpy(dst,current.bytes.data()+off,n); pos+=n;
+        if (aheadEnabled) prefetch();
         return int(n);
     }
     static int pull(void* p, uint8_t* dst, int size) { return static_cast<RangeFile*>(p)->read(dst, size); }
@@ -120,6 +202,7 @@ struct LiveFile {
     struct List {
         int64_t first = 0;
         std::vector<string> urls;
+        std::vector<double> stamps, durations;
         bool ended = false;
         int64_t last() const { return first + int64_t(urls.size()) - 1; }
     };
@@ -134,6 +217,11 @@ struct LiveFile {
     std::atomic_long status{0};
     int height = 0, delay = 1000;
     double frameRate = 0;
+    struct Variant { string url, group; int height = 0; double fps = 0; };
+    std::vector<Variant> lowerVariants;
+    std::atomic_bool lowerRequested{false};
+    std::atomic<int> lowerRemaining{0}, selectedHeight{0}, selectedRate{0};
+    std::atomic<unsigned> switches{0};
     std::vector<AudioTrack> audioTracks;
     string selectedAudio;
     unsigned segments = 0, connections = 0;
@@ -158,6 +246,7 @@ struct LiveFile {
         int bestRank = 0;
         std::map<string,string> groups;
         std::map<string,std::vector<AudioTrack>> tracks;
+        std::vector<Variant> variants;
         if (!mu || !cv || !fetch(lists,url, master) || !master.starts_with("#EXTM3U")) return false;
         for (auto& line : net::split(master, '\n')) {
             if (line.starts_with("#EXT-X-MEDIA:") && attribute(line,"TYPE") == "AUDIO") {
@@ -176,6 +265,9 @@ struct LiveFile {
                 bool legacy = line.find("/itag/93/") != string::npos || line.find("/itag/94/") != string::npos || line.find("/itag/95/") != string::npos;
                 std::sscanf(attribute(attrs,"RESOLUTION").c_str(), "%dx%d", &w, &h);
                 int rank = preferFast && fps>30 ? 4 : fps > 0 && fps <= 30 ? 3 : fps == 0 && legacy ? 2 : 1;
+                if (w>0 && w<=1280 && h>0 && h<=ceiling && std::isfinite(fps) && fps>=0 && fps<=60.01 &&
+                    codecs.find("avc1")!=string::npos && codecs.find("mp4a")!=string::npos)
+                    variants.push_back({hlsUrl(url,line),attribute(attrs,"AUDIO"),h,fps});
                 if (w > 0 && w <= 1280 && h > 0 && h <= ceiling && (ceiling < 720 || h == 720) &&
                     std::isfinite(fps) && fps >= 0 && fps <= 60.01 &&
                     (rank > bestRank || (rank == bestRank && h > height)) &&
@@ -197,6 +289,15 @@ struct LiveFile {
             audioPlaylist=chosen->format.url; selectedAudio=chosen->code;
         }
         if (playlist.empty() || (!group.empty() && audioPlaylist.empty())) return false;
+        for (const auto& v : variants) if (v.group==group && v.url!=playlist &&
+            (v.height<height || (v.height==height && v.fps>0 && v.fps<=30.1 && frameRate>30.1))) lowerVariants.push_back(v);
+        std::sort(lowerVariants.begin(),lowerVariants.end(),[](const Variant& a,const Variant& b) {
+            return a.height!=b.height ? a.height>b.height : a.fps<b.fps;
+        });
+        lowerVariants.erase(std::unique(lowerVariants.begin(),lowerVariants.end(),[](const Variant& a,const Variant& b) {
+            return a.height==b.height;
+        }),lowerVariants.end());
+        lowerRemaining=int(lowerVariants.size()); selectedHeight=height; selectedRate=int(std::lround(frameRate*1000));
         planner = yt::worker([](void* p) {
             auto& f = *static_cast<LiveFile*>(p);
             int result = f.plan();
@@ -205,28 +306,83 @@ struct LiveFile {
         }, "playlists", this);
         return planner != nullptr;
     }
+    static double timestamp(const string& text) {
+        int y=0,m=0,d=0,h=0,min=0,used=0; double sec=0;
+        if (std::sscanf(text.c_str(),"%d-%d-%dT%d:%d:%lf%n",&y,&m,&d,&h,&min,&sec,&used)!=6 ||
+            y<1970 || y>9999 || m<1 || m>12 || d<1 || d>31 || h<0 || h>23 || min<0 || min>59 || !std::isfinite(sec) || sec<0 || sec>=61) return -1;
+        int zone=0;
+        if (text.substr(used)!="Z") {
+            int zh=0,zm=0,n=0;
+            if (used>=int(text.size()) || (text[used]!='+' && text[used]!='-') ||
+                std::sscanf(text.c_str()+used+1,"%d:%d%n",&zh,&zm,&n)!=2 || zh<0 || zh>23 || zm<0 || zm>59 || used+1+n!=int(text.size())) return -1;
+            zone=(zh*60+zm)*60*(text[used]=='+' ? 1 : -1);
+        }
+        y-=m<=2;
+        int era=y/400, year=y-era*400, day=(153*(m+(m>2 ? -3 : 9))+2)/5+d-1;
+        int64_t days=int64_t(era)*146097+year*365+year/4-year/100+day-719468;
+        return double(days*86400+h*3600+min*60-zone)+sec;
+    }
     bool update(const string& url, List& list) {
         string body;
         if (!fetch(lists,url,body) || !body.starts_with("#EXTM3U")) return false;
         list = {};
+        double stamp=-1, duration=0;
         for (const auto& line : net::split(body,'\n')) {
             if (line.starts_with("#EXT-X-MEDIA-SEQUENCE:")) list.first = std::strtoll(line.c_str()+22,nullptr,10);
             else if (line.starts_with("#EXT-X-TARGETDURATION:")) delay = std::clamp(std::atoi(line.c_str()+22)*500,500,5000);
             else if (line == "#EXT-X-ENDLIST") list.ended = true;
+            else if (line.starts_with("#EXT-X-PROGRAM-DATE-TIME:")) stamp=timestamp(line.substr(25));
+            else if (line.starts_with("#EXTINF:")) duration=std::atof(line.c_str()+8);
             else if (line.starts_with("#EXT-X-MAP:") || line.starts_with("#EXT-X-KEY:")) return false;
-            else if (!line.empty() && line[0] != '#') list.urls.push_back(hlsUrl(url,line));
+            else if (!line.empty() && line[0] != '#') {
+                list.urls.push_back(hlsUrl(url,line)); list.stamps.push_back(stamp); list.durations.push_back(duration);
+                stamp=stamp>=0 && std::isfinite(duration) && duration>0 ? stamp+duration : -1;
+                duration=0;
+            }
         }
         return !list.urls.empty();
+    }
+    bool requestLower() {
+        if (lowerRemaining<=0 || closing || stop) return false;
+        bool expected=false;
+        if (!lowerRequested.compare_exchange_strong(expected,true)) return false;
+        SDL_LockMutex(mu); SDL_SignalCondition(cv); SDL_UnlockMutex(mu);
+        return true;
+    }
+    bool switchPlaylist(List& video, int64_t sequence, int64_t& offset) {
+        // Media sequence não identifica o mesmo instante em variantes diferentes. Só troca com relógio UTC comum.
+        int64_t at=sequence-video.first;
+        double target=at>=0 && at<int64_t(video.stamps.size()) ? video.stamps[size_t(at)] :
+            at==int64_t(video.stamps.size()) && at>0 && video.stamps.back()>=0 && video.durations.back()>0 ?
+                video.stamps.back()+video.durations.back() : -1;
+        if (target<0) { lowerRemaining=0; return false; }
+        while (!lowerVariants.empty()) {
+            auto candidate=lowerVariants.front(); lowerVariants.erase(lowerVariants.begin());
+            List next;
+            long previous=status.load();
+            if (!update(candidate.url,next)) { status=previous; continue; }
+            for (size_t i=0;i<next.stamps.size();++i) if (next.stamps[i]>=0 && std::fabs(next.stamps[i]-target)<.05) {
+                offset=next.first+int64_t(i)-sequence; next.first-=offset;
+                playlist=candidate.url; video=std::move(next);
+                selectedHeight=candidate.height; selectedRate=int(std::lround(candidate.fps*1000));
+                lowerRemaining=int(lowerVariants.size()); switches++;
+                return true;
+            }
+        }
+        lowerRemaining=0; return false;
     }
     int plan() {
         List video, audio;
         bool paired = !audioPlaylist.empty();
         int64_t sequence = -1;
+        int64_t videoOffset = 0;
         uint64_t since = SDL_GetTicks();
         while (!stop && !closing) {
+            if (lowerRequested.exchange(false) && sequence>=0) switchPlaylist(video,sequence,videoOffset);
             if (sequence < 0 || sequence > video.last()) {
                 if (video.ended) return AVERROR_EOF;
                 if (!update(playlist,video)) return AVERROR(EIO);
+                video.first-=videoOffset;
             }
             if (paired && (sequence < 0 || sequence > audio.last())) {
                 if (audio.ended) return AVERROR_EOF;
@@ -238,7 +394,8 @@ struct LiveFile {
             if (sequence < first) return AVERROR_INVALIDDATA;
             if (sequence <= edge) {
                 SDL_LockMutex(mu);
-                while (pending.size() >= reserve && !stop && !closing) SDL_WaitConditionTimeout(cv,mu,100);
+                while (pending.size() >= reserve && !stop && !closing && !lowerRequested) SDL_WaitConditionTimeout(cv,mu,100);
+                if (lowerRequested) { SDL_UnlockMutex(mu); continue; }
                 if (!stop && !closing) pending.push_back({video.urls[sequence-video.first],paired ? audio.urls[sequence-audio.first] : ""});
                 SDL_BroadcastCondition(cv); SDL_UnlockMutex(mu);
                 ++sequence; since = SDL_GetTicks();

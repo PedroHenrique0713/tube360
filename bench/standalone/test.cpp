@@ -15,6 +15,10 @@ void check(bool ok,const char* message) {
 struct Http : yt::Transport {
     struct Step { string url, body; yt::Response res; bool form; };
     std::deque<Step> steps;
+    std::vector<yt::Request> sent;
+    std::vector<unsigned> waits;
+    bool backoff(unsigned ms) override { waits.push_back(ms); return true; }
+    yt::Response send(const yt::Request& r) override { sent.push_back(r); return request(r.url,r.body,r.form); }
     void add(string url,string expected,string reply,long status=200,bool form=false) {
         steps.push_back({url,expected,{status,reply,{}},form});
     }
@@ -76,12 +80,15 @@ void playback(Http& h,yt::Client& c,const string& dir) {
     v=c.player(id);
     check(v.video.itag==136 && v.video.fps==60,"720p60 beats 480p30; 1080p60 is excluded");
     const string login=R"({"playabilityStatus":{"status":"LOGIN_REQUIRED","reason":"Sign in"},"streamingData":{"hlsManifestUrl":"https://media.example/old"}})";
-    // Sessão recusada: abre uma nova (o player JS é o mesmo, sem baixar de novo) e tenta uma única vez mais.
+    // A sessão nova vem antes dos outros clientes; o JS da mesma revisão não é baixado outra vez.
     h.add(player,"\"clientName\":\"VISIONOS\"",login);
     h.add(watch,"",session);
     h.add(player,"\"clientName\":\"VISIONOS\"",login);
+    h.add(player,"\"clientName\":\"ANDROID_VR\"",login);
+    h.add(player,"\"clientName\":\"IOS\"",login);
     v=c.player(id);
-    check(v.status=="LOGIN_REQUIRED" && v.hls.empty() && v.video.url.empty(),"challenge stops playback after one new session");
+    check(v.status=="LOGIN_REQUIRED" && v.hls.empty() && v.video.url.empty(),"challenge stops after one new session and two bounded alternate clients");
+    h.add(player,"\"clientName\":\"VISIONOS\"","oops",503);
     h.add(player,"\"clientName\":\"VISIONOS\"","oops",503);
     check(c.player(id).status=="ERROR","player failure");
     check(c.player("bad").status=="INVALID_VIDEO_ID","bad ID locally rejected");
@@ -102,12 +109,15 @@ void audioProfiles(Http& h,yt::Client& c) {
       {"itag":137,"mimeType":"video/mp4; codecs=\"avc1\"","width":1920,"height":1080,"fps":30,"url":"https://media.example/1080"},
       {"itag":298,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":60,"url":"https://media.example/72060"},
       {"itag":136,"mimeType":"video/mp4; codecs=\"avc1\"","width":1280,"height":720,"fps":30,"url":"https://media.example/72030"},
+      {"itag":135,"mimeType":"video/mp4; codecs=\"avc1\"","width":854,"height":480,"fps":30,"url":"https://media.example/48030"},
       {"itag":140,"mimeType":"audio/mp4; codecs=\"mp4a\"","bitrate":128000,"audioTrack":{"id":"pt.4","displayName":"Portuguese (auto-dubbed)","audioIsDefault":true},"url":"https://media.example/pt"},
       {"itag":140,"mimeType":"audio/mp4; codecs=\"mp4a\"","bitrate":128000,"audioTrack":{"id":"en.4","displayName":"English (original)","audioIsDefault":false},"url":"https://media.example/en"}]}})json";
     for (int mode : {0,1,2}) {
         h.add(player,"\"clientName\":\"VISIONOS\"",reply);
         auto v=c.player(id,720,nullptr,mode);
         check(v.video.itag==(mode==1 ? 298 : 137),"saved playback profile selects 720p60 or 1080p30");
+        check(mode!=1 || v.fallbackVideo.itag==136,"720p60 has a distinct 720p30 network fallback");
+        check(mode!=1 || (v.lowerVideo.size()==2 && v.lowerVideo[1].itag==135),"720p30 falls to 480p30 before a server");
         check(v.audio.url=="https://media.example/en" && v.selectedAudio=="en-original","27f6785: original beats default automatic dub");
         check(v.audioTracks.size()==2 && !v.muxed,"audio catalog has both independent languages");
         check(v.speakerAudio.url==v.audio.url,"native Nest uses original audio in each video profile");
@@ -118,6 +128,40 @@ void audioProfiles(Http& h,yt::Client& c) {
         check(v.audio.url==(choice=="lang:ja" ? "https://media.example/en" : "https://media.example/pt"),"explicit dub or interface language; unavailable language keeps original");
         check(v.speakerAudio.url==v.audio.url,"native Nest follows explicit and interface audio selection");
     }
+}
+void playerFailures(const string& dir) {
+    const auto json=read(dir+"/player.json");
+    Http h; yt::Client c(h);
+    h.add(watch,"",session); h.add(web+"s/player/fixture/base.js","","signatureTimestamp:20775;");
+    h.steps.push_back({player,"VISIONOS",{0,"","Timeout was reached"},false});
+    h.add(player,"VISIONOS",json);
+    auto v=c.player(id);
+    check(v.status=="OK" && v.playerAttempts==2 && h.sent.back().freshConnection && h.waits.size()==1,"transient network retries same client on a fresh connection with backoff");
+    h.steps.push_back({player,"VISIONOS",{0,"","tls_peer_verification"},false});
+    v=c.player(id);
+    check(v.status=="ERROR" && v.failure==yt::Failure::TLS && v.playerAttempts==1,"TLS trust failure never bypasses verification or rotates clients");
+    h.add(player,"VISIONOS","bad JSON"); h.add(player,"VISIONOS","bad JSON");
+    v=c.player(id);
+    check(v.failure==yt::Failure::JSON && v.playerAttempts==2,"JSON retry is bounded and classified");
+    h.add(player,"VISIONOS","refused",403);
+    v=c.player(id);
+    check(v.failure==yt::Failure::HTTP && v.playerAttempts==1,"HTTP 403 is distinct from a YouTube playability refusal");
+    const string refusal=R"({"playabilityStatus":{"status":"UNPLAYABLE","reason":"not available on this app"}})";
+    h.add(player,"VISIONOS",refusal); h.add(player,"ANDROID_VR",json);
+    v=c.player(id);
+    check(v.status=="OK" && v.playerClient=="ANDROID_VR" && v.playerAttempts==2 && !v.video.url.empty(),"client refusal rotates to embedded direct-link client");
+    check(h.sent.back().agent.find("youtube.vr.oculus")!=string::npos && h.sent.back().headers[0]=="X-Youtube-Client-Name: 28","alternate client carries matching agent and numeric identity");
+    h.add(player,"VISIONOS",refusal); h.add(player,"ANDROID_VR",refusal); h.add(player,"IOS",json);
+    v=c.player(id);
+    check(v.status=="OK" && v.playerClient=="IOS" && v.playerAttempts==3 && h.steps.empty(),"second alternate remains bounded");
+    Http sessionNet; yt::Client fresh(sessionNet);
+    yt::Response tls{0,"","SSL connect error"}; tls.failure=yt::Failure::TLS; tls.retryable=true;
+    sessionNet.steps.push_back({watch,"",tls,false}); sessionNet.steps.push_back({watch,"",tls,false});
+    v=fresh.player(id);
+    check(v.failure==yt::Failure::TLS && v.status=="ERROR" && sessionNet.sent.back().freshConnection && sessionNet.steps.empty(),"TLS classification survives watch-session errors without relying on error text");
+    sessionNet.add(watch,"","denied",403);
+    v=fresh.player(id);
+    check(v.failure==yt::Failure::HTTP && sessionNet.steps.empty(),"watch HTTP 403 is not retried as a network failure");
 }
 void browse(Http& h,yt::Client& c) {
     h.add(web,"",R"(<script>ytcfg.set({"INNERTUBE_CONTEXT":{"client":{"clientName":"WEB","clientVersion":"fixture"}}})</script>)");
@@ -184,7 +228,7 @@ int main(int argc,char** argv) {
     auto plain=net->request("http://127.0.0.1:0/");
     check(plain.status==0 && !plain.error.empty(),"reject cleartext HTTP");
     Http h; yt::Client c(h);
-    playback(h,c,argv[1]); audioProfiles(h,c); browse(h,c); captions(h,c); login(h);
+    playback(h,c,argv[1]); audioProfiles(h,c); playerFailures(argv[1]); browse(h,c); captions(h,c); login(h);
     check(h.steps.empty(),"all expected exchanges exercised");
     std::cout << checks << " checks passed\n";
 }
