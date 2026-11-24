@@ -59,6 +59,10 @@ def run(name, height=480, keys='', seconds=2.5, fill=False, large=False, caption
     if name=='480-language-pt': assert 'lang=pt' in (assets/'settings.txt').read_text()
     if name=='480-fill-toggle': assert 'video_fit=fill' in (assets/'settings.txt').read_text()
     if name=='720-text-toggle': assert 'large_text=on' in (assets/'settings.txt').read_text()
+    if name in ('720-to480','480-to720'):
+        with (assets/'screen.ppm').open('rb') as shot:
+            shot.readline(); size=shot.readline().strip()
+        assert size==(b'640 480' if name=='720-to480' else b'1280 720'), (name,size)
     if 'XT_PLAY' in args:
         assert 'primeiro quadro' in text and 'posição 0.00' not in text, text[-3000:]
     results.append({'name': name, 'image': str(assets/'screen.png')})
@@ -81,6 +85,8 @@ run('480-player-fit', seconds=3, XT_PLAY='4p_9OPKgcDE')
 run('480-player-fill', seconds=3, fill=True, XT_PLAY='4p_9OPKgcDE')
 run('720-text-toggle', height=720, keys='DDDDDDDDDDDR', XT_SCREEN='settings')
 run('720-default', height=720)
+run('720-to480', height=720, keys='DDDDDDDDDL', XT_SCREEN='settings')
+run('480-to720', height=480, keys='DDDDDDDDDR', XT_SCREEN='settings')
 run('720-large-home', height=720, large=True)
 run('720-large-settings', height=720, large=True, XT_SCREEN='settings')
 run('720-large-player', height=720, large=True, seconds=3, XT_PLAY='4p_9OPKgcDE')
