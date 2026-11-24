@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "kind": "tube360-app",
+  "build": 1,
+  "version": "0.3.0",
+  "url": "https://github.com/PedroHenrique0713/tube360/releases/download/v0.3.0/tube360.xex",
+  "size": 10940416,
+  "sha256": "9604b960a0f68ead83883705d01ce5e02aec74c2e6897b965e550ab888d1f472",
+  "notes": {
+    "en": "Comments and dislike estimates; 0.25x-2x speed and repeat; CRT 4:3, large text, Spanish and signed updates with recovery.",
+    "pt": "Comentários e estimativas de não gostei; velocidade 0,25x-2x e repetir; TV de tubo 4:3, texto grande, espanhol e atualizações assinadas com recuperação."
+  }
+}
