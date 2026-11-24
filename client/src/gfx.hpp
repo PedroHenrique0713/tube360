@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include "decoded_video.hpp"
+#include "display_layout.hpp"
 
 #ifdef __XSDK__
 #include "xsdk/log.h"
@@ -60,7 +61,7 @@ struct Video {
 };
 
 struct Gfx {
-  float scale = 1;
+  float scale = 1, insetX = 0, insetY = 0;
   VkInstance inst; VkPhysicalDevice phys; VkDevice dev; VkQueue queue; uint32_t family = 0;
   VkSurfaceKHR surface; VkSwapchainKHR swap = VK_NULL_HANDLE; VkFormat format; VkExtent2D extent;
   std::vector<VkImage> images; std::vector<VkImageView> views; std::vector<VkFramebuffer> fbs;
@@ -336,7 +337,7 @@ inline void push(Gfx& g, Pipe p, VkDescriptorSet set, const float params[4], con
   bool merge = !g.cmds.empty() && g.cmds.back().pipe == p && g.cmds.back().set == set && std::memcmp(g.cmds.back().params, params, 16) == 0
                && g.cmds.back().first + g.cmds.back().count == g.verts.size();
   if (!merge) { Cmd c{p, set, {params[0], params[1], params[2], params[3]}, (uint32_t)g.verts.size(), 0}; g.cmds.push_back(c); }
-  for (int i=0;i<n;++i) { Vtx pixel=v[i]; pixel.x*=g.scale; pixel.y*=g.scale; g.verts.push_back(pixel); }
+  for (int i=0;i<n;++i) { Vtx pixel=v[i]; pixel.x=pixel.x*g.scale+g.insetX; pixel.y=pixel.y*g.scale+g.insetY; g.verts.push_back(pixel); }
   g.cmds.back().count += (uint32_t)n;
 }
 
@@ -421,11 +422,10 @@ inline float textGrad(Gfx& g, int font, const std::string& s, float x, float y, 
   return total;
 }
 
-inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 1) {
+inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 1, bool fill = false) {
   if (!g.video || !g.video->ready) return;
-  float scale = std::min(w / g.video->w, h / g.video->h);
-  float vw = scale * g.video->w, vh = scale * g.video->h;
-  x += (w - vw) * .5f; y += (h - vh) * .5f; w = vw; h = vh;
+  auto r = display::videoRect(w,h,g.video->w,g.video->h,fill);
+  x += r.x; y += r.y; w = r.w; h = r.h;
   bool hd = g.video->bt709, full = g.video->fullRange;
   float c = full ? 1.f : 255.f / 224.f;
   float p[4] = {(hd ? 1.5748f : 1.402f) * c, (hd ? 1.8556f : 1.772f) * c,
@@ -434,7 +434,7 @@ inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 
   // Quatro amostras bilineares só na luma ao reduzir; a crominância 4:2:0 já tem resolução menor que a saída.
   g.videoFilter[0] = g.video->w > w * g.scale + 1 ? .375f / g.video->w : 0;
   g.videoFilter[1] = g.video->h > h * g.scale + 1 ? .375f / g.video->h : 0;
-  quad(g, VIDEO, g.video->set, p, x, y, w, h, {(hd ? .187324f : .344136f) * c, (hd ? .468124f : .714136f) * c, 0, alpha});
+  quad(g, VIDEO, g.video->set, p, x, y, w, h, {(hd ? .187324f : .344136f) * c, (hd ? .468124f : .714136f) * c, 0, alpha},r.u0,r.v0,r.u1,r.v1);
 }
 
 // ---------------------------------------------------------------- vídeo
@@ -442,7 +442,7 @@ inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 
 inline void playerIsland(Gfx& g, float x, float w) {
   constexpr float y = 640, h = 52;
   Video* v = g.video;
-  if (v && v->ready) {
+  if (v && v->ready && !g.insetX && g.extent.width*9 == g.extent.height*16) {
     float scale = std::min(1280.f / v->w, 720.f / v->h);
     float vw = scale * v->w, vh = scale * v->h;
     float left = (1280 - vw) / 2, top = (720 - vh) / 2;
@@ -533,7 +533,7 @@ inline void makeSwapchain(Gfx& g, int w, int h) {
 inline bool init(Gfx& g, int W, int H, const char* title) {
 #ifdef __XSDK__
   int requested=H; H=tube360_set_output(H); W=H*16/9;
-  LOG("saida: solicitada %dp, framebuffer %dx%d; 1080p requer painel/HDMI 1080p progressivo",requested,W,H);
+  LOG("saida: solicitada %dp, altura selecionada %d; framebuffer real na extensao display",requested,H);
 #endif
   VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO}; app.pApplicationName = title; app.apiVersion = VK_API_VERSION_1_0;
   VkInstanceCreateInfo ici{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}; ici.pApplicationInfo = &app;
@@ -614,10 +614,10 @@ inline void output(Gfx& g, int height) {
   height=tube360_set_output(height);
   vkDestroySurfaceKHR(g.inst,g.surface,nullptr); g.surface=displaySurface(g);
 #else
-  SDL_SetWindowSize(g.win,height*16/9,height);
+  SDL_SetWindowSize(g.win,height==480 ? 640 : height*16/9,height);
 #endif
-  makeSwapchain(g,height*16/9,height);
-  for (int p=0;p<4;++p) g.pipes[p]=makePipeline(g,(Pipe)p);
+  makeSwapchain(g,height==480 ? 640 : height*16/9,height);
+  for (int p=0;p<PIPE_COUNT;++p) g.pipes[p]=makePipeline(g,(Pipe)p);
   for (auto& sample : g.samples) sample.pending=false;
   LOG("saida: framebuffer %ux%u, escala UI %.2f",g.extent.width,g.extent.height,g.scale);
 }

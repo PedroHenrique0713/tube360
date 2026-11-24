@@ -72,7 +72,7 @@ public:
             if (!range) return {200,std::move(data)};
             return {206,std::move(data),"","bytes "+std::to_string(first)+"-"+std::to_string(last)+"/"+std::to_string(size)};
         }
-        if (r.url=="https://www.youtube.com/?hl=pt" || r.url=="https://www.youtube.com/?hl=en")
+        if (r.url=="https://www.youtube.com/?hl=pt" || r.url=="https://www.youtube.com/?hl=en" || r.url=="https://www.youtube.com/?hl=es")
             return {200,R"(<script>ytcfg.set({"INNERTUBE_CONTEXT":{"client":{"clientName":"WEB","clientVersion":"fixture"}}})</script>)"};
         if (r.url.find("/youtubei/v1/next?")!=string::npos) {
             SDL_Log("extras fixture next: %s",r.body.c_str());

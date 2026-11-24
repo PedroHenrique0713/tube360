@@ -2,7 +2,7 @@
 
 Tube360 v0.3.0 runs YouTube on the Xbox. No `server.txt` beside the XEX (and no desktop `XT_SERVER`)
 means **console only**, including account, Music, phone Cast and Nest: no HTTP requests to a PC.
-The current timer is an exception in feature coverage: its deadline still requires the server.
+Without a server, the console owns the sleep deadline and end-of-video shutdown too.
 `settings.txt` can additionally force `server=off`; `server=auto` only permits a configured reserve.
 The first line of `server.txt` is `<IP> <port>`, for example `192.0.2.10 8091` (replace the documentation IP).
 
@@ -17,7 +17,7 @@ The first line of `server.txt` is `<IP> <port>`, for example `192.0.2.10 8091` (
 | Account navigation/Music | Native TV account and public catalog; local queues, history, likes, subscriptions, library, Music and audio-only playback. Music can fall back to public shelves if its endpoint rejects the TV token. |
 | Phone | Native DIAL/SSDP and YouTube lounge receiver; identity files `cast-device.txt` / `cast-screen.txt`. See Cast from the phone below. |
 | Nest | Cast v2 TLS directly from Xbox, configured in two-line `nest.txt`; the speaker fetches YouTube audio. See Direct Cast below. |
-| Sleep | Current deadline/end-of-video state is server-owned. The console shows warnings/fades and executes shutdown commands. Native deadline ownership is still missing. |
+| Sleep | Console-owned deadline and end-of-video shutdown with no server. A configured server can own the reserve timer; both paths keep warnings, fades and shutdown on Xbox. |
 
 Local runtime files (account grants, Cast identities, Nest ownership journal, history, settings and logs)
 are private; ship only the inactive examples in `deploy/xbox/`. Examples for `nest.txt` and `server.txt`
@@ -34,11 +34,11 @@ path, not normal console playback. [Current architecture](STANDALONE.md) · [Ins
 
 List responses are `text/plain; charset=utf-8`: one item per line, fields separated by TAB, lines ending in `\n`. No field
 ever contains a TAB or a line break (the server replaces them with spaces). The first line is a header. Errors are
-`erro\t<short message>`; messages follow the requested `lang` (`pt` or `en`), or `language` in `config.json`.
+`erro\t<short message>`; messages follow the requested `lang` (`pt`, `en` or `es`), or `language` in `config.json`.
 
 ## Feeds
 
-`GET /api/feed?kind=home|search|subs|history|later&q=<text>&n=24&offset=0&fresh=0|1&lang=pt|en`
+`GET /api/feed?kind=home|search|subs|history|later&q=<text>&n=24&offset=0&fresh=0|1&lang=pt|en|es`
 
 ```
 ok\t<count>\t<feed title>
@@ -58,10 +58,10 @@ ok\t<count>\t<feed title>
   End of list returns `ok\t0\t<title>`. Account list order is preserved; duplicate videos, Shorts, live streams and
   entries without video IDs are excluded.
 - `fresh=1` at offset 0 reloads an account list and its continuation cache. The console sends it on **X** (Refresh).
-- `lang=pt|en` changes list titles, error messages and views (`1.9M views` in English). It defaults to the config's
+- `lang=pt|en|es` changes list titles, error messages and views (`1.9M views` in English). It defaults to the config's
   `language` (`en` in the example config). It does not translate video titles or change `home_queries`.
   yt-dlp extraction uses the requested language; player metadata and the Node TV client use the config language
-  (`pt`/BR or `en`/US).
+  (`pt`/BR, `en`/US or `es`/MX).
 - The 6th field is the resume position in seconds (may be fractional), 0 if unavailable. For account lists the TV
   thumbnail overlay's watched percentage is multiplied by the duration, so the position is approximate. For local
   history it is the last console position. Thumbnails from all kinds enter the same prefetch queue.
@@ -162,7 +162,7 @@ use the existing conversion, limited to 720p30 even when `q=1080`.
 
 Optional `audio=original|lang:<language>|<track code>` selects the audio for both the stream and its speaker
 session. The default is original, even if YouTube marks an automatic dub as default. The interface-language
-preference uses `lang:pt` or `lang:en` and falls back to original if unavailable. Canonical track codes include
+preference uses `lang:pt`, `lang:en` or `lang:es` and falls back to original if unavailable. Canonical track codes include
 the language and role, e.g. `en-original`, `pt-auto`; read the response catalog rather than inventing codes.
 `X-Audio-Track` is the percent-encoded selected code; `X-Audio-Tracks` is a percent-encoded UTF-8 catalog with
 one TAB-separated `code, language, name, original (0|1), automatic (0|1)` row per track. `X-Source-Fps` reports
@@ -268,7 +268,12 @@ Cast URLs carry an opaque `s`. A revoked URL receives 410. Small fixed ranges an
 
 ## Sleep timer
 
-The server owns one volatile timer. It continues counting without console polls; restarting the server clears it.
+With no configured/enabled server, the console counts the selected minutes locally and handles natural end
+of video itself. End-of-video sleep suppresses repeat and automatic next. The same warning, volume fade,
+A (+15 min), B (cancel) and two-second shutdown screen apply. The notebook target requires the optional server.
+
+When the server is enabled, it owns one volatile reserve timer. It continues counting without console polls;
+restarting the server clears it.
 All responses below are `text/plain`, with `Cache-Control: no-store`:
 
 ```
@@ -350,7 +355,7 @@ A on the time row applies; A on the target row changes the saved preference. Bot
 **Go to channel** closes the video and opens the channel page (by channel ID, or resolved from the video when the
 ID is unknown).
 
-### GET /api/captions/{video_id}?lang=pt|en&track=<optional track code>
+### GET /api/captions/{video_id}?lang=pt|en|es&track=<optional track code>
 
 Read-only, `text/plain; charset=utf-8`, `Cache-Control: no-store`. Uses the existing ID validation. `lang` defaults
 to `en`; the client always sends its interface language. Track codes accept `[A-Za-z0-9_-]{1,32}`.
@@ -407,7 +412,7 @@ refresh their rolling window. Guessing an offset from wall time would give incor
 
 ## Navigation: channels, library and Music
 
-`GET /api/nav?kind=<kind>&id=<browse ID>&q=<query>&tab=videos|live|playlists&filter=0..3&offset=0&n=24&fresh=0&lang=pt|en`
+`GET /api/nav?kind=<kind>&id=<browse ID>&q=<query>&tab=videos|live|playlists&filter=0..3&offset=0&n=24&fresh=0&lang=pt|en|es`
 
 Kinds: `channel`, `subscriptions`, `library`, `playlist`, `history`, `later`, `search`, `music`, `music_search`,
 `album`, `artist`, `radio`, `music_playlist`. Channel/artist IDs are `UC…`; album IDs are Music browse IDs;

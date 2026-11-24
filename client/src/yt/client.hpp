@@ -100,7 +100,7 @@ struct Video {
 struct Page { std::vector<Card> cards; string error; };
 class Client {
     Transport& net;
-    string context;
+    string context, language = "en";
     // Sessão de visitante (cookies ficam no transporte) e o signatureTimestamp do player JS atual.
     string visitor, playerJs, cacheBase;
     int sts = 0;
@@ -111,6 +111,7 @@ class Client {
     Page page(const string& route, const string& fields, const string& exclude = {});
 public:
     explicit Client(Transport& t, string cache = {}) : net(t), cacheBase(std::move(cache)) {}
+    void setLanguage(const string& value);
     Page home();
     Page search(const string& query);
     Page next(const string& id);

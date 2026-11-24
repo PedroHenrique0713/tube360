@@ -86,6 +86,7 @@ struct Player : player::Player {
     uint64_t decoded = 0, work = 0;
     int result = 0;
     for (int attempt = 0; attempt < 2 && !stop; ++attempt) {
+      client.setLanguage(requestLanguage);
       media = client.player(id,quality,nullptr,videoMode,audioSelection,AudioTransport::audioResponse(memberResponse()));
       if (stop) return;
       if (media.status != "OK" || media.audio.url.empty()) {

@@ -57,7 +57,10 @@ namespace ui {
 const Color BG = rgb(0x0b0b0e), SURFACE = rgb(0x18181d), SURFACE2 = rgb(0x24242b), TEXT = rgb(0xf5f5f7),
             MUTED = rgb(0xa1a1aa), FAINT = rgb(0x6b6b74), A1 = rgb(0xff0f3c), A2 = rgb(0xff5a52), INK = rgb(0x0b0b0e);
 enum { F_BODY, F_SMALL, F_CARD, F_H2, F_LOGO, F_BIG, F_KEY, F_TINY, F_HERO, F_CHAN, F_LOGOL, F_CODE, F_VIDEO_TITLE, F_META, F_DETAIL, F_CLOCK, F_BADGE };
-constexpr float W = 1280, H = 720, RAIL = 96, X0 = 136;
+inline float W = 1280;
+constexpr float H = 720, RAIL = 96, X0 = 136;
+inline bool large = false, narrow = false;
+inline int columns(int preferred) { return narrow ? 2 : large ? std::min(3,preferred) : preferred; }
 inline Color alpha(Color c, float a) { return {c.r, c.g, c.b, c.a * a}; }
 inline Color mix(Color a, Color b, float t) { return {a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t}; }
 }  // namespace ui
@@ -79,8 +82,9 @@ static void memberBadge(gfx::Gfx& g, yt::Membership members, i18n::Lang lang, fl
   bool access = members == yt::Membership::Accessible;
   const char* label = i18n::get(lang, access ? K::Member : K::Members);
   float w = gfx::textWidth(g, ui::F_TINY, label) + 12;
-  gfx::rect(g, x, y, w, 20, access ? rgb(0x20563f) : Color{0,0,0,0.86f}, 5);
-  gfx::text(g, ui::F_TINY, label, x + w / 2, y + 3, access ? rgb(0xb5f3cd) : ui::TEXT, 1);
+  float h=ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+8) : 20;
+  gfx::rect(g, x, y, w, h, access ? rgb(0x20563f) : Color{0,0,0,0.86f}, 5);
+  gfx::text(g, ui::F_TINY, label, x + w / 2, y + (ui::large ? (h-g.fonts[ui::F_TINY].size)/2 : 3), access ? rgb(0xb5f3cd) : ui::TEXT, 1);
 }
 
 // ---------------------------------------------------------------- trabalho em segundo plano
@@ -127,6 +131,11 @@ struct Worker {
       while (jobs.empty() && !quit) SDL_WaitCondition(cv, mu);
       if (quit && (!finishJobs || jobs.empty())) { SDL_UnlockMutex(mu); return; }
       Job j = jobs.front(); jobs.pop_front();
+      if (j.a.rfind("/api/",0)==0) {
+        if (j.a.find("lang=es") != std::string::npos) j.lang=i18n::Lang::ES;
+        else if (j.a.find("lang=pt") != std::string::npos) j.lang=i18n::Lang::PT;
+      }
+      youtube.setLanguage(i18n::code(j.lang));
       std::string access = musicToken;
       SDL_UnlockMutex(mu);
       Result r; r.kind = j.kind; r.key = j.a; r.stamp = j.stamp; r.offset = j.offset;
@@ -166,7 +175,7 @@ struct Worker {
             r.feed.more = header.size() > 3 && header[3] == "1";
           } else r.feed.title = std::move(reply.body);
         } else if (j.kind == 6) {
-          r.feed.title = std::string("erro\t") + i18n::get(path.find("lang=pt") != std::string::npos ? i18n::Lang::PT : i18n::Lang::EN,
+          r.feed.title = std::string("erro\t") + i18n::get(j.lang,
               reply.error == "signed_out" ? K::AccountRequired : K::ActionFailed) + "\n";
         } else r.feed.error = K::BadResponse;
         if (j.kind == 7 && !reply.ok()) LOG("histórico nativo: %s", reply.error.c_str());
@@ -423,35 +432,37 @@ static const Color XA = rgb(0x7ed957), XB = rgb(0xff5a52), XX = rgb(0x4ea8ff), X
 // aro fino e a letra colorida; View e Menu como ícones; LB/RB, setas e afins numa pílula escura com texto branco.
 static float buttonGlyph(gfx::Gfx& g, float x, float y, const char* label, Color c) {
   const Color body = rgb(0x18181b), ring = ui::alpha(rgb(0xffffff), 0.22f);
+  float d=ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+10) : 24, k=d/24;
+  float textY=y+(ui::large ? (d-g.fonts[ui::F_TINY].size)/2 : 5);
   std::string l = label;
   const K buttons[] = {K::BtnA, K::BtnB, K::BtnX, K::BtnY, K::BtnView, K::BtnMenu, K::BtnShoulders, K::BtnTriggers, K::BtnHorizontal, K::BtnVertical};
   for (K key : buttons) if (l == i18n::get(i18n::Lang::EN, key)) { label = i18n::get(i18n::Lang::EN, key); break; }
   if (l == i18n::get(i18n::Lang::EN, K::BtnHorizontal)) {
-    gfx::rect(g, x, y, 40, 24, ring, 12);
-    gfx::rect(g, x + 1.2f, y + 1.2f, 37.6f, 21.6f, body, 10.8f);
-    gfx::triangle(g, x + 9, y + 12, x + 15, y + 7, x + 15, y + 17, XG);
-    gfx::triangle(g, x + 31, y + 12, x + 25, y + 7, x + 25, y + 17, XG);
-    return 40;
+    gfx::rect(g, x, y, 40*k, d, ring, d/2);
+    gfx::rect(g, x + 1.2f*k, y + 1.2f*k, 37.6f*k, 21.6f*k, body, 10.8f*k);
+    gfx::triangle(g, x + 9*k, y + 12*k, x + 15*k, y + 7*k, x + 15*k, y + 17*k, XG);
+    gfx::triangle(g, x + 31*k, y + 12*k, x + 25*k, y + 7*k, x + 25*k, y + 17*k, XG);
+    return 40*k;
   }
   if (l == "A" || l == "B" || l == "X" || l == "Y") {
-    gfx::rect(g, x, y, 24, 24, ring, 12);
-    gfx::rect(g, x + 1.2f, y + 1.2f, 21.6f, 21.6f, body, 10.8f);
-    gfx::text(g, ui::F_TINY, label, x + 12, y + 5, c, 1);
-    return 24;
+    gfx::rect(g, x, y, d, d, ring, d/2);
+    gfx::rect(g, x + 1.2f*k, y + 1.2f*k, 21.6f*k, 21.6f*k, body, 10.8f*k);
+    gfx::text(g, ui::F_TINY, label, x + d/2, textY, c, 1);
+    return d;
   }
   if (l == "View" || l == "Menu") {
-    gfx::rect(g, x, y, 24, 24, ring, 12);
-    gfx::rect(g, x + 1.2f, y + 1.2f, 21.6f, 21.6f, body, 10.8f);
+    gfx::rect(g, x, y, d, d, ring, d/2);
+    gfx::rect(g, x + 1.2f*k, y + 1.2f*k, 21.6f*k, 21.6f*k, body, 10.8f*k);
     Color w = rgb(0xf4f4f5);
-    if (l == "Menu") for (int k = 0; k < 3; k++) gfx::rect(g, x + 7, y + 7.5f + k * 4, 10, 1.6f, w, 0.8f);
-    else { gfx::rect(g, x + 6, y + 6, 8, 7, w, 1.2f); gfx::rect(g, x + 7.3f, y + 7.3f, 5.4f, 4.4f, body, 0.5f);
-           gfx::rect(g, x + 10, y + 10, 8, 7, w, 1.2f); gfx::rect(g, x + 11.3f, y + 11.3f, 5.4f, 4.4f, body, 0.5f); }
-    return 24;
+    if (l == "Menu") for (int i = 0; i < 3; i++) gfx::rect(g, x + 7*k, y + (7.5f+i*4)*k, 10*k, 1.6f*k, w, 0.8f*k);
+    else { gfx::rect(g, x + 6*k, y + 6*k, 8*k, 7*k, w, 1.2f*k); gfx::rect(g, x + 7.3f*k, y + 7.3f*k, 5.4f*k, 4.4f*k, body, 0.5f*k);
+           gfx::rect(g, x + 10*k, y + 10*k, 8*k, 7*k, w, 1.2f*k); gfx::rect(g, x + 11.3f*k, y + 11.3f*k, 5.4f*k, 4.4f*k, body, 0.5f*k); }
+    return d;
   }
   float w = gfx::textWidth(g, ui::F_TINY, label) + 18;
-  gfx::rect(g, x, y, w, 24, ring, 12);
-  gfx::rect(g, x + 1.2f, y + 1.2f, w - 2.4f, 21.6f, body, 10.8f);
-  gfx::text(g, ui::F_TINY, label, x + w / 2, y + 5, rgb(0xf4f4f5), 1);
+  gfx::rect(g, x, y, w, d, ring, d/2);
+  gfx::rect(g, x + 1.2f, y + 1.2f, w - 2.4f, d - 2.4f, body, d/2 - 1.2f);
+  gfx::text(g, ui::F_TINY, label, x + w / 2, textY, rgb(0xf4f4f5), 1);
   return w;
 }
 static float hint(gfx::Gfx& g, float x, float y, const char* btn, Color bc, const char* label) {
@@ -501,14 +512,14 @@ static void glyph(gfx::Gfx& g, int which, bool big, float x, float y, Color c) {
   int row=(g.scale > 1 ? 2 : 0) + (big ? 0 : 1), top=0;
   for (int i=0;i<row;++i) top+=icons::SIZES[i];
   const float s = (float)icons::SIZES[row], u = (float)(which * icons::CELL), v = (float)top;
-  gfx::imagePart(g, iconTex, std::round(x), std::round(y), s / g.scale, s / g.scale, u / icons::W, v / icons::H, (u + s) / icons::W, (v + s) / icons::H, c);
+  gfx::imagePart(g, iconTex, std::round(x), std::round(y), s / std::max(1.f,g.scale), s / std::max(1.f,g.scale), u / icons::W, v / icons::H, (u + s) / icons::W, (v + s) / icons::H, c);
 }
 
 // O UV usa a linha do peso escolhido; o tamanho do quad é o da rasterização.
 static void playerIcon(gfx::Gfx& g, icons::PlayerIcon iconId, float cx, bool focused, bool marked = false) {
   int level = g.scale > 1 ? 1 : 0;
   const auto& sprite = icons::PLAYER[level][iconId];
-  float size = sprite.size / g.scale, y = focused || marked ? icons::FILL_Y[level] : icons::REGULAR_Y[level];
+  float size = sprite.size / std::max(1.f,g.scale), y = focused || marked ? icons::FILL_Y[level] : icons::REGULAR_Y[level];
   if (focused) gfx::rect(g, cx - 22, 644, 44, 44, rgb(0xf4f4f5), 22);
   gfx::imagePart(g, iconTex, cx - size / 2, 666 - size / 2, size, size,
       float(sprite.x) / icons::W, y / icons::H, float(sprite.x + sprite.size) / icons::W, (y + sprite.size) / icons::H,
@@ -516,11 +527,11 @@ static void playerIcon(gfx::Gfx& g, icons::PlayerIcon iconId, float cx, bool foc
 }
 
 static void playerTip(gfx::Gfx& g, float cx, const PlayerText& label, const PlayerText& value, bool transport) {
-  float w = std::max(label.width, value.width) + 24, h = transport ? 26 : value.text.empty() ? 31 : 48;
+  float w = std::max(label.width, value.width) + 24, h = transport ? (ui::large ? 38 : 26) : value.text.empty() ? (ui::large ? 44 : 31) : (ui::large ? 76 : 48);
   float x = std::clamp(cx - w / 2, 32.f, ui::W - 32 - w), y = (transport ? 636 : 632) - h;
   gfx::rect(g, x, y, w, h, ui::alpha(rgb(0x18181b), 0.94f), 10);
   gfx::text(g, ui::F_CARD, label.text, x + w / 2, y + (transport ? 4 : 7), ui::TEXT, 1);
-  if (!value.text.empty()) gfx::text(g, ui::F_DETAIL, value.text, x + w / 2, y + 26, ui::MUTED, 1);
+  if (!value.text.empty()) gfx::text(g, ui::F_DETAIL, value.text, x + w / 2, y + (ui::large ? 42 : 26), ui::MUTED, 1);
 }
 
 // Ícones desenhados com formas (24 px), centrados em (cx, cy).
@@ -609,13 +620,27 @@ int main(int argc, char** argv) {
   if (FILE* f = std::fopen((assets + "video-metrics.txt").c_str(),"r")) { std::fscanf(f,"%d",&g.videoMetrics); std::fclose(f); }
   const char* shotPath = std::getenv("XT_SHOT");
   g.readback = shotPath != nullptr;
-  if (!gfx::init(g, settings.outputHeight*16/9, settings.outputHeight, "Tube360")) return 1;
+  if (!gfx::init(g, (settings.outputHeight==480 ? 640 : settings.outputHeight*16/9), settings.outputHeight, "Tube360")) return 1;
   const std::vector<gfx::FontSpec> fontSpecs={{"inter-400.ttf", 19}, {"inter-400.ttf", 16}, {"inter-600.ttf", 17}, {"inter-600.ttf", 23},
                                   {"inter-700.ttf", 27}, {"inter-700.ttf", 34}, {"inter-600.ttf", 22}, {"inter-700.ttf", 13},
                                   {"inter-700.ttf", 42}, {"inter-600.ttf", 18}, {"inter-300.ttf", 27}, {"inter-700.ttf", 58},
                                   {"inter-600.ttf", 24.2f}, {"inter-400.ttf", 17}, {"inter-400.ttf", 15.1f},
                                   {"inter-400.ttf", 18.2f}, {"inter-700.ttf", 11}};
-  if (!gfx::loadFonts(g, assets, fontSpecs)) { LOG("fontes não carregaram"); return 1; }
+  auto loadDisplay = [&]() {
+    auto layout = display::layout(g.extent.width,g.extent.height,settings.largeText);
+    ui::W = layout.width; ui::large = layout.large; ui::narrow = layout.narrow;
+    g.scale = layout.scale; g.insetX = layout.insetX; g.insetY = layout.insetY;
+    auto specs = fontSpecs;
+    if (ui::large) {
+      for (size_t i=0;i<specs.size();++i) {
+        if (i==ui::F_LOGO || i==ui::F_LOGOL || i==ui::F_CODE || i==ui::F_HERO || i==ui::F_BIG || i==ui::F_BADGE) continue;
+        specs[i].px = std::max(layout.sd ? 28.f : 22.f,specs[i].px*(layout.sd ? 1.6f : 1.3f));
+      }
+    }
+    LOG("layout: %.0fx720, %s, texto %s, margem %.0fx%.0f",ui::W,ui::narrow ? "4:3" : "wide",ui::large ? "grande" : "normal",g.insetX,g.insetY);
+    return gfx::loadFonts(g,assets,specs);
+  };
+  if (!loadDisplay()) { LOG("fontes não carregaram"); return 1; }
   loadIcons(g);
 
   gfx::Video videoTex; g.video = &videoTex;
@@ -655,7 +680,7 @@ int main(int argc, char** argv) {
   float phoneGain = 1;
   bool endTimerPending = false;
   Thumbs thumbs;
-  thumbs.configure(g, thumbsWorker, settings.cols);
+  thumbs.configure(g, thumbsWorker, ui::columns(settings.cols));
   std::vector<Shelf> cats;
   Shelf results; bool inResults = false; int cat = 0;
   Account account; bool accountBusy = false, accountKnown = false, accountFailed = false;
@@ -808,7 +833,7 @@ int main(int argc, char** argv) {
     if (v.id != playing.id) {
       nestSkip = false; likeState.clear(); upNext = Video{};
       if (!nav.localQueue) {
-        Job next{5, "/api/video/" + v.id + "/next", 0};
+        Job next{5, "/api/video/" + v.id + "/next", 0}; next.lang=settings.lang;
         next.native = !fromRemote && !account.signedIn(); control.add(next, true); nextPending = true;
       } else nextPending = false;
     }
@@ -822,6 +847,7 @@ int main(int argc, char** argv) {
     if (screen != PLAYER) nav.musicNow = nav.musicSession;
     pl.audioOnly = nav.musicSession && nav.musicNow;
     if (pl.audioOnly) { pl.speed=1; pl.loop=false; }
+    if (pl.requestLanguage != i18n::code(settings.lang)) { pl.halt(); pl.requestLanguage=i18n::code(settings.lang); }
     pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track,v.members != yt::Membership::None);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
@@ -903,8 +929,8 @@ int main(int argc, char** argv) {
   auto accountPhoto = [&]() {
     if (!account.signedIn() || account.avatar.empty()) return;
     if (const auto* slot = thumbs.get(thumbsWorker, account.avatar, frame)) {
-      gfx::rect(g, 1206, 24, 44, 44, {1,1,1,0.20f}, 22);
-      gfx::image(g, slot->tex, 1208, 26, 40, 40, 20, {1,1,1,1}, (float)thumbs.height / thumbs.width);
+      gfx::rect(g, ui::W-74, 24, 44, 44, {1,1,1,0.20f}, 22);
+      gfx::image(g, slot->tex, ui::W-72, 26, 40, 40, 20, {1,1,1,1}, (float)thumbs.height / thumbs.width);
     }
   };
   if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; startVideo(v, 0, false); }
@@ -1216,6 +1242,7 @@ int main(int argc, char** argv) {
     bool behindLive = screen == PLAYER && pl.live && (pl.paused || (pl.shownFrames &&
         (pl.liveDebt >= 1.0 || (pl.lastFrameMs && now > pl.lastFrameMs + 1000))));
     if (extras.poll()) { commentIndex=-1; }
+    auto commentPanel=display::commentsPanel(ui::W,g.fonts[ui::F_H2].lineH,g.fonts[ui::F_SMALL].lineH,g.fonts[ui::F_BODY].lineH);
     int optionCount = behindLive ? PlayerUI::COUNT : PlayerUI::EDGE;
     if (playerUI.selected >= optionCount) playerUI.selected = PlayerUI::CHANNEL;
     if (shutdownAt) {
@@ -1255,7 +1282,7 @@ int main(int argc, char** argv) {
       else if (playerUI.panel == PlayerUI::COMMENTS_PANEL) {
         int count=(int)extras.page.items.size();
         if (in.hit(Input::DOWN)) {
-          if (extras.selected<count && extras.line+10<(int)commentLines.size()) ++extras.line;
+          if (extras.selected<count && extras.line+commentPanel.lines<(int)commentLines.size()) ++extras.line;
           else if (extras.selected+1<count || !extras.page.continuation.empty()) { extras.selected=std::min(count,extras.selected+1); extras.line=0; }
         }
         if (in.hit(Input::UP)) {
@@ -1361,7 +1388,7 @@ int main(int argc, char** argv) {
       int count = (int)p.items.size();
       if (count) p.sel = std::clamp(p.sel, 0, count - 1);
       bool left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), up = in.hit(Input::UP), down = in.hit(Input::DOWN), a = in.hit(Input::A);
-      bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.sel % 4 == 0;
+      bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.sel % ui::columns(4) == 0;
       if (left && (p.zone == 0 || (p.zone == 1 && p.tabSel == 0) || (p.zone == 2 && p.channelSel == 0) || (p.zone == 3 && firstColumn))) {
         railFocus = true; railSel = railPage();
       } else if (p.zone == 0) {
@@ -1404,10 +1431,11 @@ int main(int argc, char** argv) {
           if (down && p.shelf + 1 < (int)p.shelves.size()) p.shelf++;
           p.sel = p.shelves[p.shelf].selected;
         } else {
-          if (left && p.sel % 4 > 0) p.sel--;
-          if (right && p.sel % 4 < 3 && p.sel + 1 < count) p.sel++;
-          if (up) { if (p.sel >= 4) p.sel -= 4; else p.zone = !p.channels.empty() ? 2 : tabs ? 1 : channel || playlist ? 0 : 3; }
-          if (down) { if (p.sel + 4 < count) p.sel += 4; else if (count) p.sel = count - 1; }
+          int cols=ui::columns(4);
+          if (left && p.sel % cols > 0) p.sel--;
+          if (right && p.sel % cols < cols-1 && p.sel + 1 < count) p.sel++;
+          if (up) { if (p.sel >= cols) p.sel -= cols; else p.zone = !p.channels.empty() ? 2 : tabs ? 1 : channel || playlist ? 0 : 3; }
+          if (down) { if (p.sel + cols < count) p.sel += cols; else if (count) p.sel = count - 1; }
         }
         if (a && count && !p.loading) {
           const auto item = p.items[(size_t)p.sel];
@@ -1437,7 +1465,7 @@ int main(int argc, char** argv) {
       }
     } else if (screen == SETTINGS) {
       if (in.hit(Input::UP) && settingsRow > 0) settingsRow--;
-      if (in.hit(Input::DOWN) && settingsRow < 10) settingsRow++;
+      if (in.hit(Input::DOWN) && settingsRow < 12) settingsRow++;
       int direction = 0;
       if (in.hit(Input::LEFT)) direction = -1;
       if (in.hit(Input::RIGHT)) direction = 1;
@@ -1449,7 +1477,7 @@ int main(int argc, char** argv) {
         bool changed = true;
         if (settingsRow == 1) {
           settings.cols = settings.cols == 4 ? 3 : 4;
-          thumbs.configure(g, thumbsWorker, settings.cols); scroll = 0;
+          thumbs.configure(g, thumbsWorker, ui::columns(settings.cols)); scroll = 0;
         } else if (settingsRow == 2) {
           settings.videoMode=(settings.videoMode+direction+playback::COUNT)%playback::COUNT;
         } else if (settingsRow == 3) {
@@ -1457,7 +1485,7 @@ int main(int argc, char** argv) {
           else changed = false;
         } else if (settingsRow == 4) nestOffsetMs = std::clamp(nestOffsetMs + direction * 40, -2000, 2000);
         else if (settingsRow == 5) {
-          settings.lang = settings.lang == i18n::Lang::EN ? i18n::Lang::PT : i18n::Lang::EN;
+          settings.lang = i18n::cycle(settings.lang,direction);
           rebuildCats(); scroll = 0; toast.clear();
         } else if (settingsRow == 6) { sleepChoice = (sleepChoice + direction + 8) % 8; applySleep(); changed = false; }
         else if (settingsRow == 7) {
@@ -1476,14 +1504,24 @@ int main(int argc, char** argv) {
           accountAt = nestInfoAt = 0; rebuildCats();
         }
         else if (settingsRow == 9) {
-          settings.outputHeight=settings.outputHeight==1080 ? 720 : 1080;
+          const int heights[]={480,720,1080};
+          int index=settings.outputHeight==480 ? 0 : settings.outputHeight==1080 ? 2 : 1;
+          settings.outputHeight=heights[(index+direction+3)%3];
           gfx::output(g,settings.outputHeight);
-          if (!gfx::loadFonts(g,assets,fontSpecs)) { LOG("fontes não carregaram"); quit=true; }
+          if (!loadDisplay()) { LOG("fontes não carregaram"); quit=true; }
+          scroll=0; nav.nowId.clear();
           overlayTitle = {}; overlayMeta = {}; overlayChapter = {}; tipLabel = {}; tipValue = {};
           metaChannel.clear(); clockSecond = -1;
           if ((int)g.extent.height != settings.outputHeight) { toast=tr(K::Display1080Help); toastUntil=now+6000; }
         }
         else if (settingsRow == 10) settings.originalAudio=!settings.originalAudio;
+        else if (settingsRow == 11) {
+          settings.largeText=!settings.largeText;
+          if (!loadDisplay()) { LOG("fontes não carregaram"); quit=true; }
+          overlayTitle={}; overlayMeta={}; overlayChapter={}; tipLabel={}; tipValue={};
+          metaChannel.clear(); clockSecond=-1; scroll=0; nav.nowId.clear();
+        }
+        else if (settingsRow == 12) settings.videoFill=!settings.videoFill;
         if (changed) saveSettings();
       }
       if (in.hit(Input::B)) { screen = HOME; railFocus = true; railSel = 6; }
@@ -1513,7 +1551,7 @@ int main(int argc, char** argv) {
         if (cur.kind == "subs" && (in.hit(Input::DOWN) || in.hit(Input::A))) openNav("subscriptions");
         else if ((in.hit(Input::DOWN) || in.hit(Input::A)) && n) zone = 0;
       } else {
-        int cols = settings.cols;
+        int cols = ui::columns(settings.cols);
         if (in.hit(Input::LEFT)) { if (cur.sel % cols > 0) cur.sel--; else { railFocus = true; railSel = inResults ? 1 : 0; } }
         if (in.hit(Input::RIGHT) && cur.sel % cols < cols - 1 && cur.sel + 1 < n) cur.sel++;
         if (in.hit(Input::DOWN)) { if (cur.sel + cols < n) cur.sel += cols; else if (n > 0 && cur.sel / cols < (n - 1) / cols) cur.sel = n - 1; }
@@ -1783,7 +1821,7 @@ int main(int argc, char** argv) {
     railOpen += ((railFocus ? 1.f : 0.f) - railOpen) * 0.25f;
 
     // ---------------------------------------------------------------- quadro do vídeo
-    thumbs.configure(g, thumbsWorker, settings.cols, screen == PLAYER && nav.musicNow,
+    thumbs.configure(g, thumbsWorker, ui::columns(settings.cols), screen == PLAYER && nav.musicNow,
                      screen == NAV && !nav.pages.empty() && !nav.page().banner.empty());
     gfx::begin(g);
     gfx::rect(g, 0, 0, ui::W, ui::H, ui::BG);
@@ -1809,14 +1847,15 @@ int main(int argc, char** argv) {
     if (screen == SEARCH) glow();
 
     if (screen == HOME) {
-      const int cols = settings.cols;
-      const float gap = 24, cw = std::floor((ui::W - ui::X0 - 64 - (cols - 1) * gap) / cols), th = std::round(cw * 9 / 16), rowH = th + 106, top = 150;
+      const int cols = ui::columns(settings.cols);
+      const float gap = 24, cw = std::floor((ui::W - ui::X0 - 64 - (cols - 1) * gap) / cols), th = std::round(cw * 9 / 16), rowH = th + (ui::large ? 128 : 106), top = 150;
       int n = (int)cur.feed.items.size(), row = cur.sel / cols;
-      float want = zone == 1 || row == 0 ? 0 : row * rowH - 118;
+      float want = zone == 1 || row == 0 ? 0 : row * rowH - (ui::large ? 0 : 118);
       scroll += (want - scroll) * 0.2f;
       for (int i = 0; i < n; i++) {
         float x = ui::X0 + (i % cols) * (cw + gap), y = top + (i / cols) * rowH - scroll;
         if (y > ui::H || y + rowH < 90) continue;
+        if (ui::large && (y < 140 || y + rowH > 646)) continue;
         const Video& v = cur.feed.items[(size_t)i];
         bool focused = zone == 0 && !railFocus && i == cur.sel;
         float& an = selAnim[i % 600]; an += ((focused ? 1.f : 0.f) - an) * 0.25f;
@@ -1834,15 +1873,17 @@ int main(int argc, char** argv) {
         }
         if (v.dur > 0) {
           std::string d = fmtTime(v.dur); float dw = gfx::textWidth(g, ui::F_TINY, d) + 12;
-          gfx::rect(g, ix + w - dw - 7, iy + h - 27, dw, 20, {0, 0, 0, 0.8f}, 5);
-          gfx::text(g, ui::F_TINY, d, ix + w - dw / 2 - 7, iy + h - 24, ui::TEXT, 1);
+          float badgeH=ui::large ? 36 : 20, badgeY=iy+h-badgeH-7;
+          gfx::rect(g,ix+w-dw-7,badgeY,dw,badgeH,{0,0,0,0.8f},5);
+          gfx::text(g,ui::F_TINY,d,ix+w-dw/2-7,badgeY+(badgeH-g.fonts[ui::F_TINY].size)/2,ui::TEXT,1);
         } else if (v.dur == 0) {
-          gfx::rect(g, ix + w - 70, iy + h - 27, 63, 20, ui::A1, 5);
-          gfx::text(g, ui::F_TINY, tr(K::Live), ix + w - 38, iy + h - 24, rgb(0xffffff), 1);
+          float dw=gfx::textWidth(g,ui::F_TINY,tr(K::Live))+12, badgeH=ui::large ? 36 : 20, badgeY=iy+h-badgeH-7;
+          gfx::rect(g,ix+w-dw-7,badgeY,dw,badgeH,ui::A1,5);
+          gfx::text(g,ui::F_TINY,tr(K::Live),ix+w-dw/2-7,badgeY+(badgeH-g.fonts[ui::F_TINY].size)/2,rgb(0xffffff),1);
         }
         memberBadge(g, v.members, settings.lang, ix + 7, iy + 7);
         float ty = y + th + 14;
-        for (auto& l : gfx::wrap(g, ui::F_CARD, v.title, cw, 2)) { gfx::text(g, ui::F_CARD, l, x, ty, focused ? ui::TEXT : rgb(0xe4e4e7)); ty += 23; }
+        for (auto& l : gfx::wrap(g, ui::F_CARD, v.title, cw, 2)) { gfx::text(g, ui::F_CARD, l, x, ty, focused ? ui::TEXT : rgb(0xe4e4e7)); ty += ui::large ? 31 : 23; }
         std::string meta = v.channel + (v.views.empty() ? "" : "  \xC2\xB7  " + v.views);
         gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, meta, cw), x, ty + 3, ui::MUTED);
       }
@@ -1854,6 +1895,7 @@ int main(int argc, char** argv) {
           if (settings.server) gfx::text(g, ui::F_BODY, tr(K::RetryServer), ui::X0, 270, ui::MUTED);
         } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
       }
+      if (ui::large || ui::narrow) gfx::rect(g,96,648,ui::W-96,72,ui::BG);
       // topo fixo: o nome e as categorias (a grade passa por baixo)
       gfx::rect(g, 0, 0, ui::W, 118, ui::BG, 0);
       gfx::vgrad(g, 0, 118, ui::W, 36, ui::BG, ui::alpha(ui::BG, 0));
@@ -1861,6 +1903,8 @@ int main(int argc, char** argv) {
       {
         float hw = 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Refresh)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Search)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::MoreOptions));
         float lx = ui::W - 88 - hw, pillRight = lx - 18;
+        if (ui::narrow || ui::large) lx=ui::X0;
+        float hintY=(ui::narrow || ui::large) ? 680 : 32;
         auto pill = [&](const std::string& label, Color color) {
           std::string txt = gfx::ellipsize(g, ui::F_SMALL, label, 218);
           float w = gfx::textWidth(g, ui::F_SMALL, txt) + 32;
@@ -1870,19 +1914,19 @@ int main(int argc, char** argv) {
           pillRight -= w + 10;
         };
         // a contagem do timer entra na fileira de pílulas (sozinha à direita, cobria a legenda do X)
-        if (sleep.active) {
+        if (sleep.active && !ui::narrow && !ui::large) {
           std::string value = sleep.end ? tr(K::SleepEnd) : fmtTime(std::ceil(sleepLeft));
           if (sleep.end && sleepLeft >= 0) value += " · " + fmtTime(std::ceil(sleepLeft));
           pill(std::string(tr(K::SleepTimer)) + " · " + value, ui::A1);
         }
-        if (!castWho.empty()) pill(tr(K::PhonePrefix) + castWho, rgb(0x34c759));
+        if (!castWho.empty() && !ui::narrow && !ui::large) pill(tr(K::PhonePrefix) + castWho, rgb(0x34c759));
         accountPhoto();
-        float hx3 = hint(g, lx, 32, "X", XX, tr(K::Refresh));
-        float hx4 = hint(g, hx3, 32, "Y", XY, tr(K::Search));
-        hint(g, hx4, 32, "Menu", XG, tr(K::MoreOptions));
+        float hx3 = hint(g, lx, hintY, "X", XX, tr(K::Refresh));
+        float hx4 = hint(g, hx3, hintY, "Y", XY, tr(K::Search));
+        hint(g, hx4, hintY, "Menu", XG, tr(K::MoreOptions));
       }
       if (inResults) {
-        gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, cur.feed.title, 760), ui::X0, 78, ui::TEXT);
+        gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, cur.feed.title, ui::W-ui::X0-220), ui::X0, 78, ui::TEXT);
         hint(g, ui::W - 64 - 120, 80, "B", XB, tr(K::Home));
       } else {
         // Chips inteiros: a janela acompanha o selecionado sem sair da tela.
@@ -1942,11 +1986,13 @@ int main(int argc, char** argv) {
         else gfx::rect(g, x, y, aw, kh, f ? rgb(0xffffff) : ui::alpha(rgb(0xffffff), 0.07f), 14);
         gfx::text(g, ui::F_BODY, acts[c], x + aw / 2, y + 16, c == 2 ? rgb(0xffffff) : f ? ui::INK : ui::TEXT, 1);
       }
-      float rx = 846;
-      gfx::text(g, ui::F_H2, tr(K::RecentSearches), rx, 122, ui::TEXT);
-      if (recent.empty()) gfx::text(g, ui::F_SMALL, tr(K::RecentEmpty), rx, 162, ui::FAINT);
-      for (size_t i = 0; i < recent.size(); i++) {
-        bool f = keyInRecent && (int)i == recentSel; float y = 160 + i * 58;
+      float rx = ui::narrow ? ui::X0 : 846;
+      float recentTop=ui::narrow ? 543 : 122;
+      gfx::text(g, ui::F_H2, tr(K::RecentSearches), rx, recentTop, ui::TEXT);
+      if (recent.empty()) gfx::text(g, ui::F_SMALL, tr(K::RecentEmpty), rx, recentTop+38, ui::FAINT);
+      for (size_t row = 0; row < std::min(recent.size(),size_t(ui::narrow ? 1 : 8)); row++) {
+        size_t i=ui::narrow && keyInRecent ? size_t(recentSel) : row;
+        bool f = keyInRecent && (int)i == recentSel; float y = recentTop+38 + row * 58;
         gfx::rect(g, rx, y, 370, 48, f ? rgb(0xffffff) : ui::alpha(rgb(0xffffff), 0.06f), 24);
         icon(g, 1, rx + 26, y + 24, f ? ui::INK : ui::FAINT, f ? rgb(0xffffff) : ui::SURFACE);
         gfx::text(g, ui::F_BODY, gfx::ellipsize(g, ui::F_BODY, recent[i], 300), rx + 50, y + 13, f ? ui::INK : ui::TEXT);
@@ -1962,60 +2008,52 @@ int main(int argc, char** argv) {
 
     if (screen == SETTINGS) {
       glow();
-      gfx::text(g, ui::F_BIG, tr(K::Settings), ui::X0, 42, ui::TEXT);
-      gfx::text(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::MUTED);
-      gfx::text(g, ui::F_SMALL, tr(K::SavedAutomatically), ui::W - 64, 94, ui::FAINT, 2);
-      const K labels[] = {K::YouTubeAccount, K::VideosPerRow, K::DefaultQuality, K::Sound, K::SpeakerSync, K::Language, K::SleepTimer, K::SleepTogether, K::ServerMode,K::DisplayOutput,K::AudioPreference};
-      int first=std::clamp(settingsRow-6,0,3);
-      for (int i = first; i < std::min(11,first+8); i++) {
-        float x = ui::X0, y = 122 + (i-first) * 59, w = ui::W - ui::X0 - 64;
-        bool selected = i == settingsRow, disabled = i == 3 && !nestAvailable;
-        if (selected) {
-          gfx::shadow(g, x, y + 6, w, 53, 18, 20, 0.45f);
-          gfx::rect(g, x - 2, y - 2, w + 4, 57, ui::alpha(ui::A1, 0.65f), 20);
-        }
-        gfx::rect(g, x, y, w, 53, selected ? ui::SURFACE2 : ui::SURFACE, 18);
-        if (selected) gfx::vgrad(g, x + 1, y + 13, 4, 27, ui::A1, ui::A2, 2);
-        gfx::text(g, ui::F_CHAN, tr(labels[i]), x + 28, y + (i == 0 || (i == 3 && disabled) ? 6 : 17), disabled ? ui::MUTED : ui::TEXT);
+      gfx::text(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::TEXT);
+      if (!ui::large) gfx::text(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::MUTED);
+      else gfx::text(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::MUTED);
+      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit};
+      int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,13-visible);
+      float step=ui::large ? 94 : 59, rowH=step-6;
+      for (int i=first;i<std::min(13,first+visible);++i) {
+        float x=ui::X0, y=122+(i-first)*step, w=ui::W-ui::X0-64;
+        bool selected=i==settingsRow, disabled=i==3 && !nestAvailable;
+        if (selected) gfx::rect(g,x-3,y-3,w+6,rowH+6,ui::A1,20);
+        gfx::rect(g,x,y,w,rowH,selected ? ui::SURFACE2 : ui::SURFACE,18);
         std::string value;
-        if (i == 0) {
-          value = !accountKnown && accountBusy ? tr(K::Loading) : account.signedIn() ? tr(K::SignedInAs) + account.name
-              : account.state == Account::PENDING ? tr(K::Pending) : tr(K::SignedOut);
-          gfx::text(g, ui::F_SMALL, tr(accountFailed ? K::AccountUnavailable : account.signedIn() ? K::SignOutAction : K::SignInAction), x + 28, y + 29, ui::MUTED);
-        } else if (i == 1) value = tr(settings.cols == 3 ? K::Three : K::Four);
-        else if (i == 2) value = tr(videoModeLabel(settings.videoMode));
-        else if (i == 3) {
-          value = nestAvailable && nestOut ? nestName : std::string(tr(K::TV));
-          if (disabled) gfx::text(g, ui::F_SMALL, tr(nestChecked ? K::NoSpeaker : K::SpeakerChecking), x + 28, y + 29, ui::FAINT);
-        } else if (i == 4) value = (nestOffsetMs > 0 ? "+" : "") + std::to_string(nestOffsetMs) + tr(K::Milliseconds);
-        else if (i == 5) value = tr(settings.lang == i18n::Lang::PT ? K::Portuguese : K::English);
-        else if (i == 6) value = sleepLabel(sleepChoice);
-        else if (i == 7) value = tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox);
-        else if (i==8) value = tr(settings.server ? K::Automatic : K::SleepOff);
-        else if (i==9) value=std::to_string(g.extent.height)+"p";
-        else value=tr(settings.originalAudio ? K::AudioAlwaysOriginal : K::AudioInterface);
-        float right = x + w - 54;
-        gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, value, i == 0 || i==10 ? 520 : 320), right, y + 15, disabled ? ui::FAINT : selected ? ui::A2 : ui::TEXT, 2);
-        if (selected && i > 0 && !disabled) {
-          float ax = right - std::min(340.f, gfx::textWidth(g, ui::F_KEY, value)) - 26;
-          gfx::triangle(g, ax, y + 27, ax + 6, y + 22, ax + 6, y + 32, ui::MUTED);
-          gfx::triangle(g, x + w - 24, y + 27, x + w - 30, y + 22, x + w - 30, y + 32, ui::MUTED);
-        }
+        if (i==0) value=accountFailed ? tr(K::AccountUnavailable) : !accountKnown && accountBusy ? tr(K::Loading) : account.signedIn() ? tr(K::SignedInAs)+account.name : account.state==Account::PENDING ? tr(K::Pending) : tr(K::SignInAction);
+        else if (i==1) value=tr(ui::columns(settings.cols)==2 ? K::Two : ui::columns(settings.cols)==3 ? K::Three : K::Four);
+        else if (i==2) value=tr(videoModeLabel(settings.videoMode));
+        else if (i==3) value=nestAvailable && nestOut ? nestName : tr(K::TV);
+        else if (i==4) value=(nestOffsetMs>0 ? "+" : "")+std::to_string(nestOffsetMs)+tr(K::Milliseconds);
+        else if (i==5) value=tr(settings.lang==i18n::Lang::ES ? K::Spanish : settings.lang==i18n::Lang::PT ? K::Portuguese : K::English);
+        else if (i==6) value=sleepLabel(sleepChoice);
+        else if (i==7) value=tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox);
+        else if (i==8) value=tr(settings.server ? K::Automatic : K::SleepOff);
+        else if (i==9) value=std::to_string(g.extent.width)+"×"+std::to_string(g.extent.height);
+        else if (i==10) value=tr(settings.originalAudio ? K::AudioAlwaysOriginal : K::AudioInterface);
+        else if (i==11) value=tr(ui::large ? K::Enabled : K::SleepOff);
+        else value=tr(settings.videoFill ? K::VideoFitFill : K::VideoFitLetterbox);
+        float right=x+w-46, maxValue=ui::large ? w-92 : w*.48f;
+        gfx::text(g,ui::F_CHAN,gfx::ellipsize(g,ui::F_CHAN,tr(labels[i]),ui::large ? w-56 : w*.43f),x+28,y+(ui::large ? 10 : 17),disabled ? ui::MUTED : ui::TEXT);
+        std::string shown=gfx::ellipsize(g,ui::F_KEY,value,maxValue);
+        gfx::text(g,ui::F_KEY,shown,ui::large ? x+28 : right,y+(ui::large ? 47 : 15),disabled ? ui::MUTED : selected ? ui::A2 : ui::TEXT,ui::large ? 0 : 2);
+        if (selected && i>0 && !disabled) gfx::text(g,ui::F_KEY,"< >",x+w-20,y+(ui::large ? 47 : 15),ui::MUTED,2);
       }
-      gfx::text(g, ui::F_SMALL, tr(K::SleepTVHelp), ui::X0, 630, ui::MUTED);
-      if (settingsRow==9) gfx::text(g,ui::F_SMALL,tr(K::Display1080Help),ui::X0,652,ui::FAINT);
-      if (settingsRow == 4) gfx::text(g, ui::F_SMALL, tr(K::SyncHelp), ui::X0, 652, ui::FAINT);
-      float hx = hint(g, ui::X0, 678, tr(K::BtnVertical), XG, tr(K::ChooseRow));
-      hx = hint(g, hx, 678, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
-      if (settingsRow == 0) hx = hint(g, hx, 678, "A", XA, tr(K::Open));
-      hint(g, hx, 678, "B", XB, tr(K::Back));
+      K help=settingsRow==9 ? (g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
+      float hy=ui::large ? 608 : 610;
+      for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::text(g,ui::F_SMALL,line,ui::X0,hy,ui::MUTED); hy+=ui::large ? 26 : 22; }
+      float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
+      hx=hint(g,hx,678,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
+      if (settingsRow==0) hx=hint(g,hx,678,"A",XA,tr(K::Open));
+      hint(g,hx,678,"B",XB,tr(K::Back));
     }
 
     if (screen == NAV) { nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus); accountPhoto(); }
 
     if (screen == HOME || screen == SEARCH || screen == SETTINGS || screen == NAV) {
       // barra lateral: ícones; com foco, abre com os nomes
-      float rw = ui::RAIL + 200 * railOpen;
+      float railExtra=ui::large ? 270 : 200;
+      float rw = ui::RAIL + railExtra * railOpen;
       if (railOpen > 0.01f) {
         gfx::rect(g, 0, 0, rw, ui::H, ui::alpha(ui::BG, 0.96f * railOpen), 0);
         gfx::hgrad(g, rw - 1, 0, 200, ui::H, ui::alpha(ui::BG, 0.96f * railOpen), ui::alpha(ui::BG, 0));
@@ -2025,7 +2063,7 @@ int main(int argc, char** argv) {
       for (int i = 0; i < 8; i++) {
         float y = 142 + i * 68;
         bool f = railFocus && railSel == i, act = i == page;
-        if (f) gfx::rect(g, 30, y - 24, 52 + 168 * railOpen, 48, rgb(0xffffff), 24);
+        if (f) gfx::rect(g, 30, y - 24, 52 + (railExtra-32) * railOpen, 48, rgb(0xffffff), 24);
         else if (act) gfx::rect(g, 30, y - 24, 52, 48, ui::alpha(rgb(0xffffff), 0.1f), 24);
         if (act && !f) gfx::vgrad(g, 16, y - 12, 4, 24, ui::A1, ui::A2, 2);
         Color ic = f ? ui::INK : act ? ui::TEXT : ui::MUTED;
@@ -2041,7 +2079,11 @@ int main(int argc, char** argv) {
     else {
     if (screen == PLAYER) {
       gfx::rect(g, 0, 0, ui::W, ui::H, rgb(0x000000), 0);
-      gfx::videoQuad(g, 0, 0, ui::W, ui::H);
+      float scale=g.scale, insetX=g.insetX, insetY=g.insetY;
+      g.scale=1; g.insetX=g.insetY=0;
+      gfx::rect(g,0,0,g.extent.width,g.extent.height,rgb(0x000000));
+      gfx::videoQuad(g,0,0,g.extent.width,g.extent.height,1,settings.videoFill);
+      g.scale=scale; g.insetX=insetX; g.insetY=insetY;
       bool panelOpen = ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt;
       bool show = playerUI.visible(now) || panelOpen;
       if (show) {
@@ -2058,15 +2100,15 @@ int main(int argc, char** argv) {
             if (!meta.empty()) meta += " · ";
             meta += i18n::shortDate(metaDate, metaLang);
           }
-          overlayMeta.update(g, ui::F_META, meta.c_str(), 690);
+          overlayMeta.update(g, ui::F_META, meta.c_str(), ui::W-80);
         }
-        overlayTitle.update(g, ui::F_VIDEO_TITLE, title.c_str(), options && !transportFocus ? 760 : 1200);
-        gfx::text(g, ui::F_VIDEO_TITLE, overlayTitle.text, 40, 563, ui::TEXT);
+        overlayTitle.update(g, ui::F_VIDEO_TITLE, title.c_str(), options && !transportFocus ? ui::W-520 : ui::W-80);
+        gfx::text(g, ui::F_VIDEO_TITLE, overlayTitle.text, 40, ui::large ? 548 : 563, ui::TEXT);
         gfx::text(g, ui::F_META, overlayMeta.text, 40, 591, rgb(0xd4d4d8));
 
         const bool live = pl.live;
         double pos = pl.position(), dur = pl.duration;
-        constexpr float bx = 40, by = 624, bw = 1200;
+        const float bx = 40, by = 624, bw = ui::W-80;
         float frac = live ? 1.f : dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0;
         gfx::rect(g, bx, by, bw, 4, {1,1,1,0.25f}, 2);
         if (frac > 0) gfx::rect(g, bx, by, bw * frac, 4, red, 2);
@@ -2102,7 +2144,7 @@ int main(int argc, char** argv) {
 
         constexpr icons::PlayerIcon symbols[] = {icons::CLOSED_CAPTIONING, icons::GEAR, icons::SPEAKER_HIGH, icons::TRANSLATE_PLAYER,
                                                  icons::MOON, icons::THUMBS_UP, icons::THUMBS_DOWN, icons::CHAT_CIRCLE_TEXT, icons::GAUGE, icons::REPEAT, icons::USER_CIRCLE, icons::BROADCAST};
-        float rightW = 8 + (optionCount - 1 - (playerUI.tracks ? 0 : 1)) * 48, rightX = 1248 - rightW;
+        float rightW = 8 + (optionCount - 1 - (playerUI.tracks ? 0 : 1)) * 48, rightX = ui::W-32 - rightW;
         gfx::playerIsland(g, rightX, rightW);
         float focusX = 60;
         int slot = 0;
@@ -2181,7 +2223,7 @@ int main(int argc, char** argv) {
         if (index != captionIndex) {
           captionIndex = index; captionLines.clear(); captionWidth = 0;
           if (index >= 0) {
-            captionLines = gfx::wrap(g, ui::F_H2, captions.cues[(size_t)index].text, 1060, 2);
+            captionLines = gfx::wrap(g, ui::F_H2, captions.cues[(size_t)index].text, ui::W-120, 2);
             for (size_t i = 0; i < captionLines.size(); i++) {
               captionLineWidths[i] = gfx::textWidth(g, ui::F_H2, captionLines[i]);
               captionWidth = std::max(captionWidth, captionLineWidths[i]);
@@ -2189,22 +2231,29 @@ int main(int argc, char** argv) {
           }
         }
         if (!captionLines.empty()) {
-          float height = (float)captionLines.size() * 31 + 16, bottom = show ? 482 : 674;
+          float lineH=g.fonts[ui::F_H2].lineH+4;
+          float height = (float)captionLines.size() * lineH + 16, bottom = show ? 482 : 674;
           gfx::rect(g, (ui::W - captionWidth) / 2 - 18, bottom - height, captionWidth + 36, height, {0, 0, 0, 0.78f}, 8);
           float cy = bottom - height + 8;
           for (size_t i = 0; i < captionLines.size(); i++) {
-            gfx::text(g, ui::F_H2, captionLines[i], (ui::W - captionLineWidths[i]) / 2, cy, ui::TEXT); cy += 31;
+            gfx::text(g, ui::F_H2, captionLines[i], (ui::W - captionLineWidths[i]) / 2, cy, ui::TEXT); cy += lineH;
           }
         }
       }
       if (playerUI.panel==PlayerUI::COMMENTS_PANEL) {
-        constexpr float x=100,y=58,w=1080,h=536;
+        float x=commentPanel.x,y=commentPanel.y,w=commentPanel.w,h=commentPanel.h;
         gfx::rect(g,0,0,ui::W,ui::H,{0,0,0,.35f});
         gfx::shadow(g,x,y+10,w,h,24,32,.6f); gfx::rect(g,x,y,w,h,ui::SURFACE,24);
         gfx::text(g,ui::F_BIG,tr(K::Comments),x+36,y+26,ui::TEXT);
         int count=(int)extras.page.items.size();
         if (extras.loading || !extras.page.error.empty() || (!count && extras.page.continuation.empty())) {
-          gfx::text(g,ui::F_BODY,tr(extras.loading ? K::Loading : !extras.page.error.empty() ? K::CommentsFailed : K::CommentsEmpty),x+36,y+120,ui::MUTED);
+          const char* message=tr(extras.loading ? K::Loading : !extras.page.error.empty() ? K::CommentsFailed : K::CommentsEmpty);
+          static const char* previous=nullptr; static float previousWidth=0, previousLineH=0;
+          static std::vector<std::string> lines;
+          if (message!=previous || previousWidth!=w || previousLineH!=commentPanel.lineH) {
+            lines=gfx::wrap(g,ui::F_BODY,message,w-72,3); previous=message; previousWidth=w; previousLineH=commentPanel.lineH;
+          }
+          for (size_t i=0;i<lines.size();++i) gfx::text(g,ui::F_BODY,lines[i],x+36,y+120+i*commentPanel.lineH,ui::MUTED);
         } else if (extras.selected<count) {
           const auto& comment=extras.page.items[extras.selected];
           if (commentIndex!=extras.selected) {
@@ -2214,22 +2263,22 @@ int main(int argc, char** argv) {
             commentPosition=std::to_string(extras.selected+1)+" / "+std::to_string(count);
           }
           gfx::text(g,ui::F_H2,commentAuthor.text,x+36,y+86,ui::TEXT);
-          gfx::text(g,ui::F_SMALL,commentMeta.text,x+36,y+119,ui::MUTED);
-          for (int i=extras.line;i<std::min((int)commentLines.size(),extras.line+10);++i)
-            gfx::text(g,ui::F_BODY,commentLines[i],x+36,y+157+(i-extras.line)*27,ui::TEXT);
-          gfx::text(g,ui::F_SMALL,commentPosition,x+w-95,y+36,ui::MUTED);
+          gfx::text(g,ui::F_SMALL,commentMeta.text,x+36,y+commentPanel.metaY,ui::MUTED);
+          for (int i=extras.line;i<std::min((int)commentLines.size(),extras.line+commentPanel.lines);++i)
+            gfx::text(g,ui::F_BODY,commentLines[i],x+36,y+commentPanel.bodyY+(i-extras.line)*commentPanel.lineH,ui::TEXT);
+          gfx::text(g,ui::F_SMALL,commentPosition,x+w-36,y+36,ui::MUTED,2);
         } else gfx::text(g,ui::F_H2,tr(K::CommentsMore),x+36,y+130,ui::TEXT);
         float hx=hint(g,x+36,y+h-44,tr(K::BtnVertical),XG,tr(K::Scroll));
         if (!extras.page.error.empty() || extras.selected>=count) hx=hint(g,hx,y+h-44,"A",XA,tr(K::Open));
         hint(g,hx,y+h-44,"B",XB,tr(K::Back));
       } else if (playerUI.panel==PlayerUI::SPEED_PANEL) {
-        constexpr float x=350,y=155,w=580,h=370;
+        float w=ui::large ? std::min(760.f,ui::W-80) : 580, x=(ui::W-w)/2, y=155, h=370, step=(w-72)/4;
         gfx::rect(g,0,0,ui::W,ui::H,{0,0,0,.55f}); gfx::shadow(g,x,y+10,w,h,24,32,.6f);
         gfx::rect(g,x,y,w,h,ui::SURFACE,24); gfx::text(g,ui::F_BIG,tr(K::PlaybackSpeed),x+36,y+26,ui::TEXT);
         for (int i=0;i<8;++i) {
-          float bx=x+36+(i%4)*128,by=y+105+(i/4)*66; bool focus=playerUI.panelSel==i;
-          gfx::rect(g,bx,by,118,54,focus ? ui::TEXT : ui::SURFACE2,10);
-          gfx::text(g,ui::F_H2,audio::speedLabels[i],bx+59,by+15,focus ? ui::INK : ui::TEXT,1);
+          float bx=x+36+(i%4)*step,by=y+105+(i/4)*66; bool focus=playerUI.panelSel==i;
+          gfx::rect(g,bx,by,step-10,54,focus ? ui::TEXT : ui::SURFACE2,10);
+          gfx::text(g,ui::F_H2,audio::speedLabels[i],bx+(step-10)/2,by+(54-g.fonts[ui::F_H2].size)/2,focus ? ui::INK : ui::TEXT,1);
         }
         if (nestOut) gfx::text(g,ui::F_SMALL,tr(K::SpeedTV),x+36,y+254,ui::MUTED);
         float hx=hint(g,x+36,y+h-44,tr(K::BtnHorizontal),XG,tr(K::ChooseRow));
@@ -2309,9 +2358,13 @@ int main(int argc, char** argv) {
         gfx::text(g, ui::F_BODY, pl.state == player::CONNECTING ? tr(pl.direct ? K::Loading : K::RequestingVideo) : tr(K::Loading), ui::W / 2, ui::H / 2 + 46, ui::TEXT, 1);
       }
       if (pl.state == player::FAILED && !panelOpen) {
-        gfx::rect(g, ui::W / 2 - 340, ui::H / 2 - 74, 680, 148, ui::SURFACE, 22);
-        gfx::text(g, ui::F_H2, tr(K::VideoFailed), ui::W / 2, ui::H / 2 - 46, ui::TEXT, 1);
-        gfx::text(g, ui::F_BODY, tr(i18n::playerError(pl.error)), ui::W / 2, ui::H / 2, ui::MUTED, 1);
+        float w=std::min(900.f,ui::W-100), y=ui::H/2-95;
+        gfx::rect(g,(ui::W-w)/2,y,w,190,ui::SURFACE,22);
+        gfx::text(g,ui::F_H2,tr(K::VideoFailed),ui::W/2,y+24,ui::TEXT,1);
+        float lineY=y+76;
+        for (const auto& line:gfx::wrap(g,ui::F_BODY,tr(i18n::playerError(pl.error)),w-64,3)) {
+          gfx::text(g,ui::F_BODY,line,ui::W/2,lineY,ui::MUTED,1); lineY+=g.fonts[ui::F_BODY].lineH+4;
+        }
       }
     }
 
@@ -2328,36 +2381,36 @@ int main(int argc, char** argv) {
     }
     if (nav.menu) nav.drawMenu(g, settings.lang);
     if (nav.unsubscribe) {
-      gfx::rect(g, 0, 0, 1280, 720, {0,0,0,0.8f}); gfx::rect(g, 250, 250, 780, 210, ui::SURFACE, 24);
-      gfx::text(g, ui::F_H2, tr(K::SubscribeConfirm), 290, 290, ui::TEXT);
-      float hx = hint(g, 290, 398, "A", XA, tr(K::Confirm)); hint(g, hx, 398, "B", XB, tr(K::Cancel));
+      gfx::rect(g, 0, 0, ui::W, 720, {0,0,0,0.8f}); gfx::rect(g, (ui::W-780)/2, 250, 780, 210, ui::SURFACE, 24);
+      gfx::text(g, ui::F_H2, tr(K::SubscribeConfirm), (ui::W-700)/2, 290, ui::TEXT);
+      float hx = hint(g, (ui::W-700)/2, 398, "A", XA, tr(K::Confirm)); hint(g, hx, 398, "B", XB, tr(K::Cancel));
     }
     if (nav.busy && screen != PLAYER) {
-      gfx::rect(g, 410, 615, 460, 48, ui::SURFACE2, 24);
-      gfx::text(g, ui::F_CHAN, tr(nav.actionPath.rfind("/api/nav/play?",0) == 0 ? K::StartingQueue : K::Saving), 640, 630, ui::TEXT, 1);
+      gfx::rect(g, (ui::W-460)/2, 615, 460, 48, ui::SURFACE2, 24);
+      gfx::text(g, ui::F_CHAN, tr(nav.actionPath.rfind("/api/nav/play?",0) == 0 ? K::StartingQueue : K::Saving), ui::W/2, 630, ui::TEXT, 1);
     }
     if (phonePanel) {
       gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.72f});
-      float pw = 820, ph = 418, px = (ui::W - pw) / 2, py = (ui::H - ph) / 2;
+      float pw = 820, ph = ui::large ? 500 : 418, px = (ui::W - pw) / 2, py = (ui::H - ph) / 2;
       gfx::shadow(g, px, py + 10, pw, ph, 28, 40, 0.6f);
       gfx::rect(g, px, py, pw, ph, ui::SURFACE, 28);
       icon(g, 2, px + 56, py + 60, ui::TEXT, ui::SURFACE);
       gfx::text(g, ui::F_BIG, tr(K::CastTitle), px + 92, py + 40, ui::TEXT);
       float ty = py + 104;
       for (auto& line : gfx::wrap(g, ui::F_BODY, std::string(tr(K::CastChoose)) + "YouTube 360.", pw - 96, 2)) {
-        gfx::text(g, ui::F_BODY, line, px + 48, ty, ui::TEXT); ty += 25;
+        gfx::text(g, ui::F_BODY, line, px + 48, ty, ui::TEXT); ty += ui::large ? 32 : 25;
       }
       for (auto& line : gfx::wrap(g, ui::F_SMALL, tr(K::CastPath), pw - 96, 2)) {
-        gfx::text(g, ui::F_SMALL, line, px + 48, ty + 8, ui::MUTED); ty += 22;
+        gfx::text(g, ui::F_SMALL, line, px + 48, ty + 8, ui::MUTED); ty += ui::large ? 30 : 22;
       }
-      if (!castCode.empty()) gfx::textGrad(g, ui::F_CODE, castCode, px + 48, py + 186, ui::A1, ui::A2);
-      else gfx::text(g, ui::F_BODY, tr(K::CastLoading), px + 48, py + 208, ui::FAINT);
-      gfx::text(g, ui::F_SMALL, tr(K::CastRemember), px + 48, py + 264, ui::MUTED);
-      gfx::rect(g, px + 48, py + 300, pw - 96, 1, ui::alpha(rgb(0xffffff), 0.08f));
-      gfx::text(g, ui::F_SMALL, !castWho.empty() ? tr(K::PhoneConnected) + castWho : std::string(tr(phoneStatus.online ? K::NoPhone : K::CastOffline)),
-                px + 48, py + 320, !castWho.empty() ? rgb(0x34c759) : ui::FAINT);
-      float hx = hint(g, px + 48, py + 366, "A", XA, tr(K::Close));
-      hint(g, hx, py + 366, "B", XB, tr(K::Back));
+      if (!castCode.empty()) gfx::textGrad(g, ui::F_CODE, castCode, px + 48, py + (ui::large ? 252 : 186), ui::A1, ui::A2);
+      else gfx::text(g, ui::F_BODY, tr(K::CastLoading), px + 48, py + (ui::large ? 270 : 208), ui::FAINT);
+      gfx::text(g, ui::F_SMALL, gfx::ellipsize(g,ui::F_SMALL,tr(K::CastRemember),pw-96), px + 48, py + (ui::large ? 330 : 264), ui::MUTED);
+      gfx::rect(g, px + 48, py + (ui::large ? 366 : 300), pw - 96, 1, ui::alpha(rgb(0xffffff), 0.08f));
+      std::string phoneLabel=!castWho.empty() ? tr(K::PhoneConnected)+castWho : std::string(tr(phoneStatus.online ? K::NoPhone : K::CastOffline));
+      gfx::text(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,phoneLabel,pw-96),px+48,py+(ui::large ? 386 : 320),!castWho.empty() ? rgb(0x34c759) : ui::FAINT);
+      float hx = hint(g, px + 48, py + ph-52, "A", XA, tr(K::Close));
+      hint(g, hx, py + ph-52, "B", XB, tr(K::Back));
     }
     if (loginPanel || logoutPanel) {
       gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.78f});
@@ -2368,7 +2421,7 @@ int main(int argc, char** argv) {
       gfx::text(g, ui::F_BIG, tr(logoutPanel ? K::SignOutTitle : K::SignInTitle), px + 48, py + 48, ui::TEXT);
       if (logoutPanel) {
         gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, account.name, pw - 96), px + 48, py + 106, ui::A2);
-        gfx::text(g, ui::F_BODY, tr(K::SignOutBody), px + 48, py + 152, ui::MUTED);
+        gfx::text(g, ui::F_BODY, gfx::ellipsize(g,ui::F_BODY,tr(K::SignOutBody),pw-96), px + 48, py + 152, ui::MUTED);
         if (accountBusy) spinner(g, ui::W / 2, py + 218, 14, t);
         float hx = hint(g, px + 48, py + ph - 58, "A", XA, tr(K::Confirm));
         hint(g, hx, py + ph - 58, "B", XB, tr(K::Cancel));
@@ -2395,7 +2448,7 @@ int main(int argc, char** argv) {
 
     if (sleepPanel || sleepWarning || shutdownAt) {
       gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.65f});
-      float x = 280, y = sleepPanel && !sleepWarning && !shutdownAt ? 190 : 242, w = 720;
+      float x = (ui::W-720)/2, y = sleepPanel && !sleepWarning && !shutdownAt ? 190 : 242, w = 720;
       float h = sleepPanel && !sleepWarning && !shutdownAt ? 330 : 226;
       gfx::shadow(g, x, y + 12, w, h, 24, 32, 0.6f);
       gfx::rect(g, x, y, w, h, ui::SURFACE, 24);

@@ -1,5 +1,6 @@
 #pragma once
 #include "catalog.hpp"
+#include "locale.hpp"
 #include <map>
 
 namespace yt::extras {
@@ -108,6 +109,7 @@ class Client {
       if (end == string::npos || end-begin > 65536 || !parse(r.body.substr(begin,end-begin),context) ||
           str(get(context,"client"),"clientName") != "WEB") return {0,{},"comments_context"};
       context.get<Object>()["client"].get<Object>()["hl"] = J(lang);
+      context.get<Object>()["client"].get<Object>()["gl"] = J(string(localeRegion(lang)));
       language=lang;
     }
     Request r; r.url="https://www.youtube.com/youtubei/v1/next?prettyPrint=false";

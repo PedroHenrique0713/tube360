@@ -101,7 +101,7 @@ struct Player {
   std::atomic<bool> original{false}, retryConverted{false};
   std::atomic<bool> allowOriginal{true};
   bool direct = false, refreshed = false;
-  std::string cacheBase;
+  std::string cacheBase, requestLanguage = "en";
   std::shared_ptr<yt::ConsoleAccount> memberAccount;
   bool memberVideo = false;
   std::string memberResponse() {

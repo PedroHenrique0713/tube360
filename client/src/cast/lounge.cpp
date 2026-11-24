@@ -1,3 +1,4 @@
+#include <SDL3/SDL_log.h>
 #include "lounge.hpp"
 #include <algorithm>
 #include <cmath>
@@ -185,8 +186,10 @@ void Lounge::incoming(int seq, const picojson::array& data) {
     string name = data[0].get<string>();
     if (name == "c" && data.size() > 1) { sid = scalar(data[1]); return; }
     if (name == "S" && data.size() > 1) { gsession = scalar(data[1]); return; }
-    if (seq <= aid) return;
+    if (seq <= aid) { SDL_Log("celular: evento repetido %s seq %d", name.c_str(), seq); return; }
     const picojson::value p = data.size() > 1 && data[1].is<Object>() ? data[1] : picojson::value(Object{});
+    SDL_Log("celular: %s seq %d video=%s lista=%.60s indice=%s", name.c_str(), seq, text(p,"videoId").c_str(),
+            text(p,"videoIds").c_str(), text(p,"currentIndex").c_str());
     if (name == "loungeStatus") {
         auto devices = parse(text(p, "devices"));
         if (!devices.is<picojson::array>()) return;

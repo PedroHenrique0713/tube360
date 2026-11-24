@@ -106,15 +106,15 @@ struct Navigation {
           item.byline = gfx::ellipsize(g, ui::F_TINY, item.channel, 140);
           continue;
         }
-        item.titleLines = gfx::wrap(g, ui::F_KEY, item.title, p.kind == "library" ? 220 : 246, 2);
+        item.titleLines = gfx::wrap(g, ui::F_KEY, item.title, (ui::W-200-(ui::columns(4)-1)*24)/ui::columns(4)-(p.kind=="library" ? 24 : 0), 2);
         std::string by = item.type == "album" ? std::string(i18n::get(lang, K::Album)) + (item.channel.empty() ? "" : " · " + item.channel) :
             item.type == "artist" ? i18n::get(lang, K::Artist) : item.channel;
-        item.byline = gfx::ellipsize(g, ui::F_CHAN, by, 246);
+        item.byline = gfx::ellipsize(g, ui::F_CHAN, by, (ui::W-200-(ui::columns(4)-1)*24)/ui::columns(4));
       }
       for (auto& item : p.channels) item.byline = gfx::ellipsize(g, ui::F_CHAN, item.title, 142);
       int font = p.music && !p.musicHome() ? ui::F_HERO : ui::F_BIG;
       std::string title = p.kind == "music" || p.kind == "library" || p.kind == "subscriptions" || p.kind == "later" || p.kind == "history" || p.title.empty() ? i18n::get(lang, titleKey(p)) : p.title;
-      p.displayTitle = gfx::ellipsize(g, font, title, 680 - (p.image.empty() ? 0 : p.music ? 110 : 96));
+      p.displayTitle = gfx::ellipsize(g, font, title, ui::W-200-(p.kind=="channel" || p.kind=="playlist" || p.kind=="album" || p.kind=="music_playlist" ? 280 : 0)-(p.image.empty() ? 0 : p.music ? 110 : 96));
       std::string sub = p.subtitle;
       if (p.kind == "playlist" || p.kind == "music_playlist" || p.kind == "album" || p.kind == "later" || p.kind == "radio")
         sub = std::string(i18n::get(lang, K::QueueLimit)) + (sub.empty() ? "" : " · " + sub);
@@ -171,8 +171,8 @@ struct Navigation {
     bool channel = p.kind == "channel", playlist = p.kind == "playlist" || p.kind == "album" || p.kind == "music_playlist" || p.kind == "later" || p.kind == "radio";
     if (channel || playlist) {
       bool f = contentFocus && p.zone == 0;
-      gfx::rect(g, 924, p.music ? 64 : 32, 252, 54, f ? ui::TEXT : ui::SURFACE2, 27);
-      gfx::text(g, ui::F_KEY, tr(channel ? p.subscribed ? K::Subscribed : K::Subscribe : K::PlayAll), 1050, p.music ? 80 : 48, f ? ui::INK : ui::TEXT, 1);
+      gfx::rect(g, ui::W-316, p.music ? 64 : 32, 252, 54, f ? ui::TEXT : ui::SURFACE2, 27);
+      gfx::text(g, ui::F_KEY, tr(channel ? p.subscribed ? K::Subscribed : K::Subscribe : K::PlayAll), ui::W-190, p.music ? 80 : 48, f ? ui::INK : ui::TEXT, 1);
     }
     bool tabs = channel || p.kind == "music" || p.kind == "search" || p.kind == "music_search";
     if (tabs) {
@@ -180,8 +180,8 @@ struct Navigation {
       const K musicTabs[] = {K::Home,K::Charts,K::Mixes};
       const K searchTabs[] = {K::AllResults,K::Videos,K::Channel};
       const K songTabs[] = {K::AllResults,K::Songs,K::Albums,K::Artists};
-      int count = p.kind == "music_search" ? 4 : 3; float x = home ? 650 : 136;
-      float tabY = home ? 32 : p.music ? 166 : 120;
+      int count = p.kind == "music_search" ? 4 : 3; float x = home && !ui::narrow ? 650 : 136;
+      float tabY = home ? (ui::narrow ? 88 : 32) : p.music ? 166 : 120;
       for (int i = 0; i < count; i++) {
         K key = channel ? channelTabs[i] : p.kind == "music" ? musicTabs[i] : p.kind == "music_search" ? songTabs[i] : searchTabs[i];
         float w = gfx::textWidth(g, ui::F_KEY, tr(key)) + 40;
@@ -194,8 +194,9 @@ struct Navigation {
     }
     float top = p.kind == "library" ? 120 : p.music ? 246 : 178;
     if (p.kind == "subscriptions" && !p.channels.empty()) {
-      int first = std::max(0, p.channelSel - 6);
-      for (int c = first; c < std::min(first + 7, (int)p.channels.size()); c++) {
+      int channelCount=ui::narrow ? 4 : ui::large ? 5 : 7;
+      int first = std::max(0, p.channelSel-channelCount+1);
+      for (int c = first; c < std::min(first+channelCount, (int)p.channels.size()); c++) {
         float x = 136 + (c - first) * 154; const auto& item = p.channels[(size_t)c];
         bool f = contentFocus && p.zone == 2 && c == p.channelSel;
         if (f) gfx::rect(g, x - 5, 166 - 5, 106, 106, ui::TEXT, 53);
@@ -204,24 +205,25 @@ struct Navigation {
       }
       top = 342;
     }
-    int cols = 4; float cw = 246, art = p.music ? 216 : 246, h = p.music ? 216 : 138, rowH = p.music ? 314 : p.kind == "library" ? 166 : 238;
+    int cols=ui::columns(4); float cw=std::floor((ui::W-200-(cols-1)*24)/cols), art=p.music ? std::min(cw,246.f) : cw, h=p.music ? art : cw*9/16, rowH=h+(p.kind=="library" ? 28 : ui::large ? 114 : 100);
     float want = p.zone != 3 ? 0 : (p.sel / cols) * rowH;
     p.scroll += (want - p.scroll) * 0.24f;
     if (home) {
-      int firstShelf = std::max(0, p.shelf - 2);
-      for (int row = firstShelf; row < std::min(firstShelf + 3, (int)p.shelves.size()); row++) {
+      int shelfCount=ui::large ? 2 : 3, shelfColumns=ui::narrow ? 4 : ui::large ? 5 : 7;
+      int firstShelf = std::max(0, p.shelf-shelfCount+1);
+      for (int row = firstShelf; row < std::min(firstShelf+shelfCount, (int)p.shelves.size()); row++) {
         const auto& shelf = p.shelves[row];
-        float y = 99 + (row - firstShelf) * 184;
+        float y = (ui::narrow ? 150 : 99) + (row-firstShelf)*(ui::large ? 216 : 184);
         gfx::text(g, ui::F_KEY, shelf.title, 136, y, ui::TEXT);
-        int first = std::max(shelf.first, shelf.selected - 6);
-        for (int i = first; i < std::min(shelf.end, first + 7); i++) {
+        int first = std::max(shelf.first, shelf.selected-shelfColumns+1);
+        for (int i = first; i < std::min(shelf.end, first+shelfColumns); i++) {
           const auto& item = p.items[i]; float x = 136 + (i - first) * 155;
           bool f = contentFocus && p.zone == 3 && i == p.sel;
           if (f) gfx::rect(g, x - 4, y + 26, 118, 118, ui::TEXT, 9);
           artwork(g, thumbs, worker, item.image, frame, x, y + 30, 110, 110, true);
           memberBadge(g, item.members, lang, x + 5, y + 35);
           gfx::text(g, ui::F_SMALL, item.titleLines[0], x, y + 143, ui::TEXT);
-          gfx::text(g, ui::F_TINY, item.byline, x, y + 163, ui::MUTED);
+          gfx::text(g, ui::F_TINY, item.byline, x, y + (ui::large ? 178 : 163), ui::MUTED);
         }
       }
     } else for (size_t i = 0; i < p.items.size(); i++) {
@@ -243,16 +245,16 @@ struct Navigation {
         gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, tr(k), art - 32), x + 16, y + h / 2 - 12, ui::MUTED);
       }
       float ty = y + h + 16;
-      for (const auto& line : item.titleLines) { gfx::text(g, ui::F_KEY, line, x, ty, ui::TEXT); ty += 27; }
+      for (const auto& line : item.titleLines) { gfx::text(g, ui::F_KEY, line, x, ty, ui::TEXT); ty += ui::large ? 34 : 27; }
       gfx::text(g, ui::F_CHAN, item.byline, x, ty + 4, ui::MUTED);
     }
     if (p.items.empty() && !p.loading && !p.more) {
       std::string msg = !p.error.empty() ? p.error : tr(channel && p.tab == "live" ? K::NoLive : K::Empty);
       float y = top + 42;
-      for (const auto& line : gfx::wrap(g, ui::F_H2, msg, 1010, 3)) { gfx::text(g, ui::F_H2, line, 136, y, ui::MUTED); y += 34; }
+      for (const auto& line : gfx::wrap(g, ui::F_H2, msg, ui::W-200, 3)) { gfx::text(g, ui::F_H2, line, 136, y, ui::MUTED); y += 34; }
     }
-    gfx::rect(g, 96, 656, 1184, 64, ui::BG);
-    if (p.loading) { spinner(g, 1188, 146, 12, now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), 936, 130, ui::MUTED); }
+    gfx::rect(g, 96, 646, ui::W-96, 74, ui::BG);
+    if (p.loading) { spinner(g, ui::W-64, 146, 12, now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), ui::W-324, 130, ui::MUTED); }
     float hx = hint(g, 136, 676, "A", XA, tr(p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open));
     hx = hint(g, hx, 676, "B", XB, tr(K::Back));
     hx = hint(g, hx, 676, "X", XX, tr(K::Refresh));
@@ -261,17 +263,18 @@ struct Navigation {
   }
   void drawMenu(gfx::Gfx& g, i18n::Lang lang) {
     auto tr = [&](K k) { return i18n::get(lang, k); };
-    gfx::rect(g, 0, 0, 1280, 720, {0,0,0,0.8f});
-    gfx::rect(g, 270, 150, 740, 424, ui::SURFACE, 28);
-    gfx::text(g, ui::F_BIG, tr(K::CardMenu), 308, 180, ui::TEXT);
-    gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, menuItem.title, 662), 308, 235, ui::TEXT);
-    gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, menuItem.channel + " · " + fmtTime(menuItem.duration), 662), 308, 272, ui::MUTED);
+    gfx::rect(g, 0, 0, ui::W, 720, {0,0,0,0.8f});
+    float left=(ui::W-740)/2;
+    gfx::rect(g, left, 150, 740, 424, ui::SURFACE, 28);
+    gfx::text(g, ui::F_BIG, tr(K::CardMenu), left+38, 180, ui::TEXT);
+    gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, menuItem.title, 662), left+38, 235, ui::TEXT);
+    gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, menuItem.channel + " · " + fmtTime(menuItem.duration), 662), left+38, 272, ui::MUTED);
     const K keys[] = {K::GoChannel,K::WatchLater,K::Radio};
     for (int i = 0; i < 3; i++) {
-      gfx::rect(g, 304, 320 + i * 60, 672, 50, i == menuSel ? ui::TEXT : ui::SURFACE2, 16);
-      gfx::text(g, ui::F_KEY, tr(keys[i]), 328, 334 + i * 60, i == menuSel ? ui::INK : ui::TEXT);
+      gfx::rect(g, left+34, 320 + i * 60, 672, 50, i == menuSel ? ui::TEXT : ui::SURFACE2, 16);
+      gfx::text(g, ui::F_KEY, tr(keys[i]), left+58, 334 + i * 60, i == menuSel ? ui::INK : ui::TEXT);
     }
-    float hx = hint(g, 308, 528, "A", XA, tr(K::Open)); hint(g, hx, 528, "B", XB, tr(K::Back));
+    float hx = hint(g, left+38, 528, "A", XA, tr(K::Open)); hint(g, hx, 528, "B", XB, tr(K::Back));
   }
   void prepareNow(gfx::Gfx& g, Video& playing, i18n::Lang lang) {
     if (nowId == playing.id) return;
@@ -280,39 +283,40 @@ struct Navigation {
     for (size_t i = 0; i < queue.size(); i++) if (queue[i].id == playing.id) { current = &queue[i]; index = i; break; }
     if (current) { playing.title = current->title; playing.channel = current->channel; }
     nowImage = current && !current->image.empty() ? current->image : playing.id;
-    nowTitle = gfx::ellipsize(g, ui::F_BIG, playing.title, 714);
-    nowArtist = gfx::ellipsize(g, ui::F_KEY, playing.channel, 714);
+    nowTitle = gfx::ellipsize(g, ui::F_BIG, playing.title, ui::W-(ui::narrow ? 404 : 530));
+    nowArtist = gfx::ellipsize(g, ui::F_KEY, playing.channel, ui::W-(ui::narrow ? 404 : 530));
     nextTitles.clear();
-    for (size_t i = index + 1; i < std::min(queue.size(), index + 5); i++) nextTitles.push_back(gfx::ellipsize(g, ui::F_KEY, queue[i].title, 660));
+    for (size_t i = index + 1; i < std::min(queue.size(), index + 5); i++) nextTitles.push_back(gfx::ellipsize(g, ui::F_KEY, queue[i].title, ui::W-(ui::narrow ? 448 : 574)));
     noLyrics = i18n::get(lang, K::NoLyrics); nowError.clear(); nowErrorKey = K::None;
   }
   void drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const Video& playing, double pos, double duration, bool paused, bool waiting, K error, uint64_t frame, i18n::Lang lang) {
     (void)playing;
     auto tr = [&](K k) { return i18n::get(lang, k); };
+    float contentX=ui::narrow ? 340 : 466;
     gfx::hgrad(g, 0, 0, 620, 720, rgb(0x37151f), ui::BG);
     gfx::text(g, ui::F_H2, tr(K::NowPlaying), 64, 40, ui::MUTED);
-    artwork(g, thumbs, worker, nowImage, frame, 64, 104, 350, 350, true);
-    gfx::text(g, ui::F_BIG, nowTitle, 466, 104, ui::TEXT);
-    gfx::text(g, ui::F_KEY, nowArtist, 466, 158, ui::MUTED);
+    artwork(g, thumbs, worker, nowImage, frame, 64, 104, ui::narrow ? 230 : 350, ui::narrow ? 230 : 350, true);
+    gfx::text(g, ui::F_BIG, nowTitle, contentX, 104, ui::TEXT);
+    gfx::text(g, ui::F_KEY, nowArtist, contentX, 158, ui::MUTED);
     if (error != nowErrorKey) { nowErrorKey = error; nowError = error == K::None ? "" : gfx::ellipsize(g, ui::F_KEY, tr(error), 714); }
-    if (error != K::None) gfx::text(g, ui::F_KEY, nowError, 466, 210, ui::A2);
-    else if (waiting) gfx::text(g, ui::F_KEY, tr(K::Loading), 466, 210, ui::A2);
+    if (error != K::None) gfx::text(g, ui::F_KEY, nowError, contentX, 210, ui::A2);
+    else if (waiting) gfx::text(g, ui::F_KEY, tr(K::Loading), contentX, 210, ui::A2);
     else if (lyricsOpen) {
       float y = 226;
-      if (lyricLines.empty()) gfx::text(g, ui::F_KEY, noLyrics, 466, y, ui::MUTED);
-      for (size_t i = lyricScroll; i < std::min(lyricLines.size(), (size_t)lyricScroll + 9); i++) { gfx::text(g, ui::F_KEY, lyricLines[i], 466, y, ui::TEXT); y += 30; }
+      if (lyricLines.empty()) gfx::text(g, ui::F_KEY, noLyrics, contentX, y, ui::MUTED);
+      for (size_t i = lyricScroll; i < std::min(lyricLines.size(), (size_t)lyricScroll + 9); i++) { gfx::text(g, ui::F_KEY, lyricLines[i], contentX, y, ui::TEXT); y += 30; }
     } else {
-      gfx::text(g, ui::F_H2, tr(K::Queue), 466, 222, ui::TEXT);
+      gfx::text(g, ui::F_H2, tr(K::Queue), contentX, 222, ui::TEXT);
       for (size_t n = 0; n < nextTitles.size(); n++) {
         float y = 272 + n * 58;
-        gfx::text(g, ui::F_CHAN, std::to_string(n + 1), 470, y, ui::A2);
-        gfx::text(g, ui::F_KEY, nextTitles[n], 510, y, ui::TEXT);
+        gfx::text(g, ui::F_CHAN, std::to_string(n + 1), contentX+4, y, ui::A2);
+        gfx::text(g, ui::F_KEY, nextTitles[n], contentX+44, y, ui::TEXT);
       }
     }
     float fraction = duration > 0 ? (float)std::clamp(pos / duration, 0.0, 1.0) : 0;
-    gfx::rect(g, 64, 516, 1152, 6, ui::SURFACE2, 3);
-    if (fraction > 0) gfx::hgrad(g, 64, 516, std::max(6.f, fraction * 1152), 6, ui::A1, ui::A2, 3);
-    gfx::text(g, ui::F_CHAN, fmtTime(pos), 64, 538, ui::MUTED); gfx::text(g, ui::F_CHAN, fmtTime(duration), 1216, 538, ui::MUTED, 2);
+    gfx::rect(g, 64, 516, ui::W-128, 6, ui::SURFACE2, 3);
+    if (fraction > 0) gfx::hgrad(g, 64, 516, std::max(6.f, fraction * (ui::W-128)), 6, ui::A1, ui::A2, 3);
+    gfx::text(g, ui::F_CHAN, fmtTime(pos), 64, 538, ui::MUTED); gfx::text(g, ui::F_CHAN, fmtTime(duration), ui::W-64, 538, ui::MUTED, 2);
     const K buttons[] = {paused ? K::Resume : K::Pause,K::NextTrack,K::Lyrics,K::ShowVideo}; float x = 64;
     for (int i = 0; i < 4; i++) {
       float w = gfx::textWidth(g, ui::F_KEY, tr(buttons[i])) + 56;

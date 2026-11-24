@@ -42,6 +42,8 @@ void parser() {
   net.page=doc.serialize(); page=client.comments("fixture0001","FIRST","en");
   require(page.items.size()==2 && net.bodies.back().find("\"continuation\":\"FIRST\"")!=std::string::npos,"continuation POST");
   require(net.bodies.back().find("\"hl\":\"en\"")!=std::string::npos,"language context");
+  require(client.comments("fixture0001","FIRST","es").items.size()==2,"Spanish comments");
+  require(net.bodies.back().find("\"hl\":\"es\"")!=std::string::npos && net.bodies.back().find("\"gl\":\"MX\"")!=std::string::npos,"Spanish comments locale on the wire");
   net.page=R"({"contents":{"itemSectionRenderer":{"sectionIdentifier":"related-items","contents":[{"continuationItemRenderer":{"continuationEndpoint":{"continuationCommand":{"token":"WRONG_RELATED"}}}}]}}})";
   require(client.comments("fixture0001","","en").continuation.empty(),"related token isolation");
   net.page="{"; require(!client.comments("fixture0001","","en").error.empty(),"malformed JSON fails");

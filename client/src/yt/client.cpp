@@ -1,5 +1,6 @@
 #include "client.hpp"
 #include "membership_json.hpp"
+#include "locale.hpp"
 #include "picojson.h"
 #include <algorithm>
 #include <climits>
@@ -107,6 +108,7 @@ void collect(const J& j, Page& out, std::set<string>& seen) {
 }
 }
 
+void Client::setLanguage(const string& value) { language = localeLanguage(value); }
 Response Client::post(const string& route, const string& fields) {
     if (context.empty()) {
         auto r = net.request("https://www.youtube.com/");
@@ -125,8 +127,11 @@ Response Client::post(const string& route, const string& fields) {
             return {0,{}, "web_context_invalid"};
         context = std::move(value);
     }
+    J localized; parse(context,localized);
+    auto& client = localized.get<Object>()["client"].get<Object>();
+    client["hl"] = J(language); client["gl"] = J(string(localeRegion(language)));
     return net.request("https://www.youtube.com/youtubei/v1/"+route+"?prettyPrint=false",
-        "{\"context\":"+context+","+fields+"}");
+        "{\"context\":"+localized.serialize()+","+fields+"}");
 }
 Page Client::page(const string& route, const string& fields, const string& exclude) {
     J j;
@@ -268,7 +273,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
                 client==1 ? "\"deviceMake\":\"Oculus\",\"deviceModel\":\"Quest 3\",\"osName\":\"Android\",\"osVersion\":\"12L\",\"androidSdkVersion\":32" :
                 "\"deviceMake\":\"Apple\",\"deviceModel\":\"iPhone10,4\",\"osName\":\"iOS\",\"osVersion\":\"16.7.7.20H330\"";
             q.body="{\"context\":{\"client\":{"+member("clientName",clients[client])+","+member("clientVersion",versions[client])+","+
-                device+","+member("userAgent",agents[client])+",\"hl\":\"en\",\"timeZone\":\"UTC\",\"utcOffsetMinutes\":0}},"+
+                device+","+member("userAgent",agents[client])+","+member("hl",language)+","+member("gl",localeRegion(language))+",\"timeZone\":\"UTC\",\"utcOffsetMinutes\":0}},"+
                 member("videoId",id)+",\"playbackContext\":{\"contentPlaybackContext\":{\"html5Preference\":\"HTML5_PREF_WANTS\",\"signatureTimestamp\":"+
                 std::to_string(sts)+"}},\"contentCheckOk\":true,\"racyCheckOk\":true}";
             j=J(); ++out.playerAttempts;

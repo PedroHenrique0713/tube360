@@ -17,15 +17,15 @@ for f in (ROOT/'bench/player-extras/fixtures').glob('*.json'):
     shutil.copyfile(f, MEDIA/f.name)
 results = json.loads((WORK/"results.json").read_text()) if (WORK/"results.json").exists() else []
 
-def run(name, keys='', seconds=6, lang='pt', at=0, speaker=False, **extra):
+def run(name, keys='', seconds=6, lang='pt', at=0, speaker=False, height=720, large=False, **extra):
     assets = WORK/name
     assets.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets/font.name)
-    (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nquality=720\nsound={"nest" if speaker else "tv"}\nserver=off\nvideo_mode=720p60\n')
+    (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nquality=720\nsound={"nest" if speaker else "tv"}\nserver=off\nvideo_mode=720p60\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
     (assets/'autoplay.txt').write_text(f'4p_9OPKgcDE {at}\n')
     env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
-    env.update(SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2',
+    env.update(HOME=str(assets), XDG_CACHE_HOME=str(assets/'.cache'), SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2',
                XT_CAST_DISABLE='1', XT_ASSETS=str(assets), XT_QUALITY_FIXTURES=str(MEDIA),
                XT_SHOT=str(WORK/(name+'.ppm')), XT_SHOT_FRAME='2147483647',
                XT_SHOT_MS=str(int(seconds*1000)), XT_KEYS_MS='300', XT_KEYS=keys)
@@ -59,6 +59,11 @@ def run(name, keys='', seconds=6, lang='pt', at=0, speaker=False, **extra):
     assert '(desligado: só console)' in text, 'server must be off'
     assert 'unexpected fixture URL' not in text, text[-2500:]
     subprocess.run(['magick', str(WORK/(name+'.ppm')), str(WORK/(name+'.png'))], check=True)
+    with (WORK/(name+'.ppm')).open('rb') as shot:
+        shot.readline()
+        assert shot.readline().strip()==(b'640 480' if height==480 else b'1280 720'), 'wrong framebuffer dimensions'
+    if lang=='es' and 'comments' in name:
+        assert '"hl":"es"' in text and '"gl":"MX"' in text, 'Spanish comments locale not sent'
     results[:]=[r for r in results if r["name"]!=name]
     results.append(dict(name=name, elapsed=elapsed, cpu_seconds=cpu, percent_one_core=cpu/elapsed*100))
     if nest:
@@ -75,6 +80,14 @@ if __name__=='__main__':
     cases={
       'comments-pt': dict(keys='....DRRRA', seconds=5),
       'comments-en': dict(keys='....DRRRA', seconds=5,lang='en'),
+      'comments-es': dict(keys='....DRRRA', seconds=5,lang='es'),
+      'comments-sd': dict(keys='....DRRRA', seconds=5,lang='es',height=480),
+      'comments-sd-long': dict(keys='....DRRRADDDD',seconds=6,lang='es',height=480),
+      'comments-sd-error': dict(keys='....DRRRA',seconds=5,lang='es',height=480,XT_EXTRAS_COMMENTS_ERROR='1'),
+      'comments-large': dict(keys='....DRRRA',seconds=5,lang='es',large=True),
+      'speed-es': dict(keys='....DRRRRA',seconds=5,lang='es'),
+      'speed-sd': dict(keys='........DRRRRA',seconds=7,lang='es',height=480,speaker=True),
+      'speed-large': dict(keys='....DRRRRA',seconds=5,lang='es',large=True),
       'comments-long': dict(keys='....DRRRADDDD',seconds=6),
       'comments-back': dict(keys='....DRRRAB',seconds=6),
       'comments-scroll': dict(keys='....DRRRADDDDDDDDDDDDDDDDDDDDDDDDDDD',seconds=12),
