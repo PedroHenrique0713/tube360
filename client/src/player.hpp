@@ -103,6 +103,7 @@ struct Player {
   uint64_t validUntil = 0;
   int cachedQuality = 0;
   std::atomic<bool> mediaReady{false}, renew{false};
+  std::atomic<bool> directReserveReady{false};
   std::atomic<int> actualHeight{0};
   std::atomic<int> actualFps{0};
   int videoMetrics = 0;
@@ -205,6 +206,7 @@ struct Player {
   static int netMain(void* p) { ((Player*)p)->netLoop(); return 0; }
   static int decMain(void* p) { ((Player*)p)->decLoop(); return 0; }
   static int nestMain(void* p) { ((Player*)p)->nestLoop(); return 0; }
+  bool directFailed(bool fatal = true);
 
   void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}) {
     if (vid != id || state == IDLE || quality != q) allowOriginal = true;
@@ -216,7 +218,7 @@ struct Player {
     presentFps=playback::rate(videoMode); sourceFpsHint=0;
     direct = tryDirect && (!speaker || directSpeaker.configured());
     castMediaReady = false;
-    endLiveReader = false; refreshed = renewing; renew = mediaReady = false; actualHeight = actualFps = 0;
+    endLiveReader = false; refreshed = renewing; renew = mediaReady = directReserveReady = false; actualHeight = actualFps = 0;
     if (renewing) validUntil = 0;
     SDL_SetAtomicInt(&netBytes, 0);
     original = retryConverted = false; originalWatch = 0; queueMin = maxFrames;
@@ -655,13 +657,9 @@ struct Player {
     uint64_t ms = SDL_GetTicks();
     wantedOffsetMs = (int)std::lround(nestOffset * 1000);
     if (refreshed && shownFrames > 150) refreshed = false;
-    if (direct && live && net::serverEnabled && !paused && (state == BUFFERING || state == PLAYING)) {
-      if (!originalWatch) originalWatch = ms;
-      if (ms - std::max(originalWatch,lastFrameMs) > 15000) retryConverted = true;
-    }
     if (direct && !paused && (renew || retryConverted)) {
       bool again = renew && !refreshed;
-      if (again || net::serverEnabled) {
+      if (again || (net::serverEnabled && directReserveReady)) {
         LOG("console: %s em %.3f s", again ? "renovando URL" : "reserva no servidor", position());
         start(srv, id, position(), title, duration, quality, speakerRequested, again, again);
       } else { if (audio) SDL_PauseAudioStreamDevice(audio); error = "console"; state = FAILED; retryConverted = renew = false; }

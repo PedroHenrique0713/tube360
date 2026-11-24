@@ -2,6 +2,18 @@
 #pragma once
 namespace player {
 
+inline bool Player::directFailed(bool fatal) {
+  // Esta sonda roda no worker, depois das opções locais. Nunca bloqueia o desenho nem acorda o PC.
+  net::Response response;
+  directReserveReady = !stop && net::serverEnabled && srv.ip != "0.0.0.0" &&
+      net::get(srv,"/api/remote/state",response,700,8192);
+  if (!stop) {
+    LOG("console: opcoes diretas esgotadas, servidor %s", directReserveReady ? "respondendo" : "indisponivel");
+    if (fatal || directReserveReady) retryConverted = true;
+  }
+  return directReserveReady;
+}
+
 inline int Player::readOriginal(void* user, uint8_t* dst, int size) {
   Player& p = *(Player*)user;
   SDL_LockMutex(p.mu);
@@ -57,7 +69,7 @@ inline void Player::decodeOriginal() {
       cachedVideoMode=videoMode; cachedAudio=audioSelection;
     }
     if (stop) return;
-    if (media.status == "ERROR" && !stop) {
+    if (media.status == "ERROR" && !stop && (media.failure==yt::Failure::NETWORK || media.failure==yt::Failure::SESSION)) {
       // Falha de rede ou sessão (não é recusa do YouTube): tenta de novo pelo console com conexão e sessão novas.
       LOG("console: player ERROR: %s; nova tentativa direta", media.reason.c_str());
       youtube.reset(); transport.reset();
@@ -68,8 +80,10 @@ inline void Player::decodeOriginal() {
     }
     if (stop) return;
     if (media.status != "OK") {
-      LOG("console: player %s: %s", media.status.c_str(), media.reason.c_str()); retryConverted = true; return;
+      LOG("console: player %s, classe %s, cliente %s, %u pedidos: %s", media.status.c_str(), yt::failureName(media.failure),
+          media.playerClient.c_str(), media.playerAttempts, media.reason.c_str()); directFailed(); return;
     }
+    LOG("console: player OK, cliente %s, %u pedidos: %s",media.playerClient.c_str(),media.playerAttempts,media.playerTrace.c_str());
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
     castMediaReady = true;
     state = BUFFERING;
@@ -118,10 +132,22 @@ inline void Player::decodeOriginal() {
       if (r >= 0) LOG("console: live %s, master %dp %.3f fps", id.c_str(), broadcast->height, broadcast->frameRate);
       origin = NAN;
     } else {
-      videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.video.url, &netBytes);
+      videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.video.url, &netBytes, yt::https(&stop));
+      videoFile->aheadEnabled=false;
       r = media.video.url.empty() ? AVERROR_STREAM_NOT_FOUND :
           s.open(videoFile.get(), yt::RangeFile::pull, threads, media.muxed && audio, true, yt::RangeFile::seek);
       if (r >= 0) r = s.seekTime(startAt);
+      videoFile->aheadEnabled=true;
+      while (r<0 && !stop && !media.muxed && videoFile->status!=403 && !media.lowerVideo.empty()) {
+        auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
+        LOG("qualidade: abertura direta %dp%.3f -> %dp%.3f",media.video.height,media.video.fps,next.height,next.fps);
+        s.reset(); videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
+        videoFile->aheadEnabled=false;
+        r=s.open(videoFile.get(),yt::RangeFile::pull,threads,false,true,yt::RangeFile::seek);
+        if (r>=0) r=s.seekTime(startAt);
+        videoFile->aheadEnabled=true;
+        media.video=next; presentFps=30; adapted=true;
+      }
       if (r >= 0 && audio && !media.muxed) {
         audioFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.audio.url, &netBytes);
         r = media.audio.url.empty() ? AVERROR_STREAM_NOT_FOUND :
@@ -161,7 +187,11 @@ inline void Player::decodeOriginal() {
   };
   uint64_t ns = 0, copyNs = 0, since = SDL_GetTicks();
   double videoSeconds = 0, handoffFloor = -1;
-  bool lowered = false;
+  uint64_t previousWait = 0;
+  bool reserveChecked = false;
+  unsigned liveSwitches = 0;
+  // A troca pode precisar de índice + seek pela rede. 6 s de PCM estéreo custam cerca de 2 MiB.
+  const double audioReserve=direct && !broadcast && !speakerRequested && !media.muxed ? 6.0 : 0.65;
   auto decode = [&](h264::Stream& input, AVCodecContext* codec, AVPacket* packet) -> int {
     if (!codec) return 0;
     bool video = codec == s.video;
@@ -222,16 +252,38 @@ inline void Player::decodeOriginal() {
         }
       } else {
         // Limita AAC adiantado inclusive quando a pessoa deixa um VOD pausado.
-        while (!stop && audioQueuedSec() > 2.0) { trimReserve(); SDL_Delay(8); }
+        while (!stop && audioQueuedSec() > std::max(2.0,audioReserve+.35)) { trimReserve(); SDL_Delay(8); }
         if (!putOriginalAudio(input, input.convert(f), pts)) return AVERROR_INVALIDDATA;
       }
       trimReserve();
     }
     return AVERROR_EXIT;
   };
+  auto lowerVideo = [&]() {
+    if (!direct || broadcast || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
+    const auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
+    int clock=masterMs.load();
+    handoffFloor=std::max(last,std::max(0,clock)/1000.0);
+    double resume=origin+std::max(0.0,handoffFloor);
+    LOG("qualidade: fonte %dp%.3f -> %dp%.3f, itag %d -> %d em %.3f; mantendo AAC e fila",
+        media.video.height,media.video.fps,next.height,next.fps,media.video.itag,next.itag,resume);
+    s.reset();
+    videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
+    videoFile->aheadEnabled=false;
+    uint64_t began=SDL_GetTicks();
+    r=s.open(videoFile.get(),yt::RangeFile::pull,threads,false,true,yt::RangeFile::seek);
+    if (r>=0) r=s.seekTime(resume);
+    videoFile->aheadEnabled=true;
+    media.video=next;
+    media.fallbackVideo=media.lowerVideo.empty() ? yt::Format{} : media.lowerVideo.front();
+    actualHeight=next.height; sourceRate=next.fps; phase=AV_NOPTS_VALUE;
+    presentFps=30; adapted=true; slow=0; previousWait=0;
+    LOG("qualidade: video reaberto em %llu ms, resultado %d",(unsigned long long)(SDL_GetTicks()-began),r);
+    return true;
+  };
   bool videoEnd = false, audioEnd = !separate.audio;
   while (r >= 0 && !stop) {
-    bool readAudio = !audioEnd && (videoEnd || audioQueuedSec() < 0.65);
+    bool readAudio = !audioEnd && (videoEnd || audioQueuedSec() < audioReserve);
     if (readAudio && broadcast && !videoEnd && packed.cursor == packed.bytes.size()) {
       SDL_LockMutex(mu);
       // O produtor pode estar enchendo o anel de vídeo antes de chegar ao próximo AAC.
@@ -265,7 +317,13 @@ inline void Player::decodeOriginal() {
         break;
       }
     } else {
-      if (r < 0) break;
+      if (r < 0) {
+        if (!readAudio && videoFile && videoFile->status!=403) {
+          while (lowerVideo() && r<0) {}
+          if (r>=0) { videoEnd=false; continue; }
+        }
+        break;
+      }
       if (input.pkt->stream_index == input.vi) r = decode(input, input.video, input.pkt);
       else if (input.pkt->stream_index == input.ai) r = decode(input, input.audio, input.pkt);
       av_packet_unref(input.pkt);
@@ -291,31 +349,40 @@ inline void Player::decodeOriginal() {
       bool slowLive = broadcast && displayRate < targetRate * .85 &&
                       (insufficient || behind || lost - previousLost > 10);
       bool slowUpload = original && displayRate < targetRate * .90 && lost - previousLost > 3;
-      slow = state==PLAYING && !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || slowLive || slowUpload) ? slow + 1 : 0;
+      uint64_t waited=videoFile ? videoFile->waitMs : 0;
+      bool networkPressure=waited>previousWait+(now-since)/6 && insufficient;
+      previousWait=waited;
+      auto rate=[](const yt::RangeFile::Lane& lane) { auto ms=lane.transferMs.load(); return ms ? lane.bytes.load()*.008/ms : 0; };
+      if (videoFile) LOG("rede: Range %d KiB, %d TLS video, pedidos %u, retomadas %u, conexoes %u, espera %llu ms, TCP %d/%d KiB, TLS %.2f/%.2f Mbit/s",
+          yt::RangeFile::chunk/1024,videoFile->laneCount,videoFile->requests.load(),videoFile->resumes.load(),
+          videoFile->connections.load(),(unsigned long long)waited,videoFile->receiveBuffer.load()/1024,videoFile->sendBuffer.load()/1024,
+          rate(videoFile->lanes[0]),rate(videoFile->lanes[1]));
+      if (broadcast && broadcast->switches!=liveSwitches) {
+        liveSwitches=broadcast->switches;
+        double fps=broadcast->selectedRate/1000.0;
+        if (fps>0) sourceRate=fps;
+        LOG("qualidade: HLS fonte alinhada por UTC, %dp %.3f fps, mantendo AAC, troca %u",
+            broadcast->selectedHeight.load(),fps,liveSwitches);
+      }
+      slow = state==PLAYING && !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || slowLive || slowUpload || networkPressure) ? slow + 1 : 0;
       previousShown = shown; previousLost = lost;
       intervalPts = last; pauseEpoch = epoch;
-      // Troca só o vídeo: AAC, relógio e os quadros já prontos continuam na mesma linha do tempo.
-      if (slow >= 3 && presentFps > 30) {
+      // A queda de fonte vem antes do filtro de apresentação: ela também reduz o tráfego.
+      if (slow>=3 && broadcast && broadcast->requestLower()) {
         presentFps=30; adapted=true; slow=0;
-        LOG("qualidade: fila sustentada sem folga; 720p60 -> 720p30, mantendo AAC e fila");
+        LOG("qualidade: HLS solicitando fonte menor na mesma linha do tempo");
+      } else if (slow>=3 && lowerVideo()) {
+        videoEnd=false;
+        while (r<0 && lowerVideo()) {}
+      } else if (slow>=3 && presentFps>30) {
+        presentFps=30; adapted=true; slow=0;
+        LOG("qualidade: sem fonte menor; apresentacao 60 -> 30, mesma rede");
       }
-      if (slow >= 3 && direct && !broadcast && media.video.height > 720 && !media.fallbackVideo.url.empty() && !lowered) {
-        lowered = true;
-        presentFps=30; adapted=true;
-        handoffFloor = std::max(last, std::max(0, clock) / 1000.0);
-        double resume = origin + handoffFloor;
-        uint64_t began = SDL_GetTicks();
-        LOG("qualidade: fila sustentada sem folga; %dp -> %dp em %.3f, mantendo AAC e fila", media.video.height, media.fallbackVideo.height, resume);
-        s.reset();
-        videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.fallbackVideo.url, &netBytes);
-        r = s.open(videoFile.get(), yt::RangeFile::pull, threads, false, true, yt::RangeFile::seek);
-        if (r >= 0) r = s.seekTime(resume);
-        media.video = media.fallbackVideo; media.fallbackVideo = {}; media.muxed = false;
-        sourceRate = media.video.fps; phase = AV_NOPTS_VALUE;
-        slow = 0; videoEnd = false;
-        LOG("qualidade: video reaberto em %llu ms, resultado %d", (unsigned long long)(SDL_GetTicks() - began), r);
+      if (slow>=5 && (!direct || broadcast || media.lowerVideo.empty())) {
+        LOG("qualidade: opcoes locais esgotadas sob pressao; %d janelas, rede %d, fila %d",slow,(int)networkPressure,minimum);
+        if (!direct || (!reserveChecked && net::serverEnabled && directFailed(false))) { r=AVERROR(ETIMEDOUT); break; }
+        reserveChecked=true; slow=0;
       }
-      if (slow >= 5 && (!direct || (net::serverEnabled && (broadcast || avg > 33.34)))) { r = AVERROR(ETIMEDOUT); break; }
       since = SDL_GetTicks(); count = packets = decoded = filtered = 0; ns = copyNs = 0; videoSeconds = 0;
     }
   }
@@ -328,7 +395,13 @@ inline void Player::decodeOriginal() {
   if (stop) return;
   if (direct && (((media.ttl || media.expiresAt) && SDL_GetTicks() >= validUntil) || (videoFile && videoFile->status == 403) || (audioFile && audioFile->status == 403) ||
                  (broadcast && broadcast->status == 403))) { renew = true; return; }
-  if (r < 0) { LOG("decod: falha H.264 %d, último PTS %.3f", r, last); retryConverted = true; }
+  if (r < 0) {
+    LOG("decod: falha H.264 %d, último PTS %.3f", r, last);
+    for (const auto* file : {videoFile.get(),audioFile.get()}) if (file && file->failed)
+      LOG("rede: falha Range classe %s HTTP %ld, pedidos %u, retomadas %u: %s",yt::failureName(file->failure),file->status,
+          file->requests.load(),file->resumes.load(),file->error.c_str());
+    if (direct) { if (!retryConverted) directFailed(); } else retryConverted=true;
+  }
   else { SDL_LockMutex(mu); decEnded = true; SDL_UnlockMutex(mu); }
 }
 
