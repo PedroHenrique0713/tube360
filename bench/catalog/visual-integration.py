@@ -83,13 +83,14 @@ cases = [
     ('audio-panel', {'XT_PLAY': '4p_9OPKgcDE', 'XT_KEYS': 'ULA'}),
     ('live', {'XT_PLAY': '4p_9OPKgcDE'}),
     ('live-paused', {'XT_PLAY': '4p_9OPKgcDE', 'XT_KEYS': 'AURRR'}),
-    ('live-return', {'XT_PLAY': '4p_9OPKgcDE', 'XT_KEYS': 'AURRRA'}),
+    ('live-return', {'XT_PLAY': '4p_9OPKgcDE', 'XT_KEYS': 'AURRRA', 'XT_SHOT_MS': '5200'}),
 ]
 for label, config in list(cases[:4]):
     prefix = '' if label == 'subscriptions' else 'D'
     cases.extend([(label+'-rail', {**config, 'XT_KEYS': prefix+'L'}), (label+'-return', {**config, 'XT_KEYS': prefix+'LR'})])
 wanted = set(sys.argv[2:])
-results = []
+previous = json.loads((work/'visual-results.json').read_text()) if wanted and (work/'visual-results.json').exists() else []
+results = {item['name']: item for item in previous}
 for height in (720, 1080):
     for lang in ('pt', 'en'):
         for label, config in cases:
@@ -140,6 +141,6 @@ for height in (720, 1080):
             subprocess.run(['magick', str(work/(name+'.ppm')), str(png)], check=True)
             size = subprocess.check_output(['identify', '-format', '%wx%h', str(png)], text=True)
             assert size == ('1920x1080' if height == 1080 else '1280x720'), size
-            results.append({'name': name, 'size': size, 'gpu_art_bytes': int(match[1])})
+            results[name] = {'name': name, 'size': size, 'gpu_art_bytes': int(match[1])}
+            (work/'visual-results.json').write_text(json.dumps(list(results.values()), indent=2))
             print('PASS', name, size, flush=True)
-(work/'visual-results.json').write_text(json.dumps(results, indent=2))
