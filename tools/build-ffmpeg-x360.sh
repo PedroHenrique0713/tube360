@@ -24,10 +24,11 @@ case "$target" in
         # Cópia própria: o PC continua usando a árvore oficial.
         tar -C "$src" --strip-components=1 -xf "$archive"
         patch -s -d "$src" -p1 < "$root/tools/ffmpeg-x360/h264dsp.patch"
+        if [[ $target == xbox ]]; then python3 "$root/tools/ffmpeg-x360/prepare-vmx.py" "$src"; fi
         env_file=${TUBE360_BUILD_ENV:-$HOME/.config/tube360/build.env}
         [[ ! -f "$env_file" ]] || . "$env_file"
         prefix="${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}/bin/powerpc-xsdk-elf-"
-        cflags="-mcpu=cell -fno-pic -fno-tree-vectorize -I${XSDK_DIR:?}/include"
+        cflags="-O3 -mcpu=cell -mtune=cell -fno-pic -fno-tree-vectorize -I${XSDK_DIR:?}/include"
         flags+=(--enable-cross-compile --target-os=none --arch=ppc --cpu=generic
             --cross-prefix="$prefix" --disable-vsx --disable-power8 --disable-pic
             --extra-ldflags="-static -nostdlib -T $XSDK_DIR/src/xsdk.ld"
@@ -37,7 +38,7 @@ case "$target" in
             cflags+=" -mno-altivec"
         else
             flags+=(--enable-altivec)
-            units="h264chroma_init h264qpel idctdsp me_cmp audiodsp"
+            units="h264chroma_init idctdsp me_cmp audiodsp"
             for unit in $units; do
                 make_args+=("--eval=libavcodec/ppc/$unit.o: CFLAGS += -include $root/tools/ffmpeg-x360/scalar-unit.h")
             done
@@ -60,3 +61,4 @@ for feature in HAVE_PTHREADS CONFIG_H264_DECODER CONFIG_AAC_DECODER CONFIG_OPUS_
     grep -qx "#define $feature 1" config.h config_components.h
 done
 make "${make_args[@]}" -j"${JOBS:-3}" install
+if [[ $target == xbox ]]; then python3 "$root/tools/ffmpeg-x360/check-vmx.py" "${prefix}objdump" "$PWD"; fi
