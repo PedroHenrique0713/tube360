@@ -40,6 +40,7 @@ for lang in ('pt','en','es','ar'):
         if expected:
             # A pasta sem permissão também impede o log local; stderr continua disponível.
             assert 'startup:' in log,name
+            if lang=='ar':assert 'Tube360 could not start' in log,'embedded emergency font needs readable English fallback'
             if case!='folder':assert 'B: exit' in log and 'B: exit' in (assets/'startup.log').read_text(),name
         else:
             assert 'catalogo: falha' in log,name
