@@ -1,0 +1,199 @@
+{
+  "contents": {
+    "twoColumnBrowseResultsRenderer": {
+      "tabs": [
+        {
+          "tabRenderer": {
+            "title": "Shorts",
+            "selected": true,
+            "endpoint": {
+              "commandMetadata": {
+                "webCommandMetadata": {
+                  "url": "/@GoogleDevelopers/shorts"
+                }
+              },
+              "browseEndpoint": {
+                "browseId": "UC_x5XG1OV2P6uZZ5FSM9Ttw",
+                "params": "SHORTS_FIXTURE"
+              }
+            },
+            "content": {
+              "richGridRenderer": {
+                "contents": [
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "shortsLockupViewModel": {
+                          "entityId": "shorts-shelf-item-cv8tEbKtEvk",
+                          "onTap": {
+                            "innertubeCommand": {
+                              "reelWatchEndpoint": {
+                                "videoId": "cv8tEbKtEvk"
+                              }
+                            }
+                          },
+                          "overlayMetadata": {
+                            "primaryText": {
+                              "content": "🪴 Construindo um rover autônomo para plantas com o Gemini Live"
+                            },
+                            "secondaryText": {
+                              "content": "3,7 mil visualizações"
+                            }
+                          },
+                          "thumbnailViewModel": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/cv8tEbKtEvk/sardefault.jpg?sqp=-oaymwEkCJUDENAFSFqQAgHyq4qpAxMIARUAAAAAJQAAyEI9AICiQ3gB&rs=AOn4CLC8j7ck9mn4WN0nML_sps31CjBwZg",
+                                    "width": 405,
+                                    "height": 720
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/cv8tEbKtEvk/sardefault.jpg?sqp=-oaymwEnCJUDEOAESFqQAgHyq4qpAxYIARUAAAAAJQAAyEI9AICiQ3gByAEB&rs=AOn4CLDGLjYrx7kFf-8inuHPpbd7zx0eig",
+                                    "width": 405,
+                                    "height": 608
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "shortsLockupViewModel": {
+                          "entityId": "shorts-shelf-item-CsF5oqVV5YE",
+                          "onTap": {
+                            "innertubeCommand": {
+                              "reelWatchEndpoint": {
+                                "videoId": "CsF5oqVV5YE"
+                              }
+                            }
+                          },
+                          "overlayMetadata": {
+                            "primaryText": {
+                              "content": "🔊 Design e replicação de voz com o Gemini 3.8 Flash TTS"
+                            },
+                            "secondaryText": {
+                              "content": "11 mil visualizações"
+                            }
+                          },
+                          "thumbnailViewModel": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/CsF5oqVV5YE/sardefault.jpg?sqp=-oaymwEkCJUDENAFSFqQAgHyq4qpAxMIARUAAAAAJQAAyEI9AICiQ3gB&rs=AOn4CLBXhYt8YUldTF6B0xTM-vK31tRowQ",
+                                    "width": 405,
+                                    "height": 720
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/CsF5oqVV5YE/sardefault.jpg?sqp=-oaymwEnCJUDEOAESFqQAgHyq4qpAxYIARUAAAAAJQAAyEI9AICiQ3gByAEB&rs=AOn4CLB4TL3bY1p2Z24gvUKQBkpEIj1gmA",
+                                    "width": 405,
+                                    "height": 608
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "shortsLockupViewModel": {
+                          "entityId": "shorts-shelf-item-LJ2v4-FvPcA",
+                          "onTap": {
+                            "innertubeCommand": {
+                              "reelWatchEndpoint": {
+                                "videoId": "LJ2v4-FvPcA"
+                              }
+                            }
+                          },
+                          "overlayMetadata": {
+                            "primaryText": {
+                              "content": "🧰 Desenvolvedores criando com Gemini Audio"
+                            },
+                            "secondaryText": {
+                              "content": "3,7 mil visualizações"
+                            }
+                          },
+                          "thumbnailViewModel": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/LJ2v4-FvPcA/sardefault.jpg?sqp=-oaymwEkCJUDENAFSFqQAgHyq4qpAxMIARUAAAAAJQAAyEI9AICiQ3gB&rs=AOn4CLBcG7fuT5Q9nd7onb6bqpbUb_QB5Q",
+                                    "width": 405,
+                                    "height": 720
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/LJ2v4-FvPcA/sardefault.jpg?sqp=-oaymwEnCJUDEOAESFqQAgHyq4qpAxYIARUAAAAAJQAAyEI9AICiQ3gByAEB&rs=AOn4CLA8pFBaJmTqasF5OzRvQiETgWxcqQ",
+                                    "width": 405,
+                                    "height": 608
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "richItemRenderer": {
+                      "content": {
+                        "shortsLockupViewModel": {
+                          "entityId": "shorts-shelf-item--nmcYcO-EE8",
+                          "onTap": {
+                            "innertubeCommand": {
+                              "reelWatchEndpoint": {
+                                "videoId": "-nmcYcO-EE8"
+                              }
+                            }
+                          },
+                          "overlayMetadata": {
+                            "primaryText": {
+                              "content": "🎵 Transformando movimento em música com o Gemini"
+                            },
+                            "secondaryText": {
+                              "content": "8,9 mil visualizações"
+                            }
+                          },
+                          "thumbnailViewModel": {
+                            "thumbnailViewModel": {
+                              "image": {
+                                "sources": [
+                                  {
+                                    "url": "https://i.ytimg.com/vi/-nmcYcO-EE8/sardefault.jpg?sqp=-oaymwEkCJUDENAFSFqQAgHyq4qpAxMIARUAAAAAJQAAyEI9AICiQ3gB&rs=AOn4CLAzMzHOkiW3TxAjFN_mROLVt5fKmw",
+                                    "width": 405,
+                                    "height": 720
+                                  },
+                                  {
+                                    "url": "https://i.ytimg.com/vi/-nmcYcO-EE8/sardefault.jpg?sqp=-oaymwEnCJUDEOAESFqQAgHyq4qpAxYIARUAAAAAJQAAyEI9AICiQ3gByAEB&rs=AOn4CLBC-I_sELkFwZ0u0UVNe2IIDAJ8UA",
+                                    "width": 405,
+                                    "height": 608
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

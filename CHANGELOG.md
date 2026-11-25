@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — local library
+
+- Watch later and resume without an account, stored beside the app with bounded atomic snapshots, progress bars and confirmed local clearing. Account lists remain separate.
+- Channel Shorts cards and tab, protocol-relative artwork URLs and JPEG fallback for unsupported ytimg artwork. [Behavior and validation](docs/LOCAL-LIBRARY.md).
+
 ## [0.3.2]
 
 ### Added

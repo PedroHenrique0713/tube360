@@ -35,6 +35,8 @@ SponsorBlock offers Off, Skip button (default) and automatic skipping. Y skips a
 
 Arabic uses contextual shaping and bidi, with Noto fonts loaded when needed in any language. RB switches the Arabic search keyboard to Latin. [Arabic support and review limits](docs/ARABIC.md).
 
+Without an account, save Watch later and resume positions on this console. Lists stay separate when you sign in; nothing is uploaded automatically. [Local storage, limits and clearing](docs/LOCAL-LIBRARY.md).
+
 ## Highlights
 
 | | |
@@ -314,7 +316,7 @@ tools/           builds, packaging and optional service installation
 - [ ] Your own YouTube Music recommendations with a Premium account
 - [x] SponsorBlock: a Skip button or automatic skip, your choice
 - [ ] Search filters and suggestions
-- [ ] Watch later and resume without an account
+- [x] Watch later and resume without an account
 
 Comments, estimated dislike counts, playback speed, repeat, CRT support, large text, Spanish and signed updates are included in v0.3.0. [CHANGELOG.md](CHANGELOG.md) records the delivery.
 

@@ -37,6 +37,8 @@ SponsorBlock oferece Desligado, Botão para pular (padrão) e automático. Y pul
 
 Árabe usa formas contextuais, bidi e fontes Noto sob demanda em qualquer idioma. RB alterna o teclado árabe para latim. [Suporte e limites de revisão](docs/ARABIC.md).
 
+Sem conta, salve vídeos para assistir depois e retome a reprodução neste console. As listas continuam separadas após o login, sem envio automático. [Armazenamento, limites e limpeza](docs/LOCAL-LIBRARY.md).
+
 ## Destaques
 
 | | |
@@ -299,7 +301,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 - [ ] As suas recomendações do YouTube Music com conta Premium
 - [x] SponsorBlock: botão Pular ou pulo automático, à sua escolha
 - [ ] Filtros e sugestões na busca
-- [ ] Assistir mais tarde e continuar de onde parou sem conta
+- [x] Assistir mais tarde e continuar de onde parou sem conta
 
 Comentários, contagem estimada de não gostei, velocidade, repetir, TV de tubo, texto grande, espanhol e atualização assinada já fazem parte da v0.3.0. [CHANGELOG.md](CHANGELOG.md) registra a entrega.
 
