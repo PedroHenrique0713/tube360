@@ -96,6 +96,7 @@
     ['repeat', 'repeat'], ['channel', 'person']
   ];
   const ratings = new Map();
+  let catalogSelection = null, musicCollection = null;
   const saved = new Set([0]);
   const positions = new Map([[1, 84]]);
   const dialog = $('#demo-dialog');
@@ -113,7 +114,7 @@
     dialog.hidden = false; fitNativeType(); focus($('#dialog-actions button')); animateIn($('.dialog-surface')); marker();
   }
   function playCard(index) {
-    state.selected = index;
+    catalogSelection = null; state.selected = index;
     if (positions.has(index)) {
       const position = positions.get(index);
       const time = `${Math.floor(position / 60)}:${String(Math.floor(position % 60)).padStart(2, '0')}`;
@@ -124,7 +125,7 @@
     } else openPlayer();
   }
   function cardMenu() {
-    openDialog(t.save_options, videos[state.selected].title, [
+    openDialog(t.save_options, (catalogSelection || videos[state.selected]).title, [
       [t.channel, () => { closeDialog(); showPage('channel'); }],
       [saved.has(state.selected) ? t.remove_video : t.save_video, () => {
         const removing = saved.has(state.selected);
@@ -188,7 +189,7 @@
   $('#player-quality-hint').addEventListener('click', () => activatePlayer('quality'));
   const focus = element => {
     element?.focus({ preventScroll: true });
-    if (element?.closest('#browse-content')) keepPageFocusVisible(element);
+    if (element?.closest('#browse-content')) { keepPageFocusVisible(element); appHints(state.page); }
   };
   function keepPageFocusVisible(element) {
     const content = $('#browse-content');
@@ -237,7 +238,7 @@
     $('.video-meta', button).textContent = video.channel;
     button.addEventListener('click', () => playCard(index));
     button.addEventListener('focus', () => {
-      state.selected = index; if (fromHome) { state.zone = 'grid'; select(index); marker(); }
+      catalogSelection = null; state.selected = index; if (fromHome) { state.zone = 'grid'; select(index); marker(); }
     });
     return button;
   }
@@ -307,7 +308,7 @@
     bottom.innerHTML = page === 'settings'
       ? hint('↑↓', n.ChooseRow) + hint('◀▶', n.ChangeValue) + hint('A', n.Open, 'pad-a') + hint('B', n.Back, 'pad-b')
       : page === 'search' ? hint('A', n.Type, 'pad-a') + hint('X', n.Delete, 'pad-x') + hint('☰', n.Search) + hint('B', n.Back, 'pad-b')
-      : hint('A', n.Open, 'pad-a') + hint('B', n.Back, 'pad-b') + hint('X', n.Refresh, 'pad-x') + hint('Y', n.Search, 'pad-y');
+      : hint('A', n.Open, 'pad-a') + hint('B', n.Back, 'pad-b') + hint('X', n.Refresh, 'pad-x') + hint('Y', n.Search, 'pad-y') + (document.activeElement?.closest('.video-card') ? hint('☰', n.MoreOptions) : '');
   }
   function musicShortcutIcon(symbol) {
     const shapes = symbol === 'clock'
@@ -320,7 +321,8 @@
   function catalogGrid(items, className = '') {
     const grid = document.createElement('div'); grid.className = 'browse-grid ' + className;
     items.forEach((item, i) => {
-      const card = makeButton('', () => { state.selected = i % videos.length; openPlayer(); }, 'catalog-card video-card');
+      const card = makeButton('', () => { catalogSelection = item; if (state.page.startsWith('music')) { musicCollection = item; showPage('music-collection'); } else openPlayer(); }, 'catalog-card video-card');
+      card.addEventListener('focus', () => { catalogSelection = item; });
       const image = document.createElement('img'); image.src = item.art; image.alt = ''; image.className = 'catalog-thumb';
       const title = document.createElement('span'); title.className = 'catalog-title'; title.textContent = item.title;
       const byline = document.createElement('span'); byline.className = 'catalog-byline'; byline.textContent = item.channel;
@@ -340,7 +342,7 @@
     if (page === 'home') { appHints('home'); state.zone = 'grid'; select(state.selected, moveFocus); animateIn(home, 0); marker(); startLoop(); return; }
     browse.dataset.page = page;
     browse.scrollTop = 0; $('#browse-content').scrollTop = 0;
-    $$('.settings-intro, .settings-help, .music-tabs, .music-account-label', browse).forEach(element => element.remove());
+    $$('.settings-intro, .settings-help, .music-tabs, .music-account-label, .music-collection-sub', browse).forEach(element => element.remove());
     state.zone = 'page'; $('#browse-title').textContent = page === 'channel' ? 'Google for Developers' : page === 'account' ? t.demo_account : page === 'later' ? t.watch_later_console : page === 'continue' ? t.continue_console : t[page];
     const content = $('#browse-content'); content.replaceChildren();
     if (page === 'subscriptions') {
@@ -409,6 +411,10 @@
       const actions = document.createElement('div'); actions.className = 'keyboard-actions';
       actions.append(makeButton(n.Space, () => { input.value += ' '; updateSuggestions(); }, 'keyboard-key'), makeButton(n.Delete, () => { input.value = input.value.slice(0, -1); updateSuggestions(); }, 'keyboard-key'));
       workspace.append(keyboard, actions, suggestions); updateSuggestions(); content.append(form, filters, workspace, results);
+    } else if (page === 'music-collection') {
+      const item = musicCollection || demoCatalog.music[0]; $('#browse-title').textContent = item.title;
+      const sub = document.createElement('p'); sub.className = 'music-collection-sub'; sub.textContent = locale === 'pt-BR' ? 'As playlists tocam até 256 faixas.' : 'Playlists play up to 256 tracks.';
+      browse.append(sub); content.append(catalogGrid(demoCatalog.music.slice(0, 4), 'music-tracks'));
     } else if (page === 'music') {
       const label = document.createElement('p'); label.className = 'music-account-label'; label.textContent = n.YourMusic; browse.append(label);
       const tabs = document.createElement('div'); tabs.className = 'music-tabs';
@@ -465,7 +471,7 @@
       content.append(makeButton(n.Back, () => showPage('home')));
     }
     fitNativeType();
-    if (moveFocus) focus(page === 'search' ? $('.keyboard-key', content) : pageButtons()[0]); animateIn(browse); marker(); startLoop();
+    if (moveFocus) focus(page === 'search' ? $('.keyboard-key', content) : page === 'channel' || page === 'subscriptions' ? $('.catalog-card', content) : pageButtons()[0]); animateIn(browse); marker(); startLoop();
   }
   $$('[data-page]').forEach(button => button.addEventListener('click', () => showPage(button.dataset.page)));
   options.forEach(([name, symbol]) => {
@@ -502,11 +508,12 @@
   function openPlayer(position = 7) {
     sponsorIgnored.clear(); fitNativeType();
     state.mode = 'player'; state.zone = 'timeline'; state.elapsed = position; state.sponsorUndo = false; state.sponsorUndoUntil = 0; state.paused = false; state.option = 0;
-    const image = $('.player-image'); if (!image.hasAttribute('src')) image.src = image.dataset.src;
+    const current = catalogSelection || videos[state.selected];
+    const image = $('.player-image'); image.src = catalogSelection?.art || image.dataset.src;
     home.hidden = true; browse.hidden = true; player.hidden = false; panel.hidden = true;
     rail.hidden = true; $('#account-photo').hidden = true; $('#app-hints').hidden = true; toast.hidden = true;
-    $('#player-title').textContent = videos[state.selected].title; $('#player-channel').textContent = videos[state.selected].channel;
-    state.rating = ratings.get(videos[state.selected].id) || '';
+    $('#player-title').textContent = current.title; $('#player-channel').textContent = current.channel;
+    state.rating = ratings.get((catalogSelection || videos[state.selected]).id) || '';
     ['like','dislike'].forEach(value => $(`[data-player-action="${value}"]`).setAttribute('aria-pressed', String(state.rating === value)));
     updatePause(); updateProgress(); focus(progress); animateIn(player, 0); announce(t.player_open); marker(); startLoop();
   }
@@ -524,7 +531,7 @@
     if (name === 'transport') { state.paused = !state.paused; updatePause(); startLoop(); return; }
     if (name === 'like' || name === 'dislike') {
       state.rating = state.rating === name ? '' : name;
-      ratings.set(videos[state.selected].id, state.rating);
+      ratings.set((catalogSelection || videos[state.selected]).id, state.rating);
       ['like','dislike'].forEach(value => $(`[data-player-action="${value}"]`).setAttribute('aria-pressed', String(state.rating === value)));
       showToast(`${state.rating ? t[name === 'like' ? 'liked' : 'disliked'] : t.rating_removed}. ${t.preview_rating_note}`); return;
     }
@@ -574,7 +581,7 @@
     if (state.mode === 'player') {
       if (action === 'b') {
         if (state.zone === 'options') { state.zone = 'timeline'; focus(progress); updateOptions(); }
-        else { if (state.elapsed >= 10 && state.elapsed < 462) positions.set(state.selected, state.elapsed); showPage(state.page); announce(t.home_return); } return;
+        else { if (!catalogSelection && state.elapsed >= 10 && state.elapsed < 462) positions.set(state.selected, state.elapsed); showPage(state.page); announce(t.home_return); } return;
       }
       if (action === 'down') { state.zone = 'options'; updateOptions(true); return; }
       if (action === 'up') { state.zone = 'timeline'; focus(progress); updateOptions(); return; }
@@ -591,6 +598,7 @@
       if (action === 'a') showPage(railButtons[state.rail].dataset.page);
       if (action === 'b' || action === 'right') { setRail(false); if (state.page === 'home') select(state.selected,true); else focus(pageButtons()[state.panelIndex] || pageButtons()[0]); } return;
     }
+    if (action === 'b' && state.page === 'music-collection') { showPage('music'); return; }
     if (action === 'b') { if (state.page !== 'home') showPage('home'); else setRail(true); return; }
     if (state.page === 'settings') {
       const rows = $$('.settings-row', $('#browse-content'));

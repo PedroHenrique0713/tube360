@@ -393,3 +393,8 @@
 #app-native .player-panel[data-panel=quality]{background:#18181d;z-index:7}
 #app-native .player-panel[data-panel=quality]::before{display:none}
 #app-native #player-screen:has(#player-panel:not([hidden]))::after{content:'';position:absolute;inset:0;background:#0009;z-index:6;pointer-events:none}
+#app-native .app-page[data-page=music-collection] h2{font-size:42px;top:42px;line-height:52px}
+#app-native .app-page[data-page=music-collection] #browse-content{top:241px}
+.music-collection-sub{position:absolute;left:136px;right:64px;top:103px;font-size:18px;line-height:23px;color:#a1a1aa}
+#app-native .app-bottom .pad-button{font-size:10.74px}
+#app-native .progress-track:focus-visible::-webkit-slider-thumb{box-shadow:none}
