@@ -1,6 +1,7 @@
 #pragma once
 #include "yt/cast.hpp"
 #include "cast/discovery.hpp"
+#include "cast/clock.hpp"
 #include "yt/thread.hpp"
 #include "picojson.h"
 #include <atomic>
@@ -46,8 +47,8 @@ enum State { UNKNOWN, LOADING, PLAYING, PAUSED, BUFFERING, IDLE, ERROR, STALLED 
 struct Status {
     uint64_t generation = 0;
     State state = UNKNOWN;
-    double position = 0, updated = 0, observed = 0, rate = 1;
-    bool quiet = true, connected = false, released = true;
+    double position = 0, updated = 0, observed = 0, rate = 1, clockRtt = 0;
+    bool quiet = true, connected = false, released = true, clockReady = false;
     double volume = -1;
     bool muted = false;
 };
@@ -94,6 +95,7 @@ public:
         ++intent.generation; intent.url = url; intent.key = key; intent.position = position;
         intent.duration = duration; intent.active = true; intent.paused = !autoplay;
         status.generation = intent.generation; status.state = LOADING; status.updated = status.observed = 0;
+        status.clockReady = false;
         status.released = false;
         auto generation = intent.generation;
         SDL_UnlockMutex(mutex); return generation;
@@ -139,6 +141,7 @@ private:
         struct Sent { double time; uint64_t generation; };
         std::map<int,Sent> requests;
         Status view;
+        ClockFilter clockFilter;
         std::string token, ownedUrl, ownedKey, transport, receiverSession;
         double mediaSession = 0, advanced = 0, previousPosition = -1;
         double baseVolume = -1, sentVolume = -1;
@@ -212,6 +215,7 @@ private:
         };
         while (!quit) {
             uint64_t now = SDL_GetTicks();
+            view.clockReady = view.updated>0 && clockFilter.ready(now);
             Intent goal = wanted();
             auto selected = settings();
             bool changed = selected.host != config.host || selected.port != config.port;
@@ -230,6 +234,8 @@ private:
                 SDL_Log("Nest: console dono=%s gen=%llu",goal.active ? "console" : "liberando",(unsigned long long)generation);
                 stopBarrier = requestId; view.generation = generation;
                 view.state = goal.active ? LOADING : UNKNOWN; view.updated = view.observed = 0;
+                clockFilter.reset();
+                view.clockReady = false;
                 lastMediaReply = lastReceiverReply = 0;
             }
             view.released = false;
@@ -240,14 +246,15 @@ private:
                 publish(view); SDL_Delay(20); continue;
             }
             if (goal.active && pending && !possible && now-began > 8000) {
-                SDL_Log("Nest: console erro aguardando descoberta/LAUNCH/namespace (8000 ms)");
+                SDL_Log("Nest: console erro aguardando conexao/LAUNCH/namespace (8000 ms)");
                 view.state = ERROR; publish(view); SDL_Delay(20); continue;
             }
             if (!connected) {
                 view.connected = false; publish(view);
                 if (now < retryAt) { SDL_Delay(20); continue; }
-                if (!possible && !discovery.ready()) { discovery.recover(); SDL_Delay(20); continue; }
-                channel.close(); connected = channel.open(endpoint.host,endpoint.port); retryAt = SDL_GetTicks()+500;
+                // O IP salvo basta para tocar, inclusive sem UUID. A descoberta não autoriza o áudio.
+                int timeout = goal.active && pending && !possible ? int(std::min<uint64_t>(4000,8000-(now-began))) : 4000;
+                channel.close(); connected = channel.open(endpoint.host,endpoint.port,std::max(timeout,1),&quit); retryAt = SDL_GetTicks()+500;
                 if (!connected) { discovery.recover(); SDL_Log("Nest: console erro conectando Cast"); continue; }
                 receiverKnown = receiverPresent = mediaKnown = false; transport.clear(); receiverSession.clear(); mediaSession = 0;
                 sentVolume = -1;
@@ -332,10 +339,7 @@ private:
             }
             double stamp = SDL_GetTicksNS()/1e6;
             double roundTrip = fresh ? stamp-request->second.time : 0;
-            // O tempo do receptor foi amostrado entre envio e resposta. O ponto médio também vale em Wi-Fi >120 ms.
-            // Respostas muito atrasadas confirmam atividade, mas não deslocam o relógio da imagem.
-            bool clock = fresh && roundTrip <= 1000;
-            if (clock) stamp = (stamp+request->second.time)/2;
+            bool timed = fresh && roundTrip <= 1000;
             if (message.space == cast::heartbeat) {
                 if (type == "PING") send(message.source,cast::heartbeat,{{"type",J(std::string("PONG"))}},false);
             } else if (message.space == cast::connection && type == "CLOSE") connected = false;
@@ -400,17 +404,30 @@ private:
                         auto previousState = view.state;
                         if (!state.empty())
                             view.state = state == "PLAYING" ? PLAYING : state == "PAUSED" ? PAUSED : state == "BUFFERING" ? BUFFERING : state == "IDLE" ? IDLE : UNKNOWN;
-                        if (view.state != previousState) SDL_Log("Nest: console status=%s gen=%llu RTT=%.0f ms relogio=%d",state.c_str(),(unsigned long long)generation,roundTrip,clock || replyId == 0);
+                        if (view.state == PLAYING) discovery.refresh();
                         if (previousState == PAUSED && (view.state == PLAYING || view.state == BUFFERING)) advanced = now;
-                        if (!state.empty() && view.state != UNKNOWN) view.observed = SDL_GetTicksNS()/1e6;
+                        if (view.state != UNKNOWN) view.observed = stamp;
+                        double rate = std::clamp(number(entry,"playbackRate",1),0.0,4.0);
+                        bool changedState = view.state != previousState;
+                        if (changedState || rate != view.rate) clockFilter.reset();
                         double position = number(entry,"currentTime",NAN);
                         bool positionKnown = !state.empty() && std::isfinite(position) && position >= 0;
+                        bool clock = false;
                         if (positionKnown) {
                             if (std::fabs(position-previousPosition) > .005) { advanced = now; previousPosition = position; }
-                            if (clock || replyId == 0) {
-                                view.position = position; view.updated = stamp; view.rate = std::clamp(number(entry,"playbackRate",1),0.0,4.0);
+                            // Notificações sem requestId mantêm estado/vivacidade; não deslocam um relógio já calibrado.
+                            if (timed || (replyId == 0 && (changedState || !view.updated))) {
+                                double midpoint = timed ? (stamp+request->second.time)/2 : stamp;
+                                clock = clockFilter.update(position,midpoint,stamp,timed ? roundTrip : 1000,
+                                                           view.state == PLAYING ? rate : 0,view.position);
+                                if (clock) {
+                                    view.updated = stamp; view.clockRtt = clockFilter.minimumRtt;
+                                    view.clockReady = clockFilter.ready(stamp);
+                                }
                             }
                         }
+                        view.rate = rate;
+                        if (changedState) SDL_Log("Nest: console status=%s gen=%llu RTT=%.0f ms relogio=%d minimo=%.0f ms",state.c_str(),(unsigned long long)generation,roundTrip,clock,clockFilter.minimumRtt);
                         if ((view.state == PLAYING || view.state == BUFFERING) &&
                             now-advanced > (positionKnown ? 8000u : 25000u)) view.state = STALLED;
                     }

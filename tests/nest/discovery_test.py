@@ -85,7 +85,7 @@ class Server(socketserver.ThreadingTCPServer):
 
 
 @contextlib.contextmanager
-def receiver(folder, host, name='Sala', uid='11111111-1111-1111-1111-111111111111', model='Google Nest Mini', valid=True, stall=False, eureka=True, tls_info=False):
+def receiver(folder, host, name='Sala', uid='11111111-1111-1111-1111-111111111111', model='Google Nest Mini', valid=True, stall=False, eureka=True, tls_info=False, handshake_delay=0, status_delay=0):
     commands = []
     failures = []
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -98,6 +98,7 @@ def receiver(folder, host, name='Sala', uid='11111111-1111-1111-1111-11111111111
                 if stall:
                     time.sleep(1)
                     return
+                time.sleep(handshake_delay)
                 with context.wrap_socket(self.request, server_side=True) as conn:
                     connected = False
                     while True:
@@ -113,6 +114,7 @@ def receiver(folder, host, name='Sala', uid='11111111-1111-1111-1111-11111111111
                             connected = True
                         elif kind == 'GET_STATUS':
                             assert connected and f[4] == 'urn:x-cast:com.google.cast.receiver'
+                            time.sleep(status_delay)
                             # RECEIVER_STATUS real ocioso pode omitir applications.
                             reply = {'type': 'RECEIVER_STATUS' if valid else 'NOT_CAST', 'requestId': message['requestId'], 'status': {'volume': {'level': .13, 'muted': False}}}
                             # Quadro partido: exercita o leitor de produção, sem parser paralelo no teste.
@@ -172,7 +174,7 @@ class DiscoveryTest(unittest.TestCase):
         cls.temp.cleanup()
 
     def run_probe(self, *args, network=NETWORK):
-        result = subprocess.run([str(BINARY), *map(str, args)], check=True, capture_output=True, text=True, timeout=12, env={**os.environ, 'XT_NEST_NETWORK': network})
+        result = subprocess.run([str(BINARY), *map(str, args)], check=True, capture_output=True, text=True, timeout=45, env={**os.environ, 'XT_NEST_NETWORK': network})
         return json.loads(result.stdout.splitlines()[-1])
 
     def test_multiple_and_false_positive(self):
@@ -203,6 +205,34 @@ class DiscoveryTest(unittest.TestCase):
         self.assertEqual(result['host'], '127.77.24.2')
         self.assertEqual(result['state'], 2)
         self.assertEqual(result['uuid'], '1' * 32)
+
+    def test_slow_tls_and_status_on_discovered_receiver(self):
+        with receiver(self.folder, '127.77.24.2', handshake_delay=2, status_delay=.7):
+            result = self.run_probe('scan')
+        self.assertEqual(result['state'], 2)
+        self.assertEqual(result['devices'][0]['uuid'], '1' * 32)
+        self.assertGreaterEqual(result['ms'], 2700)
+        print('slow TLS + receiver status:', result['ms'], 'ms')
+
+    def test_legacy_migrates_by_background_metadata_without_network(self):
+        config = self.folder / 'metadata-migrates'
+        config.mkdir(exist_ok=True)
+        (config / 'nest.txt').write_text('127.77.24.2 8009\nSala\n')
+        with receiver(self.folder, '127.77.24.2', handshake_delay=2):
+            result = self.run_probe('metadata', config, network='unavailable')
+        self.assertEqual(result['state'], 2)
+        self.assertEqual(result['host'], '127.77.24.2')
+        self.assertIn('uuid='+'1'*32, (config / 'nest.txt').read_text())
+
+    def test_metadata_failure_never_scans_and_recovery_is_spaced(self):
+        config = self.folder / 'metadata-fails'
+        config.mkdir(exist_ok=True)
+        (config / 'nest.txt').write_text('127.77.24.9 8009\nSala\n')
+        result = subprocess.run([str(BINARY), 'metadata-failure', str(config)], check=True,
+                                capture_output=True, text=True, timeout=8,
+                                env={**os.environ, 'XT_NEST_NETWORK': NETWORK})
+        self.assertEqual(result.stderr.count('busca unicast'), 1, result.stderr)
+        self.assertIn('metadata failure and recovery cooldown OK', result.stdout)
 
     def test_saved_host_survives_console_prefix_change(self):
         config = self.folder / 'console-moved'

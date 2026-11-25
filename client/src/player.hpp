@@ -183,6 +183,7 @@ struct Player {
   bool nest = false, speakerRequested = false; double nestOffset = 0;
   SDL_Thread* nestThread = nullptr; SDL_Mutex* nmu = nullptr;
   int nestState = 0;  // 0 aguardando/obsoleto, 1 tocando, 2 pausado, 3 parado, 4 erro, 5 bufferizando, 6 sem progresso
+  bool nestClockReady = true;
   double nestPos = 0, nestStampMs = 0, nestSeenMs = 0;
   std::atomic<int> session{0}, nestCmd{0}, masterMs{-1}, speakerTargetMs{-1};
   int previousSession = 0;
@@ -257,7 +258,7 @@ struct Player {
     tvSound(false);
     nestFailed = false;
     speakerFallback = false;
-    SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = nestSeenMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
+    SDL_LockMutex(nmu); nestState = 0; nestClockReady = !direct; nestPos = 0; nestStampMs = nestSeenMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
     if (direct) {
       output = speaker || !directSpeaker.sample().quiet ? CAST : LOCAL; original = true;
       decThread = yt::worker(decMain, "youtube", this);
@@ -750,7 +751,7 @@ struct Player {
     Output route = output.load();
     if (speakerRequested && route == CAST) {
       SDL_LockMutex(nmu);
-      if ((nestState == 1 || (paused && nestState == 2)) && now - nestSeenMs < 8000)
+      if (nestClockReady && nestStampMs > 0 && (nestState == 1 || (paused && nestState == 2)) && now - nestSeenMs < 8000)
         speaker = nestPos + (!paused && nestState == 1 ? (now - nestStampMs) / 1000.0 : 0);
       SDL_UnlockMutex(nmu);
     }
@@ -761,7 +762,7 @@ struct Player {
       pictureReady = true;
       if (!readyMs) readyMs = ms;
       // Espera inicial limitada. Se o DMR demorar, a TV já tem o áudio deste mesmo stream.
-      if (!speakerRequested || speaker >= 0 || ms - readyMs >= 1400) {
+      if (!speakerRequested || speaker >= 0 || (!(direct && route == CAST) && ms - readyMs >= 1400)) {
         firstPts = frames.front()->pts; wallStart = ms;
         screenSec = speaker >= 0 ? std::max(firstPts, speaker + nestOffset) : firstPts;
         tickMs = now;
@@ -802,9 +803,10 @@ struct Player {
         refill = false;
       }
       double target = follow ? speaker + nestOffset : audible ? tv : predicted;
-      // Sem saltos na troca de relógio. Na TV sozinha o PCM efetivamente consumido continua sendo o mestre.
+      // 1% corrige até 10 ms/s: 29,7–30,3 quadros/s numa fonte 30 fps, sem acelerar/frear 15% pelo Wi-Fi.
+      // Na TV sozinha o PCM efetivamente consumido continua sendo o mestre.
       if (!refill)
-        screenSec = speakerRequested && !audible ? predicted + std::clamp(target - predicted, -dt * 0.15, dt * 0.15) : tv;
+        screenSec = speakerRequested && !audible ? predicted + std::clamp(target - predicted, -dt * 0.01, dt * 0.01) : tv;
       // Só segura a imagem para drenar o dispositivo local; uma confirmação Cast nunca prende o vídeo.
       if (route == PRIMING && armed && !mutedForCast && mutedAt && ms-mutedAt <= (uint64_t)deviceMs+120 && cue >= 0)
         screenSec = std::min(screenSec, std::max(cue, predicted - dt));

@@ -19,15 +19,18 @@ HEARTBEAT = 'urn:x-cast:com.google.cast.tp.heartbeat'
 RECEIVER = 'urn:x-cast:com.google.cast.receiver'
 MEDIA = 'urn:x-cast:com.google.cast.media'
 APP = 'CC1AD845'
+JITTER_PROFILE = [(.020, .880), (.440, .010), (.025, .175), (.020, .780),
+                  (.650, .025), (.025, .025), (.025, .525), (.120, .030),
+                  (.020, .030), (.450, .450)]
 
 
 class Receiver:
-    def __init__(self, cert, key, port=0):
+    def __init__(self, cert, key, port=0, handshake_delay=0, host='127.0.0.1', name='Cast fixture'):
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         self.context.load_cert_chain(cert, key)
         self.listener = socket.socket()
         self.listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.listener.bind(('127.0.0.1', port))
+        self.listener.bind((host, port))
         self.listener.listen()
         self.listener.settimeout(.1)
         self.port = self.listener.getsockname()[1]
@@ -39,6 +42,11 @@ class Receiver:
         self.bad_frame = False
         self.consume = None
         self.request_delay = self.response_delay = 0
+        self.timing = None
+        self.reply_delay = None
+        self.clock_rate = 1
+        self.handshake_delay = handshake_delay
+        self.name = name
         self.drop_media = False
         self.media_replies = self.dropped = 0
         self.pending_frames = []
@@ -71,7 +79,7 @@ class Receiver:
                 pass
 
     def at(self):
-        return self.position + (time.monotonic()-self.stamp if self.state == 'PLAYING' else 0)
+        return self.position + ((time.monotonic()-self.stamp)*self.clock_rate if self.state == 'PLAYING' else 0)
 
     def status(self):
         if not self.resource:
@@ -96,8 +104,9 @@ class Receiver:
                                payload_type=0, payload_utf8=json.dumps(payload))
         body = response.SerializeToString()
         frame = struct.pack('!I', len(body))+body
-        if self.response_delay:
-            self.pending_frames.append((time.monotonic()+self.response_delay, client, frame))
+        delay = self.response_delay if self.reply_delay is None else self.reply_delay
+        if delay:
+            self.pending_frames.append((time.monotonic()+delay, client, frame))
         else:
             self.send_frame(client, frame)
 
@@ -143,7 +152,7 @@ class Receiver:
                 assert kind == 'GET_STATUS'
             apps = [{'appId': APP, 'transportId': 'transport-fixture', 'sessionId': 'app-fixture',
                      'namespaces': [{'name': MEDIA}] if self.namespaces else []}] if self.launched else []
-            self.reply(client, request, {'type': 'RECEIVER_STATUS', 'requestId': rid, 'status': {'applications': apps, 'volume': {'level': self.volume, 'muted': self.muted}}})
+            self.reply(client, request, {'type': 'RECEIVER_STATUS', 'requestId': rid, 'status': {'userFriendlyName': self.name, 'applications': apps, 'volume': {'level': self.volume, 'muted': self.muted}}})
             return
         assert request.namespace == MEDIA and self.launched and request.destination_id == 'transport-fixture'
         if kind == 'LOAD':
@@ -182,6 +191,9 @@ class Receiver:
                 if not self.online:
                     raw.close()
                     continue
+                if self.handshake_delay:
+                    time.sleep(self.handshake_delay)
+                raw.settimeout(4)
                 with self.context.wrap_socket(raw, server_side=True) as client:
                     self.clients.append(client)
                     client.settimeout(.01)
@@ -191,7 +203,9 @@ class Receiver:
                         now = time.monotonic()
                         with self.lock:
                             while incoming and incoming[0][0] <= now:
-                                self.handle(client, incoming.pop(0)[1])
+                                _, message, self.reply_delay = incoming.pop(0)
+                                self.handle(client, message)
+                                self.reply_delay = None
                             for due, destination, frame in list(self.pending_frames):
                                 if due <= now:
                                     self.pending_frames.remove((due, destination, frame))
@@ -211,10 +225,14 @@ class Receiver:
                             message = CastMessage.FromString(pending[4:length+4])
                             pending = pending[length+4:]
                             with self.lock:
-                                if self.request_delay:
-                                    incoming.append((time.monotonic()+self.request_delay, message))
+                                request_delay, response_delay = self.timing(message) if self.timing else (self.request_delay, self.response_delay)
+                                if request_delay:
+                                    incoming.append((time.monotonic()+request_delay, message, response_delay))
+                                    incoming.sort(key=lambda item: item[0])
                                 else:
+                                    self.reply_delay = response_delay
                                     self.handle(client, message)
+                                    self.reply_delay = None
             except (OSError, ssl.SSLError):
                 pass
             except Exception as error:
@@ -308,6 +326,16 @@ class CastTests(unittest.TestCase):
         self.driver.until(lambda s: s['quiet'])
         self.assertTrue(self.receiver.commands('STOP'))
         self.assertFalse((self.assets/'nest-owner.json').exists())
+
+    def test_legacy_saved_ip_with_two_second_tls(self):
+        self.receiver.handshake_delay = 2
+        started = time.monotonic()
+        self.play()
+        elapsed = time.monotonic()-started
+        self.assertGreater(elapsed, 2)
+        self.assertLess(elapsed, 6)
+        self.assertEqual(len(self.receiver.commands('LOAD')), 1)
+        print(f'Legacy saved IP, 2 s TLS: PLAYING in {elapsed:.3f}s')
 
     def test_receiver_pause_resume_without_local_command(self):
         self.play()
@@ -403,6 +431,43 @@ class CastTests(unittest.TestCase):
         self.assertEqual(after['state'], 2)
         self.assertEqual(after['updated'], before['updated'])
         self.assertGreater(after['observed'], after['updated'])
+
+    def test_jitter_prefers_fast_samples_without_losing_activity(self):
+        count = [0]
+
+        def timing(request):
+            if request.namespace == MEDIA and json.loads(request.payload_utf8)['type'] == 'GET_STATUS':
+                pair = JITTER_PROFILE[count[0] % len(JITTER_PROFILE)]
+                count[0] += 1
+                return pair
+            return .025, .025
+        self.receiver.timing = timing
+        self.receiver.drop_media = True
+        self.receiver.clock_rate = 1.002
+        first = self.play()
+        errors = []
+        until = time.monotonic()+10
+        while time.monotonic() < until:
+            sample = self.driver.command('sample')
+            self.assertEqual(sample['state'], 2)
+            errors.append(abs(sample['position']+(sample['now']-sample['updated'])/1000-self.receiver.at()))
+            time.sleep(.03)
+        self.assertGreater(sample['observed'], first['observed']+7000)
+        self.assertGreater(sample['updated'], first['updated']+7000)
+        self.assertLess(max(errors), .100)
+        self.assertGreater(self.receiver.dropped, 8)
+        self.assertEqual(len(self.receiver.commands('LOAD')), 1)
+        print(f'Jitter 50–900 ms, loss30, oscillator +2000 ppm: clock error max={max(errors)*1000:.1f} ms')
+
+    def test_slow_bootstrap_keeps_clock_and_activity_before_calibration(self):
+        self.receiver.request_delay = self.receiver.response_delay = .22
+        self.driver.command('play https://audio.example/itag/140 12 1')
+        sample = self.driver.until(lambda s: s['state'] == 2)
+        self.assertGreater(sample['updated'], 0)
+        self.assertGreater(sample['observed'], 0)
+        self.assertGreater(sample['clockRtt'], 200)
+        self.assertFalse(sample['clockReady'])
+        self.driver.until(lambda s: s['clockReady'], timeout=3)
 
     def test_silence_tolerates_more_than_eight_seconds(self):
         sample = self.play()
@@ -733,4 +798,4 @@ class CastTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main(argv=[sys.argv[0]], verbosity=2)
+    unittest.main(argv=[sys.argv[0], *sys.argv[2:]], verbosity=2)
