@@ -1,0 +1,160 @@
+F30 patched /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/src/ffmpeg-7.1.5-xbox
+-- The C compiler identification is GNU 15.3.0
+-- The CXX compiler identification is GNU 15.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/build-xbox
+[ 66%] Building CXX object CMakeFiles/cpu-floor.dir/main.cpp.obj
+[ 66%] Building C object CMakeFiles/cpu-floor.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/x360/ffmpeg-libc.c.obj
+[100%] Linking CXX executable cpu-floor
+xenia_scan: update_initial_timestamps: 82101fc0 rldic r8,r4,48,63
+xenia_scan: read_frame_internal: 82105c40 rldic r9,r9,48,63
+xenia_scan: av_read_frame: 821062d0 rldic r9,r9,48,63
+xenia_scan: av_read_frame: 82106300 rldic r9,r9,48,63
+xenia_scan: ff_rfps_add_frame: 82106608 rldic r9,r9,48,63
+xenia_scan: ff_add_index_entry: 8210fefc rldic r9,r9,48,63
+xenia_scan: av_add_index_entry: 8211014c rldic r9,r9,48,63
+xenia_scan: ff_parse_ntp_time: 821140d4 rldic r9,r3,5,27
+xenia_scan: matroska_probe: 82123af0 rldic r7,r7,8,48
+xenia_scan: matroska_read_header: 82129f6c rldic r5,r7,1,47
+xenia_scan: mov_read_ddts: 8213d4a8 rldic r4,r9,2,61
+xenia_scan: mov_build_index: 82143268 rldic r7,r27,32,2
+xenia_scan: ff_get_wav_header: 82153418 rldic r25,r25,3,29
+xenia_scan: ff_get_wav_header: 8215372c rldic r25,r25,3,29
+xenia_scan: ff_ac3_parse_header: 8215b9a4 rldic r12,r8,8,48
+xenia_scan: av_xiphlacing: 82184db0 rldic r9,r7,8,24
+xenia_scan: ff_aac_decode_tns: 8218c9d0 mcrf cr1,cr0
+xenia_scan: ff_er_add_slice: 821ae818 mcrf cr1,cr0
+xenia_scan: hl_decode_mb_complex: 821cfb0c rldic r9,r9,8,48
+xenia_scan: h264_parse: 821dd5c8 rldic r5,r5,1,32
+xenia_scan: h264_slice_header_init: 821e9cac rldic r5,r5,1,32
+xenia_scan: put_h264_qpel2_mc10_9_c: 822df4ac rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_9_c: 822df518 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_10_c: 822df67c rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_10_c: 822df6e8 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_12_c: 822df84c rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_12_c: 822df8b8 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_14_c: 822dfa1c rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_14_c: 822dfa88 rldic r8,r8,16,32
+xenia_scan: ff_h264_filter_mb: 8231b940 rldic r3,r3,32,16
+xenia_scan: ff_h264_filter_mb: 8231b964 rldic r3,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8231ca30 rldic r9,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8231ca38 rldic r7,r3,32,16
+xenia_scan: ff_h264_filter_mb: 8231cb78 rldic r3,r3,32,16
+xenia_scan: ff_h264_filter_mb: 8231cbb8 rldic r3,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8231ebc0 rldic r7,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8231ebcc rldic r8,r3,32,16
+xenia_scan: av_utf8_decode: 82359c10 rldic r8,r7,5,32
+xenia_scan: av_encryption_info_get_side_data: 82362dec rldic r10,r3,3,29
+xenia_scan: av_image_alloc: 8236ee60 rldic r3,r30,3,29
+xenia_scan: av_image_check_size2: 8236f150 rldic r3,r31,3,29
+xenia_scan: av_image_check_size: 8236f258 rldic r3,r31,3,29
+xenia_scan: av_image_fill_arrays: 82370100 rldic r3,r29,3,29
+xenia_scan: av_image_get_buffer_size: 82370274 rldic r3,r30,3,29
+xenia_scan: has_return_type: 823dfe4c rldic r10,r10,51,58
+xenia_scan: d_source_name: 823e0118 rldic r6,r6,59,53
+xenia_scan: d_encoding: 823e3c94 rldic r7,r7,51,58
+xenia_scan: d_encoding: 823e3cd8 rldic r7,r7,51,58
+xenia_scan: d_print_comp_inner: 823e6e10 rldic r10,r10,51,58
+xenia_scan: d_print_comp_inner: 823e8c44 rldic r6,r6,51,58
+xenia_scan: d_print_mod_list.part.0: 823eacc0 rldic r10,r10,51,58
+xenia_scan: d_print_mod_list.part.0: 823eae50 rldic r8,r8,51,58
+xenia_scan: d_demangle_callback.constprop.0: 823eb610 rldic r9,r9,59,53
+xenia_scan: _dtoa_r: 82431da0 rldic r10,r9,32,1
+xenia_scan: plan_values: 824437a4 rldic r9,r4,24,8
+xenia_scan: plan_values: 824437b4 rldic r10,r3,24,8
+xenia_scan: 56 instructions Xenia skips; Xenia results through these functions are unreliable
+[100%] Built target cpu-floor
+-- The C compiler identification is GNU 15.3.0
+-- The CXX compiler identification is GNU 15.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Configuring done (0.6s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/1080p/build-xbox
+[ 20%] Building C object CMakeFiles/f33-kernels.dir/kernels.c.obj
+[ 40%] Building CXX object CMakeFiles/f33-cpu.dir/main.cpp.obj
+[ 60%] Building C object CMakeFiles/f33-cpu.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/x360/ffmpeg-libc.c.obj
+[ 80%] Linking CXX executable f33-cpu
+xenia_scan: update_initial_timestamps: 82102cd8 rldic r8,r4,48,63
+xenia_scan: read_frame_internal: 82106958 rldic r9,r9,48,63
+xenia_scan: av_read_frame: 82106fe8 rldic r9,r9,48,63
+xenia_scan: av_read_frame: 82107018 rldic r9,r9,48,63
+xenia_scan: ff_rfps_add_frame: 82107320 rldic r9,r9,48,63
+xenia_scan: ff_add_index_entry: 82110c14 rldic r9,r9,48,63
+xenia_scan: av_add_index_entry: 82110e64 rldic r9,r9,48,63
+xenia_scan: ff_parse_ntp_time: 82114dec rldic r9,r3,5,27
+xenia_scan: matroska_probe: 82124808 rldic r7,r7,8,48
+xenia_scan: matroska_read_header: 8212ac84 rldic r5,r7,1,47
+xenia_scan: mov_read_ddts: 8213e1c0 rldic r4,r9,2,61
+xenia_scan: mov_build_index: 82143f80 rldic r7,r27,32,2
+xenia_scan: ff_get_wav_header: 82154130 rldic r25,r25,3,29
+xenia_scan: ff_get_wav_header: 82154444 rldic r25,r25,3,29
+xenia_scan: ff_ac3_parse_header: 8215c6bc rldic r12,r8,8,48
+xenia_scan: av_xiphlacing: 82195520 rldic r9,r7,8,24
+xenia_scan: ff_aac_decode_tns: 8219d140 mcrf cr1,cr0
+xenia_scan: ff_er_add_slice: 821bef88 mcrf cr1,cr0
+xenia_scan: hl_decode_mb_complex: 821e027c rldic r9,r9,8,48
+xenia_scan: h264_parse: 821edd38 rldic r5,r5,1,32
+xenia_scan: h264_slice_header_init: 821fa41c rldic r5,r5,1,32
+xenia_scan: put_h264_qpel2_mc10_9_c: 822efc1c rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_9_c: 822efc88 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_10_c: 822efdec rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_10_c: 822efe58 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_12_c: 822effbc rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_12_c: 822f0028 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_14_c: 822f018c rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_14_c: 822f01f8 rldic r8,r8,16,32
+xenia_scan: ff_h264_filter_mb: 8232c0b0 rldic r3,r3,32,16
+xenia_scan: ff_h264_filter_mb: 8232c0d4 rldic r3,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8232d1a0 rldic r9,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8232d1a8 rldic r7,r3,32,16
+xenia_scan: ff_h264_filter_mb: 8232d2e8 rldic r3,r3,32,16
+xenia_scan: ff_h264_filter_mb: 8232d328 rldic r3,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8232f330 rldic r7,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8232f33c rldic r8,r3,32,16
+xenia_scan: av_utf8_decode: 8235a928 rldic r8,r7,5,32
+xenia_scan: av_encryption_info_get_side_data: 82363b04 rldic r10,r3,3,29
+xenia_scan: av_image_alloc: 8236fb78 rldic r3,r30,3,29
+xenia_scan: av_image_check_size2: 8236fe68 rldic r3,r31,3,29
+xenia_scan: av_image_check_size: 8236ff70 rldic r3,r31,3,29
+xenia_scan: av_image_fill_arrays: 82370e18 rldic r3,r29,3,29
+xenia_scan: av_image_get_buffer_size: 82370f8c rldic r3,r30,3,29
+xenia_scan: has_return_type: 823e0b64 rldic r10,r10,51,58
+xenia_scan: d_source_name: 823e0e30 rldic r6,r6,59,53
+xenia_scan: d_encoding: 823e49ac rldic r7,r7,51,58
+xenia_scan: d_encoding: 823e49f0 rldic r7,r7,51,58
+xenia_scan: d_print_comp_inner: 823e7b28 rldic r10,r10,51,58
+xenia_scan: d_print_comp_inner: 823e995c rldic r6,r6,51,58
+xenia_scan: d_print_mod_list.part.0: 823eb9d8 rldic r10,r10,51,58
+xenia_scan: d_print_mod_list.part.0: 823ebb68 rldic r8,r8,51,58
+xenia_scan: d_demangle_callback.constprop.0: 823ec328 rldic r9,r9,59,53
+xenia_scan: _dtoa_r: 82432ab8 rldic r10,r9,32,1
+xenia_scan: plan_values: 824444bc rldic r9,r4,24,8
+xenia_scan: plan_values: 824444cc rldic r10,r3,24,8
+xenia_scan: 56 instructions Xenia skips; Xenia results through these functions are unreliable
+[ 80%] Built target f33-cpu
+[100%] Linking C executable f33-kernels
+xenia_scan: _dtoa_r: 82077f78 rldic r10,r9,32,1
+xenia_scan: plan_values: 82080cd4 rldic r9,r4,24,8
+xenia_scan: plan_values: 82080ce4 rldic r10,r3,24,8
+xenia_scan: 3 instructions Xenia skips; Xenia results through these functions are unreliable
+[100%] Built target f33-kernels

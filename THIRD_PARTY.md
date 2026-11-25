@@ -21,6 +21,10 @@ Tube360 is MIT licensed (see `LICENSE`). It ships or depends on:
 
 The Tube360 title and the standalone check both use these components.
 
+The Xenon H.264 chroma/qpel/weight additions in `tools/ffmpeg-x360/h264-vmx128.h` and
+`h264-tube360.c`, and their FFmpeg integration, are LGPL-2.1-or-later. Keep these sources and
+the matching build recipe with the FFmpeg source/relink materials; they are not MIT application code.
+
 | Component | Where | License or provenance |
 |---|---|---|
 | [picojson 1.3.0](https://github.com/kazuho/picojson/tree/v1.3.0) | `client/third_party/picojson.h`, unmodified | BSD-2-Clause (notice in the header) |

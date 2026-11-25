@@ -1,0 +1,11 @@
+{
+  "built_at": "2026-11-24T21:03:39.448178-03:00",
+  "path": "bench/cpu-floor/build-xbox/cpu-floor.xex",
+  "bytes": 4386816,
+  "sha256": "454aa4c4c6af5f05e663b00a7736b30f1ef5a0c8eba0d0340d6417b91fcf390a",
+  "source_version": "FFmpeg 7.1.5",
+  "source_sha256": "de668509caf9e35e3cd162473441fdb29538c6d96ed080292b3cf9e6fc5d558f",
+  "compiler": "powerpc-xsdk-elf-gcc (GCC) 15.3.0",
+  "xsdk_revision": "8c58c7a3fb37bb261c5a11a8a1f4fa8a8bfd0d28",
+  "executed_on_console": false
+}

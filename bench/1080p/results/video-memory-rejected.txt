@@ -1,0 +1,17 @@
+tela 1920x1080
+video-memoria: linear mapeada, pool ate 48 superficies/160 MiB, DPB + fila + fences
+upload: 1920x1080, 70 quadros, 216.86 MB/s, staging 0.459 ms/quadro, max 0.768 ms, submit-CPU 0.121 ms, present-CPU 0.043 ms, GPU sem sonda
+pipeline: direto 0/70, ultimo fence 0.021 ms, acquire 0.038 ms, gravacao 0.138 ms; 1 submit/quadro
+upload: 1920x1080, 72 quadros, 222.61 MB/s, staging 0.502 ms/quadro, max 0.885 ms, submit-CPU 0.120 ms, present-CPU 0.042 ms, GPU sem sonda
+pipeline: direto 0/72, ultimo fence 0.019 ms, acquire 0.036 ms, gravacao 0.103 ms; 1 submit/quadro
+upload: 1920x1080, 74 quadros, 227.89 MB/s, staging 0.527 ms/quadro, max 3.249 ms, submit-CPU 0.114 ms, present-CPU 0.041 ms, GPU sem sonda
+pipeline: direto 0/74, ultimo fence 0.021 ms, acquire 0.039 ms, gravacao 0.132 ms; 1 submit/quadro
+upload: 1920x1080, 83 quadros, 254.85 MB/s, staging 0.490 ms/quadro, max 0.717 ms, submit-CPU 0.091 ms, present-CPU 0.039 ms, GPU sem sonda
+pipeline: direto 0/83, ultimo fence 0.018 ms, acquire 0.045 ms, gravacao 0.134 ms; 1 submit/quadro
+upload: 1920x1080, 78 quadros, 241.89 MB/s, staging 0.495 ms/quadro, max 0.797 ms, submit-CPU 0.104 ms, present-CPU 0.044 ms, GPU sem sonda
+pipeline: direto 0/78, ultimo fence 0.019 ms, acquire 0.037 ms, gravacao 0.143 ms; 1 submit/quadro
+upload: 1920x1080, 78 quadros, 240.92 MB/s, staging 0.524 ms/quadro, max 1.346 ms, submit-CPU 0.099 ms, present-CPU 0.041 ms, GPU sem sonda
+pipeline: direto 0/78, ultimo fence 0.019 ms, acquire 0.031 ms, gravacao 0.099 ms; 1 submit/quadro
+upload: 1920x1080, 87 quadros, 269.53 MB/s, staging 0.493 ms/quadro, max 1.004 ms, submit-CPU 0.092 ms, present-CPU 0.039 ms, GPU sem sonda
+pipeline: direto 0/87, ultimo fence 0.015 ms, acquire 0.031 ms, gravacao 0.118 ms; 1 submit/quadro
+video-memory-test: direto 0, decodificados 600 apresentados 600, hash e9de7564bd5b36fc, pool 0, resultado 0

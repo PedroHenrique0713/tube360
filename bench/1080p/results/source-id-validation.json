@@ -1,0 +1,7 @@
+{
+  "stable": true,
+  "compiler_change_detected": true,
+  "source_change_detected": true,
+  "legacy": "30432e3b74d360af200c537f8cdc591f42e0f1804f15dd3384935153ab782a20",
+  "gcc52": "bc1f6751f2705a72d42669fa194066eb4132cd35fc34223c67fd9c43c55b5fa7"
+}

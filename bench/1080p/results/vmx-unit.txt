@@ -1,0 +1,1 @@
+VMX h264-tube360: 16022 instruções, 5539 vetoriais, 0 multiplicações incompatíveis

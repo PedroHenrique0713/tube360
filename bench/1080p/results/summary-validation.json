@@ -1,0 +1,17 @@
+{
+  "rejected": [
+    "truncated",
+    "missing audit",
+    "mixed platform",
+    "bad pixels",
+    "injected failure",
+    "concatenated",
+    "nonfinite",
+    "missing case",
+    "wrong VMX mask",
+    "no actual Xbox VMX"
+  ],
+  "pc_cannot_qualify_console": true,
+  "pixel_audits": 4,
+  "paired_timing_results": 24
+}
