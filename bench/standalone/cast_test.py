@@ -22,12 +22,12 @@ APP = 'CC1AD845'
 
 
 class Receiver:
-    def __init__(self, cert, key, port=0):
+    def __init__(self, cert, key, port=0, handshake_delay=0, host='127.0.0.1', name='Cast fixture'):
         self.context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         self.context.load_cert_chain(cert, key)
         self.listener = socket.socket()
         self.listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.listener.bind(('127.0.0.1', port))
+        self.listener.bind((host, port))
         self.listener.listen()
         self.listener.settimeout(.1)
         self.port = self.listener.getsockname()[1]
@@ -39,6 +39,8 @@ class Receiver:
         self.bad_frame = False
         self.consume = None
         self.request_delay = self.response_delay = 0
+        self.handshake_delay = handshake_delay
+        self.name = name
         self.drop_media = False
         self.media_replies = self.dropped = 0
         self.pending_frames = []
@@ -143,7 +145,7 @@ class Receiver:
                 assert kind == 'GET_STATUS'
             apps = [{'appId': APP, 'transportId': 'transport-fixture', 'sessionId': 'app-fixture',
                      'namespaces': [{'name': MEDIA}] if self.namespaces else []}] if self.launched else []
-            self.reply(client, request, {'type': 'RECEIVER_STATUS', 'requestId': rid, 'status': {'applications': apps, 'volume': {'level': self.volume, 'muted': self.muted}}})
+            self.reply(client, request, {'type': 'RECEIVER_STATUS', 'requestId': rid, 'status': {'userFriendlyName': self.name, 'applications': apps, 'volume': {'level': self.volume, 'muted': self.muted}}})
             return
         assert request.namespace == MEDIA and self.launched and request.destination_id == 'transport-fixture'
         if kind == 'LOAD':
@@ -182,6 +184,9 @@ class Receiver:
                 if not self.online:
                     raw.close()
                     continue
+                if self.handshake_delay:
+                    time.sleep(self.handshake_delay)
+                raw.settimeout(4)
                 with self.context.wrap_socket(raw, server_side=True) as client:
                     self.clients.append(client)
                     client.settimeout(.01)
@@ -308,6 +313,16 @@ class CastTests(unittest.TestCase):
         self.driver.until(lambda s: s['quiet'])
         self.assertTrue(self.receiver.commands('STOP'))
         self.assertFalse((self.assets/'nest-owner.json').exists())
+
+    def test_legacy_saved_ip_with_two_second_tls(self):
+        self.receiver.handshake_delay = 2
+        started = time.monotonic()
+        self.play()
+        elapsed = time.monotonic()-started
+        self.assertGreater(elapsed, 2)
+        self.assertLess(elapsed, 6)
+        self.assertEqual(len(self.receiver.commands('LOAD')), 1)
+        print(f'Legacy saved IP, 2 s TLS: PLAYING in {elapsed:.3f}s')
 
     def test_receiver_pause_resume_without_local_command(self):
         self.play()
@@ -733,4 +748,4 @@ class CastTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main(argv=[sys.argv[0]], verbosity=2)
+    unittest.main(argv=[sys.argv[0], *sys.argv[2:]], verbosity=2)

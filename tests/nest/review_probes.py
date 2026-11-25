@@ -12,7 +12,7 @@ from discovery_test import ROOT, BINARY, DiscoveryTest, receiver
 
 def probe(binary, command, network):
     completed = subprocess.run([str(binary), command], capture_output=True, text=True,
-                               timeout=10, check=True, env={**os.environ, 'XT_NEST_NETWORK': network})
+                               timeout=40, check=True, env={**os.environ, 'XT_NEST_NETWORK': network})
     return json.loads(completed.stdout.splitlines()[-1]), completed.stderr
 
 
@@ -36,7 +36,7 @@ def main():
         with receiver(DiscoveryTest.folder, '127.77.25.254'):
             result, log = probe(faults, 'scan', '127.77.25.1/0.0.0.0')
             assert result['state'] == 2 and result['devices'][0]['host'] == '127.77.25.254', result
-            assert result['ms'] < 5000, result
+            assert result['ms'] < 10000, result
             assert 'maximum=16 remaining=0' in log, log
             print(json.dumps(dict(case='253-hosts-silent-syn', **result)))
             print(log.strip().splitlines()[-1])

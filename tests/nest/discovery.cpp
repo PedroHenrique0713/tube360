@@ -31,18 +31,39 @@ int main(int argc,char** argv) {
     } else if (command=="identify" && argc==3) {
         nest::Config c; c.host=argv[2]; bool ok=nest::identify(c,cancel);
         auto out=json(c).get<O>(); out["ok"]=J(ok); std::cout<<J(out).serialize()<<std::endl;
-    } else if (command=="recover" && argc==3) {
+    } else if ((command=="recover" || command=="metadata") && argc==3) {
         nest::Speaker speaker; speaker.init(std::string(argv[2])+"/"); nest::SearchResult view;
-        while (SDL_GetTicks()-start<7000) {
+        if (command=="recover") speaker.finder().recover(); else speaker.finder().refresh();
+        while (SDL_GetTicks()-start<35000) {
             speaker.finder().poll(view);
             if (view.state!=nest::SearchState::Idle && view.state!=nest::SearchState::Searching) break;
             SDL_Delay(10);
         }
         auto out=json(speaker.settings()).get<O>(); out["state"]=J(double(view.state)); out["ms"]=J(double(SDL_GetTicks()-start));
         speaker.shutdown(); std::cout<<J(out).serialize()<<std::endl;
+    } else if (command=="metadata-failure" && argc==3) {
+        nest::Discovery finder; finder.init(std::string(argv[2])+"/"); nest::SearchResult view;
+        SDL_Delay(100); finder.poll(view); assert(view.state==nest::SearchState::Idle);
+        finder.refresh();
+        while (SDL_GetTicks()-start<3000) {
+            finder.poll(view); if (view.state==nest::SearchState::NetworkError) break; SDL_Delay(10);
+        }
+        assert(view.state==nest::SearchState::NetworkError);
+        auto revision=view.revision;
+        finder.refresh(); SDL_Delay(100); finder.poll(view); assert(view.revision==revision);
+        finder.recover();
+        while (SDL_GetTicks()-start<5000) {
+            finder.poll(view); if (view.state==nest::SearchState::Done) break; SDL_Delay(10);
+        }
+        assert(view.state==nest::SearchState::Done);
+        revision=view.revision;
+        for (int i=0;i<10;++i) { finder.recover(); SDL_Delay(20); }
+        finder.poll(view); assert(view.revision==revision);
+        finder.stop(); std::cout<<"metadata failure and recovery cooldown OK"<<std::endl;
     } else if (command=="lifecycle" && argc==3) {
         std::string dir=std::string(argv[2])+"/";
         nest::Discovery finder; finder.init(dir); nest::SearchResult view;
+        finder.refresh();
         while (SDL_GetTicks()-start<1000) {
             finder.poll(view); if (view.state==nest::SearchState::Searching) break; SDL_Delay(1);
         }

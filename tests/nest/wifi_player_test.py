@@ -42,7 +42,7 @@ subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-da
                 '-keyout', str(key), '-out', str(cert)], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 
 
-def run(name, silence=False, permanent=False, missing_time=False):
+def run(name, silence=False, permanent=False, missing_time=False, handshake_delay=0, offline=False):
     assets = WORK/name
     assets.mkdir(exist_ok=True)
     (assets/'nest-owner.json').unlink(missing_ok=True)
@@ -50,7 +50,8 @@ def run(name, silence=False, permanent=False, missing_time=False):
         shutil.copyfile(font, assets/font.name)
     (assets/'settings.txt').write_text('lang=pt\nquality=720\nsound=nest\nserver=off\nsync_ms=0\n')
     (assets/'autoplay.txt').write_text('F25fixture0 0\n')
-    receiver = Receiver(cert, key)
+    receiver = Receiver(cert, key, handshake_delay=handshake_delay)
+    receiver.online = not offline
     receiver.request_delay = receiver.response_delay = .065
     receiver.drop_media = not (silence or missing_time)
     (assets/'nest.txt').write_text(f'127.0.0.1 {receiver.port}\nNest simulado F25\n')
@@ -65,12 +66,13 @@ def run(name, silence=False, permanent=False, missing_time=False):
             stop_times.append(time.monotonic())
         original(client, request)
     receiver.handle = handle
-    seconds = 46 if permanent else 32 if silence or missing_time else 10
+    seconds = 46 if permanent else 32 if silence or missing_time else 13 if offline else 10
     env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
     home = WORK/'home'
     home.mkdir(exist_ok=True)
     env.update(HOME=str(home), XDG_CACHE_HOME=str(home/'.cache'), LP_NUM_THREADS='2',
                SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', XT_CAST_DISABLE='1',
+               XT_NEST_NETWORK='127.77.28.1/255.255.255.252',
                XT_ASSETS=str(assets), XT_YT_REPLAY=str(REPLAY), XT_SHOT=str(WORK/(name+'.ppm')),
                XT_SHOT_MS=str((seconds-3)*1000), XT_SHOT_FRAME='2147483647',
                XT_KEYS_MS='1000', XT_KEYS='.'*(seconds-2)+'U')
@@ -111,7 +113,15 @@ def run(name, silence=False, permanent=False, missing_time=False):
                 receiver.replies = True
         except Exception as error:
             failures.append(repr(error))
-    worker = threading.Thread(target=outage) if silence or missing_time else None
+    startup_times = {}
+
+    def startup_watch():
+        while not quit_worker.wait(.01):
+            log = (WORK/(name+'.log')).read_text()
+            for marker in ('dono=console gen=1', 'som: TV'):
+                if marker in log and marker not in startup_times:
+                    startup_times[marker] = time.monotonic()
+    worker = threading.Thread(target=outage) if silence or missing_time else threading.Thread(target=startup_watch) if offline else None
     process = None
     try:
         with (WORK/(name+'.log')).open('w') as log:
@@ -129,7 +139,17 @@ def run(name, silence=False, permanent=False, missing_time=False):
         receiver.close()
     assert not receiver.errors and not failures, (receiver.errors, failures)
     log = (WORK/(name+'.log')).read_text()
-    assert 'som: Nest' in log and 'primeiro quadro' in log
+    assert 'primeiro quadro' in log
+    if offline:
+        assert not receiver.commands('LOAD')
+        assert 'som: TV' in log
+        delay = startup_times['som: TV']-startup_times['dono=console gen=1']
+        assert 7.5 < delay < 10, delay
+        assert log.count('busca unicast') == 1, log
+        print(f'PASS Nest desligado ao abrir: TV após {delay:.3f}s, uma busca de recuperação')
+        subprocess.run(['magick', str(WORK/(name+'.ppm')), str(WORK/(name+'.png'))], check=True)
+        return
+    assert 'som: Nest' in log
     if missing_time:
         commands = [data['type'] for namespace, data in receiver.events if namespace.endswith('.media')]
         assert commands[:commands.index('STOP')].count('LOAD') == 1
@@ -149,8 +169,9 @@ def run(name, silence=False, permanent=False, missing_time=False):
             print(f'PASS player {"missing currentTime" if missing_time else "silence"}: first STOP after {delay:.3f}s; TV only after quiet confirmation')
     else:
         assert 'liberando para TV' not in log and 'som: TV' not in log
+        assert 'busca unicast' not in log, 'Nest saudável não deve disparar varredura'
         assert receiver.dropped > 5
-        print(f'PASS player RTT>=130ms, loss={receiver.dropped}/{receiver.media_replies}: one LOAD, no TV fallback')
+        print(f'PASS player TLS={handshake_delay:.1f}s, RTT>=130ms, loss={receiver.dropped}/{receiver.media_replies}: one LOAD, no scan, no TV fallback')
     (WORK/(name+'-wire.json')).write_text(json.dumps(receiver.events, indent=2))
     subprocess.run(['magick', str(WORK/(name+'.ppm')), str(WORK/(name+'.png'))], check=True)
 
