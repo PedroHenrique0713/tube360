@@ -10,6 +10,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[2]
 cli = argparse.ArgumentParser()
 cli.add_argument('--output', type=Path, default=ROOT/'bench/1080p-app/.work/console')
+cli.add_argument('--instructions', type=Path, default=ROOT/'docs/CONSOLE-032-RC3.md')
 cli.add_argument('--build-dir', type=Path, default=ROOT/'client/build-x360')
 cli.add_argument('--artifact-report', type=Path, default=ROOT/'bench/1080p-app/results/artifacts.json')
 args = cli.parse_args()
@@ -60,7 +61,7 @@ for case, video, start, nest, full, output in (
         write(f'{case}/nest.example.txt', 'REPLACE_WITH_SPEAKER_IP 8009\nF40 bench speaker\n')
 for name in ('LICENSE', 'THIRD_PARTY.md'):
     copy(ROOT/name, name)
-copy(ROOT/'docs/CONSOLE-032-RC2.md', 'README.md')
+copy(args.instructions, 'README.md')
 copy(ROOT/'docs/CONSOLE-032-RC1.md', 'CONSOLE-032-RC1.md')
 copy(ROOT/'bench/1080p-app/README.md', 'F40-README.md')
 manifest = dict(stage=str(stage), files=files, executed_on_console=False, console_gate='pending_console',
