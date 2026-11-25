@@ -4,10 +4,92 @@ Trabalho em `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca`, b
 `f43-busca`, base `f42-integracao` (`c56fd85`). Implementação exercitada no app de PC
 e compilada para Xbox. Nada publicado, instalado ou executado no console.
 
+## Revisão da ordenação — 2026-11-25
+
+Estado atual: **Ordenar por contém somente Relevância e Visualizações**. O filtro
+separado de Data de envio continua com qualquer/hoje/semana/mês/ano. O seletor e sua
+normalização têm duas opções; Visualizações codifica campo 1=3 (CAM=). Foi removida
+a chave obsoleta SearchNewest em pt/en/es/ar; restam 22 chaves novas da F43.
+
+Evidência fornecida pelo coordenador: pedidos reais WEB youtubei/v1/search,
+query astronomia, hl=pt, gl=BR, em 2026-11-25 às 07h informadas. CAI= repetiu a
+relevância, exceto a oitava entrada. CAISAhAB (data + vídeo) retornou há 1 mês,
+há 1 mês, há 7 meses, há 2 meses, há 1 ano, há 5 minutos: não cronológico. CAM=
+retornou 477, 183, 89, 80, 48 milhões de visualizações, em ordem decrescente.
+Isso substitui a inferência anterior baseada apenas em HTTP 200/params preservado.
+A opção inoperante foi retirada em `37435df`. O relato está em docs/SEARCH.md e em
+bench/search/fixtures/order-coordinator-20261125.json, identificado como medição
+relatada, não como payload bruto. Não fiz novas consultas reais nesta revisão.
+
+Validação da revisão, com os objetos reais do produto:
+
+```sh
+cmake --build client/build -j2 --target tube360 search-test arabic-text-test arabic-render-test
+client/build/search-test "$PWD/bench/search/fixtures"
+client/build/arabic-text-test
+SDL_VIDEO_DRIVER=offscreen client/build/arabic-render-test "$PWD/client/assets"
+python3 bench/search/prepare.py .work/search/order-review/ui
+python3 bench/search/e2e.py .work/search/order-review/ui
+```
+
+PC: build concluído; **8.133** checagens de busca, **383** de texto árabe e **4.885**
+do renderer aprovadas. O teste cobre ciclo nos dois sentidos, todos os quatro
+filtros de período gravados e a ausência de CAI em combinações normalizadas.
+A mutação temporária que voltava ao campo 1=2 foi recusada pelo teste de contrato.
+**40 casos do app aprovados**, incluindo novo ciclo Visualizações → Relevância
+preservando vídeo/curta/semana; a auditoria confirmou EgYIAxABGAQ%3D nesse caso e
+CAMSBggDEAEYBA%3D%3D nos resultados por visualizações. Nenhum pedido de busca do
+lote gerou a ordenação removida. Aplicar, limpar, cancelar, recentes e destinos
+foram exercitados novamente. Logs em .work/search/order-review/{build-pc,contracts,
+arabic-text,arabic-render,mutation,ui}.log.
+
+Novas capturas do painel abertas individualmente, com Visualizações selecionada
+e o período Esta semana preservado (caminhos absolutos):
+
+| Idioma | Painel HD |
+|---|---|
+| pt | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/ui/filters-pt/screen.png` |
+| en | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/ui/filters-en/screen.png` |
+| es | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/ui/filters-es/screen.png` |
+| ar | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/ui/filters-ar/screen.png` |
+
+Também abri as quatro pranchas com as três telas HD e 4:3/texto grande renovadas:
+`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/contact-{pt,en,es,ar}.png`.
+Os oito painéis estão dentro dos limites; o resumo espanhol grande usa duas linhas.
+O manifesto com os 40 caminhos absolutos é .work/search/order-review/ui/screenshots.json.
+
+Xbox: repetido no fim, com JOBS=2, o mesmo build.env isolado, build ID 4, versão
+0.3.2-f43, flock compartilhado e systemd-run em escopo MemoryMax=6G/MemorySwapMax=1G
+(comando completo na seção Xbox original abaixo). O primeiro comando gerou XEX/
+hashes mas retornou 143; por isso não o aceitei como término normal. A repetição
+incremental retornou **0**, com `[100%] Built target tube360`. Prova do retorno e
+comando: .work/search/order-review/build-xbox-status.json; log final:
+.work/search/order-review/build-xbox-final.log. Nenhum XEX foi instalado ou executado.
+
+Hashes atuais, substituindo os hashes históricos da seção 2:
+
+| Artefato | Bytes | SHA-256 |
+|---|---:|---|
+| `client/build/tube360` | 8329800 | `fb4b21d4a3e4f1f3becc1140b7bec14954537f28770e23a7fbec566fcb16227d` |
+| `client/build-x360/tube360.xex` | 11489280 | `f92b18dd9d27b264d84eb991cae749aa218028a0506fe298fd029cddc20dd46d` |
+| `client/build-x360/tube360-launcher.xex` | 995328 | `18c315c87a7e1aa2ee93f27bed0a4d0912bf63c96b098b95e9ca4da9137f939c` |
+
+Manifesto atual: .work/search/order-review/artifacts.json. As medições seriais de
+quadros da seção 2 permanecem históricas da implementação inicial; não repeti o
+benchmark serial controlado nesta correção. A rodada funcional foi feita também
+sob build compartilhado e inclui picos, portanto não substitui aquele benchmark.
+
+Integração desta revisão: apenas search.hpp, search_ui.hpp, remoção de uma chave
+em cada i18n, testes/fixture e documentação. Sem alteração nova em main.cpp,
+navigation.hpp ou CMake. Após integrar, conferir no console o ciclo de duas opções,
+CAM= para visualizações e a permanência dos quatro períodos de envio. Aceite do
+app no console, scheduler e revisão nativa do árabe continuam com o coordenador.
+A funcionalidade de ordenar por data foi removida, não ficou como pendência oculta.
+
 ## 1. Entrega por item do brief
 
-Commit do produto: `5cbb0d3 Add native search suggestions and controller filters`.
-O complemento desta entrega fecha a bancada de destinos e registra este relatório.
+Implementação inicial: `5cbb0d3`; bancada/relatório: `9ef4a72`.
+Correção da ordenação após medição real do coordenador: `37435df Remove ineffective upload-date search ordering`.
 O histórico completo pedido (`git log --oneline v032..HEAD`) está em
 `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/log-v032.txt`;
 o recorte da F43 está em `.work/search/log-f43.txt`. Os 91 commits anteriores da
@@ -23,7 +105,7 @@ integração são a base, não trabalho atribuído à F43.
    baixo escolhem, A busca imediatamente, esquerda volta ao teclado, B volta à página.
 2. **Filtros:** LB no teclado e nos resultados abre painel Series. Tipo: todos,
    vídeo, canal, playlist, ao vivo; duração: qualquer/curta/média/longa; envio:
-   qualquer/hoje/semana/mês/ano; ordem: relevância/data/visualizações. O painel tem
+   qualquer/hoje/semana/mês/ano; ordem: relevância/visualizações. O painel tem
    rascunho, aplicar, limpar e B para descartar. Resultados exibem as escolhas;
    query/params/idioma separam cache e cursor. Filtros incompatíveis ficam desativados.
    Pesquisa filtrada não cai silenciosamente em uma reserva que ignora os params.
@@ -34,7 +116,7 @@ integração são a base, não trabalho atribuído à F43.
    lista combina sugestões e recentes, com deduplicação e selo Recente; não criei
    outro histórico nem persistência nova. Música conserva sua pesquisa separada.
 
-São 23 chaves novas em pt/en/es/ar. Fontes, shaping e bidi são os da integração.
+São 22 chaves novas em pt/en/es/ar. Fontes, shaping e bidi são os da integração.
 Revisão nativa do árabe continua pendente. Tenho menor certeza nas escolhas de
 `SearchFilters` (الفلاتر), `SearchRecentTag` (الأخيرة), `SearchAny`
 (أي مدة أو تاريخ) e `SearchRelevance` (مدى الصلة); a cobertura de glifos e o desenho
@@ -42,7 +124,11 @@ foram verificados, não a preferência terminológica de um falante nativo.
 
 Contrato, fontes de pesquisa e limites: [docs/SEARCH.md](../../docs/SEARCH.md).
 
-## 2. Provas
+## 2. Provas originais da implementação inicial
+
+Os números, hashes e caminhos desta seção pertencem a `5cbb0d3`. As provas e
+capturas da correção de ordenação estão na atualização ao início deste relatório;
+as imagens antigas com ordenação por data ficam apenas como histórico.
 
 Todos os caminhos `.work/search` abaixo pertencem a este worktree. HOME/XDG/cache,
 assets, configurações e conta dos testes foram isolados. O replay religa os objetos
@@ -202,7 +288,7 @@ Sequência de aceitação:
    `app-thread: suggestions HW 5 … priority -1`.
 2. Direita após a última tecla, cima/baixo, A. Confirmar busca imediata da sugestão
    e um único recente ao repetir. Em árabe, testar também RB e texto misto.
-3. LB → vídeo → duração curta → semana → ordem data → Aplicar → Menu. Conferir
+3. LB → vídeo → duração curta → semana → ordem visualizações → Aplicar → Menu. Conferir
    resumo, duração/data dos resultados e paginação. LB nos resultados: aplicar
    recarrega; B descarta; Limpar volta a todos/relevância. Repetir para canal,
    playlist, ao vivo e as outras opções de envio/duração/ordem.
@@ -227,7 +313,7 @@ Sequência de aceitação:
 - `yt/catalog.hpp`: suporte a `kind=search`, WEB em vez de Music, params e chave
   de cursor/cache. Alteração compartilhada com canal/playlist/Música, coberta pelas
   quatro bancadas antigas. O Client de home/categorias/next continua como antes.
-- `i18n.hpp` e `i18n_ar.hpp`: 23 chaves de busca, inseridas perto de RecentSearches;
+- `i18n.hpp` e `i18n_ar.hpp`: 22 chaves de busca, inseridas perto de RecentSearches;
   não sobrescrever traduções novas da F44. `client/CMakeLists.txt`: três alvos
   opcionais de teste/probe; nada acrescentado ao CMake do Xbox.
 - Docs: READMEs, CHANGELOG, STANDALONE e SEARCH. Os dois itens adjacentes do roadmap
@@ -240,12 +326,10 @@ Sequência de aceitação:
   são de sessão/página, não configuração permanente.
 - O menu público atual usa **menos de 3 / 3–20 / mais de 20 minutos**. Usei os
   parâmetros observados, não os antigos valores de quatro minutos.
-- O menu atual expõe **Relevância/Popularidade**, sem o antigo item ordenar por
-  data. Mantive data com o campo histórico 1=2 e visualizações com 1=3, conforme
-  solicitado. A resposta pública sob CAI preserva o campo nas combinações, mas
-  isso não prova ordenação cronológica. Popularidade pode divergir de contagem
-  estrita de visualizações. **Essas duas semânticas precisam de aceite do provedor/
-  coordenador; não as declaro verificadas pelo replay.** Fontes primárias e a
-  distinção entre observação e inferência estão em docs/SEARCH.md.
+- A medição real enviada pelo coordenador em 2026-11-25 07h mostrou que a
+  ordenação por data é ignorada/não cronológica, enquanto CAM= produz visualizações
+  decrescentes. A opção por data foi removida; restam Relevância e Visualizações.
+  O filtro separado de período (hoje/semana/mês/ano) foi preservado. O relato e seu
+  alcance estão registrados em docs/SEARCH.md e na fixture de evidência do coordenador.
 - Em 4:3 a lista tem uma linha rolável para conviver com o teclado; as oito
   sugestões continuam acessíveis. Em HD há oito linhas e recentes abaixo delas.
