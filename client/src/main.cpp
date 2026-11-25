@@ -744,7 +744,7 @@ int run(int argc, char** argv) {
   boot_event("begin","phone.start","optional SSDP/lounge receiver");
   cast::Receiver phone(assets, brandName); phone.enable(true);
   boot_event("end","phone.start","enable returned; discovery failures do not block Home");
-  cast::Status phoneStatus; uint64_t phoneStateAt = 0, phonePlaybackSerial = 0;
+  cast::Status phoneStatus; uint64_t phoneStateAt = 0, phonePlaybackSerial = 0, playerPositionRevision = 0;
   float phoneGain = 1;
   bool endTimerPending = false;
   Thumbs thumbs;
@@ -901,6 +901,7 @@ int run(int argc, char** argv) {
     control.add(j);
   };
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
+    ++playerPositionRevision;
     offeredQualities.assign(1);
     qualityKnown=false;
     manualNoticeUntil=0;
@@ -1990,7 +1991,7 @@ int run(int argc, char** argv) {
       auto speaker = pl.directSpeaker.sample();
       bool speakerVolume = nestOut && pl.directSpeaker.configured() && speaker.volume >= 0;
       phone.publish({screen == PLAYER ? playing.id : "", pl.position(), pl.duration, state, phonePlaybackSerial,
-                     speakerVolume ? speaker.volume*100 : 100, speakerVolume && speaker.muted});
+                     speakerVolume ? speaker.volume*100 : 100, speakerVolume && speaker.muted, playerPositionRevision});
       phoneStateAt = now + 250;
     }
 
@@ -2279,11 +2280,11 @@ int run(int argc, char** argv) {
     else {
     if (screen == PLAYER) {
       gfx::rect(g, 0, 0, ui::W, ui::H, rgb(0x000000), 0);
-      float scale=g.scale, insetX=g.insetX, insetY=g.insetY;
-      g.scale=1; g.insetX=g.insetY=0;
+      float scale=g.scale, scaleX=g.scaleX, insetX=g.insetX, insetY=g.insetY;
+      g.scaleX=g.scale=1; g.insetX=g.insetY=0;
       gfx::rect(g,0,0,g.extent.width,g.extent.height,rgb(0x000000));
       gfx::videoQuad(g,0,0,g.extent.width,g.extent.height,1,settings.videoFill);
-      g.scale=scale; g.insetX=insetX; g.insetY=insetY;
+      g.scale=scale; g.scaleX=scaleX; g.insetX=insetX; g.insetY=insetY;
       bool panelOpen = ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt;
       bool show = playerUI.visible(now) || panelOpen;
       if (show) {

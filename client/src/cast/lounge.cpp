@@ -304,7 +304,9 @@ void Lounge::observe(const Playback& p) {
     }
     if (p.serial != serial) return;
     if (p.id == current) {
-        bool changed = !seen || p.state != actual.state || p.duration != actual.duration;
+        // Uma reabertura em cache pode pular BUFFERING entre duas amostras de 250 ms.
+        bool changed = !seen || p.state != actual.state || p.duration != actual.duration ||
+                       p.positionRevision != actual.positionRevision;
         seen = p.state == 1 || p.state == 2 || seen;
         actual = p;
         if (changed) report();

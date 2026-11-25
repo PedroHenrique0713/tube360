@@ -28,6 +28,7 @@ struct Playback {
     uint64_t serial = 0;
     double volume = -1;
     bool muted = false;
+    uint64_t positionRevision = 0;
 };
 struct LoungeMessage { string name; Object payload; };
 class Lounge {

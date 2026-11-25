@@ -44,6 +44,12 @@ def run(name,*,lang='pt',sd=False,mode='auto',selected=None,keys='',ms=4000,scre
     assert done.returncode==0 and shot.exists(),(name,done.returncode,log[-3500:])
     with Image.open(shot) as image:
         assert image.size==((640,480) if sd else (1280,720)),(name,image.size)
+        if sd and name.startswith('pressure-'):
+            # A mídia de barras precisa alcançar também a direita do framebuffer, fora do aviso.
+            rgb=image.convert('RGB')
+            lit=sum(max(rgb.getpixel((int(image.width*x),int(image.height*y))))>120
+                    for x in (.85,.90,.95) for y in (.30,.50,.70))
+            assert lit>=7,(name,'video does not fill physical SD width',lit)
         image.save(work/'screen.png')
     shot.unlink();results.append(dict(name=name,screenshot=str(work/'screen.png'),log=str(work/'player.log')))
     return log,(assets/'settings.txt').read_text()

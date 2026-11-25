@@ -61,6 +61,17 @@ void protocol() {
     check(post.find("SID=FAKE-SID") != string::npos && post.find("gsessionid=FAKE-GSESSION") != string::npos,"session on state update");
     check(post.find("req0__sc=") != string::npos && post.find("ofs=0") != string::npos,"BrowserChannel payload");
     lounge.observe({"F14test0002",7,12,1,3});
+    check(lounge.flush(),"publish initial playing clock");
+    auto beforeSeek = mock.calls.size();
+    lounge.observe({"F14test0002",8,12,1,3,-1,false,1});
+    check(lounge.flush() && mock.calls.size()==beforeSeek+1 && mock.calls.back().find("_currentTime=8.000000")!=string::npos,
+          "same-state position revision reaches phone without BUFFERING");
+    auto afterSeek = mock.calls.size();
+    lounge.observe({"F14test0002",8.25,12,1,3,-1,false,1});
+    check(lounge.flush() && mock.calls.size()==afterSeek,"continuous clock does not add HTTP notifications");
+    lounge.observe({"F14test0002",7.775,12,1,3,-1,false,2});
+    check(lounge.flush() && mock.calls.size()==afterSeek+1 && mock.calls.back().find("_currentTime=7.775000")!=string::npos,
+          "same-state undo publishes backward clock");
     lounge.observe({"F14test0001",0,12,1,0});
     check(lounge.currentId().empty() && !lounge.needsNext() && !lounge.pop(command),"local navigation releases phone queue");
     lounge.observe({"",0,0,-1,0,42,false});

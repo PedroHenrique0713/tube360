@@ -11,7 +11,7 @@ int tube360_board_sim_family(void);
 int tube360_board_sim_driver(void);
 int tube360_board_sim_display_ok(int native);
 const char* tube360_board_sim_name(void);
-// 0: desktop normal; 1: contrato simulado; -1: viewport entrelaçado incompatível com safe.
+// 0: desktop normal; 1: contrato simulado. SD mantém o viewport tanto em safe quanto native.
 int tube360_board_sim_extent(int requested, int native, int* width, int* height);
 int tube360_board_sim_sd(void);
 float tube360_board_sim_aspect(void);
