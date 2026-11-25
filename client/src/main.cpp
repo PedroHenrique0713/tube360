@@ -668,6 +668,8 @@ int run(int argc, char** argv) {
                                   {"inter-600.ttf", 24.2f}, {"inter-400.ttf", 17}, {"inter-400.ttf", 15.1f},
                                   {"inter-400.ttf", 18.2f}, {"inter-700.ttf", 11}};
   auto loadDisplay = [&]() {
+    // Reconfigurar também pode travar: o diagnóstico precisa sobreviver fora do primeiro frame.
+    boot_event("begin","display.fonts","extent=%ux%u large_text=%d",g.extent.width,g.extent.height,settings.largeText);
     auto layout = display::layout(g.extent.width,g.extent.height,settings.largeText);
     ui::W = layout.width; ui::large = layout.large; ui::narrow = layout.narrow;
     g.scale = layout.scale; g.insetX = layout.insetX; g.insetY = layout.insetY;
@@ -679,7 +681,9 @@ int run(int argc, char** argv) {
       }
     }
     LOG("layout: %.0fx720, %s, texto %s, margem %.0fx%.0f",ui::W,ui::narrow ? "4:3" : "wide",ui::large ? "grande" : "normal",g.insetX,g.insetY);
-    return gfx::loadFonts(g,assets,specs);
+    bool loaded=gfx::loadFonts(g,assets,specs);
+    boot_event(loaded?"end":"error","display.fonts","extent=%ux%u large_text=%d loaded=%d",g.extent.width,g.extent.height,settings.largeText,loaded);
+    return loaded;
   };
   boot_event("begin","fonts.atlas","load and upload Inter");
   if (!loadDisplay()) return startup::fail(K::StartupFonts,"inter-400.ttf, inter-600.ttf, inter-700.ttf, inter-300.ttf",K::StartupCopy);
@@ -1606,7 +1610,9 @@ int run(int argc, char** argv) {
           const int heights[]={480,720,1080};
           int index=settings.outputHeight==480 ? 0 : settings.outputHeight==1080 ? 2 : 1;
           settings.outputHeight=heights[(index+direction+3)%3];
+          boot_event("begin","settings.output","requested=%d previous=%ux%u",settings.outputHeight,g.extent.width,g.extent.height);
           gfx::output(g,settings.outputHeight);
+          boot_event("end","settings.output","requested=%d actual=%ux%u",settings.outputHeight,g.extent.width,g.extent.height);
           if (!loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
           scroll=0; nav.nowId.clear();
           overlayTitle = {}; overlayMeta = {}; overlayChapter = {}; tipLabel = {}; tipValue = {};
