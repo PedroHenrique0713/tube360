@@ -298,7 +298,7 @@ inline const char* arabic(Key key) {
     case Key::MoreLoading: return "جارٍ تحميل الصفحة التالية…";
     case Key::Results: return "نتائج البحث";
     case Key::AllResults: return "الكل";
-    case Key::MoreOptions: return "خيارات";
+    case Key::MoreOptions: return "حفظ / خيارات";
     case Key::ChooseTab: return "اختيار تبويب";
     case Key::MusicIntro: return "موسيقاك المفضّلة القادمة.";
     case Key::QueueLimit: return "تُشغّل القوائم حتى 256 مقطعًا.";

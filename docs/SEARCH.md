@@ -161,3 +161,5 @@ installation/log procedure. Keep real accounts and `net_log.txt` out of packages
    activity after starting playback. Record console build/hash, sample duration,
    frames/drops and whether the sixth decoder worker shares HW5. PC timing cannot
    establish this scheduler/CPU result.
+
+On a video result, Start (☰) opens **Save / options**, including Watch later. The prompt is translated in Portuguese, English, Spanish and Arabic. On short 4:3/large-text navigation footers, Save / options takes the space of the X/Y prompts; their controls remain available.

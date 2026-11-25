@@ -13,7 +13,6 @@ inline bool musicShortcutArt(gfx::Gfx& g, const std::string& id, float x, float 
     gfx::rect(g,cx-s*.22f,cy-s*.22f,s*.44f,s*.44f,bases[kind],s*.22f);
     gfx::rect(g,cx-s*.02f,cy-s*.15f,s*.04f,s*.17f,ink,2);
     gfx::rect(g,cx,cy-s*.02f,s*.14f,s*.04f,ink,2);
-    gfx::triangle(g,cx-s*.31f,cy-s*.22f,cx-s*.13f,cy-s*.22f,cx-s*.22f,cy-s*.06f,ink);
   } else if(kind==1) {
     for(int row=0;row<3;++row) {
       float yy=cy-s*.22f+row*s*.19f;
@@ -23,7 +22,8 @@ inline bool musicShortcutArt(gfx::Gfx& g, const std::string& id, float x, float 
   } else {
     gfx::rect(g,cx-s*.26f,cy-s*.20f,s*.29f,s*.29f,accent,s*.145f);
     gfx::rect(g,cx-s*.03f,cy-s*.20f,s*.29f,s*.29f,accent,s*.145f);
-    gfx::triangle(g,cx-s*.25f,cy-s*.01f,cx+s*.25f,cy-s*.01f,cx,cy+s*.27f,accent);
+    gfx::triangle(g,cx-s*.25f,cy-s*.01f,cx+s*.25f,cy-s*.01f,cx,cy+s*.23f,accent);
+    gfx::rect(g,cx-s*.035f,cy+s*.18f,s*.07f,s*.07f,accent,s*.035f);
   }
   return true;
 }

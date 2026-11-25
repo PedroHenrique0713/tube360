@@ -322,9 +322,13 @@ struct Navigation {
     if (p.loading) { spinner(g, ui::W-64, 146, 12, now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), ui::W-324, 130, ui::MUTED); }
     float hx = hint(g, 136, 676, "A", XA, tr(p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open));
     hx = hint(g, hx, 676, "B", XB, tr(K::Back));
-    hx = hint(g, hx, 676, "X", XX, tr(K::Refresh));
-    hx = hint(g, hx, 676, "Y", XY, tr(K::Search));
-    if (p.zone == 3 && !p.items.empty() && p.sel < (int)p.items.size() && p.items[(size_t)p.sel].type == "video") hint(g, hx, 676, "Menu", XG, tr(K::MoreOptions));
+    bool videoMenu=p.zone == 3 && !p.items.empty() && p.sel < (int)p.items.size() && p.items[(size_t)p.sel].type == "video";
+    // Reserva a dica de salvar no rodapé curto; X/Y continuam disponíveis.
+    if (!videoMenu || (!ui::narrow && !ui::large)) {
+      hx = hint(g, hx, 676, "X", XX, tr(K::Refresh));
+      hx = hint(g, hx, 676, "Y", XY, tr(K::Search));
+    }
+    if (videoMenu) hint(g, hx, 676, "Menu", XG, tr(K::MoreOptions));
   }
   void drawMenu(gfx::Gfx& g, i18n::Lang lang) {
     auto tr = [&](K k) { return i18n::get(lang, k); };

@@ -340,7 +340,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(MoreLoading, "Loading the next page…", "Carregando a próxima página…", "Cargando la siguiente página…") \
   X(Results, "Search results", "Resultados da busca", "Resultados de búsqueda") \
   X(AllResults, "All results", "Tudo", "Todos") \
-  X(MoreOptions, "Options", "Opções", "Opciones") \
+  X(MoreOptions, "Save / options", "Salvar / opções", "Guardar / opciones") \
   X(ChooseTab, "Choose a tab", "Escolher aba", "Elegir pestaña") \
   X(MusicIntro, "Your next favourite sound.", "Seu próximo som favorito.", "Tu próxima canción favorita.") \
   X(YourMusic, "Music from your account", "Música da sua conta", "Música de tu cuenta") \

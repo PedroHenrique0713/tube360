@@ -27,7 +27,7 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 
 ## Novidades da 0.3.2
 
-A candidata 0.3.2 reúne conexão direta ao Nest salvo e relógio filtrado, atualizações assinadas com lançador, diagnósticos de início/TLS, recuperação de qualidade medida e escolhas fixas de 480p a 144p. Inclui Música da conta pelo cliente TV, SponsorBlock e texto/busca em árabe. A aceitação da candidata integrada no console continua pendente.
+A candidata 0.3.2 reúne conexão direta ao Nest salvo e relógio filtrado, atualizações assinadas com lançador, diagnósticos de início/TLS, recuperação de qualidade medida e escolhas fixas de 480p a 144p. Inclui Música da conta pelo cliente TV, SponsorBlock e texto/busca em árabe. A base rc3 passou no teste do dono no console; a rc4 acrescenta busca pública com conta conectada, correção de abertura de MP4 grande, dica clara do Start e arte dos atalhos da Música. O aceite físico dessas mudanças da rc4 continua pendente. [Roteiro da rc4](docs/CONSOLE-032-RC4.md).
 
 Para migrar do app antigo chamado `default.xex`, feche o Tube360, preserve os arquivos de conta/configurações e copie a pasta completa uma vez. O novo `default.xex` é o lançador; mantenha `tube360.xex` e as oito fontes ao lado dele. Não renomeie o app sobre o lançador. Nas próximas atualizações assinadas, reabra o lançador para instalar.
 
@@ -37,9 +37,11 @@ SponsorBlock oferece Desligado, Botão para pular (padrão) e automático. Y pul
 
 Árabe usa formas contextuais, bidi e fontes Noto sob demanda em qualquer idioma. RB alterna o teclado árabe para latim. [Suporte e limites de revisão](docs/ARABIC.md).
 
+A busca de vídeos continua pública com a conta TV conectada; recomendações e listas da conta mantêm suas rotas próprias. Vídeos recortados de 1920×800/24 aparecem como 1080p24, mantendo as dimensões reais no decoder. MP4 acima de 2 GiB recebe uma correção no demuxer PowerPC; [escopo e provas reproduzíveis](bench/opening/README.md).
+
 A busca agora oferece sugestões enquanto você digita; LB abre filtros de tipo, duração, período de envio e ordenação por relevância ou visualizações. Buscas recentes compartilham a lista; canais e playlists abrem suas páginas. [Controles e provas](docs/SEARCH.md).
 
-Os canais também têm aba Shorts com capas. Sem conta, salve vídeos para assistir depois e retome a reprodução neste console. As listas continuam separadas após o login, sem envio automático. [Armazenamento, limites e limpeza](docs/LOCAL-LIBRARY.md).
+Os canais também têm aba Shorts com capas. Aperte Start (☰) numa miniatura para Salvar / opções, incluindo Assistir mais tarde. Sem conta, salve vídeos para assistir depois e retome a reprodução neste console. As listas continuam separadas após o login, sem envio automático. [Armazenamento, limites e limpeza](docs/LOCAL-LIBRARY.md).
 
 ## Destaques
 

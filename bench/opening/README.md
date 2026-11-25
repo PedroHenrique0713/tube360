@@ -98,3 +98,43 @@ mídia capturada. Ela não substitui a reprodução pelo app de PC.
    abertura não pode ter mudado `video_mode` nem aplicado penalidade de desempenho ao próximo vídeo.
 7. Remover `autoplay.txt` e guardar logs/tempos/itags e hash para a integração. Console, Nest real e
    publicação ficam sob responsabilidade do coordenador; esta frente não os acessou.
+
+## Integração rc4: fronteiras fora de libavformat
+
+A revisão adicional usa o mesmo e6500/MSR.SF=0 da prova acima, com o GCC xsdk 52:
+
+```bash
+python3 bench/opening/limits-ppc.py \
+  --cc /caminho/do/toolchain/bin/powerpc-xsdk-elf-gcc \
+  --qemu /caminho/do/qemu-system-ppc64 --work .work/opening-limits
+```
+
+É necessário um build Xbox já configurado em `client/build-x360`; `--build-dir`
+e `--prefix` permitem escolher outro build/prefixo. Includes/defines vêm do build
+real. O oráculo compila em O0, separado das unidades de produto em O2 e O3.
+Os objetos de FFmpeg e o parser libcurl vêm dos arquivos estáticos Xbox reais.
+A função de progresso do libcurl recompila o fonte fixado em O3 com seções por
+função para remover dependências de rede não exercitadas. Todos os comandos e
+resultados ficam no diretório de saída. Status diferente de zero significa falha.
+
+- **87 verificações em O2 + 87 em O3:** `RangeFile::seek/read/fetch` reais,
+  tamanho conhecido e EOF, SEEK_SET/CUR/END/SIZE, leitura dos três últimos bytes
+  e Content-Range em 2–6 GiB. São janelas pequenas; não há alocação de gigabytes.
+  Inclui parse/ordenação de sequência local acima de 2³¹/2³² e o decoder real de
+  manifesto: 64 MiB aceito, tamanhos de 2–6 GiB/negativos/extremos recusados.
+- **100 verificações FFmpeg:** rescale positivo/negativo, comparação/delta/avanço
+  de timestamps, metadados de pacote (incluindo posição) e inicialização/PTS/delay
+  de swresample nas mesmas fronteiras. `libavcodec`, `libavutil` e `libswresample`
+  conservam suas opções. Nenhum kernel de decodificação é exercitado ou alterado.
+- **53 verificações libcurl:** parser de Content-Length/offset (`numblanks` e
+  `number`), progresso de download, overflow de int64 e entrada negativa.
+  `https.cpp` só copia Content-Range como texto; sua conversão/validação ocorre
+  no RangeFile acima. Respostas da atualização são limitadas a 64 MiB e a
+  biblioteca local a 1 MiB; elas não suportam arquivos de vários GiB.
+
+Esses caminhos passaram com combine habilitado. Nenhuma restrição adicional foi
+aplicada sem falha reproduzida. Isso não certifica toda função das dependências:
+a prova cobre as fronteiras e os caminhos listados, sem transporte TLS real,
+agendamento, codecs ou kernel Xbox. O controle com o arquivo avformat anterior
+continua falhando nos dois MP4 esparsos; a receita integrada passa sem objetos
+extras, comprovando que a sonda ainda detecta o defeito original.

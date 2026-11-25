@@ -25,7 +25,7 @@
 
 ## What is new in 0.3.2
 
-The 0.3.2 candidate combines direct saved-Nest connections and a filtered speaker clock, signed app updates with a launcher, startup/TLS diagnostics, measured quality recovery and fixed 480p–144p choices. It also adds account Music through the TV client, SponsorBlock and Arabic text/search. Console acceptance of the combined candidate is still pending.
+The 0.3.2 candidate combines direct saved-Nest connections and a filtered speaker clock, signed app updates with a launcher, startup/TLS diagnostics, measured quality recovery and fixed 480p–144p choices. It also adds account Music through the TV client, SponsorBlock and Arabic text/search. The rc3 baseline passed the owner’s console check; rc4 adds public video search while signed in, large-MP4 opening fixes, clearer Start prompts and Music artwork. Physical acceptance of these rc4 changes remains pending. [rc4 console checks](docs/CONSOLE-032-RC4.md).
 
 Copy the whole package once when upgrading from an older app named `default.xex`: close Tube360, preserve your settings/account files, replace `default.xex` with the supplied launcher and keep the separate `tube360.xex` plus all eight fonts beside it. Never rename `tube360.xex` over the launcher. Reopen the launcher to install later signed app updates.
 
@@ -35,9 +35,11 @@ SponsorBlock offers Off, Skip button (default) and automatic skipping. Y skips a
 
 Arabic uses contextual shaping and bidi, with Noto fonts loaded when needed in any language. RB switches the Arabic search keyboard to Latin. [Arabic support and review limits](docs/ARABIC.md).
 
+Video search stays public when a TV account is connected; recommendations and account lists keep their account routes. Cropped 1920×800/24 videos display as 1080p24 while keeping their real decode dimensions. MP4 resources above 2 GiB have a PowerPC demuxer fix; [scope and reproducible checks](bench/opening/README.md).
+
 Search now offers suggestions while typing and LB opens type, duration, upload-date period and relevance/view-count ordering filters. Recent searches share the suggestion list; channel and playlist results open their pages. [Controls and verification](docs/SEARCH.md).
 
-Channels also have a Shorts tab with artwork. Without an account, save Watch later and resume positions on this console. Lists stay separate when you sign in; nothing is uploaded automatically. [Local storage, limits and clearing](docs/LOCAL-LIBRARY.md).
+Channels also have a Shorts tab with artwork. Press Start (☰) on a video card for Save / options, including Watch later. Without an account, save Watch later and resume positions on this console. Lists stay separate when you sign in; nothing is uploaded automatically. [Local storage, limits and clearing](docs/LOCAL-LIBRARY.md).
 
 ## Highlights
 

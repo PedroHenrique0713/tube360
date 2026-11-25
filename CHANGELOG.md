@@ -19,6 +19,7 @@
 ### Fixed
 
 - Video search stays anonymous with a connected TV account, with or without filters and throughout pagination. Catalogue failures retain route, HTTP and numeric API/transport diagnostics without credentials or personal data; HTTP 200 error bodies are rejected.
+- Start (☰) prompts on video cards say Save / options in all four languages, with room reserved in the 4:3/large-text footer. Music history uses a clock without a detached arrow; the heart tip is rounded.
 - Cropped video quality uses its width class for display (1920×800/24 appears as 1080p24 in the player and Y menu). Source/decode limits, fixed-height matching and recovery still use real dimensions. Account Music shortcuts have local clock/list/heart artwork.
 - Xbox MP4 opening and seeks above 2 GiB retain exact 64-bit sizes/offsets by avoiding an unsafe xsdk GCC combine optimization in FFmpeg's demuxer. Large-index and 60 fps/PQ fixtures reproduce the failure in PowerPC emulation; real-console acceptance remains pending. Opening logs now separate header/seek time and transferred bytes. [Cause and console procedure](bench/opening/README.md).
 
