@@ -25,6 +25,16 @@ if not reuse:
             if arg.startswith('-I'):arg=arg.replace(str(ROOT/'client/src'),str(src)).replace(str(ROOT/'client/third_party'),str(src.parent/'third_party'))
             args.append(arg)
     subprocess.run(args,check=True)
+# O main histórico aloca Service pelo header histórico. Não ligar essa classe à
+# biblioteca atual: a lista de origens da F50 alterou seu layout e offsets inline.
+if not reuse or not (base/'service.o').exists():
+    flags=(ROOT/'client/build/CMakeFiles/tube360-main.dir/flags.make').read_text().splitlines()
+    args=['c++','-c',str(src/'update/service.cpp'),'-o',str(base/'service.o')]
+    for key in ('CXX_DEFINES =','CXX_INCLUDES =','CXX_FLAGS ='):
+        for arg in shlex.split(next(x for x in flags if x.startswith(key)).split('=',1)[1]):
+            if arg.startswith('-I'):arg=arg.replace(str(ROOT/'client/src'),str(src)).replace(str(ROOT/'client/third_party'),str(src.parent/'third_party'))
+            args.append(arg)
+    subprocess.run(args,check=True)
 # Replace the client implementation in a private archive, avoiding mixed inline definitions.
 build=ROOT/'client/build'
 shutil.copy(build/'yt/libtube360-yt.a',base/'old-yt.a')
@@ -34,7 +44,9 @@ for target,main,output in [('tube360','main.o','tube360-replay'),('search-test',
     args=[str(base/'old-yt.a') if a=='yt/libtube360-yt.a' else a for a in args if not a.endswith('.o')]
     args[args.index('-o')+1]=str(base/output)
     args[1:1]=[str(base/main),str(base/'client.o')]
-    if target=='tube360':args.extend([str(work/'ui/transport.o'),'-Wl,--wrap=_ZN2yt5httpsEPKSt6atomicIbE','-Wl,--wrap=avcodec_receive_frame'])
+    if target=='tube360':
+        args[1:1]=[str(base/'service.o')]
+        args.extend([str(work/'ui/transport.o'),'-Wl,--wrap=_ZN2yt5httpsEPKSt6atomicIbE','-Wl,--wrap=avcodec_receive_frame'])
     subprocess.run(args,cwd=build,check=True)
 result=subprocess.run([str(base/'test')],capture_output=True,text=True)
 (base/'before.log').write_text(result.stdout+result.stderr)
