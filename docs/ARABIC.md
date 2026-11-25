@@ -135,3 +135,5 @@ Todas as 41 chaves novas de início/TLS, qualidade manual, SponsorBlock e Músic
 - `SafeOutputHelp`, `StartupVideo`, `StartupStorage`: vocabulário técnico de saída/GPU/permissão.
 
 Não há revisão por falante nativo nem garantia de posicionamento tipográfico completo sem GPOS. A substituição de atlas conserva a espera da GPU e o reset de comandos da F32 antes de retirar recursos árabes e latinos. As fontes Noto continuam sob demanda; o preflight de início exige Inter, e a carga de árabe informa a falta de Noto. O pacote completo traz as oito fontes.
+
+A tela de emergência embutida (falha de fonte/SDL/GPU/pasta/launch) usa inglês quando o idioma salvo é árabe: o bitmap independente de TTF não cobre árabe. As traduções continuam explícitas para a interface completa. O bootstrap do lançador mostra a marca ASCII Tube360.

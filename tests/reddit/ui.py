@@ -10,13 +10,13 @@ root=Path(__file__).resolve().parents[2]
 base=Path(sys.argv[1]).resolve();base.mkdir(parents=True,exist_ok=True)
 app=root/'client/build/tube360'
 proofs=base/'proofs';proofs.mkdir(exist_ok=True)
-for lang in ('pt','en','es'):
+for lang in ('pt','en','es','ar'):
     for case in ('tls_date','tls','dns','network','http','json','fonts','sdl','video','folder','launch','timeout'):
         name=f'{lang}-{case}';folder=base/name;folder.mkdir(exist_ok=True)
         assets=folder/'assets';assets.mkdir(exist_ok=True)
         (assets/'settings.txt').write_text(f'lang={lang}\nserver=off\nsound=tv\n')
         if case!='fonts':
-            for f in (root/'client/assets').glob('inter-*.ttf'):shutil.copy(f,assets)
+            for f in (root/'client/assets').glob('*.ttf'):shutil.copy(f,assets)
         (folder/'error.txt').write_text(case)
         shot=proofs/(name+'.ppm');shot.unlink(missing_ok=True)
         env={**os.environ,'HOME':str(folder),'XDG_CACHE_HOME':str(folder/'cache'),'SDL_VIDEO_DRIVER':'offscreen','SDL_AUDIO_DRIVER':'dummy','XT_CAST_DISABLE':'1','XT_ASSETS':str(assets),'XT_YT_REPLAY':str(folder),'XT_SHOT':str(shot),'XT_SHOT_MS':'400','XT_KEYS':'B'}
@@ -60,8 +60,8 @@ with (proofs/'wait.log').open('w') as log:
     finally:p.terminate();p.wait(timeout=5)
 print('PASS missing fonts stays open without a button',flush=True)
 for group,cases in [('network',('tls_date','tls','dns','network','http','json')),('startup',('fonts','sdl','video','folder','launch','timeout'))]:
-    montage=Image.new('RGB',(1280,240*len(cases)),(24,24,29));draw=ImageDraw.Draw(montage)
+    montage=Image.new('RGB',(1704,240*len(cases)),(24,24,29));draw=ImageDraw.Draw(montage)
     for row,case in enumerate(cases):
-        for col,lang in enumerate(('pt','en','es')):
+        for col,lang in enumerate(('pt','en','es','ar')):
             with Image.open(proofs/f'{lang}-{case}.png') as im:montage.paste(im.resize((426,240)),(col*426,row*240))
     montage.save(proofs/f'{group}-montage.png')
