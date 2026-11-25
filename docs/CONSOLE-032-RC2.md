@@ -44,6 +44,10 @@ da F34 preempta vídeo/fundo no HW5 sem alterar a afinidade desses workers. Medi
 no console a latência TLS, a restauração e a cadência durante a consulta.
 `app-thread`, `decod-worker`, `decod-priority`, `app-audio` e `SponsorBlock:`
 registram pedidos, status e consultas de prioridade. Helpers MPEG-1 dormem durante AVC.
+O teste Linux do boost/restauração verifica o pedido de fundo −1, mas só aplica
+os pesos reais de nice durante TLS e na restauração: sem privilégios, baixar nice
+na entrada impediria elevá-lo novamente. A latência inicial em prioridade de fundo
+não é medida nesse modelo; precisa ser conferida no console.
 
 A fila 1080p é limitada pelo orçamento de memória. A escada preserva os limites
 manuais da F32, backoff e custo maior observado na sessão; o piso para a projeção

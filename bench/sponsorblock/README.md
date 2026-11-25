@@ -116,7 +116,9 @@ shared with rendering. The H.264 worker mapping is HW2/4/3/5, with resolve/demux
 
 Video selection queues SponsorBlock at the first step of `startVideo`. The player never waits for it.
 All six Xbox hardware threads have users: UI/presentation on HW0, player resolution/demux/AAC and SDL audio
-on HW1, and H.264 helpers cycling HW2/4/3/5. Background network jobs also use HW5. SponsorBlock uses HW5
+on HW1, Range/HLS TLS on HW3 and background jobs on HW5. The 1080p30 profile spreads six H.264 helpers
+across HW0/2/4/1/3/5; smaller sources retain HW2/4/3/5. See the [integrated map](../../docs/CONSOLE-032-RC2.md).
+SponsorBlock uses HW5
 with temporary relative priority **+3**, above H.264 priority 0 and the integrated background role −1; SDL audio is +1 on HW1.
 Readback records actual priority during TLS and after restoration; decoder startup logs its actual priority.
 
