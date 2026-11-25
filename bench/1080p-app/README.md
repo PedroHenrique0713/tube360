@@ -120,7 +120,7 @@ ficam apenas na pasta temporária. Conferir no painel saída HDMI antes dos test
 
 ```bash
 F40_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
-F40_IP=192.168.101.39
+F40_IP=192.168.1.50
 F40_CASE=tv137
 F40_REMOTE="HDD:\\Apps\\Tube360-F40-$F40_CASE"
 python3 "$F40_XBDM" "$F40_IP" mkdir "$F40_REMOTE"

@@ -138,7 +138,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('command', choices=('build', 'serve', 'select'))
     parser.add_argument('--directory', type=Path, default=DEFAULT)
-    parser.add_argument('--host', default='192.168.101.27', help='Origem compilada no teste')
+    parser.add_argument('--host', default='192.168.1.20', help='Origem compilada no teste')
     parser.add_argument('--port', type=int, default=8266)
     parser.add_argument('--build-id', type=int, default=2601)
     parser.add_argument('--scenario', choices=('good', 'fail', 'bad-hash', 'bad-signature', 'bad-range', 'redirect-out'), default='good')

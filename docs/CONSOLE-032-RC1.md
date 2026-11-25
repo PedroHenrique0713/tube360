@@ -12,7 +12,7 @@ Fechar normalmente o Tube360 antes de enviar. Usar uma pasta nova, preservando a
 ```bash
 cd /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f41-integracao
 F41_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
-F41_IP=192.168.101.39
+F41_IP=192.168.1.50
 F41_REMOTE='HDD:\Games\Tube360-032-RC1'
 mkdir -p .work/f41/console-logs
 python3 "$F41_XBDM" "$F41_IP" mkdir "$F41_REMOTE"

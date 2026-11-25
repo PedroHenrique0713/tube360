@@ -142,7 +142,7 @@ chegam ao logger/UDP do xsdk. Não contêm chave privada, conta nem cookies.
 [Passo a passo de dez minutos](../tests/update/CONSOLE.md). O gerador
 `tests/update/console-kit.py build` prepara N, N+1 e um candidato que deliberadamente
 não confirma o boot, assinados com chave descartável dentro de `.work/`.
-O servidor local é `http://192.168.101.27:8266/`; a chave pública e a exceção HTTP
+O servidor local é `http://192.168.1.20:8266/`; a chave pública e a exceção HTTP
 só entram nas builds com header de teste passado explicitamente ao compilador.
 Nenhuma edição da chave pública de produção, configuração do console real ou
 publicação é necessária. O teste de reserva usa saída normal para o Aurora,

@@ -91,7 +91,7 @@ Sem `dbgprint.txt` ou `net_log.txt`: logging síncrono/UDP não participa do tem
 
 ```bash
 F33_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
-F33_IP=192.168.101.39
+F33_IP=192.168.1.50
 F33_REMOTE='HDD:\Apps\Tube360-F33-CPU'
 python3 "$F33_XBDM" "$F33_IP" mkdir "$F33_REMOTE"
 python3 "$F33_XBDM" "$F33_IP" put bench/1080p/build-xbox/f33-cpu.xex "$F33_REMOTE\f33-cpu.xex"

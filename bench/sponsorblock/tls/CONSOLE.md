@@ -13,10 +13,10 @@ Com o app anterior fechado:
 
 ```bash
 cd /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f34-sponsorblock
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/console-f34-diagnostico-1125/tube360.xex 'HDD:\F34-TLS-1125\tube360.xex'
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/console-f34-diagnostico-1125/settings.txt 'HDD:\F34-TLS-1125\settings.txt'
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/console-f34-diagnostico-1125/autoplay.txt 'HDD:\F34-TLS-1125\autoplay.txt'
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 run 'HDD:\F34-TLS-1125\tube360.xex'
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 put .work/console-f34-diagnostico-1125/tube360.xex 'HDD:\F34-TLS-1125\tube360.xex'
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 put .work/console-f34-diagnostico-1125/settings.txt 'HDD:\F34-TLS-1125\settings.txt'
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 put .work/console-f34-diagnostico-1125/autoplay.txt 'HDD:\F34-TLS-1125\autoplay.txt'
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 run 'HDD:\F34-TLS-1125\tube360.xex'
 ```
 
 Deixar tocar sem apertar Y até aparecer **Y Pular patrocínio** em aproximadamente **7.775 s**.
@@ -26,7 +26,7 @@ Depois de 20.877 s, fora de uma ação de pular/voltar, Y abre o menu Qualidade.
 Após o teste:
 
 ```bash
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 get 'HDD:\F34-TLS-1125\tube360.log' .work/proofs/f34-priority/console-start-0.log
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 get 'HDD:\F34-TLS-1125\tube360.log' .work/proofs/f34-priority/console-start-0.log
 rg 'SponsorBlock|decod-worker|player: pedido|player: Y|player: encerrando|console: player|console: MP4|primeiro quadro|qualidade: fonte' .work/proofs/f34-priority/console-start-0.log
 ```
 
@@ -67,10 +67,10 @@ Após encerrar a primeira rodada, criar um arquivo alternativo e enviar:
 
 ```bash
 printf 'wWC8wVI4E3E 5\n' > .work/proofs/f34-priority/autoplay-5.txt
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/proofs/f34-priority/autoplay-5.txt 'HDD:\F34-TLS-1125\autoplay.txt'
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 run 'HDD:\F34-TLS-1125\tube360.xex'
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 put .work/proofs/f34-priority/autoplay-5.txt 'HDD:\F34-TLS-1125\autoplay.txt'
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 run 'HDD:\F34-TLS-1125\tube360.xex'
 # Após o teste:
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 get 'HDD:\F34-TLS-1125\tube360.log' .work/proofs/f34-priority/console-start-5.log
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 get 'HDD:\F34-TLS-1125\tube360.log' .work/proofs/f34-priority/console-start-5.log
 ```
 
 O trecho gravado é 7.774863–20.877296 s, `sponsor`, no vídeo público `wWC8wVI4E3E` (prefixo 5f6b).

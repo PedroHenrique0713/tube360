@@ -146,7 +146,7 @@ rodado somente pelo coordenador após a liberação do console:
 ```bash
 cd /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f45-integracao
 F45_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
-F45_IP=192.168.101.39 # conferir o IP atual com o dono
+F45_IP=192.168.1.50 # conferir o IP atual com o dono
 F45_CASE=tv137
 F45_RUN=mudo # usar som na repetição sem mudo.txt
 F45_LOCAL="$PWD/.work/f45/bench-console/$F45_CASE"

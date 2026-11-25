@@ -81,7 +81,7 @@ stage.mkdir(parents=True, exist_ok=True)
 shutil.copy2(root / 'client/build-x360/tube360.xex', stage / 'tube360.xex')
 for font in (root / 'client/assets').glob('inter-*.ttf'):
     shutil.copy2(font, stage / font.name)
-(stage / 'nest.txt').write_text('192.168.101.41 8009\nTeste Eliot\n')
+(stage / 'nest.txt').write_text('192.168.1.60 8009\nTeste Eliot\n')
 (stage / 'autoplay.txt').write_text('nuvwZLCNJCI 30\n')
 (stage / 'settings.txt').write_text('lang=pt\nquality=720\nsound=nest\nserver=off\nsync_ms=0\n')
 PY
@@ -93,11 +93,11 @@ Os comandos abaixo **não são executados pela frente**:
 
 ```bash
 xbdm=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
-python3 "$xbdm" 192.168.101.39 mkdir 'HDD:\Games\Tube360-F25b'
+python3 "$xbdm" 192.168.1.50 mkdir 'HDD:\Games\Tube360-F25b'
 for file in .work/f25b/console/*; do
-  python3 "$xbdm" 192.168.101.39 put "$file" "HDD:\\Games\\Tube360-F25b\\${file##*/}"
+  python3 "$xbdm" 192.168.1.50 put "$file" "HDD:\\Games\\Tube360-F25b\\${file##*/}"
 done
-python3 "$xbdm" 192.168.101.39 run 'HDD:\Games\Tube360-F25b\tube360.xex'
+python3 "$xbdm" 192.168.1.50 run 'HDD:\Games\Tube360-F25b\tube360.xex'
 ```
 
 Verificar som físico no Nest e `dono=console` → CONNECT/LAUNCH/LOAD → PLAYING;
@@ -106,8 +106,8 @@ pode aparecer `metadados em segundo plano`. Ao sair com B/View, aguardar STOP e
 silêncio confirmado antes de fechar o título. Depois baixar os arquivos:
 
 ```bash
-python3 "$xbdm" 192.168.101.39 get 'HDD:\Games\Tube360-F25b\tube360.log' .work/f25b/console-healthy.log
-python3 "$xbdm" 192.168.101.39 get 'HDD:\Games\Tube360-F25b\nest.txt' .work/f25b/console-nest-after.txt
+python3 "$xbdm" 192.168.1.50 get 'HDD:\Games\Tube360-F25b\tube360.log' .work/f25b/console-healthy.log
+python3 "$xbdm" 192.168.1.50 get 'HDD:\Games\Tube360-F25b\nest.txt' .work/f25b/console-nest-after.txt
 ```
 
 Reabrir duas vezes, mantendo o Nest ligado: nenhum /24. UUID pode ser acrescentado

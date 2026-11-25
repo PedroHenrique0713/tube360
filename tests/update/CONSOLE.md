@@ -18,7 +18,7 @@ pública não compila a leitura desse arquivo nem o disparo automático.
 O coordenador roda, da raiz deste worktree, com o IP atual do XBDM:
 
 ```bash
-python3 tests/update/console-run.py --host 192.168.101.39 --directory .work/update-console --io-timeout 30
+python3 tests/update/console-run.py --host 192.168.1.50 --directory .work/update-console --io-timeout 30
 ```
 
 Não é necessário subir outros processos nem usar o controle. O runner:
@@ -76,7 +76,7 @@ Se precisar regenerar (exige build Xbox prévia e uma pasta nova):
 
 ```bash
 python3 tests/update/console-kit.py build --directory .work/update-console \
-  --host 192.168.101.27 --port 8266
+  --host 192.168.1.20 --port 8266
 ```
 
 Com o build de PC disponível, `python3 tests/update/kit-test.py` confere os
@@ -104,7 +104,7 @@ Se já existir uma pasta de teste, guarde-a com outro nome primeiro.
 
 Crie somente na pasta de teste `settings.txt` com `lang=pt`, `server=off`, `sound=tv`
 (uma chave por linha), sem `nest.txt`/conta reais. Opcionalmente crie `net_log.txt`
-com `192.168.101.27 7466`. Para ver o UDP no notebook:
+com `192.168.1.20 7466`. Para ver o UDP no notebook:
 
 ```bash
 python3 tests/update/udp-log.py --port 7466
@@ -116,7 +116,7 @@ Em outro terminal, suba o servidor (TCP 8266 precisa estar acessível pelo Xbox)
 python3 tests/update/console-kit.py serve --directory .work/update-console
 ```
 
-Confira no notebook `curl -f http://192.168.101.27:8266/app.json`.
+Confira no notebook `curl -f http://192.168.1.20:8266/app.json`.
 Este HTTP existe apenas na build de teste e aceita somente a origem literal
 compilada. A build pública continua exigindo HTTPS/GitHub e a chave pública real.
 Para cancelar downloads mais demorados, aumente `--chunk-delay 0.1` no servidor.

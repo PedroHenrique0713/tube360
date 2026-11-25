@@ -119,7 +119,7 @@ deste worktree (confirme o IP e o nome do drive do console; neste ambiente, `HDD
 
 ```bash
 F30_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
-F30_IP=192.168.101.39
+F30_IP=192.168.1.50
 F30_REMOTE='HDD:\Apps\Tube360-F30-CPU'
 python3 "$F30_XBDM" "$F30_IP" mkdir "$F30_REMOTE"
 python3 "$F30_XBDM" "$F30_IP" put bench/cpu-floor/build-xbox/cpu-floor.xex "$F30_REMOTE\\cpu-floor.xex"

@@ -22,16 +22,16 @@ open: NtCreateFile(game:\updates-url.txt) failed: 0xC0000034
 open: NtCreateFile(game:\update-rules-state.json) failed: 0xC0000034
 open: NtCreateFile(game:\cast-device.txt) failed: 0xC0000034
 open: NtCreateFile(game:\cast-screen.txt) failed: 0xC0000034
-cast: SSDP grupo=239.255.255.250 IP=192.168.101.39 membership=0 errno=109 (ENOPROTOOPT) saida_errno=109 UDP=1900autoplay 4p_9OPKgcDE em 31 s
+cast: SSDP grupo=239.255.255.250 IP=192.168.1.50 membership=0 errno=109 (ENOPROTOOPT) saida_errno=109 UDP=1900autoplay 4p_9OPKgcDE em 31 s
 
 open: NtCreateFile(game:\yt-console-account.json) failed: 0xC0000034
 cast: SSDP sem membership; mantendo recepcao UDP e NOTIFY; DIAL e codigo de TV ativos
 cast: SSDP NOTIFY alive enviados=4/4 errno=0
 F33 APP START seconds=120 warmup=10
 navegacao: Home -> Player
-cast: SSDP nova tentativa IP=192.168.101.39 membership=0 errno=109
+cast: SSDP nova tentativa IP=192.168.1.50 membership=0 errno=109
 cast: SSDP NOTIFY alive enviados=4/4 errno=0
-cast: SSDP nova tentativa IP=192.168.101.39 membership=0 errno=109
+cast: SSDP nova tentativa IP=192.168.1.50 membership=0 errno=109
 cast: SSDP NOTIFY alive enviados=4/4 errno=0
 update: journal leitura: update-app-state.json
 open: NtCreateFile(game:\update-app-state.json) failed: 0xC0000034
@@ -220,7 +220,7 @@ pipeline: direto 21/21, ultimo fence 0.001 ms, acquire 16.404 ms, gravacao 0.017
 video-memoria: 854x480, codec 864x482, pitch 1024/512/512, pool 11, 7.93 MiB
 video-memoria: 854x480, codec 864x482, pitch 1024/512/512, pool 12, 8.65 MiB
 video-memoria: 854x480, codec 864x482, pitch 1024/512/512, pool 13, 9.37 MiB
-cast: SSDP nova tentativa IP=192.168.101.39 membership=0 errno=109
+cast: SSDP nova tentativa IP=192.168.1.50 membership=0 errno=109
 cast: SSDP NOTIFY alive enviados=4/4 errno=0
 video-memoria: 854x480, codec 864x482, pitch 1024/512/512, pool 14, 10.09 MiB
 video-memoria: 854x480, codec 864x482, pitch 1024/512/512, pool 15, 10.81 MiB
@@ -495,7 +495,7 @@ rede: Range 512 KiB, 2 TLS video, pedidos 8, retomadas 0, conexoes 2, espera 298
 F33 APP SAMPLE ms=28020 source=480p30 target=30 shown=840 lost=0 queue=10 pcm_ms=5993.9 av_ms=-10.65 free_mib=351
 upload: 854x480, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.062 ms, present-CPU 0.012 ms, GPU sem sonda
 pipeline: direto 30/30, ultimo fence 0.001 ms, acquire 16.448 ms, gravacao 0.017 ms; 1 submit/quadro
-cast: SSDP nova tentativa IP=192.168.101.39 membership=0 errno=109
+cast: SSDP nova tentativa IP=192.168.1.50 membership=0 errno=109
 cast: SSDP NOTIFY alive enviados=4/4 errno=0
 decod: H.264 6t, 31 quadros, 0.22 ms/quadro, fila mín 9, perdidos 62, PCM 5968 ms, rede 0.00 Mbit/s
 qualidade: VOD 480p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 6.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
@@ -765,7 +765,7 @@ rede: Range 512 KiB, 2 TLS video, pedidos 13, retomadas 0, conexoes 2, espera 29
 F33 APP SAMPLE ms=58042 source=480p30 target=30 shown=1740 lost=0 queue=10 pcm_ms=5985.3 av_ms=-12.65 free_mib=351
 upload: 854x480, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.062 ms, present-CPU 0.012 ms, GPU sem sonda
 pipeline: direto 30/30, ultimo fence 0.001 ms, acquire 16.394 ms, gravacao 0.017 ms; 1 submit/quadro
-cast: SSDP nova tentativa IP=192.168.101.39 membership=0 errno=109
+cast: SSDP nova tentativa IP=192.168.1.50 membership=0 errno=109
 cast: SSDP NOTIFY alive enviados=4/4 errno=0
 celular: noop seq 8 video= lista= indice=
 decod: H.264 6t, 31 quadros, 0.23 ms/quadro, fila mín 9, perdidos 62, PCM 5973 ms, rede 0.00 Mbit/s
@@ -1036,7 +1036,7 @@ celular: noop seq 9 video= lista= indice=
 F33 APP SAMPLE ms=88063 source=480p30 target=30 shown=2640 lost=0 queue=10 pcm_ms=6005.3 av_ms=-9.32 free_mib=351
 upload: 854x480, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.062 ms, present-CPU 0.012 ms, GPU sem sonda
 pipeline: direto 30/30, ultimo fence 0.001 ms, acquire 16.435 ms, gravacao 0.016 ms; 1 submit/quadro
-cast: SSDP nova tentativa IP=192.168.101.39 membership=0 errno=109
+cast: SSDP nova tentativa IP=192.168.1.50 membership=0 errno=109
 cast: SSDP NOTIFY alive enviados=4/4 errno=0
 decod: H.264 6t, 31 quadros, 0.23 ms/quadro, fila mín 9, perdidos 62, PCM 5979 ms, rede 0.00 Mbit/s
 qualidade: VOD 480p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 6.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
@@ -1306,7 +1306,7 @@ rede: Range 512 KiB, 2 TLS video, pedidos 23, retomadas 0, conexoes 2, espera 29
 F33 APP SAMPLE ms=118085 source=480p30 target=30 shown=3540 lost=0 queue=10 pcm_ms=5996.6 av_ms=-11.33 free_mib=351
 upload: 854x480, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.063 ms, present-CPU 0.013 ms, GPU sem sonda
 pipeline: direto 30/30, ultimo fence 0.001 ms, acquire 16.471 ms, gravacao 0.017 ms; 1 submit/quadro
-cast: SSDP nova tentativa IP=192.168.101.39 membership=0 errno=109
+cast: SSDP nova tentativa IP=192.168.1.50 membership=0 errno=109
 cast: SSDP NOTIFY alive enviados=4/4 errno=0
 decod: H.264 6t, 31 quadros, 0.22 ms/quadro, fila mín 9, perdidos 62, PCM 5979 ms, rede 0.00 Mbit/s
 qualidade: VOD 480p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 6.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0

@@ -85,11 +85,11 @@ Com o título fechado, o coordenador pode enviar/abrir a pasta nova:
 
 ```bash
 xbdm=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
-python3 "$xbdm" 192.168.101.39 mkdir 'HDD:\Games\Tube360-F25b-Jitter'
+python3 "$xbdm" 192.168.1.50 mkdir 'HDD:\Games\Tube360-F25b-Jitter'
 for file in .work/f25b-jitter/console/*; do
-  python3 "$xbdm" 192.168.101.39 put "$file" "HDD:\\Games\\Tube360-F25b-Jitter\\${file##*/}"
+  python3 "$xbdm" 192.168.1.50 put "$file" "HDD:\\Games\\Tube360-F25b-Jitter\\${file##*/}"
 done
-python3 "$xbdm" 192.168.101.39 run 'HDD:\Games\Tube360-F25b-Jitter\tube360.xex'
+python3 "$xbdm" 192.168.1.50 run 'HDD:\Games\Tube360-F25b-Jitter\tube360.xex'
 ```
 
 Verificar som físico no Nest, sem busca unicast no receptor saudável. Depois da
@@ -100,7 +100,7 @@ mesma configuração da bancada. Pausar/retomar e buscar devem estabelecer uma
 nova âncora, sem carregar mídia duplicada. Voltar com B/View e esperar STOP.
 
 ```bash
-python3 "$xbdm" 192.168.101.39 get 'HDD:\Games\Tube360-F25b-Jitter\tube360.log' .work/f25b-jitter/console-clock.log
+python3 "$xbdm" 192.168.1.50 get 'HDD:\Games\Tube360-F25b-Jitter\tube360.log' .work/f25b-jitter/console-clock.log
 ```
 
 Repetir a abertura com o Nest desligado: TV antes de 10 s desde `dono=console`.
