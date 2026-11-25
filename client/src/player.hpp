@@ -15,6 +15,7 @@
 #include "http_chunks.hpp"
 #include "pl_mpeg.h"
 #include "h264.hpp"
+#include "decode_budget.hpp"
 #include "playback_mode.hpp"
 #include "quality_recovery.hpp"
 #include "yt/media.hpp"
@@ -99,7 +100,7 @@ struct Player {
   SDL_Thread *netThread = nullptr, *decThread = nullptr;
 
   // fila de quadros (protegida por mu)
-  std::deque<Frame*> frames; std::vector<Frame*> spare; int maxFrames = 10;
+  std::deque<Frame*> frames; std::vector<Frame*> spare; int maxFrames = 10, startupFrames = 6;
   bool decEnded = false;
   std::atomic<bool> original{false}, retryConverted{false};
   std::atomic<bool> allowOriginal{true};
@@ -249,7 +250,7 @@ struct Player {
     endLiveReader = false; refreshed = renewing; renew = mediaReady = directReserveReady = false; actualHeight = actualFps = 0;
     if (renewing) validUntil = 0;
     SDL_SetAtomicInt(&netBytes, 0);
-    original = retryConverted = false; originalWatch = 0; queueMin = maxFrames;
+    original = retryConverted = false; originalWatch = 0; maxFrames = 10; startupFrames = 6; queueMin = maxFrames;
     speakerRequested = speaker; nest = false;
     srv = s; id = vid; startAt = std::max(0.0, t); title = ttl; duration = dur; quality = q; error.clear();
     ring.assign(6u << 20, 0); rhead = rcount = 0; netEof = netErr = false; decEnded = false;
@@ -766,7 +767,7 @@ struct Player {
     }
     SDL_LockMutex(mu);
     Frame* show = nullptr;
-    if (firstPts < 0 && !frames.empty() && (frames.size() >= (original || (speakerRequested && live) ? 6u : 2u) || decEnded) &&
+    if (firstPts < 0 && !frames.empty() && (frames.size() >= (original ? size_t(startupFrames) : speakerRequested && live ? 6u : 2u) || decEnded) &&
         (!hasAudio || audioQueuedSec() >= (speakerRequested && live ? 0.20 : 0.10) || decEnded)) {
       pictureReady = true;
       if (!readyMs) readyMs = ms;

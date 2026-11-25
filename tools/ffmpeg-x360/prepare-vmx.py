@@ -2,6 +2,7 @@
 """O qpel só multiplica por 1, 5 e 20: shifts/adds preservam o inteiro exato no VMX128."""
 from pathlib import Path
 import re
+import shutil
 import sys
 
 root = Path(sys.argv[1]) / "libavcodec/ppc"
@@ -24,6 +25,28 @@ text, count = re.subn(r"vec_mul(e|o)\((\w+), v(20|5|1)ss\)",
 if count != 10:
     raise RuntimeError(f"qpel mul: esperadas 10, achadas {count}")
 path.write_text(text)
+
+# Implementações novas ficam no conjunto de fontes LGPL do FFmpeg/relink.
+for name in ("h264-vmx128.h", "h264-tube360.c"):
+    shutil.copyfile(Path(__file__).with_name(name), root / name)
+path = root / "Makefile"
+path.write_text(path.read_text() + "\nOBJS-$(CONFIG_H264_DECODER) += ppc/h264-tube360.o\n")
+for file, context, hook in (("h264chroma_init.c", "H264ChromaContext", "chroma"),
+                            ("h264qpel.c", "H264QpelContext", "qpel"),
+                            ("h264dsp.c", "H264DSPContext", "weight")):
+    path = root / file
+    text = path.read_text()
+    # O inicializador é a última função de cada unidade na versão fixada.
+    at = text.rfind("\n}")
+    if at < 0 or text[at+2:].strip():
+        raise RuntimeError(f"inicializador PPC incompatível: {file}")
+    call = f"\n    ff_tube360_{hook}_init(c, bit_depth);"
+    text = text[:at] + call + text[at:]
+    declaration = f"\nvoid ff_tube360_{hook}_init({context} *c, int depth);\n"
+    anchor = f'#include "libavcodec/{"h264chroma" if hook == "chroma" else "h264qpel" if hook == "qpel" else "h264dsp"}.h"'
+    if text.count(anchor) != 1:
+        raise RuntimeError(f"header PPC incompatível: {file}")
+    path.write_text(text.replace(anchor, anchor + declaration, 1))
 path = root / "h264qpel.c"
 text = path.read_text()
 anchor = "#if HAVE_ALTIVEC\n"

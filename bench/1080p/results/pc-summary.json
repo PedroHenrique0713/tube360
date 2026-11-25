@@ -1,0 +1,210 @@
+{
+  "schema": 1,
+  "configuration": {
+    "schema": "1",
+    "platform": "pc",
+    "mask": "7",
+    "threads": "6",
+    "filter": "full",
+    "cpu_flags": "3fd3db",
+    "ffmpeg": "7.1.5",
+    "repeats": "3"
+  },
+  "real137": true,
+  "results": [
+    {
+      "clip": "1080p30-2500",
+      "role": "baseline",
+      "mean_ms": {
+        "median": 7.948692,
+        "min": 6.480835,
+        "max": 8.637972
+      },
+      "completion_p95_ms": {
+        "median": 24.612385,
+        "min": 18.862622,
+        "max": 27.889745
+      },
+      "slice_p95_ms": {
+        "median": 59.037,
+        "min": 51.226,
+        "max": 61.66
+      },
+      "block30_p95_ms": {
+        "median": 8.991404,
+        "min": 7.920422,
+        "max": 9.447643
+      }
+    },
+    {
+      "clip": "1080p30-2500",
+      "role": "candidate",
+      "mean_ms": {
+        "median": 8.316891,
+        "min": 6.390366,
+        "max": 9.460304
+      },
+      "completion_p95_ms": {
+        "median": 27.582541,
+        "min": 15.610673,
+        "max": 27.680958
+      },
+      "slice_p95_ms": {
+        "median": 70.104,
+        "min": 44.402,
+        "max": 72.974
+      },
+      "block30_p95_ms": {
+        "median": 10.065054,
+        "min": 6.723083,
+        "max": 11.347772
+      }
+    },
+    {
+      "clip": "1080p30-5500",
+      "role": "baseline",
+      "mean_ms": {
+        "median": 9.890507,
+        "min": 8.072638,
+        "max": 14.028606
+      },
+      "completion_p95_ms": {
+        "median": 35.895255,
+        "min": 29.813162,
+        "max": 48.465184
+      },
+      "slice_p95_ms": {
+        "median": 85.576,
+        "min": 67.181,
+        "max": 106.704
+      },
+      "block30_p95_ms": {
+        "median": 10.819421,
+        "min": 9.299782,
+        "max": 16.892851
+      }
+    },
+    {
+      "clip": "1080p30-5500",
+      "role": "candidate",
+      "mean_ms": {
+        "median": 7.835172,
+        "min": 7.709884,
+        "max": 7.936134
+      },
+      "completion_p95_ms": {
+        "median": 24.699997,
+        "min": 22.724501,
+        "max": 24.726465
+      },
+      "slice_p95_ms": {
+        "median": 59.114,
+        "min": 58.683,
+        "max": 67.262
+      },
+      "block30_p95_ms": {
+        "median": 8.076548,
+        "min": 8.073614,
+        "max": 9.368294
+      }
+    },
+    {
+      "clip": "720p30-4000",
+      "role": "baseline",
+      "mean_ms": {
+        "median": 5.348165,
+        "min": 4.144891,
+        "max": 6.186793
+      },
+      "completion_p95_ms": {
+        "median": 13.048228,
+        "min": 10.012431,
+        "max": 16.564427
+      },
+      "slice_p95_ms": {
+        "median": 40.269,
+        "min": 34.087,
+        "max": 45.573
+      },
+      "block30_p95_ms": {
+        "median": 5.86347,
+        "min": 4.516024,
+        "max": 7.463612
+      }
+    },
+    {
+      "clip": "720p30-4000",
+      "role": "candidate",
+      "mean_ms": {
+        "median": 4.346186,
+        "min": 4.235071,
+        "max": 4.357494
+      },
+      "completion_p95_ms": {
+        "median": 12.996011,
+        "min": 12.01109,
+        "max": 13.912043
+      },
+      "slice_p95_ms": {
+        "median": 34.171,
+        "min": 33.923,
+        "max": 34.201
+      },
+      "block30_p95_ms": {
+        "median": 4.710035,
+        "min": 4.688884,
+        "max": 4.898134
+      }
+    },
+    {
+      "clip": "youtube137",
+      "role": "baseline",
+      "mean_ms": {
+        "median": 7.341473,
+        "min": 7.16512,
+        "max": 12.417741
+      },
+      "completion_p95_ms": {
+        "median": 28.548148,
+        "min": 26.96684,
+        "max": 46.225649
+      },
+      "slice_p95_ms": {
+        "median": 64.5,
+        "min": 57.9,
+        "max": 103.8
+      },
+      "block30_p95_ms": {
+        "median": 10.489811,
+        "min": 10.421511,
+        "max": 16.827891
+      }
+    },
+    {
+      "clip": "youtube137",
+      "role": "candidate",
+      "mean_ms": {
+        "median": 7.471831,
+        "min": 7.198604,
+        "max": 10.949229
+      },
+      "completion_p95_ms": {
+        "median": 27.38777,
+        "min": 25.49509,
+        "max": 42.650137
+      },
+      "slice_p95_ms": {
+        "median": 65.406,
+        "min": 63.23,
+        "max": 94.774
+      },
+      "block30_p95_ms": {
+        "median": 9.386584,
+        "min": 8.884199,
+        "max": 15.277545
+      }
+    }
+  ],
+  "cpu_gate": "pending_console",
+  "playback": "pending_app_120s_audio_memory_drops"
+}

@@ -1,0 +1,20 @@
+9dba055 Player: budget the 1080p queue and add timed playback evidence
+235d5f8 H264: add Xenon-safe DSP kernels and paired CPU probes
+8bb4b98 Merge branch 'f26-atualizacao' into integracao-032
+932e645 Update test: always use HDD: on the console (Hdd1: lists but refuses writes)
+f068c16 Nest: return sound to the TV after 10 s without contact once release is requested
+4a74157 Automate console update verification with a test-only file trigger
+34ec0b9 Test: document adversarial LAN limits and permanent Nest outages
+a2e0712 Phone: retry transient SSDP membership failures
+c934a6e Phone: renew SSDP sockets when the local address changes
+15d17c9 Nest: require clock samples before confirming a playback stall
+0b50fae Nest: reject reordered status before changing ownership
+7bf18e4 Verify console kit HTTP channels and private key isolation
+ec58231 Check signed Xbox test payloads through promotion and recovery
+4c4e5c0 Preserve Xenon compiler flags and verify distributed package bytes
+e9bd855 Verify package trust and capture update states in the real UI
+e489ab9 Nest: measure independent live HLS clocks and document console checks
+9190090 Phone: retry SSDP membership and expose LAN delivery diagnostics
+26e75d8 Nest: keep slow Wi-Fi status and clock observations alive
+fbe09cf Nest: discover speakers when the console has no netmask
+7763fb1 Complete signed app updates and add disposable console test kit

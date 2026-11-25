@@ -28,8 +28,31 @@ bool castSetupKeepsPicture(bool playPending) {
     return advanced;
 }
 
+bool largeQueueKeepsClock() {
+    auto large=video::decodeQueue(1080,30000.0/1001,96u<<20);
+    if (large.capacity!=18 || large.startup!=12 ||
+        video::decodeQueue(720,30,SIZE_MAX).capacity!=10 ||
+        video::decodeQueue(1080,60,SIZE_MAX).capacity!=10 ||
+        video::decodeQueue(1080,30,(96u<<20)-1).capacity!=10 ||
+        video::decodeQueue(1080,0,SIZE_MAX).capacity!=10) return false;
+    player::Player p;
+    p.mu=SDL_CreateMutex();p.cv=SDL_CreateCondition();p.nmu=SDL_CreateMutex();
+    p.original=true;p.paused=true;p.state=player::BUFFERING;
+    p.maxFrames=large.capacity;p.startupFrames=large.startup;
+    player::Frame frames[12];
+    for(int i=0;i<12;++i) { frames[i].pts=2+i/30.0;frames[i].w=1920;frames[i].h=1080; }
+    for(int i=0;i<11;++i) p.frames.push_back(&frames[i]);
+    bool held=p.take()==nullptr && p.firstPts<0;
+    p.frames.push_back(&frames[11]);
+    bool started=p.take()==&frames[0] && p.firstPts==2 && p.lastPos==2 && p.paused;
+    bool frozen=p.take()==nullptr && p.lastPos==2;
+    SDL_DestroyMutex(p.mu);SDL_DestroyMutex(p.nmu);SDL_DestroyCondition(p.cv);
+    return held && started && frozen;
+}
+
 int main() {
     SDL_Init(0);
+    if (!largeQueueKeepsClock()) { std::fprintf(stderr,"FAIL 1080p queue budget/startup/PTS\n"); return 1; }
     player::Player p;
     p.mu=SDL_CreateMutex(); p.cv=SDL_CreateCondition(); p.nmu=SDL_CreateMutex();
     p.state=player::BUFFERING; p.direct=p.original=p.speakerRequested=p.paused=true;

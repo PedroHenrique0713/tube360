@@ -1,0 +1,107 @@
+{
+  "platform": "pc",
+  "oracle": "ffmpeg version 8.1.3 Copyright (c) 2000-2026 the FFmpeg developers",
+  "pixel_frames_compared": 2520,
+  "pixel_mismatches": 0,
+  "parse_traces": [
+    {
+      "clip": "720p30-4000",
+      "mode": "full",
+      "frames": 180,
+      "trace_sha256": "4d4eb082e07935ab93e2d583f79fbfed3f0535024837c64ccfd43c8a47134a97"
+    },
+    {
+      "clip": "720p30-4000",
+      "mode": "no_loop_filter",
+      "frames": 180,
+      "trace_sha256": "a7e5597d57c1e03d7f4778e9c9dc744389378e7ee1e28b42f6413418157cd745"
+    },
+    {
+      "clip": "720p30-4000",
+      "mode": "entropy",
+      "frames": 180,
+      "trace_sha256": "0aceda495ec43c32de8e1c9099623355845abe946efdd8781c87555523e74c33"
+    },
+    {
+      "clip": "1080p30-2500",
+      "mode": "full",
+      "frames": 180,
+      "trace_sha256": "17cf98e8d9637dd1eaefe3cad0aefc5e6111ea76aa8524d929fd07a6d14c3265"
+    },
+    {
+      "clip": "1080p30-2500",
+      "mode": "no_loop_filter",
+      "frames": 180,
+      "trace_sha256": "c5a96c90900a8ed6ac57142f84e5e7f755ed9b8e48862062574561e6624be283"
+    },
+    {
+      "clip": "1080p30-2500",
+      "mode": "entropy",
+      "frames": 180,
+      "trace_sha256": "46a20bcc97366dd656962769c0eb97659f9ad76ff54b7780f07e7d7574c146b0"
+    },
+    {
+      "clip": "1080p30-5500",
+      "mode": "full",
+      "frames": 180,
+      "trace_sha256": "6fe4e8732eb5dc563dea401f0a8fe4a6a0d08a54b65d4141c9ab851d480c8e2b"
+    },
+    {
+      "clip": "1080p30-5500",
+      "mode": "no_loop_filter",
+      "frames": 180,
+      "trace_sha256": "2c533069471e874a09dc770a5103fdda829406edabcf21086099b42e42ca7a39"
+    },
+    {
+      "clip": "1080p30-5500",
+      "mode": "entropy",
+      "frames": 180,
+      "trace_sha256": "b240e311d0bc2201ecacdd21ddb978004cfc41aabc5c82a8d917ccf968266ec4"
+    },
+    {
+      "clip": "1080p60-2500",
+      "mode": "full",
+      "frames": 360,
+      "trace_sha256": "16f106610b58261830f2c3d229a6eb0f11e1c759929ce6e4f422671bfc6217ee"
+    },
+    {
+      "clip": "1080p60-2500",
+      "mode": "no_loop_filter",
+      "frames": 360,
+      "trace_sha256": "dea6c29b4e02c1e5f10c9c23e09d0886d0a0914fa6403a5d29ad2eecf0fee89b"
+    },
+    {
+      "clip": "1080p60-2500",
+      "mode": "entropy",
+      "frames": 360,
+      "trace_sha256": "f0e197ec4d30a4ee57d5d91b147f18a354d4a6c3ece1460c97a0bab79ea1829c"
+    },
+    {
+      "clip": "1080p60-5500",
+      "mode": "full",
+      "frames": 360,
+      "trace_sha256": "584b20836f0c6116479d17c60d0a786fdd2f4cc6e3f7a2c52d62dcc44b3d19f9"
+    },
+    {
+      "clip": "1080p60-5500",
+      "mode": "no_loop_filter",
+      "frames": 360,
+      "trace_sha256": "9dc8ee5b2ec71c03f0ee41abe06e77d9e5b008ca8b88cf6283669052742cab02"
+    },
+    {
+      "clip": "1080p60-5500",
+      "mode": "entropy",
+      "frames": 360,
+      "trace_sha256": "49af21a962e1eb2d014c50d4aeb79122aa228ea5f8b182f7ee4a40b129ef3cc0"
+    }
+  ],
+  "rejected_logs": [
+    "truncated",
+    "missing audit",
+    "mixed platform",
+    "failed",
+    "duplicated run",
+    "missing repetition"
+  ],
+  "truncated_media_rejected": true
+}

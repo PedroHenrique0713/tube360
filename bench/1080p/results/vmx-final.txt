@@ -1,0 +1,4 @@
+VMX h264qpel: 13406 instruções, 4600 vetoriais, 0 multiplicações incompatíveis
+VMX h264dsp: 1708 instruções, 488 vetoriais, 0 multiplicações incompatíveis
+VMX idctdsp: 1 instruções, 0 vetoriais, 0 multiplicações incompatíveis
+VMX h264-tube360: 15764 instruções, 5539 vetoriais, 0 multiplicações incompatíveis

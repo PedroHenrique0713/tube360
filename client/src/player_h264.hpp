@@ -204,6 +204,8 @@ inline void Player::decodeOriginal() {
   };
   uint64_t ns = 0, copyNs = 0, flushNs = 0, since = SDL_GetTicks();
   int directFrames = 0, nonrefPackets = 0;
+  int queueHeight = 0;
+  size_t memoryFloor = SIZE_MAX;
   double videoSeconds = 0, handoffFloor = -1;
   uint64_t previousWait = 0;
   bool reserveChecked = false;
@@ -259,6 +261,17 @@ inline void Player::decodeOriginal() {
             (last >= 0 && pts <= last + .00001) || pts < handoffFloor - .00001) { ++filtered; continue; }
         if (pts < -0.0001) continue;
         pts = std::max(0.0, pts);
+        if (queueHeight != f->height) {
+          queueHeight = f->height;
+          size_t available = video::titleFreeBytes();
+          auto budget = video::decodeQueue(f->height,sourceRate,available);
+          SDL_LockMutex(mu);
+          maxFrames = budget.capacity; startupFrames = budget.startup; queueMin = (int)frames.size();
+          spare.reserve(size_t(maxFrames)+2);
+          SDL_UnlockMutex(mu);
+          LOG("decod-fila: %dp %.3f fps, capacidade %d inicio %d, livres %u MiB, extra ate 32 MiB (pool 160 MiB)",
+              f->height,sourceRate,budget.capacity,budget.startup,(unsigned)(available>>20));
+        }
         SDL_LockMutex(mu);
         while ((int)frames.size() >= maxFrames && !stop) SDL_WaitCondition(cv, mu);
         SDL_UnlockMutex(mu);
@@ -387,6 +400,13 @@ inline void Player::decodeOriginal() {
           videoSeconds > 0 ? ns / 1e6 / videoSeconds : 0, count ? copyNs / 1e6 / count : 0, lost - previousLost);
       LOG("decod-memoria: direto %d/%d, flush %.3f ms/quadro, loop NONREF %d/%d pacotes, tipo %d, workers %d",
           directFrames,count,count ? flushNs/1e6/count : 0,nonrefPackets,packets,s.video ? s.video->active_thread_type : 0,threads);
+#ifdef __XSDK__
+      size_t freeMemory = video::titleFreeBytes(); memoryFloor = std::min(memoryFloor,freeMemory);
+      LOG("decod-orcamento: livres %u MiB, minimo amostrado %u MiB, fila teto %d",
+          (unsigned)(freeMemory>>20),(unsigned)(memoryFloor>>20),maxFrames);
+#else
+      (void)memoryFloor;
+#endif
       h264::ffmpeg_work_metrics(&workUs,&workFrames);
       if (workFrames) LOG("decod-workers: %u quadros, soma parede %.2f ms, %.2f ms/quadro (paralelos, inclui dependencia)",
                           workFrames,workUs/1000.0,workUs/1000.0/workFrames);

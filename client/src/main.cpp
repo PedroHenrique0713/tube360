@@ -44,6 +44,9 @@
 #include "sleep.hpp"
 #include "icons.hpp"
 #include "cast/receiver.hpp"
+#ifdef TUBE360_F33_BENCH
+#include "../../bench/1080p/playback_probe.hpp"
+#endif
 
 #ifdef __XSDK__
 #include "xsdk/net.h"
@@ -1031,6 +1034,9 @@ int run(int argc, char** argv) {
   }
 
   Screen loggedScreen = HOME;
+#ifdef TUBE360_F33_BENCH
+  f33::PlaybackProbe f33Playback(assets,SDL_GetTicks());
+#endif
   const char* screenNames[] = {"Home", "Busca", "Player", "Ajustes", "Navegacao"};
   boot_event("begin","app.first-frame","enter render loop; no disk logging each frame after ready");
   while (!quit) {
@@ -2673,6 +2679,9 @@ int run(int argc, char** argv) {
       quit = true;
     }
     frame++;
+#ifdef TUBE360_F33_BENCH
+    if (f33Playback.update(pl,now)) quit=true;
+#endif
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
   recordHistory();
