@@ -14,7 +14,7 @@ int cpu=0;
 bool control=false;
 thread_local int relativePriority=0;
 std::atomic_bool stopLoad{false}, startLoad{false}, networkDone{false}, logReleased{false};
-std::atomic_int started{0}, failures{0}, restored{-999}, requested{-999}, received{-999};
+std::atomic_int started{0}, failures{0}, restored{-999}, requested{-999}, received{-999}, background{-999};
 std::atomic_uint64_t loadWork{0};
 double cryptoMs=0, requestMs=0;
 std::string body;
@@ -61,19 +61,27 @@ NTSTATUS xsdk_thread_sleep(uint32_t ms) { if (ms) SDL_Delay(ms); else sched_yiel
 uint32_t xsdk_thread_hardware_thread() { return sched_getcpu()==cpu ? 5 : 0; }
 NTSTATUS xsdk_thread_set_priority(HANDLE,int32_t level,int32_t* previous) {
     if (previous) *previous=relativePriority;
+    if (level==-1 && !networkDone) {
+        // Sem CAP_SYS_NICE, baixar nice agora impediria o boost posterior. O peso
+        // Linux só modela a fase TLS; a entrada de fundo é validada como pedido,
+        // e a restauração aplica nice 15 de verdade. Não mede latência no fundo.
+        if (previous || getpriority(PRIO_PROCESS,0)!=0) return -1;
+        background=relativePriority=level;
+        return 0;
+    }
     if (level==sponsorblock::ThreadPolicy::priority) requested=level;
     int effective=control && level>1 ? 1 : level;
     int nice=effective>=3 ? 0 : effective==1 ? 10 : 15;
     if (setpriority(PRIO_PROCESS,0,nice) || getpriority(PRIO_PROCESS,0)!=nice) return -1;
     relativePriority=effective;
-    if (level==0) restored=effective;
+    if (level==-1) restored=effective;
     return 0;
 }
 int f34_getschedparam(pthread_t,int* policy,sched_param* value) {
     int nice=getpriority(PRIO_PROCESS,0);
-    int measured=nice==0 ? 3 : nice==10 ? 1 : nice==15 ? 0 : -999;
+    int measured=nice==0 ? 3 : nice==10 ? 1 : nice==15 ? -1 : -999;
     *policy=SCHED_OTHER; value->sched_priority=measured;
-    if (networkDone && measured==0) restored=0;
+    if (networkDone && measured==-1) restored=-1;
     else received=measured;
     return 0;
 }
@@ -120,11 +128,11 @@ int main(int argc,char** argv) {
         auto applied=SDL_GetTicks()-selected;
         logReleased=true; request.close();
         stopLoad=true; for (auto& worker:workers) worker.join(); workers.clear();
-        require(published && restored==0 && requested==3,"publication before blocked logger and priority restoration");
+        require(published && background==-1 && restored==-1 && requested==3,"publication before blocked logger and background priority restoration");
         require(ticks>50 && loadWork!=0,"UI progresses while all six workers spin without yielding");
         if (control) require(state.segments.empty() && cryptoMs<600 && received==1,"control must reproduce CPU starvation");
         else require(state.segments.size()==1 && applied<=2000 && cryptoMs>=600 && received==3,"boosted request must get 600 ms of CPU and publish within two seconds");
-        std::printf("PASS %s: workers=6 cpu=%d worker_nice=10 request_nice=%d requested=%d effective=%d restored=%d ecc_cpu_ms=%.1f request_ms=%.1f applied_ms=%llu UI_ticks=%llu\n",
+        std::printf("PASS %s: workers=6 cpu=%d worker_nice=10 request_nice=%d requested=%d effective=%d restored=%d startup_background=request_only ecc_cpu_ms=%.1f request_ms=%.1f applied_ms=%llu UI_ticks=%llu\n",
             control?"same-priority control":"boosted",cpu,control?10:0,requested.load(),received.load(),restored.load(),cryptoMs,requestMs,
             (unsigned long long)applied,(unsigned long long)ticks);
     } catch (const std::exception& error) {

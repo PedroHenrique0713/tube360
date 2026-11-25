@@ -117,7 +117,7 @@ shared with rendering. The H.264 worker mapping is HW2/4/3/5, with resolve/demux
 Video selection queues SponsorBlock at the first step of `startVideo`. The player never waits for it.
 All six Xbox hardware threads have users: UI/presentation on HW0, player resolution/demux/AAC and SDL audio
 on HW1, and H.264 helpers cycling HW2/4/3/5. Background network jobs also use HW5. SponsorBlock uses HW5
-with temporary relative priority **+3**, above default H.264/background priority 0; SDL audio is +1 on HW1.
+with temporary relative priority **+3**, above H.264 priority 0 and the integrated background role −1; SDL audio is +1 on HW1.
 Readback records actual priority during TLS and after restoration; decoder startup logs its actual priority.
 
 Only SponsorBlock uses **1500 ms connect/handshake, 1800 ms total**, targeting completion within two seconds
@@ -136,6 +136,11 @@ ECDSA CPU work** before returning the recorded response. The control must expire
 boosted request must publish within 2 s. The logger is gated until the UI sees the result, also testing
 publication order. Requested/effective/restored priorities and UI progress are checked. This rootless Linux
 CFS model reproduces relative CPU contention; it is not the Xbox fixed-priority scheduler or a live TLS peer.
+With the F40 thread wrapper, the adapter also checks the initial background request and restoration to
+**−1**. Linux cannot raise nice again after lowering it without `CAP_SYS_NICE`, so this rootless test
+records the startup background request without applying its Linux weight. It applies the real nice
+weights during the TLS phase and nice 15 on restoration. Startup latency at background priority is
+outside this model; it remains part of console acceptance. The 600 ms CPU / 2 s wall limits are unchanged.
 
 `retry.cpp` covers deterministic transport gates, CPU load, UI progress, initial EOF, fresh retry before the
 first frame, two-request cap and closing during backoff. The native CTest also exercises real loopback TLS
