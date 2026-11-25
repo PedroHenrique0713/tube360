@@ -88,7 +88,6 @@ inline void Player::decodeOriginal() {
     LOG("console: player OK, cliente %s, %u pedidos: %s resolucao_ms=%llu",media.playerClient.c_str(),media.playerAttempts,media.playerTrace.c_str(),
         (unsigned long long)(SDL_GetTicks()-openedMs));
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
-    if (!live && beforeMedia) beforeMedia();
     if (stop) return;
     if (live) { speed=1; loop=false; tempo.reset(1); }
     castMediaReady = true;

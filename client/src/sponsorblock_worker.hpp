@@ -3,6 +3,7 @@
 #include "yt/thread.hpp"
 #include "sponsorblock_retry.hpp"
 #include "sponsorblock_thread.hpp"
+#include <array>
 
 namespace sponsorblock {
 struct Worker {
@@ -15,8 +16,6 @@ struct Worker {
     RetryPlan plan;
     std::string id;
     bool pending=false, ready=false;
-    bool firstFinished=true;
-    static constexpr uint64_t startupLeadMs=750;
     yt::sponsorblock::Segments reply;
     yt::sponsorblock::Diagnostic replyDiagnostic, diagnostic;
     void init() { thread=yt::worker([](void* p) { static_cast<Worker*>(p)->run(); return 0; },"SponsorBlock",this); }
@@ -24,19 +23,8 @@ struct Worker {
         SDL_LockMutex(mu);
         ++revision; interrupted=true; id=video; selectedAt=SDL_GetTicks(); plan={};
         plan.selectedAt=selectedAt;
-        pending=yt::sponsorblock::validVideo(video); firstFinished=!pending; ready=false; reply.clear();
+        pending=yt::sponsorblock::validVideo(video); ready=false; reply.clear();
         SDL_SignalCondition(cv); SDL_UnlockMutex(mu);
-    }
-    void beforeMedia(const std::atomic_bool& cancelled) {
-        uint64_t begin=SDL_GetTicks();
-        SDL_LockMutex(mu); auto rev=revision; auto deadline=selectedAt+startupLeadMs;
-        while (!stop && !cancelled && rev==revision && !firstFinished) {
-            auto now=SDL_GetTicks(); if (now>=deadline) break;
-            SDL_WaitConditionTimeout(cv,mu,(uint32_t)std::min<uint64_t>(10,deadline-now));
-        }
-        bool finished=firstFinished; SDL_UnlockMutex(mu);
-        report("SponsorBlock: janela antes dos TLS de video espera_ms=%llu limite_desde_escolha_ms=%llu primeira_concluida=%d",
-            (unsigned long long)(SDL_GetTicks()-begin),(unsigned long long)startupLeadMs,finished);
     }
     bool poll(Playback& playback, bool playing=false, uint64_t now=SDL_GetTicks()) {
         SDL_LockMutex(mu);
@@ -60,28 +48,40 @@ struct Worker {
             SDL_UnlockMutex(mu);
             policy.enter();
             uint64_t begin=SDL_GetTicks();
-            client.trace=[rev,attempt](const char* phase,double ms) {
-                report("SponsorBlock: tentativa %u/2 fase=%s rev=%llu elapsed_ms=%.1f",attempt,phase,(unsigned long long)rev,ms);
+            int activePriority=policy.effectivePriority, activeQuery=policy.queryStatus;
+            struct Event { const char* phase; double ms; int priority, status; };
+            std::array<Event,16> events{}; size_t count=0;
+            client.trace=[&](const char* phase,double ms) {
+                policy.query();
+                if (count<events.size()) events[count++]={phase,ms,policy.effectivePriority,policy.queryStatus};
             };
-            report("SponsorBlock: tentativa %u/2 inicio rev=%llu prefix=%s fila_ms=%llu connect_ms=%ld total_ms=%ld hw_alvo=%u hw_efetivo=%d afinidade=0x%08x prioridade=%d prioridade_status=0x%08x",
-                attempt,(unsigned long long)rev,yt::sponsorblock::hashPrefix(video).c_str(),(unsigned long long)(begin-selected),
-                yt::sponsorblock::connectTimeoutMs,yt::sponsorblock::requestTimeoutMs,ThreadPolicy::hardware,policy.effective,policy.moveStatus,ThreadPolicy::priority,policy.priorityStatus);
             auto result=client.fetch(video,begin,refresh);
             auto info=client.diagnostic(); auto ended=SDL_GetTicks();
-            policy.leave();
-            // O xsdk limita cada linha a 512 bytes; fases separadas preservam o motivo da falha.
-            const auto& t=info.timing;
-            report("SponsorBlock: tentativa %u/2 fases rev=%llu phase=%s dns_ms=%.1f tcp_ms=%.1f tls_ms=%.1f first_byte_ms=%.1f callback_gap_ms=%.1f nonblocking=%d os_errno=%ld",
-                attempt,(unsigned long long)rev,t.phase,t.dnsMs,t.tcpMs,t.tlsMs,t.firstByteMs,t.callbackGapMs,t.nonblocking,t.osError);
-            report("SponsorBlock: tentativa %u/2 fim rev=%llu parede_ms=%llu %s",attempt,(unsigned long long)rev,(unsigned long long)(ended-begin),info.line().c_str());
             SDL_LockMutex(mu);
             bool retry=false;
             if (revision==rev && !stop) {
-                firstFinished=true; SDL_BroadcastCondition(cv);
                 reply=std::move(result); replyDiagnostic=info; ready=true;
                 retry=plan.finish(info,ended);
             }
             SDL_UnlockMutex(mu);
+            policy.leave();
+            // O logger usa uma seção crítica global. Capturar fases na RAM e publicar
+            // antes do log evita esperar por disco/outra thread dentro do handshake.
+            report("SponsorBlock: tentativa %u/2 inicio rev=%llu prefix=%s fila_ms=%llu connect_ms=%ld total_ms=%ld hw_alvo=%u hw_efetivo=%d afinidade=0x%08x prioridade=%d prioridade_status=0x%08x log_adiado=1",
+                attempt,(unsigned long long)rev,info.prefix.c_str(),(unsigned long long)(begin-selected),
+                yt::sponsorblock::connectTimeoutMs,yt::sponsorblock::requestTimeoutMs,ThreadPolicy::hardware,policy.effective,policy.moveStatus,ThreadPolicy::priority,policy.priorityStatus);
+            report("SponsorBlock: tentativa %u/2 prioridade rev=%llu efetiva=%d consulta_status=%d anterior=%d restaurada=%d restaurar_status=0x%08x restaurada_consulta=%d",
+                attempt,(unsigned long long)rev,activePriority,activeQuery,policy.previous,policy.restoredPriority,policy.restoreStatus,policy.restoredQuery);
+            for (size_t i=0;i<count;++i) report("SponsorBlock: tentativa %u/2 fase=%s rev=%llu elapsed_ms=%.1f prioridade_efetiva=%d consulta_status=%d",
+                attempt,events[i].phase,(unsigned long long)rev,events[i].ms,events[i].priority,events[i].status);
+            // O xsdk limita cada linha a 512 bytes; fases separadas preservam o motivo da falha.
+            const auto& t=info.timing;
+            report("SponsorBlock: tentativa %u/2 fases rev=%llu phase=%s dns_ms=%.1f tcp_ms=%.1f tls_ms=%.1f first_byte_ms=%.1f callback_gap_ms=%.1f nonblocking=%d os_errno=%ld",
+                attempt,(unsigned long long)rev,t.phase,t.dnsMs,t.tcpMs,t.tlsMs,t.firstByteMs,t.callbackGapMs,t.nonblocking,t.osError);
+            report("SponsorBlock: tentativa %u/2 prazo rev=%llu desde_escolha_ms=%llu meta_ms=2000 dentro_prazo=%d dados_ok=%d",
+                attempt,(unsigned long long)rev,(unsigned long long)(ended-selected),ended-selected<=2000,
+                info.state==yt::sponsorblock::State::SEGMENTS || info.state==yt::sponsorblock::State::EMPTY);
+            report("SponsorBlock: tentativa %u/2 fim rev=%llu parede_ms=%llu %s",attempt,(unsigned long long)rev,(unsigned long long)(ended-begin),info.line().c_str());
             if (retry) report("SponsorBlock: tentativa 2/2 aguardando rev=%llu desde_escolha_ms=%llu intervalo_minimo_ms=%llu independente_primeiro_quadro=1",
                 (unsigned long long)rev,(unsigned long long)RetryPlan::initialRetryMs,(unsigned long long)RetryPlan::delayMs);
         }

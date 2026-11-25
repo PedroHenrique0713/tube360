@@ -115,7 +115,6 @@ struct Player {
   uint64_t validUntil = 0;
   int cachedQuality = 0;
   std::atomic<bool> mediaReady{false}, renew{false};
-  std::function<void()> beforeMedia;
   std::atomic<bool> directReserveReady{false};
   std::atomic<int> actualHeight{0};
   std::atomic<int> actualFps{0};

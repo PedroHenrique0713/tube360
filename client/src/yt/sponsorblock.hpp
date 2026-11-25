@@ -3,7 +3,7 @@
 
 namespace yt::sponsorblock {
 constexpr size_t maxSegments = 128, maxResponseBytes = 512 * 1024;
-constexpr long connectTimeoutMs=2500, requestTimeoutMs=3500;
+constexpr long connectTimeoutMs=1500, requestTimeoutMs=1800;
 struct Segment { double start=0, end=0, duration=0; };
 using Segments = std::vector<Segment>;
 bool validVideo(const string& id);

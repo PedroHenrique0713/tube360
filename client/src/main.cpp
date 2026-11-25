@@ -721,7 +721,6 @@ int main(int argc, char** argv) {
   bool railFocus = false; int railSel = 0; float railOpen = 0;
   PlayerExtras extras; extras.init();
   sponsorblock::Worker sponsorWorker; sponsorWorker.init();
-  pl.beforeMedia=[&] { sponsorWorker.beforeMedia(pl.stop); };
   sponsorblock::Playback sponsors; sponsorblock::UI sponsorUI;
   std::vector<std::string> commentLines; int commentIndex=-1;
   PlayerText commentAuthor, commentMeta; std::string commentPosition;
