@@ -4,6 +4,7 @@
 namespace player {
 
 inline bool Player::directFailed(bool fatal) {
+  if(playback::manual(videoMode)){if(fatal){error="manual_quality_failed";state=FAILED;}return false;}
   // Esta sonda roda no worker, depois das opções locais. Nunca bloqueia o desenho nem acorda o PC.
   net::Response response;
   directReserveReady = !stop && net::serverEnabled && srv.ip != "0.0.0.0" &&
@@ -81,6 +82,7 @@ inline void Player::decodeOriginal() {
       validUntil = SDL_GetTicks() + 1000ULL * (media.ttl - std::min(30,media.ttl/10));
     }
     if (stop) return;
+    qualityAvailable=media.qualityModes;qualityModesReady=true;
     if (media.status != "OK") {
       LOG("console: player %s, classe %s, cliente %s, %u pedidos: %s", media.status.c_str(), yt::failureName(media.failure),
           media.playerClient.c_str(), media.playerAttempts, media.reason.c_str());
@@ -93,11 +95,14 @@ inline void Player::decodeOriginal() {
     castMediaReady = true;
     state = BUFFERING;
     mediaReady = true;
+    if(playback::manual(videoMode) && (media.video.url.empty() || !(media.qualityModes&(1u<<videoMode))) && !live){error="manual_quality_unavailable";state=FAILED;return;}
     if (live) {
       liveTransport = yt::https(&endLiveReader);
       playlistTransport = yt::https(&endLiveReader);
       broadcast = std::make_unique<yt::LiveFile>(*playlistTransport, *liveTransport, endLiveReader);
-      if (!broadcast->open(media.hls, quality,videoMode==playback::FAST,media.selectedAudio.empty() ? audioSelection : media.selectedAudio)) r = AVERROR_INVALIDDATA;
+      bool opened=broadcast->open(media.hls,playback::manual(videoMode)?playback::fixedHeight(videoMode):quality,videoMode==playback::FAST,media.selectedAudio.empty() ? audioSelection : media.selectedAudio,playback::manual(videoMode));
+      qualityAvailable=broadcast->qualityModes;qualityModesReady=true;
+      if (!opened) {r = AVERROR_INVALIDDATA;if(playback::manual(videoMode)){error="manual_quality_unavailable";state=FAILED;return;}}
       else {
         source.file = broadcast.get();
         reader = yt::worker([](void* data) {
@@ -146,7 +151,7 @@ inline void Player::decodeOriginal() {
           s.open(videoFile.get(), yt::RangeFile::pull, threads, media.muxed && audio, true, yt::RangeFile::seek);
       if (r >= 0) r = s.seekTime(startAt);
       videoFile->aheadEnabled=true;
-      while (r<0 && !stop && !media.muxed && videoFile->status!=403 && !media.lowerVideo.empty()) {
+      while (r<0 && !playback::manual(videoMode) && !stop && !media.muxed && videoFile->status!=403 && !media.lowerVideo.empty()) {
         auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
         LOG("qualidade: abertura direta %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
         s.reset(); videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
@@ -168,6 +173,7 @@ inline void Player::decodeOriginal() {
         LOG("console: %s tem 720p60, selecionado %dp %.2f fps", id.c_str(), media.video.height, media.video.fps);
     }
     LOG("console: %s %dp, itags %d/%d, início %.3f", live ? "HLS" : "MP4", actualHeight.load(), media.video.itag, media.audio.itag, startAt);
+    LOG("qualidade: selecao %s fixa=%d fonte=%dp itag=%d disponiveis=%x",playback::modeName(videoMode),playback::manual(videoMode),actualHeight.load(),media.video.itag,qualityAvailable.load());
     audioTracks=broadcast ? broadcast->audioTracks : media.audioTracks;
     selectedAudio=broadcast ? broadcast->selectedAudio : media.selectedAudio;
     if (broadcast) for (auto& track : audioTracks) {
@@ -283,6 +289,7 @@ inline void Player::decodeOriginal() {
   recovery.goodMs=0;recovery.holdUntil=std::max(recovery.holdUntil,SDL_GetTicks()+30000);
   if(!recovery.failed.empty())LOG("qualidade: historico preservado na sessao, %u degraus rejeitados",unsigned(recovery.failed.size()));
   playback::QualityPressure pressure(SDL_GetTicks());
+  uint64_t manualWarnAt=0;
   uint64_t previousTransfer=0,previousBytes=0,networkAt=0;
   double networkMbps=0;
   auto ladderIndex=[&](){size_t i=0;while(i<qualityLadder.size() && qualityLadder[i].itag!=media.video.itag)++i;return i;};
@@ -315,7 +322,7 @@ inline void Player::decodeOriginal() {
     return true;
   };
   auto lowerVideo = [&](const char* reason) {
-    if (!direct || broadcast || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
+    if (playback::manual(videoMode) || !direct || broadcast || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
     return switchVideo(ladderIndex()+1,reason,false);
   };
   bool videoEnd = false, audioEnd = !separate.audio;
@@ -408,8 +415,9 @@ inline void Player::decodeOriginal() {
             broadcast->selectedHeight.load(),fps,liveSwitches);
       }
       size_t index=ladderIndex();
-      bool canRaise=videoFile && !media.muxed && !broadcast && index>0 && index<qualityLadder.size();
-      bool raisePresentation=videoFile && !broadcast && sourceRate>30.1 && presentFps<=30 && playback::rate(videoMode)>30 && !canRaise;
+      bool fixed=playback::manual(videoMode);
+      bool canRaise=!fixed && videoFile && !media.muxed && !broadcast && index>0 && index<qualityLadder.size();
+      bool raisePresentation=!fixed && videoFile && !broadcast && sourceRate>30.1 && presentFps<=30 && playback::rate(videoMode)>30 && !canRaise;
       double scale=1,nextMbps=0;
       double measuredRate=std::min(sourceRate,double(presentFps.load()));
       int nextItag=media.video.itag,nextFps=int(std::lround(sourceRate));
@@ -439,7 +447,9 @@ inline void Player::decodeOriginal() {
       playback::QualityLoad load(decodeFraction,copyFraction,videoPresentationPressure,networkPressure,networkFresh,networkMbps,currentMbps);
       bool networkLimited=load.networkLimited,overloaded=load.overloaded;
       bool vod=videoFile && !broadcast && !media.muxed;
-      bool down=vod && pressure.sample(now,now-since,running,videoSeconds>=.25,starvation,overloaded);
+      bool measuredPressure=(vod || fixed) && pressure.sample(now,now-since,running,videoSeconds>=.25,starvation,overloaded);
+      bool down=!fixed && measuredPressure;
+      if(fixed && measuredPressure && now>=manualWarnAt){manualQualityWarning=true;manualWarnAt=now+30000;LOG("qualidade: manual %dp itag %d sob pressao sustentada; avisar sem trocar fonte",media.video.height,media.video.itag);}
       bool settled=!vod || pressure.settled(now,now-since);
       // Mede por quadro entregue, sem diluir custo por durações de pacotes/preroll.
       double measuredDecode=playback::qualityDecodeFraction(avg,measuredRate);
@@ -449,7 +459,7 @@ inline void Player::decodeOriginal() {
       if(canRaise || raisePresentation)LOG("qualidade: subida %s itag %d/%dfps, decode medido %.2f ms/quadro, escala pixels/fps %.3f, projetado %.1f%%, bloqueio %llu ms",
           now<retryAt?"aguardar degrau que falhou":measuredDecode*scale>=.70?"sem folga de CPU":raise?"permitida":"medindo",
           nextItag,nextFps,avg,scale,measuredDecode*scale*100,(unsigned long long)(now<retryAt?retryAt-now:0));
-      slow = running && starvation && (!vod || (settled && overloaded)) ? slow + 1 : 0;
+      slow = !fixed && running && starvation && (!vod || (settled && overloaded)) ? slow + 1 : 0;
       if(vod)LOG("qualidade: decisao %s, pressao %llu ms/%u janelas, decode %.1f%% copia %.1f%%, rede medida %.2f/necessaria %.2f Mbit/s, fila %d",
           !settled?"assentando":down?"descer":overloaded && starvation?"medindo pressao":"manter",
           (unsigned long long)pressure.pressureMs,pressure.windows,decodeFraction*100,copyFraction*100,networkMbps,currentMbps,minimum);

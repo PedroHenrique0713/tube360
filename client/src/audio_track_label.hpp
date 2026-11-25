@@ -1,6 +1,7 @@
 #pragma once
 #include "i18n.hpp"
 #include "yt/client.hpp"
+#include "playback_mode.hpp"
 
 inline std::string audioTrackLabel(const yt::AudioTrack& track, i18n::Lang lang) {
   using K=i18n::Key;
@@ -13,5 +14,6 @@ inline std::string audioTrackLabel(const yt::AudioTrack& track, i18n::Lang lang)
 }
 
 inline i18n::Key videoModeLabel(int mode) {
-  return mode==1 ? i18n::Key::Video720Fast : mode==2 ? i18n::Key::Video1080Detail : i18n::Key::Automatic;
+  using K=i18n::Key;
+  return mode==playback::FAST?K::Video720Fast:mode==playback::DETAIL?K::Video1080Detail:mode==playback::FIXED480?K::Video480:mode==playback::FIXED360?K::Video360:mode==playback::FIXED240?K::Video240:mode==playback::FIXED144?K::Video144:K::Automatic;
 }

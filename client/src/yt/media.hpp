@@ -3,6 +3,7 @@
 #include "client.hpp"
 #include "thread.hpp"
 #include "../net.hpp"
+#include "../playback_mode.hpp"
 extern "C" {
 #include <libavformat/avformat.h>
 }
@@ -217,6 +218,8 @@ struct LiveFile {
     std::atomic_long status{0};
     int height = 0, delay = 1000;
     double frameRate = 0;
+    unsigned qualityModes = 1;
+    bool pinned = false;
     struct Variant { string url, group; int height = 0; double fps = 0; };
     std::vector<Variant> lowerVariants;
     std::atomic_bool lowerRequested{false};
@@ -241,7 +244,8 @@ struct LiveFile {
         body = std::move(r.body);
         return true;
     }
-    bool open(const string& url, int ceiling, bool preferFast = false, const string& audioChoice = "original") {
+    bool open(const string& url, int ceiling, bool preferFast = false, const string& audioChoice = "original",bool fixed = false) {
+        pinned=fixed;
         string master, attrs, group;
         int bestRank = 0;
         std::map<string,string> groups;
@@ -265,10 +269,12 @@ struct LiveFile {
                 bool legacy = line.find("/itag/93/") != string::npos || line.find("/itag/94/") != string::npos || line.find("/itag/95/") != string::npos;
                 std::sscanf(attribute(attrs,"RESOLUTION").c_str(), "%dx%d", &w, &h);
                 int rank = preferFast && fps>30 ? 4 : fps > 0 && fps <= 30 ? 3 : fps == 0 && legacy ? 2 : 1;
+                if(w>0 && w<=1280 && h>0 && std::isfinite(fps) && fps>=0 && fps<=60.01 && codecs.find("avc1")!=string::npos && codecs.find("mp4a")!=string::npos)
+                    qualityModes|=playback::offeredMode(h,fps);
                 if (w>0 && w<=1280 && h>0 && h<=ceiling && std::isfinite(fps) && fps>=0 && fps<=60.01 &&
                     codecs.find("avc1")!=string::npos && codecs.find("mp4a")!=string::npos)
                     variants.push_back({hlsUrl(url,line),attribute(attrs,"AUDIO"),h,fps});
-                if (w > 0 && w <= 1280 && h > 0 && h <= ceiling && (ceiling < 720 || h == 720) &&
+                if (w > 0 && w <= 1280 && h > 0 && h <= ceiling && (fixed?h==ceiling:(ceiling < 720 || h == 720)) &&
                     std::isfinite(fps) && fps >= 0 && fps <= 60.01 &&
                     (rank > bestRank || (rank == bestRank && h > height)) &&
                     codecs.find("avc1") != string::npos && codecs.find("mp4a") != string::npos) {
@@ -289,7 +295,7 @@ struct LiveFile {
             audioPlaylist=chosen->format.url; selectedAudio=chosen->code;
         }
         if (playlist.empty() || (!group.empty() && audioPlaylist.empty())) return false;
-        for (const auto& v : variants) if (v.group==group && v.url!=playlist &&
+        for (const auto& v : variants) if (!pinned && v.group==group && v.url!=playlist &&
             (v.height<height || (v.height==height && v.fps>0 && v.fps<=30.1 && frameRate>30.1))) lowerVariants.push_back(v);
         std::sort(lowerVariants.begin(),lowerVariants.end(),[](const Variant& a,const Variant& b) {
             return a.height!=b.height ? a.height>b.height : a.fps<b.fps;
@@ -343,6 +349,7 @@ struct LiveFile {
         return !list.urls.empty();
     }
     bool requestLower() {
+        if(pinned)return false;
         if (lowerRemaining<=0 || closing || stop) return false;
         bool expected=false;
         if (!lowerRequested.compare_exchange_strong(expected,true)) return false;

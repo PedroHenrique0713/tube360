@@ -85,6 +85,8 @@ struct Player {
   std::vector<yt::AudioTrack> audioTracks;
   std::string selectedAudio;
   std::atomic<bool> tracksReady{false}, adapted{false};
+  std::atomic<unsigned> qualityAvailable{1};
+  std::atomic<bool> qualityModesReady{false},manualQualityWarning{false};
   std::atomic<int> presentFps{30};
   double sourceFpsHint = 0;
   std::atomic<int> state{IDLE};
@@ -241,7 +243,8 @@ struct Player {
     else if (vid != id) audioSelection="original";
     audioTracks.clear(); selectedAudio.clear(); tracksReady=false; adapted=false;
     presentFps=playback::rate(videoMode); sourceFpsHint=0;
-    direct = tryDirect && (!speaker || directSpeaker.configured());
+    direct = (tryDirect || playback::manual(videoMode)) && (!speaker || directSpeaker.configured());
+    qualityAvailable=1;qualityModesReady=false;manualQualityWarning=false;
     castMediaReady = false;
     endLiveReader = false; refreshed = renewing; renew = mediaReady = directReserveReady = false; actualHeight = actualFps = 0;
     if (renewing) validUntil = 0;
@@ -264,6 +267,7 @@ struct Player {
     nestFailed = false;
     speakerFallback = false;
     SDL_LockMutex(nmu); nestState = 0; nestPos = 0; nestStampMs = nestSeenMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
+    if(playback::manual(videoMode) && !direct){error="manual_quality_failed";state=FAILED;return;}
     if (direct) {
       output = speaker || !directSpeaker.sample().quiet ? CAST : LOCAL; original = true;
       decThread = yt::worker(decMain, "youtube", this);

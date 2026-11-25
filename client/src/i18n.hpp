@@ -137,6 +137,14 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(Q480, "480p", "480p", "480p") \
   X(Q360, "360p", "360p", "360p") \
   X(QualityPrefix, "Quality: ", "Qualidade: ", "Calidad: ") \
+  X(Video480, "480p", "480p", "480p") \
+  X(Video360, "360p", "360p", "360p") \
+  X(Video240, "240p", "240p", "240p") \
+  X(Video144, "144p", "144p", "144p") \
+  X(ManualQualityHelp, "Manual quality stays fixed. Automatic profiles adapt to playback.", "A qualidade manual fica fixa. Os perfis automáticos se adaptam à reprodução.", "La calidad manual queda fija. Los perfiles automáticos se adaptan a la reproducción.") \
+  X(ManualQualityPressure, "This quality is struggling. Choose a lower quality or Automatic.", "Esta qualidade está travando. Escolha uma menor ou Automático.", "Esta calidad se está trabando. Elige una menor o Automático.") \
+  X(ManualQualityMissing, "This quality is unavailable. Open Quality to choose another.", "Esta qualidade não está disponível. Abra Qualidade e escolha outra.", "Esta calidad no está disponible. Abre Calidad y elige otra.") \
+  X(ManualQualityFailed, "Could not keep this quality. Open Quality to choose another.", "Não foi possível manter esta qualidade. Abra Qualidade e escolha outra.", "No se pudo mantener esta calidad. Abre Calidad y elige otra.") \
   X(SoundPrefix, "Sound: ", "Som: ", "Sonido: ") \
   X(TV, "TV", "TV", "TV") \
   X(Nest, "Nest", "Nest", "Nest") \
@@ -350,6 +358,8 @@ inline Key quality(int q) { return q == 360 ? Key::Q360 : q == 480 ? Key::Q480 :
 
 // player.hpp mantém os diagnósticos internos; só a apresentação é traduzida.
 inline Key playerError(const std::string& error) {
+  if (error == "manual_quality_unavailable") return Key::ManualQualityMissing;
+  if (error == "manual_quality_failed") return Key::ManualQualityFailed;
   if (error == "console") return Key::ConsoleVideoError;
   if (error == "Sem conexão com o servidor do notebook") return Key::NoResponse;
   if (error == "O servidor não conseguiu abrir este vídeo") return Key::VideoOpenError;

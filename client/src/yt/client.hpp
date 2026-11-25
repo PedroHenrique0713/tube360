@@ -95,6 +95,7 @@ struct Video {
     int ttl = 0, duration = 0;
     int64_t expiresAt = 0;
     bool highFrameRate720 = false, live = false;
+    unsigned qualityModes = 1;
     Format video, audio, speakerAudio, fallbackVideo;
     std::vector<Format> lowerVideo, videoLadder;
     std::vector<AudioTrack> audioTracks;

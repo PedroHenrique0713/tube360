@@ -1,6 +1,7 @@
 #include "client.hpp"
 #include "membership_json.hpp"
 #include "locale.hpp"
+#include "../playback_mode.hpp"
 #include "update/rules.hpp"
 #include "picojson.h"
 #include <algorithm>
@@ -386,6 +387,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
     int audioRate=0, audioRank=-1;
     Format bestAdaptive, bestMuxed, fallback;
     std::vector<Format> adaptive;
+    unsigned adaptiveModes=1,muxedModes=1;
     auto better = [mode](const Format& candidate, const Format& best) {
         if (candidate.height != best.height) return candidate.height > best.height;
         if (mode != 1 && (candidate.fps <= 30.1) != (best.fps <= 30.1)) return candidate.fps <= 30.1;
@@ -436,7 +438,9 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
                         if (muxed && mime.find("mp4a")!=string::npos) ++count.muxedAac;
                     }
                 }
-                if (!direct || fmt.height>(height>=720 ? (mode==1 ? 720 : 1080) : height) ||
+                if(direct && (!muxed || mime.find("mp4a")!=string::npos))
+                    (muxed?muxedModes:adaptiveModes)|=playback::offeredMode(fmt.height,fmt.fps);
+                if (!direct || (playback::manual(mode)?fmt.height!=playback::fixedHeight(mode):fmt.height>(height>=720 ? (mode==1 ? 720 : 1080) : height)) ||
                     (muxed && (fmt.height>720 || mime.find("mp4a")==string::npos))) continue;
                 if (fmt.height<=720 && better(fmt,fallback)) fallback=fmt;
                 if (!muxed) adaptive.push_back(fmt);
@@ -456,6 +460,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
         });
     }
     if (chosen!=out.audioTracks.end()) out.audio=chosen->format;
+    out.qualityModes=muxedModes | (out.audio.url.empty()?1:adaptiveModes);
     for (const auto& track : out.audioTracks) if (track.format.url==out.audio.url) out.selectedAudio=track.code;
     out.muxed = !bestMuxed.url.empty() && (out.audio.url.empty() || !better(bestAdaptive,bestMuxed));
     out.video = out.muxed ? bestMuxed : bestAdaptive;
@@ -463,7 +468,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
         out.muxed=false;
         out.video=bestAdaptive.url.empty() ? bestMuxed : bestAdaptive;
     }
-    if (!out.muxed) {
+    if (!out.muxed && !playback::manual(mode)) {
         // Uma fonte distinta reduz os bytes de rede. Filtrar quadros do mesmo 298 não reduz sua vazão.
         for (const auto& fmt : adaptive) if (fmt.url!=out.video.url &&
             (fmt.height<out.video.height || (fmt.height==out.video.height && fmt.fps<=30.1 && out.video.fps>30.1))) out.lowerVideo.push_back(fmt);
@@ -483,8 +488,8 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
     out.speakerAudio = out.audio;
     if (out.muxed) out.audio={};
     if (out.hls.empty()) {
-        if (out.video.url.empty()) out.reason="no_direct_avc";
-        else if (!out.muxed && out.audio.url.empty()) out.reason="no_direct_aac";
+        if (out.video.url.empty()) out.reason=playback::manual(mode)?"manual_quality_unavailable":"no_direct_avc";
+        else if (!out.muxed && out.audio.url.empty()) out.reason=playback::manual(mode)?"manual_quality_unavailable":"no_direct_aac";
     }
     const auto now = std::time(nullptr);
     for (const auto* url : {&out.video.url, &out.audio.url, &out.fallbackVideo.url, &out.hls}) {
