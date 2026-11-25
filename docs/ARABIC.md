@@ -47,10 +47,10 @@ Arquivos `googlefonts/ttf/` da distribuição, renomeados para nomes simples:
 | 700 | `noto-sans-arabic-700.ttf` | 324028 |
 | Total | quatro fontes | 1209440 |
 
-No ZIP (DEFLATE nível 9), as quatro fontes acrescentam **509923 bytes de payload comprimido**
-(510441 bytes em um ZIP contendo somente elas). O arquivo estático FriBidi de PC mede 124884 bytes;
-a soma de código/dados dos objetos é cerca de 100 KiB, sem HarfBuzz. O tamanho PowerPC fica no relatório
-da compilação; não é uma comparação de tamanho total do app com uma base recompilada.
+No ZIP do pacote auditado, as quatro fontes somam **509136 bytes de payload comprimido**.
+Em um ZIP isolado de medição com DEFLATE nível 9, são 509923 bytes de payload (510441 bytes com cabeçalhos).
+A biblioteca estática FriBidi mede 124884 bytes no PC e 121288 bytes no PowerPC; a soma de código/dados
+dos objetos é cerca de 100 KiB, sem HarfBuzz. Não é uma comparação de tamanho total do app com uma base recompilada.
 
 As quatro Noto ficam **ao lado de default.xex e tube360.xex**, com as quatro Inter. O empacotador inclui
 as oito fontes e licenças em ZIP/7z e atualiza START-HERE. Uma atualização somente do executável não instala
@@ -96,6 +96,10 @@ seu backend ainda pode escolher metadados em inglês por não reconhecer `ar`.
 ## Provas e console
 
 [bench/arabic/README.md](../bench/arabic/README.md) descreve testes, replay fechado e capturas.
+A rodada da F36 passou 319 verificações de texto, 3745 do renderizador, 337 de layout/locale e 23 capturas.
+O Xbox compilou com GCC milestone 52 sob o lock; o pacote passou a auditoria de hashes/ZIP=7z, oito fontes
+e licenças. Essas são provas de compilação/PC, sem execução no console.
+
 As imagens de prova mostram o aplicativo de PC com títulos públicos gravados; arte e vídeo são sintéticos,
 sem conta, cookies, rede do YouTube ou acesso ao console. O relatório local da frente registra os resultados.
 
