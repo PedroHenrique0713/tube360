@@ -371,8 +371,13 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(LocalCorrupt, "Local file unreadable. Lists start empty.", "Arquivo local ilegível. Listas iniciadas vazias.", "Archivo local ilegible. Las listas empiezan vacías.") \
   X(ResumeLocal, "Continue where you left off?", "Continuar de onde parou?", "¿Continuar donde lo dejaste?") \
   X(StartBeginning, "Start from beginning", "Começar do início", "Empezar desde el principio") \
-  X(LocalLimit, "200 saved videos · 500 resume positions", "200 vídeos salvos · 500 posições", "200 vídeos guardados · 500 posiciones") \
-  X(ChannelShorts, "Shorts", "Shorts", "Shorts")
+  X(LocalLimit, "Up to 200 videos · up to 500 positions", "Até 200 vídeos · até 500 posições", "Hasta 200 videos · hasta 500 posiciones") \
+  X(ChannelShorts, "Shorts", "Shorts", "Shorts") \
+  X(LocalEmpty, "Empty", "Vazio", "Vacío") \
+  X(LocalVideo, "video", "vídeo", "video") \
+  X(LocalVideos, "videos", "vídeos", "videos") \
+  X(LocalPosition, "position", "posição", "posición") \
+  X(LocalPositions, "positions", "posições", "posiciones")
 
 enum class Key {
 #define TEXT_KEY(k, en, pt, es) k,
@@ -393,6 +398,12 @@ inline bool rtl(Lang lang) { return lang == Lang::AR; }
 inline const char* get(Lang lang, Key key) {
   if (lang == Lang::AR) { const char* ar = arabic(key); if (ar) return ar; }
   return texts[(size_t)key][lang == Lang::PT ? 1 : lang == Lang::ES ? 2 : 0]; }
+inline std::string localCount(Lang lang, size_t count, bool history) {
+  if (!count) return get(lang,Key::LocalEmpty);
+  Key unit=history ? (count==1 ? Key::LocalPosition : Key::LocalPositions) : (count==1 ? Key::LocalVideo : Key::LocalVideos);
+  if (lang==Lang::AR) return std::string(get(lang,history ? Key::LocalPositions : Key::LocalVideos))+": "+std::to_string(count);
+  return std::to_string(count)+" "+get(lang,unit);
+}
 inline Key quality(int q) { return q == 360 ? Key::Q360 : q == 480 ? Key::Q480 : Key::Q720; }
 
 // player.hpp mantém os diagnósticos internos; só a apresentação é traduzida.

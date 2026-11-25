@@ -37,6 +37,13 @@ int main() {
   check(i18n::cycle(i18n::Lang::ES,1)==i18n::Lang::AR && i18n::cycle(i18n::Lang::EN,-1)==i18n::Lang::AR,"four-language cycle both ways");
   check(i18n::shortDate("2026-11-24",i18n::Lang::AR)=="24 نوفمبر 2026","Arabic date");
   check(std::string(yt::localeLanguage("ar"))=="ar" && std::string(yt::localeRegion("ar"))=="SA","native YouTube locale");
+  check(i18n::localCount(i18n::Lang::PT,0,true)=="Vazio" && i18n::localCount(i18n::Lang::PT,0,false)=="Vazio","empty local collections have an explicit state");
+  check(i18n::localCount(i18n::Lang::PT,1,false)=="1 vídeo" && i18n::localCount(i18n::Lang::PT,3,false)=="3 vídeos","Portuguese video count units");
+  check(i18n::localCount(i18n::Lang::PT,1,true)=="1 posição" && i18n::localCount(i18n::Lang::PT,12,true)=="12 posições","Portuguese resume count units");
+  check(i18n::localCount(i18n::Lang::EN,1,false)=="1 video" && i18n::localCount(i18n::Lang::EN,12,true)=="12 positions" && i18n::localCount(i18n::Lang::EN,0,false)=="Empty","English local count labels");
+  check(i18n::localCount(i18n::Lang::ES,1,true)=="1 posición" && i18n::localCount(i18n::Lang::ES,3,false)=="3 videos" && i18n::localCount(i18n::Lang::ES,0,true)=="Vacío","Spanish local count labels");
+  check(i18n::localCount(i18n::Lang::AR,12,true)=="مواضع: 12" && i18n::localCount(i18n::Lang::AR,3,false)=="فيديوهات: 3" && i18n::localCount(i18n::Lang::AR,0,true)=="فارغ","Arabic local counts retain a unit and western digits");
+  check(std::string(i18n::get(i18n::Lang::PT,i18n::Key::LocalLimit))=="Até 200 vídeos · até 500 posições","limits explicitly say up to");
   for (size_t i=0;i<size_t(i18n::Key::Count);++i) {
     auto key=i18n::Key(i); auto ar=i18n::arabic(key);
     check(ar && (i==0 || *ar),"every current key explicitly translated, no English fallback masking omissions");

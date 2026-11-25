@@ -2311,7 +2311,7 @@ int run(int argc, char** argv) {
         else if (i==11) value=tr(ui::large ? K::Enabled : K::SleepOff);
         else if (i==13) value=tr(K::Open);
         else if (i==14) value=updateUI.settingsValue(settings.lang);
-        else if(i>=16)value=std::to_string(i==16?localUI.library.history.size():localUI.library.later.size());
+        else if(i>=16)value=i18n::localCount(settings.lang,i==16?localUI.library.history.size():localUI.library.later.size(),i==16);
         else if (i==15) value=tr(sponsorblock::modeLabel(settings.sponsorBlock));
         else value=tr(settings.videoFill ? K::VideoFitFill : K::VideoFitLetterbox);
         float right=x+w-66, maxValue=ui::large ? w-112 : w*.48f;

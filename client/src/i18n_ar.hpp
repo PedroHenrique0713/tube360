@@ -351,8 +351,13 @@ inline const char* arabic(Key key) {
     case Key::LocalCorrupt: return "تعذّرت قراءة الملف المحلي. تبدأ القوائم فارغة.";
     case Key::ResumeLocal: return "هل تريد المتابعة من حيث توقفت؟";
     case Key::StartBeginning: return "البدء من البداية";
-    case Key::LocalLimit: return "200 فيديو محفوظ · 500 موضع استئناف";
+    case Key::LocalLimit: return "حتى 200 فيديو · حتى 500 موضع";
     case Key::ChannelShorts: return "Shorts";
+    case Key::LocalEmpty: return "فارغ";
+    case Key::LocalVideo: return "فيديو";
+    case Key::LocalVideos: return "فيديوهات";
+    case Key::LocalPosition: return "موضع";
+    case Key::LocalPositions: return "مواضع";
     default: return nullptr;  // Strings novas usam inglês até receberem tradução.
   }
 }
