@@ -60,9 +60,9 @@ struct UI {
         gfx::text(g,ui::F_H2,title,left+40,196,ui::TEXT);
         if(status.app.build)gfx::text(g,ui::F_SMALL,size,left+40,250,ui::A2);
         float y=298;
-        for(const auto& text:notes){gfx::text(g,ui::F_BODY,text,left+40,y,ui::MUTED);y+=line;}
+        for(const auto& text:notes){gfx::textBox(g,ui::F_BODY,text,left+40,y,content,ui::MUTED);y+=line;}
         y=410;
-        for(const auto& text:messages){gfx::text(g,ui::F_SMALL,text,left+40,y,ui::A2);y+=std::max(24.f,g.fonts[ui::F_SMALL].lineH);}
+        for(const auto& text:messages){gfx::textBox(g,ui::F_SMALL,text,left+40,y,content,ui::A2);y+=std::max(24.f,g.fonts[ui::F_SMALL].lineH);}
         if(status.state==State::DOWNLOADING){gfx::rect(g,left+40,526,content,4,ui::SURFACE2,2);gfx::rect(g,left+40,526,content*status.progress/100.f,4,ui::A1,2);}
         float x=left+40;
         if(status.state==State::AVAILABLE || status.state==State::ERROR)x=hint(g,x,564,"A",XA,tr(K::UpdateDownload));

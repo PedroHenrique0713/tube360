@@ -29,6 +29,9 @@ assert ('TEST-ONLY.txt' in files) == a.test
 assert (b'TUBE360-DISPOSABLE-UPDATE-TEST' in files['tube360.xex']) == a.test
 for weight in (300, 400, 600, 700):
     assert f'inter-{weight}.ttf' in files
+    assert f'noto-sans-arabic-{weight}.ttf' in files
+assert "licenses/OFL-NotoSansArabic.txt" in files
+assert "licenses/FriBidi-LGPL-2.1.txt" in files
 seven = a.zip.with_suffix('.7z')
 with tempfile.TemporaryDirectory(prefix='tube360-archive-proof-') as temporary:
     subprocess.run([shutil.which('7z') or shutil.which('7zz'), 'x', '-y', '-o' + temporary, str(seven.resolve())],

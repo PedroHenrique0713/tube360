@@ -62,7 +62,7 @@ int main(int argc,char** argv) {
   auto fill=display::videoRect(640,480,1280,720,true);
   check(near(fill.w,640) && near(fill.h,480) && near(fill.u0,.125f) && near(fill.u1,.875f),"fill crops 12.5 percent from each side without stretching");
   auto portrait=display::videoRect(1280,720,1080,1920,false); check(near(portrait.h,720) && near(portrait.w,405),"portrait preserves aspect too");
-  check(i18n::language("es")==i18n::Lang::ES && i18n::cycle(i18n::Lang::PT,1)==i18n::Lang::ES && i18n::cycle(i18n::Lang::EN,-1)==i18n::Lang::ES,"three-way language selection in either direction");
+  check(i18n::language("es")==i18n::Lang::ES && i18n::cycle(i18n::Lang::PT,1)==i18n::Lang::ES && i18n::cycle(i18n::Lang::EN,-1)==i18n::Lang::AR,"four-way language selection in either direction");
   for (size_t i=1;i<size_t(i18n::Key::Count);++i) check(i18n::get(i18n::Lang::ES,i18n::Key(i))[0]!=0,"every Spanish key has text");
   check(i18n::shortDate("2026-01-24",i18n::Lang::ES)=="24 ene 2026","Spanish dates");
   std::string dir=(std::filesystem::temp_directory_path()/"tube360-display-XXXXXX").string();
@@ -75,6 +75,7 @@ int main(int argc,char** argv) {
   Http h(argv[1]); yt::Client client(h); client.setLanguage("es");
   check(!client.home().cards.empty(),"Spanish public Home uses product client");
   client.setLanguage("pt"); h.language="pt"; h.region="BR"; check(!client.search("fútbol").cards.empty(),"locale changes on reused public context");
+  client.setLanguage("ar"); h.language="ar"; h.region="SA"; check(!client.search("العربية 2026 Xbox").cards.empty(),"Arabic locale serialized on reused public client");
   client.setLanguage("es"); h.language="es"; h.region="MX"; client.player("4p_9OPKgcDE"); check(h.posts>=3,"player locale serialized as well as browse/search");
   yt::catalog::Client catalog(h); check(!catalog.browse({{"kind","music"},{"lang","es"}}).items.empty(),"Spanish Music context");
   check(!catalog.browse({{"kind","search"},{"q","fútbol"},{"lang","es"}}).items.empty(),"Spanish public catalog context");

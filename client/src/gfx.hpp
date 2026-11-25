@@ -18,6 +18,7 @@
 #include "video_policy.h"
 #include "board_sim.h"
 #include "display_layout.hpp"
+#include "text_layout.hpp"
 
 #ifdef __XSDK__
 #include "xsdk/log.h"
@@ -56,7 +57,7 @@ struct Cmd { Pipe pipe; VkDescriptorSet set; float params[4]; uint32_t first, co
 struct Color { float r, g, b, a; };
 inline Color rgb(unsigned hex, float a = 1) { return {((hex >> 16) & 255) / 255.f, ((hex >> 8) & 255) / 255.f, (hex & 255) / 255.f, a}; }
 
-struct Glyph { float x0, y0, x1, y1, u0, v0, u1, v1, adv; };
+struct Glyph { float x0, y0, x1, y1, u0, v0, u1, v1, adv; bool arabic = false; };
 struct Font { float size = 0, ascent = 0, lineH = 0; std::map<uint32_t, Glyph> glyphs; };
 
 // Quadro do vídeo: três texturas de um canal e o descritor que liga as três.
@@ -83,7 +84,10 @@ struct Gfx {
   unsigned simFrameDelay = 0;
   int fi = 0; uint32_t img = 0; bool readback = false;
   std::vector<Vtx> verts; std::vector<Cmd> cmds;
-  Tex white, atlas; std::vector<Font> fonts;
+  Tex white, atlas, arabicAtlas; std::vector<Font> fonts;
+  std::string fontDir; std::vector<std::string> fontFiles;
+  bool arabicAttempted = false, rtlText = false;
+  textlayout::Cache textCache; textlayout::FitCache fitCache;
   uint64_t fontRevision = 0;
   Video* video = nullptr;
   float videoFilter[2] = {};
@@ -268,6 +272,7 @@ inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec
   if(tube360_board_sim_step(TUBE360_SIM_FONTS))return false;
   boot_event("begin","fonts.pack","build replacement without retiring the current atlas");
   std::vector<Font> fonts;
+  std::vector<std::string> fontFiles;
   const int AW = 2048, AH = g.scale > 1 ? 4096 : 2048;
   std::vector<unsigned char> pix((size_t)AW * AH, 0);
   stbtt_pack_context pc;
@@ -275,6 +280,7 @@ inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec
   std::map<std::string, std::vector<unsigned char>> files;
   const int ranges[][2] = {{32, 126}, {160, 255}, {0x2010, 0x2026}, {0x2190, 0x2193}, {0x25B6, 0x25C0}};
   for (auto& s : specs) {
+    fontFiles.push_back(s.file);
     auto& data = files[s.file];
     if (data.empty()) {
       boot_event("begin","fonts.read","file=%s",s.file);
@@ -314,49 +320,112 @@ inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec
     VK(vkFreeDescriptorSets(g.dev,g.pool,1,&g.atlas.set));
     vkDestroyImageView(g.dev,g.atlas.view,nullptr);vkDestroyImage(g.dev,g.atlas.img,nullptr);vkFreeMemory(g.dev,g.atlas.mem,nullptr);
   }
+  if(g.arabicAtlas.img) {
+    VK(vkFreeDescriptorSets(g.dev,g.pool,1,&g.arabicAtlas.set));
+    vkDestroyImageView(g.dev,g.arabicAtlas.view,nullptr);vkDestroyImage(g.dev,g.arabicAtlas.img,nullptr);vkFreeMemory(g.dev,g.arabicAtlas.mem,nullptr);
+    g.arabicAtlas={};
+  }
+  g.fitCache={};g.fontDir=dir;g.fontFiles=std::move(fontFiles);g.arabicAttempted=false;
   g.atlas=next;g.fonts=std::move(fonts);++g.fontRevision;
   boot_event("end","fonts.retire","revision=%llu",(unsigned long long)g.fontRevision);
   return true;
 }
 
-inline uint32_t utf8(const std::string& s, size_t& i) {
-  unsigned char c = (unsigned char)s[i++];
-  if (c < 0x80) return c;
-  int extra = c >= 0xF0 ? 3 : c >= 0xE0 ? 2 : c >= 0xC0 ? 1 : 0;
-  uint32_t cp = c & (0x3F >> extra);
-  for (int k = 0; k < extra && i < s.size(); k++) cp = (cp << 6) | ((unsigned char)s[i++] & 0x3F);
-  return cp;
+// O atlas extra só existe se uma string árabe for medida/desenhada, em qualquer idioma.
+inline bool loadArabic(Gfx& g) {
+  if (g.arabicAttempted) return g.arabicAtlas.img != VK_NULL_HANDLE;
+  g.arabicAttempted = true;
+  const int AW = g.scale > 1 ? 4096 : 2048, AH = 4096;
+  std::vector<unsigned char> pix((size_t)AW * AH, 0);
+  stbtt_pack_context pc;
+  if (!stbtt_PackBegin(&pc, pix.data(), AW, AH, 0, 1, nullptr)) return false;
+  std::map<std::string, std::vector<unsigned char>> files;
+  std::vector<std::map<uint32_t,Glyph>> additions(g.fonts.size());
+  size_t glyphCount=0, fileBytes=0;
+  for (size_t fi=0;fi<g.fonts.size();++fi) {
+    std::string file=g.fontFiles[fi]; file.replace(0,6,"noto-sans-arabic-");
+    auto& data=files[file];
+    if (data.empty()) {
+      FILE* f=std::fopen((g.fontDir+file).c_str(),"rb");
+      if (!f) { stbtt_PackEnd(&pc); LOG("Arabic font missing: %s. Copy all inter-*.ttf and noto-sans-arabic-*.ttf beside default.xex and tube360.xex.",file.c_str()); return false; }
+      std::fseek(f,0,SEEK_END); long n=std::ftell(f); std::fseek(f,0,SEEK_SET);
+      if (n<=0 || n>4*1024*1024) { std::fclose(f); stbtt_PackEnd(&pc); return false; }
+      data.resize((size_t)n); size_t got=std::fread(data.data(),1,data.size(),f); std::fclose(f);
+      if (got!=data.size()) { stbtt_PackEnd(&pc); return false; } fileBytes+=data.size();
+    }
+    stbtt_fontinfo info;
+    if (!stbtt_InitFont(&info,data.data(),0)) { stbtt_PackEnd(&pc); return false; }
+    std::vector<int> cps;
+    // Formas contextuais, lam-alef e ligaduras de palavras recebidas prontas (Allah etc.).
+    const int ranges[][2]={{0x600,0x6FF},{0x750,0x77F},{0x8A0,0x8FF},{0xFB50,0xFBFF},{0xFDF0,0xFDFF},{0xFE70,0xFEFC}};
+    for (const auto& r:ranges) for (int cp=r[0];cp<=r[1];++cp)
+      if (stbtt_FindGlyphIndex(&info,cp)) cps.push_back(cp);
+    std::vector<stbtt_packedchar> pcs(cps.size());
+    // Noto tem ascendente/descendente maiores: 1,60 aproxima a altura visual da Inter.
+    stbtt_pack_range range{}; range.font_size=g.fonts[fi].size*g.scale*1.60f;
+    range.array_of_unicode_codepoints=cps.data(); range.num_chars=(int)cps.size(); range.chardata_for_range=pcs.data();
+    if (!stbtt_PackFontRanges(&pc,data.data(),0,&range,1)) { stbtt_PackEnd(&pc); LOG("Arabic font atlas full"); return false; }
+    for (size_t i=0;i<cps.size();++i) {
+      auto& q=pcs[i];
+      additions[fi][(uint32_t)cps[i]]={q.xoff/g.scale,q.yoff/g.scale,q.xoff2/g.scale,q.yoff2/g.scale,
+        q.x0/(float)AW,q.y0/(float)AH,q.x1/(float)AW,q.y1/(float)AH,q.xadvance/g.scale,true};
+    }
+    glyphCount+=cps.size();
+  }
+  stbtt_PackEnd(&pc);
+  g.arabicAtlas=makeImage(g,AW,AH,VK_FORMAT_R8_UNORM,true);
+  upload(g,g.arabicAtlas,pix.data(),pix.size());
+  for (size_t i=0;i<g.fonts.size();++i) g.fonts[i].glyphs.merge(additions[i]);
+  LOG("Arabic fonts: %u glyphs, atlas %dx%d = %u bytes GPU; temporary pixels %u + TTF %u bytes",(unsigned)glyphCount,AW,AH,(unsigned)pix.size(),(unsigned)pix.size(),(unsigned)fileBytes);
+  return true;
+}
+inline uint32_t utf8(const std::string& s, size_t& i) { return textlayout::decode(s,i); }
+inline const textlayout::Line& visualLine(Gfx& g,const std::string& s) {
+  const auto& line=g.textCache.get(s);
+  if (line.hasArabic) loadArabic(g);
+  return line;
 }
 
 inline const Glyph* glyph(const Font& f, uint32_t cp) {
   auto it = f.glyphs.find(cp);
   if (it != f.glyphs.end()) return &it->second;
-  return nullptr;
+  auto replacement=f.glyphs.find('?');
+  return replacement==f.glyphs.end() ? nullptr : &replacement->second;
 }
 
 inline float textWidth(Gfx& g, int font, const std::string& s, float track = 0) {
   const Font& f = g.fonts[(size_t)font]; float w = 0; int n = 0;
-  for (size_t i = 0; i < s.size();) { const Glyph* gl = glyph(f, utf8(s, i)); if (gl) { w += gl->adv; n++; } }
-  return w + track * std::max(0, n - 1);
+  const auto& line=visualLine(g,s);
+  for (auto cp:line.glyphs) { const Glyph* gl=glyph(f,cp); if (gl && !textlayout::mark(cp)) { w+=gl->adv; n++; } }
+  return w + (line.hasArabic ? 0 : track) * std::max(0,n-1);
 }
 
 // Corta com reticências para caber em maxW.
 inline std::string ellipsize(Gfx& g, int font, const std::string& s, float maxW) {
+  if (const auto* fit=g.fitCache.find(font,s,maxW,-1)) return fit->shortened;
   if (textWidth(g, font, s) <= maxW) return s;
-  const Font& f = g.fonts[(size_t)font]; const Glyph* dot = glyph(f, 0x2026);
-  float ell = dot ? dot->adv : 0, w = 0; size_t cut = 0;
-  for (size_t i = 0; i < s.size();) {
-    size_t at = i; const Glyph* gl = glyph(f, utf8(s, i)); float a = gl ? gl->adv : 0;
-    if (w + a + ell > maxW) { cut = at; break; }
-    w += a; cut = i;
-  }
-  std::string o = s.substr(0, cut);
-  while (!o.empty() && o.back() == ' ') o.pop_back();
-  return o + (dot ? "\xE2\x80\xA6" : "...");
+  if (maxW<=0) return "";
+  if (textWidth(g,font,"…")>maxW) return "";
+  // Busca na ordem lógica e mede novamente as formas da borda; não corta UTF-8/harakat.
+  std::vector<size_t> ends;
+  for (size_t i=0;i<s.size();) { size_t at=i; auto cp=utf8(s,i); if (!textlayout::mark(cp)) ends.push_back(at); }
+  ends.push_back(s.size());
+  size_t lo=0,hi=ends.size()-1;
+  while (lo<hi) { size_t m=(lo+hi+1)/2; if (textWidth(g,font,s.substr(0,ends[m])+"…")<=maxW) lo=m; else hi=m-1; }
+  std::string out=s.substr(0,ends[lo]); while (!out.empty() && out.back()==' ') out.pop_back();
+  textlayout::Fit fit; fit.font=font; fit.width=maxW; fit.maxLines=-1; fit.shortened=out+"…";
+  return g.fitCache.save(s,std::move(fit)).shortened;
 }
 
 // Quebra em até maxLines linhas; a última leva reticências se sobrar texto.
-inline std::vector<std::string> wrap(Gfx& g, int font, const std::string& s, float maxW, int maxLines) {
+inline const std::vector<std::string>& wrap(Gfx& g, int font, const std::string& s, float maxW, int maxLines) {
+  if (const auto* fit=g.fitCache.find(font,s,maxW,maxLines)) return fit->lines;
+  auto save=[&](std::vector<std::string> lines) -> const std::vector<std::string>& {
+    textlayout::Fit fit; fit.font=font; fit.width=maxW; fit.maxLines=maxLines; fit.lines=std::move(lines);
+    return g.fitCache.save(s,std::move(fit)).lines;
+  };
+  if (maxLines<=0 || maxW<=0) return save({});
+  if (maxLines==1) return save({ellipsize(g,font,s,maxW)});
   std::vector<std::string> words, lines; std::string cur;
   for (char c : s) { if (c == ' ') { if (!cur.empty()) words.push_back(cur); cur.clear(); } else cur += c; }
   if (!cur.empty()) words.push_back(cur);
@@ -364,14 +433,14 @@ inline std::vector<std::string> wrap(Gfx& g, int font, const std::string& s, flo
   for (size_t i = 0; i < words.size(); i++) {
     std::string tryLine = line.empty() ? words[i] : line + " " + words[i];
     if (textWidth(g, font, tryLine) <= maxW || line.empty()) { line = tryLine; continue; }
-    lines.push_back(line); line = words[i];
+    lines.push_back(ellipsize(g,font,line,maxW)); line = words[i];
     if ((int)lines.size() == maxLines - 1) {
       std::string rest = line; for (size_t k = i + 1; k < words.size(); k++) rest += " " + words[k];
-      lines.push_back(ellipsize(g, font, rest, maxW)); return lines;
+      lines.push_back(ellipsize(g, font, rest, maxW)); return save(std::move(lines));
     }
   }
   if (!line.empty()) lines.push_back(ellipsize(g, font, line, maxW));
-  return lines;
+  return save(std::move(lines));
 }
 
 // ---------------------------------------------------------------- lista de desenho
@@ -429,27 +498,46 @@ inline void triangle(Gfx& g, float x0, float y0, float x1, float y1, float x2, f
 // Texto com o topo da linha em y. Devolve a largura.
 inline float text(Gfx& g, int font, const std::string& s, float x, float y, Color c, int align = 0, float track = 0) {
   const Font& f = g.fonts[(size_t)font];
+  const auto& line=visualLine(g,s);
+  if (line.hasArabic) track=0;
   float w = align ? textWidth(g, font, s, track) : 0;
   float pen = align == 1 ? x - w * 0.5f : align == 2 ? x - w : x;
   float base = std::round(y + f.ascent), start = pen;
   pen = std::round(pen);
   float p[4] = {1, 0, 0, 0};
-  for (size_t i = 0; i < s.size();) {
-    const Glyph* gl = glyph(f, utf8(s, i));
-    if (!gl) continue;
-    if (gl->x1 > gl->x0) quad(g, TEXT, g.atlas.set, p, std::round((pen + gl->x0)*g.scaleX)/g.scaleX, std::round((base + gl->y0)*g.scale)/g.scale, gl->x1 - gl->x0, gl->y1 - gl->y0, c, gl->u0, gl->v0, gl->u1, gl->v1);
-    pen += gl->adv + track;
+  float anchor=pen; bool shadda=false;
+  for (size_t i=0;i<line.glyphs.size();++i) {
+    auto cp=line.glyphs[i];
+    const Glyph* gl=glyph(f,cp); if (!gl) continue;
+    bool mark=textlayout::mark(cp);
+    if (!mark) {
+      shadda=false;
+      for (size_t j=i+1;j<line.glyphs.size() && textlayout::mark(line.glyphs[j]);++j) shadda|=line.glyphs[j]==0x651;
+    }
+    float gx=mark ? anchor-(gl->x0+gl->x1)*.5f : pen;
+    float gy=base-(mark && shadda && cp!=0x651 && cp!=0x650 && cp!=0x64D ? f.size*.18f : 0);
+    if (gl->x1>gl->x0) quad(g,TEXT,gl->arabic ? g.arabicAtlas.set : g.atlas.set,p,
+      std::round((gx+gl->x0)*g.scaleX)/g.scaleX,std::round((gy+gl->y0)*g.scale)/g.scale,
+      gl->x1-gl->x0,gl->y1-gl->y0,c,gl->u0,gl->v0,gl->u1,gl->v1);
+    if (!mark) { anchor=pen+gl->adv*.5f; pen+=gl->adv+track; }
   }
   return pen - start - (pen > start ? track : 0);
 }
 
+// Caixa de texto: a direção do conteúdo vale também quando a interface está em pt/en/es.
+inline float textBox(Gfx& g,int font,const std::string& s,float x,float y,float w,Color c) {
+  bool rtl=g.rtlText || visualLine(g,s).rtl;
+  return text(g,font,s,rtl ? x+w : x,y,c,rtl ? 2 : 0);
+}
+
 // Texto com degradê horizontal (cor de cada glifo pela posição).
 inline float textGrad(Gfx& g, int font, const std::string& s, float x, float y, Color a, Color b) {
+  if (visualLine(g,s).hasArabic) return text(g,font,s,x,y,a);
   const Font& f = g.fonts[(size_t)font];
   float total = std::max(1.f, textWidth(g, font, s)), base = std::round(y + f.ascent), pen = std::round(x);
   float p[4] = {1, 0, 0, 0};
-  for (size_t i = 0; i < s.size();) {
-    const Glyph* gl = glyph(f, utf8(s, i));
+  for (auto cp:visualLine(g,s).glyphs) {
+    const Glyph* gl = glyph(f,cp);
     if (!gl) continue;
     float t0 = (pen + gl->x0 - x) / total, t1 = (pen + gl->x1 - x) / total;
     auto mixc = [&](float t) { t = std::clamp(t, 0.f, 1.f); return Color{a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t}; };

@@ -46,7 +46,7 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 | 📡 **Rede fraca** | Retoma conexões interrompidas e troca para uma qualidade mais leve quando necessário. |
 | ⚡ **YouTube direto no Xbox** | HTTPS com o YouTube, vídeo H.264 original e áudio AAC decodificados localmente com FFmpeg. Sem conversão no PC no uso normal. |
 | 🛠️ **App nativo** | C++20, Vulkan pelo [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), SDL3 e navegação pelo controle. Title ID próprio no Aurora: `0x58545542`. |
-| ⚙️ **Configurações na TV** | Português/inglês/espanhol, 2 colunas em 4:3, 3/4 em HD, qualidade, tamanho da saída, som, sincronia e legendas. Dicas de botões no estilo Xbox One / Series. |
+| ⚙️ **Configurações na TV** | Português/inglês/espanhol/árabe, 2 colunas em 4:3, 3/4 em HD, qualidade, tamanho da saída, som, sincronia e legendas. Dicas de botões no estilo Xbox One / Series. |
 
 ## Telas
 
@@ -113,7 +113,7 @@ MPEG-1 + MP2 fica como compatibilidade fornecida pelo servidor opcional, até 72
 
 ### 1. Copie a pasta do app
 
-Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex` (lançador), `tube360.xex` (app), as quatro fontes `inter-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
+Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex` (lançador), `tube360.xex` (app), as quatro fontes `inter-*.ttf` e as quatro `noto-sans-arabic-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
 
 ### 2. Abra pelo Aurora, FSD ou XeXMenu
 
@@ -156,7 +156,9 @@ Abra **Celular** no Tube360. No app oficial do YouTube, use **Configurações �
 
 **Configurações → Atualizações do app** mostra versão instalada, candidata e tamanho. **A Atualizar** baixa e confere Ed25519/SHA-256; **B** volta ou cancela. A Home também avisa quando há uma versão nova (**LB** abre os detalhes). Reabra **default.xex** para instalar; se o início não for confirmado, a próxima abertura restaura o anterior.
 
-**Vindo da v0.3.0/v0.3.1:** feche o app, guarde a pasta antiga como reserva e copie a pasta nova completa uma última vez. Mantenha os dois XEX e as quatro fontes juntos; preserve configurações/conta se desejar, mas não traga journals/candidatos de atualização antigos. Depois disso, as atualizações do app chegam pela própria interface. Reserve espaço para o app instalado, o candidato e a reserva. [Detalhes e recuperação](docs/UPDATES.md).
+**Vindo da v0.3.0/v0.3.1:** feche o app, guarde a pasta antiga como reserva e copie a pasta nova completa uma última vez. Mantenha os dois XEX e as oito fontes juntos; preserve configurações/conta se desejar, mas não traga journals/candidatos de atualização antigos. Depois disso, as atualizações do app chegam pela própria interface. Reserve espaço para o app instalado, o candidato e a reserva. [Detalhes e recuperação](docs/UPDATES.md).
+
+O árabe está em **Configurações → Idioma** (`lang=ar`). Títulos árabes funcionam em qualquer idioma da interface. Blocos de texto seguem da direita para a esquerda; menus e direções do controle mantêm suas posições. RB alterna o teclado de busca árabe para latim. Copie a pasta completa uma vez na atualização para incluir as fontes Noto; atualizações só do executável não adicionam fontes ausentes. Fontes, licenças, memória e limites atuais: [texto árabe](docs/ARABIC.md).
 
 ## Controles
 
@@ -267,7 +269,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 - A integração com o YouTube é não oficial e pode mudar ou ser bloqueada. Restrições de idade/região, DRM e conteúdo pago não são contornadas; login não garante acesso à mídia. Atualize o feed ou tente mais tarde; a reserva opcional pode ajudar.
 - 720p60/1080p30 são perfis de fonte. O Xbox pode reduzir cadência ou resolução sob carga. Confira o estado real no player; 1080p nativo exige o modo HDMI do painel descrito acima. Sem promessa de 1080p60, HDR, VP9 ou AV1.
 - Música tenta o catálogo musical da TV com o login existente antes da reserva pública, identificada na tela. A aceitação real da conta ainda precisa ser conferida no console. [Funcionamento](docs/MUSIC-ACCOUNT.md). Letras são opcionais. Legendas ao vivo e Nest em live direta ainda não estão implementados; lives usam som na TV.
-- Texto vazio ou saída ao abrir: copie as quatro fontes junto de `default.xex`. Falha de HTTPS: confira relógio do console e internet/DNS.
+- Texto vazio ou saída ao abrir: copie as oito fontes junto de `default.xex`. Falha de HTTPS: confira relógio do console e internet/DNS.
 - Caixa indisponível ou sem som: confira IP, internet e Wi-Fi dela; desative isolamento de convidados/clientes entre Xbox e caixa, depois tente X. Não é pareamento Bluetooth. Falta de confirmação de silêncio pode atrasar o som na TV.
 - Caixa continua tocando após sair: reconecte o Wi-Fi e reabra o Tube360 para concluir o STOP pendente salvo, ou interrompa o Cast pelo Google Home. Saia da reprodução com B antes de fechar; o encerramento espera até cinco segundos, mas não consegue parar uma caixa inacessível.
 - Celular não encontra o Tube360: use o código de TV do painel Celular, permita descoberta local e confira acesso ao YouTube nos dois aparelhos. Código da conta e código Cast são separados.

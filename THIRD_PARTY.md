@@ -6,6 +6,8 @@ Tube360 is MIT licensed (see `LICENSE`). It ships or depends on:
 |---|---|---|
 | [pl_mpeg](https://github.com/phoboslab/pl_mpeg) by Dominic Szablewski | `client/third_party/pl_mpeg.h` (with Tube360 patches: slice-parallel decoding, B-frame skipping) | MIT |
 | [stb_image, stb_truetype](https://github.com/nothings/stb) by Sean Barrett | `client/third_party/` | MIT / Public Domain |
+| [GNU FriBidi 1.0.16](https://github.com/fribidi/fribidi/releases/tag/v1.0.16) | `client/third_party/fribidi/`, static bidi/Arabic shaping core, Unicode 16 | LGPL-2.1-or-later (`COPYING`); corresponding source is vendored |
+| [Noto Sans Arabic 2.012](https://github.com/notofonts/arabic/releases/tag/NotoSansArabic-v2.012) | `client/assets/noto-sans-arabic-*.ttf`, unmodified Light/Regular/SemiBold/Bold | SIL OFL 1.1 (`client/assets/OFL-NotoSansArabic.txt`) |
 | [Inter](https://rsms.me/inter/) typeface by Rasmus Andersson | `client/assets/inter-*.ttf` | SIL Open Font License 1.1 (`client/assets/OFL-Inter.txt`) |
 | [Phosphor Icons](https://phosphoricons.com) (player controls and ratings) | `client/third_party/phosphor/`, rasterized into `client/src/icons.hpp` by `tools/gen-icons.py` | MIT (`client/third_party/phosphor/LICENSE`) |
 | [yt-cast-receiver](https://github.com/patrickkfkan/yt-cast-receiver) | `cast/` (npm) | MIT |
@@ -74,3 +76,5 @@ sanitization. The app ZIP alone is not the complete source/relink distribution d
 The desktop startup emergency screen includes a Latin subset of X11 misc-fixed 10x20,
 by Markus Kuhn and contributors (public domain), from xsdk's `assets/fonts/10x20.bdf`.
 The Xbox screen uses xsdk's built-in copy of that font.
+
+The title also statically links GNU FriBidi 1.0.16 (LGPL-2.1-or-later). Include its vendored corresponding source/configuration, `client/text.cmake`, COPYING and the matching `libtube360-text.a` in the release source/relink materials. Replace that archive in `support/` to relink a modified FriBidi with the supplied application objects. The same modification/reverse-engineering permissions above apply.

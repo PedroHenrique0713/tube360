@@ -31,6 +31,10 @@
 
 - Music now tries the TV music catalogue with the existing account grant after a web Music refusal, exposes recent plays/playlists/likes, labels public fallback, and keeps continuation tokens with their original client. Real-account acceptance and Music/TV recommendation parity remain pending console validation.
 
+- Arabic interface, native YouTube locale and controller search keyboard (RB switches to Latin).
+- Arabic titles in every UI language: contextual forms, lam-alef, bidi and per-character Noto Sans Arabic fallback loaded on demand.
+- Full app packages now include four Noto fonts/OFL and FriBidi LGPL notices; copy the complete folder once.
+
 ## [0.3.1] — 2026-11-24
 
 ### Fixed
