@@ -35,7 +35,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-video-driver-') as tmp:
         assert 'begin display.viewport' in result.stdout and 'begin display.lut' in result.stdout
         assert result.stdout.index('begin display.viewport')<result.stdout.index('end display.viewport')<result.stdout.index('begin display.lut')
         if 'counter-stopped' in case:assert 'line=0 waited_us=50000' in result.stdout
-        if 'interlaced' not in case:
+        if 'interlaced' not in case and 'sd' not in case:
             assert result.stdout.index('begin display.scaler-write')<result.stdout.index('begin display.surface-write')<result.stdout.index('begin display.line-counter')
         print(result.stdout.splitlines()[-1],flush=True)
     # Funções integrais reais; não compila as rotinas PPC de cache no compilador x86.
@@ -68,3 +68,12 @@ with tempfile.TemporaryDirectory(prefix='tube360-video-driver-') as tmp:
     run([*common,ROOT/'tests/reddit/present_open.c',work/'present.c','-Wl,--gc-sections','-o',work/'present'])
     for case in ('success','fail','letterbox-fail'):
         result=run([work/'present',case],capture_output=True,text=True);(a.evidence/('present-'+case+'.log')).write_text(result.stdout);print(result.stdout.splitlines()[-1],flush=True)
+    # Liga setter, enumeração/capacidades, swapchain, present e display reais juntos.
+    source=(v4x/'src/swapchain.c').read_text()
+    functions='\n'.join(extract(source,sig) for sig in ('static VkResult check_create_info(', 'static void describe_image(', 'VKAPI_ATTR VkResult VKAPI_CALL vkCreateSwapchainKHR('))
+    (work/'swapchain.c').write_text('#include <assert.h>\n#include "host.h"\n#include "objects.h"\n#include "xsdk/present.h"\n#include "xsdk/log.h"\nstatic bool swapchain_exists;\nenum {FIFO_SWAP_INTERVAL=1};\n'+functions)
+    run([*common,ROOT/'tests/reddit/sd_swapchain.c',v4x/'src/display.c',work/'swapchain.c',work/'present.c',work/'display.o','-Wl,--gc-sections','-o',work/'sd'])
+    for case in ('safe-480i','safe-576i','safe-480p','safe-576i-wide','native-480i','native-576i','native-480p','safe-invalid'):
+        result=run([work/'sd',case],capture_output=True,text=True);(a.evidence/(case+'.log')).write_text(result.stdout)
+        assert 'begin display.kernel-viewport' in result.stdout and 'kernel=1' in result.stdout
+        print(result.stdout.splitlines()[-1],flush=True)

@@ -126,7 +126,9 @@ void tube360_display_boot_done(void){tube360_display_boot=false;}''')
 def finish(sdk,v4x):
     finish_present(sdk)
     stamp=sdk/'tube360-video-policy-v2'
-    if stamp.exists():return
+    if stamp.exists():
+        finish_sd(sdk,v4x)
+        return
     display=sdk/'src/display.c';text=display.read_text()
     needle='\tVIDEO_MODE video;\n\tVdQueryVideoMode(&video);\n\tif (mode == XSDK_DISPLAY_1080P'
     assert text.count(needle)==1
@@ -138,6 +140,75 @@ def finish(sdk,v4x):
     display.write_text(text);memory.write_text(body)
     stamp.write_text('safe cache operations remain original no-ops; no extra native-mode query\n')
     (v4x/'tube360-video-policy-v2').write_text(stamp.read_text())
+    finish_sd(sdk,v4x)
+
+def finish_sd(sdk,v4x):
+    stamp=sdk/'tube360-video-policy-v4'
+    if stamp.exists():return
+    pending={}
+    def replace(path,before,after):
+        text=pending.get(path,path.read_text())
+        if text.count(before)!=1:raise RuntimeError(f'Incompatible SD hook: {path}: {before[:70]!r}')
+        pending[path]=text.replace(before,after)
+    header=sdk/'include/xsdk/tube360_video.h'
+    pending[header]=header.read_text()+'''#include "xsdk/display.h"
+XsdkDisplayMode tube360_display_mode(XsdkDisplayMode requested);
+bool tube360_display_kernel_extent(uint32_t *width,uint32_t *height);
+'''
+    display=sdk/'src/display.c'
+    replace(display,'NTSTATUS xsdk_display_open(XsdkDisplayMode mode, uint32_t *width, uint32_t *height)', '''// SD/entrelaçado conserva o viewport e o scaler que o painel já programou.
+XsdkDisplayMode tube360_display_mode(XsdkDisplayMode requested)
+{
+    VIDEO_MODE video={0};
+    VIDEO_BOOT("begin","display.signal","query dashboard; signal timings unchanged");
+    VdQueryVideoMode(&video);
+    XsdkDisplayMode selected=requested;
+    if(video.is_interlaced || (video.display_height && video.display_height<=576))selected=XSDK_DISPLAY_KERNEL;
+    else if(!tube360_native_path() && requested!=XSDK_DISPLAY_KERNEL)selected=XSDK_DISPLAY_720P;
+    VIDEO_BOOT("end","display.signal","dashboard=%ux%u interlaced=%u wide=%u hz=%.3f standard=%u requested=%d selected=%d kernel=%d",
+        video.display_width,video.display_height,video.is_interlaced,video.is_widescreen,(double)video.refresh_rate,video.video_standard,requested,selected,selected==XSDK_DISPLAY_KERNEL);
+    return selected;
+}
+
+bool tube360_display_kernel_extent(uint32_t *width,uint32_t *height)
+{
+    VIDEO_BOOT("begin","display.kernel-viewport","read MMIO 0x1961; preserve dashboard scaler");
+    const uint32_t viewport=gpu_registers[AVIVO_D1MODE_VIEWPORT_SIZE];
+    *width=viewport>>16;*height=viewport&0xffff;
+    bool valid=*width>=320 && *width<=1920 && *height>=240 && *height<=1080;
+    VIDEO_BOOT(valid?"end":"error","display.kernel-viewport","raw=%08x extent=%ux%u valid=%d",viewport,*width,*height,valid);
+    if(!valid)*width=*height=0;
+    return valid;
+}
+
+NTSTATUS xsdk_display_open(XsdkDisplayMode mode, uint32_t *width, uint32_t *height)''')
+    for path in (display,sdk/'src/present.c'):
+        replace(path,'    if(!tube360_native_path() && mode!=XSDK_DISPLAY_KERNEL)mode=XSDK_DISPLAY_720P;',
+                '    mode=tube360_display_mode(mode);')
+    output=v4x/'src/display.c'
+    replace(output,'uint32_t tube360_display_width = 1280, tube360_display_height = 720;', '''uint32_t tube360_display_width = 1280, tube360_display_height = 720;
+int tube360_display_kernel;
+static float tube360_display_aspect;
+int tube360_output_fixed(void){return !tube360_native_path() || tube360_display_kernel;}
+float tube360_output_aspect(void){return tube360_display_kernel ? tube360_display_aspect : 0;}''')
+    replace(output,'int tube360_set_output(int height)\n{','''int tube360_set_output(int height)
+{
+    tube360_display_kernel=tube360_display_mode(XSDK_DISPLAY_720P)==XSDK_DISPLAY_KERNEL;
+    if(tube360_display_kernel) {
+        VIDEO_MODE video={0};VdQueryVideoMode(&video);
+        tube360_display_aspect=video.is_widescreen ? 16.0f/9.0f : 4.0f/3.0f;
+        bool valid=tube360_display_kernel_extent(&tube360_display_width,&tube360_display_height);
+        xsdk_log_write("display: dashboard framebuffer %ux%u; kernel viewport, scaler and signal unchanged",tube360_display_width,tube360_display_height);
+        VIDEO_BOOT(valid?"detect":"error","display.output","path=%s requested=%d selected=%ux%u kernel=1; dashboard scaler unchanged",tube360_native_path()?"native":"safe",height,tube360_display_width,tube360_display_height);
+        return (int)tube360_display_height;
+    }''')
+    replace(v4x/'src/objects.h','extern uint32_t tube360_display_width, tube360_display_height;',
+            'extern uint32_t tube360_display_width, tube360_display_height;\nextern int tube360_display_kernel;')
+    replace(v4x/'src/swapchain.c','xsdk_present_open(V4X_DISPLAY_HEIGHT == 480 ?',
+            'xsdk_present_open(tube360_display_kernel ? XSDK_DISPLAY_KERNEL : V4X_DISPLAY_HEIGHT == 480 ?')
+    for path,text in pending.items():path.write_text(text)
+    stamp.write_text('SD/interlaced uses kernel viewport in SDK, display surface and swapchain; no custom scaler\n')
+    (v4x/'tube360-video-policy-v4').write_text(stamp.read_text())
 
 def finish_present(sdk):
     stamp=sdk/'tube360-video-policy-v3'

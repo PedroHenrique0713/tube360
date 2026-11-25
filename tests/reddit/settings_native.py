@@ -16,8 +16,9 @@ prefix=r'''
 #include <stdexcept>
 #include <vector>
 #include <memory>
-static bool native,failIdle,failReset,idle,reset;static int mutations,setter;
+static bool native,kernel,failIdle,failReset,idle,reset;static int mutations,setter;
 extern "C" int tube360_native_video(){return native;}
+extern "C" int tube360_output_fixed(){return !native || kernel;}
 void boot_event(const char*,const char*,const char*,...){}
 #define LOG(...) ((void)0)
 namespace gfx {[[noreturn]] void fail(const char*){throw std::runtime_error("GPU failure");}}
@@ -49,7 +50,9 @@ suffix=r'''
 int main(){
  gfx::Gfx g;g.retained[0]=std::make_shared<int>(1);
  assert(!gfx::output(g,1080) && !idle && !reset && !mutations && !setter && g.retained[0]);
- native=true;failIdle=true;
+ native=true;kernel=true;
+ assert(!gfx::output(g,1080) && !idle && !reset && !mutations && !setter && g.retained[0]);
+ kernel=false;failIdle=true;
  try{gfx::output(g,1080);assert(false);}catch(const std::runtime_error&){}
  assert(!mutations && !setter && g.retained[0]);
  failIdle=false;failReset=true;

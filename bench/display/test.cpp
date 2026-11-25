@@ -47,6 +47,11 @@ int main(int argc,char** argv) {
   check(near(sd.width,960) && near(sd.scale,.6f) && near(sd.insetX,32) && near(sd.insetY,24),"5 percent safe area on all CRT edges");
   check(near(sd.insetX+sd.width*sd.scale,608) && near(sd.insetY+720*sd.scale,456),"safe content fits inside 640x480");
   auto wide=display::layout(848,480); check(wide.sd && !wide.narrow && wide.columns(4)==3,"widescreen SD uses fewer columns too");
+  auto pal=display::layout(640,576,false,4.f/3);
+  check(near(pal.width,960) && pal.narrow && pal.large && pal.columns(4)==2,"PAL kernel viewport keeps a physical 4:3 layout");
+  check(near(pal.insetX+pal.width*pal.scaleX,608) && near(pal.insetY+720*pal.scale,547.2f),"non-square PAL pixels preserve safe margins on both axes");
+  auto palWide=display::layout(720,576,false,16.f/9);
+  check(near(palWide.width,1280) && !palWide.narrow && near(palWide.insetX+palWide.width*palWide.scaleX,684),"anamorphic PAL follows dashboard widescreen");
   auto hd=display::layout(1280,720,true); check(hd.large && hd.columns(4)==3 && hd.scale==1 && hd.insetX==0,"large text also works at 720p");
   auto comments=display::commentsPanel(sd.width,45,34,37);
   check(comments.x>=32 && comments.x+comments.w<=sd.width-32,"comments panel stays inside 4:3 safe area");

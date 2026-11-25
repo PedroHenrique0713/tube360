@@ -41,7 +41,7 @@ int main(int argc,char** argv){
     native=!strncmp(argv[1],"native",6);uint32_t width=0,height=0;
     uint32_t reference[0x20000/4];
     if(!native){
-        reset();assert(NT_SUCCESS(reference_xsdk_display_open(XSDK_DISPLAY_720P,&width,&height)));
+        reset();assert(NT_SUCCESS(reference_xsdk_display_open(mode.is_interlaced || mode.display_height<=576 ? XSDK_DISPLAY_KERNEL : XSDK_DISPLAY_720P,&width,&height)));
         assert(NT_SUCCESS(reference_xsdk_display_show(0x200000,width)));
         memcpy(reference,(void*)gpu_registers,sizeof(reference));reference_xsdk_display_close();
     }
@@ -52,7 +52,7 @@ int main(int argc,char** argv){
     if(!native)assert(!memcmp(reference,(void*)gpu_registers,sizeof(reference)));
     else assert(height==(strstr(argv[1],"sd")?480:1080));
     tube360_display_boot_done();int count=events;
-    if(!mode.is_interlaced){DisplaySize size;assert(xsdk_display_plan(width,height,width,&size));size.scaler[0]^=1;xsdk_display_flip_sized(0x300000,&size);}
+    if(!mode.is_interlaced && mode.display_height>576){DisplaySize size;assert(xsdk_display_plan(width,height,width,&size));size.scaler[0]^=1;xsdk_display_flip_sized(0x300000,&size);}
     else xsdk_display_flip(0x300000);
     assert(events==count); // O caminho chamado na IRQ não grava arquivo.
     xsdk_display_close();assert(!munmap(mapped,0x20000));

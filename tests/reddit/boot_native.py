@@ -17,7 +17,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-boot-native-') as tmp:
         subprocess.run(['cc','-std=c11','-D_POSIX_C_SOURCE=200809L','-D__XSDK__',*include,'-c',str(ROOT/f'client/src/{name}.c'),'-o',str(obj)],check=True)
     binary=work/'native'
     subprocess.run(['c++','-std=c++17','-D__XSDK__',*include,str(ROOT/'tests/reddit/boot_native.cpp'),str(ROOT/'client/src/boot_platform.cpp'),*objects,'-pthread','-Wl,--wrap=fopen','-Wl,--wrap=fsync','-o',str(binary)],check=True)
-    for mode in ('usb','hdd','component','unknown-av','absent','long','sync-fail'):
+    for mode in ('usb','hdd','component','unknown-av','absent','long','sync-fail','480i','576i','480p'):
         folder=a.evidence/mode;folder.mkdir(exist_ok=True)
         for old in folder.glob('b*.log'):old.unlink()
         run=subprocess.run([str(binary),mode,str(folder)],check=True,capture_output=True,text=True)
@@ -33,6 +33,9 @@ with tempfile.TemporaryDirectory(prefix='tube360-boot-native-') as tmp:
         if mode in ('usb','long'):assert 'drive=USB0' in text,text
         if mode=='hdd':assert 'drive=HDD' in text,text
         if mode=='component':assert 'connector=component' in text,text
+        if mode in ('480i','576i','480p'):
+            assert f'dashboard=640x{576 if mode=="576i" else 480} interlaced={int(mode!="480p")} wide=0' in text,text
+            assert ('connector=component' if mode=='480p' else 'connector=composite/S-Video') in text,text
         if mode=='usb':assert 'connector=HDMI' in text,text
         if mode=='unknown-av':assert 'avpack=123 connector=other/unknown' in text,text
         if mode=='sync-fail':assert 'durability=failed' in text and 'userspace flush only' in text,text

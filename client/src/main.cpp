@@ -669,9 +669,9 @@ int run(int argc, char** argv) {
                                   {"inter-400.ttf", 18.2f}, {"inter-700.ttf", 11}};
   auto loadDisplay = [&]() {
     boot_event("begin","settings.layout","extent=%ux%u large=%d",g.extent.width,g.extent.height,settings.largeText);
-    auto layout = display::layout(g.extent.width,g.extent.height,settings.largeText);
+    auto layout = display::layout(g.extent.width,g.extent.height,settings.largeText,gfx::outputAspect());
     ui::W = layout.width; ui::large = layout.large; ui::narrow = layout.narrow;
-    g.scale = layout.scale; g.insetX = layout.insetX; g.insetY = layout.insetY;
+    g.scale = layout.scale; g.scaleX = layout.scaleX; g.insetX = layout.insetX; g.insetY = layout.insetY;
     auto specs = fontSpecs;
     if (ui::large) {
       for (size_t i=0;i<specs.size();++i) {

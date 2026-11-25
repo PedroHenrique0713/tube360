@@ -58,7 +58,8 @@ extern "C" void boot_environment() {
         boot_event("end","video.mode","dashboard=%ux%u interlaced=%u wide=%u hi_def=%u hz=%.3f standard=%u",mode.display_width,mode.display_height,mode.is_interlaced,mode.is_widescreen,mode.is_hi_def,double(mode.refresh_rate),mode.video_standard);}
     auto av=reinterpret_cast<uint32_t(*)()>(procedure("xam.xex",0x3cb,"XGetAVPack"));
     if(av){boot_event("begin","video.connector","API enum; no SMC write or display-mode change");unsigned pack=av();
-        const char* label=pack==4 || pack==8?"HDMI":pack==0 || pack==3?"component":pack==6?"VGA":"other/unknown";
+        // Enum documentado pelo Xenia Canary; preservar o valor bruto para revisões desconhecidas.
+        const char* label=pack==4 || pack==8?"HDMI":pack==0 || pack==3?"component":pack==5?"composite/S-Video":pack==2?"SCART":pack==7?"TV":pack==6?"VGA":"other/unknown";
         boot_event("end","video.connector","avpack=%u connector=%s (unrecognized codes remain unknown)",pack,label);}
     auto memory=reinterpret_cast<NTSTATUS(*)(MM_QUERY_STATISTICS_RESULT*)>(procedure("xboxkrnl.exe",0xc6,"MmQueryStatistics"));
     if(memory){boot_event("begin","memory.available","query title pages");MM_QUERY_STATISTICS_RESULT stats{};stats.size=sizeof(stats);auto status=memory(&stats);

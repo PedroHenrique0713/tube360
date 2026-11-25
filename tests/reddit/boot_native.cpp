@@ -34,9 +34,15 @@ extern "C" uint32_t XexGetModuleHandle(const char* name,HANDLE* out){
     *out=!std::strcmp(name,"xam.xex")?2:1;return 0;
 }
 static uint16_t version[]={2,0,17559,0};
-static void video(VIDEO_MODE* out){out->display_width=1280;out->display_height=720;out->is_widescreen=1;out->refresh_rate=60;}
+static void video(VIDEO_MODE* out){
+    out->display_width=1280;out->display_height=720;out->is_widescreen=1;out->refresh_rate=60;
+    if(scenario=="480i" || scenario=="576i" || scenario=="480p") {
+        out->display_width=640;out->display_height=scenario=="576i"?576:480;
+        out->is_interlaced=scenario!="480p";out->is_widescreen=0;out->refresh_rate=scenario=="576i"?50:59.94f;
+    }
+}
 static NTSTATUS memory(MM_QUERY_STATISTICS_RESULT* out){out->total_physical_pages=131072;out->title.available_pages=90000;return 0;}
-static uint32_t av(){return scenario=="component"?3:scenario=="unknown-av"?123:8;}
+static uint32_t av(){return scenario=="component" || scenario=="480p"?3:scenario=="480i" || scenario=="576i"?5:scenario=="unknown-av"?123:8;}
 extern "C" NTSTATUS XexGetProcedureAddress(HANDLE module,uint32_t ordinal,void** out){
     assert(module==1 || module==2);
     *out=nullptr;

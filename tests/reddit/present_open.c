@@ -11,6 +11,7 @@
 static int count,freed,installed,closed,trace_done,letterbox;
 static NTSTATUS shown;
 int tube360_native_video(void){return 0;}
+XsdkDisplayMode tube360_display_mode(XsdkDisplayMode mode){(void)mode;return XSDK_DISPLAY_720P;}
 void boot_event(const char* phase,const char* step,const char* fmt,...){printf("%s %s ",phase,step);va_list a;va_start(a,fmt);vprintf(fmt,a);va_end(a);puts("");}
 void fixture_barrier(void){}
 void tube360_display_boot_done(void){trace_done=1;}

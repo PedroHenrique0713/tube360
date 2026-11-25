@@ -22,6 +22,8 @@
 #include "xsdk/log.h"
 #include "shaders_bundle.h"
 extern "C" int tube360_set_output(int height);
+extern "C" int tube360_output_fixed(void);
+extern "C" float tube360_output_aspect(void);
 #define LOG(...) xsdk_log_write(__VA_ARGS__)
 #else
 #include <SDL3/SDL_vulkan.h>
@@ -67,7 +69,7 @@ struct Video {
 };
 
 struct Gfx {
-  float scale = 1, insetX = 0, insetY = 0;
+  float scale = 1, scaleX = 1, insetX = 0, insetY = 0;
   VkInstance inst; VkPhysicalDevice phys; VkDevice dev; VkQueue queue; uint32_t family = 0;
   VkSurfaceKHR surface; VkSwapchainKHR swap = VK_NULL_HANDLE; VkFormat format; VkExtent2D extent;
   std::vector<VkImage> images; std::vector<VkImageView> views; std::vector<VkFramebuffer> fbs;
@@ -375,7 +377,7 @@ inline void push(Gfx& g, Pipe p, VkDescriptorSet set, const float params[4], con
   bool merge = !g.cmds.empty() && g.cmds.back().pipe == p && g.cmds.back().set == set && std::memcmp(g.cmds.back().params, params, 16) == 0
                && g.cmds.back().first + g.cmds.back().count == g.verts.size();
   if (!merge) { Cmd c{p, set, {params[0], params[1], params[2], params[3]}, (uint32_t)g.verts.size(), 0}; g.cmds.push_back(c); }
-  for (int i=0;i<n;++i) { Vtx pixel=v[i]; pixel.x=pixel.x*g.scale+g.insetX; pixel.y=pixel.y*g.scale+g.insetY; g.verts.push_back(pixel); }
+  for (int i=0;i<n;++i) { Vtx pixel=v[i]; pixel.x=pixel.x*g.scaleX+g.insetX; pixel.y=pixel.y*g.scale+g.insetY; g.verts.push_back(pixel); }
   g.cmds.back().count += (uint32_t)n;
 }
 
@@ -432,7 +434,7 @@ inline float text(Gfx& g, int font, const std::string& s, float x, float y, Colo
   for (size_t i = 0; i < s.size();) {
     const Glyph* gl = glyph(f, utf8(s, i));
     if (!gl) continue;
-    if (gl->x1 > gl->x0) quad(g, TEXT, g.atlas.set, p, std::round((pen + gl->x0)*g.scale)/g.scale, std::round((base + gl->y0)*g.scale)/g.scale, gl->x1 - gl->x0, gl->y1 - gl->y0, c, gl->u0, gl->v0, gl->u1, gl->v1);
+    if (gl->x1 > gl->x0) quad(g, TEXT, g.atlas.set, p, std::round((pen + gl->x0)*g.scaleX)/g.scaleX, std::round((base + gl->y0)*g.scale)/g.scale, gl->x1 - gl->x0, gl->y1 - gl->y0, c, gl->u0, gl->v0, gl->u1, gl->v1);
     pen += gl->adv + track;
   }
   return pen - start - (pen > start ? track : 0);
@@ -470,7 +472,7 @@ inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 
                 full ? 1.f : 255.f / 219.f, full ? 0.f : 16.f / 255.f};
   // Os dois coeficientes do verde usam a cor constante dos vértices. A matriz já chega pronta ao Xenos.
   // Quatro amostras bilineares só na luma ao reduzir; a crominância 4:2:0 já tem resolução menor que a saída.
-  g.videoFilter[0] = g.video->w > w * g.scale + 1 ? .375f / g.video->w : 0;
+  g.videoFilter[0] = g.video->w > w * g.scaleX + 1 ? .375f / g.video->w : 0;
   g.videoFilter[1] = g.video->h > h * g.scale + 1 ? .375f / g.video->h : 0;
   quad(g, VIDEO, g.video->set, p, x, y, w, h, {(hd ? .187324f : .344136f) * c, (hd ? .468124f : .714136f) * c, 0, alpha},r.u0,r.v0,r.u1,r.v1);
 }
@@ -540,7 +542,7 @@ inline void makeSwapchain(Gfx& g, int w, int h) {
   boot_event("begin","gpu.swapchain","surface=%dx%d",w,h);
   VkSurfaceCapabilitiesKHR caps; VK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g.phys, g.surface, &caps));
   g.extent = caps.currentExtent.width != UINT32_MAX ? caps.currentExtent : VkExtent2D{(uint32_t)w, (uint32_t)h};
-  g.scale = g.extent.height / 720.f;
+  g.scaleX = g.scale = g.extent.height / 720.f;
   uint32_t n = 0; vkGetPhysicalDeviceSurfaceFormatsKHR(g.phys, g.surface, &n, nullptr);
   std::vector<VkSurfaceFormatKHR> fmts(n); vkGetPhysicalDeviceSurfaceFormatsKHR(g.phys, g.surface, &n, fmts.data());
   g.format = fmts[0].format; for (auto& f : fmts) if (f.format == VK_FORMAT_B8G8R8A8_UNORM) g.format = f.format;
@@ -653,9 +655,16 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   return true;
 }
 
+inline float outputAspect() {
+#ifdef __XSDK__
+  return tube360_output_aspect();
+#else
+  return 0;
+#endif
+}
 inline bool fixedOutput() {
 #ifdef __XSDK__
-  return !tube360_native_video();
+  return tube360_output_fixed();
 #else
   // Só na bancada desktop: exercita o mesmo veto de saída sem simular uma placa real.
   static bool fixed=std::getenv("XT_TEST_FIXED_OUTPUT") && !std::strcmp(std::getenv("XT_TEST_FIXED_OUTPUT"),"1");
@@ -665,8 +674,8 @@ inline bool fixedOutput() {
 inline bool output(Gfx& g, int height) {
   boot_event("begin","settings.output","requested=%d current=%ux%u fixed=%d",height,g.extent.width,g.extent.height,fixedOutput());
   if(fixedOutput()) {
-    LOG("saida: caminho safe mantém %ux%u; pedido %dp salvo para próxima abertura nativa",g.extent.width,g.extent.height,height);
-    boot_event("end","settings.output","safe: display, framebuffer, pipelines and atlas unchanged");return false;
+    LOG("saida: modo fixo mantém %ux%u; pedido %dp salvo",g.extent.width,g.extent.height,height);
+    boot_event("end","settings.output","fixed: display, framebuffer, pipelines and atlas unchanged");return false;
   }
   quiesce(g,"output change");
   boot_event("begin","settings.output-retire","pipelines, framebuffers and swapchain; GPU stopped");
