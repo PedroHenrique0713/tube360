@@ -88,11 +88,12 @@
     "y": 398
   }
 ];
+  const demoCatalog = {"channel":[{"id":"fpQcDQJQLhg","title":"Google Antigravity em ação: Criando um guia de campo offline sobre vida selvagem.","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"WN-JK-hMAyg","title":"Google Antigravity e Gemini 4: Criando um mundo 3D interativo mapeado por MIDI","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"f2bpv9mFUeE","title":"Google Antigravity e Gemini 4: Construindo uma groovebox personalizada em um macro pad de US$ 40","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"aRIFzzr_Mi0","title":"EmbeddingGemma 2: Como funcionam os embeddings nativamente multimodais","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"vLAegkGGWrM","title":"Criando com Gemini no Google Antigravity","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"rsOiZE19RVo","title":"Acelere o transporte para ganhar escala com o Google Antigravity","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"ID6vEy94j7c","title":"Criando visão em tempo real e navegação de borda com Gemini Live","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"pQ_Dnr9Q4k8","title":"Dispositivos inteligentes funcionais usando Gemini 4 Argon e Google Antigravity","channel":"","art":"/assets/demo/catalog-art.png"}],"shorts":[{"id":"cv8tEbKtEvk","title":"Construindo um rover autônomo para plantas com o Gemini Live","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"CsF5oqVV5YE","title":"Design e replicação de voz com o Gemini 3.8 Flash TTS","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"LJ2v4-FvPcA","title":"Desenvolvedores criando com Gemini Audio","channel":"","art":"/assets/demo/catalog-art.png"},{"id":"-nmcYcO-EE8","title":"Transformando movimento em música com o Gemini","channel":"","art":"/assets/demo/catalog-art.png"}],"music":[{"id":"F49audio000","title":"Noite de jazz","channel":"Trio Horizonte","art":"/assets/demo/music-0.png","section":"Para ouvir agora"},{"id":"F49audio001","title":"Piano ao entardecer","channel":"Marina Alves","art":"/assets/demo/music-1.png","section":"Para ouvir agora"},{"id":"F49audio002","title":"Batidas leves","channel":"Estúdio Norte","art":"/assets/demo/music-2.png","section":"Para ouvir agora"},{"id":"F49audio003","title":"Acústico em casa","channel":"Duo da Serra","art":"/assets/demo/music-3.png","section":"Para ouvir agora"},{"id":"F49audio004","title":"Bossa na varanda","channel":"Trio Horizonte","art":"/assets/demo/music-4.png","section":"Jazz e instrumentais"},{"id":"F49audio005","title":"Clássicos ao piano","channel":"Marina Alves","art":"/assets/demo/music-5.png","section":"Jazz e instrumentais"},{"id":"F49audio006","title":"Jazz instrumental","channel":"Estúdio Norte","art":"/assets/demo/music-0.png","section":"Jazz e instrumentais"},{"id":"F49audio007","title":"Sessão acústica","channel":"Duo da Serra","art":"/assets/demo/music-1.png","section":"Jazz e instrumentais"},{"id":"F49audio008","title":"Sons da noite","channel":"Trio Horizonte","art":"/assets/demo/music-2.png","section":"Mais música para você"},{"id":"F49audio009","title":"Voz e violão","channel":"Marina Alves","art":"/assets/demo/music-3.png","section":"Mais música para você"},{"id":"F49audio010","title":"Café e música","channel":"Estúdio Norte","art":"/assets/demo/music-4.png","section":"Mais música para você"},{"id":"F49audio011","title":"Piano para ler","channel":"Duo da Serra","art":"/assets/demo/music-5.png","section":"Mais música para você"}],"subscriptions":[{"id":"video000001","title":"Viagem de trem pela serra","channel":"Canal de demonstração","art":"/assets/demo/catalog-art.png"},{"id":"video000002","title":"Como funciona um motor elétrico","channel":"Canal de demonstração","art":"/assets/demo/catalog-art.png"},{"id":"video000003","title":"Café, música e uma tarde tranquila","channel":"Canal de demonstração","art":"/assets/demo/catalog-art.png"},{"id":"video000004","title":"Explorando as estradas do Brasil","channel":"Canal de demonstração","art":"/assets/demo/catalog-art.png"}]};
   const icon = name => `<svg class="icon" aria-hidden="true"><use href="#i-${name}"/></svg>`;
   const options = [
     ['captions', 'cc'], ['quality', 'settings'], ['sound', 'sound'], ['timer', 'moon'],
     ['like', 'like'], ['dislike', 'like'], ['comments', 'comments'], ['speed', 'speed'],
-    ['repeat', 'repeat'], ['channel', 'person'], ['channel_live', 'live']
+    ['repeat', 'repeat'], ['channel', 'person']
   ];
   const ratings = new Map();
   const saved = new Set([0]);
@@ -109,7 +110,7 @@
     dialog.dataset.kind = ''; dialogBack = document.activeElement; dialogMode = state.mode; state.mode = 'dialog';
     $('#dialog-title').textContent = title; $('#dialog-note').textContent = note;
     $('#dialog-actions').replaceChildren(...choices.map(([label, action]) => makeButton(label, action, 'panel-choice')));
-    dialog.hidden = false; focus($('#dialog-actions button')); animateIn($('.dialog-surface')); marker();
+    dialog.hidden = false; fitNativeType(); focus($('#dialog-actions button')); animateIn($('.dialog-surface')); marker();
   }
   function playCard(index) {
     state.selected = index;
@@ -142,7 +143,7 @@
   const filterLabels = { type: 'filter_type', duration: 'filter_duration', date: 'filter_date', sort: 'filter_sort' };
   function openFilters() {
     if (state.page !== 'search') return;
-    openDialog(t.filters, t.filter_discard, []); dialog.dataset.kind = 'filters'; filterDraft = { ...state.filters };
+    openDialog(n.SearchFilters, '', []); dialog.dataset.kind = 'filters'; filterDraft = { ...state.filters };
     const content = $('#dialog-actions');
     for (const key of Object.keys(filterValues)) {
       const button = makeButton('', () => cycleFilter(button, 1), 'settings-row'); button.dataset.filter = key; content.append(button);
@@ -152,14 +153,15 @@
       if ($('.demo-results').childElementCount) $('.demo-search').requestSubmit();
     }, 'panel-choice'));
     content.append(makeButton(t.clear_filters, () => { filterDraft = { type: 0, duration: 0, date: 0, sort: 0 }; updateFilterLabels(); }, 'panel-choice'));
-    updateFilterLabels(); focus(content.firstElementChild);
+    const hints = document.createElement('p'); hints.className = 'filter-native-hints'; hints.textContent = `↑↓ ${n.ChooseRow}     ◀▶ ${n.ChangeValue}     B ${n.Back}`; content.append(hints);
+    updateFilterLabels(); fitNativeType(); focus(content.firstElementChild);
   }
   function updateFilterLabels() {
-    $$('[data-filter]', dialog).forEach(button => { const key = button.dataset.filter; const label = document.createElement('span'), value = document.createElement('strong'); label.textContent = t[filterLabels[key]]; value.textContent = t[filterValues[key][filterDraft[key]]]; button.replaceChildren(label, value); });
+    $$('[data-filter]', dialog).forEach(button => { const key = button.dataset.filter; const label = document.createElement('span'), value = document.createElement('strong'); label.textContent = n[['SearchType','SearchDuration','SearchDate','SearchOrder'][Object.keys(filterValues).indexOf(key)]]; value.textContent = key === 'type' && !filterDraft[key] ? n.AllResults : t[filterValues[key][filterDraft[key]]]; button.replaceChildren(label, value); });
   }
   function cycleFilter(button, direction) {
     const key = button.dataset.filter; if (!filterDraft || !key) return;
-    filterDraft[key] = (filterDraft[key] + direction + filterValues[key].length) % filterValues[key].length; updateFilterLabels();
+    filterDraft[key] = (filterDraft[key] + direction + filterValues[key].length) % filterValues[key].length; updateFilterLabels(); fitNativeType();
   }
   function updateSponsor() {
     const button = $('#sponsor-skip');
@@ -183,6 +185,7 @@
     updateProgress();
   }
   $('#sponsor-skip').addEventListener('click', skipSponsor);
+  $('#player-quality-hint').addEventListener('click', () => activatePlayer('quality'));
   const focus = element => {
     element?.focus({ preventScroll: true });
     if (element?.closest('#browse-content')) keepPageFocusVisible(element);
@@ -193,7 +196,9 @@
       const rows = $$('.settings-row', content), index = rows.indexOf(element);
       if (index < 0) return;
       const narrow = matchMedia('(max-width: 700px)').matches, visible = narrow ? 5 : 8, step = narrow ? 94 : 59;
-      content.scrollTop = Math.max(0, Math.min(rows.length - visible, index - visible + 1)) * step;
+      const scale = tv.clientWidth / (narrow ? 960 : 1280);
+      const rect = element.getBoundingClientRect(), viewport = content.getBoundingClientRect();
+      if (rect.top < viewport.top + scale || rect.bottom > viewport.bottom - scale) content.scrollTop = Math.max(0, Math.min(rows.length - visible, index - visible + 1)) * step;
       state.settingsIndex = index;
       $('#settings-help').textContent = index >= 16 ? n.LocalLimit : index === 2 ? n.ManualQualityHelp : index === 9 ? n.Display1080Help : index === 11 || index === 1 ? n.LargeTextHelp : index === 4 ? n.SyncHelp : index === 3 ? n.NoSpeaker : n.SavedAutomatically;
     } else {
@@ -211,8 +216,7 @@
   function marker() { tv.dataset.state = state.mode === 'home' ? state.page : state.mode; tv.dataset.zone = state.zone; }
   let toastTimer;
   function showToast(text) {
-    clearTimeout(toastTimer); toast.textContent = text; toast.hidden = false;
-    announce(text); toastTimer = setTimeout(() => { toast.hidden = true; }, 2800);
+    clearTimeout(toastTimer); toast.hidden = true; announce(text);
   }
   function localizedViews(raw) {
     const count = Number.parseInt(raw, 10);
@@ -227,9 +231,10 @@
     thumb.style.setProperty('--thumb-x', `-${video.x}px`);
     thumb.style.setProperty('--thumb-y', `-${video.y}px`);
     if (index === 0) thumb.classList.add('first-thumb');
-    if (positions.has(index)) thumb.insertAdjacentHTML('beforeend', '<span class="saved-progress"></span>');
+    if (fromHome) thumb.insertAdjacentHTML('beforeend', '<span class="video-duration">8:07</span>');
+    if (positions.has(index) && !fromHome) thumb.insertAdjacentHTML('beforeend', '<span class="saved-progress"></span>');
     $('.video-title', button).textContent = video.title;
-    $('.video-meta', button).textContent = `${video.channel} · ${localizedViews(video.views)}`;
+    $('.video-meta', button).textContent = video.channel;
     button.addEventListener('click', () => playCard(index));
     button.addEventListener('focus', () => {
       state.selected = index; if (fromHome) { state.zone = 'grid'; select(index); marker(); }
@@ -251,8 +256,17 @@
       focus(card);
     }
   }
+  function fitNativeType() {
+    const elements = $$('*', native).filter(element => element instanceof HTMLElement);
+    elements.forEach(element => { element.style.removeProperty('font-size'); element.style.removeProperty('line-height'); });
+    const measurements = elements.map(element => { const style = getComputedStyle(element); return [element, parseFloat(style.fontSize), parseFloat(style.lineHeight)]; });
+    // O atlas usa a altura ascendente–descendente da Inter; CSS dimensiona pelo em.
+    const scale = 2048 / 2478;
+    measurements.forEach(([element, size, line]) => { if (Number.isFinite(size)) element.style.fontSize = `${size * scale}px`; if (Number.isFinite(line)) element.style.lineHeight = `${line * scale}px`; });
+  }
   function fitScreen() {
     native.style.setProperty('--app-scale', tv.clientWidth / (matchMedia('(max-width: 700px)').matches ? 960 : 1280));
+    fitNativeType();
   }
   new ResizeObserver(fitScreen).observe(tv); fitScreen();
   function chooseCategory(index, moveFocus = true) {
@@ -285,65 +299,97 @@
     const grid = document.createElement('div'); grid.className = 'browse-grid';
     indices.forEach(index => grid.append(makeCard(videos[index], index))); return grid;
   }
+  function appHints(page) {
+    const hint = (button, label, color = '') => `<span><b class="pad-button ${color || 'pad-direction'}">${button}</b> ${label}</span>`;
+    const bottom = $('#app-hints');
+    if (page === 'home') { bottom.hidden = true; return; }
+    bottom.hidden = false;
+    bottom.innerHTML = page === 'settings'
+      ? hint('↑↓', n.ChooseRow) + hint('◀▶', n.ChangeValue) + hint('A', n.Open, 'pad-a') + hint('B', n.Back, 'pad-b')
+      : page === 'search' ? hint('A', n.Type, 'pad-a') + hint('X', n.Delete, 'pad-x') + hint('☰', n.Search) + hint('B', n.Back, 'pad-b')
+      : hint('A', n.Open, 'pad-a') + hint('B', n.Back, 'pad-b') + hint('X', n.Refresh, 'pad-x') + hint('Y', n.Search, 'pad-y');
+  }
+  function musicShortcutIcon(symbol) {
+    const shapes = symbol === 'clock'
+      ? '<circle cx="55" cy="55" r="28.6" fill="#ff5a52"/><circle cx="55" cy="55" r="24.2" fill="#33212f"/><rect x="52.8" y="38.5" width="4.4" height="18.7" rx="2" fill="#f5f5f7"/><rect x="55" y="52.8" width="15.4" height="4.4" rx="2" fill="#f5f5f7"/>'
+      : symbol === 'list' ? [0,1,2].map(row => `<rect x="26.4" y="${30.8 + row * 20.9}" width="8.8" height="8.8" rx="3" fill="#ff5a52"/><rect x="44" y="${33 + row * 20.9}" width="37.4" height="4.4" rx="2" fill="#f5f5f7"/>`).join('')
+      : '<path d="M55 79 30 55C9 30 40 21 55 37 70 21 101 30 80 55Z" fill="#ff5a52"/>';
+    const background = symbol === 'clock' ? '#33212f' : symbol === 'list' ? '#25253e' : '#3d2027';
+    return `<svg class="icon" viewBox="0 0 110 110" aria-hidden="true"><rect width="110" height="110" rx="8" fill="${background}"/>${shapes}</svg>`;
+  }
+  function catalogGrid(items, className = '') {
+    const grid = document.createElement('div'); grid.className = 'browse-grid ' + className;
+    items.forEach((item, i) => {
+      const card = makeButton('', () => { state.selected = i % videos.length; openPlayer(); }, 'catalog-card video-card');
+      const image = document.createElement('img'); image.src = item.art; image.alt = ''; image.className = 'catalog-thumb';
+      const title = document.createElement('span'); title.className = 'catalog-title'; title.textContent = item.title;
+      const byline = document.createElement('span'); byline.className = 'catalog-byline'; byline.textContent = item.channel;
+      card.append(image, title, byline); grid.append(card);
+    }); return grid;
+  }
   function showPage(page, moveFocus = true) {
     if (page === 'exit') { page = 'home'; }
     dialog.hidden = true; state.page = page; state.mode = 'home'; state.panelIndex = 0; panel.hidden = true;
     home.hidden = page !== 'home'; browse.hidden = page === 'home'; player.hidden = true;
     rail.hidden = false; $('#account-photo').hidden = false; $('#app-hints').hidden = false;
-    toast.hidden = true; setRail(false); stopLoop();
-    railButtons.forEach(button => button.classList.toggle('active', button.dataset.page === page));
+    toast.hidden = true; setRail(false); stopLoop(); appHints(page);
+    native.dataset.page = page;
+    railButtons.forEach(button => button.classList.toggle('active', button.dataset.page === (page === 'channel' ? 'home' : page)));
     const activeIndex = railButtons.findIndex(button => button.dataset.page === page);
     if (activeIndex >= 0) state.rail = activeIndex;
-    if (page === 'home') { state.zone = 'grid'; select(state.selected, moveFocus); animateIn(home, 0); marker(); startLoop(); return; }
+    if (page === 'home') { appHints('home'); state.zone = 'grid'; select(state.selected, moveFocus); animateIn(home, 0); marker(); startLoop(); return; }
     browse.dataset.page = page;
     browse.scrollTop = 0; $('#browse-content').scrollTop = 0;
-    $$('.settings-intro, .settings-help', browse).forEach(element => element.remove());
-    state.zone = 'page'; $('#browse-title').textContent = page === 'channel' ? 'TV Palmeiras' : page === 'account' ? t.demo_account : page === 'later' ? t.watch_later_console : page === 'continue' ? t.continue_console : t[page];
+    $$('.settings-intro, .settings-help, .music-tabs, .music-account-label', browse).forEach(element => element.remove());
+    state.zone = 'page'; $('#browse-title').textContent = page === 'channel' ? 'Google for Developers' : page === 'account' ? t.demo_account : page === 'later' ? t.watch_later_console : page === 'continue' ? t.continue_console : t[page];
     const content = $('#browse-content'); content.replaceChildren();
     if (page === 'subscriptions') {
       const avatars = document.createElement('div'); avatars.className = 'channel-avatars';
-      ['TV Palmeiras', 'SBT Sports', 'ge tv'].forEach((name, i) => {
-        const button = makeButton('', () => showPage('channel'), 'channel-avatar');
-        const art = document.createElement('span'); art.className = i === 0 ? 'channel-art' : 'channel-initial'; art.textContent = i ? (i === 1 ? 'SBT' : 'ge') : '';
-        const label = document.createElement('span'); label.textContent = name;
-        button.append(art, label); avatars.append(button);
-      }); content.append(avatars, pageGrid([1, 2, 3, 4]));
+      const button = makeButton('', () => showPage('channel'), 'channel-avatar');
+      button.innerHTML = '<span class="channel-initial"></span><span>Canal F11</span>'; avatars.append(button);
+      content.append(avatars, catalogGrid(demoCatalog.subscriptions));
     } else if (page === 'channel') {
       const heading = document.createElement('div'); heading.className = 'channel-heading';
-      heading.innerHTML = '<span class="channel-art"></span>';
-      heading.append(makeButton(state.subscribed ? t.subscribed : t.subscribe, () => {
-        state.subscribed = !state.subscribed; showPage('channel'); showToast(t.demo_note);
-      }));
+      heading.innerHTML = '<img class="channel-art" src="/assets/demo/catalog-art.png" alt=""><p>@GoogleDevelopers · 2,69 mi de inscritos · 6,1 mil vídeos</p>';
+      heading.append(makeButton(state.subscribed ? n.Subscribed || t.subscribed : n.Subscribe || t.subscribe, () => { state.subscribed = !state.subscribed; showPage('channel'); }));
       const tabs = document.createElement('div'); tabs.className = 'browse-tabs';
-      [t.videos, t.shorts, t.live_tab, t.playlists].forEach((label, i) => {
+      [n.Videos, n.ChannelShorts, n.ChannelLive, n.Playlists].forEach((label, i) => {
         const tab = makeButton(label, () => { state.channelTab = i; showPage('channel'); }, 'category');
         tab.classList.toggle('active', state.channelTab === i); tab.setAttribute('aria-pressed', String(state.channelTab === i)); tabs.append(tab);
       });
-      const grid = pageGrid(state.channelTab === 1 ? [2, 4, 7, 5] : [1, 2, 3, 4]);
-      grid.classList.toggle('shorts-grid', state.channelTab === 1); content.append(heading, tabs, grid);
+      const items = state.channelTab === 1 ? demoCatalog.shorts : demoCatalog.channel;
+      content.append(heading, tabs, catalogGrid(items, state.channelTab === 1 ? 'shorts-grid' : 'channel-grid'));
     } else if (page === 'library') {
-      content.append(makeButton(t.watch_later_console, () => showPage('later')), makeButton(t.continue_console, () => showPage('continue')));
-      [t.watch_later, t.history, t.playlists, t.liked_videos].forEach(label => content.append(makeButton(label + ' · ' + t.demo_account, () => { content.replaceChildren(pageGrid([0, 1, 5, 6])); state.panelIndex = 0; focus(pageButtons()[0]); })));
+      const grid = document.createElement('div'); grid.className = 'library-grid';
+      [[n.LocalLater, 'later', 0], [n.LocalHistory, 'continue', 1], [n.History, 'account-history'], [n.WatchLater, 'account-later'], [n.Mixes, 'account-mixes'], ['Viagens e descobertas', 'account-playlist'], ['Meu mix de viagens', 'account-mixes']].forEach(([label, destination, image]) => {
+        const card = makeButton('', () => showPage(destination), 'library-card');
+        if (image !== undefined) { const thumb = $('.video-thumb', cards[image]).cloneNode(true); thumb.classList.remove('first-thumb'); thumb.replaceChildren(); card.append(thumb); }
+        const title = document.createElement('span'); title.textContent = label; card.append(title); grid.append(card);
+      }); content.append(grid);
+    } else if (page.startsWith('account-')) {
+      $('#browse-title').textContent = page === 'account-history' ? n.History : page === 'account-later' ? n.WatchLater : page === 'account-mixes' ? n.Mixes : 'Viagens e descobertas';
+      content.append(catalogGrid(demoCatalog.subscriptions));
     } else if (page === 'later' || page === 'continue') {
-      const note = document.createElement('p'); note.className = 'browse-note'; note.textContent = t.local_list_note;
+      const note = document.createElement('p'); note.className = 'browse-note'; note.textContent = n.LocalOnly;
       content.append(note, pageGrid([...(page === 'later' ? saved : positions.keys())]));
     } else if (page === 'search') {
       const form = document.createElement('form'); form.className = 'demo-search';
-      const input = document.createElement('input'); input.type = 'search'; input.placeholder = t.search_placeholder; input.setAttribute('aria-label', t.search_placeholder);
+      const input = document.createElement('input'); input.type = 'search'; input.placeholder = n.SearchPrompt; input.setAttribute('aria-label', t.search_placeholder);
       const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = t.search_submit;
-      const filters = makeButton(`LB ${t.filters}`, openFilters); filters.id = 'search-filters';
+      const filters = makeButton(`LB ${n.SearchFilters}`, openFilters); filters.id = 'search-filters';
       const workspace = document.createElement('div'); workspace.className = 'search-workspace';
       const keyboard = document.createElement('div'); keyboard.className = 'demo-keyboard';
       const suggestions = document.createElement('div'); suggestions.className = 'search-suggestions';
       function updateSuggestions() {
-        suggestions.replaceChildren(); const heading = document.createElement('h3'); heading.textContent = t.suggestions; suggestions.append(heading);
+        suggestions.replaceChildren(); const heading = document.createElement('h3'); heading.textContent = input.value ? n.SearchSuggestions : n.RecentSearches; suggestions.append(heading);
         const query = input.value.toLocaleLowerCase(locale).trim();
-        ['Palmeiras', 'Palmeiras melhores momentos', 'SBT Sports', 'ge tv'].filter(value => !query || value.toLocaleLowerCase(locale).includes(query)).forEach(value => {
+        const entries = query.startsWith('astro') ? ['astronomia', 'astronomia musica', 'astronomia tony igy', 'astronomia dance', 'astronomia remix', 'astronomia para crianças', 'astronomia coffin dance', 'astronomia song'] : query ? ['Palmeiras', 'Palmeiras melhores momentos', 'SBT Sports', 'ge tv'] : ['palmeiras 4x1 corinthians', 'reações dos corintianos', 'flamengo 0x3 palmeiras'];
+        entries.filter(value => !query || value.toLocaleLowerCase(locale).includes(query)).forEach(value => {
           suggestions.append(makeButton(value, () => { input.value = value; form.requestSubmit(); }, 'suggestion'));
         });
       }
       input.addEventListener('input', () => { workspace.hidden = false; updateSuggestions(); });
-      [..."abcdefghijklmnopqrstuvwxyzç-'.0123456789", '⌫', '␣'].forEach(letter => keyboard.append(makeButton(letter, () => {
+      [..."abcdefghijklmnopqrstuvwxyzç-'.1234567890"].forEach(letter => keyboard.append(makeButton(letter, () => {
         input.value = letter === '⌫' ? input.value.slice(0,-1) : input.value + (letter === '␣' ? ' ' : letter.toLowerCase()); workspace.hidden = false; updateSuggestions();
       }, 'keyboard-key')));
       const results = document.createElement('div'); results.className = 'demo-results';
@@ -360,16 +406,25 @@
         } else results.replaceChildren(indices.length ? pageGrid(indices) : document.createTextNode(t.no_results));
         state.panelIndex = 0; focus($('button', results) || filters);
       });
-      workspace.append(keyboard, suggestions); updateSuggestions(); content.append(form, filters, workspace, results);
+      const actions = document.createElement('div'); actions.className = 'keyboard-actions';
+      actions.append(makeButton(n.Space, () => { input.value += ' '; updateSuggestions(); }, 'keyboard-key'), makeButton(n.Delete, () => { input.value = input.value.slice(0, -1); updateSuggestions(); }, 'keyboard-key'));
+      workspace.append(keyboard, actions, suggestions); updateSuggestions(); content.append(form, filters, workspace, results);
     } else if (page === 'music') {
-      const note = document.createElement('p'); note.className = 'browse-note'; note.textContent = t.music_account;
+      const label = document.createElement('p'); label.className = 'music-account-label'; label.textContent = n.YourMusic; browse.append(label);
+      const tabs = document.createElement('div'); tabs.className = 'music-tabs';
+      [n.Home, n.Charts, n.Mixes].forEach((name, i) => { const tab = makeButton(name, () => { $$('.music-tabs button').forEach((b, j) => b.classList.toggle('active', i === j)); }, 'category'); tab.classList.toggle('active', !i); tabs.append(tab); }); browse.append(tabs);
+      const shelves = document.createElement('div'); shelves.className = 'music-shelves';
+      const shortcutShelf = document.createElement('section'); shortcutShelf.className = 'music-shelf';
+      const title = document.createElement('h3'); title.textContent = n.YourMusic; shortcutShelf.append(title);
       const shortcuts = document.createElement('div'); shortcuts.className = 'music-shortcuts';
-      [[t.music_recent, 'clock'], [t.music_library, 'list'], [t.music_liked, 'heart']].forEach(([label, symbol]) => {
-        const button = makeButton('', () => { $('#browse-title').textContent = label; content.replaceChildren(pageGrid([1, 2, 5, 7])); focus(pageButtons()[0]); }, 'music-shortcut');
-        button.innerHTML = icon(symbol); const name = document.createElement('span'); name.textContent = label; button.append(name); shortcuts.append(button);
-      });
-      const tip = document.createElement('p'); tip.className = 'browse-note'; tip.textContent = t.music_tip;
-      content.append(note, shortcuts, tip, pageGrid([1, 2, 5, 7]));
+      [[n.MusicRecent, 'clock'], [n.Playlists, 'list'], [n.MusicLiked, 'heart']].forEach(([label, symbol]) => {
+        const button = makeButton('', () => { $('#browse-title').textContent = label; content.replaceChildren(catalogGrid(demoCatalog.music.slice(0, 4), 'music-tracks')); focus(pageButtons()[0]); }, 'music-shortcut');
+        button.innerHTML = musicShortcutIcon(symbol); const name = document.createElement('span'); name.textContent = label; button.append(name); shortcuts.append(button);
+      }); shortcutShelf.append(shortcuts); shelves.append(shortcutShelf);
+      [...new Set(demoCatalog.music.map(item => item.section))].forEach(section => {
+        const shelf = document.createElement('section'); shelf.className = 'music-shelf'; const heading = document.createElement('h3'); heading.textContent = section;
+        shelf.append(heading, catalogGrid(demoCatalog.music.filter(item => item.section === section), 'music-shelf-grid')); shelves.append(shelf);
+      }); content.append(shelves);
     } else if (page === 'settings') {
       const intro = document.createElement('p'); intro.className = 'settings-intro'; intro.textContent = n.SettingsIntro;
       const help = document.createElement('p'); help.id = 'settings-help'; help.className = 'settings-help'; help.textContent = n.SavedAutomatically;
@@ -380,10 +435,10 @@
         [n.Language, locale === 'pt-BR' ? n.Portuguese : n.English], [n.SleepTimer, n.SleepOff],
         [n.SleepTogether, n.SleepXbox], [n.ServerMode, n.SleepOff], [n.DisplayOutput, '1280×720'],
         [n.AudioPreference, n.AudioAlwaysOriginal], [n.LargeText, n.SleepOff], [n.VideoFit, n.VideoFitLetterbox],
-        [n.SearchSpeakers, n.Open], [n.Updates, 'v0.3.2'],
+        [n.SearchSpeakers, n.Open], [n.Updates, '0.3.0-dev'],
         [n.SponsorBlock, [n.SleepOff, n.SponsorButton, n.SponsorAuto][state.sponsorMode]],
-        [n.ClearLocalHistory, locale === 'pt-BR' ? `${positions.size} posição` : `${positions.size} position`],
-        [n.ClearLocalLater, locale === 'pt-BR' ? `${saved.size} vídeo` : `${saved.size} video`]
+        [n.ClearLocalHistory, locale === 'pt-BR' ? positions.size === 0 ? 'Nenhuma posição' : `${positions.size} ${positions.size === 1 ? 'posição' : 'posições'}` : `${positions.size} ${positions.size === 1 ? 'position' : 'positions'}`],
+        [n.ClearLocalLater, locale === 'pt-BR' ? saved.size === 0 ? 'Nenhum vídeo' : `${saved.size} ${saved.size === 1 ? 'vídeo' : 'vídeos'}` : `${saved.size} ${saved.size === 1 ? 'video' : 'videos'}`]
       ];
       rows.forEach(([label, value], i) => {
         const button = makeButton('', () => {
@@ -394,18 +449,28 @@
         const name = document.createElement('span'), detail = document.createElement('span'); name.textContent = label; detail.textContent = value; button.append(name, detail); button.dataset.setting = i;
         button.addEventListener('focus', () => keepPageFocusVisible(button)); content.append(button);
       });
+    } else if (page === 'phone') {
+      home.hidden = false; setRail(true, 5); state.page = 'phone';
+      const phone = document.createElement('div'); phone.className = 'phone-scrim';
+      const surface = document.createElement('div'); surface.className = 'phone-panel';
+      const title = document.createElement('h3'); title.innerHTML = icon('phone'); title.append(document.createTextNode(n.CastTitle));
+      const choose = document.createElement('p'); choose.className = 'phone-choose'; choose.textContent = n.CastChoose + 'YouTube 360.';
+      const path = document.createElement('p'); path.className = 'phone-path'; path.textContent = n.CastPath;
+      const loading = document.createElement('p'); loading.className = 'phone-loading'; loading.textContent = n.CastLoading;
+      const remember = document.createElement('p'); remember.className = 'phone-remember'; remember.textContent = n.CastRemember;
+      const offline = document.createElement('p'); offline.className = 'phone-offline'; offline.textContent = n.CastOffline;
+      surface.append(title, choose, path, loading, remember, offline, makeButton('A ' + n.Close + '     B ' + n.Back, () => showPage('home'), 'phone-close'));
+      phone.append(surface); content.append(phone); $('#app-hints').hidden = true;
     } else {
-      const note = document.createElement('p'); note.className = 'browse-note'; note.textContent = page === 'phone' ? t.phone_demo : t.account_demo;
-      const code = document.createElement('p'); code.className = 'demo-code'; code.textContent = page === 'phone' ? '123 456 789 012' : 'DEMO-CODE';
-      const disclaimer = document.createElement('p'); disclaimer.className = 'browse-note'; disclaimer.textContent = t.demo_note;
-      content.append(note, code, disclaimer, makeButton(t.back, () => showPage('home')));
+      content.append(makeButton(n.Back, () => showPage('home')));
     }
-    if (moveFocus) focus(pageButtons()[0]); animateIn(browse); marker(); startLoop();
+    fitNativeType();
+    if (moveFocus) focus(page === 'search' ? $('.keyboard-key', content) : pageButtons()[0]); animateIn(browse); marker(); startLoop();
   }
   $$('[data-page]').forEach(button => button.addEventListener('click', () => showPage(button.dataset.page)));
   options.forEach(([name, symbol]) => {
     const button = document.createElement('button'); button.type = 'button'; button.dataset.playerAction = name;
-    button.setAttribute('aria-label', t[name]); button.title = t[name]; button.innerHTML = icon(symbol);
+    button.setAttribute('aria-label', t[name]); button.title = t[name]; button.innerHTML = `<svg class="icon native-player-icon" aria-hidden="true"><use href="#i-native-player-${name}"/></svg>`;
     if (name === 'dislike') button.classList.add('dislike-icon');
     if (name === 'quality') button.insertAdjacentHTML('beforeend', '<small class="quality-badge">1080</small>');
     if (['like','dislike','repeat','captions'].includes(name)) button.setAttribute('aria-pressed','false');
@@ -420,6 +485,7 @@
   }
   function updatePause() {
     player.classList.toggle('paused', state.paused);
+    $('#player-toggle use').setAttribute('href', '#i-native-player-' + (state.paused ? 'play' : 'pause'));
     $('#player-toggle').setAttribute('aria-label', state.paused ? t.resume_preview : t.pause_preview);
     updateOptions();
   }
@@ -434,7 +500,7 @@
     $('#player-time').textContent = `${time} / 8:07`; progress.setAttribute('aria-valuetext', `${time} / 8:07`);
   }
   function openPlayer(position = 7) {
-    sponsorIgnored.clear();
+    sponsorIgnored.clear(); fitNativeType();
     state.mode = 'player'; state.zone = 'timeline'; state.elapsed = position; state.sponsorUndo = false; state.sponsorUndoUntil = 0; state.paused = false; state.option = 0;
     const image = $('.player-image'); if (!image.hasAttribute('src')) image.src = image.dataset.src;
     home.hidden = true; browse.hidden = true; player.hidden = false; panel.hidden = true;
@@ -447,10 +513,12 @@
   function closePanel() { panel.hidden = true; state.mode = 'player'; state.zone = 'options'; updateOptions(true); startLoop(); }
   function openPanel(name, choices) {
     state.mode = 'player-panel'; state.panelIndex = 0; panel.hidden = false;
-    $('#player-panel-title').textContent = t[name]; const content = $('#player-panel-content'); content.replaceChildren();
+    panel.dataset.panel = name;
+    $('.panel-back').innerHTML = name === 'quality' ? `<span><b class="pad-button pad-direction">↑↓</b> ${n.ChooseRow}</span><span><b class="pad-button pad-a">A</b> ${t.apply}</span><span><b class="pad-button pad-b">B</b> ${n.Back}</span>` : `<b class="pad-button pad-b">B</b> ${n.Back}`;
+    $('#player-panel-title').textContent = t[name]; const content = $('#player-panel-content'); content.replaceChildren(); $$('.quality-note, .quality-source', panel).forEach(element => element.remove());
     choices.forEach(([label, action]) => content.append(makeButton(label, action, 'panel-choice')));
-    if (name === 'quality') { const note = document.createElement('p'); note.className = 'quality-note'; note.textContent = t.quality_manual_note; content.append(note); }
-    focus($('.panel-choice', content)); animateIn(panel); marker();
+    if (name === 'quality') { const note = document.createElement('p'); note.className = 'quality-note'; note.textContent = n.ManualQualityHelp; panel.append(note); const source = document.createElement('span'); source.className = 'quality-source'; source.textContent = '1080p30'; panel.append(source); }
+    fitNativeType(); focus($('.panel-choice', content)); animateIn(panel); marker();
   }
   function activatePlayer(name) {
     if (name === 'transport') { state.paused = !state.paused; updatePause(); startLoop(); return; }
@@ -469,7 +537,7 @@
     }
     if (name === 'comments') { openPanel(name, [[`Torcedor · ${t.comment_demo}`, () => {}], [t.comment_text, () => {}]]); return; }
     const choices = name === 'quality' ? [t.automatic, '1080p30', '480p', '360p', '240p', '144p'] : name === 'sound' ? ['TV', 'Google Nest · Demo'] : [t.off, '15 min', '30 min', '1 h', '2 h'];
-    openPanel(name, choices.map(value => [value === 'Automatic' ? (locale === 'pt-BR' ? 'Automático' : 'Automatic') : value, () => { if (name === 'quality') { state.quality = value; $('.quality-badge').textContent = value === t.automatic ? 'Auto' : value.replace(/p.*$/, ''); } closePanel(); showToast(`${t[name]}: ${value}. ${t.demo_note}`); }]));
+    openPanel(name, choices.map(value => [value === 'Automatic' ? (locale === 'pt-BR' ? 'Automático' : 'Automatic') : name === 'quality' && value === '1080p30' ? '1080p · 30 fps' : value, () => { if (name === 'quality') { state.quality = value; $('.quality-badge').textContent = value === t.automatic ? 'Auto' : value.replace(/p.*$/, ''); } closePanel(); showToast(`${t[name]}: ${value}. ${t.demo_note}`); }]));
   }
   playerButtons.forEach((button, i) => {
     button.addEventListener('click', () => { state.option = i; state.zone = 'options'; updateOptions(); activatePlayer(button.dataset.playerAction); });
@@ -479,6 +547,7 @@
   progress.addEventListener('input', () => { state.elapsed = Number(progress.value); updateProgress(); });
   function command(action) {
     if (!state.visible) return;
+    if (state.page === 'phone' && (action === 'a' || action === 'b')) { showPage('home'); return; }
     if (state.mode === 'dialog') {
       if (action === 'b') { closeDialog(); return; }
       const buttons = $$('button', dialog); let index = buttons.indexOf(document.activeElement);
@@ -498,7 +567,9 @@
       const choices = $$('button', panel);
       state.panelIndex = Math.max(0, Math.min(choices.length - 1, state.panelIndex + (action === 'down' || action === 'right' ? 1 : action === 'up' || action === 'left' ? -1 : 0)));
       if (action === 'a') (panel.contains(document.activeElement) ? document.activeElement : choices[state.panelIndex]).click();
-      else focus(choices[state.panelIndex]); return;
+      else focus(choices[state.panelIndex]);
+      if (panel.dataset.panel === 'quality') $('#player-panel-content').scrollTop = Math.max(0, Math.min(2, state.panelIndex - 3)) * 58;
+      return;
     }
     if (state.mode === 'player') {
       if (action === 'b') {
@@ -616,7 +687,7 @@
   try { const pad = navigator.getGamepads && [...navigator.getGamepads()].find(pad => pad && pad.connected); if (pad) connectGamepad(pad); } catch {}
   new IntersectionObserver(([entry]) => { state.visible = entry.isIntersecting; if (state.visible) startLoop(); else stopLoop(); }, { threshold:.08 }).observe(tv);
   document.addEventListener('visibilitychange', () => { if (document.hidden) stopLoop(); else { state.lastTime = 0; startLoop(); } });
-  select(0); marker();
+  select(0); marker(); appHints('home'); native.dataset.page = 'home'; fitNativeType();
 
   const featureData = {
     account: { image: 'signin', alt: t.account_alt, caption: t.account_caption },

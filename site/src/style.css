@@ -203,3 +203,193 @@
 .app-page[data-page=settings] .settings-row:focus{outline:3px solid #ff0f3c;outline-offset:0;background:#24242b;color:#f5f5f7}
 .settings-help{position:absolute;left:136px;right:64px;top:610px;color:#a1a1aa;font-size:16px;line-height:22px;max-height:44px;overflow:hidden}
 @media(max-width:700px){.app-page[data-page=settings] #browse-content{height:476px}.app-page[data-page=settings] .settings-row{height:88px;min-height:88px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:8px;font-size:23px;padding:8px 28px}.app-page[data-page=settings] .settings-row>span:last-child{font-size:28px;max-width:100%}.settings-help{font-size:22px;line-height:26px}}
+/* Geometria da rc4: coordenadas do Navigation::draw, SearchUI e Settings. */
+#app-native .app-home{background:none}
+#app-native #account-photo{display:none!important}
+#app-native .app-brand{left:136px;top:22px;gap:14px}
+#app-native .app-brand .wordmark{font-size:27px;letter-spacing:0}
+#app-native .app-top-actions{right:88px;top:30px;font-size:16px}
+#app-native .app-categories{left:136px;right:64px;top:76px}
+#app-native .category{font-size:19px}
+#app-native .video-grid{left:128px;right:56px;top:142px;bottom:54px;gap:23px 24px}
+#app-native .video-title{font-size:17px;line-height:23px;height:46px;font-weight:600}
+#app-native .video-meta{font-size:16px;line-height:20px}
+.video-duration{position:absolute;right:5px;bottom:5px;background:#000c;padding:2px 5px;color:#f5f5f7;font-size:13px;font-weight:700;border-radius:4px}
+#app-native .app-page{padding:0;overflow:hidden;background:#0b0b0e}
+#app-native .app-page h2{position:absolute;left:136px;right:64px;top:28px;margin:0;font-size:34px;font-weight:700;line-height:42px;letter-spacing:0}
+#app-native #browse-content{position:absolute;left:136px;right:64px;top:178px;bottom:74px;padding:0;display:block;overflow:auto;scrollbar-width:none;overscroll-behavior:contain}
+#app-native .browse-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:25px 24px;width:100%;padding:5px;margin:-5px;box-sizing:content-box}
+#app-native .browse-grid .video-card{width:100%;max-width:none;min-width:0;border-radius:12px}
+.catalog-thumb{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:12px}
+.catalog-title{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;font-size:22px;font-weight:600;line-height:27px;height:54px;margin-top:16px}
+.catalog-byline{display:block;font-size:18px;font-weight:600;line-height:23px;color:#a1a1aa;margin-top:4px}
+#app-native .catalog-card:focus-visible{outline:0}
+#app-native .catalog-card:focus-visible .catalog-thumb{outline:5px solid #f5f5f7;outline-offset:0}
+#app-native .app-bottom{left:136px;right:0;bottom:0;height:74px;padding-top:0;align-items:center;gap:26px;font-size:16px;z-index:3;background:#0b0b0e}
+#app-native .app-bottom .pad-button{width:24px;height:24px;font-size:13px}
+#app-native .app-bottom .pad-direction{width:40px;border-radius:14px}
+#app-native .app-bottom>span{display:flex}
+#app-native .app-page[data-page=subscriptions] #browse-content{top:166px}
+#app-native .channel-avatars{display:flex;height:176px;gap:48px;margin:0;align-items:flex-start}
+#app-native .channel-avatar{width:142px;padding:0;gap:10px;font-size:18px;line-height:23px;align-items:flex-start}
+#app-native .channel-initial{width:96px;height:96px;background:#24242b;border-radius:50%}
+#app-native .channel-avatar:focus-visible .channel-initial{outline:5px solid #f5f5f7}
+#app-native .app-page[data-page=library] #browse-content{top:120px}
+.library-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:28px 24px;padding:5px;margin:-5px}
+.library-card{position:relative;height:142px;padding:0;border-radius:12px;background:linear-gradient(#24242b,#000);text-align:left;overflow:hidden}
+.library-card .video-thumb{position:absolute;inset:0;width:100%;height:142px;opacity:.68;border-radius:12px}
+.library-card::after{content:'';position:absolute;inset:0;background:linear-gradient(transparent,#000e)}
+.library-card>span:last-child{position:absolute;left:12px;right:12px;bottom:12px;font-size:22px;line-height:27px;font-weight:600;color:#f5f5f7;z-index:1}
+.library-card:focus-visible{outline:5px solid #f5f5f7;outline-offset:0}
+#app-native .app-page[data-page=music] #browse-content{top:99px}
+.music-account-label{position:absolute;left:136px;top:69px;font-size:13px;font-weight:700;color:#a1a1aa;line-height:17px}
+.music-tabs{position:absolute;left:650px;top:32px;display:flex;gap:14px}
+#app-native .music-tabs .category{font-size:22px;font-weight:600;height:42px;padding:0 20px;background:transparent}
+#app-native .music-tabs .active{background:#24242b;color:#f5f5f7;position:relative}
+.music-tabs .active::after,#app-native .browse-tabs .active::after{content:'';position:absolute;bottom:-4px;left:20px;right:20px;height:3px;background:linear-gradient(90deg,#ff0f3c,#ff5a52);border-radius:2px}
+.music-shelf{height:184px}.music-shelf h3{font-size:22px;font-weight:600;line-height:27px;margin:0 0 3px}
+#app-native .music-shortcuts{display:flex;gap:45px;height:154px;margin:0;padding:0}
+#app-native .music-shortcut{width:110px;padding:0;font-size:16px;line-height:20px;flex-shrink:0;color:#f5f5f7;overflow:visible}
+#app-native .music-shortcut>span{display:block;width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#app-native .music-shortcut .icon{width:110px;height:110px;padding:24px;border-radius:8px;margin-bottom:3px;color:#ff5a52;background:#33212f}
+#app-native .music-shortcut:nth-child(2) .icon{background:#25253e}
+#app-native .music-shortcut:nth-child(3) .icon{background:#3d2027}
+#app-native .music-shortcut .icon use[href='#i-clock'],#app-native .music-shortcut .icon use[href='#i-list']{stroke:#f5f5f7}
+#app-native .music-shortcut:focus-visible .icon{outline:4px solid #f5f5f7}
+#app-native .music-shelf-grid{grid-template-columns:repeat(4,110px);gap:45px;margin:0;padding:0;box-sizing:border-box}
+#app-native .music-shelf-grid .catalog-thumb{height:110px;aspect-ratio:1;border-radius:6px}
+.music-shelf-grid .catalog-title{font-size:16px;font-weight:400;line-height:20px;height:20px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:140px;margin-top:3px}
+.music-shelf-grid .catalog-byline{font-size:13px;font-weight:700;line-height:17px;width:140px;margin-top:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#app-native .music-tracks .catalog-thumb{aspect-ratio:1}
+#app-native .app-page[data-page=channel] h2{left:232px;right:350px}
+#app-native .app-page[data-page=channel]::before{content:'';position:absolute;left:96px;right:0;top:0;height:175px;background:linear-gradient(#102b2f,#0b0b0e)}
+#app-native .channel-heading{position:absolute;left:0;right:0;top:-150px;height:100px;display:block;margin:0}
+#app-native .channel-heading .channel-art{position:absolute;left:0;top:0;width:72px;height:72px;object-fit:cover;background:none;border-radius:50%}
+.channel-heading p{position:absolute;left:96px;top:54px;color:#a1a1aa;font-size:18px;font-weight:600;line-height:23px}
+#app-native .channel-heading .browse-button{position:absolute;right:0;top:4px;min-width:252px;height:54px;padding:0 20px;border-radius:27px;background:#24242b;color:#f5f5f7;font-size:22px;font-weight:600}
+#app-native .browse-tabs{position:absolute;top:-58px;left:0;display:flex;height:42px;margin:0;gap:14px}
+#app-native .browse-tabs .category{position:relative;font-size:22px;font-weight:600;background:transparent;padding:0 20px;height:42px}
+#app-native .browse-tabs .active{background:#24242b;color:#f5f5f7}
+#app-native .app-page[data-page=channel] #browse-content{overflow:visible}
+#app-native .app-page[data-page=channel] .browse-grid{max-height:468px;overflow:auto;scrollbar-width:none}
+#app-native .app-page[data-page=search] h2{top:40px}
+#app-native .app-page[data-page=search] #browse-content{inset:0;overflow:hidden}
+#app-native .demo-search{display:contents}
+#app-native .demo-search input{position:absolute;left:136px;right:64px;top:112px;width:calc(100% - 200px);height:60px;border:0;border-radius:30px;background:#24242b;padding:0 62px;font-size:22px;font-weight:600;color:#f5f5f7;outline:none}
+#app-native .demo-search input:focus{box-shadow:inset -10px 0 0 -7px #ff0f3c}
+#app-native .demo-search button[type=submit]{position:absolute;left:576px;top:448px;width:212px;height:54px;border-radius:14px;font-size:19px;background:#ff0f3c;color:#f5f5f7;z-index:1;padding:0}
+#app-native #search-filters{position:absolute;left:auto;right:130px;top:51px;padding:0;background:none;color:#a1a1aa;font-size:16px;line-height:24px;border-radius:0}
+#app-native .search-workspace{position:absolute;inset:0;display:block;pointer-events:none}
+#app-native .search-workspace button{pointer-events:auto}
+#app-native .demo-keyboard{position:absolute;left:136px;top:200px;display:grid;grid-template-columns:repeat(10,58px);grid-auto-rows:54px;width:652px;gap:8px;margin:0}
+#app-native .keyboard-key{padding:0;font-size:22px;font-weight:600;border-radius:14px;background:#24242b;color:#f5f5f7}
+#app-native .keyboard-key:focus{color:#0b0b0e;background:#f5f5f7}
+.keyboard-actions{position:absolute;left:136px;top:448px;display:flex;gap:8px}
+#app-native .keyboard-actions button{width:212px;height:54px;font-size:19px}
+#app-native .search-suggestions{position:absolute;left:846px;right:64px;top:198px}
+#app-native .search-suggestions h3{font-size:23px;font-weight:600;line-height:28px;margin:0 0 12px}
+#app-native .suggestion{height:40px;margin-bottom:5px;padding:9px 16px;background:#24242b;border-radius:16px;font-size:19px;line-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#app-native .suggestion:focus{background:#f5f5f7;color:#0b0b0e}
+#app-native .demo-results{position:absolute;left:136px;right:64px;top:210px;bottom:74px;overflow:auto;scrollbar-width:none}
+#app-native .app-page[data-page=search]:has(.demo-results:not(:empty)) .demo-search input{display:none}
+#app-native .app-page[data-page=search]:has(.demo-results:not(:empty)) #search-filters{left:136px;top:126px;right:auto}
+#app-native .app-page[data-page=settings] h2{top:32px}
+#app-native .app-page[data-page=settings] #browse-content{left:133px;right:61px;top:119px;bottom:auto;height:478px;padding:3px}
+#app-native .app-page[data-page=settings] .settings-row{width:100%;height:53px;min-height:53px;margin-bottom:6px;font-size:18px}
+#app-native .app-page[data-page=settings] .settings-row>span:last-child{color:#f5f5f7}
+#app-native .app-page[data-page=settings] .settings-row[data-setting='3']{color:#a1a1aa}
+#app-native .app-page[data-page=settings] .settings-row[data-setting='3']>span:last-child{color:#a1a1aa}
+#app-native .app-page[data-page=phone]{background:transparent;z-index:8;overflow:visible}
+#app-native .app-page[data-page=phone]>h2{display:none}
+#app-native .app-page[data-page=phone] #browse-content{inset:0;overflow:visible}
+.phone-scrim{position:absolute;inset:0;background:#000b;display:grid;place-items:center}
+.phone-panel{position:relative;width:820px;height:418px;border-radius:28px;background:#18181d;box-shadow:0 15px 35px #0007}
+.phone-panel h3{position:absolute;left:92px;top:40px;font-size:34px;line-height:42px;font-weight:700}
+.phone-panel h3 .icon{position:absolute;left:-52px;top:7px;width:28px;height:28px}
+.phone-panel p{position:absolute;left:48px;right:48px;margin:0;font-size:16px;line-height:22px;color:#a1a1aa}
+.phone-panel .phone-choose{top:104px;font-size:19px;line-height:25px;color:#f5f5f7}
+.phone-panel .phone-path{top:137px}.phone-panel .phone-loading{top:208px;font-size:19px;color:#6b6b74}
+.phone-panel .phone-remember{top:264px}.phone-panel .phone-offline{top:300px;border-top:1px solid #ffffff14;padding-top:18px;color:#6b6b74}
+.phone-close{position:absolute;left:48px;bottom:27px;background:none;font-size:16px;color:#a1a1aa;padding:8px 0}
+#app-native .player-preview-note{display:none}
+@media(max-width:700px){
+ #app-native .video-grid,#app-native .browse-grid,.library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #app-native .app-page[data-page=settings] #browse-content{height:476px}
+ #app-native .app-page[data-page=settings] .settings-row{height:88px;min-height:88px;font-size:23px}
+ #app-native .app-page[data-page=settings] .settings-row>span:last-child{font-size:28px}
+ #app-native .music-tabs{left:400px}#app-native .music-tabs .category{font-size:20px;padding:0 14px}
+ #app-native .music-shelf-grid{grid-template-columns:repeat(4,110px)}
+ #app-native .demo-keyboard{grid-template-columns:repeat(10,58px)}
+ #app-native .search-suggestions{left:136px;top:536px}#app-native .search-suggestions .suggestion:not(:nth-child(2)){display:none}
+ #app-native .search-suggestions h3{font-size:22px;margin-bottom:8px}.phone-panel{width:800px}
+}
+#app-native .demo-dialog[data-kind=filters]{background:#000e;padding:0}
+#app-native .demo-dialog[data-kind=filters] .dialog-surface{position:relative;width:860px;height:612px;max-height:612px;padding:0;border-radius:28px;overflow:hidden}
+#app-native .demo-dialog[data-kind=filters] h3{position:absolute;left:32px;right:32px;top:26px;font-size:34px;font-weight:700;line-height:42px;margin:0}
+#app-native .demo-dialog[data-kind=filters] #dialog-note{display:none}
+#app-native .demo-dialog[data-kind=filters] #dialog-actions{position:absolute;inset:0;display:block}
+#app-native .demo-dialog[data-kind=filters] .settings-row{position:absolute;left:26px;right:26px;width:calc(100% - 52px);height:78px;min-height:78px;border-radius:15px;padding:8px 20px;gap:10px;font-size:18px;font-weight:600;background:#24242b}
+#app-native .demo-dialog[data-kind=filters] .settings-row:nth-child(1){top:92px}
+#app-native .demo-dialog[data-kind=filters] .settings-row:nth-child(2){top:178px}
+#app-native .demo-dialog[data-kind=filters] .settings-row:nth-child(3){top:264px}
+#app-native .demo-dialog[data-kind=filters] .settings-row:nth-child(4){top:350px}
+#app-native .demo-dialog[data-kind=filters] .settings-row:focus{background:#f5f5f7;color:#0b0b0e}
+#app-native .demo-dialog[data-kind=filters] .settings-row strong{font-size:22px;line-height:27px;font-weight:600}
+#app-native .demo-dialog[data-kind=filters] .panel-choice{position:absolute;top:450px;left:26px;width:397px;height:62px;font-size:22px;font-weight:600;padding:0 20px;border-radius:20px;background:#24242b}
+#app-native .demo-dialog[data-kind=filters] .panel-choice:nth-of-type(6){left:437px}
+#app-native .demo-dialog[data-kind=filters] .panel-choice:focus{background:#f5f5f7;color:#0b0b0e}
+#app-native .demo-dialog[data-kind=filters] .filter-native-hints{position:absolute;left:32px;top:556px;margin:0;font-size:16px;line-height:24px;color:#a1a1aa}
+#app-native .settings-row>span:first-child{font-weight:600}
+#app-native .music-shelf{position:relative}
+#app-native .music-shelf .music-shortcuts,#app-native .music-shelf .music-shelf-grid{position:absolute;left:0;top:30px}
+#app-native .catalog-card:focus .catalog-thumb{outline:5px solid #f5f5f7;outline-offset:0}
+#app-native .library-card:focus{outline:5px solid #f5f5f7;outline-offset:0}
+#app-native .music-shortcut:focus .icon{outline:4px solid #f5f5f7}
+#app-native .demo-search input::-webkit-search-cancel-button{display:none}
+#app-native #browse-content{left:131px;right:59px;top:173px;padding:5px}
+#app-native .app-page[data-page=library] #browse-content{top:115px}
+#app-native .app-page[data-page=music] #browse-content{top:94px}
+#app-native .app-page[data-page=subscriptions] #browse-content{top:161px}
+#app-native .app-page[data-page=search] #browse-content,#app-native .app-page[data-page=phone] #browse-content{padding:0}
+#app-native .channel-heading{left:5px;right:5px;top:-145px}
+#app-native .browse-tabs{left:5px;top:-53px}
+#app-native .catalog-title{line-height:27px!important;height:54px;max-height:54px}
+#app-native .video-title{line-height:23px!important}
+#app-native .music-shelf-grid .catalog-title{line-height:20px!important;height:20px;max-height:20px}
+#app-native .music-shortcuts{align-items:flex-start}
+#app-native .music-shortcut{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-start;height:140px}
+#app-native .app-bottom{padding-top:10px}
+#app-native .music-shortcut .icon{padding:0;stroke:none}
+#app-native .player-panel[data-panel=quality]{top:100px;bottom:auto;height:490px;padding:0;border-radius:24px;overflow:visible}
+#app-native .player-panel[data-panel=quality]::before{content:'';position:absolute;inset:-100px -1000px -130px;background:#0009;z-index:-1}
+#app-native .player-panel[data-panel=quality] h3{position:absolute;left:36px;top:28px;font-size:34px;line-height:42px;font-weight:700;margin:0}
+#app-native .player-panel[data-panel=quality] #player-panel-content{position:absolute;left:30px;right:30px;top:90px;height:232px;display:block;overflow:auto;scrollbar-width:none}
+#app-native .player-panel[data-panel=quality] .panel-choice{width:100%;height:50px;margin-bottom:8px;display:block;padding:0 20px;border-radius:10px;font-size:19px;font-weight:400;background:#24242b;color:#f5f5f7}
+#app-native .player-panel[data-panel=quality] .panel-choice:focus{background:#f5f5f7;color:#0b0b0e}
+#app-native .player-panel[data-panel=quality] .quality-note{position:fixed;left:36px;right:36px;top:330px;font-size:16px;line-height:22px;color:#a1a1aa;margin:0}
+#app-native .player-panel[data-panel=quality] .panel-back{position:absolute;left:36px;bottom:18px;font-size:16px;padding:0;margin:0}
+#app-native .player-panel[data-panel=quality] .quality-note{position:absolute}
+.quality-source{position:absolute;right:36px;top:35px;font-size:23px;font-weight:600;line-height:28px;color:#ff5a52}
+#app-native .library-card>span:last-child{line-height:27px!important}
+#app-native .app-page[data-page=search]:has(.demo-results:not(:empty)) .demo-search button[type=submit]{display:none}
+#app-native #player-title{font-size:24.2px;font-weight:600;line-height:30px}
+#app-native #player-channel{font-size:17px;font-weight:400;line-height:22px}
+#app-native #player-time{font-size:18.2px}
+#app-native .player-bottom{padding-top:143px}
+#app-native .player-options{gap:4px;top:228px;right:32px}
+#app-native .player-transport{top:228px}
+#app-native .player-panel[data-panel=quality] .panel-back{display:flex;gap:26px;height:24px;bottom:18px}
+#app-native .player-panel[data-panel=quality] .panel-back>span{display:flex;align-items:center;gap:8px}
+#player-quality-hint{position:absolute;left:40px;top:523px;display:flex;align-items:center;gap:8px;color:#a1a1aa;background:transparent;font-size:16px;padding:0}
+#app-native .sponsor-skip{top:44px;font-size:16px}
+#app-native .sponsor-marks{top:204px}
+#app-native .sidebar-icon{padding-left:14px;padding-right:14px;gap:26px}
+#app-native .sidebar-icon .icon{width:24px;height:24px}
+#app-native .native-player-icon{fill:currentColor;stroke:none}
+#app-native .player-options .dislike-icon .icon{transform:none}
+#app-native .player-options,#app-native .player-transport{top:220px}
+#app-native .player-options .icon{width:22px;height:22px}
+#app-native .player-transport .icon{width:26px;height:26px}
+#app-native .player-panel[data-panel=quality]{background:#18181d;z-index:7}
+#app-native .player-panel[data-panel=quality]::before{display:none}
+#app-native #player-screen:has(#player-panel:not([hidden]))::after{content:'';position:absolute;inset:0;background:#0009;z-index:6;pointer-events:none}
