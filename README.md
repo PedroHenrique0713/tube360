@@ -23,6 +23,18 @@
 
 ---
 
+## What is new in 0.3.2
+
+The 0.3.2 candidate combines direct saved-Nest connections and a filtered speaker clock, signed app updates with a launcher, startup/TLS diagnostics, measured quality recovery and fixed 480p–144p choices. It also adds account Music through the TV client, SponsorBlock and Arabic text/search. Console acceptance of the combined candidate is still pending.
+
+Copy the whole package once when upgrading from an older app named `default.xex`: close Tube360, preserve your settings/account files, replace `default.xex` with the supplied launcher and keep the separate `tube360.xex` plus all eight fonts beside it. Never rename `tube360.xex` over the launcher. Reopen the launcher to install later signed app updates.
+
+`video-driver.txt` accepts `auto`, `safe` or `native`. Auto preserves the tested Corona/Winchester native baseline; other families use safe. `board-sim.txt` and desktop `XT_BOARD` exercise synthetic contracts for diagnosis; remove them after testing. [Board simulation and limits](docs/BOARD-SIMULATION.md).
+
+SponsorBlock offers Off, Skip button (default) and automatic skipping. Y skips a marked segment or returns after an automatic skip; otherwise it opens Quality. Community segments can be wrong. Segment data: [SponsorBlock](https://sponsor.ajay.app/), [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), separate from the MIT code. [Behavior and checks](bench/sponsorblock/README.md).
+
+Arabic uses contextual shaping and bidi, with Noto fonts loaded when needed in any language. RB switches the Arabic search keyboard to Latin. [Arabic support and review limits](docs/ARABIC.md).
+
 ## Highlights
 
 | | |

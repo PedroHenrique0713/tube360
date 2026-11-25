@@ -8,6 +8,7 @@
 #include <string.h>
 #ifdef __XSDK__
 #include <xsdk/kernel.h>
+#include <xsdk/log.h>
 #endif
 
 static int initialized,native,flags_known;

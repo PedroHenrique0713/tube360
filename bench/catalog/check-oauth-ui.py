@@ -68,6 +68,7 @@ cases = [
     ('account', 'pt', True, 'music', '', {}, 'tv'),
     ('account-en', 'en', True, 'music', '', {}, 'tv'),
     ('account-es', 'es', True, 'music', '', {}, 'tv'),
+    ('account-ar', 'ar', True, 'music', '', {}, 'tv'),
     ('account-large', 'pt', True, 'music', '', {'settings': 'output_height=480\nlarge_text=on\n'}, 'tv'),
     ('guest', 'pt', False, 'music', '', {}, 'public'),
     ('rejected-account', 'pt', True, 'music', '', {}, 'public'),
@@ -85,8 +86,8 @@ for name, lang, signed, kind, query, config, expected_source in cases:
         continue
     manifest = copy.deepcopy(base_manifest)
     requests = manifest['requests']
-    tv_context = {'client': {'clientName': 'TVHTML5', 'clientVersion': '7.20261123.19.00', 'visitorData': 'fixture-tv-visitor', 'hl': lang, 'gl': {'pt':'BR','en':'US','es':'MX'}[lang]}, 'user': {}}
-    web_context = {'client': {'clientName':'WEB_REMIX', 'clientVersion':'1.20261122.17.00', 'hl':lang, 'gl':{'pt':'BR','en':'US','es':'MX'}[lang]}, 'user': {}}
+    tv_context = {'client': {'clientName': 'TVHTML5', 'clientVersion': '7.20261123.19.00', 'visitorData': 'fixture-tv-visitor', 'hl': lang, 'gl': {'pt':'BR','en':'US','es':'MX','ar':'SA'}[lang]}, 'user': {}}
+    web_context = {'client': {'clientName':'WEB_REMIX', 'clientVersion':'1.20261122.17.00', 'hl':lang, 'gl':{'pt':'BR','en':'US','es':'MX','ar':'SA'}[lang]}, 'user': {}}
     def post(host, route, fields, file, tv=True, status=200):
         requests.insert(0, {'url': 'https://'+host+'/youtubei/v1/'+route+'?prettyPrint=false&alt=json',
             'fields': {**fields, 'context': tv_context if tv else web_context},
@@ -104,6 +105,7 @@ for name, lang, signed, kind, query, config, expected_source in cases:
     (replay/'responses.json').write_text(json.dumps(manifest))
     assets = proof/('assets-'+name)
     shutil.copytree(replay/'assets', assets, dirs_exist_ok=True)
+    for font in (root/'client/assets').glob('noto-sans-arabic-*.ttf'):shutil.copy(font,assets)
     (assets/'settings.txt').write_text('lang='+lang+'\ncols=4\nquality=720\nsound=tv\nserver=off\n'+config.get('settings',''))
     token = assets/'yt-console-account.json'
     token.unlink(missing_ok=True)

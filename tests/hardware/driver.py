@@ -30,6 +30,9 @@ prefix = '''#include <assert.h>
 #include "xsdk/tube360_video.h"
 #include "board_sim.h"
 uint32_t tube360_display_width=1280,tube360_display_height=720;
+int tube360_display_kernel;static float tube360_display_aspect;
+XsdkDisplayMode tube360_display_mode(XsdkDisplayMode requested){return tube360_board_sim_sd()?XSDK_DISPLAY_KERNEL:requested;}
+bool tube360_display_kernel_extent(uint32_t* width,uint32_t* height){int w=0,h=0;tube360_board_sim_extent(1080,0,&w,&h);*width=w;*height=h;return w>0 && h>0;}
 static int native;
 int tube360_native_video(void){return native;}
 const char* boot_log_path(void){return "boot-app.log";}

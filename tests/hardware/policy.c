@@ -14,6 +14,7 @@ const char* boot_log_path(void){return "boot-app.log";}
 void boot_event(const char* phase,const char* step,const char* fmt,...){
     printf("%s %s ",phase,step);va_list a;va_start(a,fmt);vprintf(fmt,a);va_end(a);puts("");
 }
+void xsdk_log_write(const char* fmt,...){(void)fmt;}
 int main(int argc,char** argv){
     assert(argc==4);flags=(uint32_t)strtoul(argv[1],NULL,16);absent=atoi(argv[2]);
     tube360_video_policy_init();assert(tube360_native_video()==atoi(argv[3]));

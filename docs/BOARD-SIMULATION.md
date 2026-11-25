@@ -8,17 +8,10 @@ levantamento para reduzir automaticamente o clock ou a RAM de um Falcon/Jasper.
 
 ## Regra para preservar o console do dono
 
-1. O dono continua usando **`video-driver.txt` contendo `native`**: mantém framebuffer nativo e
-   memória mapeada. O kit desta frente traz esse arquivo no baseline e não altera a pasta de uso dele.
-2. Depois de ler o log real da F32 e medir a família do E, compilar com
-   `TUBE360_NATIVE_BOARD=corona` **ou** `winchester`, conforme o dado real. Só essa família passa a
-   escolher nativo em `auto`; as demais/unknown ficam em `safe`. A classificação é de família,
-   não de PCB/subrevisão. Não confundir Corona com Corona-e como perfil de conectores.
-3. O valor padrão de build é `unconfirmed`: não escolhi uma das duas famílias por suposição.
-   Os testes host compilam os dois candidatos e provam a seleção exata, sem qualificar uma placa real.
-4. `video-driver.txt=safe` ou inválido reduz o caminho, mesmo na família configurada. Um
-   `board-sim.txt` válido tem precedência explícita: por padrão força seguro, podendo pedir nativo
-   **apenas para um experimento declarado**. Arquivo board-sim inválido força seguro e desliga as injeções.
+1. A integração 0.3.2 mantém Corona e Winchester em `native` por padrão, como na F32 e no baseline confirmado pelo coordenador. As demais famílias/unknown usam `safe`.
+2. `TUBE360_NATIVE_BOARD=corona` ou `winchester` restringe explicitamente esse padrão à família escolhida. `unconfirmed` mantém o padrão Corona/Winchester; não significa qualificação física de todas as revisões.
+3. `video-driver.txt=safe` ou inválido reduz o caminho. `native` pede explicitamente o caminho nativo; `auto` mantém a regra acima.
+4. `board-sim.txt` tem precedência: por padrão força seguro; `driver=native` pede experimento declarado. Arquivo inválido força seguro e desliga as injeções. A detecção física permanece separada.
 
 Exemplo de build **só após confirmar** a família Corona no log do dono:
 
@@ -111,7 +104,7 @@ mapped=off
 | --- | --- |
 | `board` | Um perfil da tabela; obrigatório no console. No PC, XT_BOARD pode fornecê-lo; se ambos existem, precisam coincidir. |
 | `driver` | `safe` (padrão do arquivo) ou `native` explícito. Sem arquivo, XT_BOARD usa a política auto e video-driver.txt. |
-| `mode` | `1080p`, `720p`, `480p` (4:3), `480w` (wide), `480i` (4:3 entrelaçado). Sintético: não reprograma o sinal real. |
+| `mode` | `1080p`, `720p`, `480p` (4:3), `480w` (wide), `480i` (4:3 entrelaçado), `576i` (PAL). Sintético: não reprograma o sinal real. |
 | `cable` | `hdmi`, `component`, `vga`, `composite`. Rejeita combinações impossíveis conhecidas: HDMI no Xenon/Opus, componente/VGA no perfil E, composto progressivo, VGA entrelaçado. |
 | `mapped` | `auto` ou `off`. Nunca habilita um recurso não anunciado pelo driver real; safe sempre usa staging. |
 | `mapped_limit_mib` | 1–160; cota do pool de vídeo, não da RAM inteira nem do heap do kernel. Falha antes de publicar superfície parcial. |
@@ -124,11 +117,7 @@ Arquivo limitado a 1024 bytes, com whitespace e comentários em linha própria i
 NUL, chave desconhecida, repetida, número fora do intervalo, perfil ou combinação inválidos fazem
 o arquivo inteiro falhar seguro: driver safe, nenhuma falha/espera injetada. Não há reload por frame.
 
-Modos: em native, saída pedida 480 ou contrato SD usa 640×480/848×480; 1080 requer contrato
-1080p **e**, no console, autorização do modo real. Safe mantém a preferência 1280×720 original.
-O contrato 480i+safe reproduz o erro de viewport herdado, retornando erro antes de alocar buffers;
-não finge suporte a CRT. A tela de emergência do Xbox também depende do display e pode ficar sem imagem
-nesse experimento; logs e B ainda são necessários. Iniciar a qualificação pelo cenário HD normal.
+Modos: saída pedida 480 usa 640×480; contratos SD usam 640×480, 848×480 (wide) ou 640×576 (PAL), em native e safe. 1080 requer contrato 1080p e, no console, autorização do modo real. Safe mantém o framebuffer existente: HD usa 1280×720; SD/entrelaçado conserva o viewport do painel. Alterar a preferência de saída em safe ou SD não recria o display. A integração F32 substitui a rejeição antiga de 480i+safe; a validação física de CRT ainda é necessária.
 
 Pontos de injeção: `output` rejeita antes do teardown; `fonts` antes de destruir o atlas; `mapped-alloc`
 antes de criar nova superfície. No Xbox, `display-open` retorna timeout simulado antes de

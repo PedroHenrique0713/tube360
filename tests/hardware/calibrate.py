@@ -9,7 +9,7 @@ base.mkdir(parents=True, exist_ok=True)
 policy = (ROOT / 'client/src/video_policy.c').read_text()
 display = (ROOT / '.work/native-display/vulkan4xenon/src/display.c').read_text()
 mutants = [
-    ('lost-owner-native', policy, 'if(policy_family>=0 && policy_family==TUBE360_NATIVE_BOARD_ID)',
+    ('lost-owner-native', policy, 'if(native_default)',
      'if(0)', 'policy.py', '--policy-source', 'corona-auto'),
     ('lost-safe-veto', policy, 'if(override>=0){native=override;', 'if(override>=0){native=1;',
      'policy.py', '--policy-source', 'sim-veto-native'),

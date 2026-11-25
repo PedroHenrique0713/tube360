@@ -123,3 +123,15 @@ No Xbox, use uma pasta de teste gravável com o pacote completo e confira:
 
 Log esperado: `layout: ...`, uma linha `Arabic fonts: ...` por carga de resolução, sem repetição por quadro;
 `servidor ... desligado: só console` quando não houver reserva. Não há validação em console real nesta frente.
+
+
+## Integração 0.3.2: revisão linguística pendente
+
+Todas as 41 chaves novas de início/TLS, qualidade manual, SponsorBlock e Música têm valor árabe explícito em `i18n_ar.hpp`; a macro EN/PT/ES continua com quatro argumentos. Os testes exigem cobertura sem fallback inglês. Revisão nativa pendente, com menor certeza nestes grupos:
+
+- `SponsorCategories`, `SponsorSkip`, `SponsorSkipped`: uso de الرعاية para patrocínio e descrição de promoção/inscrição.
+- `ManualQualityHelp`, `ManualQualityPressure`, `ManualQualityFailed`: termos de perfil adaptativo e manutenção da fonte fixa.
+- `YourMusic`, `PublicMusic`, `MusicRecent`, `MusicLiked`: distinguir catálogo da conta, público, recentes e curtidas em rótulos curtos.
+- `SafeOutputHelp`, `StartupVideo`, `StartupStorage`: vocabulário técnico de saída/GPU/permissão.
+
+Não há revisão por falante nativo nem garantia de posicionamento tipográfico completo sem GPOS. A substituição de atlas conserva a espera da GPU e o reset de comandos da F32 antes de retirar recursos árabes e latinos. As fontes Noto continuam sob demanda; o preflight de início exige Inter, e a carga de árabe informa a falta de Noto. O pacote completo traz as oito fontes.

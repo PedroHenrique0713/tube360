@@ -99,7 +99,7 @@ add_executable(tube360-sponsorblock-fixture EXCLUDE_FROM_ALL $<TARGET_OBJECTS:tu
 target_include_directories(tube360-sponsorblock-fixture PRIVATE src third_party)
 target_link_libraries(tube360-sponsorblock-fixture PRIVATE tube360-update tube360-cast tube360-yt tube360-ffmpeg SDL3::SDL3 Vulkan::Vulkan)
 
-foreach(text_target tube360 tube360-quality-fixture tube360-extras-fixture video-quality-test video-memory-test tube360-sponsorblock-fixture)
+foreach(text_target tube360 tube360-quality-fixture tube360-extras-fixture video-quality-test video-memory-test board-mapped-test cast-test-app tube360-sponsorblock-fixture)
   target_link_libraries(${text_target} PRIVATE tube360-text)
 endforeach()
 
@@ -108,4 +108,4 @@ target_include_directories(arabic-text-test PRIVATE src)
 target_link_libraries(arabic-text-test PRIVATE tube360-text)
 add_executable(arabic-render-test EXCLUDE_FROM_ALL ../bench/arabic/render_test.cpp ${SHADER_HEADERS})
 target_include_directories(arabic-render-test PRIVATE ${CMAKE_CURRENT_BINARY_DIR} src third_party)
-target_link_libraries(arabic-render-test PRIVATE tube360-text SDL3::SDL3 Vulkan::Vulkan)
+target_link_libraries(arabic-render-test PRIVATE tube360-text tube360-boot SDL3::SDL3 Vulkan::Vulkan)

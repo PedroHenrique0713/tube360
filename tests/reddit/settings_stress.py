@@ -8,11 +8,11 @@ from PIL import Image
 ROOT=Path(__file__).resolve().parents[2]
 base=Path(sys.argv[1]).resolve();base.mkdir(parents=True,exist_ok=True)
 sd=len(sys.argv)>2 and sys.argv[2]=='480'
-keys='D'*5+'RRR'+'D'*4+'RRR'+'DD'+'R'+'D'+'R'+'UUU'
+keys='D'*5+'RRRR'+'D'*4+'RRR'+'DD'+'R'+'D'+'R'+'UUU'
 for lang in ('pt','en','es'):
     for fixed in (False,True):
         name=f'{lang}-'+('fixed' if fixed else 'resize');work=base/name;assets=work/'assets';assets.mkdir(parents=True,exist_ok=True)
-        for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copy(font,assets)
+        for font in (ROOT/'client/assets').glob('*.ttf'):shutil.copy(font,assets)
         (assets/'settings.txt').write_text(f'lang={lang}\nserver=off\nsound=tv\noutput_height={480 if sd else 720}\n')
         (work/'error.txt').write_text('network');shot=work/'screen.ppm';shot.unlink(missing_ok=True)
         boot=assets/'boot-app.log';boot.unlink(missing_ok=True)
@@ -21,7 +21,7 @@ for lang in ('pt','en','es'):
         run=subprocess.run([str(ROOT/'client/build/tube360')],cwd=work,env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=20)
         log=run.stdout.decode(errors='replace');(work/'stdout.log').write_text(log)
         assert run.returncode==0 and shot.exists(),(name,run.returncode,log[-2500:])
-        events=boot.read_text();assert events.count('info settings.language')==3 and 'info settings.fit fill=1' in events,events[-2500:]
+        events=boot.read_text();assert events.count('info settings.language')==4 and 'info settings.fit fill=1' in events,events[-2500:]
         assert events.count('begin settings.output ')==3,events[-2500:]
         expected=2 if fixed else 5
         assert events.count('end fonts.retire ')==expected,(name,events)
@@ -35,4 +35,4 @@ for lang in ('pt','en','es'):
         settings=(assets/'settings.txt').read_text();assert f'lang={lang}' in settings and 'large_text=on' in settings and 'video_fit=fill' in settings,settings
         with Image.open(shot) as image:
             assert image.size==((640,480) if sd else (1280,720));image.save(work/'screen.png')
-        shot.unlink();print('PASS settings',name,'outputs=3 atlases='+str(expected)+' lang=3 fit=1; resource order checked',flush=True)
+        shot.unlink();print('PASS settings',name,'outputs=3 atlases='+str(expected)+' lang=4 fit=1; resource order checked',flush=True)

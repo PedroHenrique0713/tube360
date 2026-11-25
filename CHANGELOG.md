@@ -1,10 +1,13 @@
 # Changelog
 
-## [Unreleased]
+## [0.3.2]
 
 ### Added
 
-- Fixed 480p/360p/240p/144p H.264 choices in Settings and the player's Series-style Y Quality menu. During playback, choices follow the video's direct AVC/AAC offers; selection preserves position/pause and warns under sustained pressure without switching source or falling back to a PC. Existing Automatic/720p60/1080p30 profiles retain their adaptive ladder. New messages are available in Portuguese, English and Spanish.
+- Saved Nest IPs connect directly; metadata discovery runs in the background. Cast clock filtering and bounded picture correction keep Wi-Fi status jitter from changing playback cadence.
+- Signed app updates through a separate `default.xex` launcher with startup confirmation and rollback. Migrate by copying the complete package once; keep account/settings files.
+- Board simulation through `XT_BOARD` / `board-sim.txt`, bounded fault/delay/mapped-memory controls and durable output/font checkpoints for isolated qualification.
+- Fixed 480p/360p/240p/144p H.264 choices in Settings and the player's Series-style Y Quality menu. During playback, choices follow the video's direct AVC/AAC offers; selection preserves position/pause and warns under sustained pressure without switching source or falling back to a PC. Existing Automatic/720p60/1080p30 profiles retain their adaptive ladder. New messages are available in Portuguese, English, Spanish and Arabic.
 
 ### Fixed
 
@@ -18,15 +21,15 @@
 - Native startup records durable CRT, storage, video/GPU, font, memory, network and TLS checkpoints beside each XEX. First-frame acquire failures are reported instead of accepting an invalid buffer. See `docs/STARTUP-DIAGNOSTICS.md` for interpreting a freeze.
 - Startup no longer requires DbgPrint, and the measured kernel exception handler is opt-in. Unsupported XNet limits/socket options can use standard defaults; access-denied errors and TLS validation remain enforced. ABadAvatar compatibility is untested.
 - Without `server.txt`, default Automatic mode and settings toggles keep the server disabled. Home shows the native failure and console clock for certificate dates; server recovery instructions and the configured endpoint appear only when the server is effectively enabled.
-- Public browsing distinguishes certificate date errors (with the console clock), other TLS failures, DNS, network loss and YouTube refusal in English, Portuguese and Spanish. TLS verification remains enabled.
-- Startup failures show the reason and recovery steps with a built-in font, persist `startup.log`, and wait for B. The launcher checks all four fonts before handoff and reports launch failures/timeouts.
+- Public browsing distinguishes certificate date errors (with the console clock), other TLS failures, DNS, network loss and YouTube refusal in English, Portuguese, Spanish and Arabic. TLS verification remains enabled.
+- Startup failures show the reason and recovery steps with a built-in font, persist `startup.log`, and wait for B. The launcher checks four Inter fonts (Arabic fonts load on demand) before handoff and reports launch failures/timeouts.
 - Direct VOD playback can recover higher source quality after sustained measured decoder/network headroom, with cooldown and backoff after unsuccessful upgrades. The original profile ceiling survives cached seeks.
 
 ### Changed
 
 - Hold LT/RT to rewind/fast-forward with an accelerating destination preview; release seeks once and preserves pause. Speaker synchronization remains in Settings.
 
-- SponsorBlock with Off, Skip button (default), and automatic skipping; Y skips or returns after an automatic skip, with community warning and attribution in English, Portuguese and Spanish.
+- SponsorBlock with Off, Skip button (default), and automatic skipping; Y skips or returns after an automatic skip, with community warning and attribution in English, Portuguese, Spanish and Arabic.
 - Discreet timeline marks, private four-character SHA-256 prefix requests, background loading and bounded per-video session cache. Sponsors, self-promotion and subscription reminders are enabled; intros/outros are preserved.
 
 - Music now tries the TV music catalogue with the existing account grant after a web Music refusal, exposes recent plays/playlists/likes, labels public fallback, and keeps continuation tokens with their original client. Real-account acceptance and Music/TV recommendation parity remain pending console validation.

@@ -1666,7 +1666,7 @@ int run(int argc, char** argv) {
           settings.outputHeight=heights[(index+direction+3)%3];
           if(!gfx::fixedOutput())pl.resetQualityMeasurements();
           bool changed=gfx::output(g,settings.outputHeight);
-          if(!changed && !gfx::fixedOutput())return startup::fail(K::StartupVideo,"board-sim: output rejected before GPU teardown");
+          if(!changed && (!gfx::fixedOutput() || g.outputRejected))return startup::fail(K::StartupVideo,"board-sim: output rejected before GPU teardown");
           if(changed && !loadDisplay())return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
           if(!gfx::fixedOutput())pl.resetQualityMeasurements();
           scroll=0; nav.nowId.clear();
@@ -1861,7 +1861,7 @@ int run(int argc, char** argv) {
       if (in.hit(Input::Y)) {
         auto action=(!pl.live && pl.state!=player::FAILED && (pl.state==player::PLAYING || sponsors.canUndo(now))) ? sponsors.press(pl.position(),pl.duration,now,settings.sponsorBlock) : sponsorblock::Action{};
         if (action) sponsorSeek(action);
-        else openQuality();
+        else { LOG("player: Y qualidade pos=%.3f modo=%d menu=1 SponsorBlock_ativo=0",pl.position(),settings.videoMode); openQuality(); }
         any=true;
       }
       if (in.hit(Input::X)) {
@@ -2525,7 +2525,7 @@ int run(int argc, char** argv) {
         }
         if(playerUI.panel==PlayerUI::QUALITY) {
           float hy=y+330;
-          for(const auto& line:qualityHelpLines){gfx::text(g,ui::F_SMALL,line,x+36,hy,ui::MUTED);hy+=g.fonts[ui::F_SMALL].lineH+2;}
+          for(const auto& line:qualityHelpLines){gfx::textBox(g,ui::F_SMALL,line,x+36,hy,w-72,ui::MUTED);hy+=g.fonts[ui::F_SMALL].lineH+2;}
         }
         float hx = hint(g, x + 36, y + h - 42, tr(K::BtnVertical), XG, tr(K::ChooseRow));
         hx = hint(g, hx, y + h - 42, "A", XA, tr(K::SleepApply));
@@ -2663,7 +2663,7 @@ int run(int argc, char** argv) {
       }
       float lineH=g.fonts[ui::F_SMALL].lineH+2;
       gfx::rect(g,x,24,w,24+lineH*manualNoticeLines.size(),ui::SURFACE2,16);
-      float y=36;for(const auto& line:manualNoticeLines){gfx::text(g,ui::F_SMALL,line,x+20,y,ui::TEXT);y+=lineH;}
+      float y=36;for(const auto& line:manualNoticeLines){gfx::textBox(g,ui::F_SMALL,line,x+20,y,w-40,ui::TEXT);y+=lineH;}
     }
     if (!toast.empty() && now < toastUntil) {
       std::string shown = gfx::ellipsize(g, ui::F_BODY, toast, ui::W - 100);

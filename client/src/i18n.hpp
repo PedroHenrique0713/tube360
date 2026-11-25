@@ -117,7 +117,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(StartupSDL, "Controller or audio initialization failed.", "Falha ao iniciar o controle ou áudio.", "Falló el inicio del mando o audio.") \
   X(StartupVideo, "Video or GPU initialization failed.", "Falha ao iniciar o vídeo ou GPU.", "Falló el inicio del vídeo o GPU.") \
   X(StartupFonts, "Missing or invalid fonts:", "Fontes ausentes ou inválidas:", "Fuentes ausentes o no válidas:") \
-  X(StartupCopy, "Extract the complete app folder again. Keep all eight fonts beside default.xex and tube360.xex.", "Extraia a pasta completa do app de novo. Mantenha as fontes ao lado do default.xex.", "Extrae de nuevo la carpeta completa. Deja las fuentes junto a default.xex.") \
+  X(StartupCopy, "Extract the complete app folder again. Keep all eight fonts beside default.xex and tube360.xex.", "Extraia a pasta completa do app de novo. Mantenha as oito fontes junto de default.xex e tube360.xex.", "Extrae de nuevo la carpeta completa. Deja las ocho fuentes junto a default.xex y tube360.xex.") \
   X(StartupRetry, "Restart the console and try again. If it persists, copy the complete app folder again.", "Reinicie o console e tente de novo. Se persistir, copie a pasta completa do app outra vez.", "Reinicia la consola y reintenta. Si persiste, copia de nuevo la carpeta completa de la app.") \
   X(StartupFolder, "App folder is not writable.", "Não é possível gravar na pasta do app.", "No se puede escribir en la carpeta de la app.") \
   X(StartupStorage, "Free storage space and check the app folder permissions.", "Libere espaço e confira as permissões da pasta do app.", "Libera espacio y revisa los permisos de la carpeta de la app.") \

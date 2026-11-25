@@ -48,7 +48,7 @@ for line in log.splitlines():
 assert not pending, pending
 assert log.count('end display.fonts ') == 6, log
 assert 'large_text=1 loaded=1' in log and 'large_text=0 loaded=1' in log
-assert log.count('begin frame.acquire ') == 1, 'checkpoints de frame continuam limitados à abertura'
+assert log.count('begin frame.acquire ') == 4, 'checkpoints de frame continuam limitados à abertura'
 assert 'end app.exit ' in log
 with Image.open(shot) as im:
     assert im.size == (1280, 720), im.size

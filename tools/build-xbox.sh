@@ -21,8 +21,8 @@ python3 "$root/tools/prepare-video-memory.py" "$V4X_DIR"
 python3 "$root/tools/prepare-boot-diagnostics.py" "$XSDK_DIR" "$V4X_DIR"
 python3 "$root/tools/prepare-video-policy.py" "$XSDK_DIR" "$V4X_DIR"
 export XSDK_DIR V4X_DIR
-make -C "$XSDK_DIR" -j3 "TOOLCHAIN=${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}/bin/powerpc-xsdk-elf-" build/libxsdk.a build/host/libxsc.so
-make -C "$V4X_DIR" -j3 "TOOLCHAIN=${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}/bin/powerpc-xsdk-elf-" "XSDK=$XSDK_DIR" build/libvulkan4xenon.a
+make -C "$XSDK_DIR" -j"${JOBS:-2}" "TOOLCHAIN=${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}/bin/powerpc-xsdk-elf-" build/libxsdk.a build/host/libxsc.so
+make -C "$V4X_DIR" -j"${JOBS:-2}" "TOOLCHAIN=${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}/bin/powerpc-xsdk-elf-" "XSDK=$XSDK_DIR" build/libvulkan4xenon.a
 python3 "$V4X_DIR/tools/build_shaders.py" \
   --xost "$XSDK_DIR/xenos-toolchain" --glslang "$(command -v glslangValidator)" \
   --optimize --output x360/shaders_bundle shaders/*.vert shaders/*.frag
@@ -31,5 +31,5 @@ if [[ -f build-x360/CMakeCache.txt ]] && ! grep -Fq "CMAKE_TOOLCHAIN_FILE:FILEPA
 cmake "${fresh[@]}" -S x360 -B build-x360 -DV4X_DIR="$V4X_DIR" \
   -DCMAKE_TOOLCHAIN_FILE="$XSDK_DIR/cmake/xsdk.cmake" -DXSDK_TOOLCHAIN="${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}" \
   -DSDL3_DIR="$SDL3_XENON_DIR" -DAPP_NAME="${APP_NAME:-Tube360}" -DCMAKE_BUILD_TYPE=Release -DTUBE360_BUILD_ID="${TUBE360_BUILD_ID:-1}" -DTUBE360_VERSION="${TUBE360_VERSION:-0.3.0-dev}" -DTUBE360_NATIVE_BOARD="${TUBE360_NATIVE_BOARD:-unconfirmed}"
-cmake --build build-x360 -j"$(nproc)"
+cmake --build build-x360 -j"${JOBS:-2}"
 sha256sum build-x360/tube360.xex build-x360/tube360-launcher.xex

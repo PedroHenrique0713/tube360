@@ -39,7 +39,7 @@ def run(name, mode='button', lang='pt', screen='player', keys='', seconds=3, at=
         height=720, key_ms=100, speaker=False, **extra):
     assets = WORK / name
     assets.mkdir(exist_ok=True)
-    for font in (ROOT / 'client/assets').glob('inter-*.ttf'):
+    for font in (ROOT / 'client/assets').glob('*.ttf'):
         shutil.copyfile(font, assets / font.name)
     (assets / 'settings.txt').write_text(f'lang={lang}\nserver=off\nsound={"nest" if speaker else "tv"}\n'
         f'output_height={height}\nlarge_text={"on" if large else "off"}\nsponsorblock={mode}\n')
@@ -99,7 +99,7 @@ def run(name, mode='button', lang='pt', screen='player', keys='', seconds=3, at=
 if __name__ == '__main__':
     prepare()
     cases = {}
-    for lang in ('pt', 'en', 'es'):
+    for lang in ('pt', 'en', 'es', 'ar'):
         for mode in ('off', 'button', 'auto'):
             cases[f'settings-{lang}-{mode}'] = dict(screen='settings', lang=lang, mode=mode, keys='D'*15+'A', seconds=2.5, key_ms=70)
         cases[f'button-{lang}'] = dict(lang=lang, seconds=2)
@@ -147,7 +147,7 @@ if __name__ == '__main__':
             assert 'SponsorBlock: undo' in text and '-> 7.775' in text, text
             assert float(re.search(r'captura: .*posição ([\d.]+)', text)[1]) < 15, text
         if name == 'auto-undo-quality':
-            assert 'SponsorBlock: undo' in text and 'video_mode=720p60' in (WORK/name/'settings.txt').read_text(), text
+            assert 'SponsorBlock: undo' in text and 'video_mode=auto' in (WORK/name/'settings.txt').read_text() and 'captura opcao qualidade:' in text, text
         if name == 'button-paused':
             assert len(skips)==1 and 'player: pause=1' in text, text
             assert abs(float(re.search(r'captura: .*posição ([\d.]+)',text)[1])-20.877)<.05, text
@@ -167,7 +167,7 @@ if __name__ == '__main__':
             assert int(re.search(r'primeiro quadro: (\d+) ms',text)[1])<500, text
         if name=='late-y-quality':
             assert 'player: Y qualidade pos=' in text and 'SponsorBlock: skip' not in text, text
-            assert 'video_mode=720p60' in (WORK/name/'settings.txt').read_text(), text
+            assert 'video_mode=auto' in (WORK/name/'settings.txt').read_text() and 'captura opcao qualidade:' in text, text
         if name in ('retry-after-warmup','retry-limit','early-start-retry'):
 
             assert 'tentativa 3/' not in text, text

@@ -183,8 +183,8 @@ struct Navigation {
     if (!home && !p.image.empty()) { artwork(g, thumbs, worker, p.image, frame, tx, p.music ? 46 : 28, p.music ? 86 : 72, p.music ? 86 : 72, true, p.kind == "channel" || p.kind == "artist"); tx += p.music ? 110 : 96; }
 
     int titleFont = p.music && !p.musicHome() ? ui::F_HERO : ui::F_BIG;
-    gfx::text(g, titleFont, p.displayTitle.empty() ? tr(titleKey(p)) : p.displayTitle, tx, p.music && !home ? 42 : 28, ui::TEXT);
-    if (home && !p.musicLabel.empty()) gfx::text(g, ui::F_TINY, p.musicLabel, ui::narrow ? 300 : tx, ui::narrow ? 32 : 69, ui::MUTED);
+    gfx::textBox(g, titleFont, p.displayTitle.empty() ? tr(titleKey(p)) : p.displayTitle, tx, p.music && !home ? 42 : 28, ui::W-tx-64, ui::TEXT);
+    if (home && !p.musicLabel.empty()) gfx::textBox(g, ui::F_TINY, p.musicLabel, ui::narrow ? 300 : tx, ui::narrow ? 32 : 69, ui::narrow ? ui::W-364 : 480, ui::MUTED);
     if (!home) gfx::text(g, ui::F_CHAN, p.displaySub, tx, p.music ? 103 : 82, ui::MUTED);
     bool channel = p.kind == "channel", playlist = p.kind == "playlist" || p.kind == "album" || p.kind == "music_playlist" || p.kind == "music_recent" || p.kind == "later" || p.kind == "radio";
     if (channel || playlist) {

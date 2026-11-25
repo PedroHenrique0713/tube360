@@ -29,20 +29,20 @@ struct UI {
     void drawSettings(gfx::Gfx& g, int mode, i18n::Lang lang) {
         prepare(g,lang);
         float x=ui::X0, w=ui::W-x-64;
-        gfx::text(g,ui::F_BIG,i18n::get(lang,K::SponsorBlock),x,32,ui::TEXT);
-        gfx::text(g,ui::F_SMALL,i18n::get(lang,K::SavedAutomatically),x,90,ui::MUTED);
+        gfx::textBox(g,ui::F_BIG,i18n::get(lang,K::SponsorBlock),x,32,w,ui::TEXT);
+        gfx::textBox(g,ui::F_SMALL,i18n::get(lang,K::SavedAutomatically),x,90,w,ui::MUTED);
         float rowH=ui::large ? 70 : 62;
         for (int i=0;i<COUNT;++i) {
             float y=140+i*(rowH+12);
             if (i==mode) gfx::rect(g,x-3,y-3,w+6,rowH+6,ui::A1,20);
             gfx::rect(g,x,y,w,rowH,i==mode ? ui::SURFACE2 : ui::SURFACE,18);
-            gfx::text(g,ui::F_BODY,modes[i],x+28,y+(rowH-g.fonts[ui::F_BODY].size)/2,ui::TEXT);
+            gfx::textBox(g,ui::F_BODY,modes[i],x+28,y+(rowH-g.fonts[ui::F_BODY].size)/2,w-56,ui::TEXT);
         }
         float y=140+int(COUNT)*(rowH+12)+16;
-        for (const auto& line : warning) { gfx::text(g,ui::F_BODY,line,x,y,ui::TEXT); y+=g.fonts[ui::F_BODY].lineH+4; }
+        for (const auto& line : warning) { gfx::textBox(g,ui::F_BODY,line,x,y,w,ui::TEXT); y+=g.fonts[ui::F_BODY].lineH+4; }
         y+=12;
-        for (const auto& line : categories) { gfx::text(g,ui::F_SMALL,line,x,y,ui::MUTED); y+=g.fonts[ui::F_SMALL].lineH+2; }
-        gfx::text(g,ui::F_SMALL,credit,x,ui::large ? 606 : 614,ui::MUTED);
+        for (const auto& line : categories) { gfx::textBox(g,ui::F_SMALL,line,x,y,w,ui::MUTED); y+=g.fonts[ui::F_SMALL].lineH+2; }
+        gfx::textBox(g,ui::F_SMALL,credit,x,ui::large ? 606 : 614,w,ui::MUTED);
         float hx=hint(g,x,678,i18n::get(lang,K::BtnVertical),XG,i18n::get(lang,K::ChooseRow));
         hint(g,hx,678,"B",XB,i18n::get(lang,K::Back));
     }

@@ -26,7 +26,7 @@ sparse.append(dict(itag=242,width=426,height=240,fps=30,bitrate=200000,mimeType=
 results=[]
 def run(name,*,lang='pt',sd=False,mode='auto',selected=None,keys='',ms=4000,screen='',extra=None,missing_file=None):
     work=base/name;assets=work/'assets';files=work/'media';assets.mkdir(parents=True,exist_ok=True);files.mkdir(exist_ok=True)
-    for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copy(font,assets)
+    for font in (ROOT/'client/assets').glob('*.ttf'):shutil.copy(font,assets)
     (assets/'settings.txt').write_text(f'lang={lang}\nsound=tv\nserver=off\nvideo_mode={mode}\noutput_height={480 if sd else 720}\n')
     for f in selected or formats:
         filename=f['url'].rsplit('/',1)[1];target=files/filename;origin=media/filename
@@ -55,7 +55,7 @@ for h,tag in ((480,135),(360,134),(240,133),(144,160)):
     assert 'qualidade: fonte ' not in log and 'reserva no servidor' not in log and 'decod: falha' not in log
     print('PASS fixed source',h,tag,flush=True)
 
-for lang in ('pt','en','es'):
+for lang in ('pt','en','es','ar'):
     for sd in (False,True):
         if 'ui' not in groups:break
         suffix=lang+('-sd' if sd else '-hd')

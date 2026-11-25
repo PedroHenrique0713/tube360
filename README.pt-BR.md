@@ -25,6 +25,18 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 
 ---
 
+## Novidades da 0.3.2
+
+A candidata 0.3.2 reúne conexão direta ao Nest salvo e relógio filtrado, atualizações assinadas com lançador, diagnósticos de início/TLS, recuperação de qualidade medida e escolhas fixas de 480p a 144p. Inclui Música da conta pelo cliente TV, SponsorBlock e texto/busca em árabe. A aceitação da candidata integrada no console continua pendente.
+
+Para migrar do app antigo chamado `default.xex`, feche o Tube360, preserve os arquivos de conta/configurações e copie a pasta completa uma vez. O novo `default.xex` é o lançador; mantenha `tube360.xex` e as oito fontes ao lado dele. Não renomeie o app sobre o lançador. Nas próximas atualizações assinadas, reabra o lançador para instalar.
+
+`video-driver.txt` aceita `auto`, `safe` ou `native`. Automático preserva o nativo medido de Corona/Winchester; demais famílias usam safe. `board-sim.txt` e `XT_BOARD` no PC exercitam contratos sintéticos de diagnóstico; remova-os após o teste. [Simulação e limites](docs/BOARD-SIMULATION.md).
+
+SponsorBlock oferece Desligado, Botão para pular (padrão) e automático. Y pula o trecho marcado ou volta após o salto automático; fora dessas ações abre Qualidade. Os trechos da comunidade podem conter erros. Dados: [SponsorBlock](https://sponsor.ajay.app/), [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), separados do código MIT. [Funcionamento e testes](bench/sponsorblock/README.md).
+
+Árabe usa formas contextuais, bidi e fontes Noto sob demanda em qualquer idioma. RB alterna o teclado árabe para latim. [Suporte e limites de revisão](docs/ARABIC.md).
+
 ## Destaques
 
 | | |

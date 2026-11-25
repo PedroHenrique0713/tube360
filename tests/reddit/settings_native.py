@@ -16,6 +16,7 @@ prefix=r'''
 #include <stdexcept>
 #include <vector>
 #include <memory>
+enum{TUBE360_SIM_OUTPUT}; int tube360_board_sim_step(unsigned){return 0;}
 static bool native,kernel,failIdle,failReset,idle,reset;static int mutations,setter;
 extern "C" int tube360_native_video(){return native;}
 extern "C" int tube360_output_fixed(){return !native || kernel;}
@@ -38,7 +39,7 @@ struct Gfx {
  VkDevice dev{};VkInstance inst{};VkCommandPool cmdPool{};VkSurfaceKHR surface{};VkRenderPass pass{};VkSwapchainKHR swap{};
  VkPipeline pipes[1]{};std::vector<VkFramebuffer> fbs{0};std::vector<VkImageView> views{0};
  std::shared_ptr<int> retained[2];struct Sample{bool pending=true;};Sample samples[2];
- VkExtent2D extent{1280,720};float scale=1;bool bootFrame=false;
+ VkExtent2D extent{1280,720};float scale=1;bool bootFrame=false,outputRejected=false;
 };
 VkSurfaceKHR displaySurface(Gfx&){assert(idle && reset);return 1;}
 void makeSwapchain(Gfx& g,int w,int h){assert(idle && reset);g.extent={(uint32_t)w,(uint32_t)h};}

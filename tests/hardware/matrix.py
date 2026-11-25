@@ -24,12 +24,12 @@ cases = []
 for profile in PROFILES:
     # Oráculo da política/saídas; não é calculado pelo mesmo helper C sob teste.
     hd = '1920x1080' if profile not in ('xenon', 'opus', 'unknown') else '1280x720'
-    cases += [dict(name=profile + '-auto', profile=profile, expected=['1280x720'] * 3, native=0),
-              dict(name=profile + '-native', profile=profile, expected=[hd, '848x480', '1280x720'], native=1, driver='native'),
+    cases += [dict(name=profile + '-auto', profile=profile, expected=[hd, '640x480', '1280x720'] if profile in ('corona','corona-e','winchester') else ['1280x720'] * 3, native=int(profile in ('corona','corona-e','winchester'))),
+              dict(name=profile + '-native', profile=profile, expected=[hd, '640x480', '1280x720'], native=1, driver='native'),
               dict(name=profile + '-sd', config=f'board={profile}\ndriver=native\nmode=480p\n',
                    expected=['640x480'] * 3, native=1),
               dict(name=profile + '-interlaced-safe', config=f'board={profile}\nmode=480i\ncable=composite\n',
-                   expected=[], native=0, failure='display')]
+                   expected=['640x480'] * 3, native=0)]
 cases += [
     dict(name='safe-veto', profile='corona', config='board=corona\n', driver='native', expected=['1280x720'] * 3, native=0),
     dict(name='invalid-file', config='board=xenon\ncable=hdmi\ndriver=native\ndelay_ms=250\nfault=fonts\n',
@@ -38,8 +38,8 @@ cases += [
     dict(name='slow-completion', config='board=jasper\nframe_delay_ms=25\n', expected=['1280x720'] * 3, native=0, pacing=True),
     dict(name='display-fault', config='board=jasper\nfault=display-open\n', expected=[], native=0, failure='display-open'),
     dict(name='output-fault', config='board=falcon\nfault=output\n', expected=[], native=0, failure='output'),
-    dict(name='fonts-fault', config='board=falcon\nfault=fonts\nfault_after=1\n',
-         expected=['1280x720'], native=0, failure='fonts'),
+    dict(name='fonts-fault', config='board=falcon\ndriver=native\nfault=fonts\nfault_after=1\n',
+         expected=['1920x1080'], native=1, failure='fonts'),
 ]
 
 
@@ -105,12 +105,12 @@ for case in cases:
             assert 'error startup.fail' in log
             if case['failure'] != 'display':
                 assert 'error board.sim.inject stage=' + case['failure'] in log
-            assert set(pending) == ({'settings.output'} if case['failure'] == 'output' else set()), pending
+            assert not pending, pending
         else:
             assert not pending, pending
-            assert log.count('end display.fonts ') == 6, log
+            assert log.count('end display.fonts ') == (6 if case['native'] and '-sd' not in case['name'] else 3), log
             assert 'large_text=1 loaded=1' in log and 'large_text=0 loaded=1' in log
-            assert log.count('begin frame.acquire ') == 1
+            assert log.count('begin frame.acquire ') == (4 if case['native'] and '-sd' not in case['name'] else 1)
             assert 'end app.exit ' in log
         if case.get('invalid'):
             assert 'valid=0' in log and 'board.sim.inject' not in log and 'board.sim.delay' not in log

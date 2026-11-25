@@ -42,11 +42,11 @@ with tempfile.TemporaryDirectory(prefix='tube360-board-policy-') as tmp:
     for family in (5, 6, -1):
         subprocess.run(['cc', '-std=c11', '-D_POSIX_C_SOURCE=200809L', '-D__XSDK__',
                         f'-DTUBE360_NATIVE_BOARD_ID={family}', '-I' + str(ROOT / 'client/src'),
-                        '-I' + str(ROOT / '.work/native-display/xsdk/include'),
+                        '-idirafter', str(ROOT / '.work/native-display/xsdk/include'),
                         str(ROOT / 'tests/hardware/policy.c'), str(a.policy_source.resolve()),
                         str(ROOT / 'client/src/board_sim.c'), '-o', str(exe)], check=True)
-        selected = cases if family == 5 else [(f'family-{family}-corona', '50000000', 0, None, None, 0),
-                                            (f'family-{family}-winchester', '60000000', 0, None, None, int(family == 6))]
+        selected = cases if family == 5 else [(f'family-{family}-corona', '50000000', 0, None, None, int(family == -1)),
+                                            (f'family-{family}-winchester', '60000000', 0, None, None, int(family in (6,-1)))]
         for name, flags, absent, driver, sim, expected in selected:
             folder = base / name
             folder.mkdir(exist_ok=True)

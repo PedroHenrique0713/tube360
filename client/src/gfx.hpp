@@ -80,7 +80,7 @@ struct Gfx {
   VkCommandPool cmdPool; VkCommandBuffer cbs[2]; VkFence fences[2]; VkSemaphore acqs[2], rends[2];
   Buf vbuf[2]; uint32_t vcap = 80000; VkPhysicalDeviceMemoryProperties memProps;
   std::shared_ptr<video::Surface> retained[2];
-  bool bootFrame = true;
+  bool bootFrame = true, outputRejected = false;
   unsigned simFrameDelay = 0;
   int fi = 0; uint32_t img = 0; bool readback = false;
   std::vector<Vtx> verts; std::vector<Cmd> cmds;
@@ -771,12 +771,13 @@ inline bool fixedOutput() {
 #endif
 }
 inline bool output(Gfx& g, int height) {
+  g.outputRejected=false;
   boot_event("begin","settings.output","requested=%d current=%ux%u fixed=%d",height,g.extent.width,g.extent.height,fixedOutput());
+  if(tube360_board_sim_step(TUBE360_SIM_OUTPUT)){g.outputRejected=true;boot_event("error","settings.output","injected failure before GPU teardown");return false;}
   if(fixedOutput()) {
     LOG("saida: modo fixo mantém %ux%u; pedido %dp salvo",g.extent.width,g.extent.height,height);
-    boot_event("end","settings.output","fixed: display, framebuffer, pipelines and atlas unchanged");return false;
+    boot_event("end","settings.output","requested=%d actual=%ux%u fixed: display, framebuffer, pipelines and atlas unchanged",height,g.extent.width,g.extent.height);return false;
   }
-  if(tube360_board_sim_step(TUBE360_SIM_OUTPUT))return false;
 #ifndef __XSDK__
   int width=height==480?640:height*16/9;
   if(tube360_board_sim_extent(height,tube360_native_video(),&width,&height)<0)return false;
@@ -806,7 +807,7 @@ inline bool output(Gfx& g, int height) {
   g.bootFrame=true;
   boot_event("begin","app.first-frame","recreated output: verify new first submission");
   LOG("saida: framebuffer %ux%u, escala UI %.2f",g.extent.width,g.extent.height,g.scale);
-  boot_event("end","settings.output","framebuffer=%ux%u",g.extent.width,g.extent.height);
+  boot_event("end","settings.output","requested=%d actual=%ux%u",height,g.extent.width,g.extent.height);
   return true;
 }
 

@@ -36,7 +36,7 @@ cases=[('absent',None,-1,0,0,'none'),
  ('pal','board=corona\ndriver=safe\nmode=576i\ncable=component\n',0,640,576,'corona'),
  ('e-component','board=corona-e\ndriver=native\nmode=480i\ncable=component\n',0,1280,720,'unknown'),
  ('vga-interlaced','board=corona\nmode=480i\ncable=vga\n',0,1280,720,'unknown'),
- ('unsupported-field','board=corona\ndelay_ms=20\n',0,1280,720,'unknown'),
+ ('unsupported-field','board=corona\nunknown_field=20\n',0,1280,720,'unknown'),
  ('duplicate','board=corona\ndriver=native\ndriver=safe\n',0,1280,720,'unknown'),
  ('nul','board=corona\x00\n',0,1280,720,'unknown'),
  ('oversize','board=corona\n'+' '*1100,0,1280,720,'unknown')]
