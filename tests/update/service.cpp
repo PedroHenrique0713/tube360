@@ -16,6 +16,12 @@ int main(int argc,char** argv) {
             std::cerr<<"state="<<int(status.state)<<" error="<<status.error<<'\n';return false;
         };
         auto idle=[&]{return (status.state==State::IDLE || status.state==State::CHECK_FAILED) && rev>1;};
+        if(mode=="auto") {
+            check(wait([&]{return status.state==State::READY;}),"test file alone downloads and stages without controller input");
+            check(read(dir+"update.log").find("TEST auto-download requested build=")!=string::npos,"file trigger logged");
+            check(read(dir+"tube360.xex")=="XEX2original","automatic download preserves running app");
+            return 0;
+        }
         if(mode=="reject") {check(wait(idle),"untrusted manifest not offered");return 0;}
         check(wait([&]{return status.state==State::AVAILABLE;}),"signed newer build offered");
         check(status.app.build==6000 && status.app.size>1024*1024,"signed version and byte size exposed");

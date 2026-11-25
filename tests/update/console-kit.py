@@ -79,7 +79,8 @@ def build_kit(args):
                 '--output', public / (label + '.json'))
     (public / 'scenario.txt').write_text('good\n')
     (directory / 'kit.json').write_text(json.dumps(dict(base=base, public_key=pub, build_n=args.build_id,
-        versions=['0.3.2-f26-n', '0.3.2-f26-good', '0.3.2-f26-fail'], test_only=True), indent=2) + '\n')
+        versions=['0.3.2-f26-n', '0.3.2-f26-good', '0.3.2-f26-fail'], test_only=True,
+        auto_file_trigger=True), indent=2) + '\n')
     # A chave fica somente em private/, fora do ZIP e da raiz servida.
     print('Kit pronto:', directory, flush=True)
     print('Servidor: python3 tests/update/console-kit.py serve --directory ' + shlex.quote(str(directory)), flush=True)

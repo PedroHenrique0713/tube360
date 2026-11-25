@@ -37,6 +37,7 @@ try:
         ('ready-pt', 'pt', False, 720, '', ' '*31+'[A', 6500, 'good'),
         ('cancelled-pt', 'pt', False, 720, '', ' '*31+'[A B', 4300, 'good'),
         ('error-pt', 'pt', False, 720, '', ' '*31+'[A', 6500, 'bad-hash'),
+        ('auto-file-pt', 'pt', False, 720, '', '', 6500, 'good'),
     ]:
         if a.only and name not in a.only:
             continue
@@ -48,6 +49,9 @@ try:
                 shutil.copyfile(source, assets / source.name)
         for filename in ('update-app-state.json', 'tube360.next.xex', 'tube360.next.xex.part'):
             (assets / filename).unlink(missing_ok=True)
+        (assets / 'update-auto.txt').unlink(missing_ok=True)
+        if name == 'auto-file-pt':
+            (assets / 'update-auto.txt').write_text('on\n')
         (assets / 'settings.txt').write_text(f'lang={lang}\nserver=off\nsound=tv\nlarge_text={"on" if large else "off"}\noutput_height={height}\n')
         env = {**os.environ, 'HOME': str(folder / 'home'), 'XDG_CACHE_HOME': str(folder / 'cache'),
                'SDL_VIDEO_DRIVER': 'offscreen', 'SDL_AUDIO_DRIVER': 'dummy', 'XT_CAST_DISABLE': '1',
@@ -56,6 +60,10 @@ try:
                'XT_SHOT_FRAME': '100000000', 'XT_KEYS': keys, 'XT_KEYS_MS': '100'}
         with (folder / (name + '.log')).open('w') as log:
             subprocess.run([str(folder / 'tube360-ui')], env=env, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=25)
+        if name == 'auto-file-pt':
+            import json
+            assert json.loads((assets / 'update-app-state.json').read_text())['phase'] == 'staged'
+            assert 'TEST auto-download requested build=' in (assets / 'update.log').read_text()
         from PIL import Image
         Image.open(folder / (name + '.ppm')).save(folder / (name + '.png'))
         print('Captured', name, flush=True)

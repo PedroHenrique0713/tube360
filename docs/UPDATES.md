@@ -145,6 +145,12 @@ Nenhuma edição da chave pública de produção, configuração do console real
 publicação é necessária. O teste de reserva usa saída normal para o Aurora,
 sem provocar travamento do console.
 
+Para o coordenador sem controle, `tests/update/console-run.py --host <IP-XBDM>`
+executa e coleta o roteiro automaticamente usando `update-auto.txt`, lido **só**
+na build de teste. O gatilho chama o mesmo download da interface. O runner foi
+exercitado por TCP contra XBDM falso local, com falhas e limpeza por PID; sua
+execução contra o Xbox real é exclusiva do coordenador. Veja o roteiro acima.
+
 ## Lançador instrumentado e limite da prova em console
 
 `launcher.log` é exclusivo do lançador, acrescenta uma sessão a cada abertura e recebe `fflush` por linha. Os mesmos eventos passam por `xsdk_log_write` e pelo UDP configurado em `net_log.txt` (sequência de 4 bytes em ordem de rede, seguida de UTF-8). O log do SDK usa o nome do XEX: `default.log` para o lançador e `tube360.log` para o app no pacote de teste. Eles não substituem `launcher.log`.

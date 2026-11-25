@@ -32,17 +32,18 @@ def compile_probe(build, folder, header):
     libs = [x if x.startswith(('/', '-')) else str(build / x)
             for x in link if x.endswith('.a') or '.so' in x or x.startswith('-l')]
     flags = (build / 'CMakeFiles/tube360-update.dir/flags.make').read_text()
+    definitions = shlex.split(flags.split('CXX_DEFINES = ', 1)[1].splitlines()[0])
     includes = shlex.split(flags.split('CXX_INCLUDES = ', 1)[1].splitlines()[0])
     includes += ['-I' + str(ROOT / 'client/third_party/monocypher'),
                  '-I' + str(next((ROOT / '.work/src').glob('curl-xenon-*/include')))]
     objects = []
     for name in ('common', 'app', 'service'):
         output = folder / (name + '.o')
-        run(link[0], '-std=c++20', '-O2', '-DTUBE360_UPDATE_TEST_CONFIG="' + str(header) + '"',
+        run(link[0], '-std=c++20', '-O2', *definitions, '-DTUBE360_UPDATE_TEST_CONFIG="' + str(header) + '"',
             *includes, '-c', ROOT / f'client/src/update/{name}.cpp', '-o', output)
         objects.append(output)
     binary = folder / 'service-probe'
-    run(link[0], '-std=c++20', '-O2', *includes, '-DTUBE360_UPDATE_TEST_CONFIG="' + str(header) + '"',
+    run(link[0], '-std=c++20', '-O2', *definitions, *includes, '-DTUBE360_UPDATE_TEST_CONFIG="' + str(header) + '"',
         ROOT / 'tests/update/service.cpp', *objects, *libs, '-o', binary)
     # O renderer e os objetos de produção permanecem intactos; só este binário usa a chave descartável.
     run(link[0], build / 'CMakeFiles/tube360-main.dir/src/main.cpp.o', *objects, *libs,
@@ -77,13 +78,15 @@ def main():
     thread.start()
     try:
         with tempfile.TemporaryDirectory(prefix='scenarios-', dir=folder) as run_folder:
-            for scenario, mode in [('good', 'download'), ('good', 'cancel'), ('bad-hash', 'error'), ('bad-range', 'error'), ('redirect-out', 'error'),
+            for scenario, mode in [('good', 'auto'), ('good', 'download'), ('good', 'cancel'), ('bad-hash', 'error'), ('bad-range', 'error'), ('redirect-out', 'error'),
                                    ('bad-signature', 'reject'), ('good', 'legacy'), ('good', 'corrupt')]:
                 (folder / 'scenario.txt').write_text(scenario)
                 target = Path(run_folder) / (scenario + '-' + mode)
                 target.mkdir()
                 if mode != 'legacy':
                     (target / 'tube360.xex').write_bytes(b'XEX2original')
+                if mode == 'auto':
+                    (target / 'update-auto.txt').write_text('on\n')
                 if mode == 'corrupt':
                     (target / 'update-app-state.json').write_text('broken journal')
                 run(binary, target, mode, timeout=20)
@@ -93,7 +96,8 @@ def main():
         assert public.encode() not in production
         assert b'TUBE360-DISPOSABLE-UPDATE-TEST' not in production
         assert base.encode() not in production
-        print('PASS production trust isolation; 8 worker HTTP scenarios', flush=True)
+        assert b'update-auto.txt' not in production and b'TEST auto-download requested' not in production
+        print('PASS production trust and file-trigger isolation; 9 worker HTTP scenarios', flush=True)
     finally:
         server.shutdown()
         server.server_close()

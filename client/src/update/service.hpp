@@ -19,6 +19,8 @@ class Service {
     Status state;
     std::atomic_bool stop{false},download{false},abortDownload{false},home{true},healthy{false},refresh{false};
     std::atomic<unsigned> revision{0};
+    // O fixture visual liga objetos de PC e teste; o layout da classe precisa ser o mesmo.
+    bool autoUpdate=false;
     static int run(void*);
     void work();
     yt::Response fetch(const string&,size_t limit=maxDocument);

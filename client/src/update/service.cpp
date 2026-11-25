@@ -22,6 +22,9 @@ Service::Service(string directory):dir(std::move(directory)) {
 #ifdef TUBE360_UPDATE_TEST_CONFIG
     base=TUBE360_UPDATE_TEST_BASE;
     event("TUBE360-DISPOSABLE-UPDATE-TEST");
+    event("TEST app started build="+std::to_string(buildId)+" version="+appVersion);
+    autoUpdate=exists(dir+"update-auto.txt");
+    if(autoUpdate){refresh=true;event("TEST file auto-update enabled build="+std::to_string(buildId));}
 #endif
     auto configured=read(dir+"updates-url.txt",2048);
     while(!configured.empty() && (configured.back()=='\n' || configured.back()=='\r'))configured.pop_back();
@@ -139,10 +142,22 @@ void Service::work() {
             AppUpdate app(dir,publicKeyHex,[&](const string& s){event(s);});
             if(app.confirm(buildId))event("boot confirmed build="+std::to_string(buildId));
 #endif
+#ifdef TUBE360_UPDATE_TEST_CONFIG
+            event("TEST boot healthy build="+std::to_string(buildId));
+#endif
             confirmed=true;
         }
         if(download.exchange(false))install();
         if(refresh.exchange(false) || (home && now>=next)){check();next=SDL_GetTicks()+uint64_t(store->snapshot()->n("checkHours"))*3600000;}
+#ifdef TUBE360_UPDATE_TEST_CONFIG
+        if(autoUpdate) {
+            bool available=false;{std::lock_guard<std::mutex> l(mu);available=state.state==State::AVAILABLE;}
+            if(available) {
+                autoUpdate=false;event("TEST auto-download requested build="+std::to_string(buildId));
+                requestDownload();
+            }
+        }
+#endif
         SDL_Delay(100);
     }
 }

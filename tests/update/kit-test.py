@@ -21,6 +21,7 @@ p.add_argument('--directory', type=Path, default=ROOT / '.work/update-console')
 a = p.parse_args()
 kit = a.directory.resolve()
 metadata = json.loads((kit / 'kit.json').read_text())
+assert metadata['auto_file_trigger'] is True
 archive = next((kit / 'install').glob('*.zip'))
 subprocess.run([sys.executable, str(ROOT / 'tests/update/package-test.py'), str(archive), '--test'], check=True)
 public_key = metadata['public_key'].encode()
@@ -33,6 +34,8 @@ with zipfile.ZipFile(archive) as zipped:
 for binary in (installed, launcher, *(f.read_bytes() for f in (kit / 'public').glob('*.xex'))):
     # O parser PEM do mbedTLS contém o rótulo genérico; a prova procura a chave real da bancada.
     assert public_key in binary and private_pem not in binary and private_seed not in binary
+for binary in (installed, *(f.read_bytes() for f in (kit / 'public').glob('*.xex'))):
+    assert b'update-auto.txt' in binary and b'TEST auto-download requested build=' in binary
 assert b'0.3.2-f26-n' in installed
 assert b'0.3.2-f26-good' in (kit / 'public/good.xex').read_bytes()
 failed = (kit / 'public/fail.xex').read_bytes()

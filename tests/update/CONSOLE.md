@@ -7,6 +7,69 @@ N+1 `#2602 / 0.3.2-f26-good` e falha `#2603 / 0.3.2-f26-fail`.
 A falha desativa deliberadamente a confirmação de boot, mantendo a interface utilizável.
 Não causa travamento: simula um app que nunca concluiu o início, para provar a reserva.
 
+## Sem controle: execução pelo coordenador via XBDM
+
+O kit atual aceita **somente na build de teste** o arquivo `update-auto.txt` ao
+lado do XEX. Sua presença habilita uma consulta ao abrir e um pedido de download
+pela mesma função usada por A na interface. É consumido uma vez por abertura;
+B continua cancelando. Sem o arquivo, a navegação manual continua igual. A build
+pública não compila a leitura desse arquivo nem o disparo automático.
+
+O coordenador roda, da raiz deste worktree, com o IP atual do XBDM:
+
+```bash
+python3 tests/update/console-run.py --host 192.168.101.39 --directory .work/update-console --io-timeout 30
+```
+
+Não é necessário subir outros processos nem usar o controle. O runner:
+
+1. Confere pacote, candidatos, capability `auto_file_trigger` e Aurora no USB.
+2. Sobe seu servidor TCP 8266 e receptor UDP 7466, guardando seus PIDs.
+3. Usa exclusivamente `Games\Tube360 Teste`. Se a pasta já existir, arquiva seus
+   logs antes de substituí-la. Tenta `Hdd1:`; somente erro 414 habilita `HDD:`.
+4. Instala N, fontes/licenças, `settings.txt` (`server=off`, `sound=tv`), `net_log.txt`
+   e `update-auto.txt`. Relê os dois XEX por XBDM e confere SHA-256.
+5. Lança `default.xex`, espera staged #2602, relança e exige boot confirmado #2602.
+   Libera o título no Aurora antes de selecionar fail, evitando uma consulta em
+   curso do app anterior. Reabre para staged #2603; reabre para trial sem confirmação;
+   reabre de novo para restaurar #2602 com `highest=2603` preservado.
+6. Exige linhas novas de update.log/launcher.log ou UDP, journal assinado com os
+   bytes exatos e, nas promoções/reserva, hash do XEX instalado. Na volta exige
+   também `TEST boot healthy build=2602`, emitido após o sinal de saúde do renderer.
+7. Captura os logs/journals de cada fase. No final libera o título pelo Aurora,
+   baixa **todos os arquivos .log e o journal**, apaga arquivos/subpastas e só então
+   a pasta de teste com `delete ... dir`. Confere sua ausência, envia o retorno
+   final ao Aurora e encerra somente os PIDs de servidor/receptor que criou.
+
+Cada etapa imprime **PASSOU/FALHOU** com a evidência; falha dá exit 1. As evidências
+ficam em `.work/console-runs/<data-id>/`: `runner.log`, `report.json`, `xbdm-io.log`,
+`udp.log`, `server.log`, snapshots por fase e `final/`. Logs anteriores ficam em
+`preexisting/`. Se não conseguir arquivar os logs finais, preserva a pasta remota e
+informa a falha; ainda tenta voltar ao Aurora e encerrar seus processos.
+
+Os prazos padrão são 120 s por fase, 240 s para instalação, 90 s para a limpeza e
+8 s de limite absoluto por operação XBDM, inclusive se os bytes chegarem pingados.
+O comando acima usa 30 s por operação para dar margem à transferência dos XEX reais.
+Pode ajustar `--step-timeout`, `--install-timeout`, `--cleanup-timeout` e `--io-timeout`.
+Uma porta já ocupada não é tomada do processo existente. O `mkdir` verifica a
+resposta bruta: 413 não é aceito como sucesso. Ctrl+C também passa pela limpeza.
+O retorno ao Aurora prova envio de magicboot, reconexão XBDM e existência do XEX;
+o protocolo não dá confirmação visual do dashboard.
+
+O autor não executa esse comando contra o console. Prova local reproduzível:
+
+```bash
+python3 tests/update/console-run-test.py
+```
+
+São 13 casos com servidor XBDM TCP falso e HTTP/UDP reais em loopback: percurso
+completo, aliases 414 (dirlist/mkdir), pasta anterior/subpastas, UDP sem arquivos,
+logs com lock, confirmação antiga, XEX errado, ausência de rollback, mkdir 413,
+bytes pingados até timeout, exclusão recusada, porta ocupada e interrupção.
+Os casos negativos precisam produzir FALHOU/exit 1 e os processos próprios precisam
+estar mortos. Uma instalação normal fictícia fica como sentinela e deve permanecer
+intacta em todos os casos. Não simula GPU, XAM nem a execução dos XEX.
+
 ## Preparar antes de contar os dez minutos
 
 Se precisar regenerar (exige build Xbox prévia e uma pasta nova):
