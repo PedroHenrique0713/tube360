@@ -37,7 +37,7 @@ for source in sorted((root / "bench/cpu-floor/media").glob("*.mp4")):
     copy(source, "floor/" + source.name)
     if "60-" not in source.name:
         copy(source, "cpu/" + source.name)
-write("cpu/f33-config.txt", "7 6 0\n")
+write("cpu/f33-config.txt", "1 6 0\n")
 for mask in (1, 3, 7):
     write(f"configs/mask{mask}-6-full.txt", f"{mask} 6 0\n")
 for threads in (4, 5, 6):

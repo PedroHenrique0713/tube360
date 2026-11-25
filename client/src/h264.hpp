@@ -1,6 +1,7 @@
 // MPEG-TS chega pelo anel do player. Os dois codecs compartilham o mesmo cursor e a mesma origem de PTS.
 #pragma once
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <vector>
 #include "decoded_video.hpp"
@@ -12,6 +13,12 @@ extern "C" {
 
 namespace h264 {
 inline char mappedFrameTag;
+struct MappedOwner {
+  std::shared_ptr<video::Surface> surface;
+  std::atomic<int> references{1};
+  explicit MappedOwner(std::shared_ptr<video::Surface> value) : surface(std::move(value)) {}
+  void release() { if (references.fetch_sub(1,std::memory_order_acq_rel)==1) delete this; }
+};
 inline int mappedBuffer(AVCodecContext* ctx, AVFrame* frame, int flags) {
   frame->opaque = nullptr;
   if (!ctx->opaque || (frame->format != AV_PIX_FMT_YUV420P && frame->format != AV_PIX_FMT_YUVJ420P) ||
@@ -22,17 +29,18 @@ inline int mappedBuffer(AVCodecContext* ctx, AVFrame* frame, int flags) {
   int visibleH = ctx->height > 0 ? std::min(ctx->height,frame->height) : frame->height;
   auto surface = static_cast<video::Allocator*>(ctx->opaque)->acquire(visibleW,visibleH,w,h,alignment);
   if (!surface) return avcodec_default_get_buffer2(ctx,frame,flags);
-  auto* owner = new std::shared_ptr<video::Surface>(std::move(surface));
+  auto* owner = new MappedOwner(std::move(surface));
   // buf[] exige que cada data[] pertença ao intervalo da sua alocação Vulkan.
   for (int i = 0; i < 3; ++i) {
-    auto* planeOwner = i == 0 ? owner : new std::shared_ptr<video::Surface>(*owner);
-    size_t bytes = size_t((*planeOwner)->stride[i]) * (i ? (h+1)/2 : h) + 64;
-    frame->buf[i] = av_buffer_create((*planeOwner)->data[i],bytes,[](void* p,uint8_t*) {
-      delete static_cast<std::shared_ptr<video::Surface>*>(p);
-    },planeOwner,0);
-    if (!frame->buf[i]) { delete planeOwner; av_frame_unref(frame); return AVERROR(ENOMEM); }
-    frame->data[i] = (*planeOwner)->data[i]; frame->linesize[i] = (*planeOwner)->stride[i];
+    size_t bytes = size_t(owner->surface->stride[i]) * (i ? (h+1)/2 : h) + 64;
+    owner->references.fetch_add(1,std::memory_order_relaxed);
+    frame->buf[i] = av_buffer_create(owner->surface->data[i],bytes,[](void* p,uint8_t*) {
+      static_cast<MappedOwner*>(p)->release();
+    },owner,0);
+    if (!frame->buf[i]) { owner->release(); av_frame_unref(frame); owner->release(); return AVERROR(ENOMEM); }
+    frame->data[i] = owner->surface->data[i]; frame->linesize[i] = owner->surface->stride[i];
   }
+  owner->release();
   frame->extended_data = frame->data;
   frame->opaque = &mappedFrameTag;
   return 0;
@@ -40,11 +48,11 @@ inline int mappedBuffer(AVCodecContext* ctx, AVFrame* frame, int flags) {
 // O buffer padrão também tem opaque; só o quadro marcado pertence ao pool Vulkan.
 inline std::shared_ptr<video::Surface> mappedSurface(const AVFrame* frame) {
   if (frame->opaque != &mappedFrameTag || !frame->buf[0]) return {};
-  auto* owner = static_cast<std::shared_ptr<video::Surface>*>(av_buffer_get_opaque(frame->buf[0]));
+  auto* owner = static_cast<MappedOwner*>(av_buffer_get_opaque(frame->buf[0]));
   if (!owner) return {};
   for (int i = 0; i < 3; ++i)
-    if (frame->data[i] != (*owner)->data[i] || frame->linesize[i] != (*owner)->stride[i]) return {};
-  return *owner;
+    if (frame->data[i] != owner->surface->data[i] || frame->linesize[i] != owner->surface->stride[i]) return {};
+  return owner->surface;
 }
 inline bool dropAtRate(int64_t frame, double rate, double target) {
   if (rate <= target+.1 || !std::isfinite(rate)) return false;

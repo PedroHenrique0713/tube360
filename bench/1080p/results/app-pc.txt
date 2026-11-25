@@ -7,7 +7,7 @@ autoplay 4p_9OPKgcDE em 0 s
 unexpected fixture URL: https://returnyoutubedislikeapi.com/votes?videoId=4p_9OPKgcDE
 F33 APP START seconds=10 warmup=2
 navegacao: Home -> Player
-console: player OK, cliente VISIONOS, 1 pedidos: VISIONOS:none/200 OK 
+console: player OK, cliente VISIONOS, 1 pedidos: VISIONOS:none/200 OK
 legendas: 4p_9OPKgcDE , 0 frases, 0 idiomas
 console: MP4 1080p, itags 137/140, início 0.000
 audio: selecionada und-dub, 1 faixas
