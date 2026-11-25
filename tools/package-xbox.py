@@ -17,6 +17,7 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 HOME_PREFIX = re.compile(rb"/home/[A-Za-z0-9_.-]+/")
 PRIVATE_IP = re.compile(rb"\b192\.168\.[0-9]{1,3}\.[0-9]{1,3}\b")
+BENCHMARK_MARKERS = (b"f40-playback.txt", b"f33-playback.txt", b"F40 APP", b"mudo.txt", b"bancada: mudo")
 
 
 def read_file(path):
@@ -83,6 +84,14 @@ def main():
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?", args.version):
         parser.error("Use a version such as 0.3.0 or 0.3.0-rc.1")
 
+    cache = read_file(args.build_dir / "CMakeCache.txt").decode()
+    for option in ("TUBE360_F33_BENCH", "TUBE360_F40_BENCH"):
+        match = re.search(rf"^{option}:[^=\n]+=(.*)$", cache, re.M)
+        if match:
+            value = match[1].strip().upper()
+            if value not in ("", "0", "OFF", "NO", "FALSE", "N", "IGNORE", "NOTFOUND") and not value.endswith("-NOTFOUND"):
+                raise ValueError(f"Benchmark builds cannot be packaged: {option}={match[1]}")
+
     files = {}
     for weight in (300, 400, 600, 700):
         name = f"inter-{weight}.ttf"
@@ -111,7 +120,6 @@ def main():
     for name, source in notices.items():
         files["licenses/" + name] = read_file(ROOT / source)
     # SDL's notice is in its matching source checkout, located via its build cache.
-    cache = read_file(args.build_dir / "CMakeCache.txt").decode()
     title = re.search(r"^APP_NAME:[^=]+=(.+)$", cache, re.M)
     app_name = args.app_name or (title[1] if title else "Tube360")
     match = re.search(r"^SDL3_DIR:[^=]+=(.+)$", cache, re.M)
@@ -133,6 +141,11 @@ def main():
         raise ValueError("Test trust configuration requires --test-package; production packages refuse test binaries")
     launcher, launcher_original, launcher_replacements = clean_xex(
         args.build_dir, args.xex_converter, app_name, "tube360-launcher")
+    # O cache pode estar OFF com um XEX antigo: conferir também os bytes que sairão no pacote.
+    for name, data in (("tube360.xex", executable), ("default.xex", launcher)):
+        for marker in BENCHMARK_MARKERS:
+            if marker in data:
+                raise ValueError(f"{name}: benchmark/mute marker {marker.decode()!r}")
     production_key = re.search(rb'publicKeyHex = "([0-9a-f]{64})"',
                                read_file(ROOT / "client/src/update/public_key.hpp"))[1]
     if not args.test_package and (production_key not in executable or production_key not in launcher):
