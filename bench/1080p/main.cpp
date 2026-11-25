@@ -29,13 +29,13 @@ int main(int argc,char** argv) {
         if (std::fscanf(cfg,"%d %d %d",&mask,&threads,&nonref)!=3) fail("F33 config");
         std::fclose(cfg);
     }
-    if (mask<0 || mask>7 || threads<4 || threads>6 || nonref<0 || nonref>1) fail("F33 config range");
+    if (mask<0 || mask>7 || threads<4 || threads>6 || nonref<0 || nonref>2) fail("F33 config range");
     av_log_set_level(AV_LOG_ERROR);
     if (std::strcmp(av_version_info(),"7.1.5") || !std::strstr(avcodec_license(),"LGPL") ||
         std::strstr(avcodec_configuration(),"--enable-gpl")) fail("F33 FFmpeg identity");
     LOG("F33 START schema=1 platform=%s mask=%d threads=%d filter=%s cpu_flags=%x ffmpeg=%s repeats=3",
-        PLATFORM,mask,threads,nonref ? "nonref" : "full",av_get_cpu_flags(),av_version_info());
-    AVDiscard filter=nonref ? AVDISCARD_NONREF : AVDISCARD_DEFAULT;
+        PLATFORM,mask,threads,nonref==2 ? "all" : nonref ? "nonref" : "full",av_get_cpu_flags(),av_version_info());
+    AVDiscard filter=nonref==2 ? AVDISCARD_ALL : nonref ? AVDISCARD_NONREF : AVDISCARD_DEFAULT;
     unsigned results=0,audits=0;
     const Spec real{"youtube137",1920,1080,30,600,3533,40,30000.0/1001};
     FILE* media=std::fopen(joined(directory,"youtube137.mp4").c_str(),"rb");
@@ -61,7 +61,7 @@ int main(int argc,char** argv) {
                 bool candidate=((repeat+step)&1)!=0;
                 int active=candidate ? mask : 0;
                 setMask(active);Result result=decode(clip,spec,0,threads,false,filter);
-                LOG("F33 CASE role=%s mask=%d threads=%d filter=%s",candidate ? "candidate" : "baseline",active,threads,nonref ? "nonref" : "full");
+                LOG("F33 CASE role=%s mask=%d threads=%d filter=%s",candidate ? "candidate" : "baseline",active,threads,nonref==2 ? "all" : nonref ? "nonref" : "full");
                 report(result,spec,0,repeat+1,threads);++results;
             }
         }
