@@ -92,7 +92,9 @@ inline void Player::directNestLoop() {
     int st = sample.state == nest::PLAYING ? 1 : sample.state == nest::PAUSED ? 2 : sample.state == nest::IDLE ? 3 :
              sample.state == nest::ERROR || sample.state == nest::STALLED ? 4 : sample.state == nest::BUFFERING ? 5 : 0;
     SDL_LockMutex(nmu);
-    nestState = st; nestPos = sample.position-startAt; nestSeenMs = nestStampMs = sample.updated;
+    nestState = st; nestPos = sample.position-startAt;
+    nestClockReady = sample.clockReady;
+    nestSeenMs = sample.observed; nestStampMs = sample.updated;
     SDL_UnlockMutex(nmu);
     if (output == PRIMING) {
       if (st == 2) armed = true;
