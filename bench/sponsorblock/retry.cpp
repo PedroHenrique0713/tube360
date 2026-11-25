@@ -44,14 +44,14 @@ void pump(sponsorblock::Worker& worker,sponsorblock::Playback& state,bool playin
 }
 void policy() {
     sponsorblock::RetryPlan p; p.begin(); check(p.finish(eof(),100),"EOF is retried once");
-    check(!p.due(100000),"no retry before playback");
+    check(!p.due(2999) && p.due(3000),"retry is due three seconds from selection even before playback");
     p.playback(true,4000);
-    check(!p.due(6999) && p.due(7000),"three seconds of stable playback are required");
-    p.playback(false,7000); check(!p.due(100000),"buffering clears playback stability");
-    p.playback(true,8000); check(!p.due(10999) && p.due(11000),"stability restarts after buffering");
+    check(p.due(4000),"first frame does not postpone an already due retry");
+    p.playback(false,7000); check(p.due(100000),"buffering does not suppress recovery");
+    p.playback(true,8000); check(p.due(8000),"resume does not restart the retry clock");
     p.begin(); check(!p.finish(eof(),11000) && !p.due(100000),"second failure cannot schedule a third attempt");
     sponsorblock::RetryPlan gap; gap.playback(true,1); gap.begin(); gap.finish(eof(),10000);
-    check(!gap.due(12999) && gap.due(13000),"already-playing video still waits three seconds after failure");
+    check(!gap.due(10249) && gap.due(10250),"an overrun retries after 250 ms, not first frame plus three seconds");
     for (auto kind : {yt::sponsorblock::State::EMPTY,yt::sponsorblock::State::PARSE,yt::sponsorblock::State::CANCELLED}) {
         sponsorblock::RetryPlan one; one.begin(); auto d=eof(); d.state=kind;
         check(!one.finish(d,100),"empty, parse and cancellation do not retry");
@@ -74,18 +74,20 @@ void integration() {
         uint64_t n=1;
         while (!loadStop) { for (int i=0;i<10000;++i) n=n*6364136223846793005ULL+1; work.fetch_add(n); }
     });
+    std::atomic_bool cancel{false}, leadDone{false};
+    std::thread lead([&] { worker.beforeMedia(cancel); leadDone=true; });
     uint64_t ticks=0, end=SDL_GetTicks()+250;
     while (SDL_GetTicks()<end) { worker.poll(state,false); ++ticks; SDL_Delay(1); }
     loadStop=true; for (auto& t : load) t.join();
     check(ticks>20 && calls==1 && state.segments.empty(),"UI keeps ticking under simulated decode load and a blocked handshake");
+    check(!leadDone,"media gate is still held while request is unresolved");
+    waitFor([&]{ return leadDone.load(); }); lead.join();
+    check(SDL_GetTicks()-selected>=750 && SDL_GetTicks()-selected<1000 && calls==1,"media gate releases at 750 ms while request is still held");
     releaseFirst=true;
     waitFor([&]{ return worker.poll(state,false); });
     check(worker.diagnostic.state==yt::sponsorblock::State::TLS && worker.diagnostic.tls==-0x7280,"first EOF is published, not hidden as empty");
-    pump(worker,state,false,3200);
-    check(calls==1,"retry waits for first frame even after backoff elapsed");
-    auto firstFrame=SDL_GetTicks(); worker.poll(state,true,firstFrame);
-    waitFor([&]{ worker.poll(state,true); return !state.segments.empty(); });
-    check(calls==2 && secondAt>=firstFrame+3000,"second request starts only after three stable seconds");
+    waitFor([&]{ worker.poll(state,false); return !state.segments.empty(); });
+    check(calls==2 && secondAt>=selected+3000 && secondAt<selected+3300,"retry completes before any first frame, at selection plus three seconds");
     check(!worker.diagnostic.cached && state.segments[0].end==20.877296,"retry fetched real data instead of negative cache");
     worker.close();
 
@@ -103,7 +105,7 @@ void integration() {
     cancelled.select(""); pump(cancelled,state,true,3300);
     check(calls==1,"closing video cancels the pending retry");
     cancelled.close();
-    std::printf("PASS scheduling: %llu UI ticks under two CPU burners, delayed EOF -> first frame -> retry, two-attempt cap, close fencing\n",(unsigned long long)ticks);
+    std::printf("PASS scheduling: %llu UI ticks under two CPU burners, bounded media gate, delayed EOF -> retry before first frame, two-attempt cap, close fencing\n",(unsigned long long)ticks);
 }
 }
 namespace yt { std::unique_ptr<Transport> https(const std::atomic_bool* flag) { return std::make_unique<Fixture>(flag); } }

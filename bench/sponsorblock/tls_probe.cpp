@@ -26,6 +26,7 @@ void* run(void* ptr) {
     auto net=yt::https();
     yt::Request q; q.url=probe.url ? probe.url : yt::sponsorblock::requestUrl("wWC8wVI4E3E"); q.maxBytes=512*1024;
     q.connectTimeoutMs=yt::sponsorblock::connectTimeoutMs; q.timeoutMs=yt::sponsorblock::requestTimeoutMs;
+    q.trace=[](const char* phase,double ms) { REPORT("TLS probe phase=%s elapsed_ms=%.1f",phase,ms); };
     auto response=net->send(q);
     yt::sponsorblock::Diagnostic diagnostic;
     auto segments=probe.url ? yt::sponsorblock::Segments{} : yt::sponsorblock::parse(response.body,"wWC8wVI4E3E",&diagnostic);
@@ -35,6 +36,8 @@ void* run(void* ptr) {
     REPORT("TLS probe HTTP=%ld failure=%s error=%s curl=%ld mbedtls=-0x%04x verify=%s detail=%s bytes=%u segments=%u seconds=%.3f parse=%s reason=%s prefix=%s parse_detail=%s",response.status,
         yt::failureName(yt::failureOf(response)),response.error.c_str(),response.transportCode,(unsigned)-response.tlsCode,verification,response.transportDetail.c_str(),
         (unsigned)response.body.size(),(unsigned)segments.size(),response.seconds,yt::sponsorblock::stateName(diagnostic.state),diagnostic.reason.c_str(),yt::sponsorblock::hashPrefix("wWC8wVI4E3E").c_str(),diagnostic.detail.c_str());
+    REPORT("TLS probe phase=%s dns_ms=%.1f tcp_ms=%.1f tls_ms=%.1f first_byte_ms=%.1f callback_gap_ms=%.1f nonblocking=%d os_errno=%ld",response.timing.phase,
+        response.timing.dnsMs,response.timing.tcpMs,response.timing.tlsMs,response.timing.firstByteMs,response.timing.callbackGapMs,response.timing.nonblocking,response.timing.osError);
     for (const auto& s : segments) REPORT("segment %.6f -> %.6f duration %.3f",s.start,s.end,s.duration);
     probe.result=response.status==200 && response.error.empty() && (probe.url || !segments.empty()) ? 0 : 1;
     return nullptr;

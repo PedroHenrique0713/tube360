@@ -1,97 +1,79 @@
-# F34 — diagnóstico no console, 2026-11-25
+# F34 — rodada de 02:10: fases de rede e trecho inicial
 
-## Rodada após o resultado de 01:39 — prioridade e retry
+A pasta pronta continua em `.work/console-f34-diagnostico-1125/`, para `HDD:\F34-TLS-1125`.
+Esta rodada usa **autoplay do começo (0 s)**, modo botão, som na TV e qualidade automática.
+Enviar também `settings.txt` e `autoplay.txt`: a rodada anterior pode ter salvo outra qualidade ao apertar Y.
 
-A sonda já passou no console (200 / um trecho / 0.532 s), enquanto o app recebeu EOF depois de 17.039 s.
-O app da pasta local foi atualizado: disparo na seleção, worker em HW1, prioridade relativa +1 durante o
-pedido, connect/handshake de 2500 ms e total de 3500 ms. Há no máximo duas tentativas: a segunda espera
-três segundos após a falha e três segundos contínuos de reprodução. Sem espera da rede na thread da UI.
+A sonda isolada anterior já passou (HTTP 200 / 27093 bytes / um trecho / 0.532 s); não é preciso repeti-la.
+Os comandos abaixo são para o coordenador. A frente F34 não acessa o console.
 
-Para repetir, use **o mesmo bloco do app** abaixo. A sonda isolada anterior permanece disponível para
-comparação; não é necessário executá-la novamente. Com o app anterior fechado, a atualização mínima é:
+## Atualizar e executar
+
+Com o app anterior fechado:
 
 ```bash
 cd /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f34-sponsorblock
 python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/console-f34-diagnostico-1125/tube360.xex 'HDD:\F34-TLS-1125\tube360.xex'
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/console-f34-diagnostico-1125/settings.txt 'HDD:\F34-TLS-1125\settings.txt'
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/console-f34-diagnostico-1125/autoplay.txt 'HDD:\F34-TLS-1125\autoplay.txt'
 python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 run 'HDD:\F34-TLS-1125\tube360.xex'
-# Depois de aparecer o trecho ou de terminar a segunda tentativa:
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 get 'HDD:\F34-TLS-1125\tube360.log' .work/proofs/f34-cpu/console-app.log
-rg 'SponsorBlock|primeiro quadro|decod-worker' .work/proofs/f34-cpu/console-app.log
 ```
 
-Conferir:
+Deixar tocar sem apertar Y até aparecer **Y Pular patrocínio** em aproximadamente **7.775 s**.
+Apertar Y enquanto a dica estiver visível: deve haver `SponsorBlock: skip ... -> 20.877`.
+Depois de 20.877 s, Y volta a ser qualidade e pode reabrir o vídeo; agora essa ação é registrada explicitamente.
 
-1. `tentativa 1/2 inicio` ocorre junto da seleção/resolução, com `hw_alvo=1 hw_efetivo=1`,
-   `afinidade=0x00000000 prioridade=1 prioridade_status=0x00000000`. `afinidade` é o **status de retorno**,
-   não a máscara de CPUs; zero é sucesso. `fila_ms` mostra o atraso até o worker começar.
-2. O pedido normal deve terminar perto do tempo da sonda e fornecer `status=ok`, um trecho, botão Y e marca.
-   Comparar o tempo até o primeiro quadro com a rodada anterior; não há gate esperando SponsorBlock.
-3. Se ocorrer timeout/EOF, há uma linha `tentativa 2/2 aguardando`; a segunda consulta só começa após
-   reprodução estável e deve retornar `cached=0`, usando conexão nova. Nenhuma `tentativa 3` pode aparecer.
-4. Repetir botão/pulo e, se desejado, automático/Y para voltar. Fechar ou trocar de vídeo antes do retry
-   deve cancelar a tentativa antiga, sem marcas do vídeo anterior. Um novo processo começa com cache vazio.
-
-Os dois pedidos usam prazos de curl; a efetividade sob carga e a afinidade/prioridade reais precisam desta
-medição no console. As configurações de certificados e de decodificação não foram alteradas nesta rodada.
-
-O log antigo `SponsorBlock: 0 trechos` confundia vazio com erro. A build instrumentada distingue
-`ok`, `empty`, `tls_error`, `network_error`, `http_error`, `parse_error` e cancelamento. Não há erro novo
-na interface. O log inclui prefixo, HTTP/libcurl/mbedTLS, mensagem de erro, tamanho, bucket, match,
-rejeitados, cache, duração do pedido e relógio civil (`epoch`). `verify=unavailable` significa que o curl
-já liberou o contexto da conexão falhada; o código mbedTLS e sua mensagem continuam disponíveis.
-
-No PC, **com o mesmo config.h do Xbox**, SponsorBlock retornou 200 e o trecho 7.774863–20.877296 s.
-ECDSA, P-256, P-384 e ECDHE-ECDSA estão habilitados. O bundle existente GTS R1–R4 valida a cadeia
-atual encerrando em R4; não é necessário confiar no GlobalSign cruzado para essa cadeia. Não foram
-adicionadas raízes, nem desabilitadas validações, nem alteradas curvas sem evidência de falta.
-
-## Primeiro: isolar HTTPS e parse da carga do player
-
-A sonda faz **um GET** do prefixo `5f6b`, usa o mesmo transporte/bundle/configuração e uma thread de
-512 KiB, e registra recursos criptográficos efetivamente compilados, relógio, resultado e intervalo.
-Não precisa de fontes, conta, autoplay ou servidor. Não desenha uma interface; observe o arquivo de log.
-
-Comandos **para o coordenador**, após sair do app em execução e confirmar o IP do console:
+Após o teste:
 
 ```bash
-cd /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f34-sponsorblock
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 mkdir 'HDD:\F34-TLS-1125'
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/console-f34-diagnostico-1125/sponsorblock-probe-final.xex 'HDD:\F34-TLS-1125\sponsorblock-probe-final.xex'
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 run 'HDD:\F34-TLS-1125\sponsorblock-probe-final.xex'
-# Quando a sonda terminar (o pedido tem timeout de 15 s):
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 get 'HDD:\F34-TLS-1125\sponsorblock-probe-final.log' .work/proofs/f34-fix/console-probe.log
-rg 'TLS probe|segment' .work/proofs/f34-fix/console-probe.log
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 get 'HDD:\F34-TLS-1125\tube360.log' .work/proofs/f34-phases/console-start-0.log
+rg 'SponsorBlock|player: pedido|player: Y|player: encerrando|console: player|console: MP4|primeiro quadro|qualidade: fonte' .work/proofs/f34-phases/console-start-0.log
 ```
 
-Enviar as linhas `TLS probe ...` e `segment ...` à frente F34. Elas são necessárias para identificar a
-causa **no hardware**; o êxito no PC com a mesma configuração não substitui esse resultado.
+## O que medir
 
-## Depois: o app completo sob decodificação
+1. `tentativa 1/2 inicio`: `hw_alvo=5 hw_efetivo=5`, afinidade/prioridade com status `0x00000000`, prioridade `1`.
+   O pedido começa na escolha, em paralelo à resolução do player. HW1 continua com resolução/demux do vídeo.
+2. As fases são `dns_begin`, `dns_done`, `tcp_begin`, `tls_begin`, `tls_done`, `http_response`.
+   Não são gravados headers, cookies, payload TLS ou a lista de IPs.
+3. No fim, `dns_ms`, `tcp_ms`, `tls_ms` são **durações individuais** do curl;
+   `first_byte_ms` é acumulado desde o começo. `-1` significa fase não concluída ou conexão reutilizada,
+   não duração negativa. `phase` indica onde houve a falha. `nonblocking=1` confirma o socket no início
+   do handshake; `os_errno` preserva o erro do socket. `callback_gap_ms` mostra a maior janela sem callback.
+   Se a soma e a parede excederem o prazo e houver um gap grande, o prazo só foi observado quando o worker
+   voltou ao curl; não se trata de uma interrupção preemptiva de 2500 ms.
+4. `janela antes dos TLS de video`: a espera termina na resposta ou em **750 ms desde a escolha**.
+   A resolução do player segue em paralelo. Se já consumiu 750 ms, a espera é zero. A UI não espera.
+   O campo `espera_ms` é a espera efetiva; o scheduler pode acrescentar o tempo até o worker voltar a executar.
+5. Se houver falha transitória, a segunda começa em `max(escolha+3000 ms, fim_da_primeira+250 ms)`;
+   independe de primeiro quadro e usa conexão nova/cache bypass. No máximo dois pedidos por abertura.
+6. `SponsorBlock: 1 trechos pos=... estado=...`: a **posição do vídeo** deve ser menor que 7.775 no teste do começo.
+   `fila_ms` é tempo de parede desde a escolha, não posição do vídeo.
+7. `console: player OK ... resolucao_ms`, `console: MP4 ... abertura_ms` e `primeiro quadro` separam
+   resolução, abertura de mídia e pré-decodificação. Comparar TTFF com o mesmo vídeo, posição e modo.
+   A seleção 720p60 pode cair para 360p30 ao não sustentar decodificação; esta rodada não muda esse algoritmo.
 
-A pasta `.work/console-f34-diagnostico-1125/` também recebe o app instrumentado e suas fontes/settings
-após o build terminar. `autoplay.txt` contém `wWC8wVI4E3E 5`; `settings.txt` usa botão e som na TV.
+## Comparar com abertura em 5 s
+
+Após encerrar a primeira rodada, criar um arquivo alternativo e enviar:
 
 ```bash
-for asset in .work/console-f34-diagnostico-1125/*; do
-  python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put "$asset" "HDD:\\F34-TLS-1125\\${asset##*/}"
-done
+printf 'wWC8wVI4E3E 5\n' > .work/proofs/f34-phases/autoplay-5.txt
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/proofs/f34-phases/autoplay-5.txt 'HDD:\F34-TLS-1125\autoplay.txt'
 python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 run 'HDD:\F34-TLS-1125\tube360.xex'
-# Após o trecho / encerramento do app:
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 get 'HDD:\F34-TLS-1125\tube360.log' .work/proofs/f34-fix/console-app.log
-rg 'SponsorBlock|primeiro quadro|layout' .work/proofs/f34-fix/console-app.log
+# Após o teste:
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 get 'HDD:\F34-TLS-1125\tube360.log' .work/proofs/f34-phases/console-start-5.log
 ```
 
-Resultado esperado: `SponsorBlock: 1 trechos status=ok prefix=5f6b ... http=200 curl=0 ... bucket=81 matched=1`.
-O número de vídeos do bucket é público e pode mudar. Perto de 7.775 s deve aparecer Y Pular patrocínio;
-apertar busca 20.877 s. O automático e Y para voltar continuam sendo os mesmos do player.
+O trecho gravado é 7.774863–20.877296 s, `sponsor`, no vídeo público `wWC8wVI4E3E` (prefixo 5f6b).
+A API comunitária pode mudar esses dados. Off não consulta; vazio, rede, TLS, HTTP e parse permanecem distintos.
+A validação HTTPS e o bundle GTS R1–R4 continuam ativos.
 
-Interpretação:
+## Controle de tempo até o primeiro quadro
 
-- `tls_error`: usar o mbedTLS hexadecimal e `detail`; ver relógio e cadeia. Nenhum fallback inseguro.
-- `network_error`: `curl=6` DNS, `7` conexão, `28` timeout; comparar sonda isolada e app.
-- `http_error`: HTTP 403/429/5xx, separado de ausência de segmentos. Não tratar 403 como vazio.
-- `parse_error`: resposta chegou, mas limite/sintaxe/schema falhou; `reason`/`detail` indicam onde.
-- `empty`: 404 ou resposta válida sem vídeo/trecho elegível; prefixo e bucket permitem conferir o hash.
-- Sonda funciona e app falha: diferença de concorrência/recursos/tempo durante reprodução; comparar ambos.
-
-Esta frente não executou XBDM, upload, execução remota ou reboot. A validação no console fica com o coordenador.
+Para comparar na mesma build/vídeo/posição, encerrar o app, reenviar `autoplay.txt` do kit (0 s), enviar
+`.work/proofs/f34-phases/settings-off.txt` como `HDD:\F34-TLS-1125\settings.txt` e executar novamente.
+Salvar como `console-off-0.log`. Comparar `resolucao_ms`, `abertura_ms` e `primeiro quadro` com
+`console-start-0.log`, incluindo a espera efetiva `espera_ms`. Depois restaurar `settings.txt` do kit.
+Esta comparação ainda depende da rede/cache do console; a janela explícita acrescenta no máximo o restante
+dos 750 ms desde a escolha, além da latência de agendamento. Não atribuir os 21 s antigos a uma fase sem medi-la.

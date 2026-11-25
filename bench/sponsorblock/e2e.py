@@ -113,6 +113,7 @@ if __name__ == '__main__':
         'button-skip': dict(keys='.........Y', seconds=4),
         'button-paused': dict(keys='....A....Y', seconds=3.5),
         'off': dict(mode='off'),
+        'off-start-0': dict(mode='off', at=0, seconds=1.5),
         'auto-undo': dict(mode='auto', keys='..............Y', seconds=4),
         'auto-undo-quality': dict(mode='auto', keys='..............Y..........Y', seconds=4),
         'auto-expired': dict(mode='auto', seconds=9),
@@ -122,6 +123,8 @@ if __name__ == '__main__':
         'tls-failure': dict(XT_SPONSOR_TLS_FAIL='1'),
         'parse-failure': dict(XT_SPONSOR_PARSE_FAIL='1'),
         'retry-after-warmup': dict(XT_SPONSOR_RETRY_FIRST='1', seconds=5),
+        'early-start-retry': dict(at=0, XT_SPONSOR_RETRY_FIRST='1', XT_SPONSOR_FIRST_DELAY_MS='2500', seconds=8.9),
+        'late-y-quality': dict(at=24.291, keys='.........Y', seconds=2),
         'retry-limit': dict(XT_SPONSOR_FAIL='1', seconds=8),
         'slow-api': dict(XT_SPONSOR_DELAY_MS='1000', seconds=3),
         'nest-auto': dict(mode='auto', speaker=True, seconds=6),
@@ -157,7 +160,17 @@ if __name__ == '__main__':
             assert 'tentativa 1/2 fim' in text and 'mbedtls=-0x7280' in text and 'tentativa 2/2 fim' in text, text
             first_ms=int(re.search(r'primeiro quadro: (\d+) ms',text)[1])
             assert first_ms<1000, text
-        if name in ('retry-after-warmup','retry-limit'):
+        if name=='early-start-retry':
+            arrivals=re.findall(r'SponsorBlock: 1 trechos pos=([\d.]+)',text)
+            assert arrivals and float(arrivals[0])<7.774863, text
+            assert 'primeira_concluida=0' in text, text
+            assert int(re.search(r'janela antes dos TLS de video espera_ms=(\d+)',text)[1])<1000, text
+            assert 750<=int(re.search(r'primeiro quadro: (\d+) ms',text)[1])<1100, text
+        if name=='late-y-quality':
+            assert 'player: Y qualidade pos=' in text and 'SponsorBlock: skip' not in text, text
+            assert 'video_mode=720p60' in (WORK/name/'settings.txt').read_text(), text
+        if name in ('retry-after-warmup','retry-limit','early-start-retry'):
+
             assert 'tentativa 3/' not in text, text
         results.append(dict(name=name, skips=skips))
     (WORK/'results.json').write_text(json.dumps(results, indent=2))

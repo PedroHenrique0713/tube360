@@ -31,6 +31,10 @@ public:
                 auto until=SDL_GetTicks()+unsigned(std::atoi(delay));
                 while (!cancelled() && SDL_GetTicks()<until) SDL_Delay(5);
             }
+            if (sponsorCalls==1) if (const char* delay=std::getenv("XT_SPONSOR_FIRST_DELAY_MS")) {
+                auto until=SDL_GetTicks()+unsigned(std::atoi(delay));
+                while (!cancelled() && SDL_GetTicks()<until) SDL_Delay(5);
+            }
             if (std::getenv("XT_SPONSOR_FAIL")) return {503,{},{}};
             if (std::getenv("XT_SPONSOR_RETRY_FIRST") && sponsorCalls==1) {
                 Response failure; failure.failure=Failure::TLS; failure.error="SSL connect error";
