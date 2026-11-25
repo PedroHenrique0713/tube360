@@ -20,7 +20,7 @@
   const state = { page: 'home', mode: 'home', zone: 'grid', selected: 0, category: 0,
     rail: 0, option: 0, paused: false, elapsed: 7, rating: '', speed: 1, repeat: false,
     captions: false, subscribed: false, visible: true, frame: null, lastTime: 0,
-    gamepadIndex: null, gamepadPrevious: {}, repeatAt: 0, direction: '', panelIndex: 0 };
+    gamepadIndex: null, gamepadPrevious: {}, repeatAt: 0, direction: '', panelIndex: 0, filters: { type: 0, duration: 0, date: 0, sort: 0 }, channelTab: 0, sponsorMode: 1, sponsorUndo: false, quality: '1080p30' };
   const videos = [
   {
     "id": "68WY6G_wjoY",
@@ -94,6 +94,94 @@
     ['repeat', 'repeat'], ['channel', 'person'], ['channel_live', 'live']
   ];
   const ratings = new Map();
+  const saved = new Set([0]);
+  const positions = new Map([[1, 84]]);
+  const dialog = $('#demo-dialog');
+  const segments = [[5, 24], [185, 219], [394, 414]];
+  const sponsorIgnored = new Set();
+  let dialogBack = null, dialogMode = 'home', filterDraft = null;
+  function closeDialog() {
+    dialog.hidden = true; state.mode = dialogMode; filterDraft = null;
+    focus(dialogBack); marker(); startLoop();
+  }
+  function openDialog(title, note, choices) {
+    dialog.dataset.kind = ''; dialogBack = document.activeElement; dialogMode = state.mode; state.mode = 'dialog';
+    $('#dialog-title').textContent = title; $('#dialog-note').textContent = note;
+    $('#dialog-actions').replaceChildren(...choices.map(([label, action]) => makeButton(label, action, 'panel-choice')));
+    dialog.hidden = false; focus($('#dialog-actions button')); animateIn($('.dialog-surface')); marker();
+  }
+  function playCard(index) {
+    state.selected = index;
+    if (positions.has(index)) {
+      const position = positions.get(index);
+      const time = `${Math.floor(position / 60)}:${String(Math.floor(position % 60)).padStart(2, '0')}`;
+      openDialog(t.resume_question, `${videos[index].title} · ${time} / 8:07`, [
+        [t.continue_watching, () => { closeDialog(); openPlayer(position); }],
+        [t.start_over, () => { positions.delete(index); closeDialog(); openPlayer(0); }]
+      ]);
+    } else openPlayer();
+  }
+  function cardMenu() {
+    openDialog(t.save_options, videos[state.selected].title, [
+      [t.channel, () => { closeDialog(); showPage('channel'); }],
+      [saved.has(state.selected) ? t.remove_video : t.save_video, () => {
+        const removing = saved.has(state.selected);
+        if (removing) saved.delete(state.selected); else saved.add(state.selected);
+        closeDialog(); if (state.page === 'later') showPage('later');
+        showToast(removing ? t.removed_local : t.saved_local);
+      }], [t.back, closeDialog]
+    ]);
+  }
+  const filterValues = {
+    type: ['filter_any', 'filter_video', 'filter_channel', 'filter_playlist'],
+    duration: ['filter_any', 'filter_short', 'filter_medium', 'filter_long'],
+    date: ['filter_any', 'filter_today', 'filter_week', 'filter_month', 'filter_year'],
+    sort: ['filter_relevance', 'filter_views']
+  };
+  const filterLabels = { type: 'filter_type', duration: 'filter_duration', date: 'filter_date', sort: 'filter_sort' };
+  function openFilters() {
+    if (state.page !== 'search') return;
+    openDialog(t.filters, t.filter_discard, []); dialog.dataset.kind = 'filters'; filterDraft = { ...state.filters };
+    const content = $('#dialog-actions');
+    for (const key of Object.keys(filterValues)) {
+      const button = makeButton('', () => cycleFilter(button, 1), 'settings-row'); button.dataset.filter = key; content.append(button);
+    }
+    content.append(makeButton(t.apply, () => {
+      state.filters = { ...filterDraft }; closeDialog(); $('#search-filters').textContent = `LB ${t.filters} · ${t.filter_active}`;
+      if ($('.demo-results').childElementCount) $('.demo-search').requestSubmit();
+    }, 'panel-choice'));
+    content.append(makeButton(t.clear_filters, () => { filterDraft = { type: 0, duration: 0, date: 0, sort: 0 }; updateFilterLabels(); }, 'panel-choice'));
+    updateFilterLabels(); focus(content.firstElementChild);
+  }
+  function updateFilterLabels() {
+    $$('[data-filter]', dialog).forEach(button => { const key = button.dataset.filter; const label = document.createElement('span'), value = document.createElement('strong'); label.textContent = t[filterLabels[key]]; value.textContent = t[filterValues[key][filterDraft[key]]]; button.replaceChildren(label, value); });
+  }
+  function cycleFilter(button, direction) {
+    const key = button.dataset.filter; if (!filterDraft || !key) return;
+    filterDraft[key] = (filterDraft[key] + direction + filterValues[key].length) % filterValues[key].length; updateFilterLabels();
+  }
+  function updateSponsor() {
+    const button = $('#sponsor-skip');
+    const segment = segments.find(([start, end]) => state.elapsed >= start && state.elapsed < end);
+    if (segment && state.sponsorMode === 2 && !sponsorIgnored.has(segment[0])) {
+      state.sponsorReturn = state.elapsed; state.sponsorSegment = segment[0]; state.elapsed = segment[1]; state.sponsorUndo = true; state.sponsorUndoUntil = Date.now() + 6000;
+    }
+    const undo = state.sponsorUndo && Date.now() < state.sponsorUndoUntil;
+    button.hidden = state.sponsorMode === 0 || (!undo && (!segment || state.sponsorMode !== 1));
+    $('#sponsor-skip span').textContent = undo ? `${t.sponsor_skipped} · ${t.sponsor_undo}` : t.sponsor_skip;
+    $('.sponsor-marks').hidden = state.sponsorMode === 0;
+  }
+  function skipSponsor() {
+    if (state.sponsorUndo && Date.now() < state.sponsorUndoUntil) {
+      sponsorIgnored.add(state.sponsorSegment); state.elapsed = state.sponsorReturn; state.sponsorUndoUntil = 0;
+    } else {
+      const segment = segments.find(([start, end]) => state.elapsed >= start && state.elapsed < end);
+      if (!segment || state.sponsorMode !== 1) { activatePlayer('quality'); return; }
+      state.elapsed = segment[1];
+    }
+    updateProgress();
+  }
+  $('#sponsor-skip').addEventListener('click', skipSponsor);
   const focus = element => element?.focus({ preventScroll: true });
   function announce(text) { status.textContent = text; }
   function animateIn(element, offset = 16) {
@@ -119,11 +207,12 @@
     thumb.style.setProperty('--thumb-x', `-${video.x}px`);
     thumb.style.setProperty('--thumb-y', `-${video.y}px`);
     if (index === 0) thumb.classList.add('first-thumb');
+    if (positions.has(index)) thumb.insertAdjacentHTML('beforeend', '<span class="saved-progress"></span>');
     $('.video-title', button).textContent = video.title;
     $('.video-meta', button).textContent = `${video.channel} · ${localizedViews(video.views)}`;
-    button.addEventListener('click', () => { state.selected = index; openPlayer(); });
+    button.addEventListener('click', () => playCard(index));
     button.addEventListener('focus', () => {
-      if (fromHome) { state.zone = 'grid'; select(index); marker(); }
+      state.selected = index; if (fromHome) { state.zone = 'grid'; select(index); marker(); }
     });
     return button;
   }
@@ -178,7 +267,7 @@
   }
   function showPage(page, moveFocus = true) {
     if (page === 'exit') { page = 'home'; }
-    state.page = page; state.mode = 'home'; state.panelIndex = 0; panel.hidden = true;
+    dialog.hidden = true; state.page = page; state.mode = 'home'; state.panelIndex = 0; panel.hidden = true;
     home.hidden = page !== 'home'; browse.hidden = page === 'home'; player.hidden = true;
     rail.hidden = false; $('#account-photo').hidden = false; $('#app-hints').hidden = false;
     toast.hidden = true; setRail(false); stopLoop();
@@ -186,7 +275,7 @@
     const activeIndex = railButtons.findIndex(button => button.dataset.page === page);
     if (activeIndex >= 0) state.rail = activeIndex;
     if (page === 'home') { state.zone = 'grid'; select(state.selected, moveFocus); animateIn(home, 0); marker(); startLoop(); return; }
-    state.zone = 'page'; $('#browse-title').textContent = page === 'channel' ? 'TV Palmeiras' : page === 'account' ? t.demo_account : t[page];
+    state.zone = 'page'; $('#browse-title').textContent = page === 'channel' ? 'TV Palmeiras' : page === 'account' ? t.demo_account : page === 'later' ? t.watch_later_console : page === 'continue' ? t.continue_console : t[page];
     const content = $('#browse-content'); content.replaceChildren();
     if (page === 'subscriptions') {
       const avatars = document.createElement('div'); avatars.className = 'channel-avatars';
@@ -201,29 +290,66 @@
       heading.innerHTML = '<span class="channel-art"></span>';
       heading.append(makeButton(state.subscribed ? t.subscribed : t.subscribe, () => {
         state.subscribed = !state.subscribed; showPage('channel'); showToast(t.demo_note);
-      })); content.append(heading, pageGrid([1, 2, 3, 4]));
+      }));
+      const tabs = document.createElement('div'); tabs.className = 'browse-tabs';
+      [t.videos, t.shorts, t.live_tab, t.playlists].forEach((label, i) => {
+        const tab = makeButton(label, () => { state.channelTab = i; showPage('channel'); }, 'category');
+        tab.classList.toggle('active', state.channelTab === i); tab.setAttribute('aria-pressed', String(state.channelTab === i)); tabs.append(tab);
+      });
+      const grid = pageGrid(state.channelTab === 1 ? [2, 4, 7, 5] : [1, 2, 3, 4]);
+      grid.classList.toggle('shorts-grid', state.channelTab === 1); content.append(heading, tabs, grid);
     } else if (page === 'library') {
-      [t.watch_later, t.history, t.playlists, t.liked_videos].forEach(label => content.append(makeButton(label, () => { content.replaceChildren(pageGrid([0, 1, 5, 6])); state.panelIndex = 0; focus(pageButtons()[0]); })));
+      content.append(makeButton(t.watch_later_console, () => showPage('later')), makeButton(t.continue_console, () => showPage('continue')));
+      [t.watch_later, t.history, t.playlists, t.liked_videos].forEach(label => content.append(makeButton(label + ' · ' + t.demo_account, () => { content.replaceChildren(pageGrid([0, 1, 5, 6])); state.panelIndex = 0; focus(pageButtons()[0]); })));
+    } else if (page === 'later' || page === 'continue') {
+      const note = document.createElement('p'); note.className = 'browse-note'; note.textContent = t.local_list_note;
+      content.append(note, pageGrid([...(page === 'later' ? saved : positions.keys())]));
     } else if (page === 'search') {
       const form = document.createElement('form'); form.className = 'demo-search';
       const input = document.createElement('input'); input.type = 'search'; input.placeholder = t.search_placeholder; input.setAttribute('aria-label', t.search_placeholder);
       const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = t.search_submit;
+      const filters = makeButton(`LB ${t.filters}`, openFilters); filters.id = 'search-filters';
+      const workspace = document.createElement('div'); workspace.className = 'search-workspace';
+      const keyboard = document.createElement('div'); keyboard.className = 'demo-keyboard';
+      const suggestions = document.createElement('div'); suggestions.className = 'search-suggestions';
+      function updateSuggestions() {
+        suggestions.replaceChildren(); const heading = document.createElement('h3'); heading.textContent = t.suggestions; suggestions.append(heading);
+        const query = input.value.toLocaleLowerCase(locale).trim();
+        ['Palmeiras', 'Palmeiras melhores momentos', 'SBT Sports', 'ge tv'].filter(value => !query || value.toLocaleLowerCase(locale).includes(query)).forEach(value => {
+          suggestions.append(makeButton(value, () => { input.value = value; form.requestSubmit(); }, 'suggestion'));
+        });
+      }
+      input.addEventListener('input', () => { workspace.hidden = false; updateSuggestions(); });
+      [..."abcdefghijklmnopqrstuvwxyzç-'.0123456789", '⌫', '␣'].forEach(letter => keyboard.append(makeButton(letter, () => {
+        input.value = letter === '⌫' ? input.value.slice(0,-1) : input.value + (letter === '␣' ? ' ' : letter.toLowerCase()); workspace.hidden = false; updateSuggestions();
+      }, 'keyboard-key')));
       const results = document.createElement('div'); results.className = 'demo-results';
       form.append(input, submit); form.addEventListener('submit', event => {
-        event.preventDefault(); const query = input.value.toLocaleLowerCase(locale).trim();
-        const indices = videos.map((video,i) => video.title.toLocaleLowerCase(locale).includes(query) || video.channel.toLocaleLowerCase(locale).includes(query) ? i : -1).filter(i => i >= 0);
-        results.replaceChildren(indices.length ? pageGrid(indices) : document.createTextNode(t.no_results));
-        state.panelIndex = 0; if (indices.length) focus($('button', results));
-      }); content.append(form);
-      const keyboard = document.createElement('div'); keyboard.className = 'demo-keyboard';
-      [...'QWERTYUIOPASDFGHJKLZXCVBNM', '⌫', '␣'].forEach(letter => keyboard.append(makeButton(letter, () => { input.value = letter === '⌫' ? input.value.slice(0,-1) : input.value + (letter === '␣' ? ' ' : letter.toLowerCase()); }, 'keyboard-key')));
-      content.append(keyboard, results);
+        event.preventDefault(); workspace.hidden = true; const query = input.value.toLocaleLowerCase(locale).trim();
+        let indices = videos.map((video, i) => video.title.toLocaleLowerCase(locale).includes(query) || video.channel.toLocaleLowerCase(locale).includes(query) ? i : -1).filter(i => i >= 0);
+        const durations = [487, 420, 900, 1250, 130, 900, 450, 600];
+        indices = indices.filter(i => !state.filters.duration || (state.filters.duration === 1 ? durations[i] < 180 : state.filters.duration === 2 ? durations[i] >= 180 && durations[i] <= 1200 : durations[i] > 1200));
+        if (state.filters.date) indices = indices.filter(i => i < [8, 1, 3, 5, 8][state.filters.date]);
+        if (state.filters.sort) indices.sort((a, b) => parseInt(videos[b].views, 10) - parseInt(videos[a].views, 10));
+        if (state.filters.type >= 2) {
+          const names = [...new Set(indices.map(i => videos[i].channel))];
+          results.replaceChildren(...names.map(name => makeButton(`${name} · ${state.filters.type === 2 ? t.channel : t.playlists}`, () => showPage('channel'))));
+        } else results.replaceChildren(indices.length ? pageGrid(indices) : document.createTextNode(t.no_results));
+        state.panelIndex = 0; focus($('button', results) || filters);
+      });
+      workspace.append(keyboard, suggestions); updateSuggestions(); content.append(form, filters, workspace, results);
     } else if (page === 'music') {
-      const note = document.createElement('p'); note.className = 'browse-note'; note.textContent = t.sample_videos;
-      content.append(note, pageGrid([1, 2, 5, 7]));
+      const note = document.createElement('p'); note.className = 'browse-note'; note.textContent = t.music_account;
+      const shortcuts = document.createElement('div'); shortcuts.className = 'music-shortcuts';
+      [[t.music_recent, 'clock'], [t.music_library, 'list'], [t.music_liked, 'heart']].forEach(([label, symbol]) => {
+        const button = makeButton('', () => { $('#browse-title').textContent = label; content.replaceChildren(pageGrid([1, 2, 5, 7])); focus(pageButtons()[0]); }, 'music-shortcut');
+        button.innerHTML = icon(symbol); const name = document.createElement('span'); name.textContent = label; button.append(name); shortcuts.append(button);
+      });
+      const tip = document.createElement('p'); tip.className = 'browse-note'; tip.textContent = t.music_tip;
+      content.append(note, shortcuts, tip, pageGrid([1, 2, 5, 7]));
     } else if (page === 'settings') {
-      [[t.demo_account, 'Demo'], [t.language, locale === 'pt-BR' ? 'Português' : 'English'], [t.columns, '4'], [t.quality, '720p60 / 1080p30'], [t.output, '1280 × 720'], [t.sound, 'TV'], [t.captions, t.off]].forEach(([label, value], i) => {
-        const button = makeButton('', () => i === 0 ? showPage('account') : showToast(t.demo_note), 'settings-row');
+      [[t.demo_account, 'Demo'], [t.language, locale === 'pt-BR' ? 'Português' : 'English'], [t.columns, '4'], [t.quality, state.quality], [t.output, '1280 × 720'], [t.sound, 'TV'], [t.captions, t.off], [t.sponsorblock, [t.off, t.sponsor_button, t.sponsor_auto][state.sponsorMode]], [t.app_updates, 'Ed25519']].forEach(([label, value], i) => {
+        const button = makeButton('', () => i === 0 ? showPage('account') : i === 7 ? openDialog(t.sponsorblock, t.sponsor_warning, [t.off, t.sponsor_button, t.sponsor_auto].map((label, mode) => [label, () => { state.sponsorMode = mode; closeDialog(); showPage('settings'); }])) : showToast(i === 8 ? t.updates_demo : t.demo_note), 'settings-row');
         const name = document.createElement('span'), detail = document.createElement('span'); name.textContent = label; detail.textContent = value; button.append(name, detail); content.append(button);
       });
     } else {
@@ -239,7 +365,7 @@
     const button = document.createElement('button'); button.type = 'button'; button.dataset.playerAction = name;
     button.setAttribute('aria-label', t[name]); button.title = t[name]; button.innerHTML = icon(symbol);
     if (name === 'dislike') button.classList.add('dislike-icon');
-    if (name === 'quality') button.insertAdjacentHTML('beforeend', '<small class="quality-badge">720</small>');
+    if (name === 'quality') button.insertAdjacentHTML('beforeend', '<small class="quality-badge">1080</small>');
     if (['like','dislike','repeat','captions'].includes(name)) button.setAttribute('aria-pressed','false');
     $('#player-options').append(button);
   });
@@ -257,6 +383,7 @@
   }
   let lastProgressSecond = -1;
   function updateProgress() {
+    updateSponsor();
     const position = Math.floor(state.elapsed);
     if (position === lastProgressSecond) return;
     lastProgressSecond = position;
@@ -264,8 +391,10 @@
     const time = `${Math.floor(position/60)}:${String(position%60).padStart(2,'0')}`;
     $('#player-time').textContent = `${time} / 8:07`; progress.setAttribute('aria-valuetext', `${time} / 8:07`);
   }
-  function openPlayer() {
-    state.mode = 'player'; state.zone = 'timeline'; state.elapsed = 7; state.paused = false; state.option = 0;
+  function openPlayer(position = 7) {
+    sponsorIgnored.clear();
+    state.mode = 'player'; state.zone = 'timeline'; state.elapsed = position; state.sponsorUndo = false; state.sponsorUndoUntil = 0; state.paused = false; state.option = 0;
+    const image = $('.player-image'); if (!image.hasAttribute('src')) image.src = image.dataset.src;
     home.hidden = true; browse.hidden = true; player.hidden = false; panel.hidden = true;
     rail.hidden = true; $('#account-photo').hidden = true; $('#app-hints').hidden = true; toast.hidden = true;
     $('#player-title').textContent = videos[state.selected].title; $('#player-channel').textContent = videos[state.selected].channel;
@@ -278,6 +407,7 @@
     state.mode = 'player-panel'; state.panelIndex = 0; panel.hidden = false;
     $('#player-panel-title').textContent = t[name]; const content = $('#player-panel-content'); content.replaceChildren();
     choices.forEach(([label, action]) => content.append(makeButton(label, action, 'panel-choice')));
+    if (name === 'quality') { const note = document.createElement('p'); note.className = 'quality-note'; note.textContent = t.quality_manual_note; content.append(note); }
     focus($('.panel-choice', content)); animateIn(panel); marker();
   }
   function activatePlayer(name) {
@@ -296,8 +426,8 @@
       openPanel(name, [.25,.5,.75,1,1.25,1.5,1.75,2].map(value => [`${value}×${value === state.speed ? ' ✓' : ''}`, () => { state.speed = value; closePanel(); showToast(`${t.speed}: ${value}×`); }])); return;
     }
     if (name === 'comments') { openPanel(name, [[`Torcedor · ${t.comment_demo}`, () => {}], [t.comment_text, () => {}]]); return; }
-    const choices = name === 'quality' ? ['Automatic', '720p60', '1080p30'] : name === 'sound' ? ['TV', 'Google Nest · Demo'] : [t.off, '15 min', '30 min', '1 h', '2 h'];
-    openPanel(name, choices.map(value => [value === 'Automatic' ? (locale === 'pt-BR' ? 'Automático' : 'Automatic') : value, () => { closePanel(); showToast(`${t[name]}: ${value}. ${t.demo_note}`); }]));
+    const choices = name === 'quality' ? [t.automatic, '1080p30', '480p', '360p', '240p', '144p'] : name === 'sound' ? ['TV', 'Google Nest · Demo'] : [t.off, '15 min', '30 min', '1 h', '2 h'];
+    openPanel(name, choices.map(value => [value === 'Automatic' ? (locale === 'pt-BR' ? 'Automático' : 'Automatic') : value, () => { if (name === 'quality') { state.quality = value; $('.quality-badge').textContent = value === t.automatic ? 'Auto' : value.replace(/p.*$/, ''); } closePanel(); showToast(`${t[name]}: ${value}. ${t.demo_note}`); }]));
   }
   playerButtons.forEach((button, i) => {
     button.addEventListener('click', () => { state.option = i; state.zone = 'options'; updateOptions(); activatePlayer(button.dataset.playerAction); });
@@ -307,6 +437,18 @@
   progress.addEventListener('input', () => { state.elapsed = Number(progress.value); updateProgress(); });
   function command(action) {
     if (!state.visible) return;
+    if (state.mode === 'dialog') {
+      if (action === 'b') { closeDialog(); return; }
+      const buttons = $$('button', dialog); let index = buttons.indexOf(document.activeElement);
+      if (filterDraft && (action === 'left' || action === 'right')) { cycleFilter(document.activeElement, action === 'left' ? -1 : 1); return; }
+      if (action === 'a') { (buttons[index] || buttons[0])?.click(); return; }
+      index = Math.max(0, Math.min(buttons.length - 1, index + (action === 'down' || action === 'right' ? 1 : action === 'up' || action === 'left' ? -1 : 0)));
+      focus(buttons[index]); return;
+    }
+    if (action === 'lb' && state.mode === 'home' && state.page === 'search') { openFilters(); return; }
+    if (action === 'menu' && state.mode === 'home' && document.activeElement?.closest('.video-card')) { cardMenu(); return; }
+    if (action === 'menu' && state.mode === 'player') { activatePlayer('transport'); return; }
+    if (action === 'y' && state.mode === 'player') { skipSponsor(); return; }
     if (action === 'y' && state.mode === 'home') { showPage('search'); return; }
     if (action === 'x' && state.mode === 'home') { showToast(t.refreshed); return; }
     if (state.mode === 'player-panel') {
@@ -319,7 +461,7 @@
     if (state.mode === 'player') {
       if (action === 'b') {
         if (state.zone === 'options') { state.zone = 'timeline'; focus(progress); updateOptions(); }
-        else { showPage(state.page); announce(t.home_return); } return;
+        else { if (state.elapsed >= 10 && state.elapsed < 462) positions.set(state.selected, state.elapsed); showPage(state.page); announce(t.home_return); } return;
       }
       if (action === 'down') { state.zone = 'options'; updateOptions(true); return; }
       if (action === 'up') { state.zone = 'timeline'; focus(progress); updateOptions(); return; }
@@ -338,20 +480,31 @@
     }
     if (action === 'b') { if (state.page !== 'home') showPage('home'); else setRail(true); return; }
     if (state.page !== 'home') {
-      if (action === 'left') { setRail(true); return; }
       const buttons = pageButtons(); let index = buttons.indexOf(document.activeElement);
       if (index < 0) index = state.panelIndex;
       if (action === 'a') { (buttons[index] || buttons[0])?.click(); return; }
-      index = Math.max(0, Math.min(buttons.length-1, index + (action === 'down' || action === 'right' ? 1 : action === 'up' ? -1 : 0)));
-      state.panelIndex = index; focus(buttons[index]); marker(); return;
+      const current = buttons[index]?.getBoundingClientRect();
+      let next = -1, distance = Infinity;
+      if (current) buttons.forEach((button, i) => {
+        if (i === index || !button.getClientRects().length) return;
+        const rect = button.getBoundingClientRect();
+        const dx = rect.x + rect.width / 2 - current.x - current.width / 2;
+        const dy = rect.y + rect.height / 2 - current.y - current.height / 2;
+        const primary = action === 'left' ? -dx : action === 'right' ? dx : action === 'up' ? -dy : dy;
+        const cross = action === 'left' || action === 'right' ? Math.abs(dy) : Math.abs(dx);
+        if (primary > 1 && cross < primary * 2 && primary + cross * 3 < distance) { next = i; distance = primary + cross * 3; }
+      });
+      if (next < 0 && action === 'left') { setRail(true); return; }
+      state.panelIndex = next < 0 ? index : next; focus(buttons[state.panelIndex]); marker(); return;
     }
     if (state.zone === 'categories') {
       if (action === 'left') { if (state.category === 0) setRail(true); else chooseCategory(state.category-1); }
       if (action === 'right') chooseCategory(state.category+1);
+      if (action === 'a' && categories[state.category].dataset.page) { showPage(categories[state.category].dataset.page); return; }
       if (action === 'down' || action === 'a') { state.zone = 'grid'; select(state.selected,true); }
     } else {
       const columns = matchMedia('(max-width: 700px)').matches ? 2 : 4;
-      if (action === 'a') { openPlayer(); return; }
+      if (action === 'a') { playCard(state.selected); return; }
       if (action === 'left') { if (state.selected % columns === 0) { setRail(true); return; } select(state.selected-1,true); }
       if (action === 'right' && state.selected % columns < columns-1) select(state.selected+1,true);
       if (action === 'down') select(state.selected+columns,true);
@@ -359,10 +512,15 @@
     } marker();
   }
   $$('[data-command]').forEach(button => button.addEventListener('click', () => command(button.dataset.command)));
-  const keys = { ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',Enter:'a',' ':'a',Escape:'b',Backspace:'b',a:'a',b:'b',x:'x',y:'y' };
+  const keys = { ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down',Enter:'a',' ':'a',Escape:'b',Backspace:'b',a:'a',b:'b',x:'x',y:'y', '[':'lb', F2:'lb', s:'menu', ContextMenu:'menu' };
   document.addEventListener('keydown', event => {
+    if (event.key === 'Tab' && !dialog.hidden) {
+      const buttons = $$('button', dialog); const index = buttons.indexOf(document.activeElement);
+      event.preventDefault(); focus(buttons[(index + (event.shiftKey ? buttons.length - 1 : 1)) % buttons.length]); return;
+    }
     const action = keys[event.key]; if (!action || event.altKey || event.ctrlKey || event.metaKey) return;
     const target = event.target;
+    if (action === 'lb' && tv.contains(target) && state.page === 'search') { event.preventDefault(); command(action); return; }
     if (target.matches('input:not([type=range]),textarea,select,[contenteditable]')) {
       if (event.key === 'Escape' && tv.contains(target)) { event.preventDefault(); showPage('home'); } return;
     }
@@ -374,7 +532,7 @@
     let pad; try { pad = navigator.getGamepads()[state.gamepadIndex]; } catch { return; }
     if (!pad) return;
     const pressed = index => !!pad.buttons[index]?.pressed;
-    for (const [index,action] of [[0,'a'],[1,'b'],[2,'x'],[3,'y']]) { const down = pressed(index); if (down && !state.gamepadPrevious[index]) command(action); state.gamepadPrevious[index] = down; }
+    for (const [index,action] of [[0,'a'],[1,'b'],[2,'x'],[3,'y'],[4,'lb'],[9,'menu']]) { const down = pressed(index); if (down && !state.gamepadPrevious[index]) command(action); state.gamepadPrevious[index] = down; }
     const horizontal = pad.axes[0] || 0, vertical = pad.axes[1] || 0;
     const direction = pressed(14) || horizontal < -.55 ? 'left' : pressed(15) || horizontal > .55 ? 'right' : pressed(12) || vertical < -.55 ? 'up' : pressed(13) || vertical > .55 ? 'down' : '';
     if (direction && (state.direction !== direction || now >= state.repeatAt)) { command(direction); state.repeatAt = now + (state.direction === direction ? 145 : 360); }
@@ -440,6 +598,8 @@
   });
 
   const sessionKey = 'tube360.github.v2';
+  const statsTTL = 5 * 60 * 1000;
+  let statsPending = false;
   let memorySession = null;
   const safeReleaseURL = value => {
     try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'github.com' && url.pathname.startsWith('/PedroHenrique0713/tube360/releases/download/') ? url.href : null; } catch { return null; }
@@ -451,8 +611,23 @@
     memorySession = value;
     try { sessionStorage.setItem(sessionKey, JSON.stringify(value)); } catch { /* Storage may be disabled. */ }
   }
+  function showStatsTime(timestamp, live = false) {
+    const date = new Date(timestamp);
+    if (!Number.isFinite(date.getTime())) return;
+    $$('[data-stats-time]').forEach(label => { label.dateTime = date.toISOString(); label.textContent = date.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }); });
+    $$('[data-stats-status]').forEach(label => { label.textContent = live ? t.stats_live : t.stats_snapshot; });
+  }
+  function applyReleaseDate(release) {
+    if (typeof release?.published_at !== 'string') return;
+    const date = new Date(release.published_at);
+    if (typeof release?.tag_name !== 'string' || !Number.isFinite(date.getTime())) return;
+    $$('[data-latest-release]').forEach(label => { label.textContent = release.tag_name.slice(0, 64); });
+    $$('[data-release-date]').forEach(label => { label.dateTime = date.toISOString(); label.textContent = date.toLocaleDateString(locale, { dateStyle: 'medium' }); });
+  }
+  showStatsTime(document.body.dataset.fetchedAt);
   function applyGithub(data) {
     const release = data?.release;
+    applyReleaseDate(data?.latestRelease || release);
     const asset = release?.assets?.find?.((a) => typeof a?.name === 'string' && a.name.endsWith('.zip'));
     const url = asset && safeReleaseURL(asset.browser_download_url);
     if (release?.tag_name === document.body.dataset.version && url && typeof release.tag_name === 'string' && release.tag_name.trim() && Number.isInteger(asset.size) && asset.size > 0) {
@@ -479,6 +654,7 @@
         counter.dataset.downloadCount = data.downloads;
       });
       document.body.dataset.downloads = data.downloads;
+      showStatsTime(data.fetchedAt, true);
     }
   }
   async function githubData(path) {
@@ -491,10 +667,12 @@
   }
   async function refreshGithub() {
     const cached = readSession();
-    if (cached?.attempted) { applyGithub(cached); return; }
+    if (cached?.attempted) applyGithub(cached);
+    if (statsPending || (cached?.attempted && Date.now() - cached.fetchedAt < statsTTL)) return;
     const retryAfter = Number(document.body.dataset.githubRetryAfter) || 0;
     if (Date.now() < retryAfter * 1000) return;
-    saveSession({ attempted: true });
+    statsPending = true;
+    saveSession({ ...cached, attempted: true, fetchedAt: Date.now() });
     const [releases, repo] = await Promise.all([githubData('/releases?per_page=100&page=1'), githubData('')]);
     let downloads = null;
     let page = releases;
@@ -516,11 +694,15 @@
       }
     }
     const release = releases?.find?.(release => release.tag_name === document.body.dataset.version);
-    const data = { attempted: true, release, repo, downloads };
+    const latestRelease = releases?.filter?.(item => !item.draft && !item.prerelease && Number.isFinite(Date.parse(item.published_at))).sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))[0];
+    const data = { attempted: true, release, latestRelease, repo, downloads, fetchedAt: Date.now() };
+    statsPending = false;
     saveSession(data);
     applyGithub(data);
   }
   refreshGithub();
+  setInterval(() => { if (!document.hidden) refreshGithub(); }, statsTTL);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshGithub(); });
 
   function updateLanguageLinks() {
     $$('[data-language]').forEach(link => { link.hash = window.location.hash; });
@@ -569,7 +751,7 @@
 
   if (window.gsap) {
     const gsap = window.gsap;
-    const motionTargets = '[data-reveal], .hero-intro, .tv-frame, .playground-caption, #home-screen, #browse-screen, #player-screen, #player-panel, #feature-image';
+    const motionTargets = '[data-reveal], .hero-intro, .tv-frame, .playground-caption, #home-screen, #browse-screen, #player-screen, #player-panel, #feature-image, .dialog-surface';
     const media = gsap.matchMedia();
     if (window.ScrollTrigger) {
       const ScrollTrigger = window.ScrollTrigger;

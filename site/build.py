@@ -31,6 +31,12 @@ def valid_data(data):
     for key in ("size", "stargazers_count", "download_count"):
         if type(data[key]) is not int or data[key] < (1 if key == "size" else 0):
             raise ValueError(f"invalid {key}")
+    if data.get("published_at"):
+        if not isinstance(data["published_at"], str):
+            raise ValueError("published_at must be an ISO 8601 timestamp")
+        published = datetime.fromisoformat(data["published_at"].replace("Z", "+00:00"))
+        if published.tzinfo is None:
+            raise ValueError("published_at must include a timezone")
     return data
 
 
@@ -76,6 +82,7 @@ def get_data(args):
                                "size": asset["size"],
                                "stargazers_count": repo["stargazers_count"],
                                "download_count": download_count(),
+                               "published_at": release.get("published_at"),
                                "fetched_at": datetime.now(timezone.utc).isoformat()})
         except Exception as error:
             if not cached:
@@ -87,6 +94,10 @@ def get_data(args):
                 # Do not make every visitor repeat a request GitHub already refused.
                 reset = error.headers.get("X-RateLimit-Reset", "")
                 data["retry_after"] = int(reset) if reset.isdigit() else int(datetime.now(timezone.utc).timestamp()) + 3600
+    if args.version is not None and args.version != data.get("tag_name"):
+        data.pop("published_at", None)
+    if getattr(args, "published_at", None) is not None:
+        data["published_at"] = args.published_at
     for arg, key in ((args.version, "tag_name"), (args.download_url, "download_url"),
                      (args.size, "size"), (args.stars, "stargazers_count"),
                      (args.downloads, "download_count")):
@@ -118,6 +129,7 @@ def main():
     parser.add_argument("--offline", action="store_true", help="Use arguments or src/github.json without network requests")
     parser.add_argument("--no-cache-write", action="store_true", help="Render supplied release values without changing the saved GitHub cache")
     parser.add_argument("--version")
+    parser.add_argument("--published-at", help="Release publication timestamp with timezone (ISO 8601)")
     parser.add_argument("--download-url")
     parser.add_argument("--size", type=int, help="Release asset size in bytes")
     parser.add_argument("--stars", type=int)
@@ -146,6 +158,9 @@ def main():
                   "version": data["tag_name"], "download_url": data["download_url"],
                   "size_bytes": data["size"], "stars_raw": data["stargazers_count"],
                   "downloads_raw": data["download_count"], "downloads_text": downloads,
+                  "published_at": data.get("published_at") or "",
+                  "published_text": (datetime.fromisoformat(data["published_at"].replace("Z", "+00:00")).strftime("%d/%m/%Y" if lang == "pt-BR" else "%b %d, %Y") if data.get("published_at") else translations["release_date_unknown"]),
+                  "fetched_at": data.get("fetched_at", ""),
                   "github_retry_after": data.get("retry_after", 0),
                   "release_text": f'{data["tag_name"]} · {size} MB ZIP', "stars_text": stars,
                   "runtime_json": json.dumps(translations, ensure_ascii=False).replace("<", "\\u003c"),
