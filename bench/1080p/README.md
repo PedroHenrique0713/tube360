@@ -20,7 +20,7 @@ objetos FFmpeg, pois Make não os invalida somente por mudar CC.
 - `mask=1` ativa chroma; `3` acrescenta qpel; `7` acrescenta pesos; `0` conserva o dispatch anterior.
   O app usa 7; só a bancada altera a máscara, sempre antes de abrir/juntar os workers.
 - Kernels compilados em O2: unidade de 70.996 B de texto, contra 177.960 B em O3. É redução
-  estática de código; ganho de tempo ainda depende do console.
+  estática de código no prefixo antigo; o GCC52 final tem 69.760 B. Ganho de tempo ainda depende do console.
 - CMake verifica identidade das fontes/receita antes de reutilizar FFmpeg do app. Um arquivo
   `libavformat.a` antigo já não basta para esconder uma atualização dos kernels.
 - O get_buffer2 mantém uma única posse compartilhada para os três planos, com liberação atômica;
