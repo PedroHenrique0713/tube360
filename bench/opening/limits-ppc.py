@@ -105,13 +105,14 @@ def main():
         f = args.build_dir/'CMakeFiles/tube360.dir/flags.make'
         includes = flags(f, 'CXX_INCLUDES')+['-I'+str(args.prefix/'include')]
         definitions = flags(f, 'CXX_DEFINES')
+        release_flags = flags(f, 'CXX_FLAGS')
         for stem, source, opts in (
             ('subject', sources/'limits-subject.cpp', ['-'+level]),
             ('main', sources/'limits.cpp', ['-O0']),
             ('app', ROOT/'client/src/update/app.cpp', ['-O3']),
             ('common', ROOT/'client/src/update/common.cpp', ['-O3']),
         ):
-            run([cxx, '-std=c++20', '-mcpu=cell', '-ffunction-sections', '-fdata-sections', *opts,
+            run([cxx, *release_flags, '-ffunction-sections', '-fdata-sections', *opts,
                 *definitions, *includes, '-I'+str(ROOT/'client/third_party/monocypher'),
                 '-c', str(source), '-o', str(folder/(stem+'.o'))], log)
         run([cc, '-O0', '-mcpu=cell', '-c', str(sources/'ppc-stubs.c'), '-o', str(folder/'stubs.o')], log)
@@ -135,7 +136,7 @@ def main():
     curl = next((ROOT/'.work/src').glob('curl-xenon-*'))
     # Function sections only remove unrelated network code from this demux-style probe.
     # Parser bytes are linked directly from the actual Xbox libcurl archive.
-    run([cc, '-O3', '-mcpu=cell', '-ffunction-sections', '-fdata-sections', *definitions, *includes,
+    run([cc, *flags(f, 'C_FLAGS'), '-ffunction-sections', '-fdata-sections', *definitions, *includes,
         '-c', str(curl/'lib/progress.c'), '-o', str(folder/'progress.o')], folder/'build.log')
     elf = folder/'probe.elf'
     run([cc, '-O0', *common, *definitions, *includes, str(sources/'curl-limits.c'),
