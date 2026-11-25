@@ -3,6 +3,8 @@
 ## Unreleased — local library
 
 - Watch later and resume without an account, stored beside the app with bounded atomic snapshots, progress bars and confirmed local clearing. Account lists remain separate.
+- Local clearing settings show actual counts with units, an explicit empty state and separately labeled storage limits in all four languages.
+- Text without a font glyph is omitted in the per-font layout cache before fitting/shaping; Arabic joining/bidi controls and literal question marks are preserved. Emoji-only titles render empty.
 - Channel Shorts cards and tab, protocol-relative artwork URLs and JPEG fallback for unsupported ytimg artwork. [Behavior and validation](docs/LOCAL-LIBRARY.md).
 
 ## [0.3.2]

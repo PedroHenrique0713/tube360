@@ -72,3 +72,18 @@ dessa pasta; usar `server=off`, `sound=tv` e `sponsorblock=off`. Não substituir
    preservado. Validar que rename substitui o destino no FATX e medir o tempo da gravação.
 
 Compilação do XEX e testes no PC não medem Xenos, FATX, perda de energia nem desempenho do decode no Xbox.
+
+## Revisão das contagens e glifos
+
+```sh
+python3 bench/local-library/e2e.py .work/provas/f44-revisao/ui --review
+```
+
+São 28 capturas novas: 24 combinações de pt/en/es/ar × 720p/480p 4:3 com texto grande ×
+3 vídeos/12 posições, 1/1 e zero/zero. O foco na última linha deixa as duas ações de limpeza visíveis.
+O valor vem do arquivo semeado para cada caso; o rodapé apresenta limites explícitos. As outras quatro
+capturas mostram Shorts gravados e títulos sintéticos com emoji, só emoji e árabe com emoji em HD/SD.
+A ausência de título no cartão só de emoji é intencional; a legenda Demo identifica o caso.
+Os arquivos originais mantêm os títulos completos: a omissão pertence à preparação visual, não altera
+os dados nem o protocolo. As suítes `arabic-text-test`, `arabic-render-test` e `display-layout-test`
+conferem cobertura, composição, bidi, fitting, cache e troca de tamanho da fonte.

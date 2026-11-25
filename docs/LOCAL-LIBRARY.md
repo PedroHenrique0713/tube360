@@ -53,6 +53,9 @@ ou posição válida o substitui por um arquivo novo. Um `.tmp` abandonado nunca
 
 As duas últimas linhas de Configurações são **Apagar histórico local** e **Apagar lista local**.
 A mostra uma confirmação com **Voltar** selecionado. Para apagar, pressione baixo e A. B cancela.
+Cada linha mostra a contagem real com unidade (vídeos/posições), singular quando houver um item e
+Vazio quando não houver. Em árabe, o valor usa um rótulo de unidade seguido de dois-pontos e número.
+O rodapé identifica os limites como **Até 200 vídeos · até 500 posições**.
 A operação afeta somente a categoria escolhida, persiste em disco e não altera a conta do YouTube.
 
 ## Miniaturas de canal

@@ -11,7 +11,7 @@ import shutil
 import subprocess
 
 ROOT=Path(__file__).resolve().parents[2]
-p=argparse.ArgumentParser();p.add_argument('directory',type=Path);p.add_argument('cases',nargs='*');p.add_argument('--prepare-only',action='store_true');args=p.parse_args()
+p=argparse.ArgumentParser();p.add_argument('directory',type=Path);p.add_argument('cases',nargs='*');p.add_argument('--prepare-only',action='store_true');p.add_argument('--review',action='store_true');args=p.parse_args()
 work=args.directory.resolve();work.mkdir(parents=True,exist_ok=True)
 replay=work/'replay';replay.mkdir(exist_ok=True)
 
@@ -85,7 +85,8 @@ def run(name,lang='pt',large=False,height=720,keys='',seconds=3.5,saved=True,sig
     assets=assets or work/name;assets.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('*.ttf'):shutil.copyfile(font,assets/font.name)
     (assets/'settings.txt').write_text(f'lang={lang}\nserver={"auto" if phone_control else "off"}\nsound=tv\nsponsorblock=off\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
-    if saved is True:(assets/'local-library.json').write_text(json.dumps(seed()))
+    if isinstance(saved,dict):(assets/'local-library.json').write_text(json.dumps(saved))
+    elif saved is True:(assets/'local-library.json').write_text(json.dumps(seed()))
     elif saved is False:(assets/'local-library.json').unlink(missing_ok=True)
     elif saved=='corrupt':(assets/'local-library.json').write_text('{broken')
     if signed:
@@ -122,6 +123,29 @@ def run(name,lang='pt',large=False,height=720,keys='',seconds=3.5,saved=True,sig
     cmd('magick',assets/'screen.ppm',assets/'screen.png')
     results.append({'name':name,'image':str(assets/'screen.png')});(work/'results.json').write_text(json.dumps(results,indent=2))
     print('PASS',name,flush=True);return assets,log
+
+if args.review:
+    def collections(videos,positions):
+        def item(n):return dict(id=f'video{n:06}',title=f'Demo · Vídeo {n}',channel='Demo · Arquivo de prova',duration=120,position=30,order=n)
+        return dict(version=1,later=[item(n) for n in range(1,videos+1)],history=[item(n) for n in range(1,positions+1)])
+    for lang in ('pt','en','es','ar'):
+        for height,large in ((720,False),(480,True)):
+            for state,videos,positions in (('many',3,12),('one',1,1),('empty',0,0)):
+                name=f'counts-{lang}-{height}-{state}'
+                r=run(name,lang=lang,height=height,large=large,saved=collections(videos,positions),XT_SCREEN='settings',keys='D'*17,XT_KEYS_MS='100',seconds=3)
+                if r:
+                    data=json.loads((r[0]/'local-library.json').read_text())
+                    assert len(data['later'])==videos and len(data['history'])==positions
+    demo=collections(3,0)
+    titles=['🪴 Construindo um rover autônomo para plantas com o Gemini Live','👨‍👩‍👧 🪴😀','🪴 العربية Xbox 360 (2026) 😀']
+    for entry,title,label in zip(demo['later'],titles,['Título latino com emoji','Título composto só de emoji','Árabe com emoji']):entry.update(title=title,channel='Demo · '+label)
+    run('emoji-titles-pt',saved=demo,XT_NAV='local_later')
+    run('emoji-titles-ar',lang='ar',saved=demo,XT_NAV='local_later')
+    demo['later']=demo['later'][1:]
+    run('emoji-titles-ar-43-large',lang='ar',height=480,large=True,saved=demo,XT_NAV='local_later')
+    run('shorts-clean',XT_NAV='channel',XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw',keys='URD',seconds=4)
+    print('Review UI checks:',len(results))
+    raise SystemExit
 
 for lang in ('pt','en','es','ar'):
     run('later-'+lang,lang=lang,XT_NAV='local_later')
