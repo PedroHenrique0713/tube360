@@ -42,7 +42,7 @@ os logs devem confirmar o resultado efetivo do kernel.
 Não há HW exclusivo do SponsorBlock neste perfil. O boost temporário preservado
 da F34 preempta vídeo/fundo no HW5 sem alterar a afinidade desses workers. Medir
 no console a latência TLS, a restauração e a cadência durante a consulta.
-`app-thread`, `decod-worker`, `decod-priority`, `app-audio` e `sponsorblock:`
+`app-thread`, `decod-worker`, `decod-priority`, `app-audio` e `SponsorBlock:`
 registram pedidos, status e consultas de prioridade. Helpers MPEG-1 dormem durante AVC.
 
 A fila 1080p é limitada pelo orçamento de memória. A escada preserva os limites
@@ -89,6 +89,7 @@ cd /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f42-integracao
 F42_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
 F42_IP=192.168.101.39 # conferir o IP atual com o dono
 F42_CASE=tv137
+F42_RUN=mudo # usar som na repetição sem mudo.txt
 F42_LOCAL="$PWD/.work/f42/bench-console/$F42_CASE"
 F42_REMOTE="HDD:\\Apps\\Tube360-F42-$F42_CASE"
 python3 "$F42_XBDM" "$F42_IP" mkdir "$F42_REMOTE"
@@ -98,8 +99,18 @@ done
 python3 "$F42_XBDM" "$F42_IP" run "$F42_REMOTE\\tube360.xex"
 # Esperar saída normal: abertura + 10 s aquecimento + 120 s medidos.
 # Timeout da sonda: 220 s. Não reiniciar se travar; preservar os logs.
-python3 "$F42_XBDM" "$F42_IP" get "$F42_REMOTE\\tube360.log" ".work/f42/xbox-$F42_CASE.txt"
-python3 bench/1080p-app/summarize.py ".work/f42/xbox-$F42_CASE.txt" ".work/f42/xbox-$F42_CASE.json"
+python3 "$F42_XBDM" "$F42_IP" get "$F42_REMOTE\\tube360.log" ".work/f42/xbox-$F42_CASE-$F42_RUN.txt"
+python3 bench/1080p-app/summarize.py ".work/f42/xbox-$F42_CASE-$F42_RUN.txt" ".work/f42/xbox-$F42_CASE-$F42_RUN.json"
+```
+
+Para repetir com som, depois de guardar o log mudo e fechar o app:
+
+```bash
+rm -- "$F42_LOCAL/mudo.txt"
+python3 "$F42_XBDM" "$F42_IP" rm "$F42_REMOTE\\mudo.txt"
+F42_RUN=som
+python3 "$F42_XBDM" "$F42_IP" run "$F42_REMOTE\\tube360.xex"
+# Repetir get + summarize acima; os logs mudo e som ficam separados.
 ```
 
 Ordem e critérios:
