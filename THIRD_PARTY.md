@@ -6,6 +6,8 @@ Tube360 is MIT licensed (see `LICENSE`). It ships or depends on:
 |---|---|---|
 | [pl_mpeg](https://github.com/phoboslab/pl_mpeg) by Dominic Szablewski | `client/third_party/pl_mpeg.h` (with Tube360 patches: slice-parallel decoding, B-frame skipping) | MIT |
 | [stb_image, stb_truetype](https://github.com/nothings/stb) by Sean Barrett | `client/third_party/` | MIT / Public Domain |
+| [GNU FriBidi 1.0.16](https://github.com/fribidi/fribidi/releases/tag/v1.0.16) | `client/third_party/fribidi/`, static bidi/Arabic shaping core, Unicode 16 | LGPL-2.1-or-later (`COPYING`); corresponding source is vendored |
+| [Noto Sans Arabic 2.012](https://github.com/notofonts/arabic/releases/tag/NotoSansArabic-v2.012) | `client/assets/noto-sans-arabic-*.ttf`, unmodified Light/Regular/SemiBold/Bold | SIL OFL 1.1 (`client/assets/OFL-NotoSansArabic.txt`) |
 | [Inter](https://rsms.me/inter/) typeface by Rasmus Andersson | `client/assets/inter-*.ttf` | SIL Open Font License 1.1 (`client/assets/OFL-Inter.txt`) |
 | [Phosphor Icons](https://phosphoricons.com) (player controls and ratings) | `client/third_party/phosphor/`, rasterized into `client/src/icons.hpp` by `tools/gen-icons.py` | MIT (`client/third_party/phosphor/LICENSE`) |
 | [yt-cast-receiver](https://github.com/patrickkfkan/yt-cast-receiver) | `cast/` (npm) | MIT |
@@ -61,3 +63,5 @@ sanitization. The app ZIP alone is not the complete source/relink distribution d
 
 - **Monocypher 4.0.3** (`client/third_party/monocypher/`), by Loup Vaillant et al., BSD-2-Clause OR CC0-1.0; upstream sources unmodified, license included. Only Ed25519 verification is called by Tube360. [Source and manual](https://monocypher.org/manual/ed25519), [Cure53 audit](https://monocypher.org/quality-assurance/audit). Archive SHA-512: `40904ada5c7ee4f7741733e38b69a30a4b0561cbffba5ffe7c2dce16136d540251ec0d9056ff606510d3b5b708fb8a40db7e0870d4a0b2dc17ba2bfb880f8965` (`https://monocypher.org/download/monocypher-4.0.3.tar.gz`, checked against upstream `.sha512`).
 - **Mozilla CA certificate bundle**, extracted by curl (`client/src/update/roots.pem`), downloaded from [curl CA Extract](https://curl.se/docs/caextract.html) on 2026-11-24; source/license headers preserved. Used only for signed update downloads; YouTube retains its existing GTS roots.
+
+The title also statically links GNU FriBidi 1.0.16 (LGPL-2.1-or-later). Include its vendored corresponding source/configuration, `client/text.cmake`, COPYING and the matching `libtube360-text.a` in the release source/relink materials. Replace that archive in `support/` to relink a modified FriBidi with the supplied application objects. The same modification/reverse-engineering permissions above apply.
