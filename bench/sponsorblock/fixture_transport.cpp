@@ -15,6 +15,7 @@ class SponsorFixture final : public Transport {
     const std::atomic_bool* stop;
     std::string directory;
     Replay media;
+    unsigned sponsorCalls=0;
 public:
     explicit SponsorFixture(const std::atomic_bool* flag):stop(flag),directory(std::getenv("XT_SPONSOR_FIXTURES")),media(directory) {}
     bool cancelled() const override { return stop && stop->load(); }
@@ -23,13 +24,20 @@ public:
         if (cancelled()) return {0,{},"cancelled"};
         if (r.url.find("https://sponsor.ajay.app/")==0) {
             const string expected="https://sponsor.ajay.app/api/skipSegments/5f6b?categories=%5B%22sponsor%22%2C%22selfpromo%22%2C%22interaction%22%5D&actionTypes=%5B%22skip%22%5D";
-            if (r.url!=expected || !r.body.empty() || r.maxBytes!=512*1024) { SDL_Log("BAD SponsorBlock request: %s",r.url.c_str()); return {400,{},{}}; }
+            if (r.url!=expected || !r.body.empty() || r.maxBytes!=512*1024 || r.connectTimeoutMs!=2500 || r.timeoutMs!=3500) { SDL_Log("BAD SponsorBlock request: %s",r.url.c_str()); return {400,{},{}}; }
+            ++sponsorCalls;
             SDL_Log("SponsorBlock fixture GET: %s",r.url.c_str());
             if (const char* delay=std::getenv("XT_SPONSOR_DELAY_MS")) {
                 auto until=SDL_GetTicks()+unsigned(std::atoi(delay));
                 while (!cancelled() && SDL_GetTicks()<until) SDL_Delay(5);
             }
             if (std::getenv("XT_SPONSOR_FAIL")) return {503,{},{}};
+            if (std::getenv("XT_SPONSOR_RETRY_FIRST") && sponsorCalls==1) {
+                Response failure; failure.failure=Failure::TLS; failure.error="SSL connect error";
+                failure.transportCode=35; failure.tlsCode=-0x7280;
+                failure.transportDetail="ssl_handshake returned: (-0x7280) SSL - The connection indicated an EOF";
+                return failure;
+            }
             if (std::getenv("XT_SPONSOR_TLS_FAIL")) {
                 Response failure; failure.failure=Failure::TLS; failure.error="tls_peer_verification";
                 failure.transportCode=60; failure.tlsCode=-0x2700;

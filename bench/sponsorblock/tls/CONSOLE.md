@@ -1,5 +1,39 @@
 # F34 — diagnóstico no console, 2026-11-25
 
+## Rodada após o resultado de 01:39 — prioridade e retry
+
+A sonda já passou no console (200 / um trecho / 0.532 s), enquanto o app recebeu EOF depois de 17.039 s.
+O app da pasta local foi atualizado: disparo na seleção, worker em HW1, prioridade relativa +1 durante o
+pedido, connect/handshake de 2500 ms e total de 3500 ms. Há no máximo duas tentativas: a segunda espera
+três segundos após a falha e três segundos contínuos de reprodução. Sem espera da rede na thread da UI.
+
+Para repetir, use **o mesmo bloco do app** abaixo. A sonda isolada anterior permanece disponível para
+comparação; não é necessário executá-la novamente. Com o app anterior fechado, a atualização mínima é:
+
+```bash
+cd /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f34-sponsorblock
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 put .work/console-f34-diagnostico-1125/tube360.xex 'HDD:\F34-TLS-1125\tube360.xex'
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 run 'HDD:\F34-TLS-1125\tube360.xex'
+# Depois de aparecer o trecho ou de terminar a segunda tentativa:
+python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.101.39 get 'HDD:\F34-TLS-1125\tube360.log' .work/proofs/f34-cpu/console-app.log
+rg 'SponsorBlock|primeiro quadro|decod-worker' .work/proofs/f34-cpu/console-app.log
+```
+
+Conferir:
+
+1. `tentativa 1/2 inicio` ocorre junto da seleção/resolução, com `hw_alvo=1 hw_efetivo=1`,
+   `afinidade=0x00000000 prioridade=1 prioridade_status=0x00000000`. `afinidade` é o **status de retorno**,
+   não a máscara de CPUs; zero é sucesso. `fila_ms` mostra o atraso até o worker começar.
+2. O pedido normal deve terminar perto do tempo da sonda e fornecer `status=ok`, um trecho, botão Y e marca.
+   Comparar o tempo até o primeiro quadro com a rodada anterior; não há gate esperando SponsorBlock.
+3. Se ocorrer timeout/EOF, há uma linha `tentativa 2/2 aguardando`; a segunda consulta só começa após
+   reprodução estável e deve retornar `cached=0`, usando conexão nova. Nenhuma `tentativa 3` pode aparecer.
+4. Repetir botão/pulo e, se desejado, automático/Y para voltar. Fechar ou trocar de vídeo antes do retry
+   deve cancelar a tentativa antiga, sem marcas do vídeo anterior. Um novo processo começa com cache vazio.
+
+Os dois pedidos usam prazos de curl; a efetividade sob carga e a afinidade/prioridade reais precisam desta
+medição no console. As configurações de certificados e de decodificação não foram alteradas nesta rodada.
+
 O log antigo `SponsorBlock: 0 trechos` confundia vazio com erro. A build instrumentada distingue
 `ok`, `empty`, `tls_error`, `network_error`, `http_error`, `parse_error` e cancelamento. Não há erro novo
 na interface. O log inclui prefixo, HTTP/libcurl/mbedTLS, mensagem de erro, tamanho, bucket, match,

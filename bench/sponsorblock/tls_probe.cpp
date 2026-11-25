@@ -25,6 +25,7 @@ void* run(void* ptr) {
         !mbedtls_version_check_feature("MBEDTLS_ECP_DP_SECP384R1_ENABLED"));
     auto net=yt::https();
     yt::Request q; q.url=probe.url ? probe.url : yt::sponsorblock::requestUrl("wWC8wVI4E3E"); q.maxBytes=512*1024;
+    q.connectTimeoutMs=yt::sponsorblock::connectTimeoutMs; q.timeoutMs=yt::sponsorblock::requestTimeoutMs;
     auto response=net->send(q);
     yt::sponsorblock::Diagnostic diagnostic;
     auto segments=probe.url ? yt::sponsorblock::Segments{} : yt::sponsorblock::parse(response.body,"wWC8wVI4E3E",&diagnostic);

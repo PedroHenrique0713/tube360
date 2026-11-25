@@ -78,7 +78,8 @@ def run(name, mode='button', lang='pt', screen='player', keys='', seconds=3, at=
     assert 'captura: ' in text, text
     if screen == 'player':
         assert 'primeiro quadro' in text, text
-        assert text.count('SponsorBlock fixture GET') == (0 if mode == 'off' else 1), text
+        expected_requests=0 if mode=='off' else 2 if 'XT_SPONSOR_RETRY_FIRST' in extra or name=='retry-limit' else 1
+        assert text.count('SponsorBlock fixture GET') == expected_requests, text
         if mode != 'off':
             status = 'http_error' if 'XT_SPONSOR_FAIL' in extra else 'tls_error' if 'XT_SPONSOR_TLS_FAIL' in extra else 'parse_error' if 'XT_SPONSOR_PARSE_FAIL' in extra else 'ok'
             assert f'status={status}' in text, text
@@ -120,6 +121,8 @@ if __name__ == '__main__':
         'offline': dict(XT_SPONSOR_FAIL='1'),
         'tls-failure': dict(XT_SPONSOR_TLS_FAIL='1'),
         'parse-failure': dict(XT_SPONSOR_PARSE_FAIL='1'),
+        'retry-after-warmup': dict(XT_SPONSOR_RETRY_FIRST='1', seconds=5),
+        'retry-limit': dict(XT_SPONSOR_FAIL='1', seconds=8),
         'slow-api': dict(XT_SPONSOR_DELAY_MS='1000', seconds=3),
         'nest-auto': dict(mode='auto', speaker=True, seconds=6),
     })
@@ -150,5 +153,11 @@ if __name__ == '__main__':
         if name == 'slow-api':
             first = int(re.search(r'primeiro quadro: (\d+) ms', text)[1])
             assert first < 1000, f'first frame waited for slow API: {first}ms'
+        if name=='retry-after-warmup':
+            assert 'tentativa 1/2 fim' in text and 'mbedtls=-0x7280' in text and 'tentativa 2/2 fim' in text, text
+            first_ms=int(re.search(r'primeiro quadro: (\d+) ms',text)[1])
+            assert first_ms<1000, text
+        if name in ('retry-after-warmup','retry-limit'):
+            assert 'tentativa 3/' not in text, text
         results.append(dict(name=name, skips=skips))
     (WORK/'results.json').write_text(json.dumps(results, indent=2))
