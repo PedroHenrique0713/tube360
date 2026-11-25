@@ -1,4 +1,11 @@
 #pragma once
+#ifdef TUBE360_UPDATE_TEST_CONFIG
+// Só a bancada passa este header por flag de compilação; nenhuma chave de teste no fonte público.
+#include TUBE360_UPDATE_TEST_CONFIG
+#if !defined(TUBE360_UPDATE_TEST_KEY) || !defined(TUBE360_UPDATE_TEST_BASE)
+#error Incomplete disposable update test configuration
+#endif
+#endif
 #include "picojson.h"
 #include <cstdint>
 #include <functional>

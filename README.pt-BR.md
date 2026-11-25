@@ -113,7 +113,7 @@ MPEG-1 + MP2 fica como compatibilidade fornecida pelo servidor opcional, até 72
 
 ### 1. Copie a pasta do app
 
-Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex`, as quatro fontes `inter-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
+Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex` (lançador), `tube360.xex` (app), as quatro fontes `inter-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
 
 ### 2. Abra pelo Aurora, FSD ou XeXMenu
 
@@ -154,7 +154,9 @@ Abra **Celular** no Tube360. No app oficial do YouTube, use **Configurações �
 
 ### Atualizações assinadas
 
-A Home avisa quando há uma versão nova: **LB** abre as novidades, **A** baixa e confere a assinatura/hash, **B** volta ou cancela. Reabra pelo `default.xex` para instalar. O pacote inicial completo é necessário para quem usava um XEX único. Se o novo app não confirmar um boot saudável, a próxima abertura restaura o anterior. [Detalhes e recuperação](docs/UPDATES.md).
+**Configurações → Atualizações do app** mostra versão instalada, candidata e tamanho. **A Atualizar** baixa e confere Ed25519/SHA-256; **B** volta ou cancela. A Home também avisa quando há uma versão nova (**LB** abre os detalhes). Reabra **default.xex** para instalar; se o início não for confirmado, a próxima abertura restaura o anterior.
+
+**Vindo da v0.3.0/v0.3.1:** feche o app, guarde a pasta antiga como reserva e copie a pasta nova completa uma última vez. Mantenha os dois XEX e as quatro fontes juntos; preserve configurações/conta se desejar, mas não traga journals/candidatos de atualização antigos. Depois disso, as atualizações do app chegam pela própria interface. Reserve espaço para o app instalado, o candidato e a reserva. [Detalhes e recuperação](docs/UPDATES.md).
 
 ## Controles
 
@@ -246,7 +248,7 @@ tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.0
 ```
 
-O build gera `client/build-x360/tube360.xex`. O empacotador instala esse arquivo como `Tube360/default.xex` em `.work/releases/tube360-v0.3.0-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
+O build gera `client/build-x360/tube360.xex`. O empacotador instala o lançador como `Tube360/default.xex` e o app como `Tube360/tube360.xex` em `.work/releases/tube360-v0.3.0-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
 
 ## Estrutura do projeto
 

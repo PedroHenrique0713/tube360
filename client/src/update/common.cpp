@@ -52,6 +52,11 @@ bool youtubeUrl(const string& u) {
     return false;
 }
 bool updateUrl(const string& u) {
+#ifdef TUBE360_UPDATE_TEST_CONFIG
+    const string local=TUBE360_UPDATE_TEST_BASE;
+    if(u.compare(0,local.size(),local)==0 && ascii(u,2048) &&
+        u.find_first_of("@\\#%?")==string::npos && u.find("..") == string::npos)return true;
+#endif
     auto h=host(u);
     auto path=u.substr(0,u.find('?'));
     if(path.find("/../")!=string::npos || path.find("/./")!=string::npos || path.find('%')!=string::npos)return false;

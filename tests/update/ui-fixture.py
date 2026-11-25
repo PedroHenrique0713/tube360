@@ -10,6 +10,8 @@ ROOT=Path(__file__).resolve().parents[2]
 p=argparse.ArgumentParser(description=__doc__)
 p.add_argument('directory',type=Path)
 p.add_argument('--key',type=Path,required=True)
+p.add_argument('--build',type=int,default=2)
+p.add_argument('--version',default='0.3.1')
 a=p.parse_args();d=a.directory.resolve();d.mkdir(parents=True,exist_ok=True)
 for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copyfile(font,d/font.name)
 (d/'settings.txt').write_text('lang=pt\nserver=off\ncols=4\nquality=720\nsound=tv\n')
@@ -29,7 +31,7 @@ except ImportError:
  shutil.copyfile(ROOT/'docs/img/hero.jpg',d/'thumb.jpg')
 cmd=[sys.executable,str(ROOT/'tools/sign-updates.py'),'--key',str(a.key)]
 subprocess.run(cmd+['sign',str(d/'rules.json')],check=True)
-subprocess.run(cmd+['manifest',str(d/'app.xex'),'--build','2','--version','0.3.1',
+subprocess.run(cmd+['manifest',str(d/'app.xex'),'--build',str(a.build),'--version',a.version,
  '--url','https://github.com/PedroHenrique0713/tube360/releases/download/v0.3.1/tube360.xex',
  '--notes-en','YouTube fixes and automatic app recovery. Download once and reopen Tube360 to install.',
  '--notes-pt','Correções do YouTube e recuperação automática do app. Baixe e reabra o Tube360 para instalar.',

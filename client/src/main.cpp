@@ -1006,7 +1006,7 @@ int main(int argc, char** argv) {
     }
 
     updateUI.poll(updater,g,settings.lang);
-    updater.tick(screen==HOME,frame>60 && now-runStart>=3000);
+    updater.tick(screen==HOME || screen==SETTINGS,frame>60 && now-runStart>=3000);
 
     // ---------------------------------------------------------------- resultados do trabalho em segundo plano
     if (accountBackend != consoleAccount->revision()) {
@@ -1268,7 +1268,7 @@ int main(int argc, char** argv) {
         if (powerDownXbox()) quit = true;
         else { shutdownAt = 0; toast = tr(K::SleepError); toastUntil = now + 6000; }
       }
-    } else if (updateUI.input(updater,in,screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !sleepPanel && !sleepWarning && !shutdownAt)) {
+    } else if (updateUI.input(updater,in,screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !sleepPanel && !sleepWarning && !shutdownAt,screen==SETTINGS && !speakerPicker.open && !loginPanel && !logoutPanel)) {
     } else if (sleepWarning) {
       if (in.hit(Input::A) && !sleepPending) requestSleep("/api/sleep/add?min=15");
       if (in.hit(Input::B) && !sleepPending) requestSleep("/api/sleep/cancel");
@@ -1497,7 +1497,7 @@ int main(int argc, char** argv) {
       }
     } else if (screen == SETTINGS) {
       if (in.hit(Input::UP) && settingsRow > 0) settingsRow--;
-      if (in.hit(Input::DOWN) && settingsRow < 13) settingsRow++;
+      if (in.hit(Input::DOWN) && settingsRow < 14) settingsRow++;
       int direction = 0;
       if (in.hit(Input::LEFT)) direction = -1;
       if (in.hit(Input::RIGHT)) direction = 1;
@@ -1506,6 +1506,7 @@ int main(int argc, char** argv) {
         else beginLogin();
       }
       if (settingsRow == 13 && in.hit(Input::A)) speakerPicker.begin(pl.directSpeaker.finder());
+      if (settingsRow == 14 && in.hit(Input::A)) updateUI.show(updater);
       if (direction && settingsRow > 0 && settingsRow < 13) {
         bool changed = true;
         if (settingsRow == 1) {
@@ -2044,10 +2045,10 @@ int main(int argc, char** argv) {
       gfx::text(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::TEXT);
       if (!ui::large) gfx::text(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::MUTED);
       else gfx::text(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::MUTED);
-      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers};
-      int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,14-visible);
+      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates};
+      int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,15-visible);
       float step=ui::large ? 94 : 59, rowH=step-6;
-      for (int i=first;i<std::min(14,first+visible);++i) {
+      for (int i=first;i<std::min(15,first+visible);++i) {
         float x=ui::X0, y=122+(i-first)*step, w=ui::W-ui::X0-64;
         bool selected=i==settingsRow, disabled=i==3 && !nestAvailable;
         if (selected) gfx::rect(g,x-3,y-3,w+6,rowH+6,ui::A1,20);
@@ -2066,6 +2067,7 @@ int main(int argc, char** argv) {
         else if (i==10) value=tr(settings.originalAudio ? K::AudioAlwaysOriginal : K::AudioInterface);
         else if (i==11) value=tr(ui::large ? K::Enabled : K::SleepOff);
         else if (i==13) value=tr(K::Open);
+        else if (i==14) value=updateUI.settingsValue(settings.lang);
         else value=tr(settings.videoFill ? K::VideoFitFill : K::VideoFitLetterbox);
         float right=x+w-46, maxValue=ui::large ? w-92 : w*.48f;
         gfx::text(g,ui::F_CHAN,gfx::ellipsize(g,ui::F_CHAN,tr(labels[i]),ui::large ? w-56 : w*.43f),x+28,y+(ui::large ? 10 : 17),disabled ? ui::MUTED : ui::TEXT);
@@ -2078,7 +2080,7 @@ int main(int argc, char** argv) {
       for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::text(g,ui::F_SMALL,line,ui::X0,hy,ui::MUTED); hy+=ui::large ? 26 : 22; }
       float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
       hx=hint(g,hx,678,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
-      if (settingsRow==0 || settingsRow==13) hx=hint(g,hx,678,"A",XA,tr(K::Open));
+      if (settingsRow==0 || settingsRow==13 || settingsRow==14) hx=hint(g,hx,678,"A",XA,tr(K::Open));
       hint(g,hx,678,"B",XB,tr(K::Back));
     }
 
@@ -2509,7 +2511,7 @@ int main(int argc, char** argv) {
       }
     }
 
-    if (screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !sleepPanel && !sleepWarning && !shutdownAt) updateUI.draw(g,settings.lang);
+    if ((screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !sleepPanel && !sleepWarning && !shutdownAt) || (screen==SETTINGS && updateUI.open)) updateUI.draw(g,settings.lang);
 
     bool shoot = shotPath && (int)frame == shotFrame;
 #ifndef __XSDK__

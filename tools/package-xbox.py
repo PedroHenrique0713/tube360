@@ -78,6 +78,7 @@ def main():
     parser.add_argument("--xex-converter", type=Path,
                         default=ROOT / ".work/native-display/xsdk/tools/elf2xex.py")
     parser.add_argument("--app-name", help="Override title name; by default use the build cache")
+    parser.add_argument("--test-package", action="store_true", help="Local disposable-key package, never publish")
     args = parser.parse_args()
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+(?:-[A-Za-z0-9.-]+)?", args.version):
         parser.error("Use a version such as 0.3.0 or 0.3.0-rc.1")
@@ -123,19 +124,38 @@ def main():
         files["licenses/" + name + ".txt"] = read_file(ROOT / "client/third_party" / name)
 
     executable, original, replacements = clean_xex(args.build_dir, args.xex_converter, app_name)
-    # O launcher experimental travou num console real, sem causa isolada; a distribuicao publica usa o app direto.
-    files["default.xex"] = executable
+    is_test = b"TUBE360-DISPOSABLE-UPDATE-TEST" in executable
+    if is_test != args.test_package:
+        raise ValueError("Test trust configuration requires --test-package; production packages refuse test binaries")
+    launcher, launcher_original, launcher_replacements = clean_xex(
+        args.build_dir, args.xex_converter, app_name, "tube360-launcher")
+    production_key = re.search(rb'publicKeyHex = "([0-9a-f]{64})"',
+                               read_file(ROOT / "client/src/update/public_key.hpp"))[1]
+    if not args.test_package and (production_key not in executable or production_key not in launcher):
+        raise ValueError("Public app and launcher must both embed the production public key")
+    files["default.xex"] = launcher
+    files["tube360.xex"] = executable
     files["START-HERE.txt"] = (
         f"Tube360 {args.version} - Xbox 360\n\n"
         "EN: Copy this entire folder to writable Xbox storage. Open default.xex with Aurora, FSD or XeXMenu.\n"
-        "Keep default.xex and all four fonts together. YouTube rule fixes arrive signed, automatically.\n"
+        "Keep default.xex (launcher), tube360.xex (app) and all four fonts together.\n"
+        "App updates: Settings > App updates, A to download, B to cancel. Reopen default.xex to install.\n"
+        "If the new app cannot confirm startup, the next launch restores the previous app.\n"
+        "From v0.3.0/v0.3.1: close the app and copy this entire folder one last time.\n"
+        "Keep your settings/account files; replace BOTH XEX files together. Never rename the app to default.xex.\n"
+        "Allow three app copies of free space. YouTube rule fixes also arrive signed automatically.\n"
         "No server.txt = console only. Example files are inactive; rename and edit only if needed.\n"
         "Nest: host + port on line 1, display name on line 2. Use your speaker's real LAN IP.\n"
         "TV-code account login is in Settings; phone Cast has a separate code in Phone.\n"
         "Press B back to browsing before closing the app, so the speaker receives STOP.\n\n"
         "Sleep timer: 15 min to 2 h or end of video; the console powers itself off, without a PC.\n\n"
         "PT: Copie esta pasta inteira para armazenamento gravavel do Xbox. Abra default.xex no Aurora/FSD/XeXMenu.\n"
-        "Mantenha default.xex e as quatro fontes juntos. Correcoes das regras do YouTube chegam assinadas, sozinhas.\n"
+        "Mantenha default.xex (lancador), tube360.xex (app) e as quatro fontes juntos.\n"
+        "Atualize em Configuracoes > Atualizacoes do app: A baixa, B cancela. Reabra default.xex para instalar.\n"
+        "Sem confirmacao de inicio do novo app, a proxima abertura restaura o anterior.\n"
+        "Vindo da v0.3.0/v0.3.1: feche o app e copie esta pasta inteira uma ultima vez.\n"
+        "Preserve configuracoes/conta; substitua OS DOIS XEX juntos. Nao renomeie tube360.xex para default.xex.\n"
+        "Reserve espaco para tres copias do app. As regras do YouTube tambem chegam assinadas sozinhas.\n"
         "Sem server.txt = so console. Exemplos sao inativos; renomeie e edite apenas se precisar.\n"
         "Nest: host + porta na linha 1, nome na linha 2. Use o IP local real da caixa.\n"
         "Login por codigo em Configuracoes; Cast do celular tem outro codigo no painel Celular.\n"
@@ -144,31 +164,37 @@ def main():
         "Setup / instalacao: https://github.com/PedroHenrique0713/tube360\n"
         "Keep the license notices. Matching source/relink materials accompany the public release.\n"
     ).encode()
+    if args.test_package:
+        files["TEST-ONLY.txt"] = b"Disposable signing key and LAN HTTP. Never publish or copy over your normal Tube360 folder.\n"
     revision = subprocess.check_output(["git", "-C", str(ROOT), "rev-parse", "HEAD"], text=True).strip()
     manifest = {
         "version": args.version, "source_commit": revision,
         "title_name": app_name, "title_id": "0x58545542", "xex_version": "1.0.0.0",
         "source_dirty": bool(subprocess.check_output(["git", "-C", str(ROOT), "status", "--porcelain"])),
         "build_xex_sha256": digest(original), "packaged_xex_sha256": digest(executable),
+        "layout": "launcher+app", "test_only": args.test_package,
+        "build_launcher_sha256": digest(launcher_original), "packaged_launcher_sha256": digest(launcher),
+        "launcher_home_prefix_replacements_in_elf": launcher_replacements,
         "home_prefix_replacements_in_elf": replacements,
         "files": {name: digest(data) for name, data in sorted(files.items())},
     }
     files["manifest.json"] = (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode()
     for name, data in files.items():
-        if HOME_PREFIX.search(data) or PRIVATE_IP.search(data):
+        if HOME_PREFIX.search(data) or (not args.test_package and PRIVATE_IP.search(data)):
             raise ValueError(f"Private home path or 192.168 address found in package member: {name}")
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
     for name, data in (("tube360.xex", executable),):
         (args.output_dir / name).write_bytes(data)
         (args.output_dir / (name + ".sha256")).write_text(f"{digest(data)}  {name}\n")
+    folder_name = "Tube360 Teste" if args.test_package else "Tube360"
     output = args.output_dir / f"tube360-v{args.version}-xbox360.zip"
     fd, temporary = tempfile.mkstemp(prefix=output.name + ".", dir=args.output_dir)
     try:
         with os.fdopen(fd, "wb") as stream:
             with zipfile.ZipFile(stream, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
                 for name, data in sorted(files.items()):
-                    info = zipfile.ZipInfo("Tube360/" + name, (2026, 1, 1, 0, 0, 0))
+                    info = zipfile.ZipInfo(folder_name + "/" + name, (2026, 1, 1, 0, 0, 0))
                     info.compress_type = zipfile.ZIP_DEFLATED
                     info.external_attr = 0o100644 << 16
                     archive.writestr(info, data)
@@ -184,7 +210,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="tube360-archive-", dir=args.output_dir.resolve()) as directory:
         stage = Path(directory)
         for name, data in sorted(files.items()):
-            target = stage / "Tube360" / name
+            target = stage / folder_name / name
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(data)
             target.chmod(0o644)
@@ -194,7 +220,7 @@ def main():
                 os.utime(folder, (1767225600, 1767225600))
         temporary = stage / "release.7z"
         subprocess.run([sevenzip, "a", "-t7z", "-mx=7", "-mmt=2", "-mtc=off", "-mta=off",
-                        str(temporary), "Tube360"], cwd=stage, check=True, stdout=subprocess.PIPE)
+                        str(temporary), folder_name], cwd=stage, check=True, stdout=subprocess.PIPE)
         os.replace(temporary, seven)
     outputs.append(seven)
     for artifact in outputs:

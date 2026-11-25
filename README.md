@@ -111,7 +111,7 @@ MPEG-1 + MP2 is the compatibility path supplied by the optional server, up to 72
 
 ### 1. Copy the app folder
 
-Download the ZIP or .7z from [Releases](https://github.com/PedroHenrique0713/tube360/releases), extract it and copy the whole `Tube360` folder to `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`. Keep `default.xex`, all four `inter-*.ttf` fonts and the license notices together. **Leave `server.txt` absent** for console-only use; `.example.txt` files remain inactive until renamed.
+Download the ZIP or .7z from [Releases](https://github.com/PedroHenrique0713/tube360/releases), extract it and copy the whole `Tube360` folder to `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`. Keep `default.xex` (launcher), `tube360.xex` (app), all four `inter-*.ttf` fonts and the license notices together. **Leave `server.txt` absent** for console-only use; `.example.txt` files remain inactive until renamed.
 
 ### 2. Launch from Aurora, FSD or XeXMenu
 
@@ -152,7 +152,9 @@ Open Tube360's **Phone** panel. In the official YouTube phone app, use **Setting
 
 ### Signed updates
 
-Home announces new versions: **LB** opens release notes, **A** downloads and verifies the signature/hash, **B** goes back or cancels. Reopen through `default.xex` to install. Existing single-XEX installations need the complete package once. If the new app does not confirm a healthy boot, the next launch restores the previous app. [Details and recovery](docs/UPDATES.md).
+**Settings → App updates** shows the installed version, candidate and download size. **A Update** downloads and verifies Ed25519/SHA-256; **B** goes back or cancels. Home also announces new versions (**LB** opens details). Reopen **default.xex** to install; the next launch restores the previous app if startup is not confirmed.
+
+**Upgrading from v0.3.0/v0.3.1:** close the app, keep the old folder as a backup, then copy the new complete folder one last time. Keep both XEX files and the four fonts together; preserve your settings/account files if desired, but leave old update journals/candidates behind. Later app updates arrive from inside the app. Allow free space for the installed app, candidate and backup. [Details and recovery](docs/UPDATES.md).
 
 ## Controls
 
@@ -244,7 +246,7 @@ tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.0
 ```
 
-The build produces `client/build-x360/tube360.xex`. The packager installs it as `Tube360/default.xex` into `.work/releases/tube360-v0.3.0-xbox360.zip`, with fonts, commented examples and license notices. It copies an explicit file list, never a used app folder. It does not publish. [Build dependencies](docs/BUILD.md) · [Packaging and matching source/relink materials](docs/RELEASE.md)
+The build produces `client/build-x360/tube360.xex`. The packager installs the launcher as `Tube360/default.xex` and the app as `Tube360/tube360.xex` into `.work/releases/tube360-v0.3.0-xbox360.zip`, with fonts, commented examples and license notices. It copies an explicit file list, never a used app folder. It does not publish. [Build dependencies](docs/BUILD.md) · [Packaging and matching source/relink materials](docs/RELEASE.md)
 
 ## Project layout
 
