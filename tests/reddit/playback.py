@@ -23,7 +23,7 @@ def run(name,ms,**extra):
     return log
 requested=sys.argv[2:] or ['recovery','recovery-seek','preview','release','paused']
 if 'recovery' in requested:
-    log=run('recovery',55000,XT_QUALITY_SLOW_MS='2000',XT_QUALITY_RECOVER_MS='10000')
+    log=run('recovery',65000,XT_QUALITY_SLOW_MS='2000',XT_QUALITY_RECOVER_MS='25000')
     down=re.search(r'fonte 1080p.* -> 720p',log);up=re.search(r'fonte 720p.* -> 1080p',log)
     assert down and up and down.start()<up.start(),'expected 1080 -> 720 -> 1080\n'+log[-6000:]
     assert log.count('console: MP4')==1,'source adaptation restarted whole playback'
@@ -32,7 +32,7 @@ if 'recovery' in requested:
     for line in log.splitlines():
         if 'motivo=' in line or 'folga estavel' in line:print(line,flush=True)
 if 'recovery-seek' in requested:
-    log=run('recovery-after-seek',55000,XT_QUALITY_SLOW_MS='2000',XT_QUALITY_RECOVER_MS='10000',XT_KEYS_MS='7000',XT_KEYS='.l...')
+    log=run('recovery-after-seek',65000,XT_QUALITY_SLOW_MS='2000',XT_QUALITY_RECOVER_MS='25000',XT_KEYS_MS='7000',XT_KEYS='..l..')
     assert 'busca: soltou em 0.000' in log,log[-3000:]
     assert re.search(r'fonte 720p.* -> 1080p',log),'cached seek lost original quality ceiling\n'+log[-4000:]
     print('PASS real player: cached seek at reduced quality still returns to 1080',flush=True)

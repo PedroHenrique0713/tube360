@@ -124,6 +124,7 @@ struct Player {
   int queueMin = 0;
   uint64_t originalWatch = 0;
   std::atomic<unsigned> pauseChanges{0};
+  void resetQualityMeasurements(){++pauseChanges;}
 
   // áudio
   SDL_AudioStream* audio = nullptr; std::atomic<bool> hasAudio{false};

@@ -40,7 +40,7 @@ if not args.check_only:
     for path in (root / "client/assets").glob("inter-*.ttf"):
         shutil.copyfile(path, work / "assets" / path.name)
     (work / "assets/settings.txt").write_text("lang=pt\nquality=720\nsound=tv\nserver=off\nvideo_mode=720p60\noutput_height=720\n")
-    env = dict(os.environ, HOME=str(work / "home"), SDL_VIDEO_DRIVER="offscreen", SDL_AUDIO_DRIVER="dummy", XT_CAST_DISABLE="1",
+    env = dict(os.environ, HOME=str(work / "home"), XDG_CACHE_HOME=str(work / "cache"), SDL_VIDEO_DRIVER="offscreen", SDL_AUDIO_DRIVER="dummy", XT_CAST_DISABLE="1",
                XT_ASSETS=str(work / "assets"), XT_QUALITY_FIXTURES=str(work / "media"), XT_PLAY="4p_9OPKgcDE",
                XT_SHOT=str(work / "proofs/ladder.ppm"), XT_SHOT_MS="50000", XT_QUALITY_MBIT="2.5")
     with (work / "proofs/player.log").open("w") as log:

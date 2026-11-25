@@ -280,6 +280,7 @@ inline void Player::decodeOriginal() {
     return AVERROR_EXIT;
   };
   playback::QualityRecovery recovery(SDL_GetTicks());
+  playback::QualityPressure pressure(SDL_GetTicks());
   uint64_t previousTransfer=0,previousBytes=0,networkAt=0;
   double networkMbps=0;
   auto ladderIndex=[&](){size_t i=0;while(i<qualityLadder.size() && qualityLadder[i].itag!=media.video.itag)++i;return i;};
@@ -305,6 +306,9 @@ inline void Player::decodeOriginal() {
     presentFps=up?std::min(playback::rate(videoMode),std::max(1,int(std::lround(sourceRate)))):30;
     adapted=index!=0;slow=0;previousWait=previousTransfer=previousBytes=networkAt=0;networkMbps=0;
     recovery.changed(SDL_GetTicks(),up);
+    pressure.changed(SDL_GetTicks());
+    SDL_LockMutex(mu);previousShown=shownFrames;previousLost=droppedFrames;queueMin=int(frames.size());SDL_UnlockMutex(mu);
+    intervalPts=last;pauseEpoch=pauseChanges.load();
     LOG("qualidade: video reaberto em %llu ms, resultado %d",(unsigned long long)(SDL_GetTicks()-began),r);
     return true;
   };
@@ -420,21 +424,42 @@ inline void Player::decodeOriginal() {
         } else if(raisePresentation){scale=sourceRate/30;nextMbps=media.video.bitrate/1e6;}
         nextMbps+=media.audio.bitrate/1e6;
       }
-      bool raise=recovery.sample(now,now-since,state==PLAYING && !paused && pauseEpoch==epoch && speed==1,
+      bool running=state==PLAYING && !paused && pauseEpoch==epoch;
+      bool starvation=(minimum<2 && (behind || insufficient)) || slowLive || slowUpload || networkPressure;
+      double decodeFraction=videoSeconds>0?ns/1e9/videoSeconds:0;
+      double copyFraction=videoSeconds>0?copyNs/1e9/videoSeconds:0;
+      double currentMbps=videoFile && media.video.bitrate>0 ? media.video.bitrate/1e6 :
+          videoFile && videoFile->length>0 && media.duration>0 ? videoFile->length*.000008/media.duration : 0;
+      bool networkFresh=networkAt && now-networkAt<=10000;
+      bool videoPresentationPressure=playback::presentationPressure(media.video.height,presentFps,slowUpload,copyFraction);
+      playback::QualityLoad load(decodeFraction,copyFraction,videoPresentationPressure,networkPressure,networkFresh,networkMbps,currentMbps);
+      bool networkLimited=load.networkLimited,overloaded=load.overloaded;
+      bool vod=videoFile && !broadcast && !media.muxed;
+      bool down=vod && pressure.sample(now,now-since,running,videoSeconds>=.25,starvation,overloaded);
+      bool settled=!vod || pressure.settled(now,now-since);
+      bool raise=recovery.sample(now,now-since,running && speed==1 && settled,
           minimum,behind,lost-previousLost,videoSeconds>0?ns/1e9/videoSeconds:0,scale,networkMbps,nextMbps,networkAt && now-networkAt<=10000);
-      slow = state==PLAYING && !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || slowLive || slowUpload || networkPressure) ? slow + 1 : 0;
+      slow = running && starvation && (!vod || (settled && overloaded)) ? slow + 1 : 0;
+      if(vod)LOG("qualidade: decisao %s, pressao %llu ms/%u janelas, decode %.1f%% copia %.1f%%, rede medida %.2f/necessaria %.2f Mbit/s, fila %d",
+          !settled?"assentando":down?"descer":overloaded && starvation?"medindo pressao":"manter",
+          (unsigned long long)pressure.pressureMs,pressure.windows,decodeFraction*100,copyFraction*100,networkMbps,currentMbps,minimum);
       previousShown = shown; previousLost = lost;
       intervalPts = last; pauseEpoch = epoch;
       // A queda de fonte vem antes do filtro de apresentação: ela também reduz o tráfego.
       if (slow>=3 && broadcast && broadcast->requestLower()) {
         presentFps=30; adapted=true; slow=0;
         LOG("qualidade: HLS solicitando fonte menor na mesma linha do tempo");
-      } else if (slow>=3 && lowerVideo(networkPressure?"rede sob pressao":slowUpload?"apresentacao sob pressao":"decodificacao/fila sob pressao")) {
+      } else if (down && playback::cadenceBeforeResolution(media.video.height,sourceRate,presentFps,
+                 media.lowerVideo.empty()?0:media.lowerVideo.front().height)) {
+        presentFps=30;adapted=true;slow=0;pressure.changed(now);recovery.changed(now,false);
+        LOG("qualidade: fonte %dp%.3f mantida, apresentacao 60 -> 30; motivo=sem fonte 720p30 distinta; medir este degrau antes de reduzir resolucao; mesma rede",media.video.height,sourceRate);
+      } else if ((vod?down:slow>=3) && lowerVideo(networkLimited?"rede medida insuficiente apos estabilizacao":slowUpload?"apresentacao sob pressao sustentada":"decodificacao/fila sob pressao sustentada")) {
         videoEnd=false;
         while (r<0 && lowerVideo("abertura da fonte falhou")) {}
-      } else if (slow>=3 && presentFps>30) {
+      } else if ((vod?down:slow>=3) && presentFps>30) {
         presentFps=30; adapted=true; slow=0;
         recovery.changed(now,false);
+        pressure.changed(now);
         LOG("qualidade: sem fonte menor; apresentacao 60 -> 30, motivo=pressao sustentada, mesma rede");
       }
       else if(slow==0 && raise && canRaise) {
