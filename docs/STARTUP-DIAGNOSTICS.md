@@ -123,6 +123,10 @@ the enclosure and a board-family label do not establish an exact hardware revisi
 
 ## Board policy and choosing a video path
 
+[Board simulation](BOARD-SIMULATION.md) describes desktop `XT_BOARD`, the opt-in `board-sim.txt`
+contract, bounded failpoints and the exact-family native rule. Real kernel detection stays separate
+from simulation. The owner's native baseline can be retained with the explicit override below.
+
 Place **`video-driver.txt` beside both XEX files**, with exactly one of these words (whitespace/newline allowed):
 
 | Content | Effect on the next title startup |

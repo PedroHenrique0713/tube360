@@ -1,6 +1,7 @@
 # Placas e ambientes do Xbox 360: auditoria F38
 
 Pesquisa de 2026-11-25, sobre `f38-placas`, herdada de `f32-reddit` (`683dd96`).
+Continuação: [bancada de perfis, board-sim, regra do E e avaliação do Xenia](BOARD-SIMULATION.md).
 **A carcaça 360 E é a única evidência física disponível; Corona e Winchester ainda não foram confirmadas.**
 Os relatos de Jasper/Falcon/ABadAvatar/RGH são os do brief, sem reprodução independente.
 Aqui, “suspeito” significa hipótese para um experimento, não causa demonstrada do travamento.
@@ -285,10 +286,12 @@ outras partes do SDK. TLS continua verificando certificados em todos os ambiente
 
 ## 5. Ações por risco e roteiro de qualificação
 
-1. **Baixo risco, já disponível:** manter `auto → safe`, nenhuma família aprovada automaticamente,
+1. **Baixo risco, já disponível:** por padrão de build manter `auto → safe`, nenhuma família aprovada automaticamente,
    handler experimental desligado e logs duráveis. F38 cobre agora reconfiguração de saída e fontes.
    Conferir `model` como família, o `requested/selected` e a resolução real; não recomendar “native
    para todos os slim”.
+   Na fase 2, o uso do dono permanece com override `native`; após confirmar e medir a família real,
+   `TUBE360_NATIVE_BOARD` permite aprovar somente ela para auto. A simulação não fornece essa aprovação.
 2. **Baixo risco, próxima frente:** tornar explícitos no diagnóstico os aliases Falcon/Opus,
    Jasper/Tonasket e Corona/Stingray; acrescentar memória disponível nas transições e retorno dos
    allocators, sem log por frame. Medir tempo de boot com/sem flush em USB antes de ampliar telemetria.
