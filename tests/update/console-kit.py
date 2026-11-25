@@ -63,7 +63,7 @@ def build_kit(args):
         version = '0.3.2-f26-' + label
         configure(build, flags, number, version)
         run('flock', lock, 'systemd-run', '--user', '--scope', '-q', '-p', 'MemoryMax=6G', '-p', 'MemorySwapMax=1G',
-            'cmake', '--build', build, '-j3')
+            'cmake', '--build', build, '-j' + os.environ.get('JOBS', '2'))
         if label == 'n':
             install = directory / 'install'
             run(sys.executable, ROOT / 'tools/package-xbox.py', '--version', version, '--test-package',
