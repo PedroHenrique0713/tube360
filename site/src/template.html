@@ -153,7 +153,19 @@
 
 {{latest_news}}
 
-    <section class="community-section section-wrap" id="community" aria-labelledby="community-title" data-reveal><div><h2 id="community-title">{{community_title}}</h2><p>{{community_description}}</p><small>{{count_note}}</small></div><div class="community-numbers"><div><span class="community-number" data-download-count="{{downloads_raw}}">{{downloads_text}}</span><span>{{downloads_label}}</span></div><a href="#star"><span class="community-number" data-stars="{{stars_raw}}">{{stars_text}}</span><span>{{star}}</span></a></div><p class="stats-status"><span data-stats-status>{{stats_snapshot}}</span> <time data-stats-time datetime="{{fetched_at}}"></time></p></section>
+    <section class="community-section section-wrap" id="community" aria-labelledby="community-title">
+      <div class="community-heading"><h2 id="community-title">{{community_title}}</h2><p>{{community_description}}</p></div>
+      <div class="community-layout">
+        <div class="community-stars">
+          <div class="star-sky"><canvas width="720" height="230" aria-hidden="true"></canvas><span class="sky-caption">{{sky_caption}}</span><div class="sky-count"><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg><span data-stars="{{stars_raw}}">{{stars_text}}</span><span>{{stars_label}}</span></div></div>
+          <div class="star-goal"><div><span>{{next_goal}} <strong data-star-goal>{{star_goal_text}}</strong></span><span data-star-remaining>{{star_remaining}}</span></div><div class="star-progress" role="progressbar" aria-label="{{next_goal}}" aria-valuemin="0" aria-valuemax="{{star_goal}}" aria-valuenow="{{stars_raw}}"><i style="--fill:{{star_progress}}"></i></div></div>
+          <a class="button community-cta" href="https://github.com/revive360/tube360" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg>{{give_star}}<svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+        </div>
+        <div class="community-downloads"><h3>{{community_downloads_title}}</h3><div class="download-total"><span data-community-downloads data-final="{{downloads_raw}}" role="img" aria-label="{{downloads_text}} {{downloads_label}}">{{downloads_text}}</span><span>{{downloads_label}}</span></div><div class="version-downloads" aria-label="{{downloads_by_version}}">{{version_bars}}</div><p class="version-pending" {{version_pending_hidden}}>{{version_pending}}</p><p class="community-release">{{latest_release}} <strong data-latest-release>{{version}}</strong><time data-release-date datetime="{{published_at}}">{{published_text}}</time></p><small>{{count_note}}</small></div>
+      </div>
+      <p class="stats-status"><span data-stats-status>{{stats_snapshot}}</span><time data-stats-time datetime="{{fetched_at}}"></time></p>
+    </section>
+    <script type="application/json" id="community-data">{{community_json}}</script>
 
     <section class="how-section section-wrap" id="how-it-works" aria-labelledby="how-title">
       <div class="section-heading" data-reveal><h2 id="how-title">{{how_title_1}}<br>{{how_title_2}}</h2><p>{{how_description}}</p></div>

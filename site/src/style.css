@@ -163,11 +163,6 @@
 .hero-metrics .download-count>span:last-child{font-size:12px;font-weight:400;color:#b7b7bf}
 .release-date{border-left:1px solid var(--line);padding-left:24px;font-size:11px;color:var(--muted);line-height:1.65}
 .release-date>span,.release-date time{display:block}.release-date strong{color:var(--text);font-weight:600}
-.community-section{display:grid;grid-template-columns:1.1fr 1fr;column-gap:70px;row-gap:24px;border-bottom:1px solid var(--line);padding-top:65px;padding-bottom:55px}
-.community-section h2{font-size:36px;max-width:450px}.community-section p{color:#b7b7bf;font-size:14px;line-height:1.8;margin-top:18px;max-width:440px}.community-section small{display:block;color:var(--muted);font-size:11px;margin-top:12px}
-.community-numbers{display:flex;align-items:center;justify-content:flex-end;gap:55px}.community-numbers>div,.community-numbers>a{display:flex;flex-direction:column;gap:10px;font-size:12px;color:var(--muted)}
-.community-number{font-size:clamp(40px,5vw,70px);font-weight:700;letter-spacing:-3px;font-variant-numeric:tabular-nums;color:var(--text)}.community-numbers>a .community-number{color:var(--coral)}
-.community-section .stats-status{grid-column:1/-1;font-size:11px;margin-top:0;max-width:none}.stats-status time{margin-left:7px}
 .sponsor-credit{font-size:12px;line-height:1.8;margin-top:22px;color:var(--muted)}.sponsor-credit a{text-decoration:underline;text-underline-offset:3px}
 .video-grid{top:142px;bottom:62px}.saved-progress{display:block;position:absolute;bottom:0;left:0;width:17%;height:4px;background:var(--red)}.video-thumb{position:relative;overflow:hidden}
 .browse-tabs{display:flex;gap:16px;width:100%;margin-bottom:12px}.browse-tabs .category{font-size:20px}
@@ -180,7 +175,7 @@
 @media(min-width:701px){.playground{width:min(1000px,calc((100svh - 318px)*1.777778),calc(100vw - 72px))}}
 @media(max-width:700px){
  .hero-metrics{gap:16px;margin-top:16px}.hero-metrics .download-count>span:first-child{font-size:36px}.release-date{padding-left:16px;font-size:10px}.hero-intro>p{font-size:13px}.playground{margin-top:20px}
- .community-section{grid-template-columns:1fr;gap:26px;padding-top:45px;padding-bottom:40px}.community-section h2{font-size:32px}.community-numbers{justify-content:flex-start;gap:54px}.community-number{font-size:56px}.community-section .stats-status{font-size:10px}.community-section p{font-size:13px}
+
  .video-grid{top:142px}.app-bottom{gap:12px;font-size:16px}.app-bottom>span:last-of-type{display:none}
  .search-workspace{grid-template-columns:1.6fr 1fr;gap:18px}.demo-keyboard{grid-template-columns:repeat(7,1fr)}.keyboard-key{font-size:25px;padding:10px 0}.search-suggestions h3,.suggestion{font-size:23px}.suggestion{padding:12px 8px}.demo-search input{font-size:28px}.demo-search button{font-size:24px;padding:12px}.browse-tabs{gap:12px}.browse-tabs .category{font-size:24px}
  .music-shortcuts{gap:24px}.music-shortcut{font-size:21px;width:170px}.music-shortcut .icon{width:130px;height:130px}.dialog-surface h3{font-size:34px}.dialog-surface p{font-size:24px}.dialog-surface .panel-choice{font-size:26px}.dialog-surface .settings-row{font-size:25px}
@@ -190,7 +185,7 @@
 @media(max-width:700px){.hero:has(.language-notice:not([hidden])) .hero-intro{padding-top:58px}}
 .demo-dialog[data-kind=filters] .dialog-surface{width:860px;padding:28px;max-height:650px}.demo-dialog[data-kind=filters] .dialog-surface h3{margin-bottom:10px}.demo-dialog[data-kind=filters] .dialog-surface p{margin-bottom:16px}
 #dialog-actions .settings-row{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:12px 20px;font-size:17px;min-height:72px}#dialog-actions .settings-row strong{font-size:21px;font-weight:500}.demo-dialog[data-kind=filters] #dialog-actions .panel-choice{font-size:20px;padding:10px 20px}
-.hero-metrics{flex-wrap:wrap}.hero-actions{flex-wrap:wrap}.community-number{overflow-wrap:anywhere}
+.hero-metrics{flex-wrap:wrap}.hero-actions{flex-wrap:wrap}
 
 .quality-note{font-size:16px;line-height:1.65;color:var(--muted);margin-top:12px}
 /* A lista tem viewport próprio: cabeçalho, ajuda e dicas nunca participam da rolagem. */
@@ -459,12 +454,11 @@
 .button-download:hover{background:#e21b42}
 .section-heading h2{max-width:660px;font-size:clamp(34px,3.4vw,46px);line-height:1.15;letter-spacing:-1.5px;font-weight:600}
 .section-heading>p{font-size:15px;line-height:1.85;color:#b9b9c4;max-width:340px}
-.section-wrap:not(.latest-news):not(.install-section):not(.site-footer):not(.star-section){padding-top:88px;padding-bottom:88px}
+.section-wrap:not(.latest-news):not(.install-section):not(.site-footer):not(.star-section):not(.community-section){padding-top:88px;padding-bottom:88px}
 .how-section .section-heading{margin-bottom:36px}
 .how-section .signal-flow{padding:32px 0}
 .how-section .server-footnote{margin-top:22px}
 .how-section .server-footnote p{font-size:13px;line-height:1.85}
-.community-section{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .features-section{border-top:1px solid var(--line)}
 .features-section .section-heading{margin-bottom:42px;align-items:flex-end}
 .features-section .feature-layout{grid-template-columns:minmax(0,.75fr) minmax(0,1.4fr);gap:54px;align-items:start}
@@ -525,7 +519,7 @@
  .spotlight-copy h3{font-size:27px}.spotlight-copy p{font-size:13px}.release-notes{gap:44px}
 }
 @media(max-width:700px){
- .section-wrap:not(.latest-news):not(.install-section):not(.site-footer):not(.star-section){padding-top:58px;padding-bottom:58px}
+ .section-wrap:not(.latest-news):not(.install-section):not(.site-footer):not(.star-section):not(.community-section){padding-top:58px;padding-bottom:58px}
  .section-heading h2{font-size:32px;line-height:1.18;letter-spacing:-1px}.section-heading>p{font-size:13px;line-height:1.85;margin-top:18px}
  .features-section .section-heading{margin-bottom:28px}.features-section .feature-layout{display:flex;gap:20px}.features-section .feature-visual{position:static;order:1}.features-section .feature-options{order:2}
  .features-section .feature-option{padding:20px 0 20px 16px}.features-section .feature-option>span{font-size:17px}.features-section .feature-option>p{font-size:13px;line-height:1.85}
@@ -537,3 +531,26 @@
  .star-section{padding:46px 0;display:block}.star-section .large-star{width:48px;height:48px;margin-bottom:22px}.star-section h2{font-size:29px}.star-section p{font-size:13px;line-height:1.9}
  .site-footer{padding-top:32px;padding-bottom:30px}.footer-top>p{font-size:11px}.footer-links{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:22px}.site-footer .credits{margin-top:22px}
 }
+/* The static snapshot remains readable before the community module loads. */
+.community-section{padding-top:54px;padding-bottom:38px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.community-heading{display:grid;grid-template-columns:1.35fr 1fr;gap:64px;align-items:center;margin-bottom:24px}
+.community-heading h2{font-size:40px;line-height:1.15;letter-spacing:-1.4px;max-width:600px;text-wrap:balance}
+.community-heading p{font-size:14px;line-height:1.85;color:#b9b9c4;max-width:320px}
+.community-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:64px}
+.community-stars,.community-downloads{min-width:0}.star-sky{height:206px;position:relative;overflow:hidden}
+.star-sky canvas{display:block;width:100%;height:100%}.sky-caption{position:absolute;top:0;left:0;color:var(--muted);font-size:11px}
+.sky-count{position:absolute;bottom:18px;left:0;display:flex;align-items:baseline;gap:14px;font-size:12px;color:#c8c8d2}
+.sky-count>.icon{width:28px;height:28px;color:var(--coral)}
+.sky-count>[data-stars]{font-size:66px;line-height:1;font-weight:600;letter-spacing:-3px;color:var(--text);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.star-goal{margin:20px 0 24px}.star-goal>div:first-child{display:flex;justify-content:space-between;gap:12px;font-size:12px;color:#c8c8d2;margin-bottom:12px}.star-goal strong{color:var(--text);font-weight:600}.star-goal [data-star-remaining]{color:#ff9c96}
+.star-progress,.version-track{height:4px;background:#282830;border-radius:3px;overflow:hidden}.star-progress i,.version-track i{display:block;width:100%;height:100%;background:var(--coral);transform:scaleX(var(--fill));transform-origin:left}
+.community-cta{background:#ce1235;border:1px solid #ff5a5244;gap:12px;font-size:13px;min-height:48px;padding:12px 18px}.community-cta>.icon:last-child{margin-left:8px;width:16px;height:16px}
+.community-downloads{border-left:1px solid var(--line);padding-left:36px}.community-downloads h3{font-size:17px;font-weight:500;line-height:1.5;letter-spacing:-.3px}
+.download-total{display:flex;align-items:baseline;gap:12px;margin:12px 0 24px;color:var(--muted);font-size:12px}
+[data-community-downloads]{font-size:66px;line-height:1;font-weight:600;letter-spacing:-2px;font-variant-numeric:tabular-nums;color:var(--text);white-space:nowrap}
+.version-downloads,.version-downloads ul{list-style:none;padding:0;margin:0;display:grid;gap:16px}.version-downloads summary{font-size:11px;line-height:30px;min-height:30px;color:#c8c8d2;cursor:pointer}.version-downloads details[open] ul{margin-top:12px}.version-downloads li>div:first-child{display:flex;justify-content:space-between;gap:14px;font-size:12px;margin-bottom:8px;color:#c8c8d2}.version-downloads strong{font-weight:500;font-variant-numeric:tabular-nums;color:var(--text)}.version-track{height:3px}.version-track i{background:#83838f}
+.community-release{margin-top:24px;font-size:11px;line-height:1.8;color:var(--muted)}.community-release strong{font-weight:500;color:#d8d8e0;margin-left:6px}.community-release time{display:block}
+.community-downloads small,.version-pending{font-size:10px;line-height:1.7;color:var(--muted);display:block;margin-top:12px;max-width:290px}.version-pending[hidden]{display:none}
+.community-section .stats-status{font-size:10px;line-height:1.8;color:var(--muted);margin-top:24px}.stats-status time{margin-left:8px}
+@media(max-width:1180px) and (min-width:701px){.community-heading,.community-layout{gap:36px}.community-downloads{padding-left:28px}.community-heading h2{font-size:36px}}
+@media(max-width:700px){.community-section{padding-top:28px;padding-bottom:22px}.community-heading{display:block;margin-bottom:22px}.community-heading h2{font-size:30px;letter-spacing:-.9px;max-width:340px}.community-heading p{font-size:12px;line-height:1.8;margin-top:12px;max-width:320px}.community-layout{grid-template-columns:1fr;gap:24px}.star-sky{height:145px}.sky-caption{font-size:10px}.sky-count{bottom:12px;gap:12px;font-size:11px}.sky-count>[data-stars]{font-size:54px}.star-goal{margin:16px 0 18px}.star-goal>div:first-child{font-size:11px;margin-bottom:10px}.community-cta{width:100%;font-size:12px}.community-downloads{border-left:0;border-top:1px solid var(--line);padding:18px 0 0}.community-downloads h3{font-size:16px}.download-total{margin:10px 0 18px}[data-community-downloads]{font-size:48px}.version-downloads,.version-downloads ul{gap:12px}.version-downloads li>div:first-child{font-size:11px;margin-bottom:7px}.community-release{margin-top:18px}.community-release time{display:inline;margin-left:10px}.community-downloads small{font-size:10px;max-width:none;margin-top:8px}.community-section .stats-status{margin-top:14px;font-size:9px}}

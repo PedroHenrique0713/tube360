@@ -102,8 +102,10 @@ const settle = p => p.waitForFunction(() => !window.gsap?.isTweening('.hero-intr
    await page.keyboard.press('ArrowRight'); assert.ok(Number(await page.inputValue('#player-progress')) < 219);
    // All reveal sections and both community counters remain available after scrolling.
    for (const element of await page.locator('[data-reveal]').all()) await element.evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'center' }));
-   await page.locator('#community').evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'center' })); await shot('community');
-   assert.equal(await page.locator('#community [data-download-count]').textContent(), await page.locator('.hero-metrics [data-download-count]').textContent());
+   await page.locator('#community').evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'center' }));
+   await page.waitForFunction(() => document.querySelector('#community').dataset.communityReady === 'true' && !document.querySelector('[data-community-downloads]').dataset.animating);
+   await shot('community');
+   assert.equal(await page.locator('#community [data-community-downloads]').textContent(), await page.locator('.hero-metrics [data-download-count]').textContent());
    await page.locator('#star').evaluate(el => el.scrollIntoView({ behavior: 'instant', block: 'center' })); await shot('star');
    assert.equal(await page.locator('#star [data-stars]').count(), 1);
    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), width);

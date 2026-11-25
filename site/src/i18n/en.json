@@ -204,7 +204,7 @@
   "star_title_1": "Help another 360",
   "star_title_2": "find its next app.",
   "star_description": "Tube360 is a small, open source project. A GitHub star helps people discover it and follow its progress. If you enjoy bringing your console back to life, leave a star.",
-  "give_star": "Give Tube360 a star",
+  "give_star": "Star on GitHub",
   "license": "Open source. MIT licensed.",
   "built_by": "Built by",
   "source": "Explore the source",
@@ -350,9 +350,9 @@
   "rating_removed": "Rating removed",
   "latest_release": "Latest release",
   "release_date_unknown": "See release date",
-  "community_title": "Every download is another 360.",
-  "community_description": "All release packages, across every version. Come back and watch the community grow.",
-  "count_note": "Downloads count packages, not unique people.",
+  "community_title": "Every star lights up the 360 sky.",
+  "community_description": "An open app. A console with more to give. Be part of what comes next.",
+  "count_note": "ZIP + 7z + XEX packages, not unique people.",
   "stats_snapshot": "GitHub snapshot",
   "stats_live": "Updated from GitHub",
   "stats_updated": "Updated",
@@ -454,5 +454,13 @@
     "source_link": "Read the full CHANGELOG",
     "nav": "Updates"
   },
-  "news": "News"
+  "news": "News",
+  "sky_caption": "One light for every GitHub star",
+  "stars_label": "stars on GitHub",
+  "next_goal": "Next stop:",
+  "stars_remaining": "{count} to go",
+  "community_downloads_title": "More 360s, back in play.",
+  "downloads_by_version": "Package downloads by release",
+  "version_pending": "Downloads by version will appear when GitHub is available.",
+  "older_versions": "Earlier releases"
 }

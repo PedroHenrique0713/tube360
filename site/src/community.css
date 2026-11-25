@@ -1,0 +1,11 @@
+/* Loaded near the community section, together with its canvas and odometer. */
+.star-sky{background:radial-gradient(ellipse at 55% 120%,#ff0f3c19,transparent 70%)}
+.star-sky::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,#ff5a5255,transparent)}
+.sky-count>.icon{color:var(--coral);width:32px;height:32px;fill:currentColor;align-self:center}
+.sky-count>[data-stars]{text-shadow:0 0 45px #ff5a5228}
+.community-cta:hover{background:#e21b42;box-shadow:0 0 24px #ff0f3c20}
+.odometer-digit{display:inline-block;vertical-align:top;width:.65em;height:1em;overflow:hidden;text-align:center}
+.odometer-reel{display:flex;flex-direction:column}
+.odometer-reel>span{display:block;height:1em;flex:none}
+.odometer-separator{display:inline-block;width:.26em;text-align:center}
+@media print{.odometer-digit{height:auto;overflow:visible}.star-sky canvas{display:none}}

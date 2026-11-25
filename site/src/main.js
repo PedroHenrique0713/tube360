@@ -743,8 +743,9 @@
   const statsTTL = 5 * 60 * 1000;
   let statsPending = false;
   let memorySession = null;
+  let githubRepo = 'revive360/tube360';
   const safeReleaseURL = value => {
-    try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'github.com' && url.pathname.startsWith('/revive360/tube360/releases/download/') ? url.href : null; } catch { return null; }
+    try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'github.com' && ['/revive360/tube360/releases/download/', '/PedroHenrique0713/tube360/releases/download/'].some(prefix => url.pathname.startsWith(prefix)) ? url.href : null; } catch { return null; }
   };
   function readSession() {
     try { return JSON.parse(sessionStorage.getItem(sessionKey)); } catch { return memorySession; }
@@ -759,6 +760,19 @@
     $$('[data-stats-time]').forEach(label => { label.dateTime = date.toISOString(); label.textContent = date.toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' }); });
     $$('[data-stats-status]').forEach(label => { label.textContent = live ? t.stats_live : t.stats_snapshot; });
   }
+  const communitySnapshot = $('#community-data');
+  let communityData = JSON.parse(communitySnapshot.textContent);
+  const community = $('#community');
+  new IntersectionObserver((entries, observer) => {
+    if (!entries.some(entry => entry.isIntersecting)) return;
+    observer.disconnect();
+    const style = document.createElement('link');
+    style.rel = 'stylesheet'; style.href = '/community.css';
+    const script = document.createElement('script');
+    script.src = '/community.js'; script.defer = true;
+    style.addEventListener('load', () => document.head.append(script), { once: true });
+    document.head.append(style);
+  }, { rootMargin: '180px 0px' }).observe(community);
   function applyReleaseDate(release) {
     if (typeof release?.published_at !== 'string') return;
     const date = new Date(release.published_at);
@@ -783,7 +797,7 @@
       Object.assign(document.body.dataset, { version, downloadUrl: url, size: String(asset.size) });
     }
     const count = data?.repo?.stargazers_count;
-    if (Number.isInteger(count) && count >= 0) {
+    if (Number.isSafeInteger(count) && count >= 0) {
       $$('span[data-stars]').forEach(counter => {
         counter.textContent = count.toLocaleString(locale);
         counter.dataset.stars = count;
@@ -796,14 +810,27 @@
         counter.dataset.downloadCount = data.downloads;
       });
       document.body.dataset.downloads = data.downloads;
-      showStatsTime(data.fetchedAt, true);
+      showStatsTime(data.verifiedAt || data.fetchedAt, true);
     }
+    if (Number.isSafeInteger(count) && count >= 0) communityData.stars = count;
+    if (Number.isSafeInteger(data?.downloads) && data.downloads >= 0) {
+      communityData.downloads = data.downloads;
+      // An older session may have the total but no matching version breakdown.
+      communityData.versions = Array.isArray(data.versionDownloads) ? data.versionDownloads : [];
+    }
+    if (data?.latestRelease || release) communityData.latestRelease = data.latestRelease || release;
+    communitySnapshot.textContent = JSON.stringify(communityData);
+    document.dispatchEvent(new CustomEvent('tube360:stats', { detail: communityData }));
   }
-  async function githubData(path) {
+  async function githubData(path, repository = githubRepo) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4500);
     try {
-      const response = await fetch(`https://api.github.com/repos/revive360/tube360${path}`, { signal: controller.signal, headers: { Accept: 'application/vnd.github+json' } });
+      const response = await fetch(`https://api.github.com/repos/${repository}${path}`, { signal: controller.signal, headers: { Accept: 'application/vnd.github+json' } });
+      if (response.status === 404 && repository === 'revive360/tube360') {
+        githubRepo = 'PedroHenrique0713/tube360';
+        return await githubData(path, githubRepo);
+      }
       return response.ok ? await response.json() : null;
     } catch { return null; } finally { clearTimeout(timeout); }
   }
@@ -817,6 +844,7 @@
     saveSession({ ...cached, attempted: true, fetchedAt: Date.now() });
     const [releases, repo] = await Promise.all([githubData('/releases?per_page=100&page=1'), githubData('')]);
     let downloads = null;
+    let versionDownloads = [];
     let page = releases;
     if (Array.isArray(releases)) {
       downloads = 0;
@@ -824,20 +852,30 @@
         if (!Array.isArray(page)) { downloads = null; break; }
         for (const release of page) {
           if (!Array.isArray(release?.assets)) { downloads = null; break; }
+          let subtotal = 0;
           for (const asset of release.assets) {
             if (typeof asset?.name !== 'string' || !/\.(zip|7z|xex)$/i.test(asset.name)) continue;
             if (!Number.isSafeInteger(asset.download_count) || asset.download_count < 0) { downloads = null; break; }
             downloads += asset.download_count;
+            subtotal += asset.download_count;
+            if (!Number.isSafeInteger(downloads)) { downloads = null; break; }
           }
+          if (typeof release.tag_name === 'string' && release.tag_name.trim()) versionDownloads.push({ tag_name: release.tag_name.slice(0, 64), downloads: subtotal, published_at: release.published_at });
           if (downloads === null) break;
         }
         if (downloads === null || page.length < 100) break;
         page = await githubData(`/releases?per_page=100&page=${number + 1}`);
       }
     }
+    if (downloads === null || versionDownloads.reduce((sum, row) => sum + row.downloads, 0) !== downloads) versionDownloads = [];
     const release = releases?.find?.(release => release.tag_name === document.body.dataset.version);
     const latestRelease = releases?.filter?.(item => !item.draft && !item.prerelease && Number.isFinite(Date.parse(item.published_at))).sort((a, b) => Date.parse(b.published_at) - Date.parse(a.published_at))[0];
-    const data = { attempted: true, release, latestRelease, repo, downloads, fetchedAt: Date.now() };
+    const now = Date.now();
+    const data = { attempted: true, release: release || cached?.release, latestRelease: latestRelease || cached?.latestRelease,
+      repo: Number.isSafeInteger(repo?.stargazers_count) && repo.stargazers_count >= 0 ? repo : cached?.repo,
+      downloads: downloads ?? cached?.downloads ?? null,
+      versionDownloads: downloads === null ? cached?.versionDownloads : versionDownloads,
+      fetchedAt: now, verifiedAt: downloads === null ? cached?.verifiedAt || cached?.fetchedAt : now };
     statsPending = false;
     saveSession(data);
     applyGithub(data);
