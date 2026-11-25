@@ -21,27 +21,53 @@
 
 **Tube360** is a native YouTube client for the Xbox 360. Open the `.xex` from Aurora, FSD or XeXMenu and watch YouTube **directly on the console, without a PC**. Your account, history, subscriptions, library, Music, phone Cast and Google Nest sound run on the Xbox too. A PC server is an optional playback reserve.
 
+A [Revive360](https://github.com/revive360) project: open source homebrew for the Xbox 360.
+
 ---
 
-## What is new in 0.3.2
+## What's new in 0.3.2
 
-Version 0.3.2 adds native 1080p30, account Music, search filters and suggestions, local Watch later/resume, SponsorBlock and signed app updates with a separate launcher. On the owner’s Xbox on 2026-11-25, action playback held 30.00 fps without frame loss; football held 29.97 fps with one synchronization correction per minute, matching 720p. Account Music, search, local lists, Y Quality, SponsorBlock and Settings passed controller checks. [Console results and limits](docs/CONSOLE-032-FINAL.md).
+- **Real 1080p30**, decoded by the 360 itself. Set the Xbox dashboard to 1080p over HDMI to get the sharp picture. [Console results and limits](docs/CONSOLE-032-FINAL.md)
+- **SponsorBlock**: Off, Skip button (default) or automatic skip. Y skips a marked segment or goes back after an automatic skip. [Behavior](bench/sponsorblock/README.md)
+- **Your YouTube Music**: recently played, playlists and liked songs. [Details](docs/MUSIC-ACCOUNT.md)
+- **Search suggestions and filters** with LB: type, duration, upload date, and relevance or view count order. [Controls](docs/SEARCH.md)
+- **Watch later and resume without an account**, saved on the console. Nothing is uploaded. [Storage and clearing](docs/LOCAL-LIBRARY.md)
+- **Pick the quality yourself** with Y while watching: 480p, 360p, 240p or 144p, besides the adaptive profiles
+- **Hold LT/RT** to rewind or fast forward with a preview of where you will land
+- **Arabic**: interface, search keyboard (RB switches to Latin) and Arabic titles in any language. [Arabic support](docs/ARABIC.md)
+- **Long videos keep full quality**: files above 2 GiB, like 3 hour videos, used to fail on open or drop to a lighter version. [Cause and fix](bench/opening/README.md)
+- **The app updates itself**: Settings → App updates, press A. Updates are signed and roll back on their own if something fails
 
-Copy the whole package once when upgrading from an older app named `default.xex`: close Tube360, preserve your settings/account files, replace `default.xex` with the supplied launcher and keep the separate `tube360.xex` plus all eight fonts beside it. Never rename `tube360.xex` over the launcher. Reopen the launcher to install later signed app updates.
+**Fixed from your reports:** search with your account signed in; quality that dropped and never came back; the app closing on start without a word (now it shows the reason on screen and saves `startup.log`); clearer errors when the console clock is wrong or the network blocks the connection; the old "server" message in console-only mode.
 
-`video-driver.txt` accepts `auto`, `safe` or `native`. Auto preserves the tested Corona/Winchester native baseline; other families use safe. `board-sim.txt` and desktop `XT_BOARD` exercise synthetic contracts for diagnosis; remove them after testing. [Board simulation and limits](docs/BOARD-SIMULATION.md).
+### Updating from 0.3.0 or 0.3.1
 
-SponsorBlock offers Off, Skip button (default) and automatic skipping. Y skips a marked segment or returns after an automatic skip; otherwise it opens Quality. Community segments can be wrong. Segment data: [SponsorBlock](https://sponsor.ajay.app/), [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/), separate from the MIT code. [Behavior and checks](bench/sponsorblock/README.md).
+Copy the whole new `Tube360` folder over the old one **one last time**. Your sign in and settings stay. `default.xex` is now the launcher and `tube360.xex` is the app: keep both side by side with all eight fonts, and never rename one over the other. From then on, updates come from Settings → App updates.
 
-Arabic uses contextual shaping and bidi, with Noto fonts loaded when needed in any language. RB switches the Arabic search keyboard to Latin. [Arabic support and review limits](docs/ARABIC.md).
+Everything else is in the [CHANGELOG](CHANGELOG.md).
 
-Video search stays public when a TV account is connected; recommendations and account lists keep their account routes. Cropped 1920×800/24 videos display as 1080p24 while keeping their real decode dimensions. MP4 resources above 2 GiB have a PowerPC demuxer fix; [scope and reproducible checks](bench/opening/README.md).
+## Tested on, and not tested yet
 
-Search now offers suggestions while typing and LB opens type, duration, upload-date period and relevance/view-count ordering filters. Recent searches share the suggestion list; channel and playlist results open their pages. [Controls and verification](docs/SEARCH.md).
+Everything was tested on the author's Xbox 360 E (Corona board) with BadUpdate. I don't own the other models, so:
 
-Channels also have a Shorts tab with artwork. Press Start (☰) on a video card for Save / options, including Watch later. Without an account, save Watch later and resume positions on this console. Lists stay separate when you sign in; nothing is uploaded automatically. [Local storage, limits and clearing](docs/LOCAL-LIBRARY.md).
+| Console | Status |
+|---|---|
+| 360 E and Slim (Corona, Winchester) | Tested on a 360 E. Runs the native video mode |
+| Slim S (Trinity) | Not tested. Runs the safer video mode |
+| Fat (Xenon, Zephyr, Falcon, Jasper) | Not tested on real hardware. Runs the safer video mode |
+| RGH, JTAG, ABadAvatar | Not tested by the author |
+| CRT TVs at 480i | Tested in simulation only |
 
-Repository: [revive360/tube360](https://github.com/revive360/tube360). Created by [Pedro Henrique Quadro](https://github.com/PedroHenrique0713). [Compatibility before transferring the repository](docs/REPOSITORY-TRANSFER.md).
+`video-driver.txt` accepts `auto`, `safe` or `native` if you want to force a mode. [Board detection and simulation](docs/BOARD-SIMULATION.md)
+
+### Something broke? Send the logs
+
+1. Right after the crash or freeze, **before opening the app again**, open the `Tube360` folder over FTP. Some logs are overwritten on every launch.
+2. Grab `startup.log`, `launcher.log` and every `boot-*.log`.
+3. Open an [issue](https://github.com/revive360/tube360/issues) with them, your console model, exploit (BadUpdate, RGH, JTAG or ABadAvatar) and video output (HDMI, component or VGA, and 480/720/1080). A photo of the error screen helps too.
+
+> [!WARNING]
+> Never send `yt-console-account.json` or any account, cookie or pairing file. Logs include local paths and the console clock, so take a look before posting. [How to read the startup logs](docs/STARTUP-DIAGNOSTICS.md)
 
 ## Highlights
 
@@ -53,6 +79,8 @@ Repository: [revive360/tube360](https://github.com/revive360/tube360). Created b
 | 🔴 **Captions and live** | VOD caption selection, seeking, live-edge action and autoplay. Live captions are not supported yet. |
 | 🔊 **Google Nest / Google Cast speaker** | The console sends the selected YouTube audio URL directly to the speaker and follows its clock. No PC or Bluetooth pairing needed. Direct live streams currently use TV sound. |
 | 📱 **Official YouTube phone app** | Pair with a TV code or find Tube360 on the local network. Play, pause, seek, volume and queues use the native Xbox receiver. |
+| ⏭️ **SponsorBlock** | Skip sponsors, self promotion and subscription reminders with a button or automatically. Segments come from the SponsorBlock community and can be wrong. |
+| 🕒 **Watch later without an account** | Save videos and pick up where you stopped, stored on the console. |
 | 💬 **Comments and dislike counts** | Read and scroll comments while the video plays. Estimated dislike counts from Return YouTube Dislike are labeled as estimates. |
 | ⏩ **0.25×–2× and repeat** | Eight speeds preserve voice pitch; repeat the current video from the player. Changed speed uses TV sound; the sleep timer takes priority over repeat. |
 | 📺 **CRT TVs and large text** | 480 output in 4:3, safe margins and larger text. Fit with letterboxing or fill by cropping; large text is also available in HD. 480i/480p follows the Xbox dashboard. |
@@ -318,29 +346,44 @@ tools/           builds, packaging and optional service installation
 
 ## Roadmap
 
-- [x] App updates from inside the app, after copying the complete 0.3.2 package once
+Next up (0.3.3):
+
+- [ ] Live streams with less delay
+- [ ] Smoother step down from 1080p to 720p
+- [ ] Music player with a seek bar and more controls
+- [ ] Physical tests on Fat consoles, with the logs you send
+- [ ] Arabic reviewed by a native speaker
+
+Later:
+
+- [ ] DeArrow (better titles and thumbnails)
 - [ ] The console listed by itself in the phone's cast list
 - [ ] Automatic speaker discovery, and Nest sound during live streams
 - [ ] Your own YouTube Music recommendations with a Premium account
-- [x] SponsorBlock: a Skip button or automatic skip, your choice
-- [x] Search filters and suggestions (validated with the Xbox controller)
-- [x] Watch later and resume without an account
 
-Comments, estimated dislike counts, playback speed, repeat, CRT support, large text, Spanish and signed updates are included in v0.3.0. [CHANGELOG.md](CHANGELOG.md) records the delivery.
+Done in 0.3.2: SponsorBlock, search filters and suggestions, Watch later and resume without an account, Arabic, real 1080p30 and app updates from inside the app. [CHANGELOG.md](CHANGELOG.md) records every delivery.
 
 ## AI and verification
 
 **AI-assisted, reviewed and tested on a real console.** AI helps with development; decisions and review are human. Fat board families still have no physical acceptance test; Arabic still needs native-speaker review.
 
-**VirusTotal:** the maintainer will fill in the scan link and `default.xex` SHA-256 after scanning the final build. No scan result is published for this build yet. Package hashes accompany the release files.
+**VirusTotal (0.3.2):** [zip](https://www.virustotal.com/gui/file/a27f8cdc408194523e6f8813cac92f00c8f5e439c3f416349c198b8da2c6e53f) 0/63 · [default.xex](https://www.virustotal.com/gui/file/c710cfc83c4c6a47fa380d99dd1b9aee5110cf339c69dde6e16569d8f8793bde) 0/57 · [tube360.xex](https://www.virustotal.com/gui/file/7ca9fa0e387392494453a75d94869afd0513d1e4126f7274d8e314d4bb2694c7) 0/60. VirusTotal does not open a zip this size, so both executables were scanned on their own. Package hashes accompany the release files.
 
-<!-- VIRUSTOTAL_URL: PENDING · DEFAULT_XEX_SHA256: PENDING -->
+## Revive360
+
+Tube360 lives in the [Revive360](https://github.com/revive360) organization, a home for open source Xbox 360 homebrew. It moved from `PedroHenrique0713/tube360` on 2026-11-25; old links redirect. [What the move means for older apps](docs/REPOSITORY-TRANSFER.md).
+
+**Risk notice:** Homebrew can lead to an Xbox Live account/console ban, data loss or console damage. Use at your own risk. Revive360 is independent of Microsoft. Software is **as is** under its license; no badge or review guarantees safety, service access or compatibility.
+
+**Privacy:** No telemetry. Tube360 only talks to YouTube and Google, SponsorBlock, Return YouTube Dislike and GitHub (app updates). Your sign in and tokens stay on your console; never send them to Revive360 or include them in issues or logs.
+
+**Responsibility:** Owner: [@PedroHenrique0713](https://github.com/PedroHenrique0713). License: MIT. Membership is not certification. Security: repository **Security → Report a vulnerability**. Bugs and ideas: [issues](https://github.com/revive360/tube360/issues).
 
 ## Credits & license
 
 Tube360 is [MIT licensed](LICENSE). You can use, change and share it. Keep the copyright notice, which means giving credit. Third-party parts and their licenses are listed in [THIRD_PARTY.md](THIRD_PARTY.md). Thanks to **pl_mpeg**, **yt-dlp**, **YouTube.js**, **yt-cast-receiver**, **FFmpeg**, **PyChromecast**, and the **xsdk / vulkan4xenon / SDL-xenon** projects, which made modern homebrew on the 360 possible.
 
-Built by [Pedro Henrique Quadro](https://github.com/PedroHenrique0713).
+Built by [@PedroHenrique0713](https://github.com/PedroHenrique0713).
 
 > [!IMPORTANT]
 > Tube360 is an independent project. It is not affiliated with, endorsed by, or sponsored by Google, YouTube or Microsoft. "YouTube" and "Xbox" are trademarks of their owners. Use it for personal use, at your own risk, and respect the terms of the services you connect to.
