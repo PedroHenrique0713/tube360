@@ -33,6 +33,7 @@ struct Request {
     long readBuffer = 64 * 1024;
     bool update = false;
     size_t maxBytes = 0;
+    long connectTimeoutMs = 0, timeoutMs = 0;
 };
 struct Transport {
     virtual ~Transport() = default;

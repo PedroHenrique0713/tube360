@@ -3,6 +3,7 @@
 
 namespace yt::sponsorblock {
 constexpr size_t maxSegments = 128, maxResponseBytes = 512 * 1024;
+constexpr long connectTimeoutMs=2500, requestTimeoutMs=3500;
 struct Segment { double start=0, end=0, duration=0; };
 using Segments = std::vector<Segment>;
 bool validVideo(const string& id);
@@ -30,7 +31,7 @@ class Client {
     Diagnostic last;
 public:
     explicit Client(Transport& transport) : net(transport) {}
-    Segments fetch(const string& id, uint64_t now);
+    Segments fetch(const string& id, uint64_t now, bool refresh=false);
     const Diagnostic& diagnostic() const { return last; }
 };
 }

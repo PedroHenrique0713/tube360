@@ -830,6 +830,9 @@ int main(int argc, char** argv) {
     control.add(j);
   };
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
+    if (v.id != playing.id || screen != PLAYER) {
+      sponsors.reset(); sponsorWorker.select(settings.sponsorBlock==sponsorblock::OFF ? "" : v.id);
+    }
     if (track.empty()) track=v.id==playing.id ? pl.audioSelection : settings.originalAudio ? "original" : std::string("lang:")+i18n::code(settings.lang);
     if (!fromRemote) phonePlaybackSerial = 0;
     if (historyVideo != v.id) { recordHistory(); historyVideo = v.id; historyStarted = false; historyAt = 0; }
@@ -839,7 +842,6 @@ int main(int argc, char** argv) {
     }
     if (v.id != playing.id || screen != PLAYER) {
       extras.select(v.id,i18n::code(settings.lang)); commentLines.clear(); commentIndex=-1;
-      sponsors.reset(); sponsorWorker.select(settings.sponsorBlock==sponsorblock::OFF ? "" : v.id);
     }
     if (v.id != playing.id) {
       nestSkip = false; likeState.clear(); upNext = Video{};
@@ -1271,7 +1273,8 @@ int main(int argc, char** argv) {
     bool behindLive = screen == PLAYER && pl.live && (pl.paused || (pl.shownFrames &&
         (pl.liveDebt >= 1.0 || (pl.lastFrameMs && now > pl.lastFrameMs + 1000))));
     if (extras.poll()) { commentIndex=-1; }
-    if (sponsorWorker.poll(sponsors)) LOG("SponsorBlock: %u trechos %s",(unsigned)sponsors.segments.size(),sponsorWorker.diagnostic.line().c_str());
+    if (sponsorWorker.poll(sponsors,screen==PLAYER && pl.state==player::PLAYING && !pl.live && !nav.musicNow,now))
+      LOG("SponsorBlock: %u trechos %s",(unsigned)sponsors.segments.size(),sponsorWorker.diagnostic.line().c_str());
     if (screen==PLAYER && !pl.live && !nav.musicNow && !shutdownAt) {
       auto action=sponsors.update(pl.position(),pl.duration,now,settings.sponsorBlock,pl.state==player::PLAYING && !pl.paused);
       if (action) sponsorSeek(action);

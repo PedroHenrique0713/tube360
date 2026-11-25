@@ -114,13 +114,15 @@ Segments parse(const string& body, const string& id, Diagnostic* diagnostic) {
     if (!out.empty()) { info.state=State::SEGMENTS; info.reason="segments"; }
     return out;
 }
-Segments Client::fetch(const string& id, uint64_t now) {
+Segments Client::fetch(const string& id, uint64_t now, bool refresh) {
     last={}; last.prefix=hashPrefix(id); last.epoch=std::time(nullptr);
     if (!validVideo(id)) { last.state=State::INVALID_ID; last.reason="invalid_id"; return {}; }
     if (last.prefix.empty()) { last.state=State::INVALID_ID; last.reason="sha256_failed"; return {}; }
     if (net.cancelled()) { last.state=State::CANCELLED; last.reason="cancelled"; return {}; }
-    for (const auto& e : cache) if (e.id==id && now<e.expires) { last=e.diagnostic; last.cached=true; return e.segments; }
+    if (!refresh) for (const auto& e : cache) if (e.id==id && now<e.expires) { last=e.diagnostic; last.cached=true; return e.segments; }
     Request request; request.url=requestUrl(id); request.maxBytes=maxResponseBytes;
+    request.connectTimeoutMs=connectTimeoutMs; request.timeoutMs=requestTimeoutMs;
+    request.freshConnection=refresh;
     auto response=net.send(request);
     Segments segments;
     last.http=response.status; last.transport=response.transportCode; last.tls=response.tlsCode;

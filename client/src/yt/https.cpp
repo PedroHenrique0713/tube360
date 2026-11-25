@@ -128,6 +128,8 @@ public:
             set(CURLOPT_TCP_KEEPALIVE, 1L);
             set(CURLOPT_SOCKOPTFUNCTION, socketOptions);
         }
+        if (r.connectTimeoutMs>0) set(CURLOPT_CONNECTTIMEOUT_MS,std::clamp(r.connectTimeoutMs,1L,60000L));
+        if (r.timeoutMs>0) set(CURLOPT_TIMEOUT_MS,std::clamp(r.timeoutMs,1L,120000L));
         set(CURLOPT_HEADERFUNCTION, header);
         set(CURLOPT_HEADERDATA, &res);
         set(CURLOPT_WRITEFUNCTION, append);
