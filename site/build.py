@@ -120,8 +120,88 @@ def render(template, values):
         key = match[1]
         if key not in values:
             raise ValueError(f"Missing template value: {key}")
-        return values[key] if key in {"runtime_json", "demo_section"} else html.escape(str(values[key]), quote=True)
+        if isinstance(values[key], (dict, list)):
+            raise ValueError(f"Template value must be scalar: {key}")
+        return values[key] if key in {"runtime_json", "demo_section", "latest_news", "release_history"} else html.escape(str(values[key]), quote=True)
     return re.sub(r"\{\{([a-zA-Z0-9_]+)\}\}", replace, template)
+
+
+
+# Os tópicos escolhem mudanças presentes no CHANGELOG; a redação localizada é reutilizada
+# entre versões. Datas, ordem, presença e procedência nunca vêm dos dicionários do site.
+RELEASE_TOPICS = (
+    ("local", r"^Watch later and resume without an account"),
+    ("search", r"^Public search suggestions"),
+    ("sponsor", r"^SponsorBlock with Off"),
+    ("quality", r"^Native H\.264 1080p30 decoding"),
+    ("music", r"^Music now tries the TV music catalogue"),
+    ("app_updates", r"^Signed app updates through"),
+    ("traffic_fix", r"^Videos open again when Google flags"),
+    ("dislike_fix", r"^Estimated dislike counts load"),
+    ("cast_name", r"^The phone's cast list shows"),
+    ("cast_limit", r"^Phone casting works with the TV code"),
+    ("native", r"^Console-only YouTube over HTTPS"),
+    ("account", r"^TV-code account sign-in stored"),
+    ("comments", r"^Comments with controller scrolling"),
+    ("speed", r"^Eight playback speeds"),
+    ("crt", r"^4:3 / 480 CRT layout"),
+    ("rule_updates", r"^Signed Ed25519 YouTube rule updates"),
+)
+
+
+def changelog_releases(markdown):
+    releases, current, section = [], None, ""
+    for line_number, line in enumerate(markdown.splitlines(), 1):
+        heading = re.fullmatch(r"## \[(\d+\.\d+\.\d+)\](?:\s*[—-]\s*(\d{4}-\d{2}-\d{2}))?\s*", line)
+        if heading:
+            version, date = heading.groups()
+            if date:
+                datetime.strptime(date, "%Y-%m-%d")
+            current = {"version": version, "date": date, "changes": []}
+            releases.append(current)
+            section = ""
+        elif current and line.startswith("### "):
+            section = line[4:].strip()
+        elif current and line.startswith("- "):
+            current["changes"].append({"text": line[2:].strip(), "section": section, "line": line_number})
+        elif current and current["changes"] and line.startswith("  ") and line.strip():
+            current["changes"][-1]["text"] += " " + line.strip()
+    for release in releases[:3]:
+        items = []
+        for key, pattern in RELEASE_TOPICS:
+            source = next((change for change in release["changes"] if re.search(pattern, change["text"], re.I)), None)
+            if source:
+                items.append({"key": key, **source})
+            if len(items) == 6:
+                break
+        if len(items) < 3:
+            raise ValueError(f'CHANGELOG {release["version"]}: fewer than three supported user-facing changes; extend RELEASE_TOPICS and localized release_summaries')
+        release["items"] = items
+    if len(releases) < 3:
+        raise ValueError("CHANGELOG must contain at least three versions")
+    return releases[:3]
+
+
+def release_sections(releases, translations, lang):
+    labels, summaries = translations["release_labels"], translations["release_summaries"]
+    escape = lambda value: html.escape(str(value), quote=True)
+    def date_markup(release):
+        if not release["date"]:
+            return f'<span class="release-pending">{escape(labels["pending"])}</span>'
+        date = datetime.strptime(release["date"], "%Y-%m-%d")
+        shown = date.strftime("%d/%m/%Y" if lang == "pt-BR" else "%b %d, %Y")
+        return f'<time datetime="{release["date"]}">{shown}</time>'
+    def release_url(release):
+        return f'https://github.com/{REPO}/releases' + (f'/tag/v{release["version"]}' if release["date"] else '')
+    cards = []
+    for release in releases:
+        entries = ''.join(f'<li data-topic="{item["key"]}" data-changelog-line="{item["line"]}">{escape(summaries[item["key"]])}</li>' for item in release["items"])
+        cards.append(f'''<article class="release-entry" id="release-{release["version"].replace('.', '-')}" data-version="{release["version"]}"><div class="release-meta"><h3>{release["version"]}</h3>{date_markup(release)}</div><div class="release-content"><ul>{entries}</ul><a class="text-link" href="{release_url(release)}">{escape(labels["release_link"] if release["date"] else labels["upcoming_link"])}</a></div></article>''')
+    history = f'''<section class="updates-section section-wrap" id="releases" aria-labelledby="releases-title"><div class="section-heading" data-reveal><h2 id="releases-title">{escape(labels["title"])}</h2><p>{escape(labels["intro"])}</p></div><div class="release-history">{''.join(cards)}</div><a class="changelog-link text-link" href="https://github.com/{REPO}/blob/HEAD/CHANGELOG.md">{escape(labels["source_link"])}</a></section>'''
+    latest = releases[0]
+    highlights = ''.join(f'<li>{escape(summaries[item["key"]])}</li>' for item in latest["items"][:3])
+    teaser = f'''<section class="latest-news section-wrap" id="latest-news" aria-labelledby="latest-news-title"><div class="news-heading"><div>{date_markup(latest)}<h2 id="latest-news-title">{escape(labels["latest_title"].format(version=latest["version"]))}</h2></div><a class="text-link" href="#releases">{escape(labels["read_all"])}</a></div><ul>{highlights}</ul></section>'''
+    return teaser, history
 
 
 def main():
@@ -138,12 +218,14 @@ def main():
     data = get_data(args)
     template = (SRC / "template.html").read_text(encoding="utf-8")
     demo = (SRC / "assets/demo.mp4").is_file()
+    releases = changelog_releases((ROOT.parent / "CHANGELOG.md").read_text(encoding="utf-8"))
     # dist/ is what gets published: start empty so nothing left over (test prints, reports) ever ships
     if DIST.exists():
         shutil.rmtree(DIST)
     for lang, route, og_file, locale in (("en", "/", "og-en.png", "en_US"),
                                           ("pt-BR", "/pt-br/", "og-pt-br.png", "pt_BR")):
         translations = json.loads((SRC / "i18n" / f"{lang}.json").read_text(encoding="utf-8"))
+        latest_news, release_history = release_sections(releases, translations, lang)
         size = f'{data["size"] / 1_000_000:.1f}'
         stars = f'{data["stargazers_count"]:,}'
         downloads = f'{data["download_count"]:,}'
@@ -164,7 +246,7 @@ def main():
                   "github_retry_after": data.get("retry_after", 0),
                   "release_text": f'{data["tag_name"]} · {size} MB ZIP', "stars_text": stars,
                   "runtime_json": json.dumps(translations, ensure_ascii=False).replace("<", "\\u003c"),
-                  "demo_section": ""}
+                  "demo_section": "", "latest_news": latest_news, "release_history": release_history}
         if demo:
             values["demo_section"] = render('''<section class="demo-section section-wrap" id="demo" aria-labelledby="recording-title">
 <div class="recording-copy"><h2 id="recording-title">{{demo_title}}</h2><p>{{demo_description}}</p></div>

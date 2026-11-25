@@ -92,7 +92,7 @@
     <section id="top" class="hero" aria-labelledby="hero-title">
       <header class="site-header">
         <a href="#" class="brand" aria-label="{{home_label}}"><img src="/assets/logo-orbita.svg" width="31" height="31" alt=""><span class="wordmark">Tube<span>360</span></span></a>
-        <nav aria-label="{{navigation}}"><a href="#how-it-works">{{how_link}}</a><a href="#install">{{install_link}}</a><a href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer" aria-label="{{github_label}}"><svg class="icon"><use href="#i-github"/></svg></a><div class="language-switch" role="group" aria-label="{{language_label}}"><a href="/" data-language aria-current="{{en_current}}" lang="en" hreflang="en">EN</a><span aria-hidden="true">|</span><a href="/pt-br/" data-language aria-current="{{pt_current}}" lang="pt-BR" hreflang="pt-BR">PT-BR</a></div></nav>
+        <nav aria-label="{{navigation}}"><a href="#releases" class="news-nav">{{news_nav}}</a><a href="#how-it-works">{{how_link}}</a><a href="#install">{{install_link}}</a><a href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer" aria-label="{{github_label}}"><svg class="icon"><use href="#i-github"/></svg></a><div class="language-switch" role="group" aria-label="{{language_label}}"><a href="/" data-language aria-current="{{en_current}}" lang="en" hreflang="en">EN</a><span aria-hidden="true">|</span><a href="/pt-br/" data-language aria-current="{{pt_current}}" lang="pt-BR" hreflang="pt-BR">PT-BR</a></div></nav>
       </header>
       <aside class="language-notice" id="language-notice" aria-label="Idioma" hidden><a href="/pt-br/" data-language lang="pt-BR">Ver em português</a><button id="dismiss-language" type="button" aria-label="Fechar aviso de idioma">×</button></aside>
       <div class="hero-intro">
@@ -151,6 +151,8 @@
       <div class="sr-only" id="demo-status" aria-live="polite" aria-atomic="true"></div>
     </section>
 
+{{latest_news}}
+
     <section class="community-section section-wrap" id="community" aria-labelledby="community-title" data-reveal><div><h2 id="community-title">{{community_title}}</h2><p>{{community_description}}</p><small>{{count_note}}</small></div><div class="community-numbers"><div><span class="community-number" data-download-count="{{downloads_raw}}">{{downloads_text}}</span><span>{{downloads_label}}</span></div><a href="#star"><span class="community-number" data-stars="{{stars_raw}}">{{stars_text}}</span><span>{{star}}</span></a></div><p class="stats-status"><span data-stats-status>{{stats_snapshot}}</span> <time data-stats-time datetime="{{fetched_at}}"></time></p></section>
 
     <section class="how-section section-wrap" id="how-it-works" aria-labelledby="how-title">
@@ -158,7 +160,7 @@
       <div class="signal-flow" data-reveal>
         <div class="signal-node server-node"><svg class="device-icon"><use href="#i-pc"/></svg><div><h3>{{server}}</h3><p>H.264 + AAC</p><span>{{server_node}}</span></div></div>
         <div class="signal-link"><span>{{network}}</span><div class="signal-wire"><i></i><svg class="icon"><use href="#i-arrow"/></svg></div></div>
-        <div class="signal-node console-node"><svg class="device-icon"><use href="#i-tv"/></svg><div><h3>{{console}}</h3><p>{{native}}</p><span>{{decoding}}</span></div></div>
+        <div class="signal-node console-node"><svg class="device-icon"><use href="#i-tv"/></svg><div><h3>{{console}}</h3><p>{{native_playback}}</p><span>{{decoding}}</span></div></div>
       </div>
       <div class="server-footnote" data-reveal><p><strong>{{footprint}}</strong> {{footprint_description}}</p><p>{{server_options}}</p></div>
     </section>
@@ -203,6 +205,8 @@
         <li><span class="step-number">3</span><h3>{{step_3}}</h3><p>{{step_3_description}}</p><a href="{{readme_url}}" target="_blank" rel="noopener noreferrer">{{setup_guide}} <svg class="icon"><use href="#i-arrow"/></svg></a></li>
       </ol>
     </section>
+
+{{release_history}}
 
     <section class="release-notes section-wrap" aria-labelledby="why-title"><h2 id="why-title">{{why_title}}</h2><p>{{why_description}}</p><blockquote>{{account_notice}}</blockquote><h3>{{roadmap_title}}</h3><p>{{roadmap_description}}</p><p>{{preview_disclaimer}}</p><p>{{ai_notice}}</p><p>{{verification}}</p><!-- VIRUSTOTAL_URL: PENDING · DEFAULT_XEX_SHA256: PENDING --></section>
 

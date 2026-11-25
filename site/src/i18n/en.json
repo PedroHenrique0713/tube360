@@ -410,5 +410,36 @@
   "quality_manual_note": "Only qualities offered by the current video appear. A fixed choice stays selected and warns under load.",
   "preview_disclaimer": "Interactive interface preview with sample videos and simulated segments. No video streams, account or device connections.",
   "clear_filters": "Clear filters",
-  "local_list_note": "Saved here. Never sent to your account."
+  "local_list_note": "Saved here. Never sent to your account.",
+  "release_labels": {
+    "title": "Tube360 keeps moving forward.",
+    "intro": "Recent versions, written for the people using them. See what arrived and what is being prepared.",
+    "pending": "In preparation · release date pending",
+    "latest_title": "New in {version}",
+    "read_all": "See all updates",
+    "release_link": "View release on GitHub",
+    "upcoming_link": "Follow the release on GitHub",
+    "source_link": "Read the full CHANGELOG",
+    "nav": "Updates"
+  },
+  "release_summaries": {
+    "local": "Save videos for later and pick up where you left off, even without an account. Console lists stay separate from account lists.",
+    "search": "Find videos with suggestions, recent searches and filters for type, duration and upload date using LB.",
+    "sponsor": "Use Y to skip community-marked segments, or turn on automatic skipping. Community marks can be wrong.",
+    "quality": "Native 1080p30 decoding, still awaiting integrated Xbox acceptance. Native 1080p output requires HDMI and progressive mode in the dashboard.",
+    "music": "Music tries the TV catalogue with your connected account, with recent plays, playlists and likes. Real-account access still needs validation.",
+    "app_updates": "Signed app updates with startup confirmation and recovery of the previous version. Reopen the launcher to install.",
+    "traffic_fix": "Videos open again when Google flags your IP for unusual traffic.",
+    "dislike_fix": "Estimated dislike counts load in the player again.",
+    "cast_name": "The casting identity now uses Tube360 or the name you chose for the app.",
+    "cast_limit": "TV-code pairing works. The console does not yet appear by itself in the phone’s cast list.",
+    "native": "Watch directly on Xbox 360 with native H.264 video and AAC sound. A PC becomes an optional reserve.",
+    "account": "Connect your account with a TV code for recommendations, subscriptions, playlists and history.",
+    "comments": "Read and scroll comments with the controller and see estimated dislike counts.",
+    "speed": "Choose eight speeds from 0.25× to 2× while keeping the voice pitch. You can also repeat the video.",
+    "crt": "A 4:3 layout for CRT TVs, safe margins, large text and Spanish alongside Portuguese and English.",
+    "rule_updates": "Signed YouTube rule fixes arrive without replacing the whole app, with recovery of the previous rules."
+  },
+  "news_nav": "Updates",
+  "native_playback": "Native H.264 + AAC"
 }
