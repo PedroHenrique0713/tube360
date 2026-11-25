@@ -5,6 +5,7 @@
 #include <cmath>
 #include <vector>
 #include "decoded_video.hpp"
+#include "h264_policy.hpp"
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -71,6 +72,12 @@ inline void ffmpeg_work_metrics(unsigned* us,unsigned* frames) { *us = *frames =
 struct Stream {
   video::Allocator* videoBuffers = nullptr;
   int threadType = FF_THREAD_FRAME;
+  int sourceHeight = 0;
+  double sourceRate = 0;
+  bool fullLoopFilter = false;
+  bool enable1080Profile = false;
+  playback::H264Policy policy{4,false,false};
+  void source(int height,double fps,bool full) { sourceHeight=height;sourceRate=fps;fullLoopFilter=full;enable1080Profile=true; }
   AVFormatContext* fmt = avformat_alloc_context();
   AVIOContext* io = nullptr;
   AVCodecContext *video = nullptr, *audio = nullptr;
@@ -111,11 +118,19 @@ struct Stream {
     int r = avcodec_parameters_to_context(ctx, stream->codecpar);
     if (r < 0) return r;
     ctx->pkt_timebase = stream->time_base;
+    if (id==AV_CODEC_ID_H264) {
+      int height=ctx->height>0 ? ctx->height : sourceHeight;
+      double fps=av_q2d(stream->avg_frame_rate);
+      if (!(fps>0)) fps=sourceRate;
+      policy=enable1080Profile ? playback::h264Policy(height,fps,fullLoopFilter,threads) : playback::H264Policy{threads,false,false};
+      threads=policy.threads;
+      ctx->skip_loop_filter=policy.skipLoop ? AVDISCARD_ALL : AVDISCARD_DEFAULT;
+    }
     ctx->thread_count = threads;
-    ctx->thread_type = threadType;
+    ctx->thread_type = id==AV_CODEC_ID_H264 && policy.spread ? FF_THREAD_FRAME : threadType;
     if (id == AV_CODEC_ID_H264 && videoBuffers) { ctx->opaque = videoBuffers; ctx->get_buffer2 = mappedBuffer; }
     ctx->max_pixels = 1920 * 1088;  // 1080p completa o último macrobloco; a saída da TV permanece 720p.
-    ffmpeg_workers(id == AV_CODEC_ID_H264);
+    ffmpeg_workers(id==AV_CODEC_ID_H264 ? (policy.spread ? 2 : 1) : 0);
     r = avcodec_open2(ctx, codec, nullptr);
     ffmpeg_workers(0);
     return r;

@@ -11,6 +11,7 @@ struct Settings {
   int cols = 4, quality = 720, syncMs = 0;
   int videoMode = playback::AUTO, outputHeight = 720;
   bool originalAudio = true, largeText = false, videoFill = false;
+  bool h264FullFilter = false;
   bool server = true, nest = false, sleepNotebook = false, captions = false;
   std::string captionLang;
 
@@ -26,6 +27,7 @@ struct Settings {
         if (key == "lang") lang = i18n::language(val);
         else if (key == "large_text") largeText = val == "on";
         else if (key == "video_fit") videoFill = val == "fill";
+        else if (key == "h264_loop_filter") h264FullFilter = val == "full";
         else if (key == "server") server = val != "off";
         else if (key == "video_mode") videoMode = playback::modeFromName(val.c_str());
         else if (key == "audio_preference") originalAudio = val != "interface";
@@ -62,6 +64,7 @@ struct Settings {
     bool ok = std::fprintf(f, "lang=%s\ncols=%d\nquality=%d\nsound=%s\nsync_ms=%d\nsleep_what=%s\ncaptions=%s\ncaption_lang=%s\nserver=%s\n", i18n::code(lang), cols, quality, nest ? "nest" : "tv", syncMs, sleepNotebook ? "xbox_notebook" : "xbox", captions ? "on" : "off", captionLang.c_str(), server ? "auto" : "off") > 0;
     ok = ok && std::fprintf(f,"video_mode=%s\noutput_height=%d\naudio_preference=%s\n",playback::modeName(videoMode),outputHeight,originalAudio ? "original" : "interface") > 0;
     ok = ok && std::fprintf(f,"large_text=%s\nvideo_fit=%s\n",largeText ? "on" : "off",videoFill ? "fill" : "fit") > 0;
+    ok = ok && std::fprintf(f,"h264_loop_filter=%s\n",h264FullFilter ? "full" : "auto") > 0;
     if (std::fclose(f) != 0) ok = false;
     if (ok) ok = std::rename(tmp.c_str(), dest.c_str()) == 0;
     if (!ok) std::remove(tmp.c_str());

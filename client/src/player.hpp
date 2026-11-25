@@ -125,6 +125,11 @@ struct Player {
   int videoMetrics = 0;
   video::Allocator* videoBuffers = nullptr;
   int h264Threads = 4, h264ThreadType = FF_THREAD_FRAME, h264LoopFilter = -1;
+  bool h264FullFilter = false;
+  std::atomic<int> activeH264Threads{0}, activeLoopFilter{0};
+  std::atomic<int> activeVideoItag{0};
+  std::atomic<bool> activeH264Spread{false};
+  double observed1080Ms = 0;
   int queueMin = 0;
   uint64_t originalWatch = 0;
   std::atomic<unsigned> pauseChanges{0};
@@ -236,6 +241,7 @@ struct Player {
     if (vid != id) { speed=1; loop=false; }
     speaker = speaker && speed == 1;
     halt(!speaker);
+    if(newQualitySession) observed1080Ms=0;
     if(newQualitySession)qualityRecovery=playback::QualityRecovery(SDL_GetTicks());
     memberVideo = members || (vid == id && memberVideo);
     tempo.reset(speed);
@@ -256,6 +262,7 @@ struct Player {
     ring.assign(6u << 20, 0); rhead = rcount = 0; netEof = netErr = false; decEnded = false;
     SDL_SetAtomicInt(&audioBaseMs, -1); SDL_SetAtomicInt(&pushed, 0); firstPts = -1; wallStart = 0; pausedAt = 0; pausedTotal = 0; lastPos = startAt;
     droppedFrames = shownFrames = 0;
+    activeH264Threads=0;activeLoopFilter=0;activeH264Spread=false;activeVideoItag=0;
     tvSample=-1;tvSampleAt=0;
     stop = false; paused = false; live = false; state = CONNECTING;
     hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = nextLiveFrame = 0;
