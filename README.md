@@ -39,7 +39,7 @@
 | 🔐 **Signed automatic updates** | Ed25519-verified YouTube rules at startup and periodically on Home, with automatic fallback. When YouTube changes something, a new signed rule file fixes every console without a new version. |
 | 🌙 **Sleep timer** | 15 minutes to 2 hours, or end of video. A warning 60 s before (A adds 15 min, B cancels) while the volume fades, then the console turns itself off. |
 | 🏷️ **Members-only badge** | Identifies channel members-only videos while browsing. Uses your account for playback when you have access; a badge does not unlock paid content. |
-| 🎵 **Music** | Quick picks, Explore/charts, mixes, song/album/artist search, radio and local queues, audio-only Now playing and optional lyrics. |
+| 🎵 **Music** | Account Music with a TV-client alternative when the web client refuses the TV grant; recent plays, playlists, likes, mixes, search, radio, audio-only queues and optional lyrics. Public browsing remains available. [Details and limits](docs/MUSIC-ACCOUNT.md). |
 | 🧭 **Channels and library** | Channel videos, live streams and playlists, subscription actions, round channel avatars and library artwork. |
 | 📡 **Unreliable networks** | Resumes interrupted connections and switches to a lighter quality when needed. |
 | ⚡ **YouTube straight to the Xbox** | HTTPS to YouTube, original H.264 video and AAC audio decoded locally with FFmpeg. No real-time PC conversion in normal use. |
@@ -264,7 +264,7 @@ tools/           builds, packaging and optional service installation
 - Phone casting: pair with the TV code from the **Phone** panel (YouTube app → Settings → Watch on TV → Enter TV code). The console does not show up by itself in the phone's cast list yet, because it cannot join the network's discovery group. If another receiver on your network uses the same name, the phone may cast to it instead.
 - YouTube is an unofficial integration and can change or block clients. Age/region restrictions, DRM and paid content are not bypassed; account sign-in does not guarantee media access. Reload a failed feed or retry later; an optional server reserve may help.
 - 720p60/1080p30 are source profiles. The Xbox may lower rate or resolution under load. Check the actual player status; native 1080p needs the dashboard HDMI mode described above. No promise of 1080p60, HDR, VP9 or AV1 decoding.
-- Music can fall back to public browsing when the account's TV grant is refused by Music. Lyrics are optional. Live captions and direct live Nest audio are not implemented; live uses TV sound.
+- Music tries the TV music catalogue with the existing grant before falling back to clearly labeled public browsing; account acceptance still needs checking on your console. [Music account behavior](docs/MUSIC-ACCOUNT.md). Lyrics are optional. Live captions and direct live Nest audio are not implemented; live uses TV sound.
 - Empty text or app exits at startup: copy all four fonts beside `default.xex`. HTTPS failures: check the console clock and internet/DNS access.
 - Speaker unavailable or silent: check its IP, internet access and Wi-Fi; disable guest/client isolation between Xbox and speaker, then retry X. Do not use Bluetooth pairing. A missing silence confirmation can delay TV sound.
 - Speaker still playing after exit: reconnect its Wi-Fi and reopen Tube360 so its saved pending STOP can complete, or stop Cast in Google Home. Press B to leave playback before closing the app; shutdown waits up to five seconds but cannot stop an unreachable speaker.

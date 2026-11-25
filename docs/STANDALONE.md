@@ -12,7 +12,7 @@ they describe those earlier experiments, not the current feature boundary.
 |---|---|
 | Public home/search/next | `client/src/yt/client.cpp`, native HTTPS, parsed responses and bounded workers/caches. |
 | Account | `console_account.cpp`: TV-code OAuth, refresh, logout, account artwork, recommendations, history/progress, ratings, subscriptions, Watch later and library. Stored beside the app in `yt-console-account.json`. |
-| Channels/playlists/Music | `catalog.hpp`, `navigation.hpp`, `music_navigation.hpp`: native catalogue, account continuations and local queues. Music token rejection can use public shelves while the account stays signed in. |
+| Channels/playlists/Music | `catalog.hpp`, `navigation.hpp`, `music_navigation.hpp`: native catalogue, account continuations and local queues. Music tries TVHTML5/FEtopics_music with the existing TV grant after a WEB_REMIX refusal, then labels any public fallback. [Account Music and console validation](MUSIC-ACCOUNT.md). |
 | Video and TV sound | `player_h264.hpp`, `h264.hpp`: FFmpeg AVC/AAC, direct VOD ranges or HLS. Selection, decode and buffering stay outside rendering. |
 | Audio-only Music | `music_player.hpp`: AAC-only decode, local radio/playlist queue, optional lyrics and return to video at the current position. |
 | Phone Cast | `client/src/cast/`: DIAL TCP 8134, SSDP UDP 1900 and YouTube lounge. Pairing, commands, queue state, volume/mute and persistent device/screen identity. |
