@@ -146,9 +146,11 @@ Page Client::page(const string& route, const string& fields, const string& exclu
     bindRules();
     J j;
     Page out;
-    out.error = content(post(route,fields),j);
+    auto response=post(route,fields);
+    out.error = content(response,j);
+    out.failure = failureOf(response);
     if (!out.error.empty()) { updates::observe(policy->version,false,out.error=="invalid_json" || out.error=="web_context_missing" || out.error=="web_context_invalid" || out.error=="HTTP 400" || out.error=="HTTP 403"); return out; }
-    if (j.contains("error") || !j.contains("contents")) { out.error="invalid_page"; updates::observe(policy->version,false,true); return out; }
+    if (j.contains("error") || !j.contains("contents")) { out.error="invalid_page"; out.failure=Failure::JSON; updates::observe(policy->version,false,true); return out; }
     std::set<string> seen{exclude};
     collect(field(j,"contents"),out,seen,size_t(policy->n("cards")));
     updates::observe(policy->version,true,false);
@@ -473,6 +475,10 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
         }),out.lowerVideo.end());
         if (!out.lowerVideo.empty()) out.fallbackVideo=out.lowerVideo.front();
         else if (out.video.height>720) { out.fallbackVideo=fallback; if (!fallback.url.empty()) out.lowerVideo.push_back(fallback); }
+    }
+    if(!out.muxed) {
+        out.videoLadder.push_back(out.video);
+        out.videoLadder.insert(out.videoLadder.end(),out.lowerVideo.begin(),out.lowerVideo.end());
     }
     out.speakerAudio = out.audio;
     if (out.muxed) out.audio={};

@@ -1,5 +1,6 @@
 // Implementação de Player para o stream negociado com codec=h264.
 #pragma once
+#include "quality_recovery.hpp"
 namespace player {
 
 inline bool Player::directFailed(bool fatal) {
@@ -48,6 +49,7 @@ inline void Player::decodeOriginal() {
   unsigned workUs = 0, workFrames = 0;
   h264::ffmpeg_work_metrics(&workUs,&workFrames);
   std::unique_ptr<yt::RangeFile> videoFile, audioFile;
+  std::vector<yt::Format> qualityLadder;
   std::unique_ptr<yt::Transport> liveTransport, playlistTransport;
   std::unique_ptr<yt::LiveFile> broadcast;
   struct LiveInput { Player* player; yt::LiveFile* file; std::deque<std::string> audio; } source{this,nullptr,{}};
@@ -135,6 +137,9 @@ inline void Player::decodeOriginal() {
       if (r >= 0) LOG("console: live %s, master %dp %.3f fps", id.c_str(), broadcast->height, broadcast->frameRate);
       origin = NAN;
     } else {
+      // A lista original sobrevive ao cache de Media: seek/pausa não podem apagar o caminho de volta.
+      qualityLadder=media.videoLadder;
+      if(qualityLadder.empty()) {qualityLadder.push_back(media.video);qualityLadder.insert(qualityLadder.end(),media.lowerVideo.begin(),media.lowerVideo.end());}
       videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.video.url, &netBytes, yt::https(&stop));
       videoFile->aheadEnabled=false;
       r = media.video.url.empty() ? AVERROR_STREAM_NOT_FOUND :
@@ -143,7 +148,7 @@ inline void Player::decodeOriginal() {
       videoFile->aheadEnabled=true;
       while (r<0 && !stop && !media.muxed && videoFile->status!=403 && !media.lowerVideo.empty()) {
         auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
-        LOG("qualidade: abertura direta %dp%.3f -> %dp%.3f",media.video.height,media.video.fps,next.height,next.fps);
+        LOG("qualidade: abertura direta %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
         s.reset(); videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
         videoFile->aheadEnabled=false;
         r=s.open(videoFile.get(),yt::RangeFile::pull,threads,false,true,yt::RangeFile::seek);
@@ -274,27 +279,38 @@ inline void Player::decodeOriginal() {
     }
     return AVERROR_EXIT;
   };
-  auto lowerVideo = [&]() {
-    if (!direct || broadcast || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
-    const auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
+  playback::QualityRecovery recovery(SDL_GetTicks());
+  uint64_t previousTransfer=0,previousBytes=0,networkAt=0;
+  double networkMbps=0;
+  auto ladderIndex=[&](){size_t i=0;while(i<qualityLadder.size() && qualityLadder[i].itag!=media.video.itag)++i;return i;};
+  auto switchVideo = [&](size_t index,const char* reason,bool up) {
+    if(index>=qualityLadder.size() || stop)return false;
+    auto next=qualityLadder[index];
     int clock=masterMs.load();
     handoffFloor=std::max(last,std::max(0,clock)/1000.0);
     double resume=origin+std::max(0.0,handoffFloor);
-    LOG("qualidade: fonte %dp%.3f -> %dp%.3f, itag %d -> %d em %.3f; mantendo AAC e fila",
-        media.video.height,media.video.fps,next.height,next.fps,media.video.itag,next.itag,resume);
+    LOG("qualidade: fonte %dp%.3f -> %dp%.3f, itag %d -> %d em %.3f; motivo=%s; mantendo AAC e fila",
+        media.video.height,media.video.fps,next.height,next.fps,media.video.itag,next.itag,resume,reason);
     s.reset();
     videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
     videoFile->aheadEnabled=false;
     uint64_t began=SDL_GetTicks();
     r=s.open(videoFile.get(),yt::RangeFile::pull,threads,false,true,yt::RangeFile::seek);
-    if (r>=0) r=s.seekTime(resume);
+    if(r>=0)r=s.seekTime(resume);
     videoFile->aheadEnabled=true;
     media.video=next;
-    media.fallbackVideo=media.lowerVideo.empty() ? yt::Format{} : media.lowerVideo.front();
-    actualHeight=next.height; sourceRate=next.fps; phase=AV_NOPTS_VALUE;
-    presentFps=30; adapted=true; slow=0; previousWait=0;
+    media.lowerVideo.assign(qualityLadder.begin()+index+1,qualityLadder.end());
+    media.fallbackVideo=media.lowerVideo.empty()?yt::Format{}:media.lowerVideo.front();
+    actualHeight=next.height;sourceRate=next.fps;phase=AV_NOPTS_VALUE;
+    presentFps=up?std::min(playback::rate(videoMode),std::max(1,int(std::lround(sourceRate)))):30;
+    adapted=index!=0;slow=0;previousWait=previousTransfer=previousBytes=networkAt=0;networkMbps=0;
+    recovery.changed(SDL_GetTicks(),up);
     LOG("qualidade: video reaberto em %llu ms, resultado %d",(unsigned long long)(SDL_GetTicks()-began),r);
     return true;
+  };
+  auto lowerVideo = [&](const char* reason) {
+    if (!direct || broadcast || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
+    return switchVideo(ladderIndex()+1,reason,false);
   };
   bool videoEnd = false, audioEnd = !separate.audio;
   while (r >= 0 && !stop) {
@@ -335,7 +351,7 @@ inline void Player::decodeOriginal() {
     } else {
       if (r < 0) {
         if (!readAudio && videoFile && videoFile->status!=403) {
-          while (lowerVideo() && r<0) {}
+          while (lowerVideo("leitura da fonte falhou") && r<0) {}
           if (r>=0) { videoEnd=false; continue; }
         }
         break;
@@ -385,6 +401,27 @@ inline void Player::decodeOriginal() {
         LOG("qualidade: HLS fonte alinhada por UTC, %dp %.3f fps, mantendo AAC, troca %u",
             broadcast->selectedHeight.load(),fps,liveSwitches);
       }
+      size_t index=ladderIndex();
+      bool canRaise=videoFile && !media.muxed && !broadcast && index>0 && index<qualityLadder.size();
+      bool raisePresentation=videoFile && !broadcast && sourceRate>30.1 && presentFps<=30 && playback::rate(videoMode)>30 && !canRaise;
+      double scale=1,nextMbps=0;
+      if(videoFile) {
+        uint64_t transferred=videoFile->transferMs.load(),bytes=videoFile->bytes.load();
+        if(transferred>previousTransfer && bytes>previousBytes) {
+          networkMbps=(bytes-previousBytes)*.008/(transferred-previousTransfer);networkAt=now;
+        }
+        previousTransfer=transferred;previousBytes=bytes;
+        if(canRaise) {
+          const auto& next=qualityLadder[index-1];
+          double fromRate=std::min(sourceRate,double(presentFps.load()));
+          scale=double(next.height)*next.height*next.fps/std::max(1.0,double(media.video.height)*media.video.height*fromRate);
+          double currentMbps=media.video.bitrate>0?media.video.bitrate/1e6:videoFile->length>0 && media.duration>0?videoFile->length*.000008/media.duration:0;
+          nextMbps=next.bitrate>0?next.bitrate/1e6:currentMbps*scale*1.35;
+        } else if(raisePresentation){scale=sourceRate/30;nextMbps=media.video.bitrate/1e6;}
+        nextMbps+=media.audio.bitrate/1e6;
+      }
+      bool raise=recovery.sample(now,now-since,state==PLAYING && !paused && pauseEpoch==epoch && speed==1,
+          minimum,behind,lost-previousLost,videoSeconds>0?ns/1e9/videoSeconds:0,scale,networkMbps,nextMbps,networkAt && now-networkAt<=10000);
       slow = state==PLAYING && !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || slowLive || slowUpload || networkPressure) ? slow + 1 : 0;
       previousShown = shown; previousLost = lost;
       intervalPts = last; pauseEpoch = epoch;
@@ -392,12 +429,24 @@ inline void Player::decodeOriginal() {
       if (slow>=3 && broadcast && broadcast->requestLower()) {
         presentFps=30; adapted=true; slow=0;
         LOG("qualidade: HLS solicitando fonte menor na mesma linha do tempo");
-      } else if (slow>=3 && lowerVideo()) {
+      } else if (slow>=3 && lowerVideo(networkPressure?"rede sob pressao":slowUpload?"apresentacao sob pressao":"decodificacao/fila sob pressao")) {
         videoEnd=false;
-        while (r<0 && lowerVideo()) {}
+        while (r<0 && lowerVideo("abertura da fonte falhou")) {}
       } else if (slow>=3 && presentFps>30) {
         presentFps=30; adapted=true; slow=0;
-        LOG("qualidade: sem fonte menor; apresentacao 60 -> 30, mesma rede");
+        recovery.changed(now,false);
+        LOG("qualidade: sem fonte menor; apresentacao 60 -> 30, motivo=pressao sustentada, mesma rede");
+      }
+      else if(slow==0 && raise && canRaise) {
+        LOG("qualidade: folga estavel %llu ms, decode projetado %.1f%%, rede %.2f Mbit/s, proxima %.2f Mbit/s",
+            (unsigned long long)recovery.goodMs,videoSeconds>0?ns/1e7/videoSeconds*scale:0,networkMbps,nextMbps);
+        auto previous=index;
+        switchVideo(index-1,"20s de folga medida em decode e rede",true);
+        if(r<0){LOG("qualidade: subida falhou; restaurando fonte anterior");switchVideo(previous,"falha ao subir",false);}
+        videoEnd=false;
+      } else if(slow==0 && raise && raisePresentation) {
+        presentFps=std::min(playback::rate(videoMode),int(std::lround(sourceRate)));adapted=false;recovery.changed(now,true);
+        LOG("qualidade: apresentacao 30 -> %d, motivo=20s de folga medida em decode e rede",presentFps.load());
       }
       if (slow>=5 && (!direct || broadcast || media.lowerVideo.empty())) {
         LOG("qualidade: opcoes locais esgotadas sob pressao; %d janelas, rede %d, fila %d",slow,(int)networkPressure,minimum);

@@ -1,6 +1,8 @@
 #include "launcher.hpp"
 #include "public_key.hpp"
 #include "i18n.hpp"
+#include "startup.hpp"
+#include <atomic>
 #include <cerrno>
 #include <unistd.h>
 #include <xsdk/display.h>
@@ -12,13 +14,14 @@
 #include <xsdk/xam.h>
 
 namespace {
-uint32_t deadline(void*) {
+uint32_t deadline(void* data) {
     xsdk_thread_sleep(20000);
-    XamLoaderTerminateTitle();
+    if(static_cast<std::atomic_bool*>(data)->load())startup::fail(i18n::Key::StartupLaunch,i18n::get(startup::language,i18n::Key::StartupTimeout));
     return 0;
 }
 struct Host:updates::LauncherHost {
     updates::LauncherLog logger{"",[](const updates::string& s){xsdk_log_write("%s",s.c_str());}};
+    std::atomic_bool handoff{false};
     bool gpu=false,text=false,present=false,watching=false;
     void log(const updates::string& s) override {logger.line(s);}
     bool screen() override {
@@ -64,11 +67,16 @@ struct Host:updates::LauncherHost {
         if(gpu){auto status=xsdk_gpu_close();gpu=false;log("tela gpu fechada status="+std::to_string(uint32_t(status)));return NT_SUCCESS(status);}
         return true;
     }
+    updates::string preflight(const updates::string& dir) override {return startup::missingFonts(dir);}
+    void fail(i18n::Key reason,const updates::string& detail,i18n::Key action) override {
+        handoff=false;log("falha visivel: "+detail);startup::configure("");startup::fail(reason,detail,action);
+    }
     int launch(const updates::string& path) override {
         if(!watching) {
             // O prazo cobre o handoff, com GPU/callbacks ja devolvidos ao XAM.
             HANDLE watchdog=0;
-            auto status=xsdk_thread_create_on(&watchdog,64*1024,deadline,nullptr,5);
+            handoff=true;
+            auto status=xsdk_thread_create_on(&watchdog,64*1024,deadline,&handoff,5);
             log("watchdog handoff 20s status="+std::to_string(uint32_t(status)));
             if(!NT_SUCCESS(status)){errno=EAGAIN;return -1;}
             watching=true;
@@ -78,6 +86,7 @@ struct Host:updates::LauncherHost {
 };
 }
 int main() {
+    startup::configure("");
     Host host;
     host.log(updates::string("imagem=")+(ExLoadedImageName?ExLoadedImageName:"indisponivel"));
     char cwd[1024]{};

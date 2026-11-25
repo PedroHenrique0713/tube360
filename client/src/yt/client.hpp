@@ -11,7 +11,7 @@
 namespace updates { struct Rules; }
 namespace yt {
 using std::string;
-enum class Failure { NONE, NETWORK, TLS, HTTP, JSON, REFUSAL, SESSION, CANCELLED };
+enum class Failure { NONE, NETWORK, DNS, TLS, TLS_DATE, HTTP, JSON, REFUSAL, SESSION, CANCELLED };
 struct Response {
     long status = 0;
     string body, error, contentRange, location;
@@ -43,6 +43,8 @@ inline const char* failureName(Failure f) {
     switch (f) {
     case Failure::NETWORK: return "network";
     case Failure::TLS: return "tls";
+    case Failure::TLS_DATE: return "tls_date";
+    case Failure::DNS: return "dns";
     case Failure::HTTP: return "http";
     case Failure::JSON: return "json";
     case Failure::REFUSAL: return "refusal";
@@ -94,13 +96,13 @@ struct Video {
     int64_t expiresAt = 0;
     bool highFrameRate720 = false, live = false;
     Format video, audio, speakerAudio, fallbackVideo;
-    std::vector<Format> lowerVideo;
+    std::vector<Format> lowerVideo, videoLadder;
     std::vector<AudioTrack> audioTracks;
     string selectedAudio;
     bool muxed = false;
     std::vector<Track> captions;
 };
-struct Page { std::vector<Card> cards; string error; };
+struct Page { std::vector<Card> cards; string error; Failure failure = Failure::NONE; };
 class Client {
     Transport& net;
     string context, language = "en";

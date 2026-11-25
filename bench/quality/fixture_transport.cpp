@@ -33,6 +33,10 @@ public:
         Request r; r.url=url; r.body=body; r.form=form; return send(r);
     }
     Response send(const Request& r) override {
+        auto start=SDL_GetTicksNS();auto response=sendRaw(r);
+        response.seconds=std::max(.001,(SDL_GetTicksNS()-start)/1e9);return response;
+    }
+    Response sendRaw(const Request& r) {
         if (cancelled()) return {0,"","cancelled"};
         if (r.url.find("/watch?")!=string::npos)
             return {200,R"(<script>ytcfg.set({"VISITOR_DATA":"fixture","jsUrl":"/s/player/fixture/base.js"})</script>)"};
@@ -68,7 +72,11 @@ public:
                     if (cancelled()) return {0,"","cancelled"};
                 }
             }
-            if (name=="1080.mp4") if (const char* delay=std::getenv("XT_QUALITY_SLOW_MS")) SDL_Delay(std::max(0,std::atoi(delay)));
+            if (name=="1080.mp4") if (const char* delay=std::getenv("XT_QUALITY_SLOW_MS")) {
+                static uint64_t began=SDL_GetTicks();
+                const char* recover=std::getenv("XT_QUALITY_RECOVER_MS");
+                if(!recover || SDL_GetTicks()-began<uint64_t(std::atoi(recover)))SDL_Delay(std::max(0,std::atoi(delay)));
+            }
             if (!range) return {200,std::move(data)};
             return {206,std::move(data),"","bytes "+std::to_string(first)+"-"+std::to_string(last)+"/"+std::to_string(size)};
         }

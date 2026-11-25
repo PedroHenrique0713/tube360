@@ -34,7 +34,11 @@ extern "C" int tube360_set_output(int height);
 
 #include "stb_truetype.h"
 
-#define VK(x) do { VkResult r_ = (x); if (r_ != VK_SUCCESS) { LOG("Vulkan falhou (%d): %s", (int)r_, #x); std::exit(1); } } while (0)
+namespace gfx {
+inline void (*failureScreen)(const char*)=nullptr;
+[[noreturn]] inline void fail(const char* reason) { if(failureScreen)failureScreen(reason);std::exit(1); }
+}
+#define VK(x) do { VkResult r_ = (x); if (r_ != VK_SUCCESS) { LOG("Vulkan falhou (%d): %s", (int)r_, #x); char detail_[256];std::snprintf(detail_,sizeof(detail_),"%d: %s",(int)r_,#x);gfx::fail(detail_); } } while (0)
 
 namespace gfx {
 
@@ -86,10 +90,19 @@ struct Gfx {
   uint64_t fenceNs = 0, acquireNs = 0, recordNs = 0, directCount = 0;
 };
 
+inline Gfx* emergencyGraphics=nullptr;
+inline void closeForEmergency() {
+  auto* g=emergencyGraphics;emergencyGraphics=nullptr;if(!g)return;
+  if(g->dev){vkDeviceWaitIdle(g->dev);if(g->swap)vkDestroySwapchainKHR(g->dev,g->swap,nullptr);vkDestroyDevice(g->dev,nullptr);g->dev=VK_NULL_HANDLE;}
+  if(g->inst){if(g->surface)vkDestroySurfaceKHR(g->inst,g->surface,nullptr);vkDestroyInstance(g->inst,nullptr);g->inst=VK_NULL_HANDLE;}
+#ifndef __XSDK__
+  if(g->win){SDL_DestroyWindow(g->win);g->win=nullptr;}
+#endif
+}
 inline uint32_t memType(Gfx& g, uint32_t bits, VkMemoryPropertyFlags want) {
   for (uint32_t i = 0; i < g.memProps.memoryTypeCount; i++)
     if ((bits & (1u << i)) && (g.memProps.memoryTypes[i].propertyFlags & want) == want) return i;
-  LOG("sem tipo de memória para 0x%x", (unsigned)bits); std::exit(1);
+  LOG("sem tipo de memória para 0x%x", (unsigned)bits); fail("GPU memory type");
 }
 
 // cached: memória com cache da CPU (no 360 o tipo 1 do vulkan4xenon), para o que a CPU copia todo quadro.
@@ -249,12 +262,13 @@ inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec
     auto& data = files[s.file];
     if (data.empty()) {
       FILE* f = std::fopen((dir + s.file).c_str(), "rb");
-      if (!f) { LOG("fonte ausente: %s%s", dir.c_str(), s.file); return false; }
+      if (!f) { stbtt_PackEnd(&pc); LOG("fonte ausente: %s%s", dir.c_str(), s.file); return false; }
       std::fseek(f, 0, SEEK_END); long n = std::ftell(f); std::fseek(f, 0, SEEK_SET);
+      if(n<12 || n>16*1024*1024){std::fclose(f);stbtt_PackEnd(&pc);return false;}
       data.resize((size_t)n); size_t got = std::fread(data.data(), 1, data.size(), f); std::fclose(f);
-      if (got != data.size()) return false;
+      if (got != data.size()) {stbtt_PackEnd(&pc);return false;}
     }
-    stbtt_fontinfo info; stbtt_InitFont(&info, data.data(), 0);
+    stbtt_fontinfo info; if(!stbtt_InitFont(&info, data.data(), 0)){stbtt_PackEnd(&pc);return false;}
     int asc, desc, gap; stbtt_GetFontVMetrics(&info, &asc, &desc, &gap);
     float scale = stbtt_ScaleForPixelHeight(&info, s.px);
     Font font; font.size = s.px; font.ascent = asc * scale; font.lineH = (asc - desc + gap) * scale;
@@ -550,6 +564,7 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   if (!SDL_Vulkan_CreateSurface(g.win, g.inst, nullptr, &g.surface)) { LOG("superfície: %s", SDL_GetError()); return false; }
 #endif
   uint32_t n = 0; vkEnumeratePhysicalDevices(g.inst, &n, nullptr);
+  if(!n)fail("No Vulkan GPU");
   std::vector<VkPhysicalDevice> devs(n); vkEnumeratePhysicalDevices(g.inst, &n, devs.data()); g.phys = devs[0];
 #ifdef __XSDK__
   g.surface = displaySurface(g);

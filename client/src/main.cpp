@@ -25,6 +25,9 @@
 #undef PL_MPEG_IMPLEMENTATION
 
 #include "gfx.hpp"
+#include "startup.hpp"
+#include "connection_error.hpp"
+#include "seek_hold.hpp"
 #include "gfx_video_memory.hpp"
 #include "net.hpp"
 #include "player.hpp"
@@ -66,7 +69,7 @@ inline Color mix(Color a, Color b, float t) { return {a.r + (b.r - a.r) * t, a.g
 }  // namespace ui
 
 struct Video { std::string id, channel, views, title; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; };
-struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; bool more = true, loadingMore = false, direct = false; };
+struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; std::string errorDetail; bool more = true, loadingMore = false, direct = false; };
 struct Shelf { std::string title, query; Feed feed; int sel = 0; std::string kind = "search"; uint64_t stamp = 0; };
 
 static std::string fmtTime(double s) {
@@ -201,7 +204,9 @@ struct Worker {
           }
           r.feed.title = j.kind == 6 ? j.query : j.a;
         } else if (!net::serverEnabled) {
-          r.feed.error = K::BadResponse;
+          r.feed.error = connection::message(page.failure);
+          if(page.failure==yt::Failure::TLS_DATE)r.feed.errorDetail=std::string(i18n::get(j.lang,K::ConsoleClock))+connection::clock();
+          LOG("catalogo: falha %s%s%s",yt::failureName(page.failure),r.feed.errorDetail.empty()?"":" ",r.feed.errorDetail.c_str());
         }
       }
       if (r.feed.direct || r.feed.error != K::None) {
@@ -585,18 +590,28 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
 #include "update/ui.hpp"
 #include "nest_picker.hpp"
 
-int main(int argc, char** argv) {
+int run(int argc, char** argv) {
   (void)argc; (void)argv;
 #ifdef __XSDK__
   install_player_fault_handler();
   SDL_SetHint("SDL_AUDIO_XSDK_HARDWARE_THREAD","1");
-  if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_EVENTS | SDL_INIT_AUDIO)) { LOG("SDL: %s", SDL_GetError()); return 1; }
   std::string assets = "";
 #else
-  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_AUDIO)) { LOG("SDL: %s", SDL_GetError()); return 1; }
   std::string assets = std::getenv("XT_ASSETS") ? std::getenv("XT_ASSETS") : "assets/";
 #endif
   if (!assets.empty() && assets.back() != '/') assets += '/';
+  startup::configure(assets);
+#ifdef __XSDK__
+  bool initialized=SDL_Init(SDL_INIT_GAMEPAD|SDL_INIT_EVENTS|SDL_INIT_AUDIO);
+#else
+  bool initialized=SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMEPAD|SDL_INIT_AUDIO);
+  const char* startupTest=std::getenv("XT_STARTUP_ERROR");
+  if(startupTest && !std::strcmp(startupTest,"sdl"))initialized=false;
+#endif
+  if(!initialized)return startup::fail(K::StartupSDL,SDL_GetError());
+  if(!startup::writable())return startup::fail(K::StartupFolder,assets,K::StartupStorage);
+  auto missingFonts=startup::missingFonts(assets);
+  if(!missingFonts.empty())return startup::fail(K::StartupFonts,missingFonts,K::StartupCopy);
   Settings settings; settings.load(assets); net::serverEnabled = settings.server;
   auto tr = [&](K key) { return i18n::get(settings.lang, key); };
   if (FILE* f = std::fopen((assets + "marca.txt").c_str(), "r")) {
@@ -618,11 +633,20 @@ int main(int argc, char** argv) {
   if (srv.ip == "0.0.0.0") net::serverEnabled = false;
   LOG("servidor %s:%d%s", srv.ip.c_str(), srv.port, net::serverEnabled ? "" : " (desligado: só console)");
 
-  gfx::Gfx g;
+  static gfx::Gfx g{};
+  gfx::emergencyGraphics=&g;startup::releaseGraphics=gfx::closeForEmergency;
+  gfx::failureScreen=[](const char* reason){startup::fail(K::StartupVideo,reason);};
   if (FILE* f = std::fopen((assets + "video-metrics.txt").c_str(),"r")) { std::fscanf(f,"%d",&g.videoMetrics); std::fclose(f); }
   const char* shotPath = std::getenv("XT_SHOT");
   g.readback = shotPath != nullptr;
-  if (!gfx::init(g, (settings.outputHeight==480 ? 640 : settings.outputHeight*16/9), settings.outputHeight, "Tube360")) return 1;
+  if (!gfx::init(g, (settings.outputHeight==480 ? 640 : settings.outputHeight*16/9), settings.outputHeight, "Tube360")) return startup::fail(K::StartupVideo,SDL_GetError());
+#ifndef __XSDK__
+  if(startupTest && !std::strcmp(startupTest,"video"))return startup::fail(K::StartupVideo,"GPU initialization (fixture)");
+#endif
+#ifndef __XSDK__
+  if(startupTest && !std::strcmp(startupTest,"launch"))return startup::fail(K::StartupLaunch,"tube360.xex",K::StartupCopy);
+  if(startupTest && !std::strcmp(startupTest,"timeout"))return startup::fail(K::StartupLaunch,tr(K::StartupTimeout));
+#endif
   const std::vector<gfx::FontSpec> fontSpecs={{"inter-400.ttf", 19}, {"inter-400.ttf", 16}, {"inter-600.ttf", 17}, {"inter-600.ttf", 23},
                                   {"inter-700.ttf", 27}, {"inter-700.ttf", 34}, {"inter-600.ttf", 22}, {"inter-700.ttf", 13},
                                   {"inter-700.ttf", 42}, {"inter-600.ttf", 18}, {"inter-300.ttf", 27}, {"inter-700.ttf", 58},
@@ -642,12 +666,12 @@ int main(int argc, char** argv) {
     LOG("layout: %.0fx720, %s, texto %s, margem %.0fx%.0f",ui::W,ui::narrow ? "4:3" : "wide",ui::large ? "grande" : "normal",g.insetX,g.insetY);
     return gfx::loadFonts(g,assets,specs);
   };
-  if (!loadDisplay()) { LOG("fontes não carregaram"); return 1; }
+  if (!loadDisplay()) return startup::fail(K::StartupFonts,"inter-400.ttf, inter-600.ttf, inter-700.ttf, inter-300.ttf",K::StartupCopy);
   loadIcons(g);
 
   gfx::Video videoTex; g.video = &videoTex;
   gfx::DecodePool videoPool(g);
-  music::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); pl.videoMetrics = g.videoMetrics; pl.directSpeaker.init(assets);
+  music::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); if(!pl.mu || !pl.cv || !pl.nmu || !pl.audio)return startup::fail(K::StartupSDL,SDL_GetError()); pl.videoMetrics = g.videoMetrics; pl.directSpeaker.init(assets);
   pl.videoBuffers = videoPool.enabled ? &videoPool : nullptr;
   if (FILE* f = std::fopen((assets + "decode-config.txt").c_str(),"r")) {
     int direct = 1, type = 1, threads = 4, loop = -1;
@@ -677,8 +701,10 @@ int main(int argc, char** argv) {
   Worker thumbsWorker; thumbsWorker.srv = srv; thumbsWorker.consoleAccount = consoleAccount; thumbsWorker.hw = 5;
   SDL_Thread* tw[3];
   for (auto& th : tw) th = yt::worker(Worker::main, "miniaturas", &thumbsWorker);
+  if(!wt || !ct || !nt || !st || !tw[0] || !tw[1] || !tw[2])return startup::fail(K::StartupSDL,"worker: "+std::string(SDL_GetError()));
   Remote remote; remote.srv = srv;
   SDL_Thread* rt = SDL_CreateThread(Remote::main, "controle", &remote);
+  if(!rt)return startup::fail(K::StartupSDL,"remote worker: "+std::string(SDL_GetError()));
   cast::Receiver phone(assets, brandName); phone.enable(true);
   cast::Status phoneStatus; uint64_t phoneStateAt = 0, phonePlaybackSerial = 0;
   float phoneGain = 1;
@@ -726,6 +752,7 @@ int main(int argc, char** argv) {
   Color ambient{0.15f, 0.15f, 0.2f, 1}, ambientWant = ambient;
   std::string query; std::vector<std::string> recent;
   int keyRow = 0, keyCol = 0; bool keyInRecent = false; int recentSel = 0;
+  playback::SeekHold seekHold;
   PlayerUI playerUI; uint64_t& overlayUntil = playerUI.until;
   Screen backTo = HOME; std::string toast; uint64_t toastUntil = 0;
   Video playing; bool playerFromRemote = false;
@@ -733,7 +760,8 @@ int main(int argc, char** argv) {
   int captionIndex = -1; std::vector<std::string> captionLines; float captionWidth = 0;
   float captionLineWidths[2]{};
   int lastQuality = -1, lastSourceFps = -1, lastTargetFps=-1, lastOutput=-1; const char* lastMode = nullptr;
-  std::string qualityLabel, resolutionLabel;
+  std::string qualityLabel, resolutionLabel, seekLabel;
+  int seekSecond=-1;
   std::vector<yt::AudioTrack> audioTracks;
   std::vector<std::string> trackLabels;
   std::string selectedAudio, selectedTrackLabel;
@@ -856,9 +884,11 @@ int main(int argc, char** argv) {
     if (pl.requestLanguage != i18n::code(settings.lang)) { pl.halt(); pl.requestLanguage=i18n::code(settings.lang); }
     pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track,v.members != yt::Membership::None);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
+    seekHold.cancel();
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
   auto stopVideo = [&]() {
+    seekHold.cancel();
     recordHistory(); historyVideo.clear(); historyStarted = false;
     extras.select("",i18n::code(settings.lang));
     if (nav.localQueue) { nav.clearLocalQueue(); nav.musicSession = nav.musicNow = false; }
@@ -970,7 +1000,7 @@ int main(int argc, char** argv) {
         bool d = e.type == SDL_EVENT_KEY_DOWN; SDL_Keycode k = e.key.key;
         int b = k == SDLK_UP ? Input::UP : k == SDLK_DOWN ? Input::DOWN : k == SDLK_LEFT ? Input::LEFT : k == SDLK_RIGHT ? Input::RIGHT
               : k == SDLK_RETURN ? Input::A : k == SDLK_ESCAPE ? Input::B : k == SDLK_BACKSPACE ? Input::X : k == SDLK_TAB ? Input::Y
-              : k == SDLK_PAGEUP ? Input::LB : k == SDLK_PAGEDOWN ? Input::RB : k == SDLK_F10 ? Input::BACK : k == SDLK_F2 ? Input::START : -1;
+              : k == SDLK_Q ? Input::LT : k == SDLK_E ? Input::RT : k == SDLK_PAGEUP ? Input::LB : k == SDLK_PAGEDOWN ? Input::RB : k == SDLK_F10 ? Input::BACK : k == SDLK_F2 ? Input::START : -1;
         if (b >= 0) in.set(b, d, now);
       }
       if (e.type == SDL_EVENT_TEXT_INPUT && screen == SEARCH) query += e.text.text;
@@ -997,10 +1027,11 @@ int main(int argc, char** argv) {
       static int keyIndex = 0; static uint64_t keyAt = runStart + (uint64_t)std::max(0, interval);
       if (interval > 0) { step = -1; if (now >= keyAt) { step = keyIndex++ * 24; keyAt = now + interval; } }
 #endif
-      if (script && step >= 0 && step % 24 == 0 && step / 24 < (int)std::strlen(script)) {
+      if (script && step >= 0 && step % 24 == 0 && step / 24 <= (int)std::strlen(script)) {
         char k = script[step / 24];
         int b = k == 'U' ? Input::UP : k == 'D' ? Input::DOWN : k == 'L' ? Input::LEFT : k == 'R' ? Input::RIGHT : k == 'A' ? Input::A
               : k == 'B' ? Input::B : k == 'X' ? Input::X : k == 'Y' ? Input::Y : k == 'S' ? Input::START : k == '[' ? Input::LB : k == ']' ? Input::RB : k == 'l' ? Input::LT : k == 'r' ? Input::RT : -1;
+        in.set(Input::LT,k=='l',now);in.set(Input::RT,k=='r',now);
         if (b >= 0) in.fired[b] = true;
       }
     }
@@ -1542,7 +1573,7 @@ int main(int argc, char** argv) {
           int index=settings.outputHeight==480 ? 0 : settings.outputHeight==1080 ? 2 : 1;
           settings.outputHeight=heights[(index+direction+3)%3];
           gfx::output(g,settings.outputHeight);
-          if (!loadDisplay()) { LOG("fontes não carregaram"); quit=true; }
+          if (!loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
           scroll=0; nav.nowId.clear();
           overlayTitle = {}; overlayMeta = {}; overlayChapter = {}; tipLabel = {}; tipValue = {};
           metaChannel.clear(); clockSecond = -1;
@@ -1551,7 +1582,7 @@ int main(int argc, char** argv) {
         else if (settingsRow == 10) settings.originalAudio=!settings.originalAudio;
         else if (settingsRow == 11) {
           settings.largeText=!settings.largeText;
-          if (!loadDisplay()) { LOG("fontes não carregaram"); quit=true; }
+          if (!loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
           overlayTitle={}; overlayMeta={}; overlayChapter={}; tipLabel={}; tipValue={};
           metaChannel.clear(); clockSecond=-1; scroll=0; nav.nowId.clear();
         }
@@ -1668,6 +1699,7 @@ int main(int argc, char** argv) {
         }
       }
     } else if (screen == PLAYER) {
+      if(seekHold.active)for(int b=0;b<Input::N;++b)if(b!=Input::B && b!=Input::BACK)in.fired[b]=false;
       bool any = false;
       int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
       // Na opção 1 aprovada os ícones ficam ABAIXO da barra: ↓ leva aos ícones, ↑ volta para a trilha.
@@ -1747,19 +1779,27 @@ int main(int argc, char** argv) {
         }
         toastUntil = now + 3000; any = true;
       }
-      bool lt = in.hit(Input::LT), rt = in.hit(Input::RT);
-      if (nestOut && (lt || rt)) {
-        nestOffsetMs = std::clamp(nestOffsetMs + (rt ? 40 : -40), -2000, 2000); pl.nestOffset = nestOffsetMs / 1000.0;
-        toast = tr(K::SyncPrefix) + std::to_string(nestOffsetMs) + tr(K::Milliseconds);
-        toastUntil = now + 2500; saveSettings(); any = true;
+      in.hit(Input::LT);in.hit(Input::RT);
+      int trigger=in.held[Input::RT]==in.held[Input::LT]?0:in.held[Input::RT]?1:-1;
+      if(trigger && (pl.live || pl.state==player::CONNECTING || pl.state==player::FAILED)) {
+        if(pl.state!=player::FAILED){toast=tr(pl.live?K::PlayerLiveSeek:K::PlayerSeekWait);toastUntil=now+2500;}
+      } else {
+        bool wasActive=seekHold.active;
+        bool commit=seekHold.update(now,trigger,pl.position(),pl.duration,pl.paused);
+        if(!wasActive && seekHold.active){seekSecond=-1;pl.setPaused(true);LOG("busca: segurando %d desde %.3f",trigger,pl.position());}
+        if(seekHold.active){playerUI.options=false;any=true;}
+        if(commit){double to=seekHold.target;bool paused=seekHold.wasPaused;LOG("busca: soltou em %.3f",to);startVideo(playing,to,playerFromRemote);pl.setPaused(paused);any=true;}
       }
       if (any) playerUI.touch(now);
       if (in.hit(Input::BACK)) stopVideo();
-      else if (in.hit(Input::B) && !playerUI.back(now)) {
+      else if (in.hit(Input::B)) {
+        if(seekHold.active){bool paused=seekHold.wasPaused;seekHold.cancel(true);pl.setPaused(paused);}
+        else if(!playerUI.back(now)) {
         if (nav.musicSession) {
           double pos = pl.position(); bool paused = pl.paused;
           nav.musicNow = true; startVideo(playing,pos,playerFromRemote); pl.setPaused(paused);
         } else stopVideo();
+        }
       }
       if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
         nestSkip = true;
@@ -1924,9 +1964,14 @@ int main(int argc, char** argv) {
       if (n == 0) {
         if (cur.feed.loading) { spinner(g, ui::X0 + (ui::W - ui::X0) / 2 - 32, 380, 22, t); gfx::text(g, ui::F_BODY, tr(K::LoadingVideos), ui::X0 + (ui::W - ui::X0) / 2 - 32, 420, ui::MUTED, 1); }
         else if (cur.feed.error != K::None) {
-          gfx::text(g, ui::F_BIG, tr(settings.server ? K::ServerUnavailable : K::BadResponse), ui::X0, 190, ui::TEXT);
-          gfx::text(g, ui::F_BODY, settings.server ? std::string(tr(cur.feed.error)) + " (" + srv.ip + ":" + std::to_string(srv.port) + ")" : tr(K::Refresh), ui::X0, 240, ui::MUTED);
-          if (settings.server) gfx::text(g, ui::F_BODY, tr(K::RetryServer), ui::X0, 270, ui::MUTED);
+          float y=190;
+          bool serverError=net::serverEnabled && (cur.feed.error==K::NoResponse || cur.feed.error==K::BadResponse);
+          for(const auto& line:gfx::wrap(g,ui::F_H2,tr(serverError?K::ServerUnavailable:cur.feed.error),ui::W-ui::X0-64,4)) {
+            gfx::text(g,ui::F_H2,line,ui::X0,y,ui::TEXT);y+=g.fonts[ui::F_H2].lineH+8;
+          }
+          if(!cur.feed.errorDetail.empty()){gfx::text(g,ui::F_BODY,cur.feed.errorDetail,ui::X0,y+16,ui::MUTED);y+=48;}
+          if(serverError)gfx::text(g,ui::F_BODY,tr(K::RetryServer),ui::X0,y+16,ui::MUTED);
+          else hint(g,ui::X0,y+24,"X",XX,tr(K::Refresh));
         } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
       }
       if (ui::large || ui::narrow) gfx::rect(g,96,648,ui::W-96,72,ui::BG);
@@ -2145,7 +2190,7 @@ int main(int argc, char** argv) {
         gfx::text(g, ui::F_META, overlayMeta.text, 40, 591, rgb(0xd4d4d8));
 
         const bool live = pl.live;
-        double pos = pl.position(), dur = pl.duration;
+        double pos = seekHold.active?seekHold.target:pl.position(), dur = pl.duration;
         const float bx = 40, by = 624, bw = ui::W-80;
         float frac = live ? 1.f : dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0;
         gfx::rect(g, bx, by, bw, 4, {1,1,1,0.25f}, 2);
@@ -2180,6 +2225,10 @@ int main(int argc, char** argv) {
           gfx::text(g, ui::F_META, overlayChapter.text, 46 + leftW, 658, ui::TEXT);
         }
 
+        if(seekHold.active) {
+          if(seekSecond!=int(seekHold.target)){seekSecond=int(seekHold.target);seekLabel=std::string(tr(K::SeekTarget))+fmtTime(seekHold.target);}
+          gfx::text(g,ui::F_H2,seekLabel,ui::W/2,490,ui::TEXT,1);
+        }
         constexpr icons::PlayerIcon symbols[] = {icons::CLOSED_CAPTIONING, icons::GEAR, icons::SPEAKER_HIGH, icons::TRANSLATE_PLAYER,
                                                  icons::MOON, icons::THUMBS_UP, icons::THUMBS_DOWN, icons::CHAT_CIRCLE_TEXT, icons::GAUGE, icons::REPEAT, icons::USER_CIRCLE, icons::BROADCAST};
         float rightW = 8 + (optionCount - 1 - (playerUI.tracks ? 0 : 1)) * 48, rightX = ui::W-32 - rightW;
@@ -2552,4 +2601,9 @@ int main(int argc, char** argv) {
   LOG("%s saindo", brandName.c_str());
   SDL_Quit();
   return 0;
+}
+
+int main(int argc,char** argv) {
+  try {return run(argc,argv);}
+  catch(const std::exception& error){return startup::fail(K::StartupVideo,error.what());}
 }

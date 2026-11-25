@@ -1,5 +1,6 @@
 #pragma once
 #include "app.hpp"
+#include "i18n.hpp"
 #include <cstdio>
 
 namespace updates {
@@ -18,6 +19,8 @@ struct LauncherHost {
     virtual bool screen() = 0;
     virtual bool closeScreen() = 0;
     virtual int launch(const string&) = 0;
+    virtual string preflight(const string&) {return {};}
+    virtual void fail(i18n::Key,const string& detail,i18n::Key) {log("startup failure: "+detail);}
 };
 int launchApp(const string& directory,const string& key,LauncherHost&);
 }

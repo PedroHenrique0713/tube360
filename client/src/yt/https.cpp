@@ -5,6 +5,8 @@
 #include "update-roots.hpp"
 #include "update/rules.hpp"
 #include <curl/curl.h>
+#include <mbedtls/ssl.h>
+#include <mbedtls/x509_crt.h>
 #include <strings.h>
 #include <sys/socket.h>
 #ifndef __XSDK__
@@ -43,7 +45,17 @@ int socketOptions(void*, curl_socket_t fd, curlsocktype) {
     setsockopt(fd,SOL_SOCKET,SO_SNDBUF,&bytes,sizeof(bytes));
     return CURL_SOCKOPT_OK;
 }
+// Observa as flags, sem limpar erros nem alterar a validação da cadeia/nome.
+int certificate(void* data, mbedtls_x509_crt*, int, uint32_t* flags) {
+    *static_cast<uint32_t*>(data) |= *flags;
+    return 0;
+}
+CURLcode tlsContext(CURL*, void* context, void* data) {
+    mbedtls_ssl_conf_verify(static_cast<mbedtls_ssl_config*>(context),certificate,data);
+    return CURLE_OK;
+}
 class Https final : public Transport {
+    uint32_t certificateFlags = 0;
     CURL* easy = nullptr;
     CURL* explicitCookies = nullptr;
     const std::atomic_bool* cancelFlag;
@@ -78,6 +90,7 @@ public:
         if (customCookies && !explicitCookies) explicitCookies = curl_easy_init();
         CURL* handle = customCookies ? explicitCookies : easy;
         if (!handle) { res.error = "tls_init"; return res; }
+        certificateFlags=0;
         curl_easy_reset(handle); // Mantém DNS, sessões TLS e conexões do mesmo worker e identidade.
         curl_blob ca{const_cast<char*>(r.update ? updateRoots : ytRoots), r.update ? sizeof(updateRoots) : sizeof(ytRoots), CURL_BLOB_NOCOPY};
         curl_slist* headers = nullptr;
@@ -106,6 +119,8 @@ public:
             set(CURLOPT_TCP_KEEPALIVE, 1L);
             set(CURLOPT_SOCKOPTFUNCTION, socketOptions);
         }
+        set(CURLOPT_SSL_CTX_FUNCTION, tlsContext);
+        set(CURLOPT_SSL_CTX_DATA, &certificateFlags);
         set(CURLOPT_HEADERFUNCTION, header);
         set(CURLOPT_HEADERDATA, &res);
         set(CURLOPT_WRITEFUNCTION, append);
@@ -144,6 +159,10 @@ public:
             res.error = rc == CURLE_PEER_FAILED_VERIFICATION ? "tls_peer_verification" : curl_easy_strerror(rc);
             res.failure = rc==CURLE_ABORTED_BY_CALLBACK ? Failure::CANCELLED :
                 rc==CURLE_PEER_FAILED_VERIFICATION || rc==CURLE_SSL_CONNECT_ERROR || rc==CURLE_SSL_CERTPROBLEM || rc==CURLE_SSL_CACERT_BADFILE ? Failure::TLS : Failure::NETWORK;
+            if (rc==CURLE_COULDNT_RESOLVE_HOST || rc==CURLE_COULDNT_RESOLVE_PROXY) res.failure=Failure::DNS;
+            if (res.failure==Failure::TLS && (certificateFlags & (MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCERT_FUTURE))) {
+                res.failure=Failure::TLS_DATE; res.error="tls_certificate_date";
+            }
             res.retryable = rc==CURLE_OPERATION_TIMEDOUT || rc==CURLE_PARTIAL_FILE || rc==CURLE_RECV_ERROR ||
                 rc==CURLE_SEND_ERROR || rc==CURLE_COULDNT_CONNECT || rc==CURLE_COULDNT_RESOLVE_HOST || rc==CURLE_SSL_CONNECT_ERROR;
             // Só Range pode aproveitar um prefixo, depois de validar Content-Range. JSON continua atômico.
