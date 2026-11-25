@@ -66,5 +66,5 @@ with tempfile.TemporaryDirectory(prefix='tube360-video-driver-') as tmp:
     prefix='#include <assert.h>\n#include "gpu_private.h"\n#include "xsdk/display.h"\n#include "xsdk/splash.h"\n#include "xsdk/present.h"\n#include "xsdk/tube360_video.h"\nvoid fixture_barrier(void);\nstatic void on_interrupt(uint32_t s,void* p){(void)s;(void)p;}\nstatic void describe_display(uint32_t w,uint32_t h){(void)w;(void)h;}\n'
     (work/'present.c').write_text(prefix+enum+'\n'+structs+'\n'+function)
     run([*common,ROOT/'tests/reddit/present_open.c',work/'present.c','-Wl,--gc-sections','-o',work/'present'])
-    for case in ('success','fail','letterbox-fail'):
+    for case in ('success','fail','letterbox-fail','sim-fail','sim-interlaced'):
         result=run([work/'present',case],capture_output=True,text=True);(a.evidence/('present-'+case+'.log')).write_text(result.stdout);print(result.stdout.splitlines()[-1],flush=True)

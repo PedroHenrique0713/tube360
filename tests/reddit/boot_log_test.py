@@ -47,7 +47,7 @@ for name in ('normal','missing-fonts','video-fail','sdl-fail','long-path'):
     print('PASS app boot',name,'rows',len(text.splitlines()),flush=True)
 # Mesmo logger C, sem a UI ou uma saída normal que pudesse esconder falta de flush.
 exe=base/'stop'
-subprocess.run(['cc','-std=c11','-D_POSIX_C_SOURCE=200809L','-I'+str(ROOT/'client/src'),str(ROOT/'tests/reddit/boot_stop.c'),str(ROOT/'client/src/boot_log.c'),str(ROOT/'client/src/boot_early.c'),str(ROOT/'client/src/video_policy.c'),'-pthread','-o',str(exe)],check=True)
+subprocess.run(['cc','-std=c11','-D_POSIX_C_SOURCE=200809L','-I'+str(ROOT/'client/src'),str(ROOT/'tests/reddit/boot_stop.c'),str(ROOT/'client/src/boot_log.c'),str(ROOT/'client/src/boot_early.c'),str(ROOT/'client/src/video_policy.c'),str(ROOT/'client/src/board_sim.c'),'-pthread','-o',str(exe)],check=True)
 for mode in ('exit','kill'):
     folder=base/('abrupt-'+mode);folder.mkdir(exist_ok=True)
     log=folder/'boot-test.log';log.unlink(missing_ok=True)
