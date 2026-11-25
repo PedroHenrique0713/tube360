@@ -210,15 +210,9 @@ class Runner:
         aurora = self.remote.ls(r'Usb0:\Aurora', deadline)
         if not any(n.casefold() == 'aurora.xex' and not d for n, d in aurora):
             raise RuntimeError('Aurora.xex não encontrado; nenhum título será lançado')
-        try:
-            games = self.remote.ls('Hdd1:\\Games', deadline)
-            prefix = 'Hdd1:'
-        except self.remote.module.XbdmError as error:
-            if not re.search(r'\b414\b', str(error)):
-                raise
-            games = self.remote.ls('HDD:\\Games', deadline)
-            prefix = 'HDD:'
-            self.emit('INFO Hdd1 retornou 414; usando HDD:\\Games\\Tube360 Teste')
+        # Hdd1: lista mas recusa criar arquivo (413/414) neste console; HDD: é o mesmo disco e aceita.
+        games = self.remote.ls('HDD:\\Games', deadline)
+        prefix = 'HDD:'
         self.root = prefix + '\\Games\\' + TEST_FOLDER
         self.existing = any(n.casefold() == TEST_FOLDER.casefold() and d for n, d in games)
         self.report['remote_root'] = self.root
