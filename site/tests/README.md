@@ -17,6 +17,7 @@ export CHROME_EXECUTABLE=/caminho/para/chrome-headless-shell
 node site/tests/verify-browser.cjs
 node site/tests/extra-proof.cjs
 node site/tests/verify-v032.cjs
+node site/tests/verify-community.cjs
 ```
 
 `SITE_URL` permite mudar a porta/origem (sem barra final). Se Playwright e o navegador padrão já estiverem instalados, as duas variáveis de caminho são opcionais. Pare o servidor no final.
@@ -27,6 +28,14 @@ node site/tests/verify-v032.cjs
 - `verify-v032.cjs`: matriz EN/PT × 1366×650, 1920×1080, 390×844; busca/filtros, Start, listas locais/retomada, qualidade, SponsorBlock, Shorts e Música. Mede a primeira tela contra a F27. Exercita expiração do cache e Gamepad API com controle simulado; não comprova controle físico.
 
 Os prints do app de PC são referências separadas de produção, obtidas com `SDL_VIDEO_DRIVER=offscreen`, `XT_SHOT`, transportes de bancada e assets isolados. As capturas e a procedência estão no relatório F49 em `site/.work/F49-relatorio.md`. A demo HTML usa os sprites locais da F27, capas fictícias de música e conteúdo ilustrativo; não estabelece conexão com conta, console ou player remoto.
+
+## F51: céu de estrelas e downloads
+
+`verify-community.cjs` fotografa o bloco EN/PT nas três resoluções com o snapshot real de `src/github.json`. Confere carregamento de `community.css`/`community.js` somente perto da seção, um ponto por estrela, metas (inclusive zero e passagem da marca), barras cuja soma corresponde ao total e data da última release. Uma prova separada com respostas controladas mede 90 quadros do odômetro e da estrela acendendo, depois exige que o céu pare. Exercita troca de preferência durante a animação, impressão, cache EN/PT por cinco minutos, falha após uma atualização válida, paginação incompleta, CDN/storage indisponíveis e JavaScript desativado. As fixtures de 0.3.2 servem só para testar a atualização; os seis prints públicos usam os valores verdadeiros do build.
+
+Resultados e capturas ficam em `site/.work/f51/`. Se existir `baseline-browser.json` nessa pasta, a prova também exige primeira tela sem aumento de bytes (HTML de navegação + recursos locais), mesma geometria do hero e nenhum asset visual da comunidade antes de rolar. Esse baseline é uma medição anterior à mudança; não é necessário para os demais casos da prova.
+
+O snapshot agora inclui `version_downloads`, obtido na mesma paginação que soma ZIP, 7z e XEX; checksums ficam fora. Snapshots antigos sem essa informação continuam válidos e mostram uma mensagem até conseguir consultar a API, sem inventar uma distribuição. Uma falha posterior mantém o último total completo e sua data de verificação. A API tenta `revive360/tube360` primeiro e usa `PedroHenrique0713/tube360` somente em caso de 404 durante a transferência. Os links públicos da comunidade continuam apontando para a organização nova. Descrições editoriais já presentes no HTML são omitidas do JSON de traduções do navegador para compensar o peso da nova seção; chaves referenciadas pelo código continuam presentes.
 
 ## Revisão de fidelidade da rc4
 

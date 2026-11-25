@@ -79,3 +79,58 @@ try:build.render('<p>{{native}}</p>',{'native':{'Settings':'Settings'}})
 except ValueError as error:assert 'scalar' in str(error)
 else:raise AssertionError('a translation dictionary leaked into visible page copy')
 print('PASS: template rejects nested translation objects instead of exposing internal data.')
+
+# F51: one complete pagination pass supplies both the total and every version.
+def version_pages(path):
+    if path.endswith('page=1'):
+        return [{'tag_name':'v0.3.2','assets':[{'name':'app.zip','download_count':10},{'name':'app.7z','download_count':20},{'name':'app.xex','download_count':30},{'name':'SHA256SUMS','download_count':999}]}]+[{'tag_name':f'v-empty-{i}','assets':[]} for i in range(99)]
+    return [{'tag_name':'v0.3.1','assets':[{'name':'APP.ZIP','download_count':7}]}]
+build.github=version_pages
+total,versions=build.download_statistics()
+assert total==67 and versions[0]['downloads']==60 and versions[-1]['downloads']==7
+assert sum(row['downloads'] for row in versions)==total
+build.valid_data({**base,'download_count':total,'version_downloads':versions})
+for invalid in ([{'tag_name':'v1','downloads':True}], [{'tag_name':'v1','downloads':-1}], [{'tag_name':'v1','downloads':66}], '67'):
+    try:build.valid_data({**base,'download_count':67,'version_downloads':invalid})
+    except ValueError:pass
+    else:raise AssertionError(f'invalid breakdown accepted: {invalid}')
+for count,goal in [(0,25),(24,25),(25,50),(50,100),(100,250),(250,500),(500,1000),(999,1000),(1000,2500)]:
+    assert build.next_star_goal(count)==goal
+for lang in ['en','pt-BR']:
+    dictionary=json.loads(Path(f'site/src/i18n/{lang}.json').read_text())
+    values=build.community_values({**base,'download_count':67,'version_downloads':versions},dictionary,lang)
+    assert 'v0.3.2' in values['version_bars'] and '60' in values['version_bars']
+    assert json.loads(values['community_json'])['downloads']==67
+    assert '<script>' not in build.community_values({**base,'version_downloads':[{'tag_name':'<script>','downloads':base['download_count']}]},dictionary,lang)['version_bars']
+# An explicit total must never inherit a version breakdown for a different total.
+with TemporaryDirectory() as folder:
+    build.CACHE=Path(folder)/'github.json';build.CACHE.write_text(json.dumps({**base,'download_count':67,'version_downloads':versions}))
+    args=SimpleNamespace(offline=True,no_cache_write=True,version=None,download_url=None,size=None,stars=None,downloads=68,published_at=None)
+    assert 'version_downloads' not in build.get_data(args)
+print('PASS: F51 complete version totals, pagination, checksum exclusion, invalid breakdowns, milestone boundaries, escaped snapshot/HTML and offline total override.')
+
+# Exercise the real HTTP fallback, not a replacement implementation of github().
+from io import BytesIO
+real_urlopen=build.urlopen
+requests=[]
+def migration_response(request,timeout):
+    requests.append(request.full_url)
+    if '/revive360/' in request.full_url:
+        raise HTTPError(request.full_url,404,'Not Found',{},None)
+    return BytesIO(b'{"stargazers_count":11}')
+try:
+    build.github=real_github;build.urlopen=migration_response;build.API_REPO=build.REPO
+    assert real_github('')['stargazers_count']==11
+    assert requests==['https://api.github.com/repos/revive360/tube360','https://api.github.com/repos/PedroHenrique0713/tube360']
+    requests.clear();real_github('/releases/latest')
+    assert requests==['https://api.github.com/repos/PedroHenrique0713/tube360/releases/latest']
+finally:build.urlopen=real_urlopen;build.API_REPO=build.REPO
+print('PASS: new organization first, legacy API on 404 only, selected origin reused during the build.')
+for lang in ['en','pt-BR']:
+    dictionary=json.loads(Path(f'site/src/i18n/{lang}.json').read_text())
+    runtime=build.runtime_translations(dictionary,Path('site/src/main.js').read_text()+Path('site/src/community.js').read_text())
+    assert 'hero_description' not in runtime and 'release_summaries' not in runtime
+    assert runtime['native']==dictionary['native'] and runtime['stars_remaining']==dictionary['stars_remaining']
+    assert runtime['quality']==dictionary['quality']
+    assert build.runtime_translations(dictionary,'t.hero_description; t["release_summaries"]')['hero_description']==dictionary['hero_description']
+print('PASS: runtime keeps direct/dynamic translations, excludes duplicate HTML copy and retains future explicitly referenced editorial keys.')
