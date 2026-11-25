@@ -37,7 +37,7 @@
   <script id="site-i18n" type="application/json">{{runtime_json}}</script>
   <script defer src="/main.js"></script>
 </head>
-<body data-github-retry-after="{{github_retry_after}}" data-version="{{version}}" data-download-url="{{download_url}}" data-size="{{size_bytes}}" data-stars="{{stars_raw}}">
+<body data-github-retry-after="{{github_retry_after}}" data-version="{{version}}" data-download-url="{{download_url}}" data-size="{{size_bytes}}" data-stars="{{stars_raw}}" data-downloads="{{downloads_raw}}">
   <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-5-5 5 5 5-5M4 16v4h16v-4"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.5l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9Z"/></symbol>
@@ -51,6 +51,17 @@
     <symbol id="i-pc" viewBox="0 0 48 48"><rect x="5" y="7" width="38" height="27" rx="2"/><path d="M17 42h14M24 34v8M6 28h36"/></symbol>
     <symbol id="i-tv" viewBox="0 0 48 48"><rect x="4" y="8" width="40" height="29" rx="2"/><path d="m14 43 3-6m17 6-3-6"/></symbol>
     <symbol id="i-like" viewBox="0 0 24 24"><path d="M8 10 12 3c2 0 3 2 2 5h5c2 0 2 2 1 5l-2 7H8ZM3 10h5v10H3Z"/></symbol>
+    <symbol id="i-subscriptions" viewBox="0 0 24 24"><path d="M6 3h12M4 6h16"/><rect x="3" y="9" width="18" height="12" rx="2"/><path d="m10 12 5 3-5 3Z"/></symbol>
+    <symbol id="i-library" viewBox="0 0 24 24"><path d="M4 4v16M10 4v16M16 4l4 16"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M10 18V5l10-2v13M10 8l10-2"/><ellipse cx="6" cy="18" rx="4" ry="3"/><ellipse cx="16" cy="16" rx="4" ry="3"/></symbol>
+    <symbol id="i-cc" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M10 9H6v6h4m9-6h-4v6h4"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="M3 9h4l5-5v16l-5-5H3Zm13-1a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 14A9 9 0 0 1 10 3 9 9 0 1 0 21 14Z"/></symbol>
+    <symbol id="i-comments" viewBox="0 0 24 24"><path d="M3 4h18v13H9l-6 4Z M7 8h10M7 12h7"/></symbol>
+    <symbol id="i-speed" viewBox="0 0 24 24"><path d="M4 19a10 10 0 1 1 16 0M12 13l5-6M5 13h2M17 13h2M12 3v3"/><circle cx="12" cy="13" r="2"/></symbol>
+    <symbol id="i-repeat" viewBox="0 0 24 24"><path d="m16 2 4 4-4 4M20 6H7a4 4 0 0 0-4 4m5 12-4-4 4-4M4 18h13a4 4 0 0 0 4-4"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="9" r="3"/><path d="M5 19c0-7 14-7 14 0"/></symbol>
+    <symbol id="i-live" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><path d="M8 7a7 7 0 0 0 0 10m8-10a7 7 0 0 1 0 10M5 4a11 11 0 0 0 0 16M19 4a11 11 0 0 1 0 16"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
   </svg>
   <a class="skip-link" href="#how-it-works">{{skip}}</a>
@@ -68,6 +79,7 @@
           <a class="button button-download" data-download href="{{download_url}}"><svg class="icon"><use href="#i-download"/></svg><span><strong>{{download}}</strong><small data-release data-version="{{version}}" data-size="{{size_bytes}}">{{release_text}}</small></span></a>
           <a class="button button-github" href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer"><svg class="icon"><use href="#i-github"/></svg><span>{{star}}</span><span class="star-count" data-stars="{{stars_raw}}">{{stars_text}}</span></a>
         </div>
+        <p class="download-count"><span data-download-count="{{downloads_raw}}">{{downloads_text}}</span> {{downloads_label}}</p>
       </div>
       <div class="playground">
         <div class="tv-frame">
@@ -75,20 +87,35 @@
             <div class="app-native" id="app-native">
               <div class="app-home" id="home-screen">
                 <div class="app-brand"><img src="/assets/logo-orbita.svg" width="40" height="40" alt=""><span class="wordmark">Tube<span>360</span></span></div>
-                <div class="app-top-actions"><span class="account-badge">{{account_badge}}</span><span><b class="pad-button pad-x">X</b> {{refresh}}</span><span><b class="pad-button pad-y">Y</b> {{search}}</span></div>
-                <div class="app-sidebar" aria-label="{{app_menu}}"><span class="sidebar-icon active"><svg class="icon"><use href="#i-home"/></svg></span><span class="sidebar-icon"><svg class="icon"><use href="#i-search"/></svg></span><span class="sidebar-icon"><svg class="icon"><use href="#i-phone"/></svg></span><span class="sidebar-icon"><svg class="icon"><use href="#i-settings"/></svg></span><span class="sidebar-icon sidebar-power"><svg class="icon"><use href="#i-power"/></svg></span></div>
-                <div class="app-categories" role="group" aria-label="{{categories}}"><button type="button" class="category active" aria-pressed="true">{{all}}</button><button type="button" class="category" aria-pressed="false">{{music}}</button><button type="button" class="category" aria-pressed="false">{{football}}</button><button type="button" class="category" aria-pressed="false">{{games}}</button><button type="button" class="category" aria-pressed="false">{{podcasts}}</button><button type="button" class="category" aria-pressed="false">{{news}}</button></div><span id="category-more" class="category-more" aria-hidden="true" hidden>›</span><span id="category-previous" class="category-previous" aria-hidden="true" hidden>↔</span>
+                <div class="app-top-actions"><button type="button" data-command="x"><b class="pad-button pad-x">X</b> {{refresh}}</button><button type="button" data-command="y"><b class="pad-button pad-y">Y</b> {{search}}</button><button type="button" data-page="settings"><b class="pad-button pad-menu">☰</b> {{options}}</button></div>
+                <div class="app-categories" role="group" aria-label="{{categories}}"><button type="button" class="category active" aria-pressed="true">{{all}}</button><button type="button" class="category" aria-pressed="false">{{music}}</button><button type="button" class="category" aria-pressed="false">{{football}}</button><button type="button" class="category" aria-pressed="false">{{games}}</button><button type="button" class="category" aria-pressed="false">{{podcasts}}</button><button type="button" class="category" aria-pressed="false">{{news}}</button></div>
                 <noscript><img class="no-js-screen" src="/assets/img/home.jpg" width="1280" height="720" alt="{{no_js_alt}}"></noscript><div class="video-grid" id="video-grid" aria-label="{{choose_video}}"></div>
-                <div class="home-continuation" aria-hidden="true"></div>
               </div>
+              <div class="app-page" id="browse-screen" hidden><h2 id="browse-title"></h2><div id="browse-content"></div></div>
+              <button type="button" class="account-photo" id="account-photo" data-page="account" aria-label="{{demo_account}}"><img src="/assets/avatar-demo.svg" width="40" height="40" alt=""></button>
+              <nav class="app-sidebar" id="app-sidebar" aria-label="{{app_menu}}">
+                <button type="button" class="sidebar-icon active" data-page="home" aria-label="{{home}}" aria-expanded="false"><svg class="icon"><use href="#i-home"/></svg><span>{{home}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="search" aria-label="{{search}}"><svg class="icon"><use href="#i-search"/></svg><span>{{search}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="subscriptions" aria-label="{{subscriptions}}"><svg class="icon"><use href="#i-subscriptions"/></svg><span>{{subscriptions}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="library" aria-label="{{library}}"><svg class="icon"><use href="#i-library"/></svg><span>{{library}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="music" aria-label="{{music}}"><svg class="icon"><use href="#i-music"/></svg><span>{{music}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="phone" aria-label="{{phone}}"><svg class="icon"><use href="#i-phone"/></svg><span>{{phone}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="settings" aria-label="{{settings}}"><svg class="icon"><use href="#i-settings"/></svg><span>{{settings}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="exit" aria-label="{{exit}}"><svg class="icon"><use href="#i-power"/></svg><span>{{exit}}</span></button>
+              </nav>
               <div class="app-player" id="player-screen" hidden>
                 <img class="player-image" src="/assets/img/player-clean.jpg" alt="{{player_alt}}" width="1280" height="720">
-                <div class="player-top"><p id="player-title">PALMEIRAS 4 X 1 CORINTHIANS | MELHORES MOMENTOS</p></div>
-                <button class="player-toggle" type="button" id="player-toggle" aria-label="{{pause_preview}}"><span class="pause-symbol"></span></button>
-                <div class="player-bottom"><span class="player-preview-note">{{still_note}}</span><div class="progress-track" role="progressbar" aria-label="{{progress}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="player-progress"></div><i class="progress-knob" id="player-knob" aria-hidden="true"></i></div><div class="player-time"><span id="player-time">0:07</span><span>8:07</span></div><div class="player-prompts"><button type="button" data-command="a"><b class="pad-button pad-a">A</b> <span id="pause-label">{{pause}}</span></button><button type="button" data-command="down">{{rating_short}}</button><button type="button" data-command="b"><b class="pad-button pad-b">B</b> {{back}}</button></div></div>
-                <div class="rating-panel" id="rating-panel" role="group" aria-label="{{rating_label}}" hidden><h3>{{rating_title}}</h3><div><button type="button" class="rating-choice selected" data-rating="like">{{like}}</button><button type="button" class="rating-choice" data-rating="dislike">{{dislike}}</button></div><p><span class="rating-change">↔ {{change}}</span><b class="pad-button pad-a">A</b> {{apply}} <b class="pad-button pad-b">B</b> {{close}}</p></div>
-                <div class="up-next" id="up-next" hidden><p>{{up_next}} <strong id="next-count">8</strong> s</p><div class="next-progress" role="progressbar" aria-label="{{up_next_progress}}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="next-progress-fill"></i></div><div class="next-content"><div class="next-thumb" role="img" aria-label="{{next_alt}}"></div><div><h3>FLAMENGO 0 X 3 PALMEIRAS | HIGHLIGHTS | 2026 BRASILEIRÃO MATCHDAY 17 | ge.globo</h3><p id="next-channel">ge tv</p></div></div><div class="next-actions"><button type="button" data-command="a"><b class="pad-button pad-a">A</b> {{watch_now}}</button><button type="button" data-command="b"><b class="pad-button pad-b">B</b> {{cancel}}</button></div></div>
+                <span class="player-preview-note">{{still_note}}</span>
+                <div class="player-bottom">
+                  <p id="player-title"></p><p id="player-channel"></p>
+                  <input class="progress-track" id="player-progress" type="range" min="0" max="487" value="7" step="1" aria-label="{{progress}}">
+                  <div class="player-transport"><button type="button" id="player-toggle" data-player-action="transport" aria-label="{{pause_preview}}"><span class="pause-symbol"></span></button><span id="player-time">0:07 / 8:07</span></div>
+                  <div class="player-options" id="player-options" role="group" aria-label="{{options}}"></div>
+                  <span class="player-tooltip" id="player-tooltip" hidden></span>
+                </div>
+                <div class="player-panel" id="player-panel" hidden><h3 id="player-panel-title"></h3><div id="player-panel-content"></div><button type="button" class="panel-back" data-command="b"><b class="pad-button pad-b">B</b> {{back}}</button></div>
               </div>
+              <div class="app-bottom" id="app-hints"><span><b class="pad-button pad-a">A</b> {{select}}</span><span><b class="pad-button pad-b">B</b> {{back}}</span><span><b class="pad-button pad-direction">←</b> {{app_menu}}</span><small>{{demo_account}}</small></div>
               <div class="app-toast" id="app-toast" hidden></div>
             </div>
           </div>
