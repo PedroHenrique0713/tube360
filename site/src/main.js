@@ -2,6 +2,7 @@
   'use strict';
   const t = JSON.parse(document.getElementById('site-i18n').textContent);
   const locale = document.documentElement.lang;
+  const n = t.native;
   const $ = (selector, parent = document) => parent.querySelector(selector);
   const $$ = (selector, parent = document) => [...parent.querySelectorAll(selector)];
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -182,7 +183,26 @@
     updateProgress();
   }
   $('#sponsor-skip').addEventListener('click', skipSponsor);
-  const focus = element => element?.focus({ preventScroll: true });
+  const focus = element => {
+    element?.focus({ preventScroll: true });
+    if (element?.closest('#browse-content')) keepPageFocusVisible(element);
+  };
+  function keepPageFocusVisible(element) {
+    const content = $('#browse-content');
+    if (state.page === 'settings') {
+      const rows = $$('.settings-row', content), index = rows.indexOf(element);
+      if (index < 0) return;
+      const narrow = matchMedia('(max-width: 700px)').matches, visible = narrow ? 5 : 8, step = narrow ? 94 : 59;
+      content.scrollTop = Math.max(0, Math.min(rows.length - visible, index - visible + 1)) * step;
+      state.settingsIndex = index;
+      $('#settings-help').textContent = index >= 16 ? n.LocalLimit : index === 2 ? n.ManualQualityHelp : index === 9 ? n.Display1080Help : index === 11 || index === 1 ? n.LargeTextHelp : index === 4 ? n.SyncHelp : index === 3 ? n.NoSpeaker : n.SavedAutomatically;
+    } else {
+      const scale = tv.clientWidth / (matchMedia('(max-width: 700px)').matches ? 960 : 1280);
+      const rect = element.getBoundingClientRect(), viewport = content.getBoundingClientRect();
+      if (rect.top < viewport.top) content.scrollTop -= (viewport.top - rect.top) / scale;
+      else if (rect.bottom > viewport.bottom) content.scrollTop += (rect.bottom - viewport.bottom) / scale;
+    }
+  }
   function announce(text) { status.textContent = text; }
   function animateIn(element, offset = 16) {
     if (!window.gsap || reducedMotion.matches) return;
@@ -275,6 +295,9 @@
     const activeIndex = railButtons.findIndex(button => button.dataset.page === page);
     if (activeIndex >= 0) state.rail = activeIndex;
     if (page === 'home') { state.zone = 'grid'; select(state.selected, moveFocus); animateIn(home, 0); marker(); startLoop(); return; }
+    browse.dataset.page = page;
+    browse.scrollTop = 0; $('#browse-content').scrollTop = 0;
+    $$('.settings-intro, .settings-help', browse).forEach(element => element.remove());
     state.zone = 'page'; $('#browse-title').textContent = page === 'channel' ? 'TV Palmeiras' : page === 'account' ? t.demo_account : page === 'later' ? t.watch_later_console : page === 'continue' ? t.continue_console : t[page];
     const content = $('#browse-content'); content.replaceChildren();
     if (page === 'subscriptions') {
@@ -348,9 +371,28 @@
       const tip = document.createElement('p'); tip.className = 'browse-note'; tip.textContent = t.music_tip;
       content.append(note, shortcuts, tip, pageGrid([1, 2, 5, 7]));
     } else if (page === 'settings') {
-      [[t.demo_account, 'Demo'], [t.language, locale === 'pt-BR' ? 'Português' : 'English'], [t.columns, '4'], [t.quality, state.quality], [t.output, '1280 × 720'], [t.sound, 'TV'], [t.captions, t.off], [t.sponsorblock, [t.off, t.sponsor_button, t.sponsor_auto][state.sponsorMode]], [t.app_updates, 'Ed25519']].forEach(([label, value], i) => {
-        const button = makeButton('', () => i === 0 ? showPage('account') : i === 7 ? openDialog(t.sponsorblock, t.sponsor_warning, [t.off, t.sponsor_button, t.sponsor_auto].map((label, mode) => [label, () => { state.sponsorMode = mode; closeDialog(); showPage('settings'); }])) : showToast(i === 8 ? t.updates_demo : t.demo_note), 'settings-row');
-        const name = document.createElement('span'), detail = document.createElement('span'); name.textContent = label; detail.textContent = value; button.append(name, detail); content.append(button);
+      const intro = document.createElement('p'); intro.className = 'settings-intro'; intro.textContent = n.SettingsIntro;
+      const help = document.createElement('p'); help.id = 'settings-help'; help.className = 'settings-help'; help.textContent = n.SavedAutomatically;
+      browse.append(intro, help);
+      const rows = [
+        [n.YouTubeAccount, n.SignedInAs + 'Conta de demonstração'], [n.VideosPerRow, n.Four],
+        [n.DefaultQuality, n.Automatic], [n.Sound, n.TV], [n.SpeakerSync, '0' + n.Milliseconds],
+        [n.Language, locale === 'pt-BR' ? n.Portuguese : n.English], [n.SleepTimer, n.SleepOff],
+        [n.SleepTogether, n.SleepXbox], [n.ServerMode, n.SleepOff], [n.DisplayOutput, '1280×720'],
+        [n.AudioPreference, n.AudioAlwaysOriginal], [n.LargeText, n.SleepOff], [n.VideoFit, n.VideoFitLetterbox],
+        [n.SearchSpeakers, n.Open], [n.Updates, 'v0.3.2'],
+        [n.SponsorBlock, [n.SleepOff, n.SponsorButton, n.SponsorAuto][state.sponsorMode]],
+        [n.ClearLocalHistory, locale === 'pt-BR' ? `${positions.size} posição` : `${positions.size} position`],
+        [n.ClearLocalLater, locale === 'pt-BR' ? `${saved.size} vídeo` : `${saved.size} video`]
+      ];
+      rows.forEach(([label, value], i) => {
+        const button = makeButton('', () => {
+          if (i === 15) openDialog(n.SponsorBlock, t.sponsor_warning, [n.SleepOff, n.SponsorButton, n.SponsorAuto].map((label, mode) => [label, () => { state.sponsorMode = mode; closeDialog(); showPage('settings'); focus($$('.settings-row', content)[15]); }]));
+          else if (i >= 16) openDialog(label, n.LocalLimit, [[t.cancel, closeDialog], [t.apply, () => { if (i === 16) positions.clear(); else saved.clear(); closeDialog(); showPage('settings'); focus($$('.settings-row', content)[i]); }]]);
+          else if (i === 0) showPage('account');
+        }, 'settings-row');
+        const name = document.createElement('span'), detail = document.createElement('span'); name.textContent = label; detail.textContent = value; button.append(name, detail); button.dataset.setting = i;
+        button.addEventListener('focus', () => keepPageFocusVisible(button)); content.append(button);
       });
     } else {
       const note = document.createElement('p'); note.className = 'browse-note'; note.textContent = page === 'phone' ? t.phone_demo : t.account_demo;
@@ -479,6 +521,14 @@
       if (action === 'b' || action === 'right') { setRail(false); if (state.page === 'home') select(state.selected,true); else focus(pageButtons()[state.panelIndex] || pageButtons()[0]); } return;
     }
     if (action === 'b') { if (state.page !== 'home') showPage('home'); else setRail(true); return; }
+    if (state.page === 'settings') {
+      const rows = $$('.settings-row', $('#browse-content'));
+      let index = rows.indexOf(document.activeElement); if (index < 0) index = state.settingsIndex || 0;
+      if (action === 'left' || action === 'right') return;
+      if (action === 'a') { rows[index]?.click(); return; }
+      if (action === 'up' || action === 'down') focus(rows[Math.max(0, Math.min(rows.length - 1, index + (action === 'down' ? 1 : -1)))]);
+      return;
+    }
     if (state.page !== 'home') {
       const buttons = pageButtons(); let index = buttons.indexOf(document.activeElement);
       if (index < 0) index = state.panelIndex;
