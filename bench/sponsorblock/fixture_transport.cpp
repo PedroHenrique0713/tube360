@@ -24,7 +24,7 @@ public:
         if (cancelled()) return {0,{},"cancelled"};
         if (r.url.find("https://sponsor.ajay.app/")==0) {
             const string expected="https://sponsor.ajay.app/api/skipSegments/5f6b?categories=%5B%22sponsor%22%2C%22selfpromo%22%2C%22interaction%22%5D&actionTypes=%5B%22skip%22%5D";
-            if (r.url!=expected || !r.body.empty() || r.maxBytes!=512*1024 || r.connectTimeoutMs!=2500 || r.timeoutMs!=3500) { SDL_Log("BAD SponsorBlock request: %s",r.url.c_str()); return {400,{},{}}; }
+            if (r.url!=expected || !r.body.empty() || r.maxBytes!=512*1024 || r.connectTimeoutMs!=1500 || r.timeoutMs!=1800) { SDL_Log("BAD SponsorBlock request: %s",r.url.c_str()); return {400,{},{}}; }
             ++sponsorCalls;
             SDL_Log("SponsorBlock fixture GET: %s",r.url.c_str());
             if (const char* delay=std::getenv("XT_SPONSOR_DELAY_MS")) {

@@ -79,7 +79,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-tls-errors-') as directory:
                     gap=float(re.search(r'callback_gap_ms=([\d.]+)',result.stdout)[1])
                     assert elapsed>=3.3 and gap>=3200, result.stdout
                 else:
-                    assert 2.0<=elapsed<4.5, result.stdout
+                    assert 1.3<=elapsed<2.2, result.stdout
             elif name == 'untrusted-p384':
                 assert 'failure=tls' in result.stdout, result.stdout
                 assert 'curl=60' in result.stdout and 'mbedtls=-0x2700' in result.stdout, result.stdout

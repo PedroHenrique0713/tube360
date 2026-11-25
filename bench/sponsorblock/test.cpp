@@ -17,7 +17,7 @@ struct Net : yt::Transport {
         ++calls;
         check(r.url=="https://sponsor.ajay.app/api/skipSegments/5f6b?categories=%5B%22sponsor%22%2C%22selfpromo%22%2C%22interaction%22%5D&actionTypes=%5B%22skip%22%5D","private API path and exact default categories/action");
         check(r.body.empty() && r.headers.empty() && r.maxBytes==512*1024,"bounded unauthenticated GET");
-        check(r.connectTimeoutMs==2500 && r.timeoutMs==3500,"SponsorBlock-specific request deadlines");
+        check(r.connectTimeoutMs==1500 && r.timeoutMs==1800,"SponsorBlock-specific request deadlines");
         return reply;
     }
 };

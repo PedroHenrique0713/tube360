@@ -114,27 +114,36 @@ The 01:39 console results established that the isolated probe succeeds in 0.532 
 video received EOF (`curl=35`, `mbedtls=-0x7280`) after 17.039 s. The SponsorBlock SDL worker inherited HW0,
 shared with rendering. The H.264 worker mapping is HW2/4/3/5, with resolve/demux/AAC on HW1.
 
-Video selection now queues SponsorBlock at the **first step of `startVideo`**, before history, navigation,
-caption cancellation, player shutdown and media startup. It never waits for the request. The dedicated worker
-moves to HW1, outside the H.264 helper set, and requests relative priority +1 only while fetching/parsing;
-the previous priority is restored afterward. Every attempt logs requested/effective hardware thread, return
-status from affinity/priority calls, dispatch delay, budgets, wall time, revision and diagnostic. On PC the
-XSDK hardware calls are not applied: effective HW is -1 and their status fields are unavailable (`ffffffff`).
+Video selection queues SponsorBlock at the first step of `startVideo`. The player never waits for it.
+All six Xbox hardware threads have users: UI/presentation on HW0, player resolution/demux/AAC and SDL audio
+on HW1, and H.264 helpers cycling HW2/4/3/5. Background network jobs also use HW5. SponsorBlock uses HW5
+with temporary relative priority **+3**, above default H.264/background priority 0; SDL audio is +1 on HW1.
+Readback records actual priority during TLS and after restoration; decoder startup logs its actual priority.
 
-Only SponsorBlock requests use **2500 ms connect/handshake, 3500 ms total**. Other transport callers keep
-their previous defaults. A transient EOF/TLS connect failure, network failure, or HTTP 408/429/5xx may trigger
-**one** retry. It waits both three seconds after failure and three uninterrupted seconds in PLAYING. Startup,
-buffering and a seek reset playback stability. Retry uses a fresh connection and bypasses the first failure's
-negative cache. Success, valid empty, parser/certificate errors, cached failures and cancellation do not retry.
-There are at most two attempts for an opening; quality/sound seeks preserve that budget. Changing/closing
-the video cancels the in-flight request and pending retry and fences old replies.
+Only SponsorBlock uses **1500 ms connect/handshake, 1800 ms total**, targeting completion within two seconds
+of selection. Curl deadlines remain cooperative. Transient errors allow one retry at
+`max(selection + 3000 ms, first completion + 250 ms)`, including before the first frame; retry uses a fresh
+connection and bypasses negative cache. Other requests keep their deadlines. There is no startup gate.
 
-`sponsorblock-retry-test` uses deterministic transport gates, two bounded CPU burners, and a UI heartbeat to
-exercise initial EOF, no blocking selection, waiting for playback, the second fresh request, no third request,
-and closing during backoff. It also checks scheduling boundaries without sleeping. The native TLS CTest has
-a real loopback server that accepts TCP but stalls the handshake; the shared Xbox config times out at 2.501 s.
-`e2e.py retry-after-warmup retry-limit slow-api button-skip auto-undo off` exercises the actual UI/H.264 player
-with recorded data and a simulated first EOF. These PC proofs do not establish Xbox scheduling or frame rate.
+Phase callbacks only capture bounded events in memory. The worker publishes the result before restoring
+priority and printing the logs, so the XSDK logger's global critical section/disk cannot block the handshake
+or publication. Log lines remain below the XSDK limit for normal phase/status messages.
+
+`priority.cpp`, built by `tls/CMakeLists.txt`, uses the real Worker/ThreadPolicy with a Linux-only XSDK
+scheduler adapter. Six non-yielding workers share one CPU at nice 10. The elevated request uses nice 0;
+the control clamps it to the workers' priority. The transport requires **600 ms of real Mbed TLS P-384
+ECDSA CPU work** before returning the recorded response. The control must expire without enough CPU; the
+boosted request must publish within 2 s. The logger is gated until the UI sees the result, also testing
+publication order. Requested/effective/restored priorities and UI progress are checked. This rootless Linux
+CFS model reproduces relative CPU contention; it is not the Xbox fixed-priority scheduler or a live TLS peer.
+
+`retry.cpp` covers deterministic transport gates, CPU load, UI progress, initial EOF, fresh retry before the
+first frame, two-request cap and closing during backoff. The native CTest also exercises real loopback TLS
+failures and verifies phase diagnostics. `e2e.py` exercises the actual UI/H.264 player with recorded data,
+including a stalled first request while a video starts from zero without waiting.
+
+The latest console procedure, including the 2 s criterion and a matching Off control, is in
+[`tls/CONSOLE.md`](tls/CONSOLE.md).
 
 ## Console coordinator script
 
