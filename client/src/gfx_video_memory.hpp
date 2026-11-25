@@ -42,10 +42,12 @@ struct DecodePool : video::Allocator {
     VkFormatProperties props{}; vkGetPhysicalDeviceFormatProperties(g.phys,VK_FORMAT_R8_UNORM,&props);
     enabled = (props.linearTilingFeatures & (VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) ==
               (VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT);
+    enabled = enabled && tube360_board_sim_mapped(tube360_native_video());
     LOG("video-memoria: %s, pool ate 48 superficies/160 MiB, DPB + fila + fences",enabled ? "linear mapeada" : "staging (linear indisponivel)");
   }
   ~DecodePool() override { slots.clear(); SDL_DestroyMutex(mu); }
   std::shared_ptr<video::Surface> acquire(int w,int h,int aw,int ah,const int* alignment) override {
+    if(!enabled)return {};
     SDL_LockMutex(mu);
     std::array<int,4> key{w,h,aw,ah};
     if (std::find(incompatible.begin(),incompatible.end(),key) != incompatible.end()) { SDL_UnlockMutex(mu); return {}; }
@@ -63,6 +65,7 @@ struct DecodePool : video::Allocator {
       else ++it;
     }
     if (slots.size() >= 48) { LOG("video-memoria: pool esgotado, %u superficies",(unsigned)slots.size()); return {}; }
+    if(tube360_board_sim_step(TUBE360_SIM_MAPPED))return {};
     auto slot = std::make_shared<MappedVideo>(); slot->dev = g.dev;
     slot->w = w; slot->h = h; slot->alignedW = aw; slot->alignedH = ah;
     for (int i = 0; i < 3; ++i) {
@@ -92,7 +95,7 @@ struct DecodePool : video::Allocator {
         }
       }
       if (!found) { rejectedLayout = true; return {}; }
-      if (bytes + slot->bytes + ai.allocationSize > (160u<<20)) return {};
+      if (bytes + slot->bytes + ai.allocationSize > tube360_board_sim_budget()) return {};
       if (vkAllocateMemory(g.dev,&ai,nullptr,&t.mem) != VK_SUCCESS) return {};
       slot->bytes += ai.allocationSize;
       if (vkBindImageMemory(g.dev,t.img,t.mem,0) != VK_SUCCESS ||

@@ -1611,7 +1611,7 @@ int run(int argc, char** argv) {
           int index=settings.outputHeight==480 ? 0 : settings.outputHeight==1080 ? 2 : 1;
           settings.outputHeight=heights[(index+direction+3)%3];
           boot_event("begin","settings.output","requested=%d previous=%ux%u",settings.outputHeight,g.extent.width,g.extent.height);
-          gfx::output(g,settings.outputHeight);
+          if(!gfx::output(g,settings.outputHeight))return startup::fail(K::StartupVideo,"board-sim: output rejected before GPU teardown");
           boot_event("end","settings.output","requested=%d actual=%ux%u",settings.outputHeight,g.extent.width,g.extent.height);
           if (!loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
           scroll=0; nav.nowId.clear();
@@ -2648,7 +2648,7 @@ int run(int argc, char** argv) {
   gfx::videoDestroy(g,videoTex);
   LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes + thumbs.bannerBytes), (unsigned)thumbs.peakPending);
   LOG("%s saindo", brandName.c_str());
-  boot_event("end","app.exit","normal shutdown");
+  boot_event("end","app.exit","normal shutdown frames=%llu run_ms=%llu simulated_frame_delay_ms=%u",(unsigned long long)frame,(unsigned long long)(SDL_GetTicks()-runStart),g.simFrameDelay);
   boot_close();
   SDL_Quit();
   return 0;
