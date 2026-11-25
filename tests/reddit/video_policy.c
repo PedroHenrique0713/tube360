@@ -31,6 +31,7 @@ void boot_event(const char* phase,const char* step,const char* fmt,...){
 }
 FILE* __real_fopen(const char*,const char*);
 FILE* __wrap_fopen(const char* path,const char* mode){
+    if(strstr(path,"board-sim.txt")){errno=ENOENT;return NULL;}
     if(!strstr(path,"video-driver.txt"))return __real_fopen(path,mode);
     assert(!strcmp(path,"\\Device\\Mass0\\Tube360\\video-driver.txt"));
     if(denied){errno=EACCES;return NULL;}

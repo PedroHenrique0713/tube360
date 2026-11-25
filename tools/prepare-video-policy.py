@@ -18,6 +18,8 @@ def prepare(sdk,v4x):
     if stamp.exists():
         if not (v4x/'tube360-video-policy-v1').exists():raise RuntimeError('SDK/V4X policy copies do not match')
         finish(sdk,v4x)
+        finish_sim(sdk,v4x)
+        finish_sim_limits(sdk,v4x)
         return
     pending={}
     def replace(root,name,before,after):
@@ -122,6 +124,54 @@ void tube360_display_boot_done(void){tube360_display_boot=false;}''')
     stamp.write_text('safe original 720p and staging; native SD/1080/mapped opt-in; durable setup checkpoints\n')
     (v4x/'tube360-video-policy-v1').write_text(stamp.read_text())
     finish(sdk,v4x)
+    finish_sim(sdk,v4x)
+    finish_sim_limits(sdk,v4x)
+
+def finish_sim_limits(sdk,v4x):
+    stamp=sdk/'tube360-board-sim-v3'
+    if stamp.exists():return
+    path=v4x/'src/display.c';text=path.read_text()
+    before='if(tube360_board_sim_extent && tube360_board_sim_extent(height,1,&sim_width,&sim_height)>0) {'
+    after='''if(tube360_board_sim_extent && tube360_board_sim_extent(height,1,&sim_width,&sim_height)>0
+       && sim_height<=(int)tube360_display_height && sim_width<=(int)tube360_display_width) {'''
+    if text.count(before)!=1:raise RuntimeError('Incompatible board-sim hardware limits hook')
+    path.write_text(text.replace(before,after))
+    stamp.write_text('simulation cannot raise the output above actual dashboard/native limits\n')
+
+def finish_sim(sdk,v4x):
+    stamp=sdk/'tube360-board-sim-v2'
+    if stamp.exists():return
+    header=sdk/'include/xsdk/tube360_video.h'
+    header.write_text(header.read_text()+'''\nextern int tube360_board_sim_step(unsigned) __attribute__((weak));
+extern int tube360_board_sim_extent(int,int,int*,int*) __attribute__((weak));
+extern int tube360_board_sim_display_ok(int) __attribute__((weak));
+''')
+    path=sdk/'src/present.c';text=path.read_text()
+    before='\tconst NTSTATUS status = splash_held ? STATUS_SUCCESS : xsdk_display_open(mode, width, height);'
+    old='''    int sim_width=0,sim_height=0;
+    int sim_extent=tube360_board_sim_extent?tube360_board_sim_extent(720,tube360_native_path(),&sim_width,&sim_height):0;
+    const NTSTATUS status = tube360_board_sim_step && tube360_board_sim_step(0) ? STATUS_IO_TIMEOUT
+        : sim_extent<0 ? STATUS_NOT_SUPPORTED
+        : splash_held ? STATUS_SUCCESS : xsdk_display_open(mode, width, height);'''
+    if (sdk/'tube360-board-sim-v1').exists():before=old
+    after='''    const NTSTATUS status = tube360_board_sim_step && tube360_board_sim_step(0) ? STATUS_IO_TIMEOUT
+        : tube360_board_sim_display_ok && !tube360_board_sim_display_ok(tube360_native_path()) ? STATUS_NOT_SUPPORTED
+        : splash_held ? STATUS_SUCCESS : xsdk_display_open(mode, width, height);'''
+    if text.count(before)!=1:raise RuntimeError('Incompatible board-sim present hook')
+    path.write_text(text.replace(before,after))
+    if (sdk/'tube360-board-sim-v1').exists():
+        stamp.write_text('upgrade simulated display validation without misleading extent logs\n')
+        return
+    path=v4x/'src/display.c';text=path.read_text()
+    before='    VIDEO_BOOT("end","display.output","path=native extent=%ux%u",tube360_display_width,tube360_display_height);'
+    after='''    int sim_width=(int)tube360_display_width,sim_height=(int)tube360_display_height;
+    if(tube360_board_sim_extent && tube360_board_sim_extent(height,1,&sim_width,&sim_height)>0) {
+        tube360_display_width=(uint32_t)sim_width;tube360_display_height=(uint32_t)sim_height;
+    }
+'''+before
+    if text.count(before)!=1:raise RuntimeError('Incompatible board-sim extent hook')
+    path.write_text(text.replace(before,after))
+    stamp.write_text('bounded simulation at present open; actual signal timings unchanged\n')
 
 def finish(sdk,v4x):
     finish_present(sdk)

@@ -17,7 +17,7 @@ cases += [
     ('oversize','30000000',0,b'native'+b' '*70,0,0,'Jasper'),('nul','30000000',0,b'native\0',0,0,'Jasper'),('denied','60000000',0,b'native',1,0,'Winchester')]
 with tempfile.TemporaryDirectory(prefix='tube360-video-policy-') as tmp:
     work=Path(tmp);exe=work/'test'
-    subprocess.run(['cc','-std=c11','-D__XSDK__','-idirafter',str(a.sdk.resolve()/'include'),'-I'+str(ROOT/'client/src'),str(ROOT/'client/src/video_policy.c'),str(ROOT/'client/src/board_sim.c'),str(ROOT/'tests/reddit/video_policy.c'),str(a.sdk.resolve()/'src/log.c'),'-Wl,--wrap=fopen','-o',str(exe)],check=True)
+    subprocess.run(['cc','-std=c11','-D_POSIX_C_SOURCE=200809L','-D__XSDK__','-idirafter',str(a.sdk.resolve()/'include'),'-I'+str(ROOT/'client/src'),str(ROOT/'client/src/video_policy.c'),str(ROOT/'client/src/board_sim.c'),str(ROOT/'tests/reddit/video_policy.c'),str(a.sdk.resolve()/'src/log.c'),'-Wl,--wrap=fopen','-o',str(exe)],check=True)
     for name,flags,missing,data,denied,expected,board in cases:
         folder=a.evidence/name;folder.mkdir(exist_ok=True);config=folder/'video-driver.txt';config.unlink(missing_ok=True)
         if data is not None:config.write_bytes(data)

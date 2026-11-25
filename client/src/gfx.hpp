@@ -80,6 +80,7 @@ struct Gfx {
   Buf vbuf[2]; uint32_t vcap = 80000; VkPhysicalDeviceMemoryProperties memProps;
   std::shared_ptr<video::Surface> retained[2];
   bool bootFrame = true;
+  unsigned simFrameDelay = 0;
   int fi = 0; uint32_t img = 0; bool readback = false;
   std::vector<Vtx> verts; std::vector<Cmd> cmds;
   Tex white, atlas; std::vector<Font> fonts;
@@ -264,6 +265,7 @@ inline void quiesce(Gfx& g,const char* reason) {
 }
 struct FontSpec { const char* file; float px; };
 inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec>& specs) {
+  if(tube360_board_sim_step(TUBE360_SIM_FONTS))return false;
   boot_event("begin","fonts.pack","build replacement without retiring the current atlas");
   std::vector<Font> fonts;
   const int AW = 2048, AH = g.scale > 1 ? 4096 : 2048;
@@ -573,8 +575,13 @@ inline void makeSwapchain(Gfx& g, int w, int h) {
 }
 
 inline bool init(Gfx& g, int W, int H, const char* title) {
+  tube360_video_policy_init();
+  g.simFrameDelay=tube360_board_sim_frame_delay();
 #ifndef __XSDK__
-  tube360_board_sim_extent(H,tube360_native_video(),&W,&H);
+  if(tube360_board_sim_step(TUBE360_SIM_DISPLAY) || tube360_board_sim_extent(H,tube360_native_video(),&W,&H)<0) {
+    SDL_SetError("board-sim: display-open rejected (injected failure or safe interlaced viewport)");
+    return false;
+  }
 #endif
 #ifdef __XSDK__
   int requested=H; H=tube360_set_output(H); W=H*16/9;
@@ -681,6 +688,11 @@ inline bool output(Gfx& g, int height) {
     LOG("saida: modo fixo mantém %ux%u; pedido %dp salvo",g.extent.width,g.extent.height,height);
     boot_event("end","settings.output","fixed: display, framebuffer, pipelines and atlas unchanged");return false;
   }
+  if(tube360_board_sim_step(TUBE360_SIM_OUTPUT))return false;
+#ifndef __XSDK__
+  int width=height==480?640:height*16/9;
+  if(tube360_board_sim_extent(height,tube360_native_video(),&width,&height)<0)return false;
+#endif
   quiesce(g,"output change");
   boot_event("begin","settings.output-retire","pipelines, framebuffers and swapchain; GPU stopped");
   for (VkPipeline& p : g.pipes) vkDestroyPipeline(g.dev,p,nullptr);
@@ -692,9 +704,15 @@ inline bool output(Gfx& g, int height) {
   height=tube360_set_output(height);
   vkDestroySurfaceKHR(g.inst,g.surface,nullptr); g.surface=displaySurface(g);
 #else
-  SDL_SetWindowSize(g.win,height==480 ? 640 : height*16/9,height);
+  SDL_SetWindowSize(g.win,width,height);
 #endif
-  makeSwapchain(g,height==480 ? 640 : height*16/9,height);
+  makeSwapchain(g,
+#ifdef __XSDK__
+    height==480 ? 640 : height*16/9,
+#else
+    width,
+#endif
+    height);
   for (int p=0;p<PIPE_COUNT;++p) g.pipes[p]=makePipeline(g,(Pipe)p);
   for (auto& sample : g.samples) sample.pending=false;
   g.bootFrame=true;
@@ -705,6 +723,7 @@ inline bool output(Gfx& g, int height) {
 }
 
 inline void begin(Gfx& g) {
+  if(g.simFrameDelay)SDL_Delay(g.simFrameDelay);
   uint64_t began = SDL_GetTicksNS();
   if(g.bootFrame)boot_event("begin","frame.fence","first-frame timeout=5000ms");
   VK(vkWaitForFences(g.dev, 1, &g.fences[g.fi], VK_TRUE, g.bootFrame?5000000000ULL:UINT64_MAX));

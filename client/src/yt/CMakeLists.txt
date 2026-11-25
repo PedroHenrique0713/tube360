@@ -33,6 +33,13 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/rules-default.hpp" "#pragma once\nnamesp
 file(READ "${root}/client/src/update/roots.pem" update_roots)
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/update-roots.hpp" "static constexpr char updateRoots[] = R\"PEM(${update_roots})PEM\";\n")
 add_library(tube360-boot STATIC "${root}/client/src/boot_log.c" "${root}/client/src/boot_early.c" "${root}/client/src/boot_platform.cpp" "${root}/client/src/video_policy.c" "${root}/client/src/board_sim.c")
+set(TUBE360_NATIVE_BOARD "unconfirmed" CACHE STRING "Exact hardware family qualified on the owner's console")
+set(native_families xenon zephyr falcon jasper trinity corona winchester)
+list(FIND native_families "${TUBE360_NATIVE_BOARD}" native_family)
+if(native_family EQUAL -1 AND NOT TUBE360_NATIVE_BOARD STREQUAL "unconfirmed")
+  message(FATAL_ERROR "Unknown TUBE360_NATIVE_BOARD: ${TUBE360_NATIVE_BOARD}")
+endif()
+target_compile_definitions(tube360-boot PRIVATE TUBE360_NATIVE_BOARD_ID=${native_family})
 target_include_directories(tube360-boot PUBLIC "${root}/client/src")
 target_compile_features(tube360-boot PUBLIC cxx_std_17)
 

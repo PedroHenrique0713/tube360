@@ -64,6 +64,8 @@ not just the last line. `+Nms` is elapsed monotonic time within that file/run, i
 | launcher `launcher.release-gpu`, `launcher.handoff` | Resources returned before launch; handoff is expected not to return on success. The app's new CRT/entry markers confirm arrival. The existing 20-second watchdog handles a returning/stalled handoff when its thread can run. |
 | `startup.fail`, `gpu.cleanup`, `error-screen.gpu` | A startup failure and the attempt to return/acquire GPU for the built-in error screen. This path can also stall if hardware is unresponsive. |
 | app `app.exit` | Reached normal shutdown. Abrupt termination is expected to omit this marker. |
+| `settings.output` | A Settings output change, including GPU wait/teardown and swapchain reconstruction; records requested height and actual resulting extent. Also logged after the first frame. |
+| `display.fonts` | Layout/font-atlas reconstruction at startup, after an output change or when toggling large text; records extent, large-text flag and success. A pending begin can include waiting for the old atlas's GPU work. |
 
 The first-frame native acquire path now rejects a failed `xsdk_present_begin` and an unknown buffer address.
 Previously a failure could appear to acquire an image. Timeout conversion saturates before rounding,
@@ -115,8 +117,15 @@ payload name/version and launch method separately. The log always says `exploit=
 
 The board policy below disables Tube360's display/mapped-memory extensions on an unvalidated board.
 This includes Jasper, and does not claim that the upstream GPU driver has been tested on that board.
+See the [board and exploit audit](HARDWARE-COMPATIBILITY.md) for chip revisions, family-detection limits,
+the upstream register paths and a qualification plan. In particular, Falcon flags also cover Opus;
+the enclosure and a board-family label do not establish an exact hardware revision.
 
 ## Board policy and choosing a video path
+
+[Board simulation](BOARD-SIMULATION.md) describes desktop `XT_BOARD`, the opt-in `board-sim.txt`
+contract, bounded failpoints and the exact-family native rule. Real kernel detection stays separate
+from simulation. The owner's native baseline can be retained with the explicit override below.
 
 Place **`video-driver.txt` beside both XEX files**, with exactly one of these words (whitespace/newline allowed):
 

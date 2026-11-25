@@ -670,6 +670,8 @@ int run(int argc, char** argv) {
                                   {"inter-600.ttf", 24.2f}, {"inter-400.ttf", 17}, {"inter-400.ttf", 15.1f},
                                   {"inter-400.ttf", 18.2f}, {"inter-700.ttf", 11}};
   auto loadDisplay = [&]() {
+    // Reconfigurar também pode travar: o diagnóstico precisa sobreviver fora do primeiro frame.
+    boot_event("begin","display.fonts","extent=%ux%u large_text=%d",g.extent.width,g.extent.height,settings.largeText);
     boot_event("begin","settings.layout","extent=%ux%u large=%d",g.extent.width,g.extent.height,settings.largeText);
     auto layout = display::layout(g.extent.width,g.extent.height,settings.largeText,gfx::outputAspect());
     ui::W = layout.width; ui::large = layout.large; ui::narrow = layout.narrow;
@@ -684,6 +686,7 @@ int run(int argc, char** argv) {
     LOG("layout: %.0fx720, %s, texto %s, margem %.0fx%.0f",ui::W,ui::narrow ? "4:3" : "wide",ui::large ? "grande" : "normal",g.insetX,g.insetY);
     bool loaded=gfx::loadFonts(g,assets,specs);
     boot_event(loaded?"end":"error","settings.layout","font atlas loaded=%d",loaded);
+    boot_event(loaded?"end":"error","display.fonts","extent=%ux%u large_text=%d loaded=%d",g.extent.width,g.extent.height,settings.largeText,loaded);
     return loaded;
   };
   boot_event("begin","fonts.atlas","load and upload Inter");
@@ -1656,7 +1659,9 @@ int run(int argc, char** argv) {
           int index=settings.outputHeight==480 ? 0 : settings.outputHeight==1080 ? 2 : 1;
           settings.outputHeight=heights[(index+direction+3)%3];
           if(!gfx::fixedOutput())pl.resetQualityMeasurements();
-          if (gfx::output(g,settings.outputHeight) && !loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
+          bool changed=gfx::output(g,settings.outputHeight);
+          if(!changed && !gfx::fixedOutput())return startup::fail(K::StartupVideo,"board-sim: output rejected before GPU teardown");
+          if(changed && !loadDisplay())return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
           if(!gfx::fixedOutput())pl.resetQualityMeasurements();
           scroll=0; nav.nowId.clear();
           overlayTitle = {}; overlayMeta = {}; overlayChapter = {}; tipLabel = {}; tipValue = {};
@@ -2729,7 +2734,7 @@ int run(int argc, char** argv) {
   gfx::videoDestroy(g,videoTex);
   LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes + thumbs.bannerBytes), (unsigned)thumbs.peakPending);
   LOG("%s saindo", brandName.c_str());
-  boot_event("end","app.exit","normal shutdown");
+  boot_event("end","app.exit","normal shutdown frames=%llu run_ms=%llu simulated_frame_delay_ms=%u",(unsigned long long)frame,(unsigned long long)(SDL_GetTicks()-runStart),g.simFrameDelay);
   boot_close();
   SDL_Quit();
   return 0;
