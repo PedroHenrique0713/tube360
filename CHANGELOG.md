@@ -11,6 +11,8 @@
 
 ### Fixed
 
+- Video drawing bypasses both UI scale axes, so SD and 1080 output use the whole physical framebuffer while menus retain their scale and margins.
+- Cached same-video seeks, including SponsorBlock undo, notify the phone even when the fast reopen never appears as a sampled loading state. Continuous playback keeps its existing notification rate.
 - Corona 480i/component simulation selects the kernel SD viewport in both native and safe paths, even when the reported signal is HD. A bounded `board-sim.txt` contract supports board/driver/mode/cable overrides for isolated testing, preserving real hardware detection, viewport and signal timings.
 - SD/interlaced dashboard modes use the kernel's existing framebuffer dimensions consistently across display surfaces, swapchain and presentation. 480i/576i/480p preserve the dashboard scaler/signal and use its 4:3/widescreen aspect, including non-square PAL pixels. Boot logs include mode, connector and actual viewport.
 - Quality recovery projects the next format from measured decode milliseconds per frame, exact pixels and frame rate. Failed source/cadence steps stay remembered across seeks in the playback session, with increasing retry delays; transient network recovery remains possible.

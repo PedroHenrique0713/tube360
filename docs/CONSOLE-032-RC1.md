@@ -80,7 +80,9 @@ python3 "$F41_XBDM" "$F41_IP" run "$F41_REMOTE\\default.xex"
 6. **SD/CRT:** em Corona Slim/RGH com componente e painel já em 480i, testar native e safe;
    em E usar conector AV suportado. Exigir viewport do kernel e dimensões iguais em surface,
    swapchain e present. Pedido de 1080 não deve recriar a saída fixa. Fotografar corte, margens,
-   texto grande e qualidade. FAT, conector, exploit e 480i físicos exigem seus próprios consoles.
+   texto grande e qualidade. O vídeo deve ocupar toda a largura física em SD/1080, com aspecto e
+   letterbox corretos; a escala e as margens de menu são independentes. FAT, conector, exploit e
+   480i físicos exigem seus próprios consoles.
 7. **Árabe:** perfil `arabic`; conferir título/lista/busca, RB árabe↔latim, B, dígitos mistos,
    fontes Noto sob demanda, 4:3/texto grande e volta ao português. Registrar o custo da primeira
    carga e a cadência depois dela. Tradução ainda requer revisão nativa; termos novos de
@@ -107,7 +109,8 @@ Não publicar a candidata nem os logs que contenham dados de conta.
 - **Y de qualidade:** fora de trecho SponsorBlock, abrir lista, escolher 480/360/240/144 oferecidos,
   manter pausa/posição, B cancelar, erro/aviso sem fallback silencioso e retorno a Automático.
 - **SponsorBlock:** botão no trecho, automático, Y para voltar sem repetir o salto, Y fora da ação
-  abrindo Qualidade; Off sem consulta. Conferir aviso/crédito e B saindo um nível por vez.
+  abrindo Qualidade; Off sem consulta. Ao transmitir pelo celular, conferir que o relógio dele
+  acompanha o retorno com Y. Conferir aviso/crédito e B saindo um nível por vez.
 
 Ao terminar: B até sair da reprodução, confirmar silêncio do Nest e fechar normalmente. Guardar logs,
 conservar eventual refresh da conta internamente e apagar só as pastas temporárias deste teste.
