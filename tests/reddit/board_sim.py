@@ -1,5 +1,6 @@
 """Contrato mínimo board-sim e caminho SD do app real; sem simular sinal físico."""
 import os
+import re
 import json
 from pathlib import Path
 import shutil
@@ -42,7 +43,7 @@ cases=[('absent',None,-1,0,0,'none'),
  ('oversize','board=corona\n'+' '*1100,0,1280,720,'unknown')]
 with tempfile.TemporaryDirectory(prefix='tube360-board-sim-') as tmp:
     work=Path(tmp);(work/'test.c').write_text(fixture)
-    subprocess.run(['cc','-std=c11','-I'+str(ROOT/'client/src'),str(work/'test.c'),str(ROOT/'client/src/board_sim.c'),'-o',str(work/'test')],check=True)
+    subprocess.run(['cc','-std=c11','-D_POSIX_C_SOURCE=200809L','-I'+str(ROOT/'client/src'),str(work/'test.c'),str(ROOT/'client/src/board_sim.c'),'-o',str(work/'test')],check=True)
     for name,config,driver,w,h,board in cases:
         folder=base/name;folder.mkdir(exist_ok=True);path=folder/'board-sim.txt';path.unlink(missing_ok=True)
         (folder/'input.json').write_text(json.dumps(dict(config=config,driver=driver,width=w,height=h,board=board),indent=2)+'\n')
@@ -57,13 +58,15 @@ for driver in ('native','safe'):
     (assets/'board-sim.txt').write_text(f'board=corona\ndriver={driver}\nmode=480i\ncable=component\n')
     (assets/'settings.txt').write_text('lang=pt\nserver=off\noutput_height=1080\n')
     (folder/'error.txt').write_text('network');shot=folder/'screen.ppm';shot.unlink(missing_ok=True)
+    (assets/'boot-app.log').unlink(missing_ok=True)
     env={k:v for k,v in os.environ.items() if not k.startswith('XT_')}
     env.update(HOME=str(folder),XDG_CACHE_HOME=str(folder/'cache'),SDL_VIDEO_DRIVER='offscreen',SDL_AUDIO_DRIVER='dummy',XT_CAST_DISABLE='1',XT_ASSETS=str(assets),XT_YT_REPLAY=str(folder),XT_SCREEN='settings',XT_KEYS='D'*9+'RRR',XT_KEYS_MS='100',XT_SHOT=str(shot),XT_SHOT_MS='4000')
     run=subprocess.run([str(ROOT/'client/build/tube360')],cwd=folder,env=env,capture_output=True,text=True,timeout=25)
     (folder/'player.log').write_text(run.stdout+run.stderr)
     assert run.returncode==0 and shot.exists(),(driver,run.stdout[-3000:])
     boot=(assets/'boot-app.log').read_text()
-    assert f'profile=corona family=5 driver={driver} mode=480i cable=component simulated=1' in boot,boot
+    assert re.search(r'board.sim active=1 .*profile=corona family=5 driver='+driver,boot),boot
+    assert 'board.sim.hardware synthetic=1 encoder=KSB mode=480i cable=component ' in boot,boot
     assert 'end gpu.swapchain extent=640x480' in boot and 'begin settings.output-retire' not in boot,boot
     assert boot.count('begin settings.output ')==3,boot
     with Image.open(shot) as image:assert image.size==(640,480);image.save(folder/'screen.png')
