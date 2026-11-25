@@ -87,6 +87,8 @@ def main():
     for weight in (300, 400, 600, 700):
         name = f"inter-{weight}.ttf"
         files[name] = read_file(ROOT / "client/assets" / name)
+        name = f"noto-sans-arabic-{weight}.ttf"
+        files[name] = read_file(ROOT / "client/assets" / name)
     for name in ("nest", "server", "settings"):
         filename = f"{name}.example.txt"
         files[filename] = read_file(ROOT / "deploy/xbox" / filename)
@@ -95,6 +97,8 @@ def main():
     notices = {
         "Monocypher-LICENSE.txt": "client/third_party/monocypher/LICENCE.md",
         "OFL-Inter.txt": "client/assets/OFL-Inter.txt",
+        "OFL-NotoSansArabic.txt": "client/assets/OFL-NotoSansArabic.txt",
+        "FriBidi-LGPL-2.1.txt": "client/third_party/fribidi/COPYING",
         "Phosphor-MIT.txt": "client/third_party/phosphor/LICENSE",
         "FFmpeg-LGPL-2.1.txt": "tools/ffmpeg-x360/COPYING.LGPLv2.1",
         "MbedTLS-LICENSE.txt": ".work/src/mbedtls-3.6.8/LICENSE",
@@ -138,7 +142,8 @@ def main():
     files["START-HERE.txt"] = (
         f"Tube360 {args.version} - Xbox 360\n\n"
         "EN: Copy this entire folder to writable Xbox storage. Open default.xex with Aurora, FSD or XeXMenu.\n"
-        "Keep default.xex (launcher), tube360.xex (app) and all four fonts together.\n"
+        "Keep default.xex (launcher), tube360.xex (app) and all eight fonts (inter-*.ttf + noto-sans-arabic-*.ttf) together.\n"
+        "Arabic: Settings > Language; connected letters and RTL text, controller navigation stays the same.\n"
         "App updates: Settings > App updates, A to download, B to cancel. Reopen default.xex to install.\n"
         "If the new app cannot confirm startup, the next launch restores the previous app.\n"
         "From v0.3.0/v0.3.1: close the app and copy this entire folder one last time.\n"
@@ -150,7 +155,8 @@ def main():
         "Press B back to browsing before closing the app, so the speaker receives STOP.\n\n"
         "Sleep timer: 15 min to 2 h or end of video; the console powers itself off, without a PC.\n\n"
         "PT: Copie esta pasta inteira para armazenamento gravavel do Xbox. Abra default.xex no Aurora/FSD/XeXMenu.\n"
-        "Mantenha default.xex (lancador), tube360.xex (app) e as quatro fontes juntos.\n"
+        "Mantenha default.xex (lancador), tube360.xex (app) e as oito fontes (inter-*.ttf + noto-sans-arabic-*.ttf) juntos.\n"
+        "Arabe: Configuracoes > Idioma; letras conectadas e texto RTL, mesmos controles.\n"
         "Atualize em Configuracoes > Atualizacoes do app: A baixa, B cancela. Reabra default.xex para instalar.\n"
         "Sem confirmacao de inicio do novo app, a proxima abertura restaura o anterior.\n"
         "Vindo da v0.3.0/v0.3.1: feche o app e copie esta pasta inteira uma ultima vez.\n"

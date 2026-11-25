@@ -4,10 +4,10 @@
 #include <string>
 
 namespace i18n {
-enum class Lang { EN, PT, ES, Count };
-inline const char* code(Lang lang) { return lang == Lang::PT ? "pt" : lang == Lang::ES ? "es" : "en"; }
+enum class Lang { EN, PT, ES, AR, Count };
+inline const char* code(Lang lang) { return lang == Lang::AR ? "ar" : lang == Lang::PT ? "pt" : lang == Lang::ES ? "es" : "en"; }
 
-inline Lang language(const std::string& code) { return code == "pt" ? Lang::PT : code == "es" ? Lang::ES : Lang::EN; }
+inline Lang language(const std::string& code) { return code == "ar" ? Lang::AR : code == "pt" ? Lang::PT : code == "es" ? Lang::ES : Lang::EN; }
 inline Lang cycle(Lang lang, int direction) { return Lang((int(lang)+direction+int(Lang::Count))%int(Lang::Count)); }
 
 inline std::string shortDate(const std::string& iso, Lang lang) {
@@ -17,10 +17,11 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   static const char* const months[][12] = {
     {"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"},
     {"jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"},
-    {"ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"}
+    {"ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"},
+    {"يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"}
   };
   char date[32];
-  if (lang != Lang::EN) std::snprintf(date, sizeof(date), "%d %s %d", day, months[lang == Lang::ES ? 2 : 1][month-1], year);
+  if (lang != Lang::EN) std::snprintf(date, sizeof(date), "%d %s %d", day, months[lang == Lang::AR ? 3 : lang == Lang::ES ? 2 : 1][month-1], year);
   else std::snprintf(date, sizeof(date), "%s %d, %d", months[0][month-1], day, year);
   return date;
 }
@@ -235,6 +236,9 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(Two, "2 (4:3)", "2 (4:3)", "2 (4:3)") \
   X(Language, "Language", "Idioma", "Idioma") \
   X(English, "English", "English", "English") \
+  X(KeyboardToggle, "Arabic / Latin", "Árabe / Latim", "Árabe / Latín") \
+  X(ArabicFontMissing, "Arabic fonts missing. Copy noto-sans-arabic-300/400/600/700.ttf beside default.xex and tube360.xex.", "Fontes árabes ausentes. Copie noto-sans-arabic-300/400/600/700.ttf junto de default.xex e tube360.xex.", "Faltan fuentes árabes. Copia noto-sans-arabic-300/400/600/700.ttf junto a default.xex y tube360.xex.") \
+  X(Arabic, "العربية", "العربية", "العربية") \
   X(Portuguese, "Português", "Português", "Português") \
   X(SignedOut, "Signed out", "Desconectado", "Sesión cerrada") \
   X(SignInAction, "Press A to sign in", "A para conectar", "Presiona A para iniciar sesión") \
@@ -326,7 +330,11 @@ inline constexpr const char* texts[][3] = {
 };
 #undef TUBE360_TEXT
 static_assert(sizeof(texts) / sizeof(texts[0]) == (size_t)Key::Count);
-inline const char* get(Lang lang, Key key) { return texts[(size_t)key][lang == Lang::PT ? 1 : lang == Lang::ES ? 2 : 0]; }
+#include "i18n_ar.hpp"
+inline bool rtl(Lang lang) { return lang == Lang::AR; }
+inline const char* get(Lang lang, Key key) {
+  if (lang == Lang::AR) { const char* ar = arabic(key); if (ar) return ar; }
+  return texts[(size_t)key][lang == Lang::PT ? 1 : lang == Lang::ES ? 2 : 0]; }
 inline Key quality(int q) { return q == 360 ? Key::Q360 : q == 480 ? Key::Q480 : Key::Q720; }
 
 // player.hpp mantém os diagnósticos internos; só a apresentação é traduzida.

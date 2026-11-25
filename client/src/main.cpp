@@ -132,7 +132,8 @@ struct Worker {
       if (quit && (!finishJobs || jobs.empty())) { SDL_UnlockMutex(mu); return; }
       Job j = jobs.front(); jobs.pop_front();
       if (j.a.rfind("/api/",0)==0) {
-        if (j.a.find("lang=es") != std::string::npos) j.lang=i18n::Lang::ES;
+        if (j.a.find("lang=ar") != std::string::npos) j.lang=i18n::Lang::AR;
+        else if (j.a.find("lang=es") != std::string::npos) j.lang=i18n::Lang::ES;
         else if (j.a.find("lang=pt") != std::string::npos) j.lang=i18n::Lang::PT;
       }
       youtube.setLanguage(i18n::code(j.lang));
@@ -631,6 +632,7 @@ int main(int argc, char** argv) {
   auto loadDisplay = [&]() {
     auto layout = display::layout(g.extent.width,g.extent.height,settings.largeText);
     ui::W = layout.width; ui::large = layout.large; ui::narrow = layout.narrow;
+    g.rtlText = i18n::rtl(settings.lang);
     g.scale = layout.scale; g.insetX = layout.insetX; g.insetY = layout.insetY;
     auto specs = fontSpecs;
     if (ui::large) {
@@ -808,6 +810,7 @@ int main(int argc, char** argv) {
         (sleepChoice == 7 ? "&end=1" : "&min=" + std::to_string(sleepMinutes[sleepChoice])));
   };
 
+  bool latinKeyboard=false;
   Input in; SDL_Gamepad* pad = nullptr;
   bool quit = false; uint64_t frame = 0, runStart = SDL_GetTicks(); int shotFrame = std::getenv("XT_SHOT_FRAME") ? std::atoi(std::getenv("XT_SHOT_FRAME")) : 90;
 #ifndef __XSDK__
@@ -1256,7 +1259,9 @@ int main(int argc, char** argv) {
     // código de pareamento e quem está conectado pelo Transmitir (o código troca a cada 5 min)
     if (net::serverEnabled && !pl.directSpeaker.configured() && now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
     if (!accountBusy && now >= accountAt) requestAccount("/api/account");
-    const char* keys[] = {tr(K::Keyboard1), tr(K::Keyboard2), tr(K::Keyboard3), tr(K::Keyboard4)};
+    bool alternateKeyboard=settings.lang==i18n::Lang::AR && latinKeyboard;
+    auto keyboardText=[&](K k) { return i18n::get(alternateKeyboard ? i18n::Lang::EN : settings.lang,k); };
+    const char* keys[] = {keyboardText(K::Keyboard1), keyboardText(K::Keyboard2), keyboardText(K::Keyboard3), keyboardText(K::Keyboard4)};
     bool behindLive = screen == PLAYER && pl.live && (pl.paused || (pl.shownFrames &&
         (pl.liveDebt >= 1.0 || (pl.lastFrameMs && now > pl.lastFrameMs + 1000))));
     if (extras.poll()) { commentIndex=-1; }
@@ -1520,6 +1525,7 @@ int main(int argc, char** argv) {
         } else if (settingsRow == 4) nestOffsetMs = std::clamp(nestOffsetMs + direction * 40, -2000, 2000);
         else if (settingsRow == 5) {
           settings.lang = i18n::cycle(settings.lang,direction);
+          g.rtlText = i18n::rtl(settings.lang);
           rebuildCats(); scroll = 0; toast.clear();
         } else if (settingsRow == 6) { sleepChoice = (sleepChoice + direction + 8) % 8; applySleep(); changed = false; }
         else if (settingsRow == 7) {
@@ -1611,6 +1617,7 @@ int main(int argc, char** argv) {
       if (in.hit(Input::B)) { if (inResults) goHome(); else if (zone == 0) zone = 1; }
       if (in.hit(Input::BACK)) quit = true;
     } else if (screen == SEARCH) {
+      if (settings.lang==i18n::Lang::AR && in.hit(Input::RB)) latinKeyboard=!latinKeyboard;
       if (keyInRecent) {
         if (in.hit(Input::UP) && recentSel > 0) recentSel--;
         if (in.hit(Input::DOWN) && recentSel + 1 < (int)recent.size()) recentSel++;
@@ -1917,14 +1924,14 @@ int main(int argc, char** argv) {
         }
         memberBadge(g, v.members, settings.lang, ix + 7, iy + 7);
         float ty = y + th + 14;
-        for (auto& l : gfx::wrap(g, ui::F_CARD, v.title, cw, 2)) { gfx::text(g, ui::F_CARD, l, x, ty, focused ? ui::TEXT : rgb(0xe4e4e7)); ty += ui::large ? 31 : 23; }
+        for (auto& l : gfx::wrap(g, ui::F_CARD, v.title, cw, 2)) { gfx::textBox(g, ui::F_CARD, l, x, ty, cw, focused ? ui::TEXT : rgb(0xe4e4e7)); ty += ui::large ? 31 : 23; }
         std::string meta = v.channel + (v.views.empty() ? "" : "  \xC2\xB7  " + v.views);
-        gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, meta, cw), x, ty + 3, ui::MUTED);
+        gfx::textBox(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, meta, cw), x, ty + 3, cw, ui::MUTED);
       }
       if (n == 0) {
         if (cur.feed.loading) { spinner(g, ui::X0 + (ui::W - ui::X0) / 2 - 32, 380, 22, t); gfx::text(g, ui::F_BODY, tr(K::LoadingVideos), ui::X0 + (ui::W - ui::X0) / 2 - 32, 420, ui::MUTED, 1); }
         else if (cur.feed.error != K::None) {
-          gfx::text(g, ui::F_BIG, tr(settings.server ? K::ServerUnavailable : K::BadResponse), ui::X0, 190, ui::TEXT);
+          gfx::textBox(g, ui::F_BIG, tr(settings.server ? K::ServerUnavailable : K::BadResponse), ui::X0, 190, ui::W-ui::X0-64, ui::TEXT);
           gfx::text(g, ui::F_BODY, settings.server ? std::string(tr(cur.feed.error)) + " (" + srv.ip + ":" + std::to_string(srv.port) + ")" : tr(K::Refresh), ui::X0, 240, ui::MUTED);
           if (settings.server) gfx::text(g, ui::F_BODY, tr(K::RetryServer), ui::X0, 270, ui::MUTED);
         } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
@@ -1988,14 +1995,19 @@ int main(int argc, char** argv) {
       }
     } else if (screen == SEARCH) {
       gfx::rect(g, 0, 0, ui::W, ui::H, ui::alpha(ui::BG, 0.55f), 0);
-      gfx::text(g, ui::F_BIG, tr(K::Search), ui::X0, 52, ui::TEXT);
+      gfx::textBox(g, ui::F_BIG, tr(K::Search), ui::X0, 52, 652, ui::TEXT);
       float fx = ui::X0, fy = 112, fw = 652, fh = 60;
       gfx::rect(g, fx, fy, fw, fh, ui::alpha(rgb(0xffffff), 0.08f), 30);
       gfx::rect(g, fx + 1, fy + 1, fw - 2, fh - 2, ui::SURFACE, 29);
       icon(g, 1, fx + 34, fy + 30, ui::MUTED, ui::SURFACE);
       float qx = fx + 62;
-      if (query.empty()) gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, tr(searchMusic ? K::MusicSearch : K::SearchPrompt), 540), qx, fy + 17, ui::FAINT);
-      else qx += gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, query, 540), qx, fy + 17, ui::TEXT);
+      bool queryRtl=query.empty() ? g.rtlText : gfx::visualLine(g,query).rtl;
+      if (query.empty()) gfx::textBox(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, tr(searchMusic ? K::MusicSearch : K::SearchPrompt), 540), qx, fy + 17, 540, ui::FAINT);
+      else {
+        std::string shown=gfx::ellipsize(g,ui::F_KEY,query,540);
+        float width=gfx::textBox(g,ui::F_KEY,shown,qx,fy+17,540,ui::TEXT);
+        qx+=queryRtl ? 540-width-9 : g.rtlText ? 540 : width;
+      }
       if (std::fmod(t, 1.0) < 0.55) gfx::vgrad(g, qx + 3, fy + 15, 3, 30, ui::A1, ui::A2, 1.5f);
       const float kx = ui::X0, ky = 200, kw = 58, kh = 54, kg = 8;
       for (int rr = 0; rr < 4; rr++) {
@@ -2022,14 +2034,14 @@ int main(int argc, char** argv) {
       }
       float rx = ui::narrow ? ui::X0 : 846;
       float recentTop=ui::narrow ? 543 : 122;
-      gfx::text(g, ui::F_H2, tr(K::RecentSearches), rx, recentTop, ui::TEXT);
-      if (recent.empty()) gfx::text(g, ui::F_SMALL, tr(K::RecentEmpty), rx, recentTop+38, ui::FAINT);
+      gfx::textBox(g, ui::F_H2, tr(K::RecentSearches), rx, recentTop, 370, ui::TEXT);
+      if (recent.empty()) gfx::textBox(g, ui::F_SMALL, tr(K::RecentEmpty), rx, recentTop+38, 370, ui::FAINT);
       for (size_t row = 0; row < std::min(recent.size(),size_t(ui::narrow ? 1 : 8)); row++) {
         size_t i=ui::narrow && keyInRecent ? size_t(recentSel) : row;
         bool f = keyInRecent && (int)i == recentSel; float y = recentTop+38 + row * 58;
         gfx::rect(g, rx, y, 370, 48, f ? rgb(0xffffff) : ui::alpha(rgb(0xffffff), 0.06f), 24);
         icon(g, 1, rx + 26, y + 24, f ? ui::INK : ui::FAINT, f ? rgb(0xffffff) : ui::SURFACE);
-        gfx::text(g, ui::F_BODY, gfx::ellipsize(g, ui::F_BODY, recent[i], 300), rx + 50, y + 13, f ? ui::INK : ui::TEXT);
+        gfx::textBox(g, ui::F_BODY, gfx::ellipsize(g, ui::F_BODY, recent[i], 300), rx + 50, y + 13, 300, f ? ui::INK : ui::TEXT);
       }
       gfx::vgrad(g, 0, ui::H - 70, ui::W, 70, ui::alpha(ui::BG, 0), ui::alpha(ui::BG, 0.96f));
       float hx2 = ui::X0;
@@ -2037,14 +2049,15 @@ int main(int argc, char** argv) {
       hx2 = hint(g, hx2, ui::H - 40, "X", XX, tr(K::Delete));
       hx2 = hint(g, hx2, ui::H - 40, "Y", XY, tr(K::Space));
       hx2 = hint(g, hx2, ui::H - 40, "Menu", XG, tr(K::Search));
-      hint(g, hx2, ui::H - 40, "B", XB, tr(K::Back));
+      hx2=hint(g, hx2, ui::H - 40, "B", XB, tr(K::Back));
+      if (settings.lang==i18n::Lang::AR) hint(g,hx2,ui::H-40,"RB",XG,tr(K::KeyboardToggle));
     }
 
     if (screen == SETTINGS && !speakerPicker.open) {
       glow();
-      gfx::text(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::TEXT);
-      if (!ui::large) gfx::text(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::MUTED);
-      else gfx::text(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::MUTED);
+      gfx::textBox(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::W-ui::X0-64, ui::TEXT);
+      if (!ui::large) gfx::textBox(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::W-ui::X0-64, ui::MUTED);
+      else gfx::textBox(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::W-ui::X0-64,ui::MUTED);
       const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates};
       int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,15-visible);
       float step=ui::large ? 94 : 59, rowH=step-6;
@@ -2059,7 +2072,7 @@ int main(int argc, char** argv) {
         else if (i==2) value=tr(videoModeLabel(settings.videoMode));
         else if (i==3) value=nestAvailable && nestOut ? nestName : tr(K::TV);
         else if (i==4) value=(nestOffsetMs>0 ? "+" : "")+std::to_string(nestOffsetMs)+tr(K::Milliseconds);
-        else if (i==5) value=tr(settings.lang==i18n::Lang::ES ? K::Spanish : settings.lang==i18n::Lang::PT ? K::Portuguese : K::English);
+        else if (i==5) value=tr(settings.lang==i18n::Lang::AR ? K::Arabic : settings.lang==i18n::Lang::ES ? K::Spanish : settings.lang==i18n::Lang::PT ? K::Portuguese : K::English);
         else if (i==6) value=sleepLabel(sleepChoice);
         else if (i==7) value=tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox);
         else if (i==8) value=tr(settings.server ? K::Automatic : K::SleepOff);
@@ -2069,15 +2082,15 @@ int main(int argc, char** argv) {
         else if (i==13) value=tr(K::Open);
         else if (i==14) value=updateUI.settingsValue(settings.lang);
         else value=tr(settings.videoFill ? K::VideoFitFill : K::VideoFitLetterbox);
-        float right=x+w-46, maxValue=ui::large ? w-92 : w*.48f;
-        gfx::text(g,ui::F_CHAN,gfx::ellipsize(g,ui::F_CHAN,tr(labels[i]),ui::large ? w-56 : w*.43f),x+28,y+(ui::large ? 10 : 17),disabled ? ui::MUTED : ui::TEXT);
+        float right=x+w-66, maxValue=ui::large ? w-112 : w*.48f;
+        gfx::textBox(g,ui::F_CHAN,gfx::ellipsize(g,ui::F_CHAN,tr(labels[i]),ui::large ? w-56 : w*.43f),x+28,y+(ui::large ? 10 : 17),ui::large ? w-56 : w*.43f,disabled ? ui::MUTED : ui::TEXT);
         std::string shown=gfx::ellipsize(g,ui::F_KEY,value,maxValue);
-        gfx::text(g,ui::F_KEY,shown,ui::large ? x+28 : right,y+(ui::large ? 47 : 15),disabled ? ui::MUTED : selected ? ui::A2 : ui::TEXT,ui::large ? 0 : 2);
+        gfx::text(g,ui::F_KEY,shown,ui::large && !g.rtlText ? x+28 : right,y+(ui::large ? 47 : 15),disabled ? ui::MUTED : selected ? ui::A2 : ui::TEXT,ui::large && !g.rtlText ? 0 : 2);
         if (selected && i>0 && i<13 && !disabled) gfx::text(g,ui::F_KEY,"< >",x+w-20,y+(ui::large ? 47 : 15),ui::MUTED,2);
       }
       K help=settingsRow==9 ? (g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
       float hy=ui::large ? 608 : 610;
-      for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::text(g,ui::F_SMALL,line,ui::X0,hy,ui::MUTED); hy+=ui::large ? 26 : 22; }
+      for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::textBox(g,ui::F_SMALL,line,ui::X0,hy,ui::W-ui::X0-64,ui::MUTED); hy+=ui::large ? 26 : 22; }
       float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
       hx=hint(g,hx,678,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
       if (settingsRow==0 || settingsRow==13 || settingsRow==14) hx=hint(g,hx,678,"A",XA,tr(K::Open));
@@ -2141,8 +2154,8 @@ int main(int argc, char** argv) {
           overlayMeta.update(g, ui::F_META, meta.c_str(), ui::W-80);
         }
         overlayTitle.update(g, ui::F_VIDEO_TITLE, title.c_str(), options && !transportFocus ? ui::W-520 : ui::W-80);
-        gfx::text(g, ui::F_VIDEO_TITLE, overlayTitle.text, 40, ui::large ? 548 : 563, ui::TEXT);
-        gfx::text(g, ui::F_META, overlayMeta.text, 40, 591, rgb(0xd4d4d8));
+        gfx::textBox(g, ui::F_VIDEO_TITLE, overlayTitle.text, 40, ui::large ? 548 : 563, ui::W-80, ui::TEXT);
+        gfx::textBox(g, ui::F_META, overlayMeta.text, 40, 591, ui::W-80, rgb(0xd4d4d8));
 
         const bool live = pl.live;
         double pos = pl.position(), dur = pl.duration;
@@ -2291,7 +2304,7 @@ int main(int argc, char** argv) {
           if (message!=previous || previousWidth!=w || previousLineH!=commentPanel.lineH) {
             lines=gfx::wrap(g,ui::F_BODY,message,w-72,3); previous=message; previousWidth=w; previousLineH=commentPanel.lineH;
           }
-          for (size_t i=0;i<lines.size();++i) gfx::text(g,ui::F_BODY,lines[i],x+36,y+120+i*commentPanel.lineH,ui::MUTED);
+          for (size_t i=0;i<lines.size();++i) gfx::textBox(g,ui::F_BODY,lines[i],x+36,y+120+i*commentPanel.lineH,w-72,ui::MUTED);
         } else if (extras.selected<count) {
           const auto& comment=extras.page.items[extras.selected];
           if (commentIndex!=extras.selected) {
@@ -2300,10 +2313,10 @@ int main(int argc, char** argv) {
             commentMeta.update(g,ui::F_SMALL,(comment.time+"   ·   "+comment.likes+" "+tr(K::Like)).c_str(),w-100);
             commentPosition=std::to_string(extras.selected+1)+" / "+std::to_string(count);
           }
-          gfx::text(g,ui::F_H2,commentAuthor.text,x+36,y+86,ui::TEXT);
-          gfx::text(g,ui::F_SMALL,commentMeta.text,x+36,y+commentPanel.metaY,ui::MUTED);
+          gfx::textBox(g,ui::F_H2,commentAuthor.text,x+36,y+86,w-100,ui::TEXT);
+          gfx::textBox(g,ui::F_SMALL,commentMeta.text,x+36,y+commentPanel.metaY,w-100,ui::MUTED);
           for (int i=extras.line;i<std::min((int)commentLines.size(),extras.line+commentPanel.lines);++i)
-            gfx::text(g,ui::F_BODY,commentLines[i],x+36,y+commentPanel.bodyY+(i-extras.line)*commentPanel.lineH,ui::TEXT);
+            gfx::textBox(g,ui::F_BODY,commentLines[i],x+36,y+commentPanel.bodyY+(i-extras.line)*commentPanel.lineH,w-90,ui::TEXT);
           gfx::text(g,ui::F_SMALL,commentPosition,x+w-36,y+36,ui::MUTED,2);
         } else gfx::text(g,ui::F_H2,tr(K::CommentsMore),x+36,y+130,ui::TEXT);
         float hx=hint(g,x+36,y+h-44,tr(K::BtnVertical),XG,tr(K::Scroll));
@@ -2386,7 +2399,7 @@ int main(int argc, char** argv) {
         gfx::rect(g, tx, ty, tw, th, ui::SURFACE2, 12);
         if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, upNext.id, frame, pl.direct)) gfx::image(g, s->tex, tx, ty, tw, th, 12);
         float cx = tx + tw + 28, cw = x + w - 32 - cx, cy = ty + 2;
-        for (auto& line : gfx::wrap(g, ui::F_H2, upNext.title, cw, 2)) { gfx::text(g, ui::F_H2, line, cx, cy, ui::TEXT); cy += 30; }
+        for (auto& line : gfx::wrap(g, ui::F_H2, upNext.title, cw, 2)) { gfx::textBox(g, ui::F_H2, line, cx, cy, cw, ui::TEXT); cy += 30; }
         if (!upNext.channel.empty()) gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, upNext.channel, cw), cx, cy + 8, ui::MUTED);
         float hx = hint(g, x + 32, y + h - 52, "A", XA, tr(K::WatchNow));
         hint(g, hx, y + h - 52, "B", XB, tr(K::Cancel));
@@ -2436,17 +2449,17 @@ int main(int argc, char** argv) {
       gfx::text(g, ui::F_BIG, tr(K::CastTitle), px + 92, py + 40, ui::TEXT);
       float ty = py + 104;
       for (auto& line : gfx::wrap(g, ui::F_BODY, std::string(tr(K::CastChoose)) + "YouTube 360.", pw - 96, 2)) {
-        gfx::text(g, ui::F_BODY, line, px + 48, ty, ui::TEXT); ty += ui::large ? 32 : 25;
+        gfx::textBox(g, ui::F_BODY, line, px + 48, ty, pw-96, ui::TEXT); ty += ui::large ? 32 : 25;
       }
       for (auto& line : gfx::wrap(g, ui::F_SMALL, tr(K::CastPath), pw - 96, 2)) {
-        gfx::text(g, ui::F_SMALL, line, px + 48, ty + 8, ui::MUTED); ty += ui::large ? 30 : 22;
+        gfx::textBox(g, ui::F_SMALL, line, px + 48, ty + 8, pw-96, ui::MUTED); ty += ui::large ? 30 : 22;
       }
       if (!castCode.empty()) gfx::textGrad(g, ui::F_CODE, castCode, px + 48, py + (ui::large ? 252 : 186), ui::A1, ui::A2);
       else gfx::text(g, ui::F_BODY, tr(K::CastLoading), px + 48, py + (ui::large ? 270 : 208), ui::FAINT);
-      gfx::text(g, ui::F_SMALL, gfx::ellipsize(g,ui::F_SMALL,tr(K::CastRemember),pw-96), px + 48, py + (ui::large ? 330 : 264), ui::MUTED);
+      gfx::textBox(g, ui::F_SMALL, gfx::ellipsize(g,ui::F_SMALL,tr(K::CastRemember),pw-96), px + 48, py + (ui::large ? 330 : 264), pw-96, ui::MUTED);
       gfx::rect(g, px + 48, py + (ui::large ? 366 : 300), pw - 96, 1, ui::alpha(rgb(0xffffff), 0.08f));
       std::string phoneLabel=!castWho.empty() ? tr(K::PhoneConnected)+castWho : std::string(tr(phoneStatus.online ? K::NoPhone : K::CastOffline));
-      gfx::text(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,phoneLabel,pw-96),px+48,py+(ui::large ? 386 : 320),!castWho.empty() ? rgb(0x34c759) : ui::FAINT);
+      gfx::textBox(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,phoneLabel,pw-96),px+48,py+(ui::large ? 386 : 320),pw-96,!castWho.empty() ? rgb(0x34c759) : ui::FAINT);
       float hx = hint(g, px + 48, py + ph-52, "A", XA, tr(K::Close));
       hint(g, hx, py + ph-52, "B", XB, tr(K::Back));
     }
@@ -2459,7 +2472,7 @@ int main(int argc, char** argv) {
       gfx::text(g, ui::F_BIG, tr(logoutPanel ? K::SignOutTitle : K::SignInTitle), px + 48, py + 48, ui::TEXT);
       if (logoutPanel) {
         gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, account.name, pw - 96), px + 48, py + 106, ui::A2);
-        gfx::text(g, ui::F_BODY, gfx::ellipsize(g,ui::F_BODY,tr(K::SignOutBody),pw-96), px + 48, py + 152, ui::MUTED);
+        gfx::textBox(g, ui::F_BODY, gfx::ellipsize(g,ui::F_BODY,tr(K::SignOutBody),pw-96), px + 48, py + 152, pw-96, ui::MUTED);
         if (accountBusy) spinner(g, ui::W / 2, py + 218, 14, t);
         float hx = hint(g, px + 48, py + ph - 58, "A", XA, tr(K::Confirm));
         hint(g, hx, py + ph - 58, "B", XB, tr(K::Cancel));
@@ -2513,6 +2526,13 @@ int main(int argc, char** argv) {
 
     if ((screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !sleepPanel && !sleepWarning && !shutdownAt) || (screen==SETTINGS && updateUI.open)) updateUI.draw(g,settings.lang);
 
+    if (g.arabicAttempted && !g.arabicAtlas.img) {
+      gfx::rect(g,ui::X0,8,ui::W-ui::X0-32,88,ui::SURFACE2,14);
+      float fy=18;
+      for (const auto& line:gfx::wrap(g,ui::F_SMALL,i18n::get(settings.lang==i18n::Lang::AR ? i18n::Lang::EN : settings.lang,K::ArabicFontMissing),ui::W-ui::X0-64,2)) {
+        gfx::text(g,ui::F_SMALL,line,ui::X0+16,fy,ui::TEXT); fy+=g.fonts[ui::F_SMALL].lineH+2;
+      }
+    }
     bool shoot = shotPath && (int)frame == shotFrame;
 #ifndef __XSDK__
     if (shotPath && std::getenv("XT_SHOT_MS")) shoot = now - runStart >= (uint64_t)std::atoi(std::getenv("XT_SHOT_MS"));

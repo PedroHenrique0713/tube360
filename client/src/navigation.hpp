@@ -222,8 +222,8 @@ struct Navigation {
           if (f) gfx::rect(g, x - 4, y + 26, 118, 118, ui::TEXT, 9);
           artwork(g, thumbs, worker, item.image, frame, x, y + 30, 110, 110, true);
           memberBadge(g, item.members, lang, x + 5, y + 35);
-          gfx::text(g, ui::F_SMALL, item.titleLines[0], x, y + 143, ui::TEXT);
-          gfx::text(g, ui::F_TINY, item.byline, x, y + (ui::large ? 178 : 163), ui::MUTED);
+          gfx::textBox(g, ui::F_SMALL, item.titleLines[0], x, y + 143, 135, ui::TEXT);
+          gfx::textBox(g, ui::F_TINY, item.byline, x, y + (ui::large ? 178 : 163), 135, ui::MUTED);
         }
       }
     } else for (size_t i = 0; i < p.items.size(); i++) {
@@ -237,7 +237,7 @@ struct Navigation {
       if (p.kind == "library") {
         gfx::vgrad(g, x, y, art, h, {0,0,0,0}, {0,0,0,0.94f}, 12);
         float labelY = y + h - 12 - 27 * item.titleLines.size();
-        for (const auto& line : item.titleLines) { gfx::text(g, ui::F_KEY, line, x + 12, labelY, ui::TEXT); labelY += 27; }
+        for (const auto& line : item.titleLines) { gfx::textBox(g, ui::F_KEY, line, x + 12, labelY, art-24, ui::TEXT); labelY += 27; }
         continue;
       }
       if (item.image.empty()) {
@@ -245,13 +245,13 @@ struct Navigation {
         gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, tr(k), art - 32), x + 16, y + h / 2 - 12, ui::MUTED);
       }
       float ty = y + h + 16;
-      for (const auto& line : item.titleLines) { gfx::text(g, ui::F_KEY, line, x, ty, ui::TEXT); ty += ui::large ? 34 : 27; }
-      gfx::text(g, ui::F_CHAN, item.byline, x, ty + 4, ui::MUTED);
+      for (const auto& line : item.titleLines) { gfx::textBox(g, ui::F_KEY, line, x, ty, cw, ui::TEXT); ty += ui::large ? 34 : 27; }
+      gfx::textBox(g, ui::F_CHAN, item.byline, x, ty + 4, cw, ui::MUTED);
     }
     if (p.items.empty() && !p.loading && !p.more) {
       std::string msg = !p.error.empty() ? p.error : tr(channel && p.tab == "live" ? K::NoLive : K::Empty);
       float y = top + 42;
-      for (const auto& line : gfx::wrap(g, ui::F_H2, msg, ui::W-200, 3)) { gfx::text(g, ui::F_H2, line, 136, y, ui::MUTED); y += 34; }
+      for (const auto& line : gfx::wrap(g, ui::F_H2, msg, ui::W-200, 3)) { gfx::textBox(g, ui::F_H2, line, 136, y, ui::W-200, ui::MUTED); y += 34; }
     }
     gfx::rect(g, 96, 646, ui::W-96, 74, ui::BG);
     if (p.loading) { spinner(g, ui::W-64, 146, 12, now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), ui::W-324, 130, ui::MUTED); }
@@ -296,21 +296,21 @@ struct Navigation {
     gfx::hgrad(g, 0, 0, 620, 720, rgb(0x37151f), ui::BG);
     gfx::text(g, ui::F_H2, tr(K::NowPlaying), 64, 40, ui::MUTED);
     artwork(g, thumbs, worker, nowImage, frame, 64, 104, ui::narrow ? 230 : 350, ui::narrow ? 230 : 350, true);
-    gfx::text(g, ui::F_BIG, nowTitle, contentX, 104, ui::TEXT);
-    gfx::text(g, ui::F_KEY, nowArtist, contentX, 158, ui::MUTED);
+    gfx::textBox(g, ui::F_BIG, nowTitle, contentX, 104, ui::W-contentX-64, ui::TEXT);
+    gfx::textBox(g, ui::F_KEY, nowArtist, contentX, 158, ui::W-contentX-64, ui::MUTED);
     if (error != nowErrorKey) { nowErrorKey = error; nowError = error == K::None ? "" : gfx::ellipsize(g, ui::F_KEY, tr(error), 714); }
     if (error != K::None) gfx::text(g, ui::F_KEY, nowError, contentX, 210, ui::A2);
     else if (waiting) gfx::text(g, ui::F_KEY, tr(K::Loading), contentX, 210, ui::A2);
     else if (lyricsOpen) {
       float y = 226;
       if (lyricLines.empty()) gfx::text(g, ui::F_KEY, noLyrics, contentX, y, ui::MUTED);
-      for (size_t i = lyricScroll; i < std::min(lyricLines.size(), (size_t)lyricScroll + 9); i++) { gfx::text(g, ui::F_KEY, lyricLines[i], contentX, y, ui::TEXT); y += 30; }
+      for (size_t i = lyricScroll; i < std::min(lyricLines.size(), (size_t)lyricScroll + 9); i++) { gfx::textBox(g, ui::F_KEY, lyricLines[i], contentX, y, ui::W-contentX-64, ui::TEXT); y += 30; }
     } else {
       gfx::text(g, ui::F_H2, tr(K::Queue), contentX, 222, ui::TEXT);
       for (size_t n = 0; n < nextTitles.size(); n++) {
         float y = 272 + n * 58;
         gfx::text(g, ui::F_CHAN, std::to_string(n + 1), contentX+4, y, ui::A2);
-        gfx::text(g, ui::F_KEY, nextTitles[n], contentX+44, y, ui::TEXT);
+        gfx::textBox(g, ui::F_KEY, nextTitles[n], contentX+44, y, ui::W-contentX-108, ui::TEXT);
       }
     }
     float fraction = duration > 0 ? (float)std::clamp(pos / duration, 0.0, 1.0) : 0;

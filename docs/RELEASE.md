@@ -70,6 +70,7 @@ from the final integrated commit, after addressing the findings in [the audit](P
 | `objects/launcher.cpp.obj` | `client/build-x360/CMakeFiles/tube360-launcher.dir/…/client/src/update/launcher.cpp.obj` |
 | `support/libtube360-update.a`, `libtube360-update-core.a` | `client/build-x360/libtube360-update.a`, `client/build-x360/yt/libtube360-update-core.a` |
 | `support/libtube360-yt.a` | `client/build-x360/yt/libtube360-yt.a` |
+| `support/libtube360-text.a` | `client/build-x360/libtube360-text.a` (FriBidi; include vendored source, COPYING and `client/text.cmake`) |
 | `support/libtube360-cast.a` | `client/build-x360/libtube360-cast.a` |
 | `support/libcurl.a` | `client/build-x360/yt/curl/lib/libcurl.a` |
 | `support/libmbedtls.a`, `libmbedx509.a`, `libmbedcrypto.a` | `client/build-x360/yt/tls/upstream/library/` |

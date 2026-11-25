@@ -1,7 +1,7 @@
 # EN: Optional. Rename to settings.txt beside default.xex, or configure through the app.
 # PT: Opcional. Renomeie para settings.txt junto do default.xex, ou configure pelo app.
 # The app rewrites this file without comments / o app regrava este arquivo sem comentarios.
-# en / pt / es
+# en / pt / es / ar
 lang=en
 cols=4
 quality=720

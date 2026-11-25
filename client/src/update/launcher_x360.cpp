@@ -46,7 +46,8 @@ struct Host:updates::LauncherHost {
             }
             std::fclose(settings);
         }
-        const char* label=i18n::get(lang,i18n::Key::LauncherOpening);
+        // O bootstrap usa a fonte bitmap ASCII do xsdk; a interface árabe começa no app.
+        const char* label=lang==i18n::Lang::AR ? "Tube360" : i18n::get(lang,i18n::Key::LauncherOpening);
         uint32_t w=0,h=0,scale=width>=1000?2:1;
         xsdk_text_measure(label,scale,&w,&h);
         xsdk_text_draw(int32_t(width-w)/2,int32_t(height-h)/2,scale,0xFFFFFFFF,label);
