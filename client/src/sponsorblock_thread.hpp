@@ -14,14 +14,15 @@ template<class... Args> void report(const char* format, Args... args) {
 #endif
 }
 struct ThreadPolicy {
-    static constexpr unsigned hardware=1;
+    static constexpr unsigned hardware=5;
     static constexpr int priority=1;
     int effective=-1;
     unsigned moveStatus=0xffffffffu, priorityStatus=0xffffffffu;
     int previous=0;
     void place() {
 #ifdef __XSDK__
-        // HW0 desenha; HW2/4/3/5 são os ajudantes H.264. HW1 hospeda resolução/demux, fora desses ajudantes.
+        // HW1 resolve/demuxa o player. HW5 só ganha o ajudante H.264 depois da resolução;
+        // a consulta curta começa aqui para não disputar os handshakes de abertura no HW1.
         moveStatus=(unsigned)xsdk_thread_move(hardware);
         xsdk_thread_sleep(0);
         effective=(int)xsdk_thread_hardware_thread();

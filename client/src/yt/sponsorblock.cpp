@@ -123,10 +123,12 @@ Segments Client::fetch(const string& id, uint64_t now, bool refresh) {
     Request request; request.url=requestUrl(id); request.maxBytes=maxResponseBytes;
     request.connectTimeoutMs=connectTimeoutMs; request.timeoutMs=requestTimeoutMs;
     request.freshConnection=refresh;
+    request.trace=trace;
     auto response=net.send(request);
     Segments segments;
     last.http=response.status; last.transport=response.transportCode; last.tls=response.tlsCode;
     last.verify=response.tlsVerify; last.detail=response.transportDetail; last.bytes=response.body.size(); last.seconds=response.seconds;
+    last.timing=response.timing;
     if (response.status==200 && response.error.empty()) segments=parse(response.body,id,&last);
     else if (response.error.empty() && response.status==404) { last.state=State::EMPTY; last.reason="http_404"; }
     else {

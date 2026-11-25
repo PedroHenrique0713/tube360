@@ -20,6 +20,7 @@ struct Diagnostic {
     size_t bytes=0, bucket=0, rejected=0;
     bool matched=false, cached=false;
     double seconds=0;
+    NetworkTiming timing;
     string line() const;
 };
 Segments parse(const string& body, const string& id, Diagnostic* diagnostic=nullptr);
@@ -30,6 +31,7 @@ class Client {
     std::vector<Entry> cache;
     Diagnostic last;
 public:
+    NetworkTrace trace;
     explicit Client(Transport& transport) : net(transport) {}
     Segments fetch(const string& id, uint64_t now, bool refresh=false);
     const Diagnostic& diagnostic() const { return last; }

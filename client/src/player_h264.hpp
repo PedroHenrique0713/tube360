@@ -85,8 +85,11 @@ inline void Player::decodeOriginal() {
       if (media.reason == "members") { error = "Vídeo só para membros do canal"; state = FAILED; return; }
       directFailed(); return;
     }
-    LOG("console: player OK, cliente %s, %u pedidos: %s",media.playerClient.c_str(),media.playerAttempts,media.playerTrace.c_str());
+    LOG("console: player OK, cliente %s, %u pedidos: %s resolucao_ms=%llu",media.playerClient.c_str(),media.playerAttempts,media.playerTrace.c_str(),
+        (unsigned long long)(SDL_GetTicks()-openedMs));
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
+    if (!live && beforeMedia) beforeMedia();
+    if (stop) return;
     if (live) { speed=1; loop=false; tempo.reset(1); }
     castMediaReady = true;
     state = BUFFERING;
@@ -162,7 +165,8 @@ inline void Player::decodeOriginal() {
       if (quality >= 720 && media.highFrameRate720 && media.video.height < 720)
         LOG("console: %s tem 720p60, selecionado %dp %.2f fps", id.c_str(), media.video.height, media.video.fps);
     }
-    LOG("console: %s %dp, itags %d/%d, início %.3f", live ? "HLS" : "MP4", actualHeight.load(), media.video.itag, media.audio.itag, startAt);
+    LOG("console: %s %dp, itags %d/%d, início %.3f abertura_ms=%llu", live ? "HLS" : "MP4", actualHeight.load(), media.video.itag, media.audio.itag, startAt,
+        (unsigned long long)(SDL_GetTicks()-openedMs));
     audioTracks=broadcast ? broadcast->audioTracks : media.audioTracks;
     selectedAudio=broadcast ? broadcast->selectedAudio : media.selectedAudio;
     if (broadcast) for (auto& track : audioTracks) {

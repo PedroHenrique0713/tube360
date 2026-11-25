@@ -721,6 +721,7 @@ int main(int argc, char** argv) {
   bool railFocus = false; int railSel = 0; float railOpen = 0;
   PlayerExtras extras; extras.init();
   sponsorblock::Worker sponsorWorker; sponsorWorker.init();
+  pl.beforeMedia=[&] { sponsorWorker.beforeMedia(pl.stop); };
   sponsorblock::Playback sponsors; sponsorblock::UI sponsorUI;
   std::vector<std::string> commentLines; int commentIndex=-1;
   PlayerText commentAuthor, commentMeta; std::string commentPosition;
@@ -830,6 +831,7 @@ int main(int argc, char** argv) {
     control.add(j);
   };
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
+    LOG("player: pedido %s inicio=%.3f anterior=%.3f modo=%d remoto=%d",v.id.c_str(),t,pl.position(),settings.videoMode,fromRemote);
     if (v.id != playing.id || screen != PLAYER) {
       sponsors.reset(); sponsorWorker.select(settings.sponsorBlock==sponsorblock::OFF ? "" : v.id);
     }
@@ -1274,7 +1276,7 @@ int main(int argc, char** argv) {
         (pl.liveDebt >= 1.0 || (pl.lastFrameMs && now > pl.lastFrameMs + 1000))));
     if (extras.poll()) { commentIndex=-1; }
     if (sponsorWorker.poll(sponsors,screen==PLAYER && pl.state==player::PLAYING && !pl.live && !nav.musicNow,now))
-      LOG("SponsorBlock: %u trechos %s",(unsigned)sponsors.segments.size(),sponsorWorker.diagnostic.line().c_str());
+      LOG("SponsorBlock: %u trechos pos=%.3f estado=%d %s",(unsigned)sponsors.segments.size(),pl.position(),(int)pl.state,sponsorWorker.diagnostic.line().c_str());
     if (screen==PLAYER && !pl.live && !nav.musicNow && !shutdownAt) {
       auto action=sponsors.update(pl.position(),pl.duration,now,settings.sponsorBlock,pl.state==player::PLAYING && !pl.paused);
       if (action) sponsorSeek(action);
@@ -1756,6 +1758,7 @@ int main(int argc, char** argv) {
         else {
         bool row = playerUI.options;
         settings.videoMode=(settings.videoMode+1)%playback::COUNT;
+        LOG("player: Y qualidade pos=%.3f modo=%d SponsorBlock_ativo=0",pl.position(),settings.videoMode);
         startVideo(playing, pl.position(), playerFromRemote); playerUI.options = row;
         toast = std::string(tr(K::QualityPrefix)) + tr(videoModeLabel(settings.videoMode)); toastUntil = now + 2500; saveSettings(); any = true;
         }
@@ -2563,8 +2566,8 @@ int main(int argc, char** argv) {
   phone.stop();
   captionLoader.stop();
   extras.close();
-  sponsorWorker.close();
   pl.halt();
+  sponsorWorker.close();
   pl.directSpeaker.shutdown();
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);
   remote.quit = true;

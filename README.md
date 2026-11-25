@@ -199,6 +199,9 @@ licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4
 Tube360 uses the public API in this noncommercial project; these data have a separate license from the MIT
 app code. Requests contain only four hexadecimal characters of the video ID's SHA-256; matching happens
 locally, with a bounded session cache. Unavailable data silently leave playback unchanged.
+Lookup starts alongside player resolution. Before opening video TLS connections, the player gives the first
+lookup up to 750 ms from selection to finish; the UI stays responsive. One recovery attempt may run after
+three seconds from selection, including while the first frame is still loading.
 
 | File | Purpose |
 |---|---|
