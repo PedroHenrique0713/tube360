@@ -206,7 +206,7 @@ Use Configurações na TV; os valores ficam em `settings.txt` ao lado do XEX. Os
 
 | Arquivo | Função |
 |---|---|
-| `settings.txt` | `lang=en\|pt\|es`, `cols=3\|4`, `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `video_mode=auto\|720p60\|1080p30`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, legendas e alvo do timer. |
+| `settings.txt` | `lang=en\|pt\|es\|ar`, `cols=3\|4`, `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `sponsorblock=off\|button\|auto`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, legendas e alvo do timer. |
 | `nest.txt` | Host e porta opcional da caixa na linha 1; nome exibido na linha 2. |
 | `server.txt` | IP e porta do PC de reserva na primeira linha, por exemplo `192.0.2.10 8091`. Sem ele, só console. `server=off` também desativa a reserva mesmo com o endereço presente. |
 | `marca.txt` | Nome personalizado na linha 1 e `retangulo` opcional na linha 2. |

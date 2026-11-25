@@ -221,7 +221,7 @@ request. One recovery attempt may run after three seconds from selection, even b
 
 | File | Purpose |
 |---|---|
-| `settings.txt` | `lang=en\|pt\|es`, `cols=3\|4`, legacy `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, captions and timer target. |
+| `settings.txt` | `lang=en\|pt\|es\|ar`, `cols=3\|4`, legacy `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `sponsorblock=off\|button\|auto`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, captions and timer target. |
 | `nest.txt` | Speaker host and optional port on line 1; display name on line 2. |
 | `server.txt` | Optional reserve PC IP and port on the first line, e.g. `192.0.2.10 8091`. Without it, console only. `server=off` also disables the reserve when the address is present. |
 | `marca.txt` | Optional custom name on line 1 and `retangulo` on line 2. |
