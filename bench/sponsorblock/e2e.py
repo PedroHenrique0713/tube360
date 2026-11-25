@@ -121,8 +121,9 @@ if __name__ == '__main__':
         'auto-expired': dict(mode='auto', seconds=9),
         'auto-sd': dict(mode='auto', height=480, seconds=3),
         'button-large': dict(large=True, seconds=2),
-        'offline': dict(XT_SPONSOR_FAIL='1'),
-        'tls-failure': dict(XT_SPONSOR_TLS_FAIL='1'),
+        # Captura antes do retry de 3 s; retry-limit exige duas consultas em 8 s.
+        'offline': dict(XT_SPONSOR_FAIL='1', seconds=2),
+        'tls-failure': dict(XT_SPONSOR_TLS_FAIL='1', seconds=2),
         'parse-failure': dict(XT_SPONSOR_PARSE_FAIL='1'),
         'retry-after-warmup': dict(XT_SPONSOR_RETRY_FIRST='1', seconds=5),
         'early-start-retry': dict(at=0, XT_SPONSOR_RETRY_FIRST='1', XT_SPONSOR_FIRST_DELAY_MS='1500', seconds=8.9),
