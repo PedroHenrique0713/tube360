@@ -4,6 +4,7 @@
 
 ### Fixed
 
+- Without `server.txt`, default Automatic mode and settings toggles keep the server disabled. Home shows the native failure and console clock for certificate dates; server recovery instructions and the configured endpoint appear only when the server is effectively enabled.
 - Public browsing distinguishes certificate date errors (with the console clock), other TLS failures, DNS, network loss and YouTube refusal in English, Portuguese and Spanish. TLS verification remains enabled.
 - Startup failures show the reason and recovery steps with a built-in font, persist `startup.log`, and wait for B. The launcher checks all four fonts before handoff and reports launch failures/timeouts.
 - Direct VOD playback can recover higher source quality after sustained measured decoder/network headroom, with cooldown and backoff after unsuccessful upgrades. The original profile ceiling survives cached seeks.

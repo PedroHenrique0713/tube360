@@ -118,3 +118,45 @@ sem escrita também impede esse log; nesse caso o diagnóstico continua na tela 
 no logger do xsdk. Se a própria GPU não puder produzir nenhum quadro, não há como
 provar texto na TV por software: o motivo fica no log, e B ainda é consultado
 diretamente pelo XAM. Essa condição física não é simulada como prova de desenho.
+
+## Adendo F32/5 — servidor efetivo na Home
+
+```bash
+cmake --build client/build -j2 --target tube360 reddit-contract-test
+client/build/reddit-contract-test
+python3 tests/reddit/home_errors.py .work/f32/item5
+ctest --test-dir .work/standalone-pc --output-on-failure
+flock ~/.cache/tube360-frota-xbox.lock systemd-run --user --scope -q \
+  -p MemoryMax=6G -p MemorySwapMax=1G \
+  cmake --build client/build-x360 -j2 --target tube360 tube360-launcher
+```
+
+A configuração Xbox acima reutiliza o toolchain já preparado por `tools/build-xbox.sh`.
+Todos os builds desta retomada usam `-j2`.
+
+`home_errors.py` executa o app real e gera 30 PNGs. Os 18 casos principais omitem
+**tanto `server=` quanto `server.txt`**: a preferência continua `true` e o servidor
+efetivo precisa estar desligado. TLS por data exibe relógio UTC; TLS geral, DNS,
+rede, recusa do YouTube e resposta inválida mantêm seus diagnósticos em pt/en/es.
+
+A reserva de teste responde HTTP 503 em uma porta efêmera de `127.0.0.1`; não toca
+8091 nem qualquer servidor real. Em cada língua, o caso com `server.txt` e
+`server=auto` exige o título de servidor, o endereço real e a instrução de iniciar
+o servidor. Os demais casos exigem zero pedidos à reserva e ausência de texto
+sobre servidor/`0.0.0.0` na mensagem desenhada. Há ainda `server=auto` explícito sem
+endereço, endereço com `server=off` e 640×480 com texto grande.
+
+O log `captura erro Home` registra as chaves e o detalhe usados pelo próprio
+bloco de desenho naquela captura; não injeta mensagem na interface. Essa
+instrumentação existe apenas no PC. A prova compara a preferência com o estado
+efetivo e os textos desenhados, além de verificar as imagens. `results.json`
+contém os 30 resultados e caminhos absolutos; `proofs/home-errors-montage.png`
+mostra as seis causas sem servidor nas três línguas e a reserva na última linha.
+
+Complemento do roteiro físico para o coordenador: na pasta temporária F32, omitir
+`server.txt` e a linha `server=`; iniciar sem rede e conferir a mensagem de rede,
+sem instrução para ligar servidor nem endereço `0.0.0.0`. Alternar Automático →
+Desligado → Automático sem endereço deve continuar só console. Conferir a tela em
+pt/en/es. A reserva configurada e indisponível deve manter a instrução de servidor.
+Coletar logs/prints e limpar a pasta conforme o roteiro anterior. Não foi executado
+no console pelo autor.

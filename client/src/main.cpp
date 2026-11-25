@@ -612,7 +612,7 @@ int run(int argc, char** argv) {
   if(!startup::writable())return startup::fail(K::StartupFolder,assets,K::StartupStorage);
   auto missingFonts=startup::missingFonts(assets);
   if(!missingFonts.empty())return startup::fail(K::StartupFonts,missingFonts,K::StartupCopy);
-  Settings settings; settings.load(assets); net::serverEnabled = settings.server;
+  Settings settings; settings.load(assets);
   auto tr = [&](K key) { return i18n::get(settings.lang, key); };
   if (FILE* f = std::fopen((assets + "marca.txt").c_str(), "r")) {
     char line[64] = {0};
@@ -630,7 +630,8 @@ int run(int argc, char** argv) {
   }
   if (const char* e = std::getenv("XT_SERVER")) { char ip[64] = {0}; int port = 0; if (std::sscanf(e, "%63[^:]:%d", ip, &port) == 2) { srv.ip = ip; srv.port = port; } }
   // Sem server.txt (nem XT_SERVER) o app é só do console: nenhum pedido ao PC, nem para o Nest ou o timer.
-  if (srv.ip == "0.0.0.0") net::serverEnabled = false;
+  net::serverEnabled = net::effectiveServer(srv,settings.server);
+  const std::string serverAddress=srv.ip+":"+std::to_string(srv.port);
   LOG("servidor %s:%d%s", srv.ip.c_str(), srv.port, net::serverEnabled ? "" : " (desligado: só console)");
 
   static gfx::Gfx g{};
@@ -686,7 +687,7 @@ int run(int argc, char** argv) {
   updates::UI updateUI;
   auto accountNet = yt::accountTransport();
   auto consoleAccount = std::make_shared<yt::ConsoleAccount>(*accountNet, assets + "yt-console-account.json");
-  consoleAccount->select(!settings.server); pl.memberAccount = consoleAccount;
+  consoleAccount->select(!net::serverEnabled); pl.memberAccount = consoleAccount;
   Worker worker; worker.srv = srv; worker.consoleAccount = consoleAccount;
   SDL_Thread* wt = yt::worker(Worker::main, "trabalho", &worker);
   // Conta e pareamento não esperam as buscas do feed.
@@ -990,6 +991,11 @@ int run(int argc, char** argv) {
   const char* screenNames[] = {"Home", "Busca", "Player", "Ajustes", "Navegacao"};
   while (!quit) {
     uint64_t now = SDL_GetTicks();
+#ifndef __XSDK__
+    const Feed* capturedFeed=nullptr;
+    K capturedFeedTitle=K::None,capturedFeedHelp=K::None;
+    bool capturedServerError=false;
+#endif
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_EVENT_QUIT) quit = true;
@@ -1560,9 +1566,9 @@ int run(int argc, char** argv) {
           }
         }
         else if (settingsRow == 8) {
-          settings.server = !settings.server; net::serverEnabled = settings.server;
-          consoleAccount->select(!settings.server); account = {}; accountKnown = false;
-          if (!settings.server) {
+          settings.server = !settings.server; net::serverEnabled = net::effectiveServer(srv,settings.server);
+          consoleAccount->select(!net::serverEnabled); account = {}; accountKnown = false;
+          if (!net::serverEnabled) {
             account = {}; accountKnown = false; nestAvailable = pl.directSpeaker.configured(); sleep = {};
             SDL_LockMutex(remote.mu); remote.online = false; remote.cmds.clear(); remote.ended.clear(); SDL_UnlockMutex(remote.mu);
           }
@@ -1966,12 +1972,17 @@ int run(int argc, char** argv) {
         else if (cur.feed.error != K::None) {
           float y=190;
           bool serverError=net::serverEnabled && (cur.feed.error==K::NoResponse || cur.feed.error==K::BadResponse);
-          for(const auto& line:gfx::wrap(g,ui::F_H2,tr(serverError?K::ServerUnavailable:cur.feed.error),ui::W-ui::X0-64,4)) {
+          K errorTitle=serverError?K::ServerUnavailable:cur.feed.error, errorHelp=serverError?K::RetryServer:K::Refresh;
+#ifndef __XSDK__
+          capturedFeed=&cur.feed;capturedFeedTitle=errorTitle;capturedFeedHelp=errorHelp;capturedServerError=serverError;
+#endif
+          for(const auto& line:gfx::wrap(g,ui::F_H2,tr(errorTitle),ui::W-ui::X0-64,4)) {
             gfx::text(g,ui::F_H2,line,ui::X0,y,ui::TEXT);y+=g.fonts[ui::F_H2].lineH+8;
           }
-          if(!cur.feed.errorDetail.empty()){gfx::text(g,ui::F_BODY,cur.feed.errorDetail,ui::X0,y+16,ui::MUTED);y+=48;}
-          if(serverError)gfx::text(g,ui::F_BODY,tr(K::RetryServer),ui::X0,y+16,ui::MUTED);
-          else hint(g,ui::X0,y+24,"X",XX,tr(K::Refresh));
+          const auto& errorDetail=serverError?serverAddress:cur.feed.errorDetail;
+          if(!errorDetail.empty()){gfx::text(g,ui::F_BODY,errorDetail,ui::X0,y+16,ui::MUTED);y+=48;}
+          if(serverError)gfx::text(g,ui::F_BODY,tr(errorHelp),ui::X0,y+16,ui::MUTED);
+          else hint(g,ui::X0,y+24,"X",XX,tr(errorHelp));
         } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
       }
       if (ui::large || ui::narrow) gfx::rect(g,96,648,ui::W-96,72,ui::BG);
@@ -2570,6 +2581,10 @@ int run(int argc, char** argv) {
     if (shoot) {
       LOG("captura: frame %llu, tempo %llu ms, tela %d, vídeo %s, posição %.2f", (unsigned long long)frame, (unsigned long long)(now - runStart), (int)screen, playing.id.c_str(), pl.position());
       LOG("captura conta: conectada=%d foto=%d", account.signedIn(), !account.avatar.empty());
+#ifndef __XSDK__
+      if(capturedFeed)LOG("captura erro Home: preferencia=%d efetivo=%d | %s | %s | %s",settings.server,int(net::serverEnabled.load()),
+          tr(capturedFeedTitle),tr(capturedFeedHelp),capturedServerError?serverAddress.c_str():capturedFeed->errorDetail.c_str());
+#endif
       if (screen == NAV && !nav.pages.empty()) LOG("captura navegação: %s sel=%d canal=%d zona=%d pilha=%u menu=%d prateleira=%d",
           nav.page().kind.c_str(), nav.page().sel, nav.page().channelSel, nav.page().zone, (unsigned)nav.pages.size(), railFocus, nav.page().shelf);
       quit = true;

@@ -1,11 +1,19 @@
 #include "quality_recovery.hpp"
 #include "seek_hold.hpp"
 #include "connection_error.hpp"
+#include "net.hpp"
+#include "settings.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <cmath>
 void check(bool ok,const char* why){if(!ok){std::fprintf(stderr,"FAIL %s\n",why);std::exit(1);}}
 int main(){
+  Settings defaults;net::Server server;
+  check(defaults.server && !net::effectiveServer(server,defaults.server),"auto preference without address is console-only");
+  for(bool requested:{true,false,true})check(!net::effectiveServer(server,requested),"settings toggle never enables an unconfigured server");
+  server.ip="127.0.0.1";
+  check(net::effectiveServer(server,true) && !net::effectiveServer(server,false),"configured server follows explicit preference");
+  std::puts("PASS server: default auto without address, repeated toggle and configured/off modes");
   playback::SeekHold hold;
   check(!hold.update(1000,1,50,1000,false) && hold.active && hold.target==60,"trigger previews first 10 seconds");
   hold.update(1300,1,50,1000,false);check(hold.target==60,"initial hold threshold");
