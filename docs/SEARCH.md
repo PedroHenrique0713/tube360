@@ -102,8 +102,11 @@ the production curl/Mbed TLS probe returned eight suggestions without an account
 collected. Continuation, transport failures, delayed responses, other query echoes, Arabic completion rows
 and gradient artwork in the tests are **synthetic**, explicitly isolated from
 the public recordings. Channel/playlist destination responses reuse the existing
-sanitized catalogue fixtures. The test does not assert that their displayed
-metadata belongs to the original search cards.
+sanitized catalogue fixtures. Runtime channel templates remap their UC identifiers
+to the chosen search card so tab endpoints stay with that channel; menu/title
+metadata still belongs to the older recording. Every browse ID/cursor must match
+an explicit rule; unknown continuations fail closed. The test does not assert
+that destination metadata belongs to the original search cards.
 
 ## Console acceptance (coordinator only)
 

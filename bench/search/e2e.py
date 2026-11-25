@@ -52,6 +52,7 @@ def run(name,lang='pt',height=720,large=False,keys='',seconds=2.8,**extra):
         bodies=[json.loads(line.split('\t',1)[1]) for line in audit.splitlines() if line.startswith('body\t')]
         expected='UCfOj-wa2wA7aI0UjZYeBgHg' if name=='channel-open' else 'VLPLUBR4s0w2cG1kyI2MDBJV0J3B5HuJoB7g'
         assert any(body.get('browseId')==expected for body in bodies),bodies
+        if name=='channel-open': assert all(body.get('browseId')==expected for body in bodies if str(body.get('browseId','')).startswith('UC')),bodies
         assert 'player: pedido' not in text,text[-3000:]
     metrics=json.loads((assets/'frames.json').read_text()) if (assets/'frames.json').exists() else None
     results.append(dict(name=name,image=str(assets/'screen.png'),frames=metrics))

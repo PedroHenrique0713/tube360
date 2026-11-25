@@ -18,17 +18,24 @@ def route(url,file,**extra): requests.append(dict(url=url,file=file,**extra))
 base='https://www.youtube.com/'
 route(base,'home.html')
 route(base+'youtubei/v1/search?prettyPrint=false','search-public.json')
-route(base+'youtubei/v1/browse?prettyPrint=false','search-public.json')
+route(base+'youtubei/v1/browse?prettyPrint=false','search-public.json',fields={'browseId':'FEwhat_to_watch'})
 # Channel/playlist destinations reuse earlier declared public catalogue recordings.
-for name in ('channel.json','playlist.json'):
+for name in ('channel.json','channel-videos.json','continuation.json','playlist.json','playlist-more.json'):
     shutil.copyfile(ROOT/'bench/catalog/fixtures'/name,replay/name)
+for name in ('channel.json','channel-videos.json'):
+    path=replay/name
+    path.write_text(path.read_text().replace('UC_x5XG1OV2P6uZZ5FSM9Ttw','UCfOj-wa2wA7aI0UjZYeBgHg'))
+route(base+'youtubei/v1/browse?prettyPrint=false','channel-videos.json',fields={'browseId':'UCfOj-wa2wA7aI0UjZYeBgHg','params':'EgZ2aWRlb3PyBgQKAjoA'})
 route(base+'youtubei/v1/browse?prettyPrint=false','channel.json',fields={'browseId':'UCfOj-wa2wA7aI0UjZYeBgHg'})
+route(base+'youtubei/v1/browse?prettyPrint=false','continuation.json',fields={'continuation':'CONT_channel'})
+route(base+'youtubei/v1/browse?prettyPrint=false','continuation.json',fields={'continuation':'CONT_channel_videos'})
+route(base+'youtubei/v1/browse?prettyPrint=false','playlist-more.json',fields={'continuation':'CONT_PLAYLIST'})
 public=json.loads((fixtures/'search-public.json').read_text())
 playlists=[v['lockupViewModel']['contentId'] for v in public['contents'] if 'lockupViewModel' in v and v['lockupViewModel'].get('contentType')=='LOCKUP_CONTENT_TYPE_PLAYLIST']
 for pid in playlists:
     route(base+'youtubei/v1/browse?prettyPrint=false','playlist.json',fields={'browseId':'VL'+pid})
-# Specific browse rules must precede the home fallback.
-requests.sort(key=lambda r:0 if 'fields' in r else 1)
+# Browse is matched by ID/cursor; an unknown continuation must fail closed.
+requests.sort(key=lambda r:-len(r.get('fields',{})))
 for lang,region in [('pt','BR'),('en','US'),('es','MX'),('ar','SA')]:
     route('https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&ds=yt&hl='+lang+'&gl='+region+'&q=astronomia','suggestions-pt.jsonp')
 # Synthetic RTL rows exercise the recorded protocol without another live query.
@@ -43,10 +50,11 @@ def walk(x):
     if isinstance(x,dict):
         for key,value in x.items():
             if key=='url' and isinstance(value,str) and value.startswith('https://') and any(d in value for d in ('ytimg.com','ggpht.com','googleusercontent.com')): urls.add(value)
+            if key=='videoId' and isinstance(value,str) and len(value)==11: urls.add('https://i.ytimg.com/vi/'+value+'/mqdefault.jpg')
             walk(value)
     elif isinstance(x,list):
         for value in x: walk(value)
-for file in ('search-public.json','channel.json','playlist.json'):
+for file in ('search-public.json','channel.json','channel-videos.json','continuation.json','playlist.json','playlist-more.json'):
     walk(json.loads((replay/file).read_text()))
 for value in public['contents']:
     if 'videoRenderer' in value: urls.add('https://i.ytimg.com/vi/'+value['videoRenderer']['videoId']+'/mqdefault.jpg')
