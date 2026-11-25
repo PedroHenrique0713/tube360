@@ -66,6 +66,10 @@
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 5h12M9 12h12M9 19h12"/><path stroke-width="3" d="M3 5h1M3 12h1M3 19h1"/></symbol>
     <symbol id="i-heart" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M12 21 3 12C-3 5 6-2 12 5 18-2 27 5 21 12Z"/></symbol>
     <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-native-search" viewBox="0 0 26 26"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M10.5 2a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17Zm0 3a5.5 5.5 0 1 1 0 11 5.5 5.5 0 0 1 0-11Z"/><path fill="currentColor" stroke="none" d="m15 18 3-3 7 7-3 3Z"/></symbol>
+    <symbol id="i-native-phone" viewBox="0 0 26 26"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M9 1h8a4 4 0 0 1 4 4v16a4 4 0 0 1-4 4H9a4 4 0 0 1-4-4V5a4 4 0 0 1 4-4Zm.5 3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm2.5 17a1 1 0 0 0 0 2h2a1 1 0 0 0 0-2Z"/></symbol>
+    <symbol id="i-native-settings" viewBox="0 0 26 26"><g fill="currentColor" stroke="none"><path fill-rule="evenodd" d="M13 3a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 6a4 4 0 1 1 0 8 4 4 0 0 1 0-8Z"/><rect x="20.000" y="10.000" width="6" height="6" rx="1.5"/><rect x="17.071" y="17.071" width="6" height="6" rx="1.5"/><rect x="10.000" y="20.000" width="6" height="6" rx="1.5"/><rect x="2.929" y="17.071" width="6" height="6" rx="1.5"/><rect x="0.000" y="10.000" width="6" height="6" rx="1.5"/><rect x="2.929" y="2.929" width="6" height="6" rx="1.5"/><rect x="10.000" y="0.000" width="6" height="6" rx="1.5"/><rect x="17.071" y="2.929" width="6" height="6" rx="1.5"/></g></symbol>
+    <symbol id="i-native-power" viewBox="0 0 26 26"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M17.5 3.96V7.4a8 8 0 1 1-9 0V3.96a11 11 0 1 0 9 0Z"/><rect fill="currentColor" stroke="none" x="11.5" y="0" width="3" height="11" rx="1.5"/></symbol>
     <symbol id="i-native-home" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M0 11 12 0 24 11h-4v13h-5v-8H9v8H4V11Z"/></symbol>
     <symbol id="i-native-library" viewBox="0 0 24 24"><g fill="currentColor" stroke="none"><rect x="0" y="1" width="5" height="22" rx="1"/><rect x="8" y="1" width="5" height="22" rx="1"/><rect x="16" y="1" width="5" height="22" rx="1"/></g></symbol>
     <symbol id="i-native-music" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M16 0h3v20h-3V4h-8V0Z"/><ellipse fill="currentColor" stroke="none" cx="11" cy="18" rx="7" ry="4.5"/></symbol>
@@ -114,13 +118,13 @@
               <button type="button" class="account-photo" id="account-photo" data-page="account" aria-label="{{demo_account}}"><img src="/assets/avatar-demo.svg" width="40" height="40" alt=""></button>
               <nav class="app-sidebar" id="app-sidebar" aria-label="{{app_menu}}">
                 <button type="button" class="sidebar-icon active" data-page="home" aria-label="{{home}}" aria-expanded="false"><svg class="icon"><use href="#i-native-home"/></svg><span>{{home}}</span></button>
-                <button type="button" class="sidebar-icon" data-page="search" aria-label="{{search}}"><svg class="icon"><use href="#i-search"/></svg><span>{{search}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="search" aria-label="{{search}}"><svg class="icon"><use href="#i-native-search"/></svg><span>{{search}}</span></button>
                 <button type="button" class="sidebar-icon" data-page="subscriptions" aria-label="{{subscriptions}}"><svg class="icon"><use href="#i-native-subscriptions"/></svg><span>{{subscriptions}}</span></button>
                 <button type="button" class="sidebar-icon" data-page="library" aria-label="{{library}}"><svg class="icon"><use href="#i-native-library"/></svg><span>{{library}}</span></button>
                 <button type="button" class="sidebar-icon" data-page="music" aria-label="{{music}}"><svg class="icon"><use href="#i-native-music"/></svg><span>{{music}}</span></button>
-                <button type="button" class="sidebar-icon" data-page="phone" aria-label="{{phone}}"><svg class="icon"><use href="#i-phone"/></svg><span>{{phone}}</span></button>
-                <button type="button" class="sidebar-icon" data-page="settings" aria-label="{{settings}}"><svg class="icon"><use href="#i-settings"/></svg><span>{{settings}}</span></button>
-                <button type="button" class="sidebar-icon" data-page="exit" aria-label="{{exit}}"><svg class="icon"><use href="#i-power"/></svg><span>{{exit}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="phone" aria-label="{{phone}}"><svg class="icon"><use href="#i-native-phone"/></svg><span>{{phone}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="settings" aria-label="{{settings}}"><svg class="icon"><use href="#i-native-settings"/></svg><span>{{settings}}</span></button>
+                <button type="button" class="sidebar-icon" data-page="exit" aria-label="{{exit}}"><svg class="icon"><use href="#i-native-power"/></svg><span>{{exit}}</span></button>
               </nav>
               <div class="app-player" id="player-screen" hidden>
                 <img class="player-image" data-src="/assets/img/player-clean.jpg" alt="{{player_alt}}" width="1280" height="720">

@@ -154,7 +154,7 @@
       if ($('.demo-results').childElementCount) $('.demo-search').requestSubmit();
     }, 'panel-choice'));
     content.append(makeButton(t.clear_filters, () => { filterDraft = { type: 0, duration: 0, date: 0, sort: 0 }; updateFilterLabels(); }, 'panel-choice'));
-    const hints = document.createElement('p'); hints.className = 'filter-native-hints'; hints.textContent = `↑↓ ${n.ChooseRow}     ◀▶ ${n.ChangeValue}     B ${n.Back}`; content.append(hints);
+    const hints = document.createElement('p'); hints.className = 'filter-native-hints'; hints.innerHTML = `<span><b class="pad-button pad-direction">↑↓</b> ${n.ChooseRow}</span><span><b class="pad-button pad-direction">◀▶</b> ${n.ChangeValue}</span><span><b class="pad-button pad-b">B</b> ${n.Back}</span>`; content.append(hints);
     updateFilterLabels(); fitNativeType(); focus(content.firstElementChild);
   }
   function updateFilterLabels() {
@@ -201,9 +201,12 @@
       const rect = element.getBoundingClientRect(), viewport = content.getBoundingClientRect();
       if (rect.top < viewport.top + scale || rect.bottom > viewport.bottom - scale) content.scrollTop = Math.max(0, Math.min(rows.length - visible, index - visible + 1)) * step;
       state.settingsIndex = index;
+      appHints('settings');
       $('#settings-help').textContent = index >= 16 ? n.LocalLimit : index === 2 ? n.ManualQualityHelp : index === 9 ? n.Display1080Help : index === 11 || index === 1 ? n.LargeTextHelp : index === 4 ? n.SyncHelp : index === 3 ? n.NoSpeaker : n.SavedAutomatically;
     } else {
       const scale = tv.clientWidth / (matchMedia('(max-width: 700px)').matches ? 960 : 1280);
+      const grid = element.closest('.browse-grid');
+      if (grid && grid.scrollHeight > grid.clientHeight + 1) { const index = $$('.video-card', grid).indexOf(element), columns = matchMedia('(max-width: 700px)').matches ? 2 : 4; if (index >= 0) grid.scrollTop = Math.floor(index / columns) * 242; }
       const rect = element.getBoundingClientRect(), viewport = content.getBoundingClientRect();
       if (rect.top < viewport.top) content.scrollTop -= (viewport.top - rect.top) / scale;
       else if (rect.bottom > viewport.bottom) content.scrollTop += (rect.bottom - viewport.bottom) / scale;
@@ -257,6 +260,10 @@
       focus(card);
     }
   }
+  function fitCategories() {
+    const strip = $('.app-categories');
+    categories.forEach(button => { const start = button.offsetLeft - strip.scrollLeft; button.style.visibility = start >= -1 && start + button.offsetWidth <= strip.clientWidth + 1 ? 'visible' : 'hidden'; });
+  }
   function fitNativeType() {
     const elements = $$('*', native).filter(element => element instanceof HTMLElement);
     elements.forEach(element => { element.style.removeProperty('font-size'); element.style.removeProperty('line-height'); });
@@ -264,6 +271,7 @@
     // O atlas usa a altura ascendente–descendente da Inter; CSS dimensiona pelo em.
     const scale = 2048 / 2478;
     measurements.forEach(([element, size, line]) => { if (Number.isFinite(size)) element.style.fontSize = `${size * scale}px`; if (Number.isFinite(line)) element.style.lineHeight = `${line * scale}px`; });
+    fitCategories();
   }
   function fitScreen() {
     native.style.setProperty('--app-scale', tv.clientWidth / (matchMedia('(max-width: 700px)').matches ? 960 : 1280));
@@ -276,7 +284,7 @@
     const button = categories[state.category], parent = button.parentElement;
     if (button.offsetLeft < parent.scrollLeft) parent.scrollLeft = button.offsetLeft;
     if (button.offsetLeft + button.offsetWidth > parent.scrollLeft + parent.clientWidth) parent.scrollLeft = button.offsetLeft + button.offsetWidth - parent.clientWidth;
-    if (moveFocus) focus(button); select(state.selected); marker();
+    fitCategories(); if (moveFocus) focus(button); select(state.selected); marker();
   }
   categories.forEach((button, i) => {
     button.addEventListener('click', () => { chooseCategory(i); if (i) showToast(t.sample_videos); });
@@ -301,12 +309,12 @@
     indices.forEach(index => grid.append(makeCard(videos[index], index))); return grid;
   }
   function appHints(page) {
-    const hint = (button, label, color = '') => `<span><b class="pad-button ${color || 'pad-direction'}">${button}</b> ${label}</span>`;
+    const hint = (button, label, color = '') => `<span><b class="pad-button ${color || (button === '↑↓' || button === '◀▶' ? 'pad-direction' : '')}">${button}</b> ${label}</span>`;
     const bottom = $('#app-hints');
-    if (page === 'home') { bottom.hidden = true; return; }
+    if (page === 'home' || page === 'phone') { bottom.hidden = true; return; }
     bottom.hidden = false;
     bottom.innerHTML = page === 'settings'
-      ? hint('↑↓', n.ChooseRow) + hint('◀▶', n.ChangeValue) + hint('A', n.Open, 'pad-a') + hint('B', n.Back, 'pad-b')
+      ? hint('↑↓', n.ChooseRow) + hint('◀▶', n.ChangeValue) + (state.settingsIndex === 0 || state.settingsIndex >= 13 ? hint('A', n.Open, 'pad-a') : '') + hint('B', n.Back, 'pad-b')
       : page === 'search' ? hint('A', n.Type, 'pad-a') + hint('X', n.Delete, 'pad-x') + hint('☰', n.Search) + hint('B', n.Back, 'pad-b')
       : hint('A', n.Open, 'pad-a') + hint('B', n.Back, 'pad-b') + hint('X', n.Refresh, 'pad-x') + hint('Y', n.Search, 'pad-y') + (document.activeElement?.closest('.video-card') ? hint('☰', n.MoreOptions) : '');
   }
@@ -377,8 +385,10 @@
     } else if (page === 'search') {
       const form = document.createElement('form'); form.className = 'demo-search';
       const input = document.createElement('input'); input.type = 'search'; input.placeholder = n.SearchPrompt; input.setAttribute('aria-label', t.search_placeholder);
+      form.insertAdjacentHTML('afterbegin', '<svg class="search-field-icon icon" aria-hidden="true"><use href="#i-native-search"/></svg>');
       const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = t.search_submit;
-      const filters = makeButton(`LB ${n.SearchFilters}`, openFilters); filters.id = 'search-filters';
+      const filters = makeButton('', openFilters); filters.id = 'search-filters';
+      filters.innerHTML = `<b class="pad-button">LB</b> ${n.SearchFilters}`;
       const workspace = document.createElement('div'); workspace.className = 'search-workspace';
       const keyboard = document.createElement('div'); keyboard.className = 'demo-keyboard';
       const suggestions = document.createElement('div'); suggestions.className = 'search-suggestions';
@@ -389,6 +399,7 @@
         entries.filter(value => !query || value.toLocaleLowerCase(locale).includes(query)).forEach(value => {
           suggestions.append(makeButton(value, () => { input.value = value; form.requestSubmit(); }, 'suggestion'));
         });
+        if (suggestions.isConnected) fitNativeType();
       }
       input.addEventListener('input', () => { workspace.hidden = false; updateSuggestions(); });
       [..."abcdefghijklmnopqrstuvwxyzç-'.1234567890"].forEach(letter => keyboard.append(makeButton(letter, () => {
@@ -459,13 +470,15 @@
       home.hidden = false; setRail(true, 5); state.page = 'phone';
       const phone = document.createElement('div'); phone.className = 'phone-scrim';
       const surface = document.createElement('div'); surface.className = 'phone-panel';
-      const title = document.createElement('h3'); title.innerHTML = icon('phone'); title.append(document.createTextNode(n.CastTitle));
+      const title = document.createElement('h3'); title.innerHTML = icon('native-phone'); title.append(document.createTextNode(n.CastTitle));
       const choose = document.createElement('p'); choose.className = 'phone-choose'; choose.textContent = n.CastChoose + 'YouTube 360.';
       const path = document.createElement('p'); path.className = 'phone-path'; path.textContent = n.CastPath;
       const loading = document.createElement('p'); loading.className = 'phone-loading'; loading.textContent = n.CastLoading;
       const remember = document.createElement('p'); remember.className = 'phone-remember'; remember.textContent = n.CastRemember;
       const offline = document.createElement('p'); offline.className = 'phone-offline'; offline.textContent = n.CastOffline;
-      surface.append(title, choose, path, loading, remember, offline, makeButton('A ' + n.Close + '     B ' + n.Back, () => showPage('home'), 'phone-close'));
+      const close = makeButton('', () => showPage('home'), 'phone-close');
+      close.innerHTML = `<span><b class="pad-button pad-a">A</b> ${n.Close}</span><span><b class="pad-button pad-b">B</b> ${n.Back}</span>`;
+      surface.append(title, choose, path, loading, remember, offline, close);
       phone.append(surface); content.append(phone); $('#app-hints').hidden = true;
     } else {
       content.append(makeButton(n.Back, () => showPage('home')));

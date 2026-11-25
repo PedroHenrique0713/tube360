@@ -398,3 +398,32 @@
 .music-collection-sub{position:absolute;left:136px;right:64px;top:103px;font-size:18px;line-height:23px;color:#a1a1aa}
 #app-native .app-bottom .pad-button{font-size:10.74px}
 #app-native .progress-track:focus-visible::-webkit-slider-thumb{box-shadow:none}
+#app-native .app-categories::after{content:'';position:fixed;left:auto;right:29px;top:89px;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-left:6px solid #6b6b74}
+#app-native .search-field-icon{position:absolute;left:158px;top:130px;width:24px;height:24px;color:#a1a1aa;z-index:1}
+#app-native .demo-search input:focus{box-shadow:none;caret-color:#ff0f3c}
+#app-native .demo-dialog[data-kind=filters] .settings-row{display:block;padding:0}
+#app-native .demo-dialog[data-kind=filters] .settings-row>span{position:absolute;left:20px;top:8px}
+#app-native .demo-dialog[data-kind=filters] .settings-row>strong{position:absolute;left:20px;top:38px}
+#app-native .demo-dialog[data-kind=filters] .filter-native-hints{display:flex;gap:26px}
+#app-native .demo-dialog[data-kind=filters] .filter-native-hints>span{display:flex;align-items:center;gap:8px}
+#app-native .demo-dialog[data-kind=filters] .pad-direction{width:40px;border-radius:14px}
+#app-native .catalog-title{height:auto;min-height:0;max-height:54px}
+#app-native .browse-grid{grid-auto-rows:242px;row-gap:0}
+#app-native .app-page[data-page=subscriptions] .browse-grid{height:242px;overflow:auto;scrollbar-width:none}
+#app-native .music-shelf-grid{grid-auto-rows:auto;overflow:visible}
+#app-native .music-tracks{grid-auto-rows:346px}
+#app-native .catalog-card{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start}
+#app-native .catalog-card .catalog-thumb{flex-shrink:0}
+#app-native .channel-avatar{color:#a1a1aa;font-weight:600}
+#app-native .app-page[data-page=subscriptions] .browse-grid{height:242px}
+#app-native .search-suggestions h3{color:#f5f5f7}
+#app-native .keyboard-actions button{font-weight:400}
+#app-native .app-page[data-page=settings] #browse-content{height:472px}
+#app-native .phone-scrim{background:#000e}
+#app-native .phone-close{display:flex;gap:26px;align-items:center}
+#app-native .phone-close>span{display:flex;gap:8px;align-items:center}
+#app-native .phone-close .pad-button{width:24px;height:24px;font-size:10.74px}
+#app-native .sidebar-icon .icon:has(use[href='#i-native-search']),#app-native .sidebar-icon .icon:has(use[href='#i-native-phone']),#app-native .sidebar-icon .icon:has(use[href='#i-native-settings']),#app-native .sidebar-icon .icon:has(use[href='#i-native-power']){width:26px;height:26px;margin-left:-1px;margin-right:-1px}
+#app-native .search-suggestions h3{height:28px}
+#app-native #search-filters{left:calc(100% - 250px);right:auto;top:52px;display:flex;gap:8px;align-items:center}
+#app-native #search-filters .pad-button{width:30px;height:24px;font-size:10.74px}
