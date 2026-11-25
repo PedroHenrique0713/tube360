@@ -711,16 +711,16 @@
   select(0); marker(); appHints('home'); native.dataset.page = 'home'; fitNativeType();
 
   const featureData = {
-    account: { image: 'signin', alt: t.account_alt, caption: t.account_caption },
+    account: { image: 'library', alt: t.account_alt, caption: t.account_caption },
     search: { image: 'search', alt: t.search_alt, caption: t.search_caption },
-    cast: { image: 'cast', alt: t.cast_alt, caption: t.cast_caption },
-    sleep: { image: 'sleep-timer', alt: t.sleep_alt, caption: t.sleep_caption }
+    cast: { image: 'phone', alt: t.cast_alt, caption: t.cast_caption },
+    music: { image: 'music', alt: t.music_feature_alt, caption: t.music_feature_caption }
   };
   const featureTabs = $$('.feature-option');
   function selectFeature(button) {
     const data = featureData[button.dataset.feature];
     featureTabs.forEach(tab => { const active = tab === button; tab.classList.toggle('active', active); tab.setAttribute('aria-selected', String(active)); tab.tabIndex = active ? 0 : -1; });
-    $('#feature-image').src = `/assets/img/${data.image}.jpg`;
+    $('#feature-image').src = `/assets/rc4/${locale}/${data.image}.webp`;
     $('#feature-image').alt = data.alt;
     $('#feature-caption').textContent = data.caption;
     $('#feature-panel').setAttribute('aria-labelledby', button.id);

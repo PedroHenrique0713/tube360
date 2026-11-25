@@ -66,7 +66,7 @@ const report = [];
    const sizes=await page.locator('.touch-controls button').evaluateAll(buttons=>buttons.map(b=>({w:b.getBoundingClientRect().width,h:b.getBoundingClientRect().height})));
    assert.ok(sizes.every(({w,h})=>w>=44&&h>=44),JSON.stringify(sizes));
   }
-  await page.locator('#feature-search').click();assert.ok((await page.getAttribute('#feature-image','src')).endsWith('/search.jpg'));
+  await page.locator('#feature-search').click();assert.ok((await page.getAttribute('#feature-image','src')).endsWith('/search.webp'));
   assert.deepEqual(errors,[]); report.push({cdn,lang,device,dimensions,errors,external}); await context.close();
  }
  // Exercise real browser runtime parsing, pagination and the shared EN/PT session cache.

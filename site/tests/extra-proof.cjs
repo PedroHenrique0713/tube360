@@ -56,7 +56,7 @@ try {
  motionResult.wire=await motion.evaluate(()=>({x:Number(gsap.getProperty('.signal-wire i','x')),width:document.querySelector('.signal-wire').clientWidth}));
  await motion.locator('.feature-layout').evaluate(el=>el.scrollIntoView({behavior:'instant',block:'center'}));
  await motion.waitForFunction(()=>getComputedStyle(document.querySelector('.feature-layout')).opacity==='1');
- await motion.locator('#feature-search').click();assert.ok((await motion.getAttribute('#feature-image','src')).endsWith('/search.jpg'));await settle(motion);
+ await motion.locator('#feature-search').click();assert.ok((await motion.getAttribute('#feature-image','src')).endsWith('/search.webp'));await settle(motion);
  await motion.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await motion.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
  await motion.locator('#tv').focus();await motion.keyboard.press('Enter');
  motionResult.demoTween=await motion.evaluate(()=>gsap.getTweensOf('#player-screen').length);assert.ok(motionResult.demoTween>0);

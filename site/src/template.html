@@ -172,29 +172,29 @@
           <button class="feature-option active" type="button" role="tab" aria-selected="true" aria-controls="feature-panel" id="feature-account" data-feature="account"><span>{{account_title}}</span><p>{{account_description}}</p></button>
           <button class="feature-option" type="button" role="tab" aria-selected="false" aria-controls="feature-panel" id="feature-search" data-feature="search" tabindex="-1"><span>{{search_title}}</span><p>{{search_description}}</p></button>
           <button class="feature-option" type="button" role="tab" aria-selected="false" aria-controls="feature-panel" id="feature-cast" data-feature="cast" tabindex="-1"><span>{{cast_title}}</span><p>{{cast_description}}</p></button>
-          <button class="feature-option" type="button" role="tab" aria-selected="false" aria-controls="feature-panel" id="feature-sleep" data-feature="sleep" tabindex="-1"><span>{{sleep_title}}</span><p>{{sleep_description}}</p></button>
+          <button class="feature-option" type="button" role="tab" aria-selected="false" aria-controls="feature-panel" id="feature-music" data-feature="music" tabindex="-1"><span>{{music_feature_title}}</span><p>{{music_feature_description}}</p></button>
         </div>
-        <figure class="feature-visual" id="feature-panel" role="tabpanel" aria-labelledby="feature-account" tabindex="0"><img id="feature-image" src="/assets/img/signin.jpg" width="1280" height="720" alt="{{account_alt}}" loading="lazy"><figcaption><span id="feature-caption">{{account_caption}}</span><span>{{actual_interface}}</span></figcaption></figure>
+        <figure class="feature-visual" id="feature-panel" role="tabpanel" aria-labelledby="feature-account" tabindex="0"><img id="feature-image" src="/assets/rc4/{{lang}}/library.webp" width="1280" height="720" alt="{{account_alt}}" loading="lazy"><figcaption><span id="feature-caption">{{account_caption}}</span><span>{{actual_interface}}</span></figcaption></figure>
       </div>
-      <div class="player-features" data-reveal>
-        <article><img src="/assets/img/rate.jpg" width="1280" height="720" loading="lazy" alt="{{rating_alt}}"><h3>{{player_feature}}</h3><p>{{player_description}}</p></article>
-        <article><img src="/assets/img/up-next.jpg" width="1280" height="720" loading="lazy" alt="{{next_alt_feature}}"><h3>{{next_feature}}</h3><p>{{next_description}}</p></article>
+      <article class="feature-spotlight" data-reveal>
+        <div class="spotlight-copy"><h3>{{live_title}}</h3><p>{{live_description}}</p><p class="sponsor-credit">{{sponsor_credit}} <a href="https://sponsor.ajay.app/">SponsorBlock</a> · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. {{sponsor_warning}}</p></div>
+        <figure><img src="/assets/rc4/{{lang}}/player.webp" width="1280" height="720" loading="lazy" alt="{{sponsor_screen_alt}}"><figcaption>{{sponsor_screen_caption}}</figcaption></figure>
+      </article>
+      <article class="feature-spotlight feature-spotlight-reverse" data-reveal>
+        <div class="spotlight-copy"><h3>{{hd_title}}</h3><p>{{hd_description}}</p><p>{{original_description}}</p></div>
+        <figure><img src="/assets/rc4/{{lang}}/quality.webp" width="1280" height="720" loading="lazy" alt="{{quality_screen_alt}}"><figcaption>{{quality_screen_caption}}</figcaption></figure>
+      </article>
+      <article class="feature-spotlight" data-reveal>
+        <div class="spotlight-copy"><h3>{{maintenance_title}}</h3><p>{{maintenance_description}}</p><p>{{language_description}}</p></div>
+        <figure><img src="/assets/rc4/{{lang}}/settings-bottom.webp" width="1280" height="720" loading="lazy" alt="{{settings_screen_alt}}"><figcaption>{{settings_screen_caption}}</figcaption></figure>
+      </article>
+      <div class="feature-details" data-reveal>
+        <article><h3>{{comments_title}}</h3><p>{{comments_description}}</p><p>{{player_description}}</p></article>
+        <article><h3>{{speed_title}}</h3><p>{{speed_description}}</p><p>{{next_description}}</p></article>
+        <article><h3>{{crt_title}}</h3><p>{{crt_description}}</p><p>{{fill_description}}</p></article>
       </div>
-      <div class="player-features release-extras">
-        <article><img src="/assets/img/comments.jpg" width="1280" height="720" loading="lazy" alt="{{comments_alt}}"><h3>{{comments_title}}</h3><p>{{comments_description}}</p></article>
-        <article><img src="/assets/img/speed.jpg" width="1280" height="720" loading="lazy" alt="{{speed_alt}}"><h3>{{speed_title}}</h3><p>{{speed_description}}</p></article>
-        <article><img src="/assets/img/crt.jpg" width="640" height="480" loading="lazy" alt="{{crt_alt}}"><h3>{{crt_title}}</h3><p>{{crt_description}}</p></article>
-        <article><img src="/assets/img/large-text.jpg" width="1280" height="720" loading="lazy" alt="{{large_alt}}"><h3>{{large_title}}</h3><p>{{large_description}}</p></article>
-        <article><img src="/assets/img/spanish.jpg" width="1280" height="720" loading="lazy" alt="{{spanish_alt}}"><h3>{{language_title}}</h3><p>{{language_description}}</p></article>
-        <article><img src="/assets/img/crt-fill.jpg" width="640" height="480" loading="lazy" alt="{{fill_alt}}"><h3>{{fill_title}}</h3><p>{{fill_description}}</p></article>
-      </div>
-      <div class="release-grid" data-reveal>
-        <article><h3>{{hd_title}}</h3><p>{{hd_description}}</p></article><article><h3>{{original_title}}</h3><p>{{original_description}}</p></article>
-        <article><h3>{{live_title}}</h3><p>{{live_description}}</p></article><article><h3>{{network_title}}</h3><p>{{network_description}}</p></article>
-      </div>
-      <div class="release-gallery" data-reveal><img src="/assets/img/channel.jpg" width="1280" height="720" alt="{{channel_alt}}" loading="lazy"><img src="/assets/img/members-badge.jpg" width="1280" height="720" alt="{{badge_alt}}" loading="lazy"><img src="/assets/img/nest.jpg" width="1280" height="720" alt="{{nest_alt}}" loading="lazy"></div><p class="gallery-note">{{gallery_note}}</p><p class="sponsor-credit">{{sponsor_credit}} <a href="https://sponsor.ajay.app/">SponsorBlock</a> · <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a>. {{sponsor_warning}}</p>
-      <div class="feature-notes" data-reveal><article><h3>{{maintenance_title}}</h3><p>{{maintenance_description}}</p></article><article><h3>{{language_title}}</h3><p>{{language_description}}</p></article></div>
-      <details class="members-example"><summary>{{members_summary}}</summary><img src="/assets/img/members-only.jpg" width="1280" height="720" loading="lazy" alt="{{members_alt}}"></details>
+      <p class="gallery-note">{{gallery_note}}</p>
+
     </section>
 
     <section class="install-section section-wrap" id="install" aria-labelledby="install-title">
@@ -208,12 +208,12 @@
 
 {{release_history}}
 
-    <section class="release-notes section-wrap" aria-labelledby="why-title"><h2 id="why-title">{{why_title}}</h2><p>{{why_description}}</p><blockquote>{{account_notice}}</blockquote><h3>{{roadmap_title}}</h3><p>{{roadmap_description}}</p><p>{{preview_disclaimer}}</p><p>{{ai_notice}}</p><p>{{verification}}</p><!-- VIRUSTOTAL_URL: PENDING · DEFAULT_XEX_SHA256: PENDING --></section>
+    <section class="release-notes section-wrap" aria-labelledby="why-title"><div class="about-intro"><h2 id="why-title">{{why_title}}</h2><p>{{why_description}}</p></div><div class="about-notes"><blockquote>{{account_notice}}</blockquote><p>{{preview_disclaimer}}</p><p>{{ai_notice}}</p><p>{{verification}}</p></div><!-- VIRUSTOTAL_URL: PENDING · DEFAULT_XEX_SHA256: PENDING --></section>
 
 {{demo_section}}
 
     <section id="star" class="star-section section-wrap" aria-labelledby="star-title" data-reveal><svg class="large-star" aria-hidden="true"><use href="#i-star"/></svg><div><h2 id="star-title">{{star_title_1}}<br>{{star_title_2}}</h2><p>{{star_description}}</p><a class="button button-github" href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer"><svg class="icon"><use href="#i-star"/></svg>{{give_star}}<span class="star-count" data-stars="{{stars_raw}}">{{stars_text}}</span></a></div></section>
   <p class="sr-only" id="copy-status" role="status" aria-live="polite"></p></main>
-  <footer id="credits" class="site-footer section-wrap"><div class="footer-top"><a href="#" class="brand" aria-label="{{home_label}}"><img src="/assets/logo-orbita.svg" width="32" height="32" alt=""><span class="wordmark">Tube<span>360</span></span></a><p>{{license}}<br>{{built_by}} <a href="https://github.com/PedroHenrique0713" target="_blank" rel="noopener noreferrer">Pedro Henrique Quadro</a>.</p><a href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer">{{source}} <svg class="icon"><use href="#i-github"/></svg></a></div><p class="credits">{{credits}} <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>, <a href="https://ffmpeg.org/">ffmpeg</a>, <a href="https://github.com/phoboslab/pl_mpeg">pl_mpeg</a>, <a href="https://github.com/xenosworks/vulkan4xenon">vulkan4xenon</a> {{and}} <a href="https://github.com/LuanRT/YouTube.js">YouTube.js</a>{{inspired}} <a href="https://github.com/SamuelTD428/XenosTube">XenosTube (SamuelTD428)</a>.</p><p class="legal">{{legal}}</p></footer>
+  <footer id="credits" class="site-footer section-wrap"><div class="footer-top"><a href="#" class="brand" aria-label="{{home_label}}"><img src="/assets/logo-orbita.svg" width="32" height="32" alt=""><span class="wordmark">Tube<span>360</span></span></a><p>{{license}}<br>{{built_by}} <a href="https://github.com/PedroHenrique0713" target="_blank" rel="noopener noreferrer">Pedro Henrique Quadro</a>.</p><a href="https://github.com/PedroHenrique0713/tube360" target="_blank" rel="noopener noreferrer">{{source}} <svg class="icon"><use href="#i-github"/></svg></a></div><nav class="footer-links" aria-label="{{footer_nav}}"><a href="#releases">{{news_nav}}</a><a href="#install">{{install_link}}</a><a href="{{readme_url}}">{{console_guide}}</a><a href="https://github.com/PedroHenrique0713/tube360/issues">{{report_issue}}</a></nav><p class="credits">{{credits}} <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>, <a href="https://ffmpeg.org/">ffmpeg</a>, <a href="https://github.com/phoboslab/pl_mpeg">pl_mpeg</a>, <a href="https://github.com/xenosworks/vulkan4xenon">vulkan4xenon</a> {{and}} <a href="https://github.com/LuanRT/YouTube.js">YouTube.js</a>{{inspired}} <a href="https://github.com/SamuelTD428/XenosTube">XenosTube (SamuelTD428)</a>.</p><p class="legal">{{legal}}</p></footer>
 </body>
 </html>
