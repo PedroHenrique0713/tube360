@@ -18,6 +18,8 @@
 
 ### Fixed
 
+- Xbox MP4 opening and seeks above 2 GiB retain exact 64-bit sizes/offsets by avoiding an unsafe xsdk GCC combine optimization in FFmpeg's demuxer. Large-index and 60 fps/PQ fixtures reproduce the failure in PowerPC emulation; real-console acceptance remains pending. Opening logs now separate header/seek time and transferred bytes. [Cause and console procedure](bench/opening/README.md).
+
 - Public Xbox packaging rejects benchmark/mute executables even with a stale OFF cache; independent package checks verify production trust in both launcher and app.
 
 - Adaptive recovery uses the measured 1080p30 decoder cost as a floor and preserves higher costs observed in the session. Explicit worker priorities keep UI, PCM and network above video work; SponsorBlock retains its temporary HW5 TLS boost and restores the background priority afterward.
