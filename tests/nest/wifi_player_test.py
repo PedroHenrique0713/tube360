@@ -65,7 +65,7 @@ def run(name, silence=False, permanent=False, missing_time=False):
             stop_times.append(time.monotonic())
         original(client, request)
     receiver.handle = handle
-    seconds = 34 if permanent else 32 if silence or missing_time else 10
+    seconds = 46 if permanent else 32 if silence or missing_time else 10
     env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
     home = WORK/'home'
     home.mkdir(exist_ok=True)
@@ -142,8 +142,8 @@ def run(name, silence=False, permanent=False, missing_time=False):
         assert 24 < delay < 27, delay
         assert 'liberando para TV' in log
         if permanent:
-            assert 'som: TV' not in log
-            print(f'CONFIRMADO: perda permanente, liberação solicitada após {delay:.3f}s, TV ainda muda aos {seconds-2}s; aguarda quiet indefinidamente')
+            assert 'sem contato' in log and 'som: TV' in log, 'TV muda depois da perda permanente'
+            print(f'PASS perda permanente: liberação solicitada após {delay:.3f}s; sem contato por 10 s, som volta para a TV')
         else:
             assert 'som: TV' in log
             print(f'PASS player {"missing currentTime" if missing_time else "silence"}: first STOP after {delay:.3f}s; TV only after quiet confirmation')
@@ -159,3 +159,4 @@ if __name__ == '__main__':
     run('wifi-130ms-loss30')
     run('silence-25s', silence=True)
     run('missing-current-time', missing_time=True)
+    run('permanent-silence', silence=True, permanent=True)

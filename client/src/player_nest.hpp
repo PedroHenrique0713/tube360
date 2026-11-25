@@ -1,6 +1,8 @@
 #pragma once
 namespace player {
 inline void Player::directNestLoop() {
+  // Nest desligado ou fora da rede nunca confirma silêncio: depois de 10 s sem contato a TV volta sem a confirmação.
+  constexpr uint64_t speakerGoneMs = 10000;
   while (!stop && !castMediaReady && state != FAILED) SDL_Delay(10);
   if (stop || state == FAILED) return;
   if (net::serverEnabled && speakerRequested) {
@@ -35,7 +37,14 @@ inline void Player::directNestLoop() {
   if (!supported) {
     if (speakerRequested && live) LOG("Nest: live na TV; HLS sem origem comum entre imagem e relogio Cast");
     directSpeaker.release(); output = RELEASING;
-    while (!stop && !directSpeaker.sample().quiet) SDL_Delay(20);
+    uint64_t heard = SDL_GetTicks();
+    while (!stop) {
+      auto s = directSpeaker.sample();
+      if (s.quiet) break;
+      if (s.connected) heard = SDL_GetTicks();
+      else if (SDL_GetTicks()-heard > speakerGoneMs) { LOG("som: Nest sem contato há %llu ms; volta para a TV", (unsigned long long)speakerGoneMs); break; }
+      SDL_Delay(20);
+    }
     if (!stop) {
       output = LOCAL;
       if (speakerRequested) speakerFallback = true;
@@ -48,18 +57,22 @@ inline void Player::directNestLoop() {
   uint64_t requested = SDL_GetTicks(), localSince = 0, lastAttempt = requested;
   bool starting = false, failedStart = false;
   int last = 0, expected = 0;
+  uint64_t heard = 0;
   auto release = [&]() {
-    directSpeaker.release(); output = RELEASING; armed = false;
+    directSpeaker.release(); output = RELEASING; armed = false; heard = SDL_GetTicks();
     SDL_LockMutex(nmu); nestState = 0; SDL_UnlockMutex(nmu);
   };
   while (!stop) {
     uint64_t now = SDL_GetTicks();
     auto sample = directSpeaker.sample();
     if (output == RELEASING) {
-      if (sample.quiet) {
+      if (sample.connected) heard = now;
+      bool gone = !sample.quiet && !sample.connected && now-heard > speakerGoneMs;
+      if (sample.quiet || gone) {
         armed = mutedForCast = false; cueMs = -1;
         output = LOCAL; localSince = now; last = expected = 0;
-        LOG("som: Cast confirmou silêncio");
+        if (gone) LOG("som: Nest sem contato há %llu ms; volta para a TV", (unsigned long long)speakerGoneMs);
+        else LOG("som: Cast confirmou silêncio");
         speakerFallback = true;
       }
       SDL_Delay(20); continue;
