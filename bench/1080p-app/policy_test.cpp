@@ -61,7 +61,7 @@ int main(int argc,char** argv) {
   for(auto name:{"range","hls","playlists"}){auto role=yt::threadRole(name);check(role.hw==3 && role.priority==1,"video TLS separated from AAC/HW1");}
   check(yt::threadRole("youtube").hw==1 && yt::threadRole("cast-v2").hw==5,"feeder/Nest map");
   check(yt::threadRole("atualizações").priority<0 && yt::threadRole("miniaturas").hw==5,"background work avoids presentation");
-  auto sponsor=yt::threadRole("sponsorblock");
+  auto sponsor=yt::threadRole("SponsorBlock");
   check(sponsor.hw==5 && sponsor.priority==-1,"SponsorBlock restores background role after TLS boost");
   Settings settings;settings.sponsorBlock=sponsorblock::AUTO;settings.lang=i18n::Lang::AR;
   settings.h264FullFilter=true;check(settings.save(argv[3]),"save full filter option");
