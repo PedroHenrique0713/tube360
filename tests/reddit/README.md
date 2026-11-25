@@ -41,8 +41,8 @@ com libx264. Os testes não mudam o relógio da máquina. As flags de validade v
 verificação real do mbedTLS, conservando os erros de cadeia e nome.
 
 `playback.py` aceita casos opcionais `recovery recovery-seek preview release paused`. A rodada
-`recovery` dura 55 s: a fixture atrasa apenas as ranges de 1080 por 2 s nos primeiros
-10 s e depois libera a rede. Exige 1080 → 720 → 1080 no player real, sem reiniciar
+`recovery` dura 65 s: a fixture atrasa apenas as ranges de 1080 por 2 s nos primeiros
+25 s e depois libera a rede. Exige 1080 → 720 → 1080 no player real, sem reiniciar
 sua sessão de áudio. `recovery-seek` repete após um seek enquanto a fonte está
 reduzida, provando que o cache conserva o teto original. A política isolada cobre CPU insuficiente, rede insuficiente,
 fila vazia, pausa, perda de quadros, medidas antigas e recuo após uma subida ruim.
@@ -251,7 +251,7 @@ somente para leitura. O teste copia os preparadores para uma raiz temporária e
 executa o pipeline real do zero, sem alterar esses fornecedores ou a cópia usada
 pela build Xbox. Exige idempotência; usa headers reais do SDK/V4X.
 
-`video_policy.py` executa a política C real em 20 processos: sete famílias,
+`video_policy.py` executa a política C real em 22 processos: sete famílias,
 desconhecida, módulo/export ausente, auto/safe/native, whitespace/CRLF, vazio,
 caixa diferente, lixo, NUL, tamanho excedido e acesso negado. Guards demonstram
 que o arquivo só é lido uma vez. `input.json` conserva a entrada: o harness muda
@@ -274,9 +274,10 @@ real exercitam sucesso, falha do primeiro show e falha letterboxed, verificando
 liberação de buffers e ausência de callback em erro. Sync/Vd/allocações são simulados.
 
 O [manual](../../docs/STARTUP-DIAGNOSTICS.md#board-policy-and-choosing-a-video-path)
-explica `video-driver.txt` e cada registrador/etapa. `auto` atualmente seleciona
-safe em todas as placas: 360 E não comprova Corona/Winchester, então não foi
-inventada uma placa testada. `native` força o caminho anterior para comparação.
+explica `video-driver.txt` e cada registrador/etapa. Conforme o Adendo 4, `auto`
+seleciona native para Corona/Winchester e safe para as demais famílias/unknown,
+preservando o baseline do 360 E do coordenador. Isso não afirma teste em todas as
+subrevisões. `native` e `safe` continuam disponíveis para override explícito.
 Os checkpoints são compartilhados por app, lançador e tela de emergência.
 
 Para o coordenador, usar a pasta temporária existente e guardar separadamente
@@ -285,3 +286,90 @@ conferir `video.board flags/model`, `video.policy requested/selected`, depois
 o último begin sem end de GPU/LUT/scaler/surface/line-counter/IRQ. O caso Jasper
 e o 360 E físico continuam sem teste pelo autor; a igualdade em memória simulada
 não afirma que o driver original é compatível com todos os chips de vídeo.
+
+## Adendo F32/9–11 — estabilidade, Configurações e visibilidade
+
+```bash
+cmake --build client/build -j2 --target tube360 tube360-quality-fixture reddit-contract-test reddit-tls-probe player-state-test h264-cadence-test
+client/build/reddit-contract-test
+python3 tests/reddit/settings_native.py
+python3 tests/reddit/settings_stress.py .work/f32/items9-11/settings
+python3 tests/reddit/adaptation.py .work/f32/items9-11/adaptation .work/f32/media
+python3 bench/quality/network_e2e.py .work/f32/items9-11/network
+python3 tests/reddit/playback.py .work/f32 recovery-seek preview release paused
+python3 tests/reddit/video_policy.py .work/f32/items9-11/policy
+```
+
+O diretório de mídia da terceira chamada deve ter os MP4/AAC sintéticos de 80 s
+preparados por `tests/reddit/prepare.py`; nenhuma conta ou URL real é usada.
+`adaptation.py` acrescenta 480/360 **realmente disponíveis** para a prova não passar
+só por falta de fonte inferior. Usa FFmpeg com duas threads. Exercita abertura
+transitória (sem queda), pressão prolongada de 1080 com retorno após folga e o
+perfil padrão com apenas 720p60/360p30: mantém 720p e tenta apresentação 30 antes
+que pudesse escolher 360. Guarda logs completos da fixture e PNGs. Dados e tempos
+são da bancada, não medidas do Xbox.
+
+As decisões VOD desconsideram oito segundos de abertura/troca/resume/alteração de
+recursos. Só contam janelas inteiras posteriores ao prazo, com vídeo medido,
+atividade sem pausa e sinal de starvation **mais** carga demonstrada: decoder,
+cópia/apresentação ou vazão medida insuficiente. Exigem cinco segundos em pelo
+menos três janelas. Uma fila momentaneamente vazia não prova CPU insuficiente;
+18–20 ms de decode em 720p30 com cópia curta e rede suficiente não pede 480p.
+Uma fonte ausente/erro fatal de leitura ainda pode exigir outra tentativa direta;
+essa falha é registrada separadamente e não é uma decisão de pressão.
+
+A fonte real 720p30 tem prioridade como próximo degrau. Se ela não existe, o
+itag de 720p60 pode ser mantido com apresentação 30 (e descarte permitido de
+quadros não referenciais); essa etapa não reduz os bytes de rede, como o log
+explica. Só pressão renovada depois de assentar pode reduzir a resolução. Se
+480p não é oferecido, o próximo formato real pode ser 360p; não é prometido um
+itag inexistente. A subida continua gradual, com 20 s de folga medida, intervalo
+mínimo de 30 s e backoff após uma subida malsucedida.
+
+`settings_native.py` executa as funções reais `output/quiesce` com `__XSDK__` e
+mocks Vulkan estritos: safe não chama idle/reset/destroy/set_output; erro de idle
+ou de reset não retira recursos; native só destrói depois dessas duas checagens.
+`settings_stress.py` usa o app e o Vulkan reais, entradas de controle em pt/en/es,
+três ciclos de saída, idioma, texto e fit. A flag **só desktop**
+`XT_TEST_FIXED_OUTPUT=1` exercita o veto de saída sem fingir detecção física de
+Falcon. A build XEX não contém essa flag. Atlas e referências de comandos têm a
+ordem de eventos verificada; capturas com ajuda do modo seguro cabem em texto grande.
+
+`video_policy.py` agora liga o **log.c real do SDK**: mocks são apenas kernel
+(arquivo/lock/export). Um socket UDP real recebe os datagramas em loopback numa
+porta efêmera; família/flags/path precisam constar tanto no arquivo normal quanto
+no UDP. `input.json`, `boot.log`, `sdk-normal.log` e `udp.log` conservam cada caso.
+Não acessa o console nem qualquer receptor externo. O resumo também é chamado
+no CRT depois de `xsdk_log_open`, antes dos construtores; `boot_link.py` verifica
+essa ordem nos dois ELF finais.
+
+### Roteiro complementar do coordenador
+
+Usar somente a pasta temporária já descrita e o par de XEX correspondente.
+Não misturar arquivos de conta; não alterar o serviço ou o app de uso diário.
+
+1. Sem `video-driver.txt`, no 360 E: iniciar e procurar no **log normal do título**
+   e UDP `video: model=Corona|Winchester ... path=native requested=auto`. No Falcon/
+   Jasper: `path=safe`; também conferir a mesma seleção nos logs boot. Se vier
+   unknown, arquivar flags/status e comparar o override explícito sem inferir exploit.
+   `startup.log` pode estar vazio numa abertura bem-sucedida.
+2. Se precisar UDP, criar `net_log.txt` **na pasta de teste** com IP/porta do
+   receptor do coordenador, no formato já suportado `<IPv4> <porta>`. Guardar o log
+   normal mesmo se a rede não permitir UDP. Não enviar tokens/arquivos de conta.
+3. Reproduzir `4p_9OPKgcDE` em 1080p30 e `wWC8wVI4E3E` com perfil padrão.
+   Guardar cada segundo de `decod:`, `rede:`, `qualidade: decisao`, `fonte` e
+   `apresentacao`. Conferir abertura/troca com `assentando`, cinco segundos de
+   pressão elegível, um degrau por vez, ausência de 480 quando 720p30 mantém folga
+   e retorno gradual quando a medição permite. Registrar itags realmente oferecidos;
+   apresentação 30 sobre o mesmo 298 não equivale a uma nova fonte 136.
+4. No caminho safe, alternar saída 480/720/1080 repetidamente: tamanho real,
+   swapchain e atlas devem permanecer iguais; a ajuda explica o veto. Idioma e
+   fit não refazem o display. Texto grande troca só atlas/layout, com GPU idle,
+   reset de comandos, upload concluído e aposentadoria do atlas antigo em ordem.
+5. No 360 E/native, repetir as trocas: observar os mesmos checks antes de retirar
+   framebuffer/swapchain, e os checkpoints do primeiro quadro novo. Repetir idioma,
+   texto e fit; B continua voltando. Fotografar pt/en/es, inclusive texto grande.
+6. Coletar log normal/UDP, boot-early/app/launcher/raw e fotos **antes de relançar**.
+   Uma espera kernel/MMIO que não retorna ainda pode bloquear o timeout de software:
+   guardar o último begin aberto. Arquivar por modelo/path/saída e restaurar/remover
+   só a pasta temporária. Este roteiro não foi executado fisicamente pelo autor.

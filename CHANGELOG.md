@@ -4,7 +4,9 @@
 
 ### Fixed
 
-- Unvalidated Xbox board families default to the original 720p/staging video path. `video-driver.txt` can explicitly select `safe`, `native` or `auto`; board flags and the decision are recorded before GPU setup. The tested-board allowlist is currently empty because the owner's 360 E board revision has not been confirmed.
+- Corona/Winchester keep the native video path by default, preserving the coordinator's 360 E baseline; other/unknown board families default to 720p/staging. `video-driver.txt` can explicitly select `safe`, `native` or `auto`. Board/path details appear in both durable boot logs and the normal app/UDP log.
+- VOD quality decisions ignore startup and post-switch settling, then require sustained measured overload before descending one rung. A viable 720p30 stream stays at 720p; when no separate 720p30 source exists, 720p60 first tries 30 fps presentation before a lower resolution. Stable measured headroom still restores quality.
+- Safe-mode output changes keep the existing display/framebuffer. Font/output resource replacements check GPU idle, reset completed command references and publish a new atlas before retiring the old one; language and fit changes do not recreate the display.
 - Native GPU/display setup records checkpoints before register access, including LUT/scaler/surface/line-counter steps. Initial display-show failures free buffers and return an error before interrupt registration.
 - Native startup records durable CRT, storage, video/GPU, font, memory, network and TLS checkpoints beside each XEX. First-frame acquire failures are reported instead of accepting an invalid buffer. See `docs/STARTUP-DIAGNOSTICS.md` for interpreting a freeze.
 - Startup no longer requires DbgPrint, and the measured kernel exception handler is opt-in. Unsupported XNet limits/socket options can use standard defaults; access-denied errors and TLS validation remain enforced. ABadAvatar compatibility is untested.

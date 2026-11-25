@@ -124,7 +124,7 @@ Place **`video-driver.txt` beside both XEX files**, with exactly one of these wo
 | --- | --- |
 | `safe` | Original vulkan4xenon 1280×720 preference; original SDK scaler parameters; staging video. No Tube360 SD/1080 framebuffer, sampled linear R8, physical cached memory type, or added cache flush/invalidate instructions. |
 | `native` | Explicitly force the previous Tube360 SD/1080 framebuffer and mapped-video extensions, including on an unknown board. Logs that compatibility is unverified. Existing `decode-config.txt` may still disable mapped video. |
-| `auto`, or no file | Choose native only for a specifically validated board; otherwise safe. **The tested-board allowlist is currently empty**, so auto selects safe for every board. |
+| `auto`, or no file | Corona/Winchester use native to preserve the coordinator's 360 E baseline; other/unknown families use safe. This family policy does not claim physical testing on both families or every subrevision. |
 
 An unreadable, empty, oversized, embedded-NUL or unrecognized file fails safe. Selection is read once before
 GPU initialization and stays fixed until the title is relaunched. Launcher and app each read the file in
@@ -141,10 +141,10 @@ Source decoding quality remains governed by the existing playback profile. Stagi
 console playback performance requires measurement. This is a fallback from the Tube360 extensions,
 **not a claim of safe operation on every physical console**.
 
-The only confirmed baseline here is the owner's **360 E enclosure**, which does not identify its board
-as Corona or Winchester. Neither family is automatically approved on that evidence. After the coordinator
-confirms a board from the log and validates native mode there, its family can be added to the allowlist
-in a future change. A user override does not mark a board as tested.
+The coordinator explicitly requires the owner's **360 E baseline to keep native by default** (Adendo 4).
+Auto therefore enables Corona/Winchester and keeps Xenon/Zephyr/Falcon/Jasper/Trinity/unknown conservative.
+This supersedes the earlier empty allowlist. Confirming the exact board/subrevision remains part of the
+console procedure with the f38 board investigation. A user override does not mark a board as tested.
 
 Detection resolves the optional kernel **XboxHardwareInfo data export 0x156**, reads its flags, and
 classifies the upper nibble: Xenon, Zephyr, Falcon, Jasper, Trinity, Corona, Winchester, otherwise unknown.
@@ -152,6 +152,32 @@ It does not use SMC commands, PCI/MMIO probes, CPU keys, NAND or fixed kernel ad
 reported board family; it cannot distinguish every subrevision or prove which ANA/HANA chip is fitted.
 Missing module/export stays unknown and safe. The model/path appears in `boot-early.log` before C++
 constructors and is repeated in `boot-app.log`/`boot-launcher.log` before their video setup.
+After the SDK opens its logger, and again at main, the normal title log also receives
+`video: model=... flags=... path=... requested=... native_default=... reason=...`.
+This uses the SDK's normal sink, including the existing optional `net_log.txt` UDP destination. `startup.log`
+is reserved for errors and can be empty on a successful start; neither XBDM nor `boot-crt.log` is needed to
+see the normal board/path summary. The override file and raw hardware flags are never inferred from the exploit.
+
+### Changing Settings during use
+
+In safe mode, output-size requests save the preference but **do not touch** the current surface, swapchain,
+framebuffers, pipelines or font atlas. A localized help message explains that the current output is fixed.
+Fit/crop changes adjust geometry/UV coordinates only. English/Portuguese/Spanish share the bundled atlas;
+changing language rebuilds category labels, not GPU/display resources.
+
+Large text and actual native/desktop output changes build replacement fonts locally, check GPU idle and
+reset completed command-pool references. Only after a replacement atlas upload finishes is the old atlas
+retired. Text caches use the font revision. A failed idle/reset stops before retiring resources. Output
+recreation logs each retirement/setup stage and checks the first new frame again. These waits cannot
+interrupt a kernel/GPU call that never returns; the preceding durable marker still locates it.
+Playback quality measurements reset around these operations, so a Settings stall is not treated as a
+fresh decoder/network pressure window.
+
+Relevant stages: `settings.language`, `settings.fit`, `settings.output`, `settings.layout`, `fonts.pack`,
+`settings.gpu-idle`, `settings.commands-reset`, `settings.output-retire`, `fonts.upload`, `fonts.retire`,
+and the repeated first-frame checkpoints for an actual recreated output. No mapped-video pool is rebuilt
+by language, fit or text changes. See the test README for real controller-driven desktop stress and the
+strict native-output test.
 
 ### What still accesses hardware
 
