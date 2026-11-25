@@ -54,7 +54,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         elif self.path in ('/', '/tv'):
             if self.headers.get('Cookie') is not None or self.headers.get('Authorization') is not None:
                 errors.append('cookie or Bearer leaked into bootstrap')
-            self.reply((fixtures/('tv-context.html' if self.path == '/tv' else 'music-context.html')).read_bytes(), 'OAUTH_BOOTSTRAP=ignored')
+            name='tv-context.html' if self.path=='/tv' else 'web-context.html' if self.headers.get('Host')=='www.youtube.com' else 'music-context.html'
+            self.reply((fixtures/name).read_bytes(), 'OAUTH_BOOTSTRAP=ignored')
         elif self.path == '/probe':
             if self.headers.get('Cookie') != 'YSC=anonymous-fixture':
                 errors.append('public cookie jar lost')
@@ -67,6 +68,17 @@ class Handler(http.server.BaseHTTPRequestHandler):
         seen.append(self.path)
         body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
         client = body['context']['client']
+        if client['clientName']=='WEB':
+            if self.path!='/youtubei/v1/search?prettyPrint=false' or body.get('params')!='CAM%3D':
+                errors.append('public search lost route/filters')
+            if any(self.headers.get(name) is not None for name in ('Authorization','Cookie','X-Goog-AuthUser')):
+                errors.append('public search leaked auth or cookies')
+            if self.headers.get('Host')!='www.youtube.com' or self.headers.get('Origin')!='https://www.youtube.com':
+                errors.append('public search wrong Host/Origin')
+            if self.headers.get('X-Youtube-Client-Name')!='1' or self.headers.get('X-Youtube-Client-Version')!=client['clientVersion']:
+                errors.append('public search inconsistent client headers')
+            self.reply((root/'bench/search/fixtures/search-public.json').read_bytes())
+            return
         tv = client['clientName'] == 'TVHTML5'
         expected_host = 'www.youtube.com' if tv else 'music.youtube.com'
         if self.headers.get('Host') != expected_host or self.headers.get('Origin') != 'https://' + expected_host:
@@ -103,6 +115,6 @@ finally:
     server.shutdown()
     server.server_close()
     thread.join()
-assert seen == ['/seed', '/', '/youtubei/v1/browse?prettyPrint=false&alt=json', '/tv', '/youtubei/v1/browse?prettyPrint=false&alt=json', '/probe'], seen
+assert seen == ['/seed', '/', '/youtubei/v1/browse?prettyPrint=false&alt=json', '/tv', '/youtubei/v1/browse?prettyPrint=false&alt=json', '/', '/youtubei/v1/search?prettyPrint=false', '/probe'], seen
 assert not errors, errors
-print('WEB_REMIX 401 -> TVHTML5/FEtopics_music 200 through production TLS; Host/Origin/client/time checked; no Cookie/AuthUser; public cookie jar retained')
+print('WEB_REMIX 401 -> TVHTML5/FEtopics_music 200 through production TLS; Host/Origin/client/time checked; no Cookie/AuthUser; public cookie jar retained; WEB search with account remains anonymous')

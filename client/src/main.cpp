@@ -138,6 +138,7 @@ struct Worker {
     auto https = yt::catalog::transport();
     yt::Client youtube(*https);
     yt::catalog::Client catalog(*https);
+    catalog.setLogger([](const std::string& message) { LOG("%s",message.c_str()); });
     for (;;) {
       SDL_LockMutex(mu);
       while (jobs.empty() && !quit) SDL_WaitCondition(cv, mu);
@@ -161,7 +162,7 @@ struct Worker {
         r.feed.title = catalog.handle(j.a);
         if (r.feed.title.rfind("ok\t",0) == 0) r.catalog = true;
         auto route=yt::catalog::query(j.a);
-        if (route["kind"]=="search" && (!net::serverEnabled || !route["params"].empty())) {
+        if (route["kind"]=="search") {
           if (!r.catalog) r.feed.title=std::string("error\t")+i18n::get(j.lang,K::BadResponse)+"\n";
           r.catalog=true;
         }
@@ -2399,10 +2400,10 @@ int run(int argc, char** argv) {
           playerIcon(g, symbols[i - PlayerUI::CC], cx, focused, marked);
           if (focused) focusX = cx;
           if (i == PlayerUI::VIDEO) {
-            bool full = pl.actualHeight > 720;
+            int height=playback::labelHeight(videoTex.w,pl.actualHeight.load());
+            bool full = height > 720;
             float badgeWidth = full ? 29 : 23;
             gfx::rect(g, cx - 3, 648, badgeWidth, 11, red, 3);
-            int height=pl.actualHeight;
             const char* badge=height>=1080?"1080":height>=720?"720":height>=480?"480":height>=360?"360":height>=240?"240":height>0?"144":"?";
             gfx::text(g, ui::F_BADGE,badge, cx - 3 + badgeWidth / 2, 648, rgb(0xffffff), 1);
           } else if (i == PlayerUI::AUDIO && pl.nest) {
@@ -2421,7 +2422,7 @@ int run(int argc, char** argv) {
                          (live ? K::CaptionsLiveNone : K::CaptionsNone) : settings.captions ? K::CaptionsOn : K::CaptionsOff);
               break;
             case PlayerUI::VIDEO: {
-              int resolution = pl.actualHeight.load(), sourceFps = pl.actualFps.load();
+              int resolution = playback::labelHeight(videoTex.w,pl.actualHeight.load()), sourceFps = pl.actualFps.load();
               int targetFps = std::min(sourceFps, pl.presentFps.load());
               const char* mode = pl.waiting() ? nullptr : tr(pl.direct ? K::Console : pl.original ? K::ServerOriginal : K::ServerConverted);
               if (resolution != lastQuality || sourceFps != lastSourceFps || targetFps != lastTargetFps || lastOutput != (int)g.extent.height || mode != lastMode) {
@@ -2537,6 +2538,14 @@ int run(int argc, char** argv) {
         gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
         bool ccPanel = playerUI.panel == PlayerUI::CAPTIONS;
         gfx::text(g, ui::F_BIG, tr(ccPanel ? K::Captions : playerUI.panel == PlayerUI::QUALITY ? K::PlayerQuality : playerUI.panel==PlayerUI::TRACKS ? K::AudioTrack : K::Sound), x + 36, y + 28, ui::TEXT);
+        if (playerUI.panel==PlayerUI::QUALITY && pl.actualHeight>0) {
+          int source=playback::labelHeight(videoTex.w,pl.actualHeight.load());
+          if (source!=lastQuality || pl.actualFps!=lastSourceFps) {
+            resolutionLabel=std::to_string(source)+"p"+(pl.actualFps>0 ? std::to_string(pl.actualFps.load()) : "");
+            lastQuality=source;lastSourceFps=pl.actualFps.load();lastOutput=-1;
+          }
+          gfx::text(g,ui::F_H2,resolutionLabel,x+w-36,y+35,ui::A2,2);
+        }
         if (ccPanel && (captionLoader.loading || captions.failed || captions.tracks.empty())) {
           gfx::text(g, ui::F_BODY, tr(captionLoader.loading ? K::CaptionsLoading : captions.failed ? K::CaptionsFailed : captions.reason == "live_clock" ? K::CaptionsLiveClock : pl.live ? K::CaptionsLiveNone : K::CaptionsNone), x + 36, y + 110, ui::MUTED);
         } else {
@@ -2696,7 +2705,7 @@ int run(int argc, char** argv) {
     if(screen==PLAYER && now<manualNoticeUntil) {
       float w=std::min(880.f,ui::W-80),x=(ui::W-w)/2;
       if(manualNoticeLines.empty() || manualNoticeFont!=g.fontRevision || manualNoticeLang!=settings.lang || manualNoticeWidth!=w) {
-        manualNoticeLines=gfx::wrap(g,ui::F_SMALL,tr(K::ManualQualityPressure),w-40,3);
+        manualNoticeLines=gfx::wrap(g,ui::F_SMALL,std::to_string(playback::labelHeight(videoTex.w,pl.actualHeight.load()))+"p · "+tr(K::ManualQualityPressure),w-40,3);
         manualNoticeFont=g.fontRevision;manualNoticeLang=settings.lang;manualNoticeWidth=w;
       }
       float lineH=g.fonts[ui::F_SMALL].lineH+2;

@@ -72,6 +72,17 @@ is transcribed in
 it is a reported measurement, not a raw response fixture or a new request by this
 feature agent. No additional live requests were needed for this correction.
 
+Video search is anonymous with or without a connected account, including unfiltered
+queries and continuation requests. It never sends the TV Bearer to WEB search;
+bootstrap and search also suppress the cookie jar. This deliberately makes search
+results public rather than personalized. Account recommendations, library and
+Music keep their account routes. An anonymous search failure is logged with its
+internal route, HTTP status and numeric API/transport code, without the query,
+cursor, token, remote error message or response body. HTTP 200 with a top-level
+error is a failure too. Search stays on the typed catalogue even with an optional
+PC server configured; errors cannot fall through to a TV-account or PC search.
+[Adversarial account-search replay and visual proofs](../bench/search-account/README.md).
+
 Public search now uses the typed catalogue in `yt/catalog.hpp`, sharing channel,
 playlist, WEB bootstrap, pagination and cache infrastructure. The cache/cursor key
 includes query, params and language. Filtered search errors cannot fall through to an

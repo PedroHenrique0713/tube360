@@ -18,6 +18,9 @@
 
 ### Fixed
 
+- Video search stays anonymous with a connected TV account, with or without filters and throughout pagination. Catalogue failures retain route, HTTP and numeric API/transport diagnostics without credentials or personal data; HTTP 200 error bodies are rejected.
+- Cropped video quality uses its width class for display (1920×800/24 appears as 1080p24 in the player and Y menu). Source/decode limits, fixed-height matching and recovery still use real dimensions. Account Music shortcuts have local clock/list/heart artwork.
+
 - Public Xbox packaging rejects benchmark/mute executables even with a stale OFF cache; independent package checks verify production trust in both launcher and app.
 
 - Adaptive recovery uses the measured 1080p30 decoder cost as a floor and preserves higher costs observed in the session. Explicit worker priorities keep UI, PCM and network above video work; SponsorBlock retains its temporary HW5 TLS boost and restores the background priority afterward.

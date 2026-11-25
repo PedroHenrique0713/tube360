@@ -32,7 +32,9 @@ local existentes. Deslogado, as rotas públicas permanecem as mesmas.
   `FEmusic_last_played`, `FEplaylist_aggregation` e `VLLM`, respectivamente. A
   lista de playlists TV é a biblioteca de playlists do YouTube, podendo conter
   playlists que não são de música. Não se substitui histórico musical por
-  `FEhistory`. Os atalhos não aparecem no fallback público.
+  `FEhistory`. Os atalhos não aparecem no fallback público. Recentes, playlists e curtidas têm
+  arte vetorial própria (relógio, lista e coração), desenhada localmente sem
+  depender de capa ou pedido de rede e sem marca do YouTube.
 
 ## Pesquisa e limites da conclusão
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <array>
+#include "quality_label.hpp"
 #include <cstring>
 
 namespace playback {
@@ -10,10 +11,10 @@ inline int ceiling(int mode) { return manual(mode)?fixedHeight(mode):mode == FAS
 inline int rate(int mode) { return mode == DETAIL || manual(mode) ? 30 : 60; }
 inline const char* modeName(int mode){static const char* names[]={"auto","720p60","1080p30","480p","360p","240p","144p"};return mode>=0 && mode<COUNT?names[mode]:names[AUTO];}
 inline int modeFromName(const char* name){for(int i=0;i<COUNT;++i)if(!std::strcmp(name,modeName(i)))return i;return AUTO;}
-inline unsigned offeredMode(int height,double fps){
+inline unsigned offeredMode(int height,double fps,int width=0){
   unsigned out=1u<<AUTO;
-  if(height==720 && fps>30.1)out|=1u<<FAST;
-  if(height==1080 && fps>0 && fps<=30.1)out|=1u<<DETAIL;
+  if(labelHeight(width,height)==720 && fps>30.1)out|=1u<<FAST;
+  if(labelHeight(width,height)==1080 && fps>0 && fps<=30.1)out|=1u<<DETAIL;
   for(int i=FIXED480;i<COUNT;++i)if(fixedHeight(i)==height)out|=1u<<i;
   return out;
 }

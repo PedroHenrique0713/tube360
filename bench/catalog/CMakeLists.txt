@@ -26,3 +26,8 @@ add_test(NAME console-account COMMAND catalog-account-test "${CMAKE_CURRENT_BINA
 foreach(target catalog-test catalog-oauth-test catalog-membership-test catalog-account-test)
   target_link_libraries(${target} PRIVATE tube360-yt)
 endforeach()
+
+add_executable(search-account-test ../search-account/test.cpp)
+target_include_directories(search-account-test PRIVATE ../../client/src ../../client/third_party)
+target_link_libraries(search-account-test PRIVATE tube360-yt)
+add_test(NAME search-account COMMAND search-account-test)

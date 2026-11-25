@@ -1,4 +1,5 @@
 #pragma once
+#include "music_shortcut_art.hpp"
 
 struct NavItem {
   std::string type, id, title, channel, image, channelId, section;
@@ -104,6 +105,7 @@ struct Navigation {
         std::vector<NavItem> shortcuts;
         for (auto entry : {std::pair<const char*,K>{"music_recent",K::MusicRecent},{"music_library",K::Playlists},{"music_playlist",K::MusicLiked}}) {
           NavItem item; item.type=entry.first; item.id=item.type=="music_playlist" ? "VLLM" : "ACCOUNT";
+          item.image="local:"+item.type;
           item.title=i18n::get(lang,entry.second); item.section=i18n::get(lang,K::YourMusic);
           shortcuts.push_back(std::move(item));
         }
@@ -177,6 +179,7 @@ struct Navigation {
     busy = true; actionPath = path; actionStamp = ++serial; worker.add({6, path, actionStamp}, true);
   }
   static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::string& id, uint64_t frame, float x, float y, float w, float h, bool square = false, bool round = false, bool direct = false) {
+    if (musicShortcutArt(g,id,x,y,w,h)) return;
     float radius = round ? w / 2 : square ? 6 : 12;
     const auto* s = id.empty() ? nullptr : thumbs.get(worker, id, frame, direct);
     if (s) {
@@ -220,7 +223,7 @@ struct Navigation {
     if (!home && !p.image.empty()) { artwork(g, thumbs, worker, p.image, frame, tx, p.music ? 46 : 28, p.music ? 86 : 72, p.music ? 86 : 72, true, p.kind == "channel" || p.kind == "artist"); tx += p.music ? 110 : 96; }
 
     int titleFont = p.music && !p.musicHome() ? ui::F_HERO : ui::F_BIG;
-    gfx::textBox(g, titleFont, p.displayTitle.empty() ? tr(titleKey(p)) : p.displayTitle, tx, p.music && !home ? 42 : 28, ui::W-tx-64, ui::TEXT);
+    gfx::textBox(g, titleFont, p.displayTitle.empty() ? tr(titleKey(p)) : p.displayTitle, tx, p.music && !home ? 42 : 28, home ? (ui::narrow ? 150 : 480) : ui::W-tx-64, ui::TEXT);
     if (home && !p.musicLabel.empty()) gfx::textBox(g, ui::F_TINY, p.musicLabel, ui::narrow ? 300 : tx, ui::narrow ? 32 : 69, ui::W-(ui::narrow ? 300 : tx)-64, ui::MUTED);
     if (!home) gfx::text(g, ui::F_CHAN, p.displaySub, tx, p.music ? 103 : 82, ui::MUTED);
     bool channel = p.kind == "channel", playlist = p.kind == "playlist" || p.kind == "album" || p.kind == "music_playlist" || p.kind == "music_recent" || p.kind == "later" || p.kind == "radio";
