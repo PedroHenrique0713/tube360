@@ -42,9 +42,22 @@ with tempfile.TemporaryDirectory(prefix='tube360-publisher-') as temporary:
     subprocess.run(['openssl', 'pkeyutl', '-verify', '-rawin', '-pubin', '-inkey', str(public),
                     '-in', str(output), '-sigfile', str(binary_signature)], check=True, capture_output=True)
     saved = output.read_bytes()
+    for owner in ('revive360', 'PedroHenrique0713'):
+        for origin, path in (('github.com', 'releases/download/v0.3.2/tube360.xex'),
+                             ('raw.githubusercontent.com', 'rules/tube360.xex')):
+            changed = args.copy()
+            changed[changed.index('--url') + 1] = f'https://{origin}/{owner}/tube360/{path}'
+            call(*changed)
+            assert json.loads(output.read_bytes())['url'] == changed[changed.index('--url') + 1]
+    call(*args)
     for flag, value in [('--build', '0'), ('--version', 'has spaces'), ('--notes-en', 'line\nbreak'),
                         ('--url', 'http://127.0.0.1:8266/good.xex'),
                         ('--url', 'https://github.com/attacker/tube360/releases/app.xex'),
+                        ('--url', 'https://github.com/revive360/tube360-evil/releases/app.xex'),
+                        ('--url', 'https://github.com.evil.example/revive360/tube360/releases/x'),
+                        ('--url', 'https://raw.githubusercontent.com/revive360/tube360/%2e%2e/x'),
+                        ('--url', 'https://github.com:443/revive360/tube360/releases/x'),
+                        ('--url', 'https://github.com/revive360/tube360/releases/x#fragment'),
                         ('--url', 'https://github.com@evil.example/PedroHenrique0713/tube360/releases/x')]:
         changed = args.copy()
         changed[changed.index(flag) + 1] = value
@@ -54,4 +67,4 @@ with tempfile.TemporaryDirectory(prefix='tube360-publisher-') as temporary:
     changed[changed.index('--url') + 1] = 'http://127.0.0.1:8266/good.xex'
     call(*changed, '--allow-test-url')
     call('sign', output, success=False)  # No implicit access to a maintainer key.
-    print('PASS publisher: exact size/hash, real Ed25519 verification, no key overwrite, six schema/URL rejects, explicit test HTTP and key')
+    print('PASS publisher: exact size/hash, real Ed25519 verification, both owners/hosts, no key overwrite, adversarial URL/schema rejects, explicit test HTTP and key')

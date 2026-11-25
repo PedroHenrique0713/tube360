@@ -23,8 +23,9 @@ def public_url(url):
     if (parsed.scheme != 'https' or parsed.username or parsed.password or parsed.port
             or parsed.fragment or any(c in url for c in ('%', '\\', '/./', '/../'))):
         return False
-    return (url.startswith('https://raw.githubusercontent.com/PedroHenrique0713/tube360/')
-            or url.startswith('https://github.com/PedroHenrique0713/tube360/releases/'))
+    return any(url.startswith(prefix) for owner in ('revive360', 'PedroHenrique0713')
+               for prefix in (f'https://raw.githubusercontent.com/{owner}/tube360/',
+                              f'https://github.com/{owner}/tube360/releases/'))
 
 
 def test_url(url):

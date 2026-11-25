@@ -71,6 +71,24 @@ int main(int argc,char** argv) {
     setRuleStore(restored);net.broken=false;client.player("4p_9OPKgcDE");
     check(net.sent[net.sent.size()-3].url.find("/watch?")!=string::npos,"existing client rebuilds session after rules change");
     auto appBytes=read(dir+"app.json"),appSig=read(dir+"app.json.sig"),payload=read(dir+"download.xex",64*1024*1024);
+    Manifest org;
+    check(verify(read(dir+"org.json"),read(dir+"org.json.sig"),key) && decodeManifest(read(dir+"org.json"),org) &&
+        org.url=="https://github.com/revive360/tube360/releases/download/v0.3.2/tube360.xex","real signed organization manifest");
+    for(const auto* owner:{"revive360","PedroHenrique0713"}) {
+        for(const auto* origin:{"https://github.com/","https://raw.githubusercontent.com/"}) {
+            string url=string(origin)+owner+"/tube360/"+(string(origin)=="https://github.com/"?"releases/download/v0.3.2/tube360.xex":"rules/app.json");
+            check(updateUrl(url),"both repository owners allowed at exact HTTPS hosts");
+            J manifest;Manifest decoded;parse(appBytes,manifest);manifest.get<O>()["url"]=J(url);
+            check(decodeManifest(manifest.serialize(),decoded),"manifest accepts org and legacy owner");
+            for(const auto& bad:{url+"/../evil",url+"/%2e%2e/evil",url+"#fragment"})
+                check(!updateUrl(bad),"owner migration does not loosen path checks");
+        }
+    }
+    for(const auto* url:{"http://github.com/revive360/tube360/releases/x", "https://github.com/revive360/tube360-evil/releases/x",
+        "https://github.com/revive360/other/releases/x", "https://github.com/revive360/tube360/x", "https://api.github.com/repos/revive360/tube360/releases",
+        "https://github.com.evil.example/revive360/tube360/releases/x", "https://github.com@evil.example/revive360/tube360/releases/x",
+        "https://raw.githubusercontent.com/attacker/tube360/rules/x", "https://raw.githubusercontent.com:443/revive360/tube360/rules/x"})
+        check(!updateUrl(url),"foreign owner, authority tricks, HTTP and API remain rejected");
     auto scenario=[&](const string& name){string p=dir+name+"/";::mkdir(p.c_str(),0700);write(p+"tube360.xex","XEX2old-good");return p;};
     auto p=scenario("boot");
     AppUpdate app(p,key);write(app.pending(),payload+"corrupt");

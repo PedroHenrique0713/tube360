@@ -18,9 +18,10 @@ static std::unique_ptr<yt::Transport> transport(const std::atomic_bool* cancel) 
 #endif
 }
 Service::Service(string directory):dir(std::move(directory)) {
-    base="https://raw.githubusercontent.com/PedroHenrique0713/tube360/rules/";
+    bases={"https://raw.githubusercontent.com/revive360/tube360/rules/",
+           "https://raw.githubusercontent.com/PedroHenrique0713/tube360/rules/"};
 #ifdef TUBE360_UPDATE_TEST_CONFIG
-    base=TUBE360_UPDATE_TEST_BASE;
+    bases={TUBE360_UPDATE_TEST_BASE};
     event("TUBE360-DISPOSABLE-UPDATE-TEST");
     event("TEST app started build="+std::to_string(buildId)+" version="+appVersion);
     autoUpdate=exists(dir+"update-auto.txt");
@@ -28,7 +29,7 @@ Service::Service(string directory):dir(std::move(directory)) {
 #endif
     auto configured=read(dir+"updates-url.txt",2048);
     while(!configured.empty() && (configured.back()=='\n' || configured.back()=='\r'))configured.pop_back();
-    if(!configured.empty() && configured.back()=='/' && updateUrl(configured))base=configured;
+    if(!configured.empty() && configured.back()=='/' && updateUrl(configured))bases={configured};
     store=std::make_shared<RuleStore>(dir,publicKeyHex);setRuleStore(store);
     net=transport(&stop);
     thread=yt::worker(run,"atualizações",this);
@@ -62,20 +63,33 @@ void Service::check() {
     if(staged){Status s;s.state=State::READY;s.app=pending;publish(s);}
     else {Status s;s.state=State::CHECKING;publish(s);}
     event("check inicio");
-    auto r=fetch(base+"rules.json"),s=fetch(base+"rules.json.sig",129);
-    string error;
-    if(r.status==200 && r.error.empty() && s.status==200 && s.error.empty())store->accept(r.body,s.body,error);
+    for(const auto& base:bases) {
+        auto r=fetch(base+"rules.json"),s=fetch(base+"rules.json.sig",129);
+        string error;
+        // Documento e assinatura vêm da mesma origem; só um par autenticado encerra a reserva.
+        if(r.status==200 && r.error.empty() && s.status==200 && s.error.empty() &&
+            (store->accept(r.body,s.body,error) || error=="version"))break;
+        if(stop)return;
+    }
     if(stop || staged)return;
-    r=fetch(base+"app.json");s=fetch(base+"app.json.sig",129);
     Manifest m;AppUpdate app(dir,publicKeyHex);
-    bool authenticated=r.status==200 && r.error.empty() && s.status==200 && s.error.empty() && verify(r.body,s.body,publicKeyHex) && decodeManifest(r.body,m);
+    bool authenticated=false,missing=true;
+    string candidateBytes,candidateSig;
+    for(const auto& base:bases) {
+        auto r=fetch(base+"app.json"),s=fetch(base+"app.json.sig",129);
+        missing=missing && r.status==404 && r.error.empty();
+        authenticated=r.status==200 && r.error.empty() && s.status==200 && s.error.empty() &&
+            verify(r.body,s.body,publicKeyHex) && decodeManifest(r.body,m);
+        if(authenticated){candidateBytes=std::move(r.body);candidateSig=std::move(s.body);break;}
+        if(stop)return;
+    }
     if(authenticated && m.build>app.highWater()) {
-        manifestBytes=r.body;manifestSig=s.body;
+        manifestBytes=std::move(candidateBytes);manifestSig=std::move(candidateSig);
         Status st;st.state=State::AVAILABLE;st.app=m;publish(st);
         event("available build="+std::to_string(m.build)+" version="+m.version+" bytes="+std::to_string(m.size));
     } else {
         if(before.app.build>app.highWater())publish(before);
-        else {Status st;if(!authenticated && r.status!=404)st.state=State::CHECK_FAILED;publish(st);}
+        else {Status st;if(!authenticated && !missing)st.state=State::CHECK_FAILED;publish(st);}
         event("check fim: sem candidato novo validado");
     }
 }

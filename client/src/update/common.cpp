@@ -60,8 +60,13 @@ bool updateUrl(const string& u) {
     auto h=host(u);
     auto path=u.substr(0,u.find('?'));
     if(path.find("/../")!=string::npos || path.find("/./")!=string::npos || path.find('%')!=string::npos)return false;
-    if (h=="raw.githubusercontent.com") return u.compare(0,string("https://raw.githubusercontent.com/PedroHenrique0713/tube360/").size(),"https://raw.githubusercontent.com/PedroHenrique0713/tube360/")==0;
-    if (h=="github.com") return u.compare(0,string("https://github.com/PedroHenrique0713/tube360/releases/").size(),"https://github.com/PedroHenrique0713/tube360/releases/")==0;
+    if (h=="raw.githubusercontent.com" || h=="github.com") {
+        for(const auto* owner:{"revive360","PedroHenrique0713"}) {
+            auto prefix="https://"+h+"/"+owner+"/tube360/"+(h=="github.com"?"releases/":"");
+            if(u.compare(0,prefix.size(),prefix)==0)return true;
+        }
+        return false;
+    }
     return h=="release-assets.githubusercontent.com" || h=="objects.githubusercontent.com";
 }
 string read(const string& path,size_t max) {

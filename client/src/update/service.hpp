@@ -6,12 +6,14 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 namespace updates {
 enum class State { IDLE, CHECKING, AVAILABLE, DOWNLOADING, READY, ERROR, CHECK_FAILED };
 struct Status {State state=State::IDLE; Manifest app; int progress=0; string error;};
 class Service {
-    string dir,base,manifestBytes,manifestSig;
+    string dir,manifestBytes,manifestSig;
+    std::vector<string> bases;
     std::shared_ptr<RuleStore> store;
     std::unique_ptr<yt::Transport> net;
     SDL_Thread* thread=nullptr;

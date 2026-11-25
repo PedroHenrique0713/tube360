@@ -39,6 +39,9 @@ with tempfile.TemporaryDirectory(prefix='tube360-update-') as temp:
     run(sys.executable,ROOT/'tools/sign-updates.py','--key',key,'manifest',payload,
         '--build','2','--version','0.3.1','--url','https://github.com/PedroHenrique0713/tube360/releases/download/v0.3.1/tube360.xex',
         '--notes-en','Fixture update.','--notes-pt','Atualização de teste.','--output',base/'app.json')
+    run(sys.executable,ROOT/'tools/sign-updates.py','--key',key,'manifest',payload,
+        '--build','3','--version','0.3.2','--url','https://github.com/revive360/tube360/releases/download/v0.3.2/tube360.xex',
+        '--notes-en','Organization fixture.','--notes-pt','Teste da organização.','--output',base/'org.json')
     print(run(sys.argv[1],base,ROOT/'client/src/update/rules-default.json').decode(),end='')
     if len(sys.argv)>2:
         print(run(sys.argv[2],base).decode(),end='')
