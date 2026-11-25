@@ -28,6 +28,8 @@ def run(name,*,lang='pt',sd=False,mode='auto',selected=None,keys='',ms=4000,scre
     work=base/name;assets=work/'assets';files=work/'media';assets.mkdir(parents=True,exist_ok=True);files.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('*.ttf'):shutil.copy(font,assets)
     (assets/'settings.txt').write_text(f'lang={lang}\nsound=tv\nserver=off\nvideo_mode={mode}\noutput_height={480 if sd else 720}\n')
+    # Uma rodada anterior pode ter salvo a retomada; qualidade sempre começa do zero.
+    (assets/'local-library.json').write_text('{"version":1,"later":[],"history":[]}\n')
     for f in selected or formats:
         filename=f['url'].rsplit('/',1)[1];target=files/filename;origin=media/filename
         target.unlink(missing_ok=True)

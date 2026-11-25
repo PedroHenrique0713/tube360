@@ -12,6 +12,8 @@ for font in (root/'client/assets').glob('inter-*.ttf'):shutil.copy(font,assets)
 (assets/'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\nvideo_mode=1080p30\noutput_height=720\n')
 proofs=base/'proofs';proofs.mkdir(exist_ok=True)
 def run(name,ms,**extra):
+    # Os casos compartilham assets, mas cada sessão deve testar o player desde o início.
+    (assets/'local-library.json').write_text('{"version":1,"later":[],"history":[]}\n')
     env={**os.environ,'HOME':str(base),'XDG_CACHE_HOME':str(base/'cache'),'SDL_VIDEO_DRIVER':'offscreen','SDL_AUDIO_DRIVER':'dummy','XT_CAST_DISABLE':'1','XT_ASSETS':str(assets),'XT_QUALITY_FIXTURES':str(base/'media'),'XT_PLAY':'4p_9OPKgcDE','XT_SHOT':str(proofs/(name+'.ppm')),'XT_SHOT_MS':str(ms),**extra}
     for key in ('XT_YT_REPLAY','XT_CATALOG_REPLAY','XT_SERVER'):env.pop(key,None)
     result=subprocess.run([str(root/'client/build/tube360-quality-fixture')],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=ms/1000+40)
