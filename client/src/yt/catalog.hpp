@@ -14,6 +14,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <map>
+#include <functional>
 #include <set>
 
 namespace yt::catalog {
@@ -306,6 +307,8 @@ class Client {
   enum class MusicSource { Auto, Web, TV, Public };
   string token, language = "en";
   bool tokenRejected = false, musicTokenRejected = false;
+  std::function<void(const string&)> logger = [](const string& line) { std::fprintf(stderr,"%s\n",line.c_str()); };
+  long lastHttp = 0;
 public:
   string authError; // último motivo de recusa do token (vazio se aceito)
   string musicSource; // diagnóstico sem token nem identificadores pessoais
@@ -322,10 +325,26 @@ private:
     std::time_t created = 0;
   };
   std::map<string,List> lists;
-  static string error(const Response& r, J& data) {
-    if (!r.error.empty()) return "network_error";
-    if (r.status != 200) return "HTTP " + std::to_string(r.status);
-    return parse(r.body,data) ? "" : "invalid_json";
+  string fail(const string& route, long http, const string& code, int provider = 0) {
+    // Só rota interna, números e códigos locais: nunca corpo, URL, query, cursor ou mensagem remota.
+    if (logger) logger("catalogo falha: rota="+route+" http="+std::to_string(http)+" codigo="+code+" api_code="+std::to_string(provider));
+    return code;
+  }
+  string networkError(const Response& r, const string& route) {
+    return fail(route,r.status,"network_error transport="+std::to_string(r.transportCode)+
+        " failure="+std::to_string(int(r.failure))+" tls="+std::to_string(r.tlsCode)+" verify="+std::to_string(r.tlsVerify));
+  }
+  string error(const Response& r, J& data, const string& route) {
+    lastHttp=r.status;
+    data=J();
+    bool valid=parse(r.body,data);
+    const auto& remote=get(get(data,"error"),"code");
+    int provider=remote.is<double>() && remote.get<double>()>=0 && remote.get<double>()<=999 ? int(remote.get<double>()) : 0;
+    if (!r.error.empty()) { networkError(r,route); return "network_error"; }
+    if (r.status != 200) return fail(route,r.status,"HTTP " + std::to_string(r.status),provider);
+    if (!valid) return fail(route,r.status,"invalid_json");
+    if (data.contains("error")) return fail(route,r.status,"youtube_unavailable",provider);
+    return {};
   }
   static bool guestResponse(const J& data) {
     const auto& context=get(data,"responseContext");
@@ -342,17 +361,20 @@ private:
     auto& c = isMusic ? music : web;
     if (!c.version.empty()) return {};
     Request request; request.url = policy->s(isMusic ? "musicOrigin" : "webOrigin")+"/"; request.agent = policy->s("catalogAgent");
-    auto r = net.send(request);
-    if (r.status != 200 || !r.error.empty()) return "session_unavailable";
+    request.headers={"Cookie:"};
+    auto r = net.send(request); lastHttp=r.status;
+    const string route=isMusic ? "WEB_REMIX/bootstrap" : "WEB/bootstrap";
+    if (!r.error.empty()) { networkError(r,route); return "session_unavailable"; }
+    if (r.status != 200) return fail(route,r.status,"session_unavailable");
     auto at = r.body.find(policy->s("contextMarker"));
-    if (at == string::npos) return "context_missing";
+    if (at == string::npos) return fail(route,r.status,"context_missing");
     at = r.body.find('{',at+policy->s("contextMarker").size());
     auto end = jsonEnd(r.body,at);
-    if (end == string::npos || !parse(r.body.substr(at,end-at),c.data)) return "invalid_context";
+    if (end == string::npos || !parse(r.body.substr(at,end-at),c.data)) return fail(route,r.status,"invalid_context");
     const auto& client = get(c.data,"client");
-    if (str(client,"clientName") != policy->s(isMusic?"musicName":"webName")) return "invalid_client";
+    if (str(client,"clientName") != policy->s(isMusic?"musicName":"webName")) return fail(route,r.status,"invalid_client");
     c.version = str(client,"clientVersion"); c.visitor = str(client,"visitorData");
-    return c.version.empty() ? "version_missing" : "";
+    return c.version.empty() ? fail(route,r.status,"version_missing") : "";
   }
   string bootstrapAccountMusic() {
     if (!accountMusic.version.empty()) return {};
@@ -363,17 +385,19 @@ private:
     Request r; r.url = policy->s(tv ? "webOrigin" : "musicOrigin") + (tv ? policy->s("tvPath") : "/");
     r.agent = tv ? policy->tv.agent : policy->s("catalogAgent");
     r.headers = {"Accept: */*","Accept-Language: " + language,"Cookie:"};
-    auto res = net.send(r);
-    if (res.status != 200 || !res.error.empty()) return "session_unavailable";
+    auto res = net.send(r); lastHttp=res.status;
+    const string route=tv ? "TVHTML5/bootstrap" : "WEB_REMIX/bootstrap";
+    if (!res.error.empty()) { networkError(res,route); return "session_unavailable"; }
+    if (res.status != 200) return fail(route,res.status,"session_unavailable");
     J data;
     auto at=res.body.find(policy->s("contextMarker"));
-    if (at==string::npos) return "invalid_context";
+    if (at==string::npos) return fail(route,res.status,"invalid_context");
     at=res.body.find('{',at+policy->s("contextMarker").size()); auto end=jsonEnd(res.body,at);
-    if (end==string::npos || !parse(res.body.substr(at,end-at),data)) return "invalid_context";
+    if (end==string::npos || !parse(res.body.substr(at,end-at),data)) return fail(route,res.status,"invalid_context");
     const auto& remote=get(data,"client");
     auto version=str(remote,"clientVersion"), visitor=str(remote,"visitorData");
     auto safe=[](const string& s) { return s.size()<=8192 && std::all_of(s.begin(),s.end(),[](unsigned char c) { return c>32 && c<127; }); };
-    if (str(remote,"clientName")!=(tv ? policy->tv.name : policy->s("musicName")) || version.empty() || !safe(version) || !safe(visitor)) return "invalid_context";
+    if (str(remote,"clientName")!=(tv ? policy->tv.name : policy->s("musicName")) || version.empty() || !safe(version) || !safe(visitor)) return fail(route,res.status,"invalid_context");
     // Identidade publicada pelo próprio cliente; sem IP, rollout ou contexto desktop da sessão de TV.
     Object client{{"clientName",J(str(remote,"clientName"))},{"clientVersion",J(version)}};
     if (!visitor.empty()) client["visitorData"]=J(visitor);
@@ -409,10 +433,11 @@ private:
       if (tv) r.headers.push_back("Referer: "+policy->s("webOrigin")+policy->s("tvPath"));
       if (!identity.visitor.empty()) r.headers.push_back(policy->s("visitorHeader")+": " + identity.visitor);
       auto res = net.send(r);
+      auto result=error(res,out,string(tv ? "TVHTML5/" : "WEB_REMIX/")+route);
       bool signedOut=false;
       if (res.status != 400 && res.status != 401 && res.status != 403) {
-        auto result = error(res,out);
         signedOut=result.empty() && guestResponse(out);
+        if (signedOut) fail(string(tv ? "TVHTML5/" : "WEB_REMIX/")+route,res.status,"signed_out");
         if (!signedOut) {
           if (result.empty()) { source=tv ? MusicSource::TV : MusicSource::Web; musicSource=tv ? "tv" : "web"; authError.clear(); }
           return result;
@@ -434,18 +459,19 @@ private:
     args["context"] = J(context);
     string origin = policy->s(isMusic?"musicOrigin":"webOrigin");
     Request r; r.url = policy->api(route,isMusic); r.body = J(args).serialize(); r.agent = policy->s("catalogAgent");
-    r.headers = {"Origin: " + origin,policy->s("clientNameHeader")+": "+policy->s(isMusic?"musicCode":"webCode"),policy->s("clientVersionHeader")+": " + c.version};
+    r.headers = {"Cookie:","Origin: " + origin,policy->s("clientNameHeader")+": "+policy->s(isMusic?"musicCode":"webCode"),policy->s("clientVersionHeader")+": " + c.version};
     if (!c.visitor.empty() && c.visitor.find_first_of("\r\n") == string::npos) r.headers.push_back(policy->s("visitorHeader")+": " + c.visitor);
-    bool authorized = !isMusic && !token.empty() && !tokenRejected;
-    if (authorized) r.headers.push_back("Authorization: Bearer " + token);
+    // Busca WEB é pública, inclusive sem filtros e nas continuações. O grant TV
+    // permanece nas rotas de conta existentes; nunca condiciona uma busca pública.
+    bool authorized=!isMusic && route!="search" && !token.empty() && !tokenRejected;
+    if (authorized) r.headers.push_back("Authorization: Bearer "+token);
     auto res = net.send(r);
-    if (authorized && (res.status == 401 || res.status == 403)) {
-      // Token da conta recusado aqui: segue deslogado (a tela não pode cair) e guarda o motivo para o log.
-      tokenRejected = true; authError = route + " HTTP " + std::to_string(res.status);
-      r.headers.pop_back();
-      res = net.send(r);
+    auto result=error(res,out,string(isMusic ? "WEB_REMIX/" : "WEB/")+route);
+    if (authorized && (res.status==401 || res.status==403)) {
+      tokenRejected=true; authError=route+" HTTP "+std::to_string(res.status);
+      r.headers.pop_back(); res=net.send(r);
+      result=error(res,out,"WEB/"+route);
     }
-    auto result=error(res,out);
     if (isMusic && result.empty()) { source=MusicSource::Public; musicSource="public"; }
     updates::observe(policy->version,result.empty(),result=="invalid_json" || result=="HTTP 400" || result=="HTTP 403");
     return result;
@@ -477,6 +503,7 @@ private:
   }
 public:
   explicit Client(Transport& transport) : net(transport) {}
+  void setLogger(std::function<void(const string&)> sink) { logger=std::move(sink); }
   // Chamar no worker de navegação ao receber/renovar/remover o token da F11.
   bool setToken(const string& access) {
     if (access.size() > 8192 || !std::all_of(access.begin(),access.end(),[](unsigned char c) { return c > 32 && c < 127; })) return false;
@@ -544,7 +571,7 @@ public:
     Page p = decode(data,isMusic);
     if (kind=="search") p.title=search;
     if (isMusic) p.musicSource=list.source==MusicSource::TV ? "tv" : list.source==MusicSource::Web ? "web" : "public";
-    if (!p.error.empty()) return p;
+    if (!p.error.empty()) { fail((isMusic ? "music/" : "WEB/")+route,200,p.error); return p; }
     if (kind == "channel") p.channelId = id;
     if (!offset) { list.header = p; list.header.items.clear(); list.created = std::time(nullptr); }
     else { p.title = list.header.title; p.subtitle = list.header.subtitle; p.image = list.header.image; p.banner = list.header.banner; p.channelId = list.header.channelId; p.subscribed = list.header.subscribed; }
@@ -554,7 +581,8 @@ public:
     list.next = p.continuation; list.offset += int(p.items.size()); list.pages[offset] = p;
     return p;
   }
-  string handle(const string& path) {
+private:
+  string handleImpl(const string& path) {
     bindRules();
     auto q = query(path);
     if (path.compare(0,17,"/api/nav/channel?") == 0) {
@@ -601,5 +629,18 @@ public:
     }
     return wire(browse(q));
   }
+public:
+  string handle(const string& path) {
+    lastHttp=0;
+    if (query(path)["kind"]=="search") musicSource.clear();
+    auto result=handleImpl(path);
+    if (result.starts_with("error\t")) {
+      auto end=result.find('\n');
+      const char* route=path.starts_with("/api/nav/lyrics?") ? "/api/nav/lyrics" : path.starts_with("/api/nav/channel?") ? "/api/nav/channel" : path.starts_with("/api/nav/play?") ? "/api/nav/play" : "/api/nav";
+      fail(route,lastHttp,result.substr(6,end==string::npos ? end : end-6));
+    }
+    return result;
+  }
+
 };
 }

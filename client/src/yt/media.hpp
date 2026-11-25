@@ -270,7 +270,7 @@ struct LiveFile {
                 std::sscanf(attribute(attrs,"RESOLUTION").c_str(), "%dx%d", &w, &h);
                 int rank = preferFast && fps>30 ? 4 : fps > 0 && fps <= 30 ? 3 : fps == 0 && legacy ? 2 : 1;
                 if(w>0 && w<=1280 && h>0 && std::isfinite(fps) && fps>=0 && fps<=60.01 && codecs.find("avc1")!=string::npos && codecs.find("mp4a")!=string::npos)
-                    qualityModes|=playback::offeredMode(h,fps);
+                    qualityModes|=playback::offeredMode(h,fps,w);
                 if (w>0 && w<=1280 && h>0 && h<=ceiling && std::isfinite(fps) && fps>=0 && fps<=60.01 &&
                     codecs.find("avc1")!=string::npos && codecs.find("mp4a")!=string::npos)
                     variants.push_back({hlsUrl(url,line),attribute(attrs,"AUDIO"),h,fps});

@@ -439,7 +439,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
                     }
                 }
                 if(direct && (!muxed || mime.find("mp4a")!=string::npos))
-                    (muxed?muxedModes:adaptiveModes)|=playback::offeredMode(fmt.height,fmt.fps);
+                    (muxed?muxedModes:adaptiveModes)|=playback::offeredMode(fmt.height,fmt.fps,fmt.width);
                 if (!direct || (playback::manual(mode)?fmt.height!=playback::fixedHeight(mode):fmt.height>(height>=720 ? (mode==1 ? 720 : 1080) : height)) ||
                     (muxed && (fmt.height>720 || mime.find("mp4a")==string::npos))) continue;
                 if (fmt.height<=720 && better(fmt,fallback)) fallback=fmt;
