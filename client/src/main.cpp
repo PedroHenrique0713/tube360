@@ -26,6 +26,7 @@
 
 #include "gfx.hpp"
 #include "startup.hpp"
+#include "boot_log.h"
 #include "connection_error.hpp"
 #include "seek_hold.hpp"
 #include "gfx_video_memory.hpp"
@@ -593,14 +594,19 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
 int run(int argc, char** argv) {
   (void)argc; (void)argv;
 #ifdef __XSDK__
+  boot_event("begin","environment.fault-handler","optional, opt-in only");
   install_player_fault_handler();
+  boot_event("end","environment.fault-handler","probe returned");
   SDL_SetHint("SDL_AUDIO_XSDK_HARDWARE_THREAD","1");
   std::string assets = "";
 #else
   std::string assets = std::getenv("XT_ASSETS") ? std::getenv("XT_ASSETS") : "assets/";
 #endif
   if (!assets.empty() && assets.back() != '/') assets += '/';
+  boot_event("begin","settings","reading interface configuration");
   startup::configure(assets);
+  boot_event("end","settings","language=%s",i18n::code(startup::language));
+  boot_event("begin","sdl.init","gamepad/audio; no Xbox Live requirement");
 #ifdef __XSDK__
   bool initialized=SDL_Init(SDL_INIT_GAMEPAD|SDL_INIT_EVENTS|SDL_INIT_AUDIO);
 #else
@@ -608,9 +614,15 @@ int run(int argc, char** argv) {
   const char* startupTest=std::getenv("XT_STARTUP_ERROR");
   if(startupTest && !std::strcmp(startupTest,"sdl"))initialized=false;
 #endif
+  boot_event(initialized?"end":"error","sdl.init","ok=%d error=%s",initialized,initialized?"none":SDL_GetError());
   if(!initialized)return startup::fail(K::StartupSDL,SDL_GetError());
-  if(!startup::writable())return startup::fail(K::StartupFolder,assets,K::StartupStorage);
+  boot_event("begin","storage.writable","title directory");
+  bool canWrite=startup::writable();
+  boot_event(canWrite?"end":"error","storage.writable","ok=%d errno=%d",canWrite,canWrite?0:errno);
+  if(!canWrite)return startup::fail(K::StartupFolder,assets,K::StartupStorage);
+  boot_event("begin","fonts.preflight","four bundled TTF headers");
   auto missingFonts=startup::missingFonts(assets);
+  boot_event(missingFonts.empty()?"end":"error","fonts.preflight","missing=%s",missingFonts.empty()?"none":missingFonts.c_str());
   if(!missingFonts.empty())return startup::fail(K::StartupFonts,missingFonts,K::StartupCopy);
   Settings settings; settings.load(assets);
   auto tr = [&](K key) { return i18n::get(settings.lang, key); };
@@ -640,6 +652,7 @@ int run(int argc, char** argv) {
   if (FILE* f = std::fopen((assets + "video-metrics.txt").c_str(),"r")) { std::fscanf(f,"%d",&g.videoMetrics); std::fclose(f); }
   const char* shotPath = std::getenv("XT_SHOT");
   g.readback = shotPath != nullptr;
+  boot_event("begin","gpu.init","requested_output=%dp",settings.outputHeight);
   if (!gfx::init(g, (settings.outputHeight==480 ? 640 : settings.outputHeight*16/9), settings.outputHeight, "Tube360")) return startup::fail(K::StartupVideo,SDL_GetError());
 #ifndef __XSDK__
   if(startupTest && !std::strcmp(startupTest,"video"))return startup::fail(K::StartupVideo,"GPU initialization (fixture)");
@@ -648,6 +661,7 @@ int run(int argc, char** argv) {
   if(startupTest && !std::strcmp(startupTest,"launch"))return startup::fail(K::StartupLaunch,"tube360.xex",K::StartupCopy);
   if(startupTest && !std::strcmp(startupTest,"timeout"))return startup::fail(K::StartupLaunch,tr(K::StartupTimeout));
 #endif
+  boot_event("end","gpu.init","swapchain=%ux%u",g.extent.width,g.extent.height);
   const std::vector<gfx::FontSpec> fontSpecs={{"inter-400.ttf", 19}, {"inter-400.ttf", 16}, {"inter-600.ttf", 17}, {"inter-600.ttf", 23},
                                   {"inter-700.ttf", 27}, {"inter-700.ttf", 34}, {"inter-600.ttf", 22}, {"inter-700.ttf", 13},
                                   {"inter-700.ttf", 42}, {"inter-600.ttf", 18}, {"inter-300.ttf", 27}, {"inter-700.ttf", 58},
@@ -667,11 +681,18 @@ int run(int argc, char** argv) {
     LOG("layout: %.0fx720, %s, texto %s, margem %.0fx%.0f",ui::W,ui::narrow ? "4:3" : "wide",ui::large ? "grande" : "normal",g.insetX,g.insetY);
     return gfx::loadFonts(g,assets,specs);
   };
+  boot_event("begin","fonts.atlas","load and upload Inter");
   if (!loadDisplay()) return startup::fail(K::StartupFonts,"inter-400.ttf, inter-600.ttf, inter-700.ttf, inter-300.ttf",K::StartupCopy);
+  boot_event("end","fonts.atlas","ready");
+  boot_event("begin","icons","embedded glyphs");
   loadIcons(g);
+  boot_event("end","icons","ready");
 
   gfx::Video videoTex; g.video = &videoTex;
+  boot_event("begin","video.memory","detect mapped R8 capability");
   gfx::DecodePool videoPool(g);
+  boot_event("end","video.memory","mapped_capable=%d; allocation failure uses staging",videoPool.enabled);
+  boot_event("begin","audio.init","PCM and controller workers");
   music::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); if(!pl.mu || !pl.cv || !pl.nmu || !pl.audio)return startup::fail(K::StartupSDL,SDL_GetError()); pl.videoMetrics = g.videoMetrics; pl.directSpeaker.init(assets);
   pl.videoBuffers = videoPool.enabled ? &videoPool : nullptr;
   if (FILE* f = std::fopen((assets + "decode-config.txt").c_str(),"r")) {
@@ -683,6 +704,9 @@ int run(int argc, char** argv) {
     }
     std::fclose(f);
   }
+  boot_event("end","audio.init","ready; mapped_video_selected=%d; decode-config.txt can disable it",pl.videoBuffers!=nullptr);
+  boot_network();
+  boot_event("begin","network.workers","HTTP/account/update workers");
   updates::Service updater(assets);
   updates::UI updateUI;
   auto accountNet = yt::accountTransport();
@@ -706,7 +730,10 @@ int run(int argc, char** argv) {
   Remote remote; remote.srv = srv;
   SDL_Thread* rt = SDL_CreateThread(Remote::main, "controle", &remote);
   if(!rt)return startup::fail(K::StartupSDL,"remote worker: "+std::string(SDL_GetError()));
+  boot_event("end","network.workers","threads created; failures remain local");
+  boot_event("begin","phone.start","optional SSDP/lounge receiver");
   cast::Receiver phone(assets, brandName); phone.enable(true);
+  boot_event("end","phone.start","enable returned; discovery failures do not block Home");
   cast::Status phoneStatus; uint64_t phoneStateAt = 0, phonePlaybackSerial = 0;
   float phoneGain = 1;
   bool endTimerPending = false;
@@ -989,6 +1016,7 @@ int run(int argc, char** argv) {
 
   Screen loggedScreen = HOME;
   const char* screenNames[] = {"Home", "Busca", "Player", "Ajustes", "Navegacao"};
+  boot_event("begin","app.first-frame","enter render loop; no disk logging each frame after ready");
   while (!quit) {
     uint64_t now = SDL_GetTicks();
 #ifndef __XSDK__
@@ -2614,11 +2642,20 @@ int run(int argc, char** argv) {
   gfx::videoDestroy(g,videoTex);
   LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes + thumbs.bannerBytes), (unsigned)thumbs.peakPending);
   LOG("%s saindo", brandName.c_str());
+  boot_event("end","app.exit","normal shutdown");
+  boot_close();
   SDL_Quit();
   return 0;
 }
 
 int main(int argc,char** argv) {
+#ifdef __XSDK__
+  boot_open("","app");
+#else
+  boot_open(std::getenv("XT_ASSETS")?std::getenv("XT_ASSETS"):"assets/","app");
+#endif
+  boot_event("info","main","C runtime reached main; build=%u",unsigned(updates::buildId));
+  boot_environment();
   try {return run(argc,argv);}
   catch(const std::exception& error){return startup::fail(K::StartupVideo,error.what());}
 }

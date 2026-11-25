@@ -1,4 +1,6 @@
 #include "launcher.hpp"
+#include "boot_log.h"
+#include <unistd.h>
 #include <cerrno>
 #include <cstring>
 #include <ctime>
@@ -11,8 +13,9 @@ static uint64_t millis() {
 LauncherLog::LauncherLog(const string& directory,Trace sink):file(std::fopen((directory+"launcher.log").c_str(),"a")),network(std::move(sink)),started(millis()) {}
 LauncherLog::~LauncherLog(){if(file)std::fclose(file);}
 void LauncherLog::line(const string& message) {
+    boot_event("info","launcher","%s",message.c_str());
     string line="launcher +"+std::to_string(millis()-started)+"ms: "+message;
-    if(file){std::fprintf(file,"%s\n",line.c_str());std::fflush(file);}
+    if(file){std::fprintf(file,"%s\n",line.c_str());std::fflush(file);if(fsync(fileno(file)))boot_event("error","launcher.log-sync","errno=%d",errno);}
     if(network)network(line);
 }
 int launchApp(const string& directory,const string& key,LauncherHost& host) {

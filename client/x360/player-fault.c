@@ -1,5 +1,7 @@
 // ABI medida pelo xsdk no Xenon (docs/HARDWARE.md, milestone 40).
 #include <stdint.h>
+#include <stdio.h>
+#include "boot_log.h"
 #include <xsdk/kernel.h>
 #include <xsdk/log.h>
 
@@ -36,12 +38,20 @@ static int report(uint32_t pointers) {
 }
 
 void install_player_fault_handler(void) {
+    FILE* option=fopen("fault-handler.txt","r");
+    int enabled=0;if(option){if(fscanf(option,"%d",&enabled)!=1)enabled=0;fclose(option);}
+    if(enabled!=1){boot_event("detect","fault-handler","disabled (default); optional 17559 ABI; no PCR/context offsets read");return;}
     HANDLE kernel;
-    void *address = 0;
+    void *address = 0,*version=0;
+    if(XexGetModuleHandle("xboxkrnl.exe",&kernel)!=0 || XexGetProcedureAddress(kernel,0x158,&version)<0 || !version || ((const uint16_t*)version)[2]!=17559) {
+        boot_event("detect","fault-handler","not installed: unknown kernel ABI even though opt-in requested");return;
+    }
+    boot_event("begin","fault-handler.install","opt-in on kernel 17559; PCR stack offsets 0x70/0x74");
     if (!XexGetModuleHandle("xboxkrnl.exe", &kernel) &&
         XexGetProcedureAddress(kernel, 0x36d, &address) >= 0 && address) {
         typedef uint32_t (*Install)(uintptr_t, uintptr_t);
         uint32_t status = ((Install)address)((uintptr_t)report, (uintptr_t)report);
         xsdk_log_write("excecao: registro %08x", status);
-    } else xsdk_log_write("excecao: registro indisponivel");
+        boot_event("end","fault-handler.install","status=%08x",status);
+    } else {xsdk_log_write("excecao: registro indisponivel");boot_event("detect","fault-handler.install","export 0x36d absent; continuing without handler");}
 }

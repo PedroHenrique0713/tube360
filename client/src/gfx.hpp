@@ -14,6 +14,7 @@
 #include <string>
 #include <vector>
 #include "decoded_video.hpp"
+#include "boot_log.h"
 #include "display_layout.hpp"
 
 #ifdef __XSDK__
@@ -38,7 +39,7 @@ namespace gfx {
 inline void (*failureScreen)(const char*)=nullptr;
 [[noreturn]] inline void fail(const char* reason) { if(failureScreen)failureScreen(reason);std::exit(1); }
 }
-#define VK(x) do { VkResult r_ = (x); if (r_ != VK_SUCCESS) { LOG("Vulkan falhou (%d): %s", (int)r_, #x); char detail_[256];std::snprintf(detail_,sizeof(detail_),"%d: %s",(int)r_,#x);gfx::fail(detail_); } } while (0)
+#define VK(x) do { VkResult r_ = (x); if (r_ != VK_SUCCESS) { LOG("Vulkan falhou (%d): %s", (int)r_, #x); char detail_[256];std::snprintf(detail_,sizeof(detail_),"%d: %s",(int)r_,#x);boot_event("error","gpu.vulkan","%s",detail_);gfx::fail(detail_); } } while (0)
 
 namespace gfx {
 
@@ -74,6 +75,7 @@ struct Gfx {
   VkCommandPool cmdPool; VkCommandBuffer cbs[2]; VkFence fences[2]; VkSemaphore acqs[2], rends[2];
   Buf vbuf[2]; uint32_t vcap = 80000; VkPhysicalDeviceMemoryProperties memProps;
   std::shared_ptr<video::Surface> retained[2];
+  bool bootFrame = true;
   int fi = 0; uint32_t img = 0; bool readback = false;
   std::vector<Vtx> verts; std::vector<Cmd> cmds;
   Tex white, atlas; std::vector<Font> fonts;
@@ -93,11 +95,13 @@ struct Gfx {
 inline Gfx* emergencyGraphics=nullptr;
 inline void closeForEmergency() {
   auto* g=emergencyGraphics;emergencyGraphics=nullptr;if(!g)return;
+  boot_event("begin","gpu.cleanup","returning GPU for emergency screen");
   if(g->dev){vkDeviceWaitIdle(g->dev);if(g->swap)vkDestroySwapchainKHR(g->dev,g->swap,nullptr);vkDestroyDevice(g->dev,nullptr);g->dev=VK_NULL_HANDLE;}
   if(g->inst){if(g->surface)vkDestroySurfaceKHR(g->inst,g->surface,nullptr);vkDestroyInstance(g->inst,nullptr);g->inst=VK_NULL_HANDLE;}
 #ifndef __XSDK__
   if(g->win){SDL_DestroyWindow(g->win);g->win=nullptr;}
 #endif
+  boot_event("end","gpu.cleanup","returned");
 }
 inline uint32_t memType(Gfx& g, uint32_t bits, VkMemoryPropertyFlags want) {
   for (uint32_t i = 0; i < g.memProps.memoryTypeCount; i++)
@@ -261,11 +265,13 @@ inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec
   for (auto& s : specs) {
     auto& data = files[s.file];
     if (data.empty()) {
+      boot_event("begin","fonts.read","file=%s",s.file);
       FILE* f = std::fopen((dir + s.file).c_str(), "rb");
       if (!f) { stbtt_PackEnd(&pc); LOG("fonte ausente: %s%s", dir.c_str(), s.file); return false; }
       std::fseek(f, 0, SEEK_END); long n = std::ftell(f); std::fseek(f, 0, SEEK_SET);
       if(n<12 || n>16*1024*1024){std::fclose(f);stbtt_PackEnd(&pc);return false;}
       data.resize((size_t)n); size_t got = std::fread(data.data(), 1, data.size(), f); std::fclose(f);
+      boot_event("end","fonts.read","file=%s bytes=%zu expected=%zu",s.file,got,data.size());
       if (got != data.size()) {stbtt_PackEnd(&pc);return false;}
     }
     stbtt_fontinfo info; if(!stbtt_InitFont(&info, data.data(), 0)){stbtt_PackEnd(&pc);return false;}
@@ -285,8 +291,10 @@ inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec
     g.fonts.push_back(std::move(font));
   }
   stbtt_PackEnd(&pc);
+  boot_event("begin","fonts.upload","atlas=%dx%d",AW,AH);
   g.atlas = makeImage(g, AW, AH, VK_FORMAT_R8_UNORM, true);
   upload(g, g.atlas, pix.data(), pix.size());
+  boot_event("end","fonts.upload","ready");
   return true;
 }
 
@@ -513,6 +521,7 @@ inline void videoUpload(Gfx& g, Video& v, const void* bytes, size_t size, double
 
 // ---------------------------------------------------------------- setup e quadro
 inline void makeSwapchain(Gfx& g, int w, int h) {
+  boot_event("begin","gpu.swapchain","surface=%dx%d",w,h);
   VkSurfaceCapabilitiesKHR caps; VK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(g.phys, g.surface, &caps));
   g.extent = caps.currentExtent.width != UINT32_MAX ? caps.currentExtent : VkExtent2D{(uint32_t)w, (uint32_t)h};
   g.scale = g.extent.height / 720.f;
@@ -549,6 +558,7 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   int requested=H; H=tube360_set_output(H); W=H*16/9;
   LOG("saida: solicitada %dp, altura selecionada %d; framebuffer real na extensao display",requested,H);
 #endif
+  boot_event("begin","gpu.instance","Vulkan instance and surface");
   VkApplicationInfo app{VK_STRUCTURE_TYPE_APPLICATION_INFO}; app.pApplicationName = title; app.apiVersion = VK_API_VERSION_1_0;
   VkInstanceCreateInfo ici{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO}; ici.pApplicationInfo = &app;
 #ifdef __XSDK__
@@ -563,6 +573,8 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   VK(vkCreateInstance(&ici, nullptr, &g.inst));
   if (!SDL_Vulkan_CreateSurface(g.win, g.inst, nullptr, &g.surface)) { LOG("superfície: %s", SDL_GetError()); return false; }
 #endif
+  boot_event("end","gpu.instance","ready");
+  boot_event("begin","gpu.device","physical GPU and queue");
   uint32_t n = 0; vkEnumeratePhysicalDevices(g.inst, &n, nullptr);
   if(!n)fail("No Vulkan GPU");
   std::vector<VkPhysicalDevice> devs(n); vkEnumeratePhysicalDevices(g.inst, &n, devs.data()); g.phys = devs[0];
@@ -577,6 +589,7 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   const char* devExt[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
   VkDeviceCreateInfo dci{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO}; dci.queueCreateInfoCount = 1; dci.pQueueCreateInfos = &qi; dci.enabledExtensionCount = 1; dci.ppEnabledExtensionNames = devExt;
   VK(vkCreateDevice(g.phys, &dci, nullptr, &g.dev)); vkGetDeviceQueue(g.dev, g.family, 0, &g.queue);
+  boot_event("end","gpu.device","ready queue_family=%u",g.family);
   if (g.videoMetrics >= 2 && fams[g.family].timestampValidBits) {
     VkPhysicalDeviceProperties props{}; vkGetPhysicalDeviceProperties(g.phys,&props);
     g.timestampNs = props.limits.timestampPeriod;
@@ -587,6 +600,8 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
     LOG("sonda GPU: %s, periodo %.3f ns; comparar com sonda desligada",g.videoQueries ? "ativa" : "indisponivel",g.timestampNs);
   }
   makeSwapchain(g, W, H);
+  boot_event("end","gpu.swapchain","extent=%ux%u buffers=%u",g.extent.width,g.extent.height,unsigned(g.images.size()));
+  boot_event("begin","gpu.resources","descriptors, command buffers and pipelines");
   LOG("tela %ux%u", g.extent.width, g.extent.height);
   VkDescriptorSetLayoutBinding tb{0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr};
   VkDescriptorSetLayoutCreateInfo tl{VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO}; tl.bindingCount = 1; tl.pBindings = &tb;
@@ -614,8 +629,11 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
     g.vbuf[i] = makeBuf(g, (VkDeviceSize)g.vcap * sizeof(Vtx), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
   }
   for (int p = 0; p < PIPE_COUNT; p++) g.pipes[p] = makePipeline(g, (Pipe)p);
+  boot_event("end","gpu.resources","ready");
+  boot_event("begin","gpu.white-texture","initial upload and GPU wait");
   g.white = makeImage(g, 4, 4, VK_FORMAT_R8G8B8A8_UNORM, true);
   std::vector<uint8_t> w(64, 255); upload(g, g.white, w.data(), w.size());
+  boot_event("end","gpu.white-texture","ready");
   return true;
 }
 
@@ -639,7 +657,9 @@ inline void output(Gfx& g, int height) {
 
 inline void begin(Gfx& g) {
   uint64_t began = SDL_GetTicksNS();
-  VK(vkWaitForFences(g.dev, 1, &g.fences[g.fi], VK_TRUE, UINT64_MAX));
+  if(g.bootFrame)boot_event("begin","frame.fence","first-frame timeout=5000ms");
+  VK(vkWaitForFences(g.dev, 1, &g.fences[g.fi], VK_TRUE, g.bootFrame?5000000000ULL:UINT64_MAX));
+  if(g.bootFrame)boot_event("end","frame.fence","ready");
   g.fenceNs = SDL_GetTicksNS() - began;
   g.retained[g.fi].reset();
   auto& sample = g.samples[g.fi];
@@ -657,7 +677,9 @@ inline void begin(Gfx& g) {
 // Grava e apresenta. Se shotPath, copia a imagem para um PPM (só no PC, para conferir a interface).
 inline void end(Gfx& g, const char* shotPath = nullptr) {
   uint64_t acquireAt = SDL_GetTicksNS();
-  VK(vkAcquireNextImageKHR(g.dev, g.swap, UINT64_MAX, g.acqs[g.fi], VK_NULL_HANDLE, &g.img));
+  if(g.bootFrame)boot_event("begin","frame.acquire","first-frame timeout=5000ms");
+  VK(vkAcquireNextImageKHR(g.dev, g.swap, g.bootFrame?5000000000ULL:UINT64_MAX, g.acqs[g.fi], VK_NULL_HANDLE, &g.img));
+  if(g.bootFrame)boot_event("end","frame.acquire","image=%u",g.img);
   g.acquireNs = SDL_GetTicksNS() - acquireAt;
   uint64_t recordAt = SDL_GetTicksNS();
   VK(vkResetFences(g.dev, 1, &g.fences[g.fi]));
@@ -725,10 +747,22 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
   VkSubmitInfo si{VK_STRUCTURE_TYPE_SUBMIT_INFO}; si.waitSemaphoreCount = 1; si.pWaitSemaphores = &g.acqs[g.fi]; si.pWaitDstStageMask = &waitStage;
   si.commandBufferCount = 1; si.pCommandBuffers = &c; si.signalSemaphoreCount = 1; si.pSignalSemaphores = &g.rends[g.fi];
   uint64_t beganSubmit = SDL_GetTicksNS();
+  if(g.bootFrame)boot_event("begin","frame.submit","dark clear then UI");
   VK(vkQueueSubmit(g.queue, 1, &si, g.fences[g.fi]));
+  if(g.bootFrame)boot_event("end","frame.submit","submitted");
   uint64_t submission = SDL_GetTicksNS() - beganSubmit, beganPresent = SDL_GetTicksNS();
   VkPresentInfoKHR pi{VK_STRUCTURE_TYPE_PRESENT_INFO_KHR}; pi.waitSemaphoreCount = 1; pi.pWaitSemaphores = &g.rends[g.fi]; pi.swapchainCount = 1; pi.pSwapchains = &g.swap; pi.pImageIndices = &g.img;
-  vkQueuePresentKHR(g.queue, &pi);
+  if(g.bootFrame)boot_event("begin","frame.present","waiting for present return");
+  VkResult presented=vkQueuePresentKHR(g.queue, &pi);
+  if(g.bootFrame) {
+    boot_event(presented==VK_SUCCESS?"end":"error","frame.present","result=%d",int(presented));
+    VK(presented);
+    boot_event("begin","frame.complete","GPU fence timeout=5000ms; physical screen cannot be verified by software");
+    VK(vkWaitForFences(g.dev,1,&g.fences[g.fi],VK_TRUE,5000000000ULL));
+    boot_event("end","frame.complete","GPU finished first submission");
+    boot_event("end","app.first-frame","rendered and present returned");
+    g.bootFrame=false;
+  }
   if (uploaded) {
     uint64_t presentation = SDL_GetTicksNS() - beganPresent, now = SDL_GetTicks();
     g.submitNs += submission; g.presentNs += presentation;

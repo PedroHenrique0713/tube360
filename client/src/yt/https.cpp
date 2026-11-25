@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include "client.hpp"
+#include "boot_log.h"
+#include <ctime>
 #include "roots.hpp"
 #include "update-roots.hpp"
 #include "update/rules.hpp"
@@ -62,7 +64,12 @@ class Https final : public Transport {
     std::atomic_bool aborted{false};
 public:
     explicit Https(const std::atomic_bool* flag) : cancelFlag(flag) {
-        static const auto init = curl_global_init(CURL_GLOBAL_DEFAULT);
+        static const auto init = [] {
+            boot_event("begin","tls.global","curl + mbedTLS, embedded roots");
+            auto result=curl_global_init(CURL_GLOBAL_DEFAULT);
+            boot_event(result==CURLE_OK?"end":"error","tls.global","result=%d verifypeer=1 verifyhost=2 clock_epoch=%lld",int(result),(long long)std::time(nullptr));
+            return result;
+        }();
         if (init == CURLE_OK) easy = curl_easy_init();
     }
     ~Https() override {
@@ -143,6 +150,9 @@ public:
             set(CURLOPT_POSTFIELDS, body.data());
             set(CURLOPT_POSTFIELDSIZE, static_cast<long>(body.size()));
         }
+        static std::atomic_bool first{true};
+        bool trace=first.exchange(false);
+        if(trace)boot_event("begin","tls.first-request","kind=%s; URL, tokens and cookies omitted",r.media?"media":r.update?"update":"API");
         auto rc = setup == CURLE_OK ? curl_easy_perform(handle) : setup;
         curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &res.status);
         if (std::getenv("XT_HTTP_DEBUG") && res.status != 200) std::fprintf(stderr, "http %ld %s -> %s\n", (long)res.status, url.c_str(), res.location.c_str());
@@ -168,13 +178,18 @@ public:
             // Só Range pode aproveitar um prefixo, depois de validar Content-Range. JSON continua atômico.
             if (!r.media || !res.retryable) res.body.clear();
         }
+        if(trace)boot_event(rc==CURLE_OK?"end":"error","tls.first-request","curl=%d HTTP=%ld failure=%s cert_flags=%08x",int(rc),res.status,failureName(res.failure),unsigned(certificateFlags));
         return res;
     }
 };
 }
 std::unique_ptr<Transport> https(const std::atomic_bool* cancel) {
 #ifndef __XSDK__
-    if (const char* directory = std::getenv("XT_YT_REPLAY")) return std::make_unique<Replay>(directory);
+    if (const char* directory = std::getenv("XT_YT_REPLAY")) {
+        static std::atomic_bool first{true};
+        if(first.exchange(false))boot_event("info","tls.transport","desktop recorded responses; no TLS request made");
+        return std::make_unique<Replay>(directory);
+    }
 #endif
     return std::make_unique<Https>(cancel);
 }

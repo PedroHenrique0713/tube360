@@ -1,5 +1,6 @@
 """Certificados reais em loopback: validade, emissor e nome permanecem verificados."""
 from datetime import datetime, timedelta, timezone
+import os
 import ipaddress
 import socket
 import ssl
@@ -22,6 +23,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-reddit-tls-') as tmp:
         subject=x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,'localhost')])
         cert=(x509.CertificateBuilder().subject_name(subject).issuer_name(subject).public_key(key.public_key()).serial_number(x509.random_serial_number()).not_valid_before(start).not_valid_after(end).add_extension(x509.SubjectAlternativeName([x509.IPAddress(ipaddress.ip_address('127.0.0.1'))]),critical=False).sign(key,hashes.SHA256()))
         (base/'cert.pem').write_bytes(cert.public_bytes(serialization.Encoding.PEM))
+        case=base/name;case.mkdir()
         context=ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER);context.load_cert_chain(base/'cert.pem',base/'key.pem')
         with socket.socket() as listener:
             listener.bind(('127.0.0.1',0));listener.listen();listener.settimeout(5)
@@ -33,6 +35,12 @@ with tempfile.TemporaryDirectory(prefix='tube360-reddit-tls-') as tmp:
                         with context.wrap_socket(conn,server_side=True) as tls:tls.recv(4096)
                     except ssl.SSLError:pass
             thread=threading.Thread(target=serve);thread.start()
-            result=subprocess.run([sys.argv[1],f'https://127.0.0.1:{listener.getsockname()[1]}/',expected],timeout=10)
+            result=subprocess.run([sys.argv[1],f'https://127.0.0.1:{listener.getsockname()[1]}/?token=DO_NOT_LOG_THIS',expected],timeout=10,env={**os.environ,'XT_BOOT_PROBE':str(case)})
             thread.join();assert seen and result.returncode==0,name
-            print('PASS',name,expected,flush=True)
+            boot=(case/'boot-tls-test.log').read_text()
+            assert 'begin tls.global' in boot and 'end tls.global' in boot and 'error tls.first-request' in boot,boot
+            assert 'DO_NOT_LOG_THIS' not in boot and 'https://' not in boot,boot
+            if len(sys.argv)>2:
+                evidence=Path(sys.argv[2]);evidence.mkdir(parents=True,exist_ok=True)
+                (evidence/(name+'.log')).write_text(boot)
+            print('PASS',name,expected,'durable TLS stages without URL/query',flush=True)

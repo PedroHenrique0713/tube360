@@ -1,6 +1,7 @@
 // Tela de emergência independente de Vulkan, das fontes externas e da inicialização do SDL.
 #pragma once
 #include "i18n.hpp"
+#include "boot_log.h"
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
@@ -45,11 +46,13 @@ inline void log(const std::string& text) {
 inline std::string missingFonts(const std::string& dir) {
   std::string result;
   for (auto name : {"inter-400.ttf","inter-600.ttf","inter-700.ttf","inter-300.ttf"}) {
+    boot_event("begin","fonts.header","file=%s",name);
     FILE* f=std::fopen((dir+name).c_str(),"rb");
     unsigned char header[4]{};
     bool valid=f && std::fread(header,1,4,f)==4 &&
         ((!header[0] && header[1]==1 && !header[2] && !header[3]) || !std::memcmp(header,"OTTO",4));
     if(f)std::fclose(f);
+    boot_event(valid?"end":"error","fonts.header","file=%s valid=%d errno=%d",name,valid,valid?0:errno);
     if(!valid) {if(!result.empty())result+=", ";result+=name;}
   }
   return result;
@@ -81,6 +84,7 @@ inline std::string wrap(const std::string& text,size_t columns) {
 }
 [[noreturn]] inline int fail(i18n::Key reason,const std::string& detail={},i18n::Key action=i18n::Key::StartupRetry) {
   auto tr=[](i18n::Key k){return i18n::get(language,k);};
+  boot_event("error","startup.fail","%s detail=%s",tr(reason),detail.c_str());
   log(std::string(tr(i18n::Key::StartupTitle))+"\n"+tr(reason)+"\n"+detail+"\n"+tr(action));
   size_t limit=std::min(size_t(80),detail.size());
   while(limit<detail.size() && limit && (uint8_t(detail[limit])&0xc0)==0x80)--limit;
@@ -88,12 +92,15 @@ inline std::string wrap(const std::string& text,size_t columns) {
   if(releaseGraphics){auto release=releaseGraphics;releaseGraphics=nullptr;release();}
 #ifdef __XSDK__
   // O driver pode ter falhado antes de assumir a GPU. Cada recurso só é fechado se abriu.
-  bool gpu=NT_SUCCESS(xsdk_gpu_open()),present=false,text=false;
+  boot_event("begin","error-screen.gpu","xsdk_gpu_open");
+  auto gpuStatus=xsdk_gpu_open();
+  bool gpu=NT_SUCCESS(gpuStatus),present=false,text=false;
+  boot_event(gpu?"end":"error","error-screen.gpu","status=%08x",unsigned(gpuStatus));
   uint32_t w=0,h=0;
   if(gpu)present=NT_SUCCESS(xsdk_present_open(XSDK_DISPLAY_720P,2,1,&w,&h));
   if(present)text=NT_SUCCESS(xsdk_text_open());
   uint32_t scale=w>=1000?2:1;
-  auto lines=wrap(body,std::max(30u,(w-80)/(10*scale)));
+  auto lines=wrap(body,std::max(30u,(w>80?w-80:560)/(10*scale)));
   bool released=false;
   for(;;) {
     if(text) {
