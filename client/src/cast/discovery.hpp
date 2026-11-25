@@ -22,7 +22,7 @@ struct SearchResult {
     uint64_t revision = 0;
 };
 SearchResult scan(Network, const std::atomic_bool& cancel, const Config& known = {});
-bool identify(Config&, const std::atomic_bool& cancel);
+bool identify(Config&, const std::atomic_bool& cancel, uint64_t deadline = 0);
 int matching(const Config&, const std::vector<Config>&);
 
 // Um worker e até 16 sockets de sondagem; TLS/JSON nunca passam pela thread de desenho.
@@ -31,8 +31,8 @@ class Discovery {
     SDL_Condition* condition = nullptr;
     SDL_Thread* thread = nullptr;
     std::atomic_bool cancelFlag{false};
-    bool quit = false, requested = false, manual = false, verified = false;
-    uint64_t selection = 0, retryAt = 0;
+    bool quit = false, requested = false, manual = false, recovery = false, verified = false;
+    uint64_t selection = 0, retryAt = 0, metadataAt = 0;
     std::string dir;
     Config config;
     SearchResult result;
@@ -43,6 +43,7 @@ public:
     void stop();
     void search();
     void cancel();
+    void refresh(); // Metadados depois do PLAYING; falha nunca inicia varredura.
     void recover();
     Config selected();
     bool configured();

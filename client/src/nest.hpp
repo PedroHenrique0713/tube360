@@ -240,14 +240,15 @@ private:
                 publish(view); SDL_Delay(20); continue;
             }
             if (goal.active && pending && !possible && now-began > 8000) {
-                SDL_Log("Nest: console erro aguardando descoberta/LAUNCH/namespace (8000 ms)");
+                SDL_Log("Nest: console erro aguardando conexao/LAUNCH/namespace (8000 ms)");
                 view.state = ERROR; publish(view); SDL_Delay(20); continue;
             }
             if (!connected) {
                 view.connected = false; publish(view);
                 if (now < retryAt) { SDL_Delay(20); continue; }
-                if (!possible && !discovery.ready()) { discovery.recover(); SDL_Delay(20); continue; }
-                channel.close(); connected = channel.open(endpoint.host,endpoint.port); retryAt = SDL_GetTicks()+500;
+                // O IP salvo basta para tocar, inclusive sem UUID. A descoberta não autoriza o áudio.
+                int timeout = goal.active && pending && !possible ? int(std::min<uint64_t>(4000,8000-(now-began))) : 4000;
+                channel.close(); connected = channel.open(endpoint.host,endpoint.port,std::max(timeout,1),&quit); retryAt = SDL_GetTicks()+500;
                 if (!connected) { discovery.recover(); SDL_Log("Nest: console erro conectando Cast"); continue; }
                 receiverKnown = receiverPresent = mediaKnown = false; transport.clear(); receiverSession.clear(); mediaSession = 0;
                 sentVolume = -1;
@@ -401,6 +402,7 @@ private:
                         if (!state.empty())
                             view.state = state == "PLAYING" ? PLAYING : state == "PAUSED" ? PAUSED : state == "BUFFERING" ? BUFFERING : state == "IDLE" ? IDLE : UNKNOWN;
                         if (view.state != previousState) SDL_Log("Nest: console status=%s gen=%llu RTT=%.0f ms relogio=%d",state.c_str(),(unsigned long long)generation,roundTrip,clock || replyId == 0);
+                        if (view.state == PLAYING) discovery.refresh();
                         if (previousState == PAUSED && (view.state == PLAYING || view.state == BUFFERING)) advanced = now;
                         if (!state.empty() && view.state != UNKNOWN) view.observed = SDL_GetTicksNS()/1e6;
                         double position = number(entry,"currentTime",NAN);

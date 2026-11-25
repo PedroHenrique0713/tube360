@@ -56,6 +56,7 @@ bool decode(const std::string& bytes, Message& message) {
 }
 struct Connection::Impl {
     CURL* easy = nullptr;
+    CURLM* multi = nullptr;
     const std::atomic_bool* cancel = nullptr;
     curl_socket_t socket = CURL_SOCKET_BAD;
     std::string pending;
@@ -69,8 +70,10 @@ struct Connection::Impl {
 Connection::Connection() : impl(std::make_unique<Impl>()) {}
 Connection::~Connection() { close(); }
 void Connection::close() {
+    if (impl->multi && impl->easy) curl_multi_remove_handle(impl->multi,impl->easy);
     if (impl->easy) curl_easy_cleanup(impl->easy);
-    impl->easy = nullptr; impl->socket = CURL_SOCKET_BAD; impl->pending.clear();
+    if (impl->multi) curl_multi_cleanup(impl->multi);
+    impl->easy = nullptr; impl->multi = nullptr; impl->socket = CURL_SOCKET_BAD; impl->pending.clear();
 }
 bool Connection::open(const std::string& host, int port, int timeoutMs, const std::atomic_bool* cancel) {
     close();
@@ -95,7 +98,18 @@ bool Connection::open(const std::string& host, int port, int timeoutMs, const st
     curl_easy_setopt(easy, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(easy, CURLOPT_CONNECTTIMEOUT_MS, long(timeoutMs));
     curl_easy_setopt(easy, CURLOPT_TIMEOUT_MS, long(timeoutMs));
-    if (curl_easy_perform(easy) != CURLE_OK ||
+    // O callback de progresso pode levar 1 s para perceber B durante TLS sem tráfego.
+    // Mantém o mesmo handshake em andamento, mas consulta cancelamento a cada 20 ms.
+    impl->multi = curl_multi_init();
+    if (!impl->multi || curl_multi_add_handle(impl->multi,easy) != CURLM_OK) { close(); return false; }
+    int running = 1;
+    while (running) {
+        if ((cancel && cancel->load()) || curl_multi_perform(impl->multi,&running) != CURLM_OK) { close(); return false; }
+        if (running && curl_multi_poll(impl->multi,nullptr,0,20,nullptr) != CURLM_OK) { close(); return false; }
+    }
+    int messages = 0;
+    auto* result = curl_multi_info_read(impl->multi,&messages);
+    if (!result || result->msg != CURLMSG_DONE || result->data.result != CURLE_OK ||
         curl_easy_getinfo(easy, CURLINFO_ACTIVESOCKET, &impl->socket) != CURLE_OK || impl->socket == CURL_SOCKET_BAD) {
         close(); return false;
     }

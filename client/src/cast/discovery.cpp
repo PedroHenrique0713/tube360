@@ -77,17 +77,22 @@ size_t body(char* p,size_t size,size_t n,void* target) {
     if (bytes>60000-out.size()) return 0;
     out.append(p,bytes); return bytes;
 }
-bool eureka(Config& device,const std::atomic_bool& cancel) {
+int remaining(uint64_t deadline,int limit) {
+    auto now=SDL_GetTicks();
+    return deadline ? (now>=deadline ? 0 : int(std::min<uint64_t>(limit,deadline-now))) : limit;
+}
+bool eureka(Config& device,const std::atomic_bool& cancel,uint64_t deadline) {
     // Firmwares recentes também oferecem esta leitura em HTTPS na porta 8443.
     for (bool tls:{false,true}) {
-        if (cancel) return false;
+        int budget=remaining(deadline,tls ? 5000 : 2500);
+        if (cancel || !budget) return false;
         auto* easy=curl_easy_init(); if (!easy) return false;
         std::string bytes,url=std::string(tls ? "https://" : "http://")+device.host+(tls ? ":8443" : ":8008")+"/setup/eureka_info?params=device_info,name";
         curl_easy_setopt(easy,CURLOPT_URL,url.c_str());
         curl_easy_setopt(easy,CURLOPT_PROXY,"");
         curl_easy_setopt(easy,CURLOPT_NOSIGNAL,1L);
-        curl_easy_setopt(easy,CURLOPT_CONNECTTIMEOUT_MS,200L);
-        curl_easy_setopt(easy,CURLOPT_TIMEOUT_MS,350L);
+        curl_easy_setopt(easy,CURLOPT_CONNECTTIMEOUT_MS,long(std::min(budget,tls ? 4000 : 1500)));
+        curl_easy_setopt(easy,CURLOPT_TIMEOUT_MS,long(budget));
         // Certificado próprio do mesmo receptor LAN já confirmado pelo protocolo Cast.
         if (tls) { curl_easy_setopt(easy,CURLOPT_SSL_VERIFYPEER,0L); curl_easy_setopt(easy,CURLOPT_SSL_VERIFYHOST,0L); }
         curl_easy_setopt(easy,CURLOPT_WRITEFUNCTION,body);
@@ -178,14 +183,16 @@ std::vector<std::string> addresses(Network net) {
     for (uint32_t at=first+1;at<last;++at) if (at!=net.address) out.push_back(ip(at));
     return out;
 }
-bool identify(Config& device,const std::atomic_bool& cancel) {
-    if (cancel) return false;
+bool identify(Config& device,const std::atomic_bool& cancel,uint64_t deadline) {
+    int budget=remaining(deadline,4000);
+    if (cancel || !budget) return false;
     cast::Connection channel;
-    if (!channel.open(device.host,device.port,600,&cancel)) return false;
+    // TLS no Xenon disputa CPU com o vídeo; os 600/450 ms antigos só bastavam no PC.
+    if (!channel.open(device.host,device.port,budget,&cancel)) return false;
     const std::string sender="sender-tube360-discovery";
     if (!channel.send(sender,"receiver-0",cast::connection,R"({"type":"CONNECT","origin":{}})") ||
         !channel.send(sender,"receiver-0",cast::receiver,R"({"type":"GET_STATUS","requestId":1})")) return false;
-    uint64_t until=SDL_GetTicks()+450;
+    uint64_t until=SDL_GetTicks()+remaining(deadline,2000);
     bool valid=false;
     while (!cancel && SDL_GetTicks()<until) {
         cast::Message message; int rc=channel.read(message,20); if (rc<0) break; if (!rc) continue;
@@ -200,7 +207,7 @@ bool identify(Config& device,const std::atomic_bool& cancel) {
     channel.close();
     if (!valid || cancel) return false;
     // Um HTTP 200 isolado não prova que seja um receptor Cast.
-    device.uuid.clear(); device.model.clear(); eureka(device,cancel);
+    device.uuid.clear(); device.model.clear(); eureka(device,cancel,deadline);
     if (device.name.empty() || device.name=="Nest") device.name=device.host;
     if (device.model.empty()) device.model="Google Cast";
     return !cancel;
@@ -216,8 +223,8 @@ SearchResult scan(Network net,const std::atomic_bool& cancel,const Config& known
     SDL_Log("Nest: busca unicast IP=%s mascara=%s hosts=%u limite=16",ip(net.address).c_str(),ip(net.mask).c_str(),(unsigned)hosts.size());
     struct Probe { int fd; std::string host; uint64_t until; };
     std::vector<Probe> pending; std::vector<std::string> ready;
-    size_t next=0; uint64_t deadline=SDL_GetTicks()+4000;
-    while (!cancel && SDL_GetTicks()<deadline && (next<hosts.size() || !pending.empty())) {
+    size_t next=0; uint64_t probeDeadline=began+10000, deadline=began+30000;
+    while (!cancel && SDL_GetTicks()<probeDeadline && (next<hosts.size() || !pending.empty())) {
         while (pending.size()<16 && next<hosts.size()) {
             auto host=hosts[next++]; int fd=socket(AF_INET,SOCK_STREAM,0);
             if (fd<0 || fd>=FD_SETSIZE) { if (fd>=0) close(fd); result.state=SearchState::Incomplete; continue; }
@@ -225,7 +232,7 @@ SearchResult scan(Network net,const std::atomic_bool& cancel,const Config& known
             sockaddr_in address{}; address.sin_family=AF_INET; address.sin_port=htons(8009); inet_pton(AF_INET,host.c_str(),&address.sin_addr);
             int rc=connect(fd,reinterpret_cast<sockaddr*>(&address),sizeof(address));
             if (!rc) { ready.push_back(host); close(fd); }
-            else if (errno==EINPROGRESS || errno==EWOULDBLOCK || errno==EAGAIN) pending.push_back({fd,host,SDL_GetTicks()+160});
+            else if (errno==EINPROGRESS || errno==EWOULDBLOCK || errno==EAGAIN) pending.push_back({fd,host,SDL_GetTicks()+500});
             else close(fd);
         }
         if (pending.empty()) continue;
@@ -243,13 +250,14 @@ SearchResult scan(Network net,const std::atomic_bool& cancel,const Config& known
     if (next<hosts.size() || !pending.empty()) result.state=SearchState::Incomplete;
     for (auto& p:pending) close(p.fd);
     for (auto& host:ready) {
-        if (cancel || SDL_GetTicks()>=deadline+1000) { result.state=SearchState::Incomplete; break; }
+        if (cancel || SDL_GetTicks()>=deadline) { result.state=SearchState::Incomplete; break; }
         Config device; device.host=host;
-        if (identify(device,cancel)) {
+        if (identify(device,cancel,deadline)) {
             bool duplicate=!device.uuid.empty() && std::any_of(result.devices.begin(),result.devices.end(),[&](const Config& c) { return c.uuid==device.uuid; });
             if (!duplicate) result.devices.push_back(device);
         }
     }
+    if (SDL_GetTicks()>=deadline) result.state=SearchState::Incomplete;
     if (cancel) result.state=SearchState::Cancelled;
     std::sort(result.devices.begin(),result.devices.end(),[](const Config& a,const Config& b) { return a.name==b.name ? a.host<b.host : a.name<b.name; });
     SDL_Log("Nest: busca terminou estado=%d encontrados=%u em %llu ms",int(result.state),(unsigned)result.devices.size(),(unsigned long long)(SDL_GetTicks()-began));
@@ -265,7 +273,6 @@ int matching(const Config& saved,const std::vector<Config>& devices) {
 }
 void Discovery::init(const std::string& directory) {
     dir=directory; config.load(dir); mutex=SDL_CreateMutex(); condition=SDL_CreateCondition();
-    requested=!config.host.empty();
     thread=yt::worker([](void* p) { static_cast<Discovery*>(p)->run(); return 0; },"nest-discovery",this);
     if (!thread) { result.state=SearchState::NetworkError; ++result.revision; }
 }
@@ -296,7 +303,14 @@ void Discovery::cancel() {
 void Discovery::recover() {
     SDL_LockMutex(mutex);
     if (thread && !requested && result.state!=SearchState::Searching && SDL_GetTicks()>=retryAt && !config.host.empty()) {
-        cancelFlag=false; manual=false; requested=true; verified=false; SDL_SignalCondition(condition);
+        cancelFlag=false; manual=false; recovery=requested=true; verified=false; SDL_SignalCondition(condition);
+    }
+    SDL_UnlockMutex(mutex);
+}
+void Discovery::refresh() {
+    SDL_LockMutex(mutex);
+    if (thread && !verified && !requested && result.state!=SearchState::Searching && SDL_GetTicks()>=metadataAt && !config.host.empty()) {
+        cancelFlag=false; manual=recovery=false; requested=true; SDL_SignalCondition(condition);
     }
     SDL_UnlockMutex(mutex);
 }
@@ -306,7 +320,7 @@ Config Discovery::selected() { SDL_LockMutex(mutex); auto copy=config; SDL_Unloc
 bool Discovery::choose(const Config& value) {
     SDL_LockMutex(mutex);
     bool ok=value.save(dir);
-    if (ok) { config=value; verified=!value.host.empty(); ++selection; retryAt=0; cancelFlag=true; requested=false; }
+    if (ok) { config=value; verified=!value.host.empty(); ++selection; retryAt=metadataAt=0; cancelFlag=true; requested=false; }
     SDL_UnlockMutex(mutex); return ok;
 }
 bool Discovery::poll(SearchResult& view) {
@@ -320,13 +334,14 @@ void Discovery::run() {
         SDL_LockMutex(mutex);
         while (!quit && !requested) SDL_WaitCondition(condition,mutex);
         if (quit) { SDL_UnlockMutex(mutex); return; }
-        bool user=manual; auto saved=config; auto version=selection; requested=false;
+        bool user=manual, failed=recovery; auto saved=config; auto version=selection; requested=false;
         result.state=SearchState::Searching; ++result.revision; SDL_UnlockMutex(mutex);
         SearchResult found; Config live=saved;
-        if (!saved.host.empty()) SDL_Log("Nest: verificando IP salvo %s antes da busca",saved.host.c_str());
+        if (!saved.host.empty()) SDL_Log("Nest: %s IP salvo %s",user ? "busca manual; verificando" : failed ? "conexao falhou; verificando" : "metadados em segundo plano; verificando",saved.host.c_str());
         bool same=!saved.host.empty() && identify(live,cancelFlag) && (saved.uuid.empty() || live.uuid==saved.uuid);
+        found.state=SearchState::NetworkError;
         if (same) { found.state=SearchState::Done; found.devices.push_back(live); }
-        if (user || !same) {
+        if (user || (failed && !same)) {
             Network net;
             if (localNetwork(net)) found=scan(net,cancelFlag,same ? live : Config{});
             else if (!same) found.state=SearchState::NetworkError;
@@ -340,7 +355,9 @@ void Discovery::run() {
             if (config.host!=saved.host) SDL_Log("Nest: reencontrado em %s por %s",config.host.c_str(),saved.uuid.empty() ? "nome unico" : "UUID");
         }
         if (cancelFlag) found.state=SearchState::Cancelled;
-        found.revision=result.revision+1; result=std::move(found); retryAt=cancelFlag ? 0 : SDL_GetTicks()+30000;
+        found.revision=result.revision+1; result=std::move(found);
+        metadataAt=SDL_GetTicks()+30000;
+        if (user || failed) retryAt=SDL_GetTicks()+30000;
         if (requested) cancelFlag=false;
         SDL_UnlockMutex(mutex);
     }
