@@ -13,6 +13,13 @@
 #include "objects.h"
 #include "xsdk/tube360_video.h"
 #include "xsdk/present.h"
+#ifdef BOARD_SIM_POLICY
+#include "video_policy.h"
+#include "board_sim.h"
+const char* boot_log_path(void){return "boot-app.log";}
+uint32_t XexGetModuleHandle(const char* name,HANDLE* out){assert(!strcmp(name,"xboxkrnl.exe"));*out=1;return 0;}
+NTSTATUS XexGetProcedureAddress(HANDLE module,uint32_t ordinal,void** out){static uint32_t corona=0x50000000;assert(module==1 && ordinal==0x156);*out=&corona;return 0;}
+#endif
 extern int tube360_set_output(int);
 extern int tube360_output_fixed(void);
 extern float tube360_output_aspect(void);
@@ -20,7 +27,9 @@ static int native,allocs,interrupts,scaler_writes,trace_done;
 static VIDEO_MODE video;
 static uint32_t width,height;
 static volatile uint32_t* buffers[3];
+#ifndef BOARD_SIM_POLICY
 int tube360_native_video(void){return native;}
+#endif
 void boot_event(const char* phase,const char* step,const char* fmt,...){
     if(!strcmp(step,"display.scaler-write") && !strcmp(phase,"begin"))++scaler_writes;
     if(!strcmp(step,"display.first-show") && !strcmp(phase,"end"))trace_done=1;
@@ -55,7 +64,15 @@ VkResult v4x_host_enumerate(uint32_t* count,void* out,const void* items,uint32_t
 }
 int main(int argc,char** argv){
     assert(argc==2);native=!strncmp(argv[1],"native",6);
+#ifdef BOARD_SIM_POLICY
+    tube360_video_policy_init();
+    assert(tube360_board_sim_active() && !strcmp(tube360_board_sim_name(),"corona") && tube360_board_sim_sd());
+    assert(tube360_native_video()==native && tube360_board_sim_display_ok(native));
+#endif
     video=(VIDEO_MODE){.display_width=640,.display_height=480,.is_interlaced=1,.refresh_rate=59.94f};
+#ifdef BOARD_SIM_POLICY
+    if(!strstr(argv[1],"real-sd"))video=(VIDEO_MODE){.display_width=1920,.display_height=1080,.is_widescreen=1,.refresh_rate=60};
+#endif
     width=640;height=480;
     if(strstr(argv[1],"576")){video.display_height=576;video.refresh_rate=50;height=576;}
     if(strstr(argv[1],"480p"))video.is_interlaced=0;
@@ -71,7 +88,11 @@ int main(int argc,char** argv){
     const unsigned registers[]={0x1964,0x1965,0x1961,0x197a,0x196c,0x196d,0x196e,0x1970,0x1971,0x1972};
     uint32_t scaler[10];for(unsigned i=0;i<10;++i)scaler[i]=gpu_registers[registers[i]];
     assert(tube360_set_output(1080)==(int)height && tube360_output_fixed());
+#ifdef BOARD_SIM_POLICY
+    assert(tube360_output_aspect()==4.f/3);
+#else
     assert(tube360_output_aspect()==(video.is_widescreen?16.f/9:4.f/3));
+#endif
     VkDisplayPropertiesKHR props;uint32_t n=1;
     assert(vkGetPhysicalDeviceDisplayPropertiesKHR(0,&n,&props)==VK_SUCCESS);
     VkDisplayModePropertiesKHR mode;n=1;assert(vkGetDisplayModePropertiesKHR(0,props.display,&n,&mode)==VK_SUCCESS);

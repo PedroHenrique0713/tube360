@@ -16,6 +16,7 @@
 #include "decoded_video.hpp"
 #include "boot_log.h"
 #include "video_policy.h"
+#include "board_sim.h"
 #include "display_layout.hpp"
 
 #ifdef __XSDK__
@@ -572,6 +573,9 @@ inline void makeSwapchain(Gfx& g, int w, int h) {
 }
 
 inline bool init(Gfx& g, int W, int H, const char* title) {
+#ifndef __XSDK__
+  tube360_board_sim_extent(H,tube360_native_video(),&W,&H);
+#endif
 #ifdef __XSDK__
   int requested=H; H=tube360_set_output(H); W=H*16/9;
   LOG("saida: solicitada %dp, altura selecionada %d; framebuffer real na extensao display",requested,H);
@@ -659,7 +663,7 @@ inline float outputAspect() {
 #ifdef __XSDK__
   return tube360_output_aspect();
 #else
-  return 0;
+  return tube360_board_sim_aspect();
 #endif
 }
 inline bool fixedOutput() {
@@ -668,7 +672,7 @@ inline bool fixedOutput() {
 #else
   // Só na bancada desktop: exercita o mesmo veto de saída sem simular uma placa real.
   static bool fixed=std::getenv("XT_TEST_FIXED_OUTPUT") && !std::strcmp(std::getenv("XT_TEST_FIXED_OUTPUT"),"1");
-  return fixed;
+  return fixed || (tube360_board_sim_active() && (!tube360_native_video() || tube360_board_sim_sd()));
 #endif
 }
 inline bool output(Gfx& g, int height) {

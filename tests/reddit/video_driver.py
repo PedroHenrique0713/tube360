@@ -77,3 +77,30 @@ with tempfile.TemporaryDirectory(prefix='tube360-video-driver-') as tmp:
         result=run([work/'sd',case],capture_output=True,text=True);(a.evidence/(case+'.log')).write_text(result.stdout)
         assert 'begin display.kernel-viewport' in result.stdout and 'kernel=1' in result.stdout
         print(result.stdout.splitlines()[-1],flush=True)
+    run([*common,'-D__XSDK__','-DBOARD_SIM_POLICY','-I'+str(ROOT/'client/src'),ROOT/'tests/reddit/sd_swapchain.c',ROOT/'client/src/video_policy.c',ROOT/'client/src/board_sim.c',v4x/'src/display.c',work/'swapchain.c',work/'present.c',work/'display.o','-Wl,--gc-sections','-o',work/'corona'])
+    for driver in ('native','safe'):
+        folder=a.evidence/('corona-480i-component-'+driver);folder.mkdir(exist_ok=True)
+        config=f'board=corona\ndriver={driver}\nmode=480i\ncable=component\n'
+        (folder/'board-sim.txt').write_text(config)
+        # A simulação explícita tem precedência sobre um override conflitante.
+        (folder/'video-driver.txt').write_text('safe' if driver=='native' else 'native')
+        for signal in ('real-hd','real-sd'):
+            result=run([work/'corona',driver+'-480i-'+signal],cwd=folder,capture_output=True,text=True)
+            (folder/(signal+'-boot.log')).write_text(result.stdout)
+            assert 'model=Corona;' in result.stdout and 'profile=corona' in result.stdout
+            assert 'mode=480i cable=component simulated=1' in result.stdout
+            assert f'selected={driver}' in result.stdout and 'surface=swapchain=present=640x480' in result.stdout
+            assert ('dashboard=1920x1080 interlaced=0' if signal=='real-hd' else 'dashboard=640x480 interlaced=1') in result.stdout
+            print('PASS Corona board-sim mode=480i cable=component driver='+driver+' query='+signal+' surface=swapchain=present=640x480 buffers=2 IRQ=1',flush=True)
+    # Sem o hook sintético, o caso com query HD precisa falhar na seleção da saída.
+    text=(sdk/'src/display.c').read_text();needle=' || (tube360_board_sim_sd && tube360_board_sim_sd())'
+    assert text.count(needle)==1
+    (work/'mutant.c').write_text(text.replace(needle,''))
+    run([*common,'-Dclock_gettime=fixture_clock_gettime','-c',work/'mutant.c','-o',work/'mutant.o'])
+    run([*common,'-D__XSDK__','-DBOARD_SIM_POLICY','-I'+str(ROOT/'client/src'),ROOT/'tests/reddit/sd_swapchain.c',ROOT/'client/src/video_policy.c',ROOT/'client/src/board_sim.c',v4x/'src/display.c',work/'swapchain.c',work/'present.c',work/'mutant.o','-Wl,--gc-sections','-o',work/'mutant'])
+    for driver in ('native','safe'):
+        folder=a.evidence/('corona-480i-component-'+driver)
+        bad=subprocess.run([str(work/'mutant'),driver+'-480i'],cwd=folder,capture_output=True,text=True,timeout=10)
+        (folder/'mutant.log').write_text(bad.stdout+bad.stderr)
+        assert bad.returncode!=0 and 'tube360_set_output(1080)' in bad.stderr,bad.stderr
+        print('PASS calibration: removing board-sim SD hook is detected in '+driver,flush=True)

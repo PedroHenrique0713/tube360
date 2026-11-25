@@ -128,6 +128,7 @@ def finish(sdk,v4x):
     stamp=sdk/'tube360-video-policy-v2'
     if stamp.exists():
         finish_sd(sdk,v4x)
+        finish_sim_display(sdk,v4x)
         return
     display=sdk/'src/display.c';text=display.read_text()
     needle='\tVIDEO_MODE video;\n\tVdQueryVideoMode(&video);\n\tif (mode == XSDK_DISPLAY_1080P'
@@ -141,6 +142,26 @@ def finish(sdk,v4x):
     stamp.write_text('safe cache operations remain original no-ops; no extra native-mode query\n')
     (v4x/'tube360-video-policy-v2').write_text(stamp.read_text())
     finish_sd(sdk,v4x)
+    finish_sim_display(sdk,v4x)
+
+def finish_sim_display(sdk,v4x):
+    stamp=sdk/'tube360-video-policy-v5'
+    if stamp.exists():return
+    header=sdk/'include/xsdk/tube360_video.h'
+    header.write_text(header.read_text()+'''extern int tube360_board_sim_sd(void) __attribute__((weak));
+extern float tube360_board_sim_aspect(void) __attribute__((weak));
+''')
+    path=sdk/'src/display.c';text=path.read_text()
+    before='if(video.is_interlaced || (video.display_height && video.display_height<=576))selected=XSDK_DISPLAY_KERNEL;'
+    after='if(video.is_interlaced || (video.display_height && video.display_height<=576) || (tube360_board_sim_sd && tube360_board_sim_sd()))selected=XSDK_DISPLAY_KERNEL;'
+    if text.count(before)!=1:raise RuntimeError('Incompatible simulated SD display hook')
+    path.write_text(text.replace(before,after))
+    path=v4x/'src/display.c';text=path.read_text()
+    before='tube360_display_aspect=video.is_widescreen ? 16.0f/9.0f : 4.0f/3.0f;'
+    after=before+'\n        if(tube360_board_sim_aspect && tube360_board_sim_aspect()>0)tube360_display_aspect=tube360_board_sim_aspect();'
+    if text.count(before)!=1:raise RuntimeError('Incompatible simulated SD aspect hook')
+    path.write_text(text.replace(before,after))
+    stamp.write_text('board-sim SD selects kernel path in safe and native; real viewport/timings preserved\n')
 
 def finish_sd(sdk,v4x):
     stamp=sdk/'tube360-video-policy-v4'

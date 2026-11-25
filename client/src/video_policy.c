@@ -1,5 +1,6 @@
 #include "video_policy.h"
 #include "boot_log.h"
+#include "board_sim.h"
 #include <ctype.h>
 #include <errno.h>
 #include <stdint.h>
@@ -21,6 +22,7 @@ int tube360_native_video(void){return native;}
 void tube360_video_policy_log(void) {
     boot_event("detect","video.board","source=kernel.XboxHardwareInfo ordinal=156 available=%d flags=%08x model=%s; no SMC/MMIO probe",flags_known,flags,board);
     boot_event("detect","video.policy","requested=%s selected=%s native_default=%d reason=%s; safe=upstream720+staging native=SD/1080+mapped-R8",request,native?"native":"safe",native_default,reason);
+    tube360_board_sim_log();
 }
 void tube360_video_policy_normal_log(void) {
 #ifdef __XSDK__
@@ -33,6 +35,7 @@ void tube360_video_policy_normal_log(void) {
 void tube360_video_policy_init(void) {
     if(initialized)return;
     initialized=1;
+    tube360_board_sim_init();
 #ifdef __XSDK__
     boot_event("begin","video.board","optional kernel data lookup, before video hardware");
     HANDLE module=0;void* address=NULL;
@@ -74,5 +77,6 @@ void tube360_video_policy_init(void) {
     // O desktop não emula a placa nem muda seu driver Vulkan pelo arquivo do Xbox.
     (void)names;reason="desktop Vulkan unaffected; console policy defaults safe";
 #endif
+    if(tube360_board_sim_driver()>=0){native=tube360_board_sim_driver();request="board-sim";reason="explicit simulated display contract; no physical qualification";}
     tube360_video_policy_log();
 }
