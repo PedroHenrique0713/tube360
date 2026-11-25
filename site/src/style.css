@@ -427,3 +427,5 @@
 #app-native .search-suggestions h3{height:28px}
 #app-native #search-filters{left:calc(100% - 250px);right:auto;top:52px;display:flex;gap:8px;align-items:center}
 #app-native #search-filters .pad-button{width:30px;height:24px;font-size:10.74px}
+#app-native .app-page[data-page=settings] .settings-row:focus>span:last-child{color:#ff5a52}
+#app-native .app-page[data-page=settings] .settings-row[data-setting='3']:focus>span:last-child{color:#a1a1aa}

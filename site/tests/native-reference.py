@@ -4,7 +4,9 @@ import copy, hashlib, json, os, re, shutil, subprocess, sys
 from PIL import Image, ImageDraw, ImageFont
 ROOT=Path(__file__).resolve().parents[2]
 WORK=ROOT/'site/.work/rc4-review'
-REPLAY=WORK/'replay';ACCOUNTS=WORK/'accounts';NATIVE=WORK/'native'
+LANG=os.environ.get('NATIVE_LANG','pt-BR')
+if LANG not in ('pt-BR','en'):raise ValueError('NATIVE_LANG must be pt-BR or en')
+REPLAY=WORK/'replay';ACCOUNTS=WORK/'accounts';NATIVE=WORK/('native' if LANG=='pt-BR' else 'native-en')
 for p in (REPLAY,ACCOUNTS,NATIVE):p.mkdir(parents=True,exist_ok=True)
 source=Path(os.environ.get('NATIVE_REPLAY_DIR',ROOT/'site/.work/app/search-account'))
 if not (WORK/'tube360-replay').exists():shutil.copy2(source/'tube360-replay',WORK/'tube360-replay')
@@ -25,7 +27,6 @@ for i in range(6):
  # Album sleeves are repo-native graphic artwork, with no third-party image or service.
  for radius in (68,48,25):d.ellipse((160-radius,90-radius,160+radius,90+radius),outline='#d0cbb6',width=2)
  d.rectangle((24+i*5,34,29+i*5,126),fill='#f5f5f7');d.ellipse((145,75,175,105),fill='#ff5a52')
- d.text((12,148),['JAZZ','PIANO','BEATS','ACÚSTICO','BOSSA','SESSÕES'][i],font=font,fill='#f5f5f7')
  im.save(artdir/f'music-{i}.png',optimize=True);shutil.copy2(artdir/f'music-{i}.png',REPLAY/f'music-{i}.png')
 base=json.loads((REPLAY/'account-home.json').read_text())
 def tiles(x):
@@ -136,7 +137,7 @@ for name,extra,keys in cases:
  if wanted and name not in wanted:continue
  case=NATIVE/name;assets=case/'assets';assets.mkdir(parents=True,exist_ok=True)
  for p in (ROOT/'client/assets').glob('*.ttf'):shutil.copy2(p,assets/p.name)
- (assets/'settings.txt').write_text('lang=pt\ncols=4\nserver=off\nsound=tv\nvideo_mode=auto\n')
+ (assets/'settings.txt').write_text(f'lang={"pt" if LANG=="pt-BR" else "en"}\ncols=4\nserver=off\nsound=tv\nvideo_mode=auto\n')
  (assets/'yt-console-account.json').write_text(json.dumps({'access_token':'console-fixture-token','refresh_token':'fixture-refresh','expires_at':4070908800,'client':{'client_id':'fixture-client','client_secret':'fixture-secret'},'name':'Conta de demonstração'}))
  saved=lambda i:dict(id=videos[i]['id'],title=videos[i]['title'],channel=videos[i]['channel'],duration=487,position=84 if i==1 else 0,order=i+1)
  (assets/'local-library.json').write_text(json.dumps(dict(version=1,later=[saved(0)],history=[saved(1)])))

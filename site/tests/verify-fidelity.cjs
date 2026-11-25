@@ -19,17 +19,19 @@ const root = process.env.SITE_URL || 'http://127.0.0.1:8279';
    async function visibleSelection() {
     const geometry = await page.locator('#browse-content').evaluate(viewport => {
      const selected = document.activeElement, rect = selected.getBoundingClientRect(), box = viewport.getBoundingClientRect(), hints = document.querySelector('#app-hints').getBoundingClientRect();
-     return { selected: selected.dataset.setting, top: rect.top, bottom: rect.bottom, viewportTop: box.top, viewportBottom: box.bottom, hintTop: hints.top, scrollTop: viewport.scrollTop };
+     return { selected: selected.dataset.setting, top: rect.top, bottom: rect.bottom, viewportTop: box.top, viewportBottom: box.bottom, hintTop: hints.top, scrollTop: viewport.scrollTop, valueColor: getComputedStyle(selected.lastElementChild).color };
     });
     assert.ok(geometry.top >= geometry.viewportTop - 1 && geometry.bottom <= geometry.viewportBottom + 1 && geometry.bottom < geometry.hintTop, JSON.stringify(geometry));
+    assert.equal(geometry.valueColor, geometry.selected === '3' ? 'rgb(161, 161, 170)' : 'rgb(255, 90, 82)');
     positions.push(geometry); return geometry;
    }
    await visibleSelection();
    for (let row = 1; row < 18; row++) { await page.keyboard.press('ArrowDown'); assert.equal((await visibleSelection()).selected, String(row)); }
    assert.ok((await page.textContent('#settings-help')).includes('200'));
    assert.ok((await page.textContent('#settings-help')).includes('500'));
-   const values = await page.locator('#browse-content .settings-row > span:last-child').evaluateAll(elements => elements.filter(el => el.parentElement.dataset.setting !== '3').map(el => getComputedStyle(el).color));
+   const values = await page.locator('#browse-content .settings-row > span:last-child').evaluateAll(elements => elements.filter(el => el.parentElement.dataset.setting !== '3' && el.parentElement !== document.activeElement).map(el => getComputedStyle(el).color));
    assert.ok(values.every(value => value === 'rgb(245, 245, 247)'));
+   assert.equal(await page.locator('#browse-content .settings-row:focus > span:last-child').evaluate(el => getComputedStyle(el).color), 'rgb(255, 90, 82)');
    // A real pointer must activate a deep row without the focus handler moving it away.
    await page.keyboard.press('Escape'); await page.locator('.sidebar-icon[data-page=settings]').click();
    await page.locator('[data-setting="15"]').click(); assert.equal(await page.locator('#dialog-actions button').count(), 3); await page.keyboard.press('Escape');
@@ -58,6 +60,6 @@ const root = process.env.SITE_URL || 'http://127.0.0.1:8279';
    results.push({ lang, width, height, labels, settingsPositions: positions, touchScroll: width === 390, errors }); await context.close();
   }
   fs.writeFileSync('site/.work/rc4-review/fidelity-results.json', JSON.stringify({ status: 'PASS', cases: results }, null, 2));
-  console.log('PASS: 18 rc4 settings rows selected visibly through the last row; pointer and touch scrolling; limits/white values; native library cards, Music art and shelves, phone modal; EN/PT desktop/mobile; zero JS errors.');
+  console.log('PASS: 18 rc4 settings rows selected visibly through the last row; pointer and touch scrolling; limits/white values and red selected value; native library cards, Music art and shelves, phone modal; EN/PT desktop/mobile; zero JS errors.');
  } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });
