@@ -15,6 +15,7 @@
 #include <vector>
 #include "decoded_video.hpp"
 #include "boot_log.h"
+#include "video_policy.h"
 #include "display_layout.hpp"
 
 #ifdef __XSDK__
@@ -79,6 +80,7 @@ struct Gfx {
   int fi = 0; uint32_t img = 0; bool readback = false;
   std::vector<Vtx> verts; std::vector<Cmd> cmds;
   Tex white, atlas; std::vector<Font> fonts;
+  uint64_t fontRevision = 0;
   Video* video = nullptr;
   float videoFilter[2] = {};
   SDL_Window* win = nullptr;
@@ -248,14 +250,19 @@ inline VkSurfaceKHR displaySurface(Gfx& g) {
 #endif
 
 // ---------------------------------------------------------------- fonte (stb_truetype, atlas de um canal)
+inline void quiesce(Gfx& g,const char* reason) {
+  boot_event("begin","settings.gpu-idle","reason=%s",reason);
+  VK(vkDeviceWaitIdle(g.dev));
+  boot_event("end","settings.gpu-idle","GPU stopped");
+  boot_event("begin","settings.commands-reset","discard completed command references before retiring resources");
+  VK(vkResetCommandPool(g.dev,g.cmdPool,0));
+  for(auto& held:g.retained)held.reset();
+  boot_event("end","settings.commands-reset","ready");
+}
 struct FontSpec { const char* file; float px; };
 inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec>& specs) {
-  if (g.atlas.img) {
-    vkDeviceWaitIdle(g.dev);
-    vkDestroyImageView(g.dev,g.atlas.view,nullptr); vkDestroyImage(g.dev,g.atlas.img,nullptr); vkFreeMemory(g.dev,g.atlas.mem,nullptr);
-    vkFreeDescriptorSets(g.dev,g.pool,1,&g.atlas.set); g.atlas={};
-  }
-  g.fonts.clear();
+  boot_event("begin","fonts.pack","build replacement without retiring the current atlas");
+  std::vector<Font> fonts;
   const int AW = 2048, AH = g.scale > 1 ? 4096 : 2048;
   std::vector<unsigned char> pix((size_t)AW * AH, 0);
   stbtt_pack_context pc;
@@ -288,13 +295,22 @@ inline bool loadFonts(Gfx& g, const std::string& dir, const std::vector<FontSpec
         font.glyphs[(uint32_t)(r[0] + i)] = {q.xoff / g.scale, q.yoff / g.scale, q.xoff2 / g.scale, q.yoff2 / g.scale, q.x0 / (float)AW, q.y0 / (float)AH, q.x1 / (float)AW, q.y1 / (float)AH, q.xadvance / g.scale};
       }
     }
-    g.fonts.push_back(std::move(font));
+    fonts.push_back(std::move(font));
   }
   stbtt_PackEnd(&pc);
+  boot_event("end","fonts.pack","ready; fonts=%zu",fonts.size());
+  quiesce(g,"font atlas replacement");
   boot_event("begin","fonts.upload","atlas=%dx%d",AW,AH);
-  g.atlas = makeImage(g, AW, AH, VK_FORMAT_R8_UNORM, true);
-  upload(g, g.atlas, pix.data(), pix.size());
+  Tex next = makeImage(g, AW, AH, VK_FORMAT_R8_UNORM, true);
+  upload(g, next, pix.data(), pix.size());
   boot_event("end","fonts.upload","ready");
+  boot_event("begin","fonts.retire","old atlas after idle and replacement upload");
+  if(g.atlas.img) {
+    VK(vkFreeDescriptorSets(g.dev,g.pool,1,&g.atlas.set));
+    vkDestroyImageView(g.dev,g.atlas.view,nullptr);vkDestroyImage(g.dev,g.atlas.img,nullptr);vkFreeMemory(g.dev,g.atlas.mem,nullptr);
+  }
+  g.atlas=next;g.fonts=std::move(fonts);++g.fontRevision;
+  boot_event("end","fonts.retire","revision=%llu",(unsigned long long)g.fontRevision);
   return true;
 }
 
@@ -637,12 +653,28 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   return true;
 }
 
-inline void output(Gfx& g, int height) {
-  vkDeviceWaitIdle(g.dev);
+inline bool fixedOutput() {
+#ifdef __XSDK__
+  return !tube360_native_video();
+#else
+  // Só na bancada desktop: exercita o mesmo veto de saída sem simular uma placa real.
+  static bool fixed=std::getenv("XT_TEST_FIXED_OUTPUT") && !std::strcmp(std::getenv("XT_TEST_FIXED_OUTPUT"),"1");
+  return fixed;
+#endif
+}
+inline bool output(Gfx& g, int height) {
+  boot_event("begin","settings.output","requested=%d current=%ux%u fixed=%d",height,g.extent.width,g.extent.height,fixedOutput());
+  if(fixedOutput()) {
+    LOG("saida: caminho safe mantém %ux%u; pedido %dp salvo para próxima abertura nativa",g.extent.width,g.extent.height,height);
+    boot_event("end","settings.output","safe: display, framebuffer, pipelines and atlas unchanged");return false;
+  }
+  quiesce(g,"output change");
+  boot_event("begin","settings.output-retire","pipelines, framebuffers and swapchain; GPU stopped");
   for (VkPipeline& p : g.pipes) vkDestroyPipeline(g.dev,p,nullptr);
   for (auto fb : g.fbs) vkDestroyFramebuffer(g.dev,fb,nullptr);
   for (auto view : g.views) vkDestroyImageView(g.dev,view,nullptr);
   vkDestroyRenderPass(g.dev,g.pass,nullptr); vkDestroySwapchainKHR(g.dev,g.swap,nullptr);
+  boot_event("end","settings.output-retire","retired");
 #ifdef __XSDK__
   height=tube360_set_output(height);
   vkDestroySurfaceKHR(g.inst,g.surface,nullptr); g.surface=displaySurface(g);
@@ -652,7 +684,11 @@ inline void output(Gfx& g, int height) {
   makeSwapchain(g,height==480 ? 640 : height*16/9,height);
   for (int p=0;p<PIPE_COUNT;++p) g.pipes[p]=makePipeline(g,(Pipe)p);
   for (auto& sample : g.samples) sample.pending=false;
+  g.bootFrame=true;
+  boot_event("begin","app.first-frame","recreated output: verify new first submission");
   LOG("saida: framebuffer %ux%u, escala UI %.2f",g.extent.width,g.extent.height,g.scale);
+  boot_event("end","settings.output","framebuffer=%ux%u",g.extent.width,g.extent.height);
+  return true;
 }
 
 inline void begin(Gfx& g) {

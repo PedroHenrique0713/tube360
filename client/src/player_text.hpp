@@ -6,8 +6,10 @@ struct PlayerText {
   std::string source, text;
   float width = 0, lastLimit = 0;
   bool ready = false;
+  uint64_t fontRevision = 0;
   void update(gfx::Gfx& g, int font, const char* value, float limit) {
-    if (ready && source == value && limit == lastLimit) return;
+    if (ready && source == value && limit == lastLimit && fontRevision == g.fontRevision) return;
+    fontRevision = g.fontRevision;
     lastLimit = limit; source = value; text = gfx::ellipsize(g, font, source, limit);
     width = gfx::textWidth(g, font, text); ready = true;
   }

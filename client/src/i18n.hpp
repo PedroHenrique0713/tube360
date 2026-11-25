@@ -52,6 +52,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(VideoAdjusted, "Adjusted to keep playback smooth", "Ajustado para manter a reprodução fluida", "Ajustado para mantener una reproducción fluida") \
   X(DisplayOutput, "TV output", "Saída da TV", "Salida de TV") \
   X(Display1080Help, "For native 1080p, select 1080p (progressive) in Xbox Display Settings and use HDMI.", "Para 1080p nativo, selecione 1080p progressivo no painel do Xbox e use HDMI.", "Para 1080p nativo, selecciona 1080p progresivo en la configuración de pantalla de Xbox y usa HDMI.") \
+  X(SafeOutputHelp, "Safe video keeps the current output. Picture fit and text size remain available.", "O vídeo seguro mantém a saída atual. Ajustar a imagem e o texto continua disponível.", "El vídeo seguro mantiene la salida actual. El ajuste de imagen y texto sigue disponible.") \
   X(AudioTrack, "Audio", "Áudio", "Audio") \
   X(AudioPreference, "Audio preference", "Preferência de áudio", "Preferencia de audio") \
   X(AudioAlwaysOriginal, "Always original", "Sempre o original", "Siempre original") \

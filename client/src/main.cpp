@@ -342,7 +342,7 @@ struct Thumbs {
   void configure(gfx::Gfx& g, Worker& worker, int cols, bool cover = false, bool banner = false) {
     int w = cover ? 640 : cols == 3 ? 384 : 320, h = cover ? 360 : cols == 3 ? 216 : 180;
     if (w == width && h == height && banner == bool(bannerBytes)) return;
-    vkDeviceWaitIdle(g.dev);
+    gfx::quiesce(g,"thumbnail layout");
     for (auto& s : slots) release(g, s);
     if (bannerBytes) { release(g, bannerSlot); bannerSlot = {}; bannerBytes = 0; }
     if (banner) {
@@ -668,6 +668,7 @@ int run(int argc, char** argv) {
                                   {"inter-600.ttf", 24.2f}, {"inter-400.ttf", 17}, {"inter-400.ttf", 15.1f},
                                   {"inter-400.ttf", 18.2f}, {"inter-700.ttf", 11}};
   auto loadDisplay = [&]() {
+    boot_event("begin","settings.layout","extent=%ux%u large=%d",g.extent.width,g.extent.height,settings.largeText);
     auto layout = display::layout(g.extent.width,g.extent.height,settings.largeText);
     ui::W = layout.width; ui::large = layout.large; ui::narrow = layout.narrow;
     g.scale = layout.scale; g.insetX = layout.insetX; g.insetY = layout.insetY;
@@ -679,7 +680,9 @@ int run(int argc, char** argv) {
       }
     }
     LOG("layout: %.0fx720, %s, texto %s, margem %.0fx%.0f",ui::W,ui::narrow ? "4:3" : "wide",ui::large ? "grande" : "normal",g.insetX,g.insetY);
-    return gfx::loadFonts(g,assets,specs);
+    bool loaded=gfx::loadFonts(g,assets,specs);
+    boot_event(loaded?"end":"error","settings.layout","font atlas loaded=%d",loaded);
+    return loaded;
   };
   boot_event("begin","fonts.atlas","load and upload Inter");
   if (!loadDisplay()) return startup::fail(K::StartupFonts,"inter-400.ttf, inter-600.ttf, inter-700.ttf, inter-300.ttf",K::StartupCopy);
@@ -1585,6 +1588,7 @@ int run(int argc, char** argv) {
         } else if (settingsRow == 4) nestOffsetMs = std::clamp(nestOffsetMs + direction * 40, -2000, 2000);
         else if (settingsRow == 5) {
           settings.lang = i18n::cycle(settings.lang,direction);
+          boot_event("info","settings.language","lang=%s; bundled Latin atlas unchanged",i18n::code(settings.lang));
           rebuildCats(); scroll = 0; toast.clear();
         } else if (settingsRow == 6) { sleepChoice = (sleepChoice + direction + 8) % 8; applySleep(); changed = false; }
         else if (settingsRow == 7) {
@@ -1606,21 +1610,24 @@ int run(int argc, char** argv) {
           const int heights[]={480,720,1080};
           int index=settings.outputHeight==480 ? 0 : settings.outputHeight==1080 ? 2 : 1;
           settings.outputHeight=heights[(index+direction+3)%3];
-          gfx::output(g,settings.outputHeight);
-          if (!loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
+          if(!gfx::fixedOutput())pl.resetQualityMeasurements();
+          if (gfx::output(g,settings.outputHeight) && !loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
+          if(!gfx::fixedOutput())pl.resetQualityMeasurements();
           scroll=0; nav.nowId.clear();
           overlayTitle = {}; overlayMeta = {}; overlayChapter = {}; tipLabel = {}; tipValue = {};
           metaChannel.clear(); clockSecond = -1;
-          if ((int)g.extent.height != settings.outputHeight) { toast=tr(K::Display1080Help); toastUntil=now+6000; }
+          if ((int)g.extent.height != settings.outputHeight) { toast=tr(gfx::fixedOutput()?K::SafeOutputHelp:K::Display1080Help); toastUntil=now+6000; }
         }
         else if (settingsRow == 10) settings.originalAudio=!settings.originalAudio;
         else if (settingsRow == 11) {
           settings.largeText=!settings.largeText;
+          pl.resetQualityMeasurements();
           if (!loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
+          pl.resetQualityMeasurements();
           overlayTitle={}; overlayMeta={}; overlayChapter={}; tipLabel={}; tipValue={};
           metaChannel.clear(); clockSecond=-1; scroll=0; nav.nowId.clear();
         }
-        else if (settingsRow == 12) settings.videoFill=!settings.videoFill;
+        else if (settingsRow == 12) {settings.videoFill=!settings.videoFill;boot_event("info","settings.fit","fill=%d; geometry/UV only, no display or atlas recreation",settings.videoFill);}
         if (changed) saveSettings();
       }
       if (in.hit(Input::B)) { screen = HOME; railFocus = true; railSel = 6; }
@@ -2159,7 +2166,7 @@ int run(int argc, char** argv) {
         gfx::text(g,ui::F_KEY,shown,ui::large ? x+28 : right,y+(ui::large ? 47 : 15),disabled ? ui::MUTED : selected ? ui::A2 : ui::TEXT,ui::large ? 0 : 2);
         if (selected && i>0 && i<13 && !disabled) gfx::text(g,ui::F_KEY,"< >",x+w-20,y+(ui::large ? 47 : 15),ui::MUTED,2);
       }
-      K help=settingsRow==9 ? (g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
+      K help=settingsRow==9 ? (gfx::fixedOutput()?K::SafeOutputHelp:g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
       float hy=ui::large ? 608 : 610;
       for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::text(g,ui::F_SMALL,line,ui::X0,hy,ui::MUTED); hy+=ui::large ? 26 : 22; }
       float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
