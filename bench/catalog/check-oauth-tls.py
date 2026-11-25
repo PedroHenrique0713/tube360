@@ -22,6 +22,7 @@ for source in ['bench/catalog/oauth-tls.cpp', 'client/src/yt/https.cpp']:
     obj = folder / (pathlib.Path(source).stem+'.o')
     subprocess.run(['c++', '-std=c++20', '-O1', '-DPICOJSON_USE_LOCALE=0', '-I'+str(folder),
         '-I'+str(root/'client/src'), '-I'+str(root/'client/third_party'),
+        '-I'+str(root/'client/build/yt'),
         '-I'+str(next((root/'.work/src').glob('curl-xenon-*/include'))), '-c', str(root/source), '-o', str(obj)], check=True)
     objects.append(str(obj))
 args = shlex.split((root/'client/build/CMakeFiles/tube360.dir/link.txt').read_text())
@@ -29,7 +30,7 @@ args = [arg for arg in args if not arg.endswith('.o') and not arg.startswith('-W
 args[args.index('-o')+1] = str(folder/'oauth-tls')
 args[1:1] = objects
 subprocess.run(args, cwd=root/'client/build', check=True)
-oracle = json.loads((fixtures/'oauth-requests.json').read_text())['requests'][0]
+
 seen, errors = [], []
 
 
@@ -37,8 +38,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
 
-    def reply(self, data, cookie=None):
-        self.send_response(200)
+    def reply(self, data, cookie=None, status=200):
+        self.send_response(status)
         self.send_header('Content-Length', str(len(data)))
         if cookie:
             self.send_header('Set-Cookie', cookie+'; Path=/; Secure')
@@ -49,10 +50,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
         seen.append(self.path)
         if self.path == '/seed':
             self.reply(b'{}', 'YSC=anonymous-fixture')
-        elif self.path == '/sw.js_data':
-            if self.headers.get('Cookie') != 'PREF=tz=UTC;':
-                errors.append('anonymous cookie leaked into OAuth bootstrap')
-            self.reply((fixtures/'tv-session.txt').read_bytes(), 'OAUTH_BOOTSTRAP=ignored')
+        elif self.path in ('/', '/tv'):
+            if self.headers.get('Cookie') is not None or self.headers.get('Authorization') is not None:
+                errors.append('cookie or Bearer leaked into bootstrap')
+            self.reply((fixtures/('tv-context.html' if self.path == '/tv' else 'music-context.html')).read_bytes(), 'OAUTH_BOOTSTRAP=ignored')
         elif self.path == '/probe':
             if self.headers.get('Cookie') != 'YSC=anonymous-fixture':
                 errors.append('public cookie jar lost')
@@ -64,21 +65,28 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         seen.append(self.path)
         body = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
-        headers = {k.lower(): v for k, v in self.headers.items()}
-        if headers.pop('host') != 'music.youtube.com':
-            errors.append('wrong Host')
-        headers.pop('content-length')
-        if headers.pop('authorization', None) != 'Bearer console-fixture-token':
-            errors.append('wrong fake console token')
-        expected = dict(oracle['headers'])
-        expected.pop('authorization')
-        if headers != expected:
-            errors.append('wire headers differ from youtubei.js: '+repr(headers))
-        if body != oracle['body']:
-            errors.append('wire context/body differ from youtubei.js')
-        if self.path != oracle['url'].split('music.youtube.com', 1)[1]:
+        client = body['context']['client']
+        tv = client['clientName'] == 'TVHTML5'
+        expected_host = 'www.youtube.com' if tv else 'music.youtube.com'
+        if self.headers.get('Host') != expected_host or self.headers.get('Origin') != 'https://' + expected_host:
+            errors.append('wrong Host/Origin')
+        if self.headers.get('Cookie') is not None or self.headers.get('X-Goog-AuthUser') is not None:
+            errors.append('cookie or cookie account selector leaked')
+        if self.headers.get('Authorization') != 'Bearer console-fixture-token':
+            errors.append('wrong fake token')
+        if self.headers.get('X-Youtube-Client-Name') != ('7' if tv else '67'):
+            errors.append('wrong numeric client')
+        if self.headers.get('X-Youtube-Client-Version') != client['clientVersion']:
+            errors.append('version header/context mismatch')
+        import time
+        if abs(int(self.headers.get('X-Goog-Request-Time', '0')) - time.time()) > 10:
+            errors.append('request time missing or not in seconds')
+        if body.get('browseId') != ('FEtopics_music' if tv else 'FEmusic_home'):
+            errors.append('wrong browse ID for client')
+        if self.path != '/youtubei/v1/browse?prettyPrint=false&alt=json':
             errors.append('wrong route/query')
-        self.reply((fixtures/'music-home.json').read_bytes(), 'OAUTH_RESPONSE=ignored')
+        self.reply((fixtures/('tv-music-public.json' if tv else 'music-invalid-bearer.json')).read_bytes(), 'OAUTH_RESPONSE=ignored', status=200 if tv else 401)
+
 
 
 server = http.server.ThreadingHTTPServer(('127.0.0.1', 0), Handler)
@@ -94,6 +102,6 @@ finally:
     server.shutdown()
     server.server_close()
     thread.join()
-assert seen == ['/seed', '/sw.js_data', '/youtubei/v1/browse?prettyPrint=false&alt=json', '/probe'], seen
+assert seen == ['/seed', '/', '/youtubei/v1/browse?prettyPrint=false&alt=json', '/tv', '/youtubei/v1/browse?prettyPrint=false&alt=json', '/probe'], seen
 assert not errors, errors
-print('Wire URL, Host, headers and complete JSON equal youtubei.js; only fake token differs; no Cookie/AuthUser; public cookies retained')
+print('WEB_REMIX 401 -> TVHTML5/FEtopics_music 200 through production TLS; Host/Origin/client/time checked; no Cookie/AuthUser; public cookie jar retained')

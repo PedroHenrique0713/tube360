@@ -155,7 +155,7 @@ struct Worker {
         bool accountFallback = !r.catalog && consoleAccount && consoleAccount->active() && yt::ConsoleAccount::supports(j.a);
         if (!r.catalog && !net::serverEnabled && !accountFallback) { r.feed.error = K::NoResponse; r.feed.title.clear(); }
         if (r.catalog || (!net::serverEnabled && !accountFallback)) {
-          LOG("catalogo console: %s, %u bytes%s%s",j.a.substr(0,j.a.find('?')).c_str(),(unsigned)r.feed.title.size(),
+          LOG("catalogo console: %s, %u bytes, music=%s%s%s",j.a.substr(0,j.a.find('?')).c_str(),(unsigned)r.feed.title.size(),catalog.musicSource.c_str(),
               catalog.authError.empty() ? "" : ", conta recusada: ",catalog.authError.c_str());
           SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu); continue;
         }
@@ -1504,7 +1504,7 @@ int run(int argc, char** argv) {
     } else if (screen == NAV && !railFocus && !nav.pages.empty()) {
       auto& p = nav.page(); uint64_t currentPage = p.stamp;
       bool channel = p.kind == "channel";
-      bool playlist = p.kind == "playlist" || p.kind == "music_playlist" || p.kind == "album" || p.kind == "radio" || p.kind == "later";
+      bool playlist = p.kind == "playlist" || p.kind == "music_playlist" || p.kind == "music_recent" || p.kind == "album" || p.kind == "radio" || p.kind == "later";
       bool tabs = channel || p.kind == "music" || p.kind == "search" || p.kind == "music_search";
       int count = (int)p.items.size();
       if (count) p.sel = std::clamp(p.sel, 0, count - 1);

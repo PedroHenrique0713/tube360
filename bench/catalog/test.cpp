@@ -56,6 +56,8 @@ int main(int argc, char** argv) {
     if (string(name).compare(0,7,"channel") == 0) check(!p.title.empty() && !p.subtitle.empty() && !p.banner.empty() && !p.image.empty(),"modern channel header");
   }
   check(imageUrl("https://yt3.googleusercontent.com/image").size() > 0,"public artwork domain");
+  check(!imageUrl("https://music.youtube.com/image/mixart?r=FIXTURE&k=FALLBACK_16X9_MIX").empty(),"recorded TV mix artwork endpoint");
+  check(imageUrl("https://music.youtube.com/watch?v=fixture").empty() && imageUrl("https://music.youtube.com.evil/image/mixart?r=FIXTURE").empty(),"Music artwork allowlist is restricted to mixart on the exact host");
   for (auto u : {"https://googleusercontent.com.evil/image","http://i.ytimg.com/image","https://localhost/image","https://i.ytimg.com@evil/image","https://i.ytimg.com:443/image"}) check(imageUrl(u).empty(),"artwork rejects another host");
   J bad; check(!parse(string(81,'{')+string(81,'}'),bad),"depth bound");
   check(!parse("{} trailing",bad) && !parse("[]",bad),"invalid response rejected");
@@ -125,18 +127,21 @@ int main(int argc, char** argv) {
   check(c.handle("/api/nav/lyrics?id=F12audio001&lang=pt").find("Letra de teste") != string::npos,"lyrics endpoint discovery");
   check(!c.setToken("invalid\r\nheader"),"token rejects header injection");
   check(c.setToken("fixture-token"),"token accepted");
-  h.add(web,"sw.js_data",read(dir,"tv-session.txt"));
+  h.add(music,"",read(dir,"music-context.html"));
   h.add(music,browse+"&alt=json",read(dir,"music-home.json"),{{"browseId",J(string("FEmusic_home"))}},true);
   check(!c.browse(request("music")).items.empty(),"account change invalidates cache");
   for (int refusal : {400,401,403}) {
     Http rejected; Client guest(rejected);
     check(guest.setToken("fixture-token"),"refused token is syntactically valid");
-    rejected.add(web,"sw.js_data",read(dir,"tv-session.txt"));
+    rejected.add(music,"",read(dir,"music-context.html"));
     rejected.add(music,browse+"&alt=json","{}",{},true,refusal);
+    rejected.add(web,"tv",read(dir,"tv-context.html"));
+    rejected.add(web,browse+"&alt=json","{}",{},true,refusal);
     rejected.add(music,"",read(dir,"music-context.html"));
     rejected.add(music,browse,read(dir,"music-home.json"));
     check(!guest.browse(request("music")).items.empty(),"refused account token retries Music as guest");
     check(guest.authError.find(std::to_string(refusal))!=string::npos,"token refusal remains observable");
+    rejected.add(web,search+"&alt=json","{}",{},true,refusal);
     rejected.add(music,search,read(dir,"music-search.json"));
     check(!guest.browse({{"kind","music_search"},{"q","jazz"},{"lang","pt"}}).items.empty(),"subsequent Music requests stay signed out");
     check(rejected.steps.empty(),"refusal retry consumes exactly the expected exchanges");

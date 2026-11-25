@@ -195,13 +195,11 @@ void history(const string& path) {
     check(a.request("/api/account/watched?id=video000002",1030,40).error=="tracking_unavailable","tracking origin allowlist");
     check(f.steps.empty(),"history exchanges consumed");
 }
-const string tvSession=R"SESSAO()]}'
-[[null,null,[[["pt","BR",null,"203.0.113.16",null,null,null,null,null,null,null,"","","CgtmaXh0dXJlMDEyMyjQ7P6-BjIKCgJCUhIEGgAgWg%3D%3D",null,null,"2.20261123.00.00","X11","",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,["fixture-app-install"],null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"UTC",null,null,null,null,null,null,"Chrome","150.0.0.0",null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,"fixture-device-experiment",null,null,null,"fixture-rollout"]],"fixture-api-key"]]])SESSAO";
 void music(const string& path) {
     seed(path,1100); Fake f; yt::ConsoleAccount a(f,path); yt::catalog::Client catalog(f);
     auto browse=[&](const string& bearer) {
-        // Logado, a Música abre a sessão pelo sw.js_data, como a youtubei.js (F16); deslogado, pela página do Music.
-        if (!bearer.empty()) f.add("https://www.youtube.com/sw.js_data","",tvSession);
+        // OAuth e navegação pública têm bootstraps separados, com a versão publicada pelo Music.
+        if (!bearer.empty()) f.add("https://music.youtube.com/","",R"({"INNERTUBE_CONTEXT":{"client":{"clientName":"WEB_REMIX","clientVersion":"fixture"}}})");
         else f.add("https://music.youtube.com/","",R"({"INNERTUBE_CONTEXT":{"client":{"clientName":"WEB_REMIX","clientVersion":"fixture"}}})");
         f.add("https://music.youtube.com/youtubei/v1/browse",
               R"("browseId":"FEmusic_home")",R"({"contents":{}})",200,bearer);

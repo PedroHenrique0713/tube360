@@ -29,6 +29,8 @@
 - SponsorBlock with Off, Skip button (default), and automatic skipping; Y skips or returns after an automatic skip, with community warning and attribution in English, Portuguese and Spanish.
 - Discreet timeline marks, private four-character SHA-256 prefix requests, background loading and bounded per-video session cache. Sponsors, self-promotion and subscription reminders are enabled; intros/outros are preserved.
 
+- Music now tries the TV music catalogue with the existing account grant after a web Music refusal, exposes recent plays/playlists/likes, labels public fallback, and keeps continuation tokens with their original client. Real-account acceptance and Music/TV recommendation parity remain pending console validation.
+
 ## [0.3.1] — 2026-11-24
 
 ### Fixed
