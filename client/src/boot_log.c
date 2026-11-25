@@ -1,4 +1,5 @@
 #include "boot_log.h"
+#include "video_policy.h"
 #include <errno.h>
 #include <pthread.h>
 #include <stdarg.h>
@@ -89,6 +90,7 @@ void tube360_boot_early(void) {
     extern void tube360_boot_raw_close(void);
     tube360_boot_raw_close();
     boot_open("","early");
+    tube360_video_policy_init();
 #ifdef __XSDK__
     boot_event("info","crt.image","image=%s",ExLoadedImageName?ExLoadedImageName:"unknown");
 #endif

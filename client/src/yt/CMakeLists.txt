@@ -31,7 +31,7 @@ configure_file("${root}/client/src/update/rules-default.json" "${CMAKE_CURRENT_B
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/rules-default.hpp" "#pragma once\nnamespace updates { inline constexpr const char* defaultRules = R\"RULES(${default_rules})RULES\"; }\n")
 file(READ "${root}/client/src/update/roots.pem" update_roots)
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/update-roots.hpp" "static constexpr char updateRoots[] = R\"PEM(${update_roots})PEM\";\n")
-add_library(tube360-boot STATIC "${root}/client/src/boot_log.c" "${root}/client/src/boot_early.c" "${root}/client/src/boot_platform.cpp")
+add_library(tube360-boot STATIC "${root}/client/src/boot_log.c" "${root}/client/src/boot_early.c" "${root}/client/src/boot_platform.cpp" "${root}/client/src/video_policy.c")
 target_include_directories(tube360-boot PUBLIC "${root}/client/src")
 target_compile_features(tube360-boot PUBLIC cxx_std_17)
 

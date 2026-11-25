@@ -12,7 +12,7 @@ a=parser.parse_args();a.evidence=a.evidence.resolve();a.evidence.mkdir(parents=T
 with tempfile.TemporaryDirectory(prefix='tube360-boot-native-') as tmp:
     work=Path(tmp);include=['-I'+str(ROOT/'client/src'),'-I'+str(a.sdk.resolve()/'include')]
     objects=[]
-    for name in ('boot_log','boot_early'):
+    for name in ('boot_log','boot_early','video_policy'):
         obj=work/(name+'.o');objects.append(str(obj))
         subprocess.run(['cc','-std=c11','-D_POSIX_C_SOURCE=200809L','-D__XSDK__',*include,'-c',str(ROOT/f'client/src/{name}.c'),'-o',str(obj)],check=True)
     binary=work/'native'
