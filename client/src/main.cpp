@@ -35,6 +35,7 @@
 #include "music_player.hpp"
 #include "player_ui.hpp"
 #include "player_extras.hpp"
+#include "sponsorblock_worker.hpp"
 #include "player_text.hpp"
 #include "captions.hpp"
 #include "settings.hpp"
@@ -590,6 +591,7 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
 #include "music_navigation.hpp"
 #include "update/ui.hpp"
 #include "nest_picker.hpp"
+#include "sponsorblock_ui.hpp"
 
 int run(int argc, char** argv) {
   (void)argc; (void)argv;
@@ -775,6 +777,8 @@ int run(int argc, char** argv) {
   float scroll = 0; static float selAnim[600] = {};
   bool railFocus = false; int railSel = 0; float railOpen = 0;
   PlayerExtras extras; extras.init();
+  sponsorblock::Worker sponsorWorker; sponsorWorker.init();
+  sponsorblock::Playback sponsors; sponsorblock::UI sponsorUI;
   std::vector<std::string> commentLines; int commentIndex=-1;
   PlayerText commentAuthor, commentMeta; std::string commentPosition;
   bool phonePanel = false;
@@ -894,6 +898,10 @@ int run(int argc, char** argv) {
     offeredQualities.assign(1);
     qualityKnown=false;
     manualNoticeUntil=0;
+    LOG("player: pedido %s inicio=%.3f anterior=%.3f modo=%d remoto=%d",v.id.c_str(),t,pl.position(),settings.videoMode,fromRemote);
+    if (v.id != playing.id || screen != PLAYER) {
+      sponsors.reset(); sponsorWorker.select(settings.sponsorBlock==sponsorblock::OFF ? "" : v.id);
+    }
     if (track.empty()) track=v.id==playing.id ? pl.audioSelection : settings.originalAudio ? "original" : std::string("lang:")+i18n::code(settings.lang);
     if (!fromRemote) phonePlaybackSerial = 0;
     if (historyVideo != v.id) { recordHistory(); historyVideo = v.id; historyStarted = false; historyAt = 0; }
@@ -931,10 +939,16 @@ int run(int argc, char** argv) {
     playerUI.panel=PlayerUI::QUALITY;playerUI.panelSel=offeredQualities.index(settings.videoMode);playerUI.touch(SDL_GetTicks());
     qualityHelpLines=gfx::wrap(g,ui::F_SMALL,tr(K::ManualQualityHelp),648,2);
   };
+  auto sponsorSeek = [&](sponsorblock::Action action) {
+    bool paused=pl.paused;
+    LOG("SponsorBlock: %s %.3f -> %.3f",action.kind==sponsorblock::Action::UNDO ? "undo" : "skip",pl.position(),action.target);
+    startVideo(playing,action.target,playerFromRemote); pl.setPaused(paused);
+  };
   auto stopVideo = [&]() {
     seekHold.cancel();
     recordHistory(); historyVideo.clear(); historyStarted = false;
     extras.select("",i18n::code(settings.lang));
+    sponsors.reset(); sponsorWorker.select("");
     if (nav.localQueue) { nav.clearLocalQueue(); nav.musicSession = nav.musicNow = false; }
     if (nav.ownsQueue && pl.state != player::ENDED) {
       nav.ownsQueue = nav.musicSession = nav.musicNow = false; nav.busy = false; nav.cancelQueue = true;
@@ -1341,6 +1355,12 @@ int run(int argc, char** argv) {
     bool behindLive = screen == PLAYER && pl.live && (pl.paused || (pl.shownFrames &&
         (pl.liveDebt >= 1.0 || (pl.lastFrameMs && now > pl.lastFrameMs + 1000))));
     if (extras.poll()) { commentIndex=-1; }
+    if (sponsorWorker.poll(sponsors,screen==PLAYER && pl.state==player::PLAYING && !pl.live && !nav.musicNow,now))
+      LOG("SponsorBlock: %u trechos pos=%.3f estado=%d %s",(unsigned)sponsors.segments.size(),pl.position(),(int)pl.state,sponsorWorker.diagnostic.line().c_str());
+    if (screen==PLAYER && !pl.live && !nav.musicNow && !shutdownAt) {
+      auto action=sponsors.update(pl.position(),pl.duration,now,settings.sponsorBlock,pl.state==player::PLAYING && !pl.paused);
+      if (action) sponsorSeek(action);
+    }
     auto commentPanel=display::commentsPanel(ui::W,g.fonts[ui::F_H2].lineH,g.fonts[ui::F_SMALL].lineH,g.fonts[ui::F_BODY].lineH);
     int optionCount = behindLive ? PlayerUI::COUNT : PlayerUI::EDGE;
     if (playerUI.selected >= optionCount) playerUI.selected = PlayerUI::CHANNEL;
@@ -1564,6 +1584,8 @@ int run(int argc, char** argv) {
         if (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0) nav.cancelQueue = true;
         navBack();
       }
+    } else if (screen == SETTINGS && sponsorUI.open) {
+      if (sponsorUI.input(in,settings.sponsorBlock)) saveSettings();
     } else if (screen == SETTINGS && speakerPicker.open) {
       if (in.hit(Input::UP)) speakerPicker.selected = std::max(0,speakerPicker.selected-1);
       if (in.hit(Input::DOWN)) speakerPicker.selected = std::min((int)speakerPicker.result.devices.size(),speakerPicker.selected+1);
@@ -1579,7 +1601,7 @@ int run(int argc, char** argv) {
       }
     } else if (screen == SETTINGS) {
       if (in.hit(Input::UP) && settingsRow > 0) settingsRow--;
-      if (in.hit(Input::DOWN) && settingsRow < 14) settingsRow++;
+      if (in.hit(Input::DOWN) && settingsRow < 15) settingsRow++;
       int direction = 0;
       if (in.hit(Input::LEFT)) direction = -1;
       if (in.hit(Input::RIGHT)) direction = 1;
@@ -1589,6 +1611,7 @@ int run(int argc, char** argv) {
       }
       if (settingsRow == 13 && in.hit(Input::A)) speakerPicker.begin(pl.directSpeaker.finder());
       if (settingsRow == 14 && in.hit(Input::A)) updateUI.show(updater);
+      if (settingsRow == 15 && in.hit(Input::A)) sponsorUI.open=true;
       if (direction && settingsRow > 0 && settingsRow < 13) {
         bool changed = true;
         if (settingsRow == 1) {
@@ -1824,7 +1847,10 @@ int run(int argc, char** argv) {
         any = true;
       }
       if (in.hit(Input::Y)) {
-        openQuality();any=true;
+        auto action=(!pl.live && pl.state!=player::FAILED && (pl.state==player::PLAYING || sponsors.canUndo(now))) ? sponsors.press(pl.position(),pl.duration,now,settings.sponsorBlock) : sponsorblock::Action{};
+        if (action) sponsorSeek(action);
+        else openQuality();
+        any=true;
       }
       if (in.hit(Input::X)) {
         if (pl.speed!=1) toast=tr(K::SpeedNest);
@@ -2156,15 +2182,16 @@ int run(int argc, char** argv) {
       hint(g, hx2, ui::H - 40, "B", XB, tr(K::Back));
     }
 
-    if (screen == SETTINGS && !speakerPicker.open) {
+    if (screen == SETTINGS && sponsorUI.open) { glow(); sponsorUI.drawSettings(g,settings.sponsorBlock,settings.lang); }
+    if (screen == SETTINGS && !speakerPicker.open && !sponsorUI.open) {
       glow();
       gfx::text(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::TEXT);
       if (!ui::large) gfx::text(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::MUTED);
       else gfx::text(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::MUTED);
-      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates};
-      int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,15-visible);
+      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates,K::SponsorBlock};
+      int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,16-visible);
       float step=ui::large ? 94 : 59, rowH=step-6;
-      for (int i=first;i<std::min(15,first+visible);++i) {
+      for (int i=first;i<std::min(16,first+visible);++i) {
         float x=ui::X0, y=122+(i-first)*step, w=ui::W-ui::X0-64;
         bool selected=i==settingsRow, disabled=i==3 && !nestAvailable;
         if (selected) gfx::rect(g,x-3,y-3,w+6,rowH+6,ui::A1,20);
@@ -2184,6 +2211,7 @@ int run(int argc, char** argv) {
         else if (i==11) value=tr(ui::large ? K::Enabled : K::SleepOff);
         else if (i==13) value=tr(K::Open);
         else if (i==14) value=updateUI.settingsValue(settings.lang);
+        else if (i==15) value=tr(sponsorblock::modeLabel(settings.sponsorBlock));
         else value=tr(settings.videoFill ? K::VideoFitFill : K::VideoFitLetterbox);
         float right=x+w-46, maxValue=ui::large ? w-92 : w*.48f;
         gfx::text(g,ui::F_CHAN,gfx::ellipsize(g,ui::F_CHAN,tr(labels[i]),ui::large ? w-56 : w*.43f),x+28,y+(ui::large ? 10 : 17),disabled ? ui::MUTED : ui::TEXT);
@@ -2196,7 +2224,7 @@ int run(int argc, char** argv) {
       for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::text(g,ui::F_SMALL,line,ui::X0,hy,ui::MUTED); hy+=ui::large ? 26 : 22; }
       float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
       hx=hint(g,hx,678,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
-      if (settingsRow==0 || settingsRow==13 || settingsRow==14) hx=hint(g,hx,678,"A",XA,tr(K::Open));
+      if (settingsRow==0 || settingsRow==13 || settingsRow==14 || settingsRow==15) hx=hint(g,hx,678,"A",XA,tr(K::Open));
       hint(g,hx,678,"B",XB,tr(K::Back));
     }
 
@@ -2267,6 +2295,7 @@ int run(int argc, char** argv) {
         float frac = live ? 1.f : dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0;
         gfx::rect(g, bx, by, bw, 4, {1,1,1,0.25f}, 2);
         if (frac > 0) gfx::rect(g, bx, by, bw * frac, 4, red, 2);
+        if (!live) sponsorUI.timeline(g,sponsors,settings.sponsorBlock,dur,bx,by,bw);
         const cc::Chapter* currentChapter = nullptr;
         if (!live && dur > 0) {
           for (const auto& chapter : captions.chapters) {
@@ -2379,6 +2408,8 @@ int run(int argc, char** argv) {
             gfx::text(g,ui::F_DETAIL,tr(K::DislikeEstimate),40,533,ui::MUTED);
         }
       }
+      if (!panelOpen && !pl.live && pl.state==player::PLAYING)
+        sponsorUI.hud(g,sponsors,settings.sponsorBlock,pl.position(),pl.duration,now,settings.lang);
       if (settings.captions && !captions.failed && !panelOpen && videoTex.ready) {
         int index = captions.at(pl.position());
         if (index != captionIndex) {
@@ -2680,6 +2711,7 @@ int run(int argc, char** argv) {
   captionLoader.stop();
   extras.close();
   pl.halt();
+  sponsorWorker.close();
   pl.directSpeaker.shutdown();
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);
   remote.quit = true;

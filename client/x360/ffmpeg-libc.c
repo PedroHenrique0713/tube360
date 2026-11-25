@@ -43,7 +43,9 @@ int __wrap_pthread_create(pthread_t* id, const pthread_attr_t* attr, void* (*fn)
         static const unsigned hw[] = {2, 4, 3, 5};
         unsigned core = hw[worker++ % 4];
         NTSTATUS status = xsdk_thread_place(xsdk_pthread_handle(*id), core);
-        xsdk_log_write("decod-worker: %u HW %u, afinidade %08x",worker,core,(unsigned)status);
+        int scheduling = 0; struct sched_param priority = {0};
+        int query = pthread_getschedparam(*id, &scheduling, &priority);
+        xsdk_log_write("decod-worker: %u HW %u, afinidade %08x prioridade %d consulta %d",worker,core,(unsigned)status,query ? -999 : priority.sched_priority,query);
     }
     return result;
 }

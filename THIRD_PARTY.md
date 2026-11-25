@@ -30,6 +30,15 @@ The Tube360 title and the standalone check both use these components.
 
 YouTube is a trademark of Google LLC. Tube360 is an independent project, not affiliated with or endorsed by Google or Microsoft.
 
+## SponsorBlock data
+
+Segments: [SponsorBlock, sponsor.ajay.app](https://sponsor.ajay.app/), contributed by the SponsorBlock
+community, under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+([API/database license](https://github.com/ajayyy/SponsorBlock/wiki/Database-and-API-License)).
+Tube360 is a noncommercial project. This data license applies separately from the MIT application code.
+The unmodified recorded API response in `bench/sponsorblock/fixtures/public-prefix.json` is covered by the
+same license. See `bench/sponsorblock/README.md` for its origin and collection date.
+
 ## Xbox release and relinking
 
 The Xbox title includes libavformat, libavcodec, libswresample and libavutil from FFmpeg 7.1.5 under the LGPL

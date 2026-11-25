@@ -188,6 +188,23 @@ Button prompts use the Xbox One / Series style (Menu / View are Start / Back on 
 
 Use Settings on the TV; values are saved beside the XEX in `settings.txt`. The packaged [examples](docs/RELEASE.md) explain the editable keys.
 
+**Settings → SponsorBlock** offers **Off**, **Skip button (default)** and **Skip automatically**.
+During a marked segment, **Y** skips to its end. Automatic mode shows **Sponsor skipped · Y Go back**
+for six seconds after the seek; returning plays that segment without skipping it again during this opening.
+Outside that prompt, Y keeps its quality shortcut. Sponsors, self-promotion and subscription reminders are
+enabled; intros/outros are preserved. Marks appear on the timeline. Community submissions may be wrong.
+The same player seek works with phone Cast and Nest sound. Live streams and audio-only Music are excluded.
+The optional `sponsorblock=off|button|auto` setting is saved with the other preferences.
+
+Segments: [SponsorBlock, sponsor.ajay.app](https://sponsor.ajay.app/), by the SponsorBlock community,
+licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
+Tube360 uses the public API in this noncommercial project; these data have a separate license from the MIT
+app code. Requests contain only four hexadecimal characters of the video ID's SHA-256; matching happens
+locally, with a bounded session cache. Unavailable data silently leave playback unchanged.
+Lookup runs alongside player resolution without a playback startup wait. On Xbox its worker temporarily
+uses priority +3 on HW5, above the decoder/background workers; its previous priority is restored after the
+request. One recovery attempt may run after three seconds from selection, even before the first frame.
+
 | File | Purpose |
 |---|---|
 | `settings.txt` | `lang=en\|pt\|es`, `cols=3\|4`, legacy `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, captions and timer target. |
@@ -279,7 +296,7 @@ tools/           builds, packaging and optional service installation
 - [ ] The console listed by itself in the phone's cast list
 - [ ] Automatic speaker discovery, and Nest sound during live streams
 - [ ] Your own YouTube Music recommendations with a Premium account
-- [ ] SponsorBlock: a Skip button or automatic skip, your choice
+- [x] SponsorBlock: a Skip button or automatic skip, your choice
 - [ ] Search filters and suggestions
 - [ ] Watch later and resume without an account
 

@@ -279,7 +279,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 - [ ] O console aparecer sozinho na lista de transmissão do celular
 - [ ] Achar o alto-falante sozinho, e som no Nest durante a live
 - [ ] As suas recomendações do YouTube Music com conta Premium
-- [ ] SponsorBlock: botão Pular ou pulo automático, à sua escolha
+- [x] SponsorBlock: botão Pular ou pulo automático, à sua escolha
 - [ ] Filtros e sugestões na busca
 - [ ] Assistir mais tarde e continuar de onde parou sem conta
 
@@ -292,6 +292,21 @@ Comentários, contagem estimada de não gostei, velocidade, repetir, TV de tubo,
 **VirusTotal:** link da análise e SHA-256 do `default.xex` serão preenchidos pelo coordenador depois da análise da build final. Ainda não há resultado publicado para esta build. Os hashes dos pacotes acompanham os arquivos na release.
 
 <!-- VIRUSTOTAL_URL: PENDING · DEFAULT_XEX_SHA256: PENDING -->
+
+## SponsorBlock
+
+Em **Configurações → SponsorBlock**, escolha **Desligado**, **Botão "Pular" (padrão)** ou **Pular sozinho**.
+O botão **Y** pula ao fim do trecho marcado; no automático, o aviso oferece **Y Voltar** por seis segundos
+depois do seek. Voltar permite assistir ao trecho sem outro pulo nessa abertura. Fora do aviso, Y continua
+trocando a qualidade. Patrocínios, autopromoção e lembretes de inscrição entram; vinhetas e encerramentos
+continuam. As marcas aparecem na linha do tempo. Os trechos são marcados pela comunidade e podem errar.
+O seek é o mesmo para vídeos transmitidos pelo celular e som no Nest; lives e Music só com áudio ficam de fora.
+Em `settings.txt`, a opção é `sponsorblock=off|button|auto`.
+
+Trechos: [SponsorBlock, sponsor.ajay.app](https://sponsor.ajay.app/), pela comunidade SponsorBlock,
+sob [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Este é um projeto não comercial;
+a licença dos dados é separada do código MIT do app. A consulta envia só quatro caracteres hexadecimais do
+SHA-256 do vídeo e escolhe a resposta localmente. Há cache limitado à sessão; falha da API não gera erro na tela.
 
 ## Créditos e licença
 

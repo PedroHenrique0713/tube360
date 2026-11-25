@@ -26,6 +26,9 @@
 
 - Hold LT/RT to rewind/fast-forward with an accelerating destination preview; release seeks once and preserves pause. Speaker synchronization remains in Settings.
 
+- SponsorBlock with Off, Skip button (default), and automatic skipping; Y skips or returns after an automatic skip, with community warning and attribution in English, Portuguese and Spanish.
+- Discreet timeline marks, private four-character SHA-256 prefix requests, background loading and bounded per-video session cache. Sponsors, self-promotion and subscription reminders are enabled; intros/outros are preserved.
+
 ## [0.3.1] — 2026-11-24
 
 ### Fixed

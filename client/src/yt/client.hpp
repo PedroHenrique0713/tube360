@@ -3,6 +3,7 @@
 #include "membership.hpp"
 #include <atomic>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -12,6 +13,13 @@ namespace updates { struct Rules; }
 namespace yt {
 using std::string;
 enum class Failure { NONE, NETWORK, DNS, TLS, TLS_DATE, HTTP, JSON, REFUSAL, SESSION, CANCELLED };
+struct NetworkTiming {
+    double dnsMs=-1, tcpMs=-1, tlsMs=-1, firstByteMs=-1, callbackGapMs=0;
+    long osError=0;
+    int nonblocking=-1;
+    const char* phase="dns";
+};
+using NetworkTrace=std::function<void(const char*,double)>;
 struct Response {
     long status = 0;
     string body, error, contentRange, location;
@@ -20,6 +28,10 @@ struct Response {
     bool retryable = false;
     double seconds = 0;
     int receiveBuffer = 0, sendBuffer = 0;
+    long transportCode = 0, tlsVerify = -1;
+    int tlsCode = 0;
+    string transportDetail;
+    NetworkTiming timing;
 };
 // Pedido com identidade própria: user agent, cabeçalhos extras e os cookies que o worker já recebeu.
 struct Request {
@@ -30,6 +42,8 @@ struct Request {
     long readBuffer = 64 * 1024;
     bool update = false;
     size_t maxBytes = 0;
+    long connectTimeoutMs = 0, timeoutMs = 0;
+    NetworkTrace trace;
 };
 struct Transport {
     virtual ~Transport() = default;
