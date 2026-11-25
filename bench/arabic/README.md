@@ -35,7 +35,11 @@ O teste negativo exige que `latin-only` não carregue Noto; `missing-font` deve 
 com números, latim e árabe, e uma quarta linha sintética explícita para harakat/lam-alef. Não se trata de feed
 anônimo real. Duração, capas em degradê e vídeo de teste são sintéticos; não se usa a mídia dos vídeos públicos.
 O player usa somente barras de teste e tom de 440 Hz gerados localmente com FFmpeg (8 segundos).
-Emojis dos títulos não estão cobertos pela Noto/Inter e aparecem como `?` se não forem cortados pela reticência.
+Emojis e símbolos sem glifo são omitidos durante a preparação do cache por texto/fonte. O teste cobre
+título só de emoji, árabe com emoji/ZWJ/ZWNJ, pergunta literal, corte/reticência/quebra e recarga da fonte.
+A cobertura das traduções árabes é conferida contra o shaping cru, antes do filtro: a omissão não pode
+mascarar uma letra árabe que falte no atlas. Há 100 mil hits sem nova consulta de cobertura e 10 mil
+medições/ajustes de título sem nova preparação do texto.
 
 A compilação do console usa o lock compartilhado (não executa nem instala no Xbox):
 

@@ -37,6 +37,8 @@ Arabic uses contextual shaping and bidi, with Noto fonts loaded when needed in a
 
 Search now offers suggestions while typing and LB opens type, duration, upload-date period and relevance/view-count ordering filters. Recent searches share the suggestion list; channel and playlist results open their pages. [Controls and verification](docs/SEARCH.md).
 
+Channels also have a Shorts tab with artwork. Without an account, save Watch later and resume positions on this console. Lists stay separate when you sign in; nothing is uploaded automatically. [Local storage, limits and clearing](docs/LOCAL-LIBRARY.md).
+
 ## Highlights
 
 | | |
@@ -318,7 +320,7 @@ tools/           builds, packaging and optional service installation
 - [ ] Your own YouTube Music recommendations with a Premium account
 - [x] SponsorBlock: a Skip button or automatic skip, your choice
 - [x] Search filters and suggestions (Xbox acceptance pending)
-- [ ] Watch later and resume without an account
+- [x] Watch later and resume without an account
 
 Comments, estimated dislike counts, playback speed, repeat, CRT support, large text, Spanish and signed updates are included in v0.3.0. [CHANGELOG.md](CHANGELOG.md) records the delivery.
 

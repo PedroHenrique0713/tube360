@@ -359,6 +359,27 @@ inline const char* arabic(Key key) {
     case Key::MusicRecent: return "تم تشغيلها مؤخرًا";
     case Key::MusicLiked: return "الموسيقى المعجب بها";
     case Key::MusicAccountUnavailable: return "موسيقى الحساب غير متاحة. حاول لاحقًا.";
+    case Key::OnConsole: return "على هذا الجهاز";
+    case Key::LocalLater: return "المشاهدة لاحقًا · الجهاز";
+    case Key::LocalHistory: return "متابعة · الجهاز";
+    case Key::LocalOnly: return "محفوظ هنا. لا يُرسل إلى حسابك.";
+    case Key::RemoveLocalLater: return "إزالة من القائمة المحلية";
+    case Key::ClearLocalHistory: return "مسح السجل المحلي";
+    case Key::ClearLocalLater: return "مسح قائمة المشاهدة المحلية";
+    case Key::ConfirmLocalClear: return "هل تريد حذف هذه العناصر المحفوظة على هذا الجهاز؟";
+    case Key::LocalSaving: return "جارٍ الحفظ على هذا الجهاز…";
+    case Key::LocalSaved: return "تم الحفظ على هذا الجهاز";
+    case Key::LocalSaveFailed: return "تعذّر الحفظ محليًا. تحقق من مساحة التخزين.";
+    case Key::LocalCorrupt: return "تعذّرت قراءة الملف المحلي. تبدأ القوائم فارغة.";
+    case Key::ResumeLocal: return "هل تريد المتابعة من حيث توقفت؟";
+    case Key::StartBeginning: return "البدء من البداية";
+    case Key::LocalLimit: return "حتى 200 فيديو · حتى 500 موضع";
+    case Key::ChannelShorts: return "Shorts";
+    case Key::LocalEmpty: return "فارغ";
+    case Key::LocalVideo: return "فيديو";
+    case Key::LocalVideos: return "فيديوهات";
+    case Key::LocalPosition: return "موضع";
+    case Key::LocalPositions: return "مواضع";
     default: return nullptr;  // Strings novas usam inglês até receberem tradução.
   }
 }

@@ -37,6 +37,13 @@ int main() {
   check(i18n::cycle(i18n::Lang::ES,1)==i18n::Lang::AR && i18n::cycle(i18n::Lang::EN,-1)==i18n::Lang::AR,"four-language cycle both ways");
   check(i18n::shortDate("2026-11-24",i18n::Lang::AR)=="24 نوفمبر 2026","Arabic date");
   check(std::string(yt::localeLanguage("ar"))=="ar" && std::string(yt::localeRegion("ar"))=="SA","native YouTube locale");
+  check(i18n::localCount(i18n::Lang::PT,0,true)=="Vazio" && i18n::localCount(i18n::Lang::PT,0,false)=="Vazio","empty local collections have an explicit state");
+  check(i18n::localCount(i18n::Lang::PT,1,false)=="1 vídeo" && i18n::localCount(i18n::Lang::PT,3,false)=="3 vídeos","Portuguese video count units");
+  check(i18n::localCount(i18n::Lang::PT,1,true)=="1 posição" && i18n::localCount(i18n::Lang::PT,12,true)=="12 posições","Portuguese resume count units");
+  check(i18n::localCount(i18n::Lang::EN,1,false)=="1 video" && i18n::localCount(i18n::Lang::EN,12,true)=="12 positions" && i18n::localCount(i18n::Lang::EN,0,false)=="Empty","English local count labels");
+  check(i18n::localCount(i18n::Lang::ES,1,true)=="1 posición" && i18n::localCount(i18n::Lang::ES,3,false)=="3 videos" && i18n::localCount(i18n::Lang::ES,0,true)=="Vacío","Spanish local count labels");
+  check(i18n::localCount(i18n::Lang::AR,12,true)=="مواضع: 12" && i18n::localCount(i18n::Lang::AR,3,false)=="فيديوهات: 3" && i18n::localCount(i18n::Lang::AR,0,true)=="فارغ","Arabic local counts retain a unit and western digits");
+  check(std::string(i18n::get(i18n::Lang::PT,i18n::Key::LocalLimit))=="Até 200 vídeos · até 500 posições","limits explicitly say up to");
   for (size_t i=0;i<size_t(i18n::Key::Count);++i) {
     auto key=i18n::Key(i); auto ar=i18n::arabic(key);
     check(ar && (i==0 || *ar),"every current key explicitly translated, no English fallback masking omissions");
@@ -46,6 +53,29 @@ int main() {
     for (size_t i=0;i<row.size();++count) decode(row,i);
     check(count==10,"keyboard has ten Unicode characters per row");
   }
+  auto supported=[](uint32_t cp){return cp<128 || arabic(cp);};
+  auto filtered=prepare(0,"🪴 العربية Xbox 360 (2026) 😀",supported);
+  check(filtered.logical=="العربية Xbox 360 (2026)" && filtered.visual.rtl,"omit unknown glyphs before bidi direction and fitting");
+  check(filtered.visual.glyphs==shape(filtered.logical).glyphs,"Arabic shaping uses the cleaned logical title");
+  check(prepare(0,"ب😀ب",supported).visual.glyphs==glyphs("بب"),"omitting emoji keeps adjacent Arabic joining");
+  check(prepare(0,"ب‌😀ب",supported).visual.glyphs==glyphs("ب‌ب"),"ZWNJ is preserved while unsupported emoji disappears");
+  check(prepare(0,"ب‍😀ب",supported).visual.glyphs==glyphs("ب‍ب"),"ZWJ is preserved for Arabic composition");
+  check(contains(prepare(0,"العربية ⁦Xbox 😀360⁩ 2026",supported).visual.glyphs,"Xbox 360"),"bidi isolates survive glyph filtering");
+  auto onlyEmoji=prepare(0,"👨‍👩‍👧 🪴😀",supported);
+  check(onlyEmoji.logical.empty() && onlyEmoji.visual.glyphs.empty(),"emoji-only titles produce no replacement or residual joiners");
+  check(prepare(0,"Question? 😀",supported).logical=="Question?","literal supported question marks remain");
+  PreparedCache prepared;size_t coverageCalls=0;
+  auto coverage=[&](uint32_t cp){++coverageCalls;return supported(cp);};
+  std::string decorated="🪴 العربية Xbox 360 (2026) 😀";
+  const auto* preparedFirst=&prepared.get(0,decorated,coverage);auto callsBefore=coverageCalls;
+  auto preparedStart=std::chrono::steady_clock::now();
+  for(int i=0;i<100000;++i)if(&prepared.get(0,decorated,coverage)!=preparedFirst)check(false,"stable prepared cache storage");
+  auto preparedUs=std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now()-preparedStart).count();
+  check(coverageCalls==callsBefore && prepared.builds==1,"100000 cache hits do not rescan font coverage or reshape");
+  check(prepared.get(1,"A",[](uint32_t){return true;}).logical=="A" && prepared.get(2,"A",[](uint32_t){return false;}).logical.empty(),"coverage cache is scoped to the actual font");
+  for(size_t i=0;i<PreparedCache::limit+100;++i)prepared.get(0,std::to_string(i)+decorated,supported);
+  check(prepared.entries<=PreparedCache::limit && prepared.bytes<=PreparedCache::byteLimit,"prepared text cache remains bounded");
+  std::cout<<"100000 prepared cache hits: "<<preparedUs<<" us; additional coverage checks: "<<(coverageCalls-callsBefore)<<"\n";
   Cache cache; std::string title="العربية Xbox 360 - 2026";
   const auto* first=&cache.get(title);
   auto start=std::chrono::steady_clock::now();

@@ -39,6 +39,8 @@ SponsorBlock oferece Desligado, Botão para pular (padrão) e automático. Y pul
 
 A busca agora oferece sugestões enquanto você digita; LB abre filtros de tipo, duração, período de envio e ordenação por relevância ou visualizações. Buscas recentes compartilham a lista; canais e playlists abrem suas páginas. [Controles e provas](docs/SEARCH.md).
 
+Os canais também têm aba Shorts com capas. Sem conta, salve vídeos para assistir depois e retome a reprodução neste console. As listas continuam separadas após o login, sem envio automático. [Armazenamento, limites e limpeza](docs/LOCAL-LIBRARY.md).
+
 ## Destaques
 
 | | |
@@ -303,7 +305,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 - [ ] As suas recomendações do YouTube Music com conta Premium
 - [x] SponsorBlock: botão Pular ou pulo automático, à sua escolha
 - [x] Filtros e sugestões na busca (aceite no Xbox pendente)
-- [ ] Assistir mais tarde e continuar de onde parou sem conta
+- [x] Assistir mais tarde e continuar de onde parou sem conta
 
 Comentários, contagem estimada de não gostei, velocidade, repetir, TV de tubo, texto grande, espanhol e atualização assinada já fazem parte da v0.3.0. [CHANGELOG.md](CHANGELOG.md) registra a entrega.
 

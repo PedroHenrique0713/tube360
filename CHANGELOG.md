@@ -4,6 +4,11 @@
 
 ### Added
 
+- Watch later and resume without an account, stored beside the app with bounded atomic snapshots, progress bars and confirmed local clearing. Account lists remain separate.
+- Local clearing settings show actual counts with units, an explicit empty state and separately labeled storage limits in all four languages.
+- Text without a font glyph is omitted in the per-font layout cache before fitting/shaping; Arabic joining/bidi controls and literal question marks are preserved. Emoji-only titles render empty.
+- Channel Shorts cards and tab, protocol-relative artwork URLs and JPEG fallback for unsupported ytimg artwork. [Behavior and validation](docs/LOCAL-LIBRARY.md).
+
 - Public search suggestions with debounced/cancellable anonymous lookup, session recent searches in the same list, and Series-style LB filters for type, duration, upload-date period and relevance/view-count order. Typed channel/playlist results open their pages; filtered continuations retain their query/params/language. English, Portuguese, Spanish and Arabic include 4:3/large-text layouts. Current YouTube durations use 3-minute boundaries. Removed legacy upload-date ordering after the coordinator measured it being ignored; view-count order worked in real WEB results (see `docs/SEARCH.md`).
 - Native H.264 1080p30 decoding uses the measured Xenon VMX kernels, six FRAME workers across HW 0,2,4,1,3,5 and a larger bounded frame queue. Only known 1080p sources up to 30.1 fps omit deblocking; `h264_loop_filter=full` restores the complete filter after restarting the app. Smaller/unknown/high-cadence sources retain full filtering. The inherited isolated decoder median is 22.57 ms/frame; integrated Xbox playback with audio/UI/network still awaits console acceptance. This does not promise 1080p60. Native 1080p output requires HDMI with 1080p progressive selected in the Xbox dashboard.
 - Saved Nest IPs connect directly; metadata discovery runs in the background. Cast clock filtering and bounded picture correction keep Wi-Fi status jitter from changing playback cadence.
@@ -12,6 +17,8 @@
 - Fixed 480p/360p/240p/144p H.264 choices in Settings and the player's Series-style Y Quality menu. During playback, choices follow the video's direct AVC/AAC offers; selection preserves position/pause and warns under sustained pressure without switching source or falling back to a PC. Existing Automatic/720p60/1080p30 profiles retain their adaptive ladder. New messages are available in Portuguese, English, Spanish and Arabic.
 
 ### Fixed
+
+- Public Xbox packaging rejects benchmark/mute executables even with a stale OFF cache; independent package checks verify production trust in both launcher and app.
 
 - Adaptive recovery uses the measured 1080p30 decoder cost as a floor and preserves higher costs observed in the session. Explicit worker priorities keep UI, PCM and network above video work; SponsorBlock retains its temporary HW5 TLS boost and restores the background priority afterward.
 - Video drawing bypasses both UI scale axes, so SD and 1080 output use the whole physical framebuffer while menus retain their scale and margins.

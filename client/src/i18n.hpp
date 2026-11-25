@@ -134,28 +134,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(AccountPrefix, "Account: ", "Conta: ", "Cuenta: ") \
   X(SearchPrompt, "What do you want to watch?", "O que você quer assistir?", "¿Qué quieres ver?") \
   X(RecentSearches, "Recent searches", "Buscas recentes", "Búsquedas recientes") \
-  X(SearchSuggestions, "Suggestions", "Sugestões", "Sugerencias") \
-  X(SearchRecentTag, "Recent", "Recente", "Reciente") \
-  X(SearchFilters, "Filters", "Filtros", "Filtros") \
-  X(SearchType, "Result type", "Tipo de resultado", "Tipo de resultado") \
-  X(SearchDuration, "Duration", "Duração", "Duración") \
-  X(SearchDate, "Upload date", "Data de envio", "Fecha de subida") \
-  X(SearchOrder, "Sort by", "Ordenar por", "Ordenar por") \
-  X(SearchShort, "Short · under 3 min", "Curta · menos de 3 min", "Corta · menos de 3 min") \
-  X(SearchMedium, "Medium · 3–20 min", "Média · 3–20 min", "Media · 3–20 min") \
-  X(SearchLong, "Long · over 20 min", "Longa · mais de 20 min", "Larga · más de 20 min") \
-  X(SearchShortLabel, "Short", "Curta", "Corta") \
-  X(SearchMediumLabel, "Medium", "Média", "Media") \
-  X(SearchLongLabel, "Long", "Longa", "Larga") \
-  X(SearchToday, "Today", "Hoje", "Hoy") \
-  X(SearchWeek, "This week", "Esta semana", "Esta semana") \
-  X(SearchMonth, "This month", "Este mês", "Este mes") \
-  X(SearchYear, "This year", "Este ano", "Este año") \
-  X(SearchRelevance, "Relevance", "Relevância", "Relevancia") \
-  X(SearchViews, "View count", "Visualizações", "Visualizaciones") \
-  X(SearchApply, "Apply", "Aplicar", "Aplicar") \
-  X(SearchClear, "Clear filters", "Limpar filtros", "Borrar filtros") \
-  X(SearchAny, "Any", "Qualquer", "Cualquiera") \
   X(RecentEmpty, "Your searches will appear here.", "O que você buscar aparece aqui.", "Tus búsquedas aparecerán aquí.") \
   X(Type, "Type", "Digitar", "Escribir") \
   X(Delete, "Delete", "Apagar", "Borrar") \
@@ -378,7 +356,50 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(BtnA, "A", "A", "A") X(BtnB, "B", "B", "B") X(BtnX, "X", "X", "X") X(BtnY, "Y", "Y", "Y") \
   X(BtnView, "View", "View", "View") X(BtnMenu, "Menu", "Menu", "Menu") \
   X(BtnShoulders, "LB RB", "LB RB", "LB RB") X(BtnTriggers, "LT RT", "LT RT", "LT RT") \
-  X(BtnHorizontal, "< >", "< >", "< >") X(BtnVertical, "↑ ↓", "↑ ↓", "↑ ↓")
+  X(BtnHorizontal, "< >", "< >", "< >") X(BtnVertical, "↑ ↓", "↑ ↓", "↑ ↓") \
+  X(SearchSuggestions, "Suggestions", "Sugestões", "Sugerencias") \
+  X(SearchRecentTag, "Recent", "Recente", "Reciente") \
+  X(SearchFilters, "Filters", "Filtros", "Filtros") \
+  X(SearchType, "Result type", "Tipo de resultado", "Tipo de resultado") \
+  X(SearchDuration, "Duration", "Duração", "Duración") \
+  X(SearchDate, "Upload date", "Data de envio", "Fecha de subida") \
+  X(SearchOrder, "Sort by", "Ordenar por", "Ordenar por") \
+  X(SearchShort, "Short · under 3 min", "Curta · menos de 3 min", "Corta · menos de 3 min") \
+  X(SearchMedium, "Medium · 3–20 min", "Média · 3–20 min", "Media · 3–20 min") \
+  X(SearchLong, "Long · over 20 min", "Longa · mais de 20 min", "Larga · más de 20 min") \
+  X(SearchShortLabel, "Short", "Curta", "Corta") \
+  X(SearchMediumLabel, "Medium", "Média", "Media") \
+  X(SearchLongLabel, "Long", "Longa", "Larga") \
+  X(SearchToday, "Today", "Hoje", "Hoy") \
+  X(SearchWeek, "This week", "Esta semana", "Esta semana") \
+  X(SearchMonth, "This month", "Este mês", "Este mes") \
+  X(SearchYear, "This year", "Este ano", "Este año") \
+  X(SearchRelevance, "Relevance", "Relevância", "Relevancia") \
+  X(SearchViews, "View count", "Visualizações", "Visualizaciones") \
+  X(SearchApply, "Apply", "Aplicar", "Aplicar") \
+  X(SearchClear, "Clear filters", "Limpar filtros", "Borrar filtros") \
+  X(SearchAny, "Any", "Qualquer", "Cualquiera") \
+  X(OnConsole, "On this console", "Neste console", "En esta consola") \
+  X(LocalLater, "Watch later · console", "Assistir mais tarde · console", "Ver más tarde · consola") \
+  X(LocalHistory, "Continue · console", "Continuar · console", "Continuar · consola") \
+  X(LocalOnly, "Saved here. Never sent to your account.", "Salvo aqui. Nunca enviado à sua conta.", "Guardado aquí. Nunca se envía a tu cuenta.") \
+  X(RemoveLocalLater, "Remove from local list", "Remover da lista local", "Quitar de la lista local") \
+  X(ClearLocalHistory, "Clear local history", "Apagar histórico local", "Borrar historial local") \
+  X(ClearLocalLater, "Clear local watch later", "Apagar lista local", "Borrar lista local") \
+  X(ConfirmLocalClear, "Delete these saved items on this console?", "Apagar estes itens salvos neste console?", "¿Borrar estos elementos guardados en esta consola?") \
+  X(LocalSaving, "Saving on this console…", "Salvando neste console…", "Guardando en esta consola…") \
+  X(LocalSaved, "Saved on this console", "Salvo neste console", "Guardado en esta consola") \
+  X(LocalSaveFailed, "Could not save locally. Check storage space.", "Não foi possível salvar. Confira o espaço no disco.", "No se pudo guardar. Revisa el espacio en el disco.") \
+  X(LocalCorrupt, "Local file unreadable. Lists start empty.", "Arquivo local ilegível. Listas iniciadas vazias.", "Archivo local ilegible. Las listas empiezan vacías.") \
+  X(ResumeLocal, "Continue where you left off?", "Continuar de onde parou?", "¿Continuar donde lo dejaste?") \
+  X(StartBeginning, "Start from beginning", "Começar do início", "Empezar desde el principio") \
+  X(LocalLimit, "Up to 200 videos · up to 500 positions", "Até 200 vídeos · até 500 posições", "Hasta 200 videos · hasta 500 posiciones") \
+  X(ChannelShorts, "Shorts", "Shorts", "Shorts") \
+  X(LocalEmpty, "Empty", "Vazio", "Vacío") \
+  X(LocalVideo, "video", "vídeo", "video") \
+  X(LocalVideos, "videos", "vídeos", "videos") \
+  X(LocalPosition, "position", "posição", "posición") \
+  X(LocalPositions, "positions", "posições", "posiciones")
 
 enum class Key {
 #define TEXT_KEY(k, en, pt, es) k,
@@ -399,6 +420,12 @@ inline bool rtl(Lang lang) { return lang == Lang::AR; }
 inline const char* get(Lang lang, Key key) {
   if (lang == Lang::AR) { const char* ar = arabic(key); if (ar) return ar; }
   return texts[(size_t)key][lang == Lang::PT ? 1 : lang == Lang::ES ? 2 : 0]; }
+inline std::string localCount(Lang lang, size_t count, bool history) {
+  if (!count) return get(lang,Key::LocalEmpty);
+  Key unit=history ? (count==1 ? Key::LocalPosition : Key::LocalPositions) : (count==1 ? Key::LocalVideo : Key::LocalVideos);
+  if (lang==Lang::AR) return std::string(get(lang,history ? Key::LocalPositions : Key::LocalVideos))+": "+std::to_string(count);
+  return std::to_string(count)+" "+get(lang,unit);
+}
 inline Key quality(int q) { return q == 360 ? Key::Q360 : q == 480 ? Key::Q480 : Key::Q720; }
 
 // player.hpp mantém os diagnósticos internos; só a apresentação é traduzida.

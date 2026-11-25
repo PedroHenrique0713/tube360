@@ -171,8 +171,9 @@ struct SearchUI {
             gfx::rect(g,bx,504,bw,62,focus ? ui::TEXT : ui::SURFACE2,20);
             gfx::textBox(g,ui::F_KEY,tr(i ? K::SearchClear : K::SearchApply),bx+20,523,bw-40,focus ? ui::INK : ui::TEXT);
         }
-        float hx=hint(g,x+32,610,tr(K::BtnHorizontal),XG,tr(K::ChooseRow));
-        hx=hint(g,hx,610,"A",XA,tr(filterRow<4 ? K::ChangeValue : K::SearchApply));
+        float hx=hint(g,x+32,610,tr(K::BtnVertical),XG,tr(K::ChooseRow));
+        hx=hint(g,hx,610,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
+        if (filterRow>=4) hx=hint(g,hx,610,"A",XA,tr(filterRow==5 ? K::SearchClear : K::SearchApply));
         hint(g,hx,610,"B",XB,tr(K::Back));
     }
 };

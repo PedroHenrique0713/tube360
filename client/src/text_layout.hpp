@@ -61,6 +61,47 @@ struct Cache {
     bytes += cost; return lines.emplace(s, shape(s)).first->second;
   }
 };
+struct Prepared {
+  int font=0;
+  std::string logical;
+  Line visual;
+};
+template<class Supported> inline Prepared prepare(int font,const std::string& s,Supported supported) {
+  Prepared out; out.font=font; bool omitted=false;
+  for(size_t i=0;i<s.size();) {
+    size_t start=i;auto cp=decode(s,i);
+    // ZWJ/ZWNJ e controles bidi participam da composição, mesmo sem tinta no atlas.
+    if(invisible(cp) || supported(cp))out.logical.append(s,start,i-start);
+    else omitted=true;
+  }
+  if(omitted) {
+    auto first=out.logical.find_first_not_of(" ");
+    if(first==std::string::npos)out.logical.clear();
+    else out.logical=out.logical.substr(first,out.logical.find_last_not_of(" ")-first+1);
+  }
+  out.visual=shape(out.logical);
+  out.visual.glyphs.erase(std::remove_if(out.visual.glyphs.begin(),out.visual.glyphs.end(),
+      [&](uint32_t cp){return !supported(cp);}),out.visual.glyphs.end());
+  if(out.visual.glyphs.empty())out.logical.clear();
+  return out;
+}
+// A cobertura varia por fonte. Filtra e compõe só no miss, antes de medir/cortar/desenhar.
+struct PreparedCache {
+  static constexpr size_t limit=512,byteLimit=512*1024;
+  std::map<std::string,std::vector<Prepared>> texts;
+  size_t bytes=0,entries=0,builds=0;
+  Prepared scratch;
+  template<class Supported> const Prepared& get(int font,const std::string& s,Supported supported) {
+    auto it=texts.find(s);
+    if(it!=texts.end())for(const auto& value:it->second)if(value.font==font)return value;
+    ++builds;auto value=prepare(font,s,supported);
+    size_t cost=s.size()+value.logical.size()+value.visual.glyphs.capacity()*sizeof(FriBidiChar)+128;
+    if(cost>byteLimit){scratch=std::move(value);return scratch;}
+    std::string key=s;
+    if(entries>=limit || bytes+cost>byteLimit){texts.clear();entries=bytes=0;}
+    bytes+=cost;++entries;auto& variants=texts[std::move(key)];variants.push_back(std::move(value));return variants.back();
+  }
+};
 struct Fit {
   int font = 0, maxLines = 0;
   float width = 0;
@@ -81,8 +122,9 @@ struct FitCache {
     size_t cost=s.size()+fit.shortened.size()+128;
     for (const auto& line:fit.lines) cost+=line.size()+32;
     if (cost>byteLimit) { scratch=std::move(fit); return scratch; }
+    std::string key=s;
     if (texts.size()>=128 || bytes+cost>byteLimit) { texts.clear(); bytes=0; }
-    bytes+=cost; auto& variants=texts[s]; variants.push_back(std::move(fit)); return variants.back();
+    bytes+=cost; auto& variants=texts[std::move(key)]; variants.push_back(std::move(fit)); return variants.back();
   }
 };
 }  // namespace textlayout

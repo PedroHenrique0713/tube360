@@ -41,6 +41,7 @@
 #include "settings.hpp"
 #include "audio_track_label.hpp"
 #include "account.hpp"
+#include "local_library.hpp"
 #include "yt/console_account.hpp"
 #include "sleep.hpp"
 #include "icons.hpp"
@@ -252,11 +253,18 @@ struct Worker {
         bool markedBanner = !j.a.empty() && j.a.front() == '!';
         bool banner = markedBanner || (j.w == 1184 && j.h == 160);
         std::string address = markedBanner ? j.a.substr(1) : j.a;
-        bool artwork = !yt::catalog::imageUrl(address).empty();
+        bool artwork = !yt::catalog::imageUrl(address).empty(), jpegTried=false;
         if (artwork) {
-          auto img = https->request(address);
+          auto img = https->request(yt::catalog::imageUrl(address));
           native = img.status == 200 && img.error.empty();
           if (native) resp.body.assign(img.body.begin(),img.body.end());
+          else {
+            auto fallback=yt::catalog::jpegThumbnail(address);
+            if(!fallback.empty() && fallback!=yt::catalog::imageUrl(address)){
+              jpegTried=true;auto jpg=https->request(fallback);native=jpg.status==200 && jpg.error.empty();
+              if(native)resp.body.assign(jpg.body.begin(),jpg.body.end());
+            }
+          }
         }
         if (!native && (j.native || !net::serverEnabled || (consoleAccount && consoleAccount->active())) && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
           auto img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg");
@@ -267,6 +275,17 @@ struct Worker {
           int w, h, n;
           // Não decodifica dimensões arbitrárias recebidas pela rede.
           if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (artwork || (native && j.a.rfind("~yt",0) == 0) ? (w < 1 || h < 1 || w > 2048 || h > 2048 || int64_t(w)*h > 2097152) : native ? (w != 320 || h != 180) : (w != j.w || h != j.h))) { w = h = 0; }
+          if (!w && artwork && !jpegTried) {
+            auto fallback=yt::catalog::jpegThumbnail(address);
+            if(!fallback.empty() && fallback!=address){
+              auto jpg=https->request(fallback);
+              if(jpg.status==200 && jpg.error.empty()){
+                resp.body.assign(jpg.body.begin(),jpg.body.end());
+                if(!stbi_info_from_memory(resp.body.data(),int(resp.body.size()),&w,&h,&n) || w<1 || h<1 || w>2048 || h>2048 || int64_t(w)*h>2097152)w=h=0;
+                LOG("miniatura: JPEG fallback ok=%d",w>0);
+              }
+            }
+          }
           unsigned char* px = w ? stbi_load_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n, 4) : nullptr;
           if (px) {
             r.w = j.w; r.h = j.h;
@@ -601,6 +620,7 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
 }
 
 #include "music_navigation.hpp"
+#include "local_library_ui.hpp"
 #include "update/ui.hpp"
 #include "nest_picker.hpp"
 #include "sponsorblock_ui.hpp"
@@ -750,6 +770,7 @@ int run(int argc, char** argv) {
   Worker navWorker; navWorker.srv = srv; navWorker.consoleAccount = consoleAccount; navWorker.hw = 5;
   SDL_Thread* nt = yt::worker(Worker::main, "navegação", &navWorker);
   MusicNavigation nav;
+  LocalLibraryUI localUI(assets); nav.local=&localUI.library;
   Worker sleepWorker; sleepWorker.srv = srv; sleepWorker.hw = 5;
   SDL_Thread* st = yt::worker(Worker::main, "timer", &sleepWorker);
   // miniaturas numa fila própria, com 3 threads: não esperam atrás das buscas das categorias
@@ -775,6 +796,10 @@ int run(int argc, char** argv) {
   uint64_t accountAt = 0, nestInfoAt = 0, stamp = 0, accountBackend = consoleAccount->revision();
   auto requestFeed = [&](Shelf& shelf, int kind, bool fresh = false, int offset = 0, bool front = false) {
     if (!offset) { shelf.stamp = ++stamp; shelf.feed.loading = true; shelf.feed.loadingMore = false; shelf.feed.error = K::None; }
+    if(shelf.kind=="local_later" || shelf.kind=="local_history") {
+      shelf.stamp=++stamp;shelf.feed={};shelf.feed.direct=true;shelf.feed.more=false;
+      for(const auto& e:shelf.kind=="local_later"?localUI.library.later:localUI.library.history){Video v;v.id=e.id;v.title=e.title;v.channel=e.channel;v.dur=e.duration;v.pos=localUI.library.position(e.id);shelf.feed.items.push_back(v);}return;
+    }
     Job j{kind, shelf.query, shelf.stamp, fresh, offset}; j.lang = settings.lang; j.feedKind = shelf.kind;
     j.native = !offset && (shelf.kind == "search" || (shelf.kind == "home" && !account.signedIn()));
     worker.add(j, front);
@@ -788,6 +813,9 @@ int run(int argc, char** argv) {
       cats.push_back({tr(K::ContinueWatching), "", {}, 0, "history"});
       cats.push_back({tr(K::WatchLater), "", {}, 0, "later"});
     }
+    cats.push_back({tr(account.signedIn()?K::LocalHistory:K::ContinueWatching), "", {}, 0, "local_history"});
+    cats.push_back({tr(account.signedIn()?K::LocalLater:K::WatchLater), "", {}, 0, "local_later"});
+    nav.signedIn=account.signedIn();nav.localRevision=0;
     const K titles[] = {K::Music, K::Football, K::Games, K::Podcasts, K::News};
     const K queries[] = {K::MusicQuery, K::FootballQuery, K::GamesQuery, K::PodcastsQuery, K::NewsQuery};
     for (int i = 0; i < 5; i++) cats.push_back({tr(titles[i]), tr(queries[i]), {}});
@@ -821,7 +849,7 @@ int run(int argc, char** argv) {
   i18n::Lang manualNoticeLang=settings.lang;
   float manualNoticeWidth=0;
   Screen backTo = HOME; std::string toast; uint64_t toastUntil = 0;
-  Video playing; bool playerFromRemote = false;
+  Video playing; bool playerFromRemote = false, localRecording=false;
   cc::Loader captionLoader; cc::Data captions;
   int captionIndex = -1; std::vector<std::string> captionLines; float captionWidth = 0;
   float captionLineWidths[2]{};
@@ -916,12 +944,21 @@ int run(int argc, char** argv) {
   if (g.win) SDL_StartTextInput(g.win);
 #endif
   uint64_t historyAt = 0; std::string historyVideo; bool historyStarted = false;
+  auto recordLocal = [&]() {
+    if(localRecording && !playing.id.empty() && !pl.live && !pl.playingAudio && pl.shownFrames>0 && pl.duration>0) {
+      Video v=playing;if(v.title.empty())v.title=pl.title;if(v.channel.empty())v.channel=pl.media.channel;
+      localUI.record(v,pl.position(),pl.duration,pl.state==player::ENDED);
+    }
+  };
   auto recordHistory = [&]() {
+    recordLocal();
     if (!account.signedIn() || !consoleAccount->active() || historyVideo.empty() || !historyStarted) return;
     Job j{7, "/api/account/watched?id=" + historyVideo + "&pos=" + std::to_string(pl.position()) + "&progress=1", 0};
     control.add(j);
   };
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
+    bool localOpening=v.id!=playing.id || screen!=PLAYER;
+    if(localOpening){recordLocal();localUI.checkpoint=SDL_GetTicks()+30000;}
     ++playerPositionRevision;
     offeredQualities.assign(1);
     qualityKnown=false;
@@ -951,6 +988,7 @@ int run(int argc, char** argv) {
     if (v.id != playing.id) { audioTracks.clear(); trackLabels.clear(); selectedTrackLabel.clear(); playerUI.tracks=false; }
     nextAt = nextDeadline = 0; endedSent = false; ratePanel = sleepPanel = false; livePaused = false;
     playing = v; playerFromRemote = fromRemote;
+    if(localOpening)localRecording=!account.signedIn();
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
     pl.nestOffset = nestOffsetMs / 1000.0;
@@ -963,6 +1001,14 @@ int run(int argc, char** argv) {
     seekHold.cancel();
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
+  auto requestVideo = [&](const Video& v,double t=0) {
+    bool localPage=(screen==NAV && !nav.pages.empty() && (nav.page().kind=="local_later" || nav.page().kind=="local_history")) ||
+        (screen==HOME && !inResults && (cats[cat].kind=="local_later" || cats[cat].kind=="local_history"));
+    double pos=(!account.signedIn() || localPage)?localUI.library.position(v.id):0;
+    if(pos>0){localUI.pending=v;if(localUI.pending.title.empty())if(const auto* e=local::Library::find(localUI.library.history,v.id))localUI.pending.title=e->title;localUI.resumeAt=pos;localUI.selected=0;localUI.resume=true;}
+    else startVideo(v,t,false);
+  };
+  if(localUI.corrupt){toast=tr(K::LocalCorrupt);toastUntil=SDL_GetTicks()+7000;LOG("local: unreadable file; original retained until explicit change");}
   auto openQuality = [&]() {
     playerUI.panel=PlayerUI::QUALITY;playerUI.panelSel=offeredQualities.index(settings.videoMode);playerUI.touch(SDL_GetTicks());
     qualityHelpLines=gfx::wrap(g,ui::F_SMALL,tr(K::ManualQualityHelp),648,2);
@@ -974,7 +1020,7 @@ int run(int argc, char** argv) {
   };
   auto stopVideo = [&]() {
     seekHold.cancel();
-    recordHistory(); historyVideo.clear(); historyStarted = false;
+    recordHistory(); localRecording=false; historyVideo.clear(); historyStarted = false;
     extras.select("",i18n::code(settings.lang));
     sponsors.reset(); sponsorWorker.select("");
     if (nav.localQueue) { nav.clearLocalQueue(); nav.musicSession = nav.musicNow = false; }
@@ -999,7 +1045,9 @@ int run(int argc, char** argv) {
   };
   auto openNav = [&](const std::string& kind, const std::string& id = "", const std::string& q = "", bool music = false, yt::search::Filters filters = {}) {
     if (screen != NAV) { navReturn = screen == SEARCH ? searchBack : screen; navReturnRail = railFocus; nav.pages.clear(); }
-    nav.open(navWorker, settings.lang, kind, id, q, music, filters); screen = NAV; railFocus = false;
+    nav.signedIn=account.signedIn();
+    nav.open(navWorker, settings.lang, kind, id, q, music, filters);
+    nav.refreshLocal(g,settings.lang); screen = NAV; railFocus = false;
   };
   auto openChannelForVideo = [&](const std::string& id) {
     if (screen != NAV) { navReturn = screen; navReturnRail = railFocus; nav.pages.clear(); }
@@ -1013,7 +1061,7 @@ int run(int argc, char** argv) {
   auto navBack = [&]() {
     if (!nav.pages.empty()) nav.pages.pop_back();
     if (nav.pages.empty()) { screen = navReturn; if (screen == SEARCH || screen == PLAYER) screen = HOME; railFocus = screen == HOME && navReturnRail; }
-    else screen = NAV;
+    else {screen = NAV;nav.localRevision=0;nav.refreshLocal(g,settings.lang);}
   };
   auto openSearch = [&]() {
     if (screen==NAV && nav.page().kind=="search") searchUI.filters=nav.page().filters;
@@ -1051,7 +1099,7 @@ int run(int argc, char** argv) {
       gfx::image(g, slot->tex, ui::W-72, 26, 40, 40, 20, {1,1,1,1}, (float)thumbs.height / thumbs.width);
     }
   };
-  if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; startVideo(v, 0, false); }
+  if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; requestVideo(v); }
 #ifndef __XSDK__
   if (const char* q = std::getenv("XT_QUERY")) doSearch(q);
 #endif
@@ -1391,6 +1439,11 @@ int run(int argc, char** argv) {
         p.filterLines=gfx::wrap(g,ui::F_CHAN,p.filterLabel,ui::W-440,2);
       }
     }
+    if(screen==PLAYER && now>=localUI.checkpoint){recordLocal();localUI.checkpoint=now+30000;}
+    auto localRevision=localUI.submitted;
+    localUI.tick(toast,toastUntil,now,settings.lang);
+    if(localRevision!=localUI.submitted) for(auto& shelf:cats)if(shelf.kind=="local_later" || shelf.kind=="local_history"){requestFeed(shelf,3);if(!shelf.feed.items.empty())shelf.sel=std::clamp(shelf.sel,0,int(shelf.feed.items.size())-1);else shelf.sel=0;}
+    nav.refreshLocal(g,settings.lang);
     // ---------------------------------------------------------------- lógica por tela
     // código de pareamento e quem está conectado pelo Transmitir (o código troca a cada 5 min)
     if (net::serverEnabled && !pl.directSpeaker.configured() && now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
@@ -1415,7 +1468,7 @@ int run(int argc, char** argv) {
         if (powerDownXbox()) quit = true;
         else { shutdownAt = 0; toast = tr(K::SleepError); toastUntil = now + 6000; }
       }
-    } else if (updateUI.input(updater,in,screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !sleepPanel && !sleepWarning && !shutdownAt,screen==SETTINGS && !speakerPicker.open && !loginPanel && !logoutPanel)) {
+    } else if (updateUI.input(updater,in,screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !localUI.resume && localUI.clear<0 && !sleepPanel && !sleepWarning && !shutdownAt,screen==SETTINGS && !localUI.resume && localUI.clear<0 && !speakerPicker.open && !loginPanel && !logoutPanel)) {
     } else if (sleepWarning) {
       if (in.hit(Input::A) && !sleepPending) requestSleep("/api/sleep/add?min=15");
       if (in.hit(Input::B) && !sleepPending) requestSleep("/api/sleep/cancel");
@@ -1531,9 +1584,17 @@ int run(int argc, char** argv) {
         auto& p=nav.page();
         if (p.filters!=searchUI.filters) { p.filters=searchUI.filters; p.filterLabel.clear(); p.sel=0; p.scroll=0; nav.load(navWorker,settings.lang); }
       }
+    } else if (localUI.resume || localUI.clear>=0) {
+      if(in.hit(Input::UP))localUI.selected=0;
+      if(in.hit(Input::DOWN))localUI.selected=1;
+      if(in.hit(Input::B)){localUI.resume=false;localUI.clear=-1;}
+      else if(in.hit(Input::A)){
+        if(localUI.resume){auto v=localUI.pending;double pos=localUI.selected?0:localUI.resumeAt;localUI.resume=false;startVideo(v,pos,false);}
+        else {if(localUI.selected){localUI.library.clear(localUI.clear==0);toast=tr(K::LocalSaving);toastUntil=now+2500;}localUI.clear=-1;}
+      }
     } else if (nav.menu) {
       if (in.hit(Input::UP) && nav.menuSel > 0) nav.menuSel--;
-      if (in.hit(Input::DOWN) && nav.menuSel < 2) nav.menuSel++;
+      if (in.hit(Input::DOWN) && nav.menuSel < (account.signedIn()?3:2)) nav.menuSel++;
       if (in.hit(Input::B)) nav.menu = false;
       if (in.hit(Input::A) && !nav.busy) {
         const auto item = nav.menuItem;
@@ -1541,9 +1602,10 @@ int run(int argc, char** argv) {
           nav.menu = false;
           if (!item.channelId.empty()) openNav("channel", item.channelId);
           else openChannelForVideo(item.id);
+        } else if (nav.menuSel == 3 || (nav.menuSel==1 && !account.signedIn())) {
+          localUI.library.toggle(LocalLibraryUI::entry(item.video()));nav.menu=false;toast=tr(K::LocalSaving);toastUntil=now+2500;
         } else if (nav.menuSel == 1) {
-          if (!account.signedIn()) { toast = tr(K::AccountRequired); toastUntil = now + 4000; }
-          else nav.action(navWorker, "/api/nav/action?action=later&id=" + item.id + "&lang=" + i18n::code(settings.lang));
+          nav.action(navWorker, "/api/nav/action?action=later&id=" + item.id + "&lang=" + i18n::code(settings.lang));
         } else { nav.menu = false; openNav("radio", item.id, "", true); }
       }
     } else if (nav.unsubscribe) {
@@ -1579,13 +1641,13 @@ int run(int argc, char** argv) {
           }
         }
       } else if (p.zone == 1) {
-        int maxTab = p.kind == "music_search" ? 3 : 2, before = p.tabSel;
+        int maxTab = channel || p.kind == "music_search" ? 3 : 2, before = p.tabSel;
         if (left && p.tabSel > 0) p.tabSel--;
         if (right && p.tabSel < maxTab) p.tabSel++;
         if (up && (channel || playlist)) p.zone = 0;
         if (down || a) p.zone = 3;
         if (p.tabSel != before) {
-          p.tab = p.tabSel == 1 ? "live" : p.tabSel == 2 ? "playlists" : "videos";
+          p.tab = channel ? (p.tabSel==1 ? "shorts" : p.tabSel==2 ? "live" : p.tabSel==3 ? "playlists" : "videos") : p.tabSel == 1 ? "live" : p.tabSel == 2 ? "playlists" : "videos";
           if (p.kind == "music") p.query = p.tabSel == 1 ? "charts" : p.tabSel == 2 ? "mixes" : "";
           p.sel = 0; p.scroll = 0; nav.load(navWorker, settings.lang);
         }
@@ -1618,7 +1680,7 @@ int run(int argc, char** argv) {
               nav.queueStart = item.id; nav.cancelQueue = false; nav.musicSession = p.music; nav.musicNow = false;
               nav.action(navWorker,"/api/nav/play?kind="+p.kind+"&id="+net::urlEncode(p.id)+"&lang="+i18n::code(settings.lang));
             } else if (p.music) { openNav("radio", item.id, "", true); nav.page().zone = 0; }
-            else startVideo(item.video(), 0, false);
+            else requestVideo(item.video());
           } else if (item.type == "mixes") openNav("music", "", "mixes", true);
           else if (item.type == "history" || item.type == "later") openNav(item.type, "", "", p.music);
           else openNav(item.type == "playlist" && p.music ? "music_playlist" : item.type, item.id, "", p.music);
@@ -1653,7 +1715,7 @@ int run(int argc, char** argv) {
       }
     } else if (screen == SETTINGS) {
       if (in.hit(Input::UP) && settingsRow > 0) settingsRow--;
-      if (in.hit(Input::DOWN) && settingsRow < 15) settingsRow++;
+      if (in.hit(Input::DOWN) && settingsRow < 17) settingsRow++;
       int direction = 0;
       if (in.hit(Input::LEFT)) direction = -1;
       if (in.hit(Input::RIGHT)) direction = 1;
@@ -1664,6 +1726,7 @@ int run(int argc, char** argv) {
       if (settingsRow == 13 && in.hit(Input::A)) speakerPicker.begin(pl.directSpeaker.finder());
       if (settingsRow == 14 && in.hit(Input::A)) updateUI.show(updater);
       if (settingsRow == 15 && in.hit(Input::A)) sponsorUI.open=true;
+      if (settingsRow>=16 && in.hit(Input::A)){localUI.clear=settingsRow-16;localUI.selected=0;}
       if (direction && settingsRow > 0 && settingsRow < 13) {
         bool changed = true;
         if (settingsRow == 1) {
@@ -1770,7 +1833,7 @@ int run(int argc, char** argv) {
         if (in.hit(Input::A) && n) {
           const Video& v = cur.feed.items[(size_t)cur.sel];
           // Um item já concluído recomeça; pedir o fim exato devolve HTTP 416.
-          startVideo(v, v.dur > 0 && v.pos >= v.dur ? 0 : v.pos, false);
+          requestVideo(v, v.dur > 0 && v.pos >= v.dur ? 0 : v.pos);
         }
       }
       if (cur.sel != previousSel) LOG("home: categoria %d, foco %d/%d", cat, cur.sel + 1, n);
@@ -1975,6 +2038,7 @@ int run(int argc, char** argv) {
           "&progress=" + (historyStarted ? "1" : "0"), 0};
       control.add(j); historyStarted = true; historyAt = now + 30000;
     }
+    if(screen==PLAYER && pl.state==player::ENDED && localUI.library.position(playing.id)>0)recordLocal();
     if (screen==PLAYER && pl.state==player::ENDED && !shutdownAt && audio::repeatAtEnd(pl.loop,pl.live,sleep.active && sleep.end)) {
       LOG("repetir: %s",playing.id.c_str()); startVideo(playing,0,playerFromRemote);
     }
@@ -2070,9 +2134,11 @@ int run(int argc, char** argv) {
         const Thumbs::Slot* ts = thumbs.get(thumbsWorker, v.id, frame, cur.feed.direct);
         if (ts) gfx::image(g, ts->tex, ix, iy, w, h, 12);
         else gfx::rect(g, ix, iy, w, h, ui::SURFACE, 12);
-        if (v.pos > 0 && v.dur > 0) {
+        const auto* saved=(!account.signedIn() || cur.kind=="local_later" || cur.kind=="local_history")?local::Library::find(localUI.library.history,v.id):nullptr;
+        double shownPos=saved?saved->position:v.pos, shownDuration=saved?saved->duration:v.dur;
+        if (shownPos > 0 && shownDuration > 0) {
           gfx::rect(g, ix + 4, iy + h - 5, w - 8, 4, {0, 0, 0, 0.6f}, 2);
-          gfx::rect(g, ix + 4, iy + h - 5, std::max(4.f, (w - 8) * (float)std::clamp(v.pos / v.dur, 0.0, 1.0)), 4, ui::A1, 2);
+          gfx::rect(g, ix + 4, iy + h - 5, std::max(4.f, (w - 8) * (float)std::clamp(shownPos / shownDuration, 0.0, 1.0)), 4, ui::A1, 2);
         }
         if (v.dur > 0) {
           std::string d = fmtTime(v.dur); float dw = gfx::textWidth(g, ui::F_TINY, d) + 12;
@@ -2175,10 +2241,10 @@ int run(int argc, char** argv) {
       gfx::textBox(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::W-ui::X0-64, ui::TEXT);
       if (!ui::large) gfx::textBox(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::W-ui::X0-64, ui::MUTED);
       else gfx::textBox(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::W-ui::X0-64,ui::MUTED);
-      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates,K::SponsorBlock};
-      int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,16-visible);
+      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates,K::SponsorBlock,K::ClearLocalHistory,K::ClearLocalLater};
+      int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,18-visible);
       float step=ui::large ? 94 : 59, rowH=step-6;
-      for (int i=first;i<std::min(16,first+visible);++i) {
+      for (int i=first;i<std::min(18,first+visible);++i) {
         float x=ui::X0, y=122+(i-first)*step, w=ui::W-ui::X0-64;
         bool selected=i==settingsRow, disabled=i==3 && !nestAvailable;
         if (selected) gfx::rect(g,x-3,y-3,w+6,rowH+6,ui::A1,20);
@@ -2198,6 +2264,7 @@ int run(int argc, char** argv) {
         else if (i==11) value=tr(ui::large ? K::Enabled : K::SleepOff);
         else if (i==13) value=tr(K::Open);
         else if (i==14) value=updateUI.settingsValue(settings.lang);
+        else if(i>=16)value=i18n::localCount(settings.lang,i==16?localUI.library.history.size():localUI.library.later.size(),i==16);
         else if (i==15) value=tr(sponsorblock::modeLabel(settings.sponsorBlock));
         else value=tr(settings.videoFill ? K::VideoFitFill : K::VideoFitLetterbox);
         float right=x+w-66, maxValue=ui::large ? w-112 : w*.48f;
@@ -2206,12 +2273,12 @@ int run(int argc, char** argv) {
         gfx::text(g,ui::F_KEY,shown,ui::large && !g.rtlText ? x+28 : right,y+(ui::large ? 47 : 15),disabled ? ui::MUTED : selected ? ui::A2 : ui::TEXT,ui::large && !g.rtlText ? 0 : 2);
         if (selected && i>0 && i<13 && !disabled) gfx::text(g,ui::F_KEY,"< >",x+w-20,y+(ui::large ? 47 : 15),ui::MUTED,2);
       }
-      K help=settingsRow==2?K::ManualQualityHelp:settingsRow==9 ? (gfx::fixedOutput()?K::SafeOutputHelp:g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
+      K help=settingsRow>=16?K::LocalLimit:settingsRow==2?K::ManualQualityHelp:settingsRow==9 ? (gfx::fixedOutput()?K::SafeOutputHelp:g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
       float hy=ui::large ? 608 : 610;
       for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::textBox(g,ui::F_SMALL,line,ui::X0,hy,ui::W-ui::X0-64,ui::MUTED); hy+=ui::large ? 26 : 22; }
       float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
       hx=hint(g,hx,678,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
-      if (settingsRow==0 || settingsRow==13 || settingsRow==14 || settingsRow==15) hx=hint(g,hx,678,"A",XA,tr(K::Open));
+      if (settingsRow==0 || settingsRow==13 || settingsRow==14 || settingsRow>=15) hx=hint(g,hx,678,"A",XA,tr(K::Open));
       hint(g,hx,678,"B",XB,tr(K::Back));
     }
 
@@ -2565,6 +2632,7 @@ int run(int argc, char** argv) {
       gfx::text(g, ui::F_SMALL, label, x + 15, y + 7, ui::MUTED);
     }
     if (nav.menu) nav.drawMenu(g, settings.lang);
+    localUI.draw(g,settings.lang);
     if (nav.unsubscribe) {
       gfx::rect(g, 0, 0, ui::W, 720, {0,0,0,0.8f}); gfx::rect(g, (ui::W-780)/2, 250, 780, 210, ui::SURFACE, 24);
       gfx::text(g, ui::F_H2, tr(K::SubscribeConfirm), (ui::W-700)/2, 290, ui::TEXT);
@@ -2669,7 +2737,7 @@ int run(int argc, char** argv) {
       }
     }
 
-    if ((screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !sleepPanel && !sleepWarning && !shutdownAt) || (screen==SETTINGS && updateUI.open)) updateUI.draw(g,settings.lang);
+    if ((screen==HOME && !phonePanel && !loginPanel && !logoutPanel && !nav.menu && !localUI.resume && localUI.clear<0 && !sleepPanel && !sleepWarning && !shutdownAt) || (screen==SETTINGS && updateUI.open)) updateUI.draw(g,settings.lang);
 
     if (g.arabicAttempted && !g.arabicAtlas.img) {
       gfx::rect(g,ui::X0,8,ui::W-ui::X0-32,88,ui::SURFACE2,14);
@@ -2714,6 +2782,7 @@ int run(int argc, char** argv) {
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
   recordHistory();
+  if(localUI.submitted!=localUI.library.revision)localUI.writer.submit(localUI.library);
   phone.stop();
   captionLoader.stop();
   extras.close();
