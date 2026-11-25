@@ -12,8 +12,8 @@ Quem compartilha a pasta do app também compartilha essas listas; não há perfi
 
 Abrir um vídeo salvo no histórico local mostra duas opções: **Continuar assistindo** e **Começar do
 início**. B cancela a abertura. Pedidos do celular e reposicionamentos do player conservam a posição
-explícita solicitada, sem abrir esse diálogo. Reprodução de VOD iniciada pelo controle sem conta salva
-progresso; live, Music somente áudio e reprodução iniciada pelo celular não entram no histórico local.
+explícita solicitada, sem abrir esse diálogo. Reprodução de VOD sem conta salva progresso, inclusive quando iniciada pelo celular. Pedidos do celular
+continuam usando a posição explícita recebida. Live e Music somente áudio não entram no histórico local.
 Com conta, a reprodução continua registrando o histórico da conta; a posição local anterior é preservada.
 
 Uma posição só permanece quando é ≥ 10 s, está mais de 10 s antes do fim e abaixo de 95% da duração.

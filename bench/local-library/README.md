@@ -22,9 +22,12 @@ Também roda os quatro testes anteriores de catálogo/OAuth/membros/conta, com t
 
 O E2E religa os objetos de produção do app trocando somente HTTPS pelo replay fechado. HOME, XDG,
 assets, conta fictícia e cache ficam sob o diretório informado. Cast está desabilitado e o servidor
-está off. Todos os pedidos não gravados falham fechados. Nunca aponte esse teste para uma pasta real.
+está off nos casos normais. O caso `phone-resume` liga somente um servidor HTTP de loopback em porta
+efêmera para injetar um comando de controle com marcador Cast/serial fictício, sem telefone real. Rotas
+não previstas retornam 503; os bytes de vídeo continuam vindo do replay HTTPS nativo. O servidor é
+encerrado e sua thread recebe join em finally. Todos os pedidos não gravados falham fechados. Nunca aponte esse teste para uma pasta real.
 As capturas contêm arte em gradiente e mídia testsrc/senoide de 120 s, sem imagens/áudio dos vídeos públicos.
-Há 38 casos nos quatro idiomas, 480p/4:3/texto grande, conta fictícia com ações WL/local separadas no Menu, limpeza confirmada/cancelada,
+Há 39 casos nos quatro idiomas, 480p/4:3/texto grande, conta fictícia com ações WL/local separadas no Menu, limpeza confirmada/cancelada,
 arquivo corrompido, falha de escrita, checkpoint de 30 s, retomada no player e início do zero. A captura encerra normalmente o aplicativo,
 exercitando o flush final. `results.json` relaciona as imagens; logs ficam junto de cada PNG.
 

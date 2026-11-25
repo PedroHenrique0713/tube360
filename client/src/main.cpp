@@ -978,7 +978,7 @@ int run(int argc, char** argv) {
     if (v.id != playing.id) { audioTracks.clear(); trackLabels.clear(); selectedTrackLabel.clear(); playerUI.tracks=false; }
     nextAt = nextDeadline = 0; endedSent = false; ratePanel = sleepPanel = false; livePaused = false;
     playing = v; playerFromRemote = fromRemote;
-    if(localOpening)localRecording=!account.signedIn() && !fromRemote;
+    if(localOpening)localRecording=!account.signedIn();
     videoTex.ready = false;
     phonePanel = loginPanel = logoutPanel = false;
     pl.nestOffset = nestOffsetMs / 1000.0;
