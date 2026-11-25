@@ -4,6 +4,8 @@
 
 ### Fixed
 
+- Unvalidated Xbox board families default to the original 720p/staging video path. `video-driver.txt` can explicitly select `safe`, `native` or `auto`; board flags and the decision are recorded before GPU setup. The tested-board allowlist is currently empty because the owner's 360 E board revision has not been confirmed.
+- Native GPU/display setup records checkpoints before register access, including LUT/scaler/surface/line-counter steps. Initial display-show failures free buffers and return an error before interrupt registration.
 - Native startup records durable CRT, storage, video/GPU, font, memory, network and TLS checkpoints beside each XEX. First-frame acquire failures are reported instead of accepting an invalid buffer. See `docs/STARTUP-DIAGNOSTICS.md` for interpreting a freeze.
 - Startup no longer requires DbgPrint, and the measured kernel exception handler is opt-in. Unsupported XNet limits/socket options can use standard defaults; access-denied errors and TLS validation remain enforced. ABadAvatar compatibility is untested.
 - Without `server.txt`, default Automatic mode and settings toggles keep the server disabled. Home shows the native failure and console clock for certificate dates; server recovery instructions and the configured endpoint appear only when the server is effectively enabled.

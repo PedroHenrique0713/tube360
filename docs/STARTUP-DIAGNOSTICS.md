@@ -41,6 +41,7 @@ not just the last line. `+Nms` is elapsed monotonic time within that file/run, i
 | raw `crt.locks`, `crt.microcode`, `crt.pthread`, `crt.newlib` | Each SDK initialization is bracketed separately. A missing `end` precedes constructors, SDL and GPU. |
 | raw `crt.runtime-ready` | Runtime supports the regular logger; raw file is closed. |
 | early `entry`, `crt.image` | Physical XEX directory was selected and regular log opened. |
+| early/app/launcher `video.board`, `video.policy-file`, `video.policy` | Optional hardware-info data export, raw flags/board family, bounded driver-file read and immutable selected path, before GPU setup. |
 | early `crt.sdk-log` | SDK title log, `dbgprint.txt` and `net_log.txt` setup; this includes legacy log preallocation and may be slow on USB. |
 | early `environment.dbgprint` | Whether debug output was requested and its optional kernel export found. No XBDM connection. |
 | early `crt.timezone`, `crt.unwind`, `crt.constructors`, `crt.main` | Timezone query, exception frame registration, C++ constructors and the call to main, respectively. |
@@ -86,7 +87,7 @@ A 1 TB device does not identify its filesystem. The XEX and bundled fonts are fa
 limit; long paths, missing files, bridge behavior and mounting still need physical tests. No format,
 recursive scan or migration is attempted. Test both short paths and folders with spaces.
 
-Mapped video uses physical cached memory allocated by the kernel, with explicit cache maintenance;
+In native mode, mapped video uses physical cached memory allocated by the kernel, with explicit cache maintenance;
 allocation failure retains the staging fallback. To compare the existing staging path, place
 `0 4 1 -1` in `decode-config.txt` in a disposable title folder (the third value disables mapped video).
 This does **not** disable the native display/scaler modifications or first-frame texture uploads.
@@ -112,9 +113,83 @@ payload name/version and launch method separately. The log always says `exploit=
 | Fixed addresses | Hardware GPU/display MMIO and PPC cache operations remain in xsdk/vulkan4xenon. They are device-specific, not BadUpdate scratch addresses. Pool addresses come from allocation/physical-address APIs. This audit does not validate every board's scaler/GPU behavior. |
 | Thread affinity | Existing SDK/SDL worker placement uses kernel APIs and reports creation/placement errors; the application does not write kernel thread tables. |
 
-In particular, the Jasper/ANA/HANA/native-display review requested separately in coordinator item 8 is
-pending. The current display and video-memory patches remain enabled in this delivery; no board model
-detection or safe display fallback is claimed here.
+The board policy below disables Tube360's display/mapped-memory extensions on an unvalidated board.
+This includes Jasper, and does not claim that the upstream GPU driver has been tested on that board.
+
+## Board policy and choosing a video path
+
+Place **`video-driver.txt` beside both XEX files**, with exactly one of these words (whitespace/newline allowed):
+
+| Content | Effect on the next title startup |
+| --- | --- |
+| `safe` | Original vulkan4xenon 1280×720 preference; original SDK scaler parameters; staging video. No Tube360 SD/1080 framebuffer, sampled linear R8, physical cached memory type, or added cache flush/invalidate instructions. |
+| `native` | Explicitly force the previous Tube360 SD/1080 framebuffer and mapped-video extensions, including on an unknown board. Logs that compatibility is unverified. Existing `decode-config.txt` may still disable mapped video. |
+| `auto`, or no file | Choose native only for a specifically validated board; otherwise safe. **The tested-board allowlist is currently empty**, so auto selects safe for every board. |
+
+An unreadable, empty, oversized, embedded-NUL or unrecognized file fails safe. Selection is read once before
+GPU initialization and stays fixed until the title is relaunched. Launcher and app each read the file in
+their own XEX directory; keep them together for consistent behavior. No rebuild or account change is needed.
+For example, the complete content to restore the previous path is:
+
+```text
+native
+```
+
+To return to the conservative path, replace that word with `safe`, or remove the file. A requested output
+of 480/1080 in settings is ignored by the safe driver; the log records the request and the actual extent.
+Source decoding quality remains governed by the existing playback profile. Staging adds CPU copies, so
+console playback performance requires measurement. This is a fallback from the Tube360 extensions,
+**not a claim of safe operation on every physical console**.
+
+The only confirmed baseline here is the owner's **360 E enclosure**, which does not identify its board
+as Corona or Winchester. Neither family is automatically approved on that evidence. After the coordinator
+confirms a board from the log and validates native mode there, its family can be added to the allowlist
+in a future change. A user override does not mark a board as tested.
+
+Detection resolves the optional kernel **XboxHardwareInfo data export 0x156**, reads its flags, and
+classifies the upper nibble: Xenon, Zephyr, Falcon, Jasper, Trinity, Corona, Winchester, otherwise unknown.
+It does not use SMC commands, PCI/MMIO probes, CPU keys, NAND or fixed kernel addresses. This is the kernel's
+reported board family; it cannot distinguish every subrevision or prove which ANA/HANA chip is fitted.
+Missing module/export stays unknown and safe. The model/path appears in `boot-early.log` before C++
+constructors and is repeated in `boot-app.log`/`boot-launcher.log` before their video setup.
+
+### What still accesses hardware
+
+The line-counter wait **already exists upstream**. Returning to original 720p does not remove the xsdk's
+LUT, scaler, surface or interrupt-register access. `safe` preserves upstream parameters instead of applying
+our SD/1080 changes. The simulated safe path is compared against the original source's complete register
+snapshot; that comparison is not a physical Jasper test. With an interlaced kernel viewport, the original
+SDK may return 640×480 while stock V4X expects 1280×720, resulting in a startup error rather than a usable
+Vulkan surface. This baseline limitation remains; the embedded error screen attempts the SDK's actual size.
+
+Both paths now bracket these setup operations with durable events **before** the access:
+
+| Stage | Next operation |
+| --- | --- |
+| `gpu.alloc-ring/alloc-writeback/alloc-stream`, `gpu.hiz` | Kernel allocations and initial HiZ state. |
+| `gpu.engines/ring/writeback/system-fence` | Vd engine/ring/writeback/system-fence calls. |
+| `gpu.setup/setup-fence` | Initial GPU setup packets, then the initial fence wait. |
+| `display.output` | Safe 1280×720 selection, or native dashboard query and SD/1080 selection. |
+| `display.splash/open` | Existing splash handoff and display open. |
+| `display.viewport` | MMIO read 0x1961. |
+| `display.lut` | LUT registers 0x1930/0x1922/0x1921/0x1927/0x1928; requests a 100 ms bounded poll. |
+| `display.saved-surface/scaler-snapshot` | Save surface registers 0x1844/0x1848/0x184d/0x184e and ten scaler registers. |
+| `display.describe/buffers` | XAM display description, front-buffer allocation and black clear. |
+| `display.first-show/scaler-write/surface-write` | First show, scaler update lock 0x1973 plus ten registers, then surface addresses/pitch/extents and 0x183b latch. Surface poll requests 100 ms. |
+| `display.line-counter` | Read 0x194c until the requested height or 50,000 µs. The end event reports actual line and elapsed wait; it can return without reaching the height. |
+| `display.interrupt` | Install the callback that will read 0x1951/0x194c and flip surfaces later. |
+| `display.restore` | Restore saved scaler/surface state on close. |
+
+No file I/O is added inside the interrupt callback: setup tracing is disabled **before** registration.
+Subsequent frames/flips do not flush boot checkpoints. A hardware/MMIO/kernel call that never returns can
+still prevent a software timeout from running. An initial display-show error is now propagated, buffers
+are freed, and the interrupt callback is not installed; it was previously ignored by `xsdk_present_open`.
+
+For FernJayCee, first collect a **Jasper + auto/safe** attempt and its last open stage from the temporary
+folder. HDD and USB have both failed according to the coordinator: the drive is not an established cause.
+Only compare `native` if a further controlled attempt is appropriate. On the owner's 360 E, compare safe
+with the prior `native` path, preserving raw board flags, AV pack, dashboard mode, actual extent and TV
+photo. Keep the logs from each attempt before relaunching. No such console experiment was performed here.
 
 For a user report, request **only the boot files**, `startup.log`, relevant title/launcher logs, display
 connector/mode and exploit/payload/version. Do not request account, cookie, pairing or OAuth files. Logs
@@ -141,3 +216,5 @@ Primary references: [xsdk source](https://github.com/xenosworks/xsdk),
 [Xenia kernel export table](https://github.com/xenia-project/xenia/blob/master/src/xenia/kernel/xboxkrnl/xboxkrnl_table.inc),
 [Xenia XAM export table](https://github.com/xenia-project/xenia/blob/master/src/xenia/kernel/xam/xam_table.inc),
 [Xenia Canary AV pack options](https://github.com/xenia-canary/xenia-canary/wiki/Options).
+Board-family interpretation: [XeUnshackle GetMoboByHWFlags](https://github.com/Byrom90/XeUnshackle/blob/main/Utils.cpp),
+with the data export verified against the Xenia kernel table above.

@@ -193,6 +193,7 @@ flock ~/.cache/tube360-frota-xbox.lock systemd-run --user --scope -q \
   -p MemoryMax=6G -p MemorySwapMax=1G bash -c '
     set -e
     python3 tools/prepare-boot-diagnostics.py .work/native-display/xsdk .work/native-display/vulkan4xenon
+    python3 tools/prepare-video-policy.py .work/native-display/xsdk .work/native-display/vulkan4xenon
     make -C .work/native-display/xsdk -j2 "TOOLCHAIN=$XSDK_TOOLCHAIN/bin/powerpc-xsdk-elf-" build/libxsdk.a
     make -C .work/native-display/vulkan4xenon -j2 "TOOLCHAIN=$XSDK_TOOLCHAIN/bin/powerpc-xsdk-elf-" "XSDK=$PWD/.work/native-display/xsdk" build/libvulkan4xenon.a
     cmake --build client/build-x360 -j2 --target tube360 tube360-launcher
@@ -232,3 +233,55 @@ cada título. Ausência de arquivo não distingue loader de pasta sem escrita.
 Comparar `begin` sem `end`, configuração HDMI/componente e caminho real; não
 atribuir a trava ao USB só pela capacidade do disco. ABadAvatar e a revisão de
 Jasper do item 8 permanecem sem validação física nesta entrega.
+
+## Adendo F32/8 — Jasper e caminho conservador
+
+```bash
+python3 tests/reddit/video_policy.py .work/f32/item8/policy
+python3 tests/reddit/video_driver.py .work/f32/item8/driver \
+  --source-sdk "$F32_ORIGINAL_XSDK" --source-v4x "$F32_ORIGINAL_V4X"
+python3 tests/reddit/boot_native.py .work/f32/item8/native
+python3 tests/reddit/boot_log_test.py .work/f32/item8/app
+python3 tests/reddit/boot_link.py .work/f32/item8/link \
+  --toolchain "$XSDK_TOOLCHAIN/bin/powerpc-xsdk-elf-"
+```
+
+Os dois diretórios `F32_ORIGINAL_*` são checkouts sem os patches do Tube360,
+somente para leitura. O teste copia os preparadores para uma raiz temporária e
+executa o pipeline real do zero, sem alterar esses fornecedores ou a cópia usada
+pela build Xbox. Exige idempotência; usa headers reais do SDK/V4X.
+
+`video_policy.py` executa a política C real em 20 processos: sete famílias,
+desconhecida, módulo/export ausente, auto/safe/native, whitespace/CRLF, vazio,
+caixa diferente, lixo, NUL, tamanho excedido e acesso negado. Guards demonstram
+que o arquivo só é lido uma vez. `input.json` conserva a entrada: o harness muda
+o arquivo depois da inicialização para provar que a escolha não muda durante IRQ/alocação.
+
+`video_driver.py` executa seis casos do display real contra o fonte original,
+com MMIO substituído por memória **do próprio processo Linux** em endereço
+reservado por MAP_FIXED_NOREPLACE. Nenhum /dev/mem, registrador físico ou console
+é acessado. Safe HD/SD/interlaced/contador parado têm snapshots iguais aos do
+original; native HD/SD mantém dimensões estendidas. Um contador que não avança
+retorna após os 50.000 µs simulados. Depois de desabilitar o trace, a rotina de
+flip usada pela IRQ não registra eventos.
+
+Os testes de memória executam APIs Vulkan reais de capacidades/requisitos e a
+função integral de alocação: safe esconde o tipo 2, recusa linear sampled R8 e
+não chama alocação física cacheada. Native mantém essas extensões. Instruções
+PPC de cache são a fronteira simulada; os guards e loops reais de flush/invalidate
+exigem zero operações adicionais em safe. Três testes de `xsdk_present_open`
+real exercitam sucesso, falha do primeiro show e falha letterboxed, verificando
+liberação de buffers e ausência de callback em erro. Sync/Vd/allocações são simulados.
+
+O [manual](../../docs/STARTUP-DIAGNOSTICS.md#board-policy-and-choosing-a-video-path)
+explica `video-driver.txt` e cada registrador/etapa. `auto` atualmente seleciona
+safe em todas as placas: 360 E não comprova Corona/Winchester, então não foi
+inventada uma placa testada. `native` força o caminho anterior para comparação.
+Os checkpoints são compartilhados por app, lançador e tela de emergência.
+
+Para o coordenador, usar a pasta temporária existente e guardar separadamente
+as tentativas safe/native, com fotos da TV e logs antes de relançar. Primeiro
+conferir `video.board flags/model`, `video.policy requested/selected`, depois
+o último begin sem end de GPU/LUT/scaler/surface/line-counter/IRQ. O caso Jasper
+e o 360 E físico continuam sem teste pelo autor; a igualdade em memória simulada
+não afirma que o driver original é compatível com todos os chips de vídeo.
