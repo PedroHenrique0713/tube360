@@ -398,7 +398,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
             if (!f.is<Object>() || !array(field(f,"drmFamilies")).empty() || f.contains("licenseInfos")) continue;
             bool direct = httpsUrl(url);
             const auto& fps = field(f, "fps");
-            Format fmt{url,integer(f,"itag"),integer(f,"height"),fps.is<double>() ? fps.get<double>() : 0.0,integer(f,"bitrate")};
+            Format fmt{url,integer(f,"itag"),integer(f,"height"),fps.is<double>() ? fps.get<double>() : 0.0,integer(f,"bitrate"),integer(f,"width")};
             if (fmt.height == 720 && fmt.fps > 30 && mime.find("avc1") != string::npos) out.highFrameRate720 = true;
             if (mime.find("audio/mp4")==0 && mime.find("mp4a")!=string::npos) {
                 if (offers) {

@@ -9,6 +9,18 @@
 #include <dlfcn.h>
 #include <vulkan/vulkan.h>
 #include <mutex>
+extern "C" {
+#include <libavcodec/avcodec.h>
+int __real_avcodec_receive_frame(AVCodecContext*,AVFrame*);
+int __wrap_avcodec_receive_frame(AVCodecContext* codec,AVFrame* frame) {
+    int result=__real_avcodec_receive_frame(codec,frame);
+    if(result>=0 && codec->codec_type==AVMEDIA_TYPE_VIDEO) {
+        const char* delay=std::getenv(frame->height>=1080?"XT_QUALITY_DECODE_1080_MS":"XT_QUALITY_DECODE_720_MS");
+        if(delay)SDL_Delay(std::max(0,std::atoi(delay)));
+    }
+    return result;
+}
+}
 
 // Só o executável de prova injeta consumidor lento; o produto liga diretamente ao Vulkan.
 extern "C" VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* info) {

@@ -16,6 +16,7 @@
 #include "pl_mpeg.h"
 #include "h264.hpp"
 #include "playback_mode.hpp"
+#include "quality_recovery.hpp"
 #include "yt/media.hpp"
 #include "yt/console_account.hpp"
 #include "nest.hpp"
@@ -124,6 +125,7 @@ struct Player {
   int queueMin = 0;
   uint64_t originalWatch = 0;
   std::atomic<unsigned> pauseChanges{0};
+  playback::QualityRecovery qualityRecovery;
   void resetQualityMeasurements(){++pauseChanges;}
 
   // áudio
@@ -225,10 +227,13 @@ struct Player {
   bool directFailed(bool fatal = true);
 
   void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}, bool members = false) {
+    // Um restart interno pode já ter chamado halt; IDLE não apaga o custo deste vídeo.
+    bool newQualitySession=vid!=id || quality!=q || (mode>=0 && mode!=videoMode);
     if (vid != id || state == IDLE || quality != q) allowOriginal = true;
     if (vid != id) { speed=1; loop=false; }
     speaker = speaker && speed == 1;
     halt(!speaker);
+    if(newQualitySession)qualityRecovery=playback::QualityRecovery(SDL_GetTicks());
     memberVideo = members || (vid == id && memberVideo);
     tempo.reset(speed);
     if (mode >= 0) videoMode=mode;
