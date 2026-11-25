@@ -99,7 +99,8 @@ class Handler(BaseHTTPRequestHandler):
     def get(self):
         lounge = self.lounge
         path = urlsplit(self.path).path
-        if path in {f'/PedroHenrique0713/tube360/rules/{name}' for name in ('rules.json', 'rules.json.sig', 'app.json', 'app.json.sig')}:
+        if path in {f'/{owner}/tube360/rules/{name}' for owner in ('revive360', 'PedroHenrique0713')
+                    for name in ('rules.json', 'rules.json.sig', 'app.json', 'app.json.sig')}:
             self.response('', 404)
         elif path.startswith('/api/skipSegments/'):
             prefix = path.removeprefix('/api/skipSegments/')
