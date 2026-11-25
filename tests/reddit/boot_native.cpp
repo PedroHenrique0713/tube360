@@ -15,6 +15,7 @@ extern "C" const char* const ExLoadedImageName=image;
 static std::string scenario;
 static FILE* raw;
 static unsigned syncs;
+extern "C" void xsdk_log_write(const char*,...){}
 extern "C" void tube360_boot_raw(const char*,const char*);
 extern "C" void tube360_boot_raw_close();
 extern "C" FILE* __real_fopen(const char*,const char*);

@@ -33,6 +33,7 @@ const char* drive(const char* image) {
 extern "C" void boot_environment() {
     tube360_video_policy_init();
     tube360_video_policy_log();
+    tube360_video_policy_normal_log();
     char cwd[1024]{};const char* current=getcwd(cwd,sizeof(cwd))?cwd:"unavailable";
 #ifdef __XSDK__
     const char* image=ExLoadedImageName?ExLoadedImageName:"unknown";

@@ -10,6 +10,7 @@ def prepare(sdk):
     if stamp.exists():
         prepare_raw(sdk)
         prepare_dbgprint(sdk)
+        prepare_policy_report(sdk)
         return
     def replace(name, before, after):
         path = sdk / 'src' / name
@@ -83,6 +84,20 @@ extern void boot_event(const char*,const char*,const char*,...) __attribute__((w
     stamp.write_text('durable boot hooks; unsupported socket options tolerate standard sockets, not access denial\n')
     prepare_raw(sdk)
     prepare_dbgprint(sdk)
+    prepare_policy_report(sdk)
+
+
+def prepare_policy_report(sdk):
+    stamp=sdk/'tube360-boot-v4'
+    if stamp.exists():return
+    path=sdk/'src/start.c';text=path.read_text()
+    needle='extern void tube360_boot_early(void) __attribute__((weak));'
+    assert text.count(needle)==1
+    text=text.replace(needle,needle+'\nextern void tube360_video_policy_normal_log(void) __attribute__((weak));')
+    needle='    TUBE_BOOT("end","crt.sdk-log","opened or optional fallback; boot log independent");'
+    assert text.count(needle)==1
+    text=text.replace(needle,needle+'\n    if(tube360_video_policy_normal_log)tube360_video_policy_normal_log();')
+    path.write_text(text);stamp.write_text('board/path summary after SDK file/UDP log setup, before constructors\n')
 
 
 def prepare_dbgprint(sdk):

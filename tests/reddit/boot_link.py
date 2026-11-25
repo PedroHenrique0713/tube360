@@ -18,10 +18,11 @@ spec=importlib.util.spec_from_file_location('xex',a.sdk/'tools/elf2xex.py');xex=
 for title in ('tube360','tube360-launcher'):
     elf=ROOT/'client/build-x360'/title
     symbols=subprocess.check_output([a.toolchain+'nm',str(elf)],text=True)
-    for hook in ('tube360_boot_raw','tube360_boot_raw_close','tube360_boot_early','boot_event','tube360_video_policy_init','tube360_native_video'):
+    for hook in ('tube360_boot_raw','tube360_boot_raw_close','tube360_boot_early','boot_event','tube360_video_policy_init','tube360_native_video','tube360_video_policy_normal_log'):
         assert re.search(r'^[0-9a-f]+ T '+hook+r'$',symbols,re.M),(title,hook)
     crt=subprocess.check_output([a.toolchain+'objdump','-d','--disassemble=xsdk_start',str(elf)],text=True)
     assert crt.index('<tube360_boot_raw>')<crt.index('<xsdk_lock_init>')<crt.index('<xsdk_reent_init>')<crt.index('<tube360_boot_early>')<crt.index('<main>'),crt
+    assert crt.index('<xsdk_log_open>')<crt.index('<tube360_video_policy_normal_log>')<crt.index('<main>'),crt
     (a.evidence/(title+'-crt.txt')).write_text(crt)
     _,sections=xex.read_elf(elf.read_bytes());image,_=xex.build_image(sections)
     imports=xex.read_imports(sections,image)
