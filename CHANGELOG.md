@@ -9,19 +9,24 @@
 - Text without a font glyph is omitted in the per-font layout cache before fitting/shaping; Arabic joining/bidi controls and literal question marks are preserved. Emoji-only titles render empty.
 - Channel Shorts cards and tab, protocol-relative artwork URLs and JPEG fallback for unsupported ytimg artwork. [Behavior and validation](docs/LOCAL-LIBRARY.md).
 
-- Public search suggestions with debounced/cancellable anonymous lookup, session recent searches in the same list, and Series-style LB filters for type, duration, upload-date period and relevance/view-count order. Typed channel/playlist results open their pages; filtered continuations retain their query/params/language. English, Portuguese, Spanish and Arabic include 4:3/large-text layouts. Current YouTube durations use 3-minute boundaries. Removed legacy upload-date ordering after the coordinator measured it being ignored; view-count order worked in real WEB results (see `docs/SEARCH.md`).
-- Native H.264 1080p30 decoding uses the measured Xenon VMX kernels, six FRAME workers across HW 0,2,4,1,3,5 and a larger bounded frame queue. Only known 1080p sources up to 30.1 fps omit deblocking; `h264_loop_filter=full` restores the complete filter after restarting the app. Smaller/unknown/high-cadence sources retain full filtering. The inherited isolated decoder median is 22.57 ms/frame; integrated Xbox playback with audio/UI/network still awaits console acceptance. This does not promise 1080p60. Native 1080p output requires HDMI with 1080p progressive selected in the Xbox dashboard.
+- Public search suggestions with debounced/cancellable anonymous lookup, session recent searches in the same list, and Series-style LB filters for type, duration, upload-date period and relevance/view-count order. Typed channel/playlist results open their pages; filtered continuations retain their query/params/language. English, Portuguese, Spanish and Arabic include 4:3/large-text layouts. Current YouTube durations use 3-minute boundaries. Removed legacy upload-date ordering after it was measured being ignored; view-count order worked in real WEB results (see `docs/SEARCH.md`).
+- Native H.264 1080p30 decoding uses the measured Xenon VMX kernels, six FRAME workers across HW 0,2,4,1,3,5 and a larger bounded frame queue. Only known 1080p sources up to 30.1 fps omit deblocking; `h264_loop_filter=full` restores the complete filter after restarting the app. Smaller/unknown/high-cadence sources retain full filtering. The isolated decoder median is 22.57 ms/frame. On the owner’s Xbox on 2026-11-25, an action video sustained 30.00 fps without frame loss; football ran at 29.97 fps with one synchronization correction per minute, matching 720p. This does not promise 1080p60. Native 1080p output requires HDMI with 1080p progressive selected in the Xbox dashboard.
 - Saved Nest IPs connect directly; metadata discovery runs in the background. Cast clock filtering and bounded picture correction keep Wi-Fi status jitter from changing playback cadence.
 - Signed app updates through a separate `default.xex` launcher with startup confirmation and rollback. Migrate by copying the complete package once; keep account/settings files.
 - Board simulation through `XT_BOARD` / `board-sim.txt`, bounded fault/delay/mapped-memory controls and durable output/font checkpoints for isolated qualification.
 - Fixed 480p/360p/240p/144p H.264 choices in Settings and the player's Series-style Y Quality menu. During playback, choices follow the video's direct AVC/AAC offers; selection preserves position/pause and warns under sustained pressure without switching source or falling back to a PC. Existing Automatic/720p60/1080p30 profiles retain their adaptive ladder. New messages are available in Portuguese, English, Spanish and Arabic.
+
+### Validated on Xbox — 2026-11-25
+
+- Native 1080p output is sharp with HDMI and 1080p progressive selected in the Xbox dashboard. With the dashboard output at 720p, the app downscales and fast movement can show aliasing. Source quality and display output remain separate choices.
+- Account Music, search filters and suggestions, Watch later and resume without an account, Y Quality, the SponsorBlock skip button and Settings were validated with the controller on the owner’s Xbox.
 
 ### Fixed
 
 - Video search stays anonymous with a connected TV account, with or without filters and throughout pagination. Catalogue failures retain route, HTTP and numeric API/transport diagnostics without credentials or personal data; HTTP 200 error bodies are rejected.
 - Start (☰) prompts on video cards say Save / options in all four languages, with room reserved in the 4:3/large-text footer. Music history uses a clock without a detached arrow; the heart tip is rounded.
 - Cropped video quality uses its width class for display (1920×800/24 appears as 1080p24 in the player and Y menu). Source/decode limits, fixed-height matching and recovery still use real dimensions. Account Music shortcuts have local clock/list/heart artwork.
-- Xbox MP4 opening and seeks above 2 GiB retain exact 64-bit sizes/offsets by avoiding an unsafe xsdk GCC combine optimization in FFmpeg's demuxer. Large-index and 60 fps/PQ fixtures reproduce the failure in PowerPC emulation; real-console acceptance remains pending. Opening logs now separate header/seek time and transferred bytes. [Cause and console procedure](bench/opening/README.md).
+- Xbox MP4 opening and seeks above 2 GiB retain exact 64-bit sizes/offsets by avoiding an unsafe xsdk GCC combine optimization in FFmpeg's demuxer. Large-index and 60 fps/PQ fixtures reproduce the GCC defect in PowerPC emulation; the fix was validated on the owner’s Xbox on 2026-11-25. Opening logs now separate header/seek time and transferred bytes. [Cause and console procedure](bench/opening/README.md).
 
 - Public Xbox packaging rejects benchmark/mute executables even with a stale OFF cache; independent package checks verify production trust in both launcher and app.
 
@@ -31,7 +36,7 @@
 - Corona 480i/component simulation selects the kernel SD viewport in both native and safe paths, even when the reported signal is HD. A bounded `board-sim.txt` contract supports board/driver/mode/cable overrides for isolated testing, preserving real hardware detection, viewport and signal timings.
 - SD/interlaced dashboard modes use the kernel's existing framebuffer dimensions consistently across display surfaces, swapchain and presentation. 480i/576i/480p preserve the dashboard scaler/signal and use its 4:3/widescreen aspect, including non-square PAL pixels. Boot logs include mode, connector and actual viewport.
 - Quality recovery projects the next format from measured decode milliseconds per frame, exact pixels and frame rate. Failed source/cadence steps stay remembered across seeks in the playback session, with increasing retry delays; transient network recovery remains possible.
-- Corona/Winchester keep the native video path by default, preserving the coordinator's 360 E baseline; other/unknown board families use the conservative framebuffer/staging path. `video-driver.txt` can explicitly select `safe`, `native` or `auto`. Board/path details appear in both durable boot logs and the normal app/UDP log.
+- Corona/Winchester keep the native video path by default, preserving the tested 360 E baseline; other/unknown board families use the conservative framebuffer/staging path. `video-driver.txt` can explicitly select `safe`, `native` or `auto`. Board/path details appear in both durable boot logs and the normal app/UDP log.
 - VOD quality decisions ignore startup and post-switch settling, then require sustained measured overload before descending one rung. A viable 720p30 stream stays at 720p; when no separate 720p30 source exists, 720p60 first tries 30 fps presentation before a lower resolution. Stable measured headroom still restores quality.
 - Safe-mode output changes keep the existing display/framebuffer. Font/output resource replacements check GPU idle, reset completed command references and publish a new atlas before retiring the old one; language and fit changes do not recreate the display.
 - Native GPU/display setup records checkpoints before register access, including LUT/scaler/surface/line-counter steps. Initial display-show failures free buffers and return an error before interrupt registration.
@@ -44,16 +49,23 @@
 
 ### Changed
 
+- Update rules and signed app candidates try `revive360/tube360` first and `PedroHenrique0713/tube360` as a reserve. Both exact repository paths remain allowed through HTTPS redirects, with Ed25519 verification and SHA-256 unchanged. Older public apps need a complete manual package upgrade; see [repository transfer compatibility](docs/REPOSITORY-TRANSFER.md).
+
 - Hold LT/RT to rewind/fast-forward with an accelerating destination preview; release seeks once and preserves pause. Speaker synchronization remains in Settings.
 
 - SponsorBlock with Off, Skip button (default), and automatic skipping; Y skips or returns after an automatic skip, with community warning and attribution in English, Portuguese, Spanish and Arabic.
 - Discreet timeline marks, private four-character SHA-256 prefix requests, background loading and bounded per-video session cache. Sponsors, self-promotion and subscription reminders are enabled; intros/outros are preserved.
 
-- Music now tries the TV music catalogue with the existing account grant after a web Music refusal, exposes recent plays/playlists/likes, labels public fallback, and keeps continuation tokens with their original client. Real-account acceptance and Music/TV recommendation parity remain pending console validation.
+- Music now tries the TV music catalogue with the existing account grant after a web Music refusal, exposes recent plays/playlists/likes, labels public fallback, and keeps continuation tokens with their original client. Account Music was validated on the owner’s Xbox on 2026-11-25; Music/TV recommendation parity is not guaranteed.
 
 - Arabic interface, native YouTube locale and controller search keyboard (RB switches to Latin).
 - Arabic titles in every UI language: contextual forms, lam-alef, bidi and per-character Noto Sans Arabic fallback loaded on demand.
 - Full app packages now include four Noto fonts/OFL and FriBidi LGPL notices; copy the complete folder once.
+
+### Known limits
+
+- Fat board families still have no physical acceptance test; simulation does not establish hardware compatibility.
+- Arabic still needs native-speaker review.
 
 ## [0.3.1] — 2026-11-24
 
@@ -120,4 +132,4 @@ Prepared against the last public release baseline, `89a7158` (`git log 89a7158..
 - YouTube may reject unofficial clients or TV grants; Music can fall back to public browsing.
 - Direct audio may continue on an unreachable speaker after a forced app exit. Leave playback with B first.
 
-[0.3.0]: https://github.com/PedroHenrique0713/tube360/compare/89a7158...v0.3.0
+[0.3.0]: https://github.com/revive360/tube360/compare/89a7158...v0.3.0

@@ -43,7 +43,7 @@ and skips the H.264 loop filter (ALL). This also applies when Automatic selects 
 720p and smaller sources keep the full filter. Set `h264_loop_filter=full` in `settings.txt` and restart
 to retain full filtering at 1080p too; this can reduce throughput. Policy is fixed at decoder opening,
 including source/seek reopenings, rather than changing during a GOP. The isolated F39 decoder measured
-22.57 ms/frame on the reference 137; app acceptance with audio, UI, network and Nest is still pending.
+22.57 ms/frame on the reference 137; integrated app playback was validated on the owner’s Xbox on 2026-11-25: action 30.00 fps without frame loss, football 29.97 fps with one synchronization correction per minute (matching 720p). This does not certify every speaker, source or board. See [final console results](CONSOLE-032-FINAL.md).
 See [F40 probe, thread map and console procedure](../bench/1080p-app/README.md).
 
 `output_height=720|1080` independently selects the framebuffer. Native 1080p requires HDMI and dashboard

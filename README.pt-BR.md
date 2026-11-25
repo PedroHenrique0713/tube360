@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/PedroHenrique0713/tube360/releases"><img src="https://img.shields.io/github/v/release/PedroHenrique0713/tube360?style=for-the-badge&amp;labelColor=111&amp;color=ff0f3c" alt="Release"></a>
-  <a href="https://github.com/PedroHenrique0713/tube360/stargazers"><img src="https://img.shields.io/github/stars/PedroHenrique0713/tube360?style=for-the-badge&logo=github&color=ff0f3c&labelColor=111" alt="Estrelas"></a>
+  <a href="https://github.com/revive360/tube360/releases"><img src="https://img.shields.io/github/v/release/revive360/tube360?style=for-the-badge&amp;labelColor=111&amp;color=ff0f3c" alt="Release"></a>
+  <a href="https://github.com/revive360/tube360/stargazers"><img src="https://img.shields.io/github/stars/revive360/tube360?style=for-the-badge&logo=github&color=ff0f3c&labelColor=111" alt="Estrelas"></a>
   <img src="https://img.shields.io/badge/Xbox%20360-BadUpdate%20%C2%B7%20RGH%20%C2%B7%20JTAG-107C10?style=for-the-badge&logo=xbox&logoColor=white&labelColor=111" alt="Xbox 360">
   <img src="https://img.shields.io/badge/Console--first%20H.264-ff5a52?style=for-the-badge&labelColor=111" alt="Console-first H.264">
   <a href="LICENSE"><img src="https://img.shields.io/badge/licen%C3%A7a-MIT-blue?style=for-the-badge&labelColor=111" alt="MIT"></a>
@@ -27,7 +27,7 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 
 ## Novidades da 0.3.2
 
-A candidata 0.3.2 reúne conexão direta ao Nest salvo e relógio filtrado, atualizações assinadas com lançador, diagnósticos de início/TLS, recuperação de qualidade medida e escolhas fixas de 480p a 144p. Inclui Música da conta pelo cliente TV, SponsorBlock e texto/busca em árabe. A base rc3 passou no teste do dono no console; a rc4 acrescenta busca pública com conta conectada, correção de abertura de MP4 grande, dica clara do Start e arte dos atalhos da Música. O aceite físico dessas mudanças da rc4 continua pendente. [Roteiro da rc4](docs/CONSOLE-032-RC4.md).
+A versão 0.3.2 traz 1080p30 nativo, Música da conta, sugestões e filtros de busca, Assistir mais tarde e continuar sem conta, SponsorBlock e atualizações assinadas com lançador separado. No Xbox do dono em 2026-11-25, um vídeo de ação manteve 30,00 fps sem perda; futebol ficou em 29,97 fps com uma correção de sincronia por minuto, igual ao 720p. Música, busca, listas locais, Y Qualidade, SponsorBlock e Configurações passaram no controle. [Resultados e limites do console](docs/CONSOLE-032-FINAL.md).
 
 Para migrar do app antigo chamado `default.xex`, feche o Tube360, preserve os arquivos de conta/configurações e copie a pasta completa uma vez. O novo `default.xex` é o lançador; mantenha `tube360.xex` e as oito fontes ao lado dele. Não renomeie o app sobre o lançador. Nas próximas atualizações assinadas, reabra o lançador para instalar.
 
@@ -42,6 +42,8 @@ A busca de vídeos continua pública com a conta TV conectada; recomendações e
 A busca agora oferece sugestões enquanto você digita; LB abre filtros de tipo, duração, período de envio e ordenação por relevância ou visualizações. Buscas recentes compartilham a lista; canais e playlists abrem suas páginas. [Controles e provas](docs/SEARCH.md).
 
 Os canais também têm aba Shorts com capas. Aperte Start (☰) numa miniatura para Salvar / opções, incluindo Assistir mais tarde. Sem conta, salve vídeos para assistir depois e retome a reprodução neste console. As listas continuam separadas após o login, sem envio automático. [Armazenamento, limites e limpeza](docs/LOCAL-LIBRARY.md).
+
+Repositório: [revive360/tube360](https://github.com/revive360/tube360). Criado por [Pedro Henrique Quadro](https://github.com/PedroHenrique0713). [Compatibilidade antes da transferência](docs/REPOSITORY-TRANSFER.md).
 
 ## Destaques
 
@@ -119,7 +121,7 @@ O caminho normal é H.264/AAC nativo. Automático prefere detalhe até 1080p; 72
 
 Escolha 480p, 360p, 240p ou 144p fixos nas Configurações ou no menu Qualidade do player (Y quando não houver ação do SponsorBlock). Durante o vídeo, a lista oferece somente as fontes H.264/AAC disponíveis nele. A seleção manual mantém altura, posição e pausa; pressão sustentada mostra um aviso e não troca a fonte nem usa a reserva no PC. Uma qualidade salva indisponível mostra erro e permite escolher outra. Voltar a Automático reativa a escada adaptativa. Sem vídeo ativo, Configurações salva um padrão entre as sete opções.
 
-O **1080p30 nativo** passa a usar os kernels VMX medidos no Xenon, seis workers FRAME em `0,2,4,1,3,5` e uma fila de imagens maior, com orçamento limitado. Fontes H.264 de 1080 linhas com taxa conhecida até 30,1 fps omitem o filtro de deblock; fontes menores, de taxa desconhecida ou maior mantêm o filtro completo. Para religá-lo também em 1080p, salve `h264_loop_filter=full` em `settings.txt` e reabra o app; a cadência pode cair. O decoder isolado mediu 22,57 ms/quadro; reprodução com interface, som e rede ainda depende do aceite no Xbox. A fonte 1080p também pode ser reduzida para saída 720p; **saída 1080p nativa pede HDMI e 1080p progressivo no painel do Xbox**. Consulte o [roteiro rc3](docs/CONSOLE-032-RC3.md).
+O **1080p30 nativo** passa a usar os kernels VMX medidos no Xenon, seis workers FRAME em `0,2,4,1,3,5` e uma fila de imagens maior, com orçamento limitado. Fontes H.264 de 1080 linhas com taxa conhecida até 30,1 fps omitem o filtro de deblock; fontes menores, de taxa desconhecida ou maior mantêm o filtro completo. Para religá-lo também em 1080p, salve `h264_loop_filter=full` em `settings.txt` e reabra o app; a cadência pode cair. O decoder isolado mediu 22,57 ms/quadro; a reprodução integrada com interface, som e rede passou no Xbox do dono em 25/11/2026. A fonte 1080p também pode ser reduzida para saída 720p; **saída 1080p nativa pede HDMI e 1080p progressivo no painel do Xbox**. Em saída 720p, a redução pode serrilhar nos movimentos rápidos. Consulte os [resultados finais do console](docs/CONSOLE-032-FINAL.md).
 
 MPEG-1 + MP2 fica como compatibilidade fornecida pelo servidor opcional, até 720p30. O pl_mpeg com decodificação por fatias continua nesse caminho. Ele deixou de ser o caminho principal do YouTube. [Arquitetura e qualificação](docs/STANDALONE.md) · [Protocolo do servidor opcional](docs/PROTOCOL.md)
 
@@ -135,7 +137,7 @@ MPEG-1 + MP2 fica como compatibilidade fornecida pelo servidor opcional, até 72
 
 ### 1. Copie a pasta do app
 
-Baixe o ZIP ou .7z em [Releases](https://github.com/PedroHenrique0713/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex` (lançador), `tube360.xex` (app), as quatro fontes `inter-*.ttf` e as quatro `noto-sans-arabic-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
+Baixe o ZIP ou .7z em [Releases](https://github.com/revive360/tube360/releases), extraia e copie a pasta `Tube360` inteira para `Hdd1:\Games\Tube360\` ou `Usb0:\Apps\Tube360\`. Mantenha `default.xex` (lançador), `tube360.xex` (app), as quatro fontes `inter-*.ttf` e as quatro `noto-sans-arabic-*.ttf` e as licenças juntos. **Deixe `server.txt` ausente** para usar só o console; os arquivos `.example.txt` ficam inativos até serem renomeados.
 
 ### 2. Abra pelo Aurora, FSD ou XeXMenu
 
@@ -231,7 +233,7 @@ Configure apenas se quiser uma reserva para mídia direta bloqueada ou incompat�
 O host testado é Linux (Fedora). Instale Python 3.11+, FFmpeg e Node.js 22+ no PATH:
 
 ```bash
-git clone https://github.com/PedroHenrique0713/tube360.git
+git clone https://github.com/revive360/tube360.git
 cd tube360
 python3 -m venv .venv
 .venv/bin/pip install -r server/requirements.txt
@@ -259,7 +261,7 @@ Abra `http://<IP-PC>:8091` para ver o estado. No Xbox, copie `server.example.txt
 
 ```bash
 cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
-cmake --build client/build -j3
+cmake --build client/build -j2
 XT_ASSETS="$PWD/client/assets" ./client/build/tube360
 ```
 
@@ -270,11 +272,11 @@ Sem `XT_ASSETS`, o diretório padrão é `assets/` relativo ao diretório atual.
 ```bash
 export XSDK_DIR=~/src/xsdk V4X_DIR=~/src/vulkan4xenon
 export SDL3_XENON_DIR=~/src/SDL-xenon/build-xsdk XSDK_TOOLCHAIN=~/xsdk-gcc
-tools/build-xbox.sh
-python3 tools/package-xbox.py --version 0.3.0
+TUBE360_VERSION=0.3.2 TUBE360_BUILD_ID=7 TUBE360_F33_BENCH=OFF TUBE360_F40_BENCH=OFF tools/build-xbox.sh
+python3 tools/package-xbox.py --version 0.3.2
 ```
 
-O build gera `client/build-x360/tube360.xex`. O empacotador instala o lançador como `Tube360/default.xex` e o app como `Tube360/tube360.xex` em `.work/releases/tube360-v0.3.0-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
+O build gera `client/build-x360/tube360.xex`. O empacotador instala o lançador como `Tube360/default.xex` e o app como `Tube360/tube360.xex` em `.work/releases/tube360-v0.3.2-xbox360.zip`, com fontes, exemplos comentados e avisos de licença. Ele usa uma lista explícita de arquivos, nunca uma pasta já usada no console. Não publica. [Dependências de build](docs/BUILD.md) · [Empacotamento e fontes/relink correspondentes](docs/RELEASE.md)
 
 ## Estrutura do projeto
 
@@ -292,7 +294,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 - Transmitir pelo celular: pareie com o código de TV do painel **Celular** (app do YouTube → Configurações → Assistir na TV → Inserir código da TV). O console ainda não aparece sozinho na lista de transmissão do celular, porque não consegue entrar no grupo de descoberta da rede. Se outro receptor da sua rede usar o mesmo nome, o celular pode transmitir para ele.
 - A integração com o YouTube é não oficial e pode mudar ou ser bloqueada. Restrições de idade/região, DRM e conteúdo pago não são contornadas; login não garante acesso à mídia. Atualize o feed ou tente mais tarde; a reserva opcional pode ajudar.
 - 720p60/1080p30 são perfis de fonte. O Xbox pode reduzir cadência ou resolução sob carga. Confira o estado real no player; 1080p nativo exige o modo HDMI do painel descrito acima. Sem promessa de 1080p60, HDR, VP9 ou AV1.
-- Música tenta o catálogo musical da TV com o login existente antes da reserva pública, identificada na tela. A aceitação real da conta ainda precisa ser conferida no console. [Funcionamento](docs/MUSIC-ACCOUNT.md). Letras são opcionais. Legendas ao vivo e Nest em live direta ainda não estão implementados; lives usam som na TV.
+- Música tenta o catálogo musical da TV com o login existente antes da reserva pública, identificada na tela. Música da conta foi validada no Xbox do dono em 25/11/2026; a paridade de recomendações com o Music da TV não é garantida. [Funcionamento](docs/MUSIC-ACCOUNT.md). Letras são opcionais. Legendas ao vivo e Nest em live direta ainda não estão implementados; lives usam som na TV.
 - Texto vazio ou saída ao abrir: copie as oito fontes junto de `default.xex`. Falha de HTTPS: confira relógio do console e internet/DNS.
 - Caixa indisponível ou sem som: confira IP, internet e Wi-Fi dela; desative isolamento de convidados/clientes entre Xbox e caixa, depois tente X. Não é pareamento Bluetooth. Falta de confirmação de silêncio pode atrasar o som na TV.
 - Caixa continua tocando após sair: reconecte o Wi-Fi e reabra o Tube360 para concluir o STOP pendente salvo, ou interrompa o Cast pelo Google Home. Saia da reprodução com B antes de fechar; o encerramento espera até cinco segundos, mas não consegue parar uma caixa inacessível.
@@ -301,21 +303,21 @@ tools/           builds, empacotamento e instalação opcional de serviços
 
 ## Próximos passos
 
-- [ ] Atualizar o próprio app de dentro do app
+- [x] Atualizar o próprio app de dentro do app, após uma cópia completa do pacote 0.3.2
 - [ ] O console aparecer sozinho na lista de transmissão do celular
 - [ ] Achar o alto-falante sozinho, e som no Nest durante a live
 - [ ] As suas recomendações do YouTube Music com conta Premium
 - [x] SponsorBlock: botão Pular ou pulo automático, à sua escolha
-- [x] Filtros e sugestões na busca (aceite no Xbox pendente)
+- [x] Filtros e sugestões na busca (validados no controle do Xbox)
 - [x] Assistir mais tarde e continuar de onde parou sem conta
 
 Comentários, contagem estimada de não gostei, velocidade, repetir, TV de tubo, texto grande, espanhol e atualização assinada já fazem parte da v0.3.0. [CHANGELOG.md](CHANGELOG.md) registra a entrega.
 
 ## IA e verificação
 
-**AI-assisted, revisado e testado em console real.** A IA ajuda no desenvolvimento; as decisões e a revisão são humanas. A validação final desta build continua com o coordenador no Xbox.
+**Feito com ajuda de IA, revisado e testado no Xbox do dono.** A IA ajuda no desenvolvimento; as decisões e a revisão são humanas. Placas Fat continuam sem teste físico, e o árabe ainda precisa de revisão nativa.
 
-**VirusTotal:** link da análise e SHA-256 do `default.xex` serão preenchidos pelo coordenador depois da análise da build final. Ainda não há resultado publicado para esta build. Os hashes dos pacotes acompanham os arquivos na release.
+**VirusTotal:** link da análise e SHA-256 do `default.xex` serão preenchidos pelo mantenedor depois da análise da build final. Ainda não há resultado publicado para esta build. Os hashes dos pacotes acompanham os arquivos na release.
 
 <!-- VIRUSTOTAL_URL: PENDING · DEFAULT_XEX_SHA256: PENDING -->
 

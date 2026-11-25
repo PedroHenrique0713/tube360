@@ -180,7 +180,7 @@ def main():
         "Login por codigo em Configuracoes; Cast do celular tem outro codigo no painel Celular.\n"
         "Saia com B ate a navegacao antes de fechar o app para o STOP chegar a caixa.\n\n"
         "Timer: 15 min a 2 h ou fim do video; o proprio console desliga, sem PC.\n\n"
-        "Setup / instalacao: https://github.com/PedroHenrique0713/tube360\n"
+        "Setup / instalacao: https://github.com/revive360/tube360\n"
         "Keep the license notices. Matching source/relink materials accompany the public release.\n"
     ).encode()
     if args.test_package:

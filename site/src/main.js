@@ -744,7 +744,7 @@
   let statsPending = false;
   let memorySession = null;
   const safeReleaseURL = value => {
-    try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'github.com' && url.pathname.startsWith('/PedroHenrique0713/tube360/releases/download/') ? url.href : null; } catch { return null; }
+    try { const url = new URL(value); return url.protocol === 'https:' && url.hostname === 'github.com' && url.pathname.startsWith('/revive360/tube360/releases/download/') ? url.href : null; } catch { return null; }
   };
   function readSession() {
     try { return JSON.parse(sessionStorage.getItem(sessionKey)); } catch { return memorySession; }
@@ -803,7 +803,7 @@
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4500);
     try {
-      const response = await fetch(`https://api.github.com/repos/PedroHenrique0713/tube360${path}`, { signal: controller.signal, headers: { Accept: 'application/vnd.github+json' } });
+      const response = await fetch(`https://api.github.com/repos/revive360/tube360${path}`, { signal: controller.signal, headers: { Accept: 'application/vnd.github+json' } });
       return response.ok ? await response.json() : null;
     } catch { return null; } finally { clearTimeout(timeout); }
   }

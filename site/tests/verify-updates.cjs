@@ -11,7 +11,7 @@ try{
   assert.equal(await page.locator('#latest-news li').count(),3);
   const entries=await page.locator('.release-entry').evaluateAll(nodes=>nodes.map(n=>({version:n.dataset.version,date:n.querySelector('time')?.getAttribute('datetime')||null,link:n.querySelector('a').href,items:[...n.querySelectorAll('li')].map(li=>({text:li.textContent,line:Number(li.dataset.changelogLine)}))})));
   assert.deepEqual(entries.map(({version,date})=>({version,date})),expected);
-  for(const entry of entries){assert.ok(entry.items.length>=3&&entry.items.length<=6);for(const item of entry.items){assert.ok(source[item.line-1].startsWith('- '));assert.ok(item.text.length>20&&!/[<>]/.test(item.text))}assert.equal(entry.link,`https://github.com/PedroHenrique0713/tube360/releases${entry.date?'/tag/v'+entry.version:''}`)}
+  for(const entry of entries){assert.ok(entry.items.length>=3&&entry.items.length<=7);for(const item of entry.items){assert.ok(source[item.line-1].startsWith('- '));assert.ok(item.text.length>20&&!/[<>]/.test(item.text))}assert.equal(entry.link,`https://github.com/revive360/tube360/releases${entry.date?'/tag/v'+entry.version:''}`)}
   await page.locator('#latest-news a').click();assert.equal(new URL(page.url()).hash,'#releases');assert.ok(await page.locator('#releases-title').isVisible());
   const playback=await page.locator('.console-node p').textContent();assert.ok(playback.includes('H.264')&&!playback.includes('{'));
   for(const [i,name]of ['library','search','phone','music'].entries()){
@@ -21,5 +21,5 @@ try{
   await page.locator('#credits .footer-links a').first().focus();await page.keyboard.press('Tab');assert.notEqual(await page.evaluate(()=>getComputedStyle(document.activeElement).outlineStyle),'none');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth),width);assert.deepEqual(errors,[]);results.push({lang,width,height,versions:entries.map(e=>({version:e.version,date:e.date,items:e.items.length})),errors});await page.close();
  }
- fs.mkdirSync('site/.work/adendo-1',{recursive:true});fs.writeFileSync('site/.work/adendo-1/updates-results.json',JSON.stringify({status:'PASS',matrix:results},null,2));console.log('PASS: CHANGELOG versions/dates and 3–6 sourced summaries; pending/public release links, teaser anchor, native localized images and keyboard tabs, footer focus, console copy; EN/PT × 3 sizes, no overflow or JS errors.');
+ fs.mkdirSync('site/.work/adendo-1',{recursive:true});fs.writeFileSync('site/.work/adendo-1/updates-results.json',JSON.stringify({status:'PASS',matrix:results},null,2));console.log('PASS: CHANGELOG versions/dates and 3–7 sourced summaries; pending/public release links, teaser anchor, native localized images and keyboard tabs, footer focus, console copy; EN/PT × 3 sizes, no overflow or JS errors.');
 }finally{await browser.close()}})().catch(e=>{console.error(e);process.exitCode=1});

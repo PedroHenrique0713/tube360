@@ -1,7 +1,7 @@
 # Console — 0.3.2-rc4 / build 6
 
 Somente as mudanças desde a rc3 aceita pelo dono. Preparado localmente, sem acessar
-o console, a conta ou o Nest. O aceite físico da rc4 continua pendente.
+o console, a conta ou o Nest. O resultado físico informado pelo dono em 25/11/2026 está em [CONSOLE-032-FINAL.md](CONSOLE-032-FINAL.md); este arquivo preserva o roteiro da candidata.
 
 Público, bancadas OFF: `.work/f48/package/tube360-v0.3.2-rc4-xbox360.zip`
 e `.7z`; pasta extraída `.work/f48/console/Tube360/`. Fechar o app e copiar a pasta

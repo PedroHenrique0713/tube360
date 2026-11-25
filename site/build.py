@@ -16,7 +16,7 @@ from urllib.request import Request, urlopen
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 DIST = ROOT / "dist"
-REPO = "PedroHenrique0713/tube360"
+REPO = "revive360/tube360"
 ORIGIN = "https://tube360.hypermind.space"
 CACHE = SRC / "github.json"
 
@@ -130,11 +130,12 @@ def render(template, values):
 # Os tópicos escolhem mudanças presentes no CHANGELOG; a redação localizada é reutilizada
 # entre versões. Datas, ordem, presença e procedência nunca vêm dos dicionários do site.
 RELEASE_TOPICS = (
-    ("local", r"^Watch later and resume without an account"),
-    ("search", r"^Public search suggestions"),
-    ("sponsor", r"^SponsorBlock with Off"),
     ("quality", r"^Native H\.264 1080p30 decoding"),
     ("music", r"^Music now tries the TV music catalogue"),
+    ("search", r"^Public search suggestions"),
+    ("local", r"^Watch later and resume without an account"),
+    ("sponsor", r"^SponsorBlock with Off"),
+    ("large_mp4", r"^Xbox MP4 opening"),
     ("app_updates", r"^Signed app updates through"),
     ("traffic_fix", r"^Videos open again when Google flags"),
     ("dislike_fix", r"^Estimated dislike counts load"),
@@ -172,7 +173,7 @@ def changelog_releases(markdown):
             source = next((change for change in release["changes"] if re.search(pattern, change["text"], re.I)), None)
             if source:
                 items.append({"key": key, **source})
-            if len(items) == 6:
+            if len(items) == 7:
                 break
         if len(items) < 3:
             raise ValueError(f'CHANGELOG {release["version"]}: fewer than three supported user-facing changes; extend RELEASE_TOPICS and localized release_summaries')

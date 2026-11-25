@@ -54,7 +54,7 @@ print('PASS: release timestamps/timezones, offline publication override and vers
 markdown=Path('CHANGELOG.md').read_text()
 releases=build.changelog_releases(markdown)
 assert [r['version'] for r in releases]==['0.3.2','0.3.1','0.3.0']
-assert [len(r['items']) for r in releases]==[6,4,6]
+assert [len(r['items']) for r in releases]==[7,4,6]
 assert releases[0]['date'] is None and releases[1]['date']=='2026-11-24'
 for release in releases:
     for item in release['items']:
@@ -74,7 +74,7 @@ for lang in ['en','pt-BR']:
     assert 'datetime="2027-01-02"' in changed_history
     dictionary['release_summaries']['local']='<script>alert(1)</script>'
     assert '<script>' not in build.release_sections(releases,dictionary,lang)[0]
-print('PASS: CHANGELOG versions/dates, 3–6 sourced summaries per release, source removal, future version/date propagation, pending URL and HTML escaping in EN/PT.')
+print('PASS: CHANGELOG versions/dates, 3–7 sourced summaries per release, source removal, future version/date propagation, pending URL and HTML escaping in EN/PT.')
 try:build.render('<p>{{native}}</p>',{'native':{'Settings':'Settings'}})
 except ValueError as error:assert 'scalar' in str(error)
 else:raise AssertionError('a translation dictionary leaked into visible page copy')

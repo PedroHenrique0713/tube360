@@ -1,18 +1,16 @@
 # Preparing an Xbox release
 
-v0.3.0 is prepared locally; creating artifacts does not publish them. The coordinator integrates other fronts,
-checks the privacy findings, qualifies the console and chooses when to publish. The sleep timer is native on this branch; final physical shutdown acceptance remains with the coordinator. See [changelog](../CHANGELOG.md)
-and [privacy audit](PRIVACY-AUDIT.md). Compare the last public baseline with `git log 89a7158..HEAD`.
+v0.3.2 / build 7 is prepared locally; creating artifacts does not publish them. The maintainer integrates the final commit, checks the privacy findings and tests installation before publication. The owner’s console results from 2026-11-25 are in [CONSOLE-032-FINAL.md](CONSOLE-032-FINAL.md). Follow the ordered [repository transfer and publication procedure](REPOSITORY-TRANSFER.md), including the raw compatibility gate. See [changelog](../CHANGELOG.md) and [privacy audit](PRIVACY-AUDIT.md).
 
 ## App ZIP and 7z
 
 After the [Xbox build](BUILD.md), from the repository root:
 
 ```bash
-python3 tools/package-xbox.py --version 0.3.0
-python3 -m zipfile -t .work/releases/tube360-v0.3.0-xbox360.zip
-7z t .work/releases/tube360-v0.3.0-xbox360.7z
-(cd .work/releases && sha256sum -c tube360-v0.3.0-xbox360.zip.sha256 tube360-v0.3.0-xbox360.7z.sha256)
+python3 tools/package-xbox.py --version 0.3.2
+python3 -m zipfile -t .work/releases/tube360-v0.3.2-xbox360.zip
+7z t .work/releases/tube360-v0.3.2-xbox360.7z
+(cd .work/releases && sha256sum -c tube360-v0.3.2-xbox360.zip.sha256 tube360-v0.3.2-xbox360.7z.sha256)
 ```
 
 Both archives contain the same files. Install 7z/7zz on the build host.
@@ -20,7 +18,7 @@ The default destination is `.work/releases/`; `--output-dir` and `--build-dir` s
 `--app-name` overrides the title detected from the build cache and must match the build. The package contains one `Tube360/` folder with:
 
 - `default.xex`, the stable `tube360-launcher.xex`, and `tube360.xex`, the app, both copied/converted from the current `client/build-x360` build;
-- the four Inter TTF weights 300, 400, 600 and 700;
+- the four Inter and four Noto Sans Arabic TTF weights 300, 400, 600 and 700, with their license notices;
 - inactive `settings.example.txt`, `nest.example.txt`, `server.example.txt`;
 - `START-HERE.txt`, `LICENSE`, `THIRD_PARTY.md`, third-party notices and a hash manifest.
 
@@ -85,7 +83,7 @@ from the final integrated commit, after addressing the findings in [the audit](P
    this command before publishing the kit, then package/sanitize the resulting executable and audit archives
    for diagnostic paths. Do not strip or replace required copyright/attribution notices.
 
-The XEX metadata version remains `1.0.0.0`; `0.3.0` is the distribution version. A source ZIP generated from an
+The XEX metadata version remains `1.0.0.0`; `0.3.2` is the distribution version. A source ZIP generated from an
 unreviewed checkout or from an earlier branch is not matching release source.
 
 ## Integration acceptance
@@ -99,13 +97,13 @@ recovery and B/exit STOP, then a native sleep shutdown with the owner. Follow th
 
 ## Static website candidate
 
-Run `python3 site/build.py` to build from the latest public release. Before v0.3.0 is published, prepare its
+Run `python3 site/build.py` to build from the latest public release. Before v0.3.2 is published, prepare its
 local candidate explicitly (the future asset link will only resolve after the coordinator publishes it):
 
 ```bash
-python3 site/build.py --offline --no-cache-write --version v0.3.0 \
-  --download-url https://github.com/PedroHenrique0713/tube360/releases/download/v0.3.0/tube360-v0.3.0-xbox360.zip \
-  --size "$(stat -c %s .work/releases/tube360-v0.3.0-xbox360.zip)"
+python3 site/build.py --offline --no-cache-write --version v0.3.2 \
+  --download-url https://github.com/revive360/tube360/releases/download/v0.3.2/tube360-v0.3.2-xbox360.zip \
+  --size "$(stat -c %s .work/releases/tube360-v0.3.2-xbox360.zip)"
 ```
 
 `--no-cache-write` keeps final artifact sizes out of the tracked cache while rendering the exact local values.
@@ -115,8 +113,8 @@ See [screenshot provenance](SCREENSHOTS.md).
 
 ## Signed release handoff
 
-The initial signed v0.3.0 uses build ID 1. Keep the stable launcher as `default.xex`; the update payload is the sanitized `.work/releases/tube360.xex`, identical to `Tube360/tube360.xex` in the ZIP/7z. Never sign the raw private build and then publish a different sanitized payload.
+The final 0.3.2 uses build ID 7, provided no ID ≥7 has already been offered. Public 0.3.0/0.3.1 packages used the app directly as `default.xex` and require a complete manual package upgrade. Keep the stable launcher as `default.xex`; the update payload is the sanitized `.work/releases/tube360.xex`, identical to `Tube360/tube360.xex` in the ZIP/7z. Never sign the raw private build and then publish a different sanitized payload.
 
-On the public repository's `rules` branch publish `rules.json`, `rules.json.sig`, `app.json`, `app.json.sig` at the root, preserving the exact signed bytes. Initial remote rules use version 2 (embedded defaults use version 1). The app manifest points to the v0.3.0 release asset `tube360.xex`. The initial app does not offer itself as an upgrade; future releases need strictly higher build IDs in both binary and manifest. Rule versions must also increase, including after a rejected update. Do not publish desktop QA payloads or the private signing key. See [UPDATES.md](UPDATES.md).
+On the public repository's `rules` branch publish `rules.json`, `rules.json.sig`, `app.json`, `app.json.sig` at the root, preserving the exact signed bytes. Embedded defaults use version 1; choose a remote rule version higher than every version already offered, including rejected versions. The app manifest points to the v0.3.2 release asset `tube360.xex`. Build 7 does not offer itself as an upgrade; future releases need strictly higher build IDs in both binary and manifest. Rule versions must also increase, including after a rejected update. Do not publish desktop QA payloads or the private signing key. See [UPDATES.md](UPDATES.md).
 
-Release assets: `tube360-v0.3.0-xbox360.zip`, `.zip.sha256`, `tube360-v0.3.0-xbox360.7z`, `.7z.sha256`, `tube360.xex`, `tube360.xex.sha256`, plus the corresponding source/relink materials described above. Install complete archives once for older single-XEX installations. The exact local artifact paths and checksums are recorded in the coordinator's integration report. This preparation performs no publication.
+Release assets: `tube360-v0.3.2-xbox360.zip`, `.zip.sha256`, `tube360-v0.3.2-xbox360.7z`, `.7z.sha256`, `tube360.xex`, `tube360.xex.sha256`, plus the corresponding source/relink materials described above. Install complete archives once for older single-XEX installations. The exact local artifact paths and checksums are recorded in the coordinator's integration report. This preparation performs no publication.

@@ -59,6 +59,7 @@ const root = process.env.SITE_URL || 'http://127.0.0.1:8279';
    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), width); assert.deepEqual(errors, []);
    results.push({ lang, width, height, labels, settingsPositions: positions, touchScroll: width === 390, errors }); await context.close();
   }
+  fs.mkdirSync('site/.work/rc4-review', { recursive: true });
   fs.writeFileSync('site/.work/rc4-review/fidelity-results.json', JSON.stringify({ status: 'PASS', cases: results }, null, 2));
   console.log('PASS: 18 rc4 settings rows selected visibly through the last row; pointer and touch scrolling; limits/white values and red selected value; native library cards, Music art and shelves, phone modal; EN/PT desktop/mobile; zero JS errors.');
  } finally { await browser.close(); }

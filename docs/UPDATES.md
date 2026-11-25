@@ -3,10 +3,13 @@
 O app embute `client/src/update/rules-default.json`. Após o início saudável e a cada 4 horas na Home/Configurações, um worker procura `rules.json` + `rules.json.sig` e `app.json` + `app.json.sig` em:
 
 ```
-https://raw.githubusercontent.com/PedroHenrique0713/tube360/rules/
+https://raw.githubusercontent.com/revive360/tube360/rules/
+https://raw.githubusercontent.com/PedroHenrique0713/tube360/rules/  (reserva)
 ```
 
-`updates-url.txt` ao lado do app pode escolher outro diretório/ramo **nesse repositório**, com HTTPS e `/` final. Falha de rede, 404 ou assinatura inválida conserva os dados anteriores. O ramo e os arquivos precisam ser publicados pelo mantenedor; o aplicativo não os cria.
+A organização é tentada primeiro. Documento e assinatura são buscados na mesma origem; falha de rede, assinatura ou schema tenta a reserva, separadamente para regras e app. Um par autenticado e válido encerra a busca, mesmo sem versão nova; a maior versão já vista impede regressão. `updates-url.txt` ao lado do app pode escolher outro diretório/ramo **em qualquer um desses dois repositórios**, com HTTPS e `/` final. Uma configuração explícita substitui as origens padrão, sem mudar os limites de confiança. Falha de rede, 404 ou assinatura inválida conserva os dados anteriores. O ramo e os arquivos precisam ser publicados pelo mantenedor; o aplicativo não os cria.
+
+O transporte não segue redirects automaticamente. O worker aceita 301/302/303/307/308 com até cinco pedidos, validando HTTPS, host e caminho antes de **cada** salto. Só os dois donos acima e os hosts fixos de assets do GitHub continuam permitidos; `api.github.com` não é uma origem de atualização. [Provas e limites da transferência](REPOSITORY-TRANSFER.md).
 
 ## Regras
 
@@ -72,12 +75,12 @@ Uma build pública precisa estar sem `TUBE360_UPDATE_TEST_CONFIG` nas flags:
 ```bash
 # Em cache já configurado, limpa a configuração descartável da bancada, se houve.
 cmake -S client/x360 -B client/build-x360 '-DCMAKE_CXX_FLAGS=-mcpu=cell -fno-pic' \
-  -DTUBE360_BUILD_ID=3 -DTUBE360_VERSION=0.3.2
-TUBE360_BUILD_ID=3 TUBE360_VERSION=0.3.2 tools/build-xbox.sh
+  -DTUBE360_BUILD_ID=7 -DTUBE360_VERSION=0.3.2
+TUBE360_BUILD_ID=7 TUBE360_VERSION=0.3.2 tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.2
 python3 tools/sign-updates.py --key /caminho/privado/update-ed25519.pem manifest \
-  .work/releases/tube360.xex --build 3 --version 0.3.2 \
-  --url https://github.com/PedroHenrique0713/tube360/releases/download/v0.3.2/tube360.xex \
+  .work/releases/tube360.xex --build 7 --version 0.3.2 \
+  --url https://github.com/revive360/tube360/releases/download/v0.3.2/tube360.xex \
   --notes-en 'Playback fixes.' --notes-pt 'Correções de reprodução.' --output app.json
 ```
 
@@ -173,3 +176,13 @@ flock ~/.cache/tube360-xbox.lock systemd-run --user --scope -q -p MemoryMax=6G -
 ```
 
 Para QA em PC: `python3 tests/update/service-test.py` exercita oito cenários HTTP, gera chave descartável e um binário visual separado. `tests/update/ui-fixture.py <diretório> --key <chave descartável>` prepara respostas assinadas locais (payload falso, nunca enviar ao console). Use `XT_YT_REPLAY=<diretório>`, `XT_ASSETS=<diretório>` e `server=off`; a rede do YouTube não é usada. A chave de assinatura não é copiada para o fixture.
+
+## Compatibilidade da organização
+
+`python3 tests/update/migration-test.py` recompila as tags públicas, a rc4 e os
+fontes atuais contra um TLS local, com chave descartável. Cobre redirects
+301/302/307/308 no transporte real, regras/manifestos, reserva entre donos e
+payloads adversariais. `python3 tests/update/transfer-links-test.py` exercita
+web/API/raw/downloads com curl e TLS local. Nenhum dos dois consulta o GitHub real.
+O [procedimento de transferência](REPOSITORY-TRANSFER.md) distingue essa prova
+local do comportamento raw que o mantenedor precisa medir depois da transferência.
