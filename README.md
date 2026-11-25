@@ -174,7 +174,7 @@ Button prompts use the Xbox One / Series style (Menu / View are Start / Back on 
 | | Left / Right, then A | Select / activate an icon: captions, quality, sound, timer, audio, like, dislike, channel or live edge |
 | | LB / RB | −1 min / +1 min |
 | | Y · X | Toggle quality · TV / speaker sound |
-| | LT / RT | Speaker sync −40 ms / +40 ms (saved) |
+| | LT / RT | Hold to rewind / fast-forward; accelerates, release to seek |
 | | B | Close one level at a time, then leave the video |
 | | View | Return to browsing |
 | Music Now playing | B | Stop and clear queue; return to source page |
@@ -235,7 +235,7 @@ cmake --build client/build -j3
 XT_ASSETS="$PWD/client/assets" ./client/build/tube360
 ```
 
-The default assets directory is `client/assets` when run from `client/`; from the repository root set `XT_ASSETS="$PWD/client/assets"`. For isolated testing use a separate writable copy of the fonts and settings. Arrows, Enter=A, Esc=B, Backspace=X, Tab=Y, PageUp/PageDown=LB/RB, F2=Menu, F10=View; gamepads work too.
+The default assets directory is `client/assets` when run from `client/`; from the repository root set `XT_ASSETS="$PWD/client/assets"`. For isolated testing use a separate writable copy of the fonts and settings. Arrows, Enter=A, Esc=B, Backspace=X, Tab=Y, PageUp/PageDown=LB/RB, F2=Menu, F10=View, Q/E=LT/RT; gamepads work too.
 
 **Xbox build** needs built [xsdk](https://github.com/xenosworks/xsdk), [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon), [SDL-xenon](https://github.com/xenosworks/SDL-xenon), and the xsdk GCC toolchain:
 
