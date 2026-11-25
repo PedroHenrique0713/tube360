@@ -37,6 +37,8 @@ SponsorBlock oferece Desligado, Botão para pular (padrão) e automático. Y pul
 
 Árabe usa formas contextuais, bidi e fontes Noto sob demanda em qualquer idioma. RB alterna o teclado árabe para latim. [Suporte e limites de revisão](docs/ARABIC.md).
 
+A busca agora oferece sugestões enquanto você digita; LB abre filtros de tipo, duração, data de envio e ordenação. Buscas recentes compartilham a lista; canais e playlists abrem suas páginas. [Controles, limites de ordenação do YouTube e provas](docs/SEARCH.md).
+
 ## Destaques
 
 | | |
@@ -187,6 +189,8 @@ As dicas usam o estilo Xbox One / Series (Menu / View correspondem a Start / Bac
 | | Menu | Ações do card: canal, Assistir mais tarde ou rádio |
 | | B | Voltar uma página |
 | Teclado de busca | A · X · Y · Menu | Digitar · Apagar · Espaço · Buscar |
+| Busca / resultados | LB | Filtros; A aplica, B descarta as alterações |
+| Teclado de busca | Direita após a última tecla · Cima / Baixo · A | Sugestões e recentes · Escolher · Buscar na hora |
 | Player | A / Menu | Pausar / continuar (A ativa a opção focada quando há painel aberto) |
 | | Direção com barra oculta | Mostrar a linha do tempo |
 | | Esquerda / Direita na linha do tempo | −10 s / +10 s |
@@ -298,7 +302,7 @@ tools/           builds, empacotamento e instalação opcional de serviços
 - [ ] Achar o alto-falante sozinho, e som no Nest durante a live
 - [ ] As suas recomendações do YouTube Music com conta Premium
 - [x] SponsorBlock: botão Pular ou pulo automático, à sua escolha
-- [ ] Filtros e sugestões na busca
+- [x] Filtros e sugestões na busca (aceite no Xbox pendente)
 - [ ] Assistir mais tarde e continuar de onde parou sem conta
 
 Comentários, contagem estimada de não gostei, velocidade, repetir, TV de tubo, texto grande, espanhol e atualização assinada já fazem parte da v0.3.0. [CHANGELOG.md](CHANGELOG.md) registra a entrega.

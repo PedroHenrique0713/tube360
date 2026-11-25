@@ -1,6 +1,29 @@
 // Incluído após Key em i18n.hpp. Preserve o macro de quatro argumentos de pt/en/es.
 inline const char* arabic(Key key) {
   switch (key) {
+    case Key::SearchSuggestions: return "اقتراحات";
+    case Key::SearchRecentTag: return "الأخيرة";
+    case Key::SearchFilters: return "الفلاتر";
+    case Key::SearchType: return "نوع النتائج";
+    case Key::SearchDuration: return "المدة";
+    case Key::SearchDate: return "تاريخ التحميل";
+    case Key::SearchOrder: return "الترتيب حسب";
+    case Key::SearchShort: return "قصيرة · أقل من 3 دقائق";
+    case Key::SearchMedium: return "متوسطة · من 3 إلى 20 دقيقة";
+    case Key::SearchLong: return "طويلة · أكثر من 20 دقيقة";
+    case Key::SearchShortLabel: return "قصيرة";
+    case Key::SearchMediumLabel: return "متوسطة";
+    case Key::SearchLongLabel: return "طويلة";
+    case Key::SearchToday: return "اليوم";
+    case Key::SearchWeek: return "هذا الأسبوع";
+    case Key::SearchMonth: return "هذا الشهر";
+    case Key::SearchYear: return "هذا العام";
+    case Key::SearchRelevance: return "مدى الصلة";
+    case Key::SearchNewest: return "تاريخ التحميل";
+    case Key::SearchViews: return "عدد المشاهدات";
+    case Key::SearchApply: return "تطبيق";
+    case Key::SearchClear: return "مسح الفلاتر";
+    case Key::SearchAny: return "أي مدة أو تاريخ";
     case Key::KeyboardToggle: return "عربي / لاتيني";
     case Key::ArabicFontMissing: return "خطوط العربية مفقودة. انسخ ملفات noto-sans-arabic بجانب default.xex وtube360.xex.";
     case Key::None: return "";

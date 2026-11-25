@@ -4,6 +4,7 @@
 
 ### Added
 
+- Public search suggestions with debounced/cancellable anonymous lookup, session recent searches in the same list, and Series-style LB filters for type, duration, upload date and order. Typed channel/playlist results open their pages; filtered continuations retain their query/params/language. English, Portuguese, Spanish and Arabic include 4:3/large-text layouts. Current YouTube durations use 3-minute boundaries; legacy date/view-count ordering needs provider/console acceptance (see `docs/SEARCH.md`).
 - Native H.264 1080p30 decoding uses the measured Xenon VMX kernels, six FRAME workers across HW 0,2,4,1,3,5 and a larger bounded frame queue. Only known 1080p sources up to 30.1 fps omit deblocking; `h264_loop_filter=full` restores the complete filter after restarting the app. Smaller/unknown/high-cadence sources retain full filtering. The inherited isolated decoder median is 22.57 ms/frame; integrated Xbox playback with audio/UI/network still awaits console acceptance. This does not promise 1080p60. Native 1080p output requires HDMI with 1080p progressive selected in the Xbox dashboard.
 - Saved Nest IPs connect directly; metadata discovery runs in the background. Cast clock filtering and bounded picture correction keep Wi-Fi status jitter from changing playback cadence.
 - Signed app updates through a separate `default.xex` launcher with startup confirmation and rollback. Migrate by copying the complete package once; keep account/settings files.

@@ -8,6 +8,9 @@ struct NavItem {
   Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = duration; v.members = members; return v; }
 };
 struct NavPage {
+  yt::search::Filters filters;
+  std::string filterLabel;
+  std::vector<std::string> filterLines;
   std::string kind, id, query, tab = "videos", title, subtitle, image, channelId, error, displayTitle, displaySub, banner, historyVideo, laterVideo;
   std::vector<NavItem> items, channels;
   bool music = false, direct = false, native = false, loading = true, more = false, subscribed = false;
@@ -20,7 +23,7 @@ struct NavPage {
   float scroll = 0;
   uint64_t stamp = 0;
   std::string path() const {
-    return "/api/nav?kind=" + kind + "&id=" + net::urlEncode(id) + "&q=" + net::urlEncode(query) + "&tab=" + tab + "&filter=" + std::to_string(tabSel);
+    return "/api/nav?kind=" + kind + "&id=" + net::urlEncode(id) + "&q=" + net::urlEncode(query) + "&tab=" + tab + "&filter=" + std::to_string(tabSel) + (kind=="search" ? "&params="+net::urlEncode(filters.params()) : "");
   }
 };
 struct Navigation {
@@ -43,12 +46,12 @@ struct Navigation {
     if (!append) { p.offset = 0; p.items.clear(); p.channels.clear(); p.channelSel = p.shelf = 0; p.shelves.clear(); }
     std::string path = p.path() + "&lang=" + i18n::code(lang) + "&offset=" + std::to_string(p.offset) + "&fresh=" + (fresh ? "1" : "0");
     Job job{6, path, p.stamp};
-    job.native = p.kind == "search" && p.tabSel != 2 && !append; job.query = p.query; job.lang = lang; worker.add(job, true);
+    job.query = p.query; job.lang = lang; worker.add(job, true);
   }
-  void open(Worker& worker, i18n::Lang lang, std::string kind, std::string id = "", std::string query = "", bool music = false) {
+  void open(Worker& worker, i18n::Lang lang, std::string kind, std::string id = "", std::string query = "", bool music = false, yt::search::Filters filters = {}) {
     // As telas guardam seleção e rolagem; B não refaz a consulta de onde o usuário veio.
     if (pages.size() >= 12) pages.erase(pages.begin() + 1);
-    NavPage p; p.kind = kind; p.id = id; p.query = query; p.music = music;
+    NavPage p; p.kind = kind; p.id = id; p.query = query; p.music = music; p.filters=filters;
     if (kind == "music") p.tabSel = query == "charts" ? 1 : query == "mixes" ? 2 : 0;
     pages.push_back(std::move(p)); load(worker, lang);
   }
@@ -192,7 +195,11 @@ struct Navigation {
       gfx::rect(g, ui::W-316, p.music ? 64 : 32, 252, 54, f ? ui::TEXT : ui::SURFACE2, 27);
       gfx::text(g, ui::F_KEY, tr(channel ? p.subscribed ? K::Subscribed : K::Subscribe : K::PlayAll), ui::W-190, p.music ? 80 : 48, f ? ui::INK : ui::TEXT, 1);
     }
-    bool tabs = channel || p.kind == "music" || p.kind == "search" || p.kind == "music_search";
+    if (p.kind=="search") {
+      float hx=hint(g,136,126,"LB",XG,tr(K::SearchFilters));
+      for (size_t row=0;row<p.filterLines.size();++row) gfx::textBox(g,ui::F_CHAN,p.filterLines[row],hx,122+row*30,ui::W-hx-64,ui::A2);
+    }
+    bool tabs = channel || p.kind == "music" || p.kind == "music_search";
     if (tabs) {
       const K channelTabs[] = {K::Videos,K::ChannelLive,K::Playlists};
       const K musicTabs[] = {K::Home,K::Charts,K::Mixes};
@@ -210,7 +217,7 @@ struct Navigation {
         x += w + 14;
       }
     }
-    float top = p.kind == "library" ? 120 : p.music ? 246 : 178;
+    float top = p.kind == "library" ? 120 : p.kind=="search" ? 210 : p.music ? 246 : 178;
     if (p.kind == "subscriptions" && !p.channels.empty()) {
       int channelCount=ui::narrow ? 4 : ui::large ? 5 : 7;
       int first = std::max(0, p.channelSel-channelCount+1);

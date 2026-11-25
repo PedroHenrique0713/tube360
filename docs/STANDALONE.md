@@ -10,7 +10,8 @@ they describe those earlier experiments, not the current feature boundary.
 
 | Feature | Current implementation |
 |---|---|
-| Public home/search/next | `client/src/yt/client.cpp`, native HTTPS, parsed responses and bounded workers/caches. |
+| Public home/next | `client/src/yt/client.cpp`, native HTTPS, parsed responses and bounded workers/caches. |
+| Public search | `yt/catalog.hpp`: typed results, native params/continuations and cache. `yt/search.hpp`, `search_worker.hpp`, `search_ui.hpp`: anonymous bounded suggestions and controller filters. [Contract and qualification](SEARCH.md). |
 | Account | `console_account.cpp`: TV-code OAuth, refresh, logout, account artwork, recommendations, history/progress, ratings, subscriptions, Watch later and library. Stored beside the app in `yt-console-account.json`. |
 | Channels/playlists/Music | `catalog.hpp`, `navigation.hpp`, `music_navigation.hpp`: native catalogue, account continuations and local queues. Music tries TVHTML5/FEtopics_music with the existing TV grant after a WEB_REMIX refusal, then labels any public fallback. [Account Music and console validation](MUSIC-ACCOUNT.md). |
 | Video and TV sound | `player_h264.hpp`, `h264.hpp`: FFmpeg AVC/AAC, direct VOD ranges or HLS. Selection, decode and buffering stay outside rendering. |

@@ -1,6 +1,7 @@
 #pragma once
 #include "locale.hpp"
 #include "client.hpp"
+#include "search.hpp"
 #include "membership_json.hpp"
 #include "update/rules.hpp"
 #ifndef PICOJSON_USE_LOCALE
@@ -277,7 +278,7 @@ inline bool supported(const string& path) {
   if (path.compare(0,17,"/api/nav/channel?") == 0 || path.compare(0,16,"/api/nav/lyrics?") == 0) return true;
   if (path.compare(0,9,"/api/nav?") != 0 && path.compare(0,14,"/api/nav/play?") != 0) return false;
   auto q = query(path); auto kind = q["kind"];
-  return kind == "channel" || kind == "playlist" || kind == "music" || kind == "music_search" || kind == "album" || kind == "artist" || kind == "radio" || kind == "music_playlist" || kind == "music_recent" || kind == "music_library";
+  return kind == "search" || kind == "channel" || kind == "playlist" || kind == "music" || kind == "music_search" || kind == "album" || kind == "artist" || kind == "radio" || kind == "music_playlist" || kind == "music_recent" || kind == "music_library";
 }
 class Client {
   Transport& net;
@@ -467,11 +468,11 @@ public:
     auto value = [&](const char* name) { auto it = q.find(name); return it == q.end() ? string{} : it->second; };
     string kind = value("kind"), id = value("id"), search = value("q"), tab = value("tab"), filter = value("filter");
     language = localeLanguage(value("lang"));
-    bool isMusic = kind != "channel" && kind != "playlist";
+    bool isMusic = kind != "channel" && kind != "playlist" && kind != "search";
     Page failed;
     if (token.empty() && (kind=="music_recent" || kind=="music_library")) { failed.error="signed_out"; return failed; }
     if ((kind == "channel" || kind == "artist") ? !channelId(id) : kind == "radio" ? !videoId(id) : (kind == "playlist" || kind == "music_playlist" || kind == "album") ? !identifier(id) : false) { failed.error = "invalid_navigation"; return failed; }
-    string key = kind + "|" + id + "|" + search + "|" + tab + "|" + filter + "|" + language;
+    string key = kind + "|" + id + "|" + search + "|" + tab + "|" + filter + "|" + value("params") + "|" + language;
     int offset = std::max(0,std::atoi(value("offset").c_str()));
     if (lists.size() >= 12 && !lists.count(key)) lists.erase(lists.begin());
     auto& list = lists[key];
@@ -480,7 +481,15 @@ public:
     if (offset && (offset != list.offset || list.next.empty())) { failed.error = "continuation_expired"; return failed; }
     Object args; string route = "browse";
     if (offset) args["continuation"] = J(list.next);
-    if (kind == "music_search") {
+    if (kind == "search") {
+      route = "search";
+      if (!offset) {
+        args["query"] = J(search);
+        auto params=value("params");
+        if (params.empty() && (filter=="1" || filter=="2")) { yt::search::Filters legacy; legacy.type=std::atoi(filter.c_str()); params=legacy.params(); }
+        if (!params.empty()) args["params"] = J(params);
+      }
+    } else if (kind == "music_search") {
       route = "search";
       if (!offset) {
         args["query"] = J(search);
@@ -513,6 +522,7 @@ public:
     }
     if (!failed.error.empty()) return failed;
     Page p = decode(data,isMusic);
+    if (kind=="search") p.title=search;
     if (isMusic) p.musicSource=list.source==MusicSource::TV ? "tv" : list.source==MusicSource::Web ? "web" : "public";
     if (!p.error.empty()) return p;
     if (kind == "channel") p.channelId = id;
