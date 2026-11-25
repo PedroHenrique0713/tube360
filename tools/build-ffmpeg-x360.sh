@@ -44,6 +44,10 @@ case "$target" in
             done
         fi
         flags+=(--extra-cflags="$cflags")
+        # GCC xsdk 52 combina movimento + teste int64 em mr.; com SF=0 o sinal
+        # vem dos 32 bits baixos. AVIO passa a tratar offsets >=2 GiB como erro.
+        # Só o demux/transporte perde combine; os kernels do decoder mantêm -O3.
+        make_args+=("--eval=libavformat/%.o: CFLAGS += -fdisable-rtl-combine")
         ;;
     pc) ;;
     *) echo "usage: $0 [xbox|scalar|pc]" >&2; exit 2 ;;
@@ -57,6 +61,10 @@ if [[ ! -f "$work/build-$target/.tube360-compiler-id" || $(cat "$work/build-$tar
     mkdir -p "$work/build-$target"
 fi
 cd "$work/build-$target"
+if [[ $target != pc && ! -f .tube360-avformat-int64-v1 ]]; then
+    # Make não invalida objetos quando só uma opção por unidade muda.
+    rm -f -- libavformat/*.o
+fi
 ln -sfnT "$src" src
 "$src/configure" --prefix="$work/ffmpeg-$target" --disable-autodetect --disable-everything \
     --enable-static --disable-shared --disable-gpl --disable-version3 --disable-nonfree \
@@ -69,6 +77,7 @@ for feature in HAVE_PTHREADS CONFIG_H264_DECODER CONFIG_AAC_DECODER CONFIG_OPUS_
     grep -qx "#define $feature 1" config.h config_components.h
 done
 make "${make_args[@]}" -j"${JOBS:-3}" install
+if [[ $target != pc ]]; then touch .tube360-avformat-int64-v1; fi
 if [[ $target == xbox ]]; then python3 "$root/tools/ffmpeg-x360/check-vmx.py" "${prefix}objdump" "$PWD"; fi
 printf '%s\n' "$compiler_id" > "$work/build-$target/.tube360-compiler-id"
 python3 "$root/tools/ffmpeg-x360/source-id.py" --cc "$compiler" > "$work/ffmpeg-$target/.tube360-source-id"
