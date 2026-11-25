@@ -49,9 +49,10 @@ def exercise(elf, args):
                 if time.monotonic()>deadline:
                     raise RuntimeError(f'emulator timeout: {words}')
                 time.sleep(.05)
-            result = dict(case=elf.parent.name, checks=words[0], failures=words[1],
+            expected = {'product-O2': 87, 'product-O3': 87, 'ffmpeg': 100, 'curl': 53}[elf.parent.name]
+            result = dict(case=elf.parent.name, checks=words[0], expected_checks=expected, failures=words[1],
                 last_actual=words[2], last_expected=words[3], unexpected_workers=words[8],
-                passed=words[0]>0 and words[1]==0 and words[8]==0,
+                passed=words[0]==expected and words[1]==0 and words[8]==0,
                 architecture='PPC64 registers, MSR.SF=0')
             (elf.parent/'result.json').write_text(json.dumps(result, indent=2)+'\n')
             print(json.dumps(result), flush=True)

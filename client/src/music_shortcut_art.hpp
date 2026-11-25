@@ -22,8 +22,10 @@ inline bool musicShortcutArt(gfx::Gfx& g, const std::string& id, float x, float 
   } else {
     gfx::rect(g,cx-s*.26f,cy-s*.20f,s*.29f,s*.29f,accent,s*.145f);
     gfx::rect(g,cx-s*.03f,cy-s*.20f,s*.29f,s*.29f,accent,s*.145f);
-    gfx::triangle(g,cx-s*.25f,cy-s*.01f,cx+s*.25f,cy-s*.01f,cx,cy+s*.23f,accent);
-    gfx::rect(g,cx-s*.035f,cy+s*.18f,s*.07f,s*.07f,accent,s*.035f);
+    // O círculo termina tangente às diagonais, sem formar uma bolinha na ponta.
+    gfx::triangle(g,cx-s*.25f,cy-s*.01f,cx+s*.25f,cy-s*.01f,cx+s*.0243f,cy+s*.2068f,accent);
+    gfx::triangle(g,cx-s*.25f,cy-s*.01f,cx+s*.0243f,cy+s*.2068f,cx-s*.0243f,cy+s*.2068f,accent);
+    gfx::rect(g,cx-s*.035f,cy+s*.1465f,s*.07f,s*.07f,accent,s*.035f);
   }
   return true;
 }
