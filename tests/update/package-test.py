@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -27,6 +28,15 @@ assert manifest['packaged_xex_sha256'] == hashlib.sha256(files['tube360.xex']).h
 assert manifest['packaged_launcher_sha256'] == hashlib.sha256(files['default.xex']).hexdigest()
 assert ('TEST-ONLY.txt' in files) == a.test
 assert (b'TUBE360-DISPOSABLE-UPDATE-TEST' in files['tube360.xex']) == a.test
+for name in ('default.xex', 'tube360.xex'):
+    for marker in (b'f40-playback.txt', b'f33-playback.txt', b'F40 APP', b'mudo.txt', b'bancada: mudo'):
+        assert marker not in files[name], f'{name}: benchmark/mute marker {marker.decode()!r}'
+if not a.test:
+    root = Path(__file__).resolve().parents[2]
+    production_key = re.search(rb'publicKeyHex = "([0-9a-f]{64})"',
+                               (root / 'client/src/update/public_key.hpp').read_bytes())[1]
+    for name in ('default.xex', 'tube360.xex'):
+        assert production_key in files[name], f'{name}: missing production public key'
 for weight in (300, 400, 600, 700):
     assert f'inter-{weight}.ttf' in files
     assert f'noto-sans-arabic-{weight}.ttf' in files
