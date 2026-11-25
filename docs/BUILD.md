@@ -24,7 +24,8 @@ tools/build-xbox.sh
 
 `TUBE360_BUILD_ENV` selects another environment file. `APP_NAME` changes the displayed title, default Tube360.
 The build prepares private xsdk/vulkan4xenon copies in `.work/native-display`, including the native display
-and video-memory changes. Keep those copies with the matching build for source/relink preparation.
+and video-memory changes plus CRT/network diagnostic hooks. Keep those copies with the matching build for source/relink preparation.
+See [startup diagnostics](STARTUP-DIAGNOSTICS.md) for the logs, required imports and untested environments.
 The release title ID is `0x58545542`; the XEX metadata version is currently `1.0.0.0`, separate from the
 distribution version in the ZIP name. Do not infer a public release number from that metadata.
 

@@ -1,0 +1,143 @@
+# Startup diagnostics
+
+Both the launcher and app record startup independently of the GPU, bundled fonts, Xbox Live or XBDM.
+These diagnostics localize a stall; they do not establish compatibility with an untested exploit or board.
+
+## Files and durability
+
+The native CRT's first hook writes `boot-crt.log` beside the loaded XEX, using `ExLoadedImageName` and
+kernel file calls before SDK locks, pthread, newlib or C++ constructors. Every marker calls
+`NtWriteFile` and `NtFlushBuffersFile`. This file is **overwritten on every title startup**, including
+launcher → app handoff. Collect it after the failure, before launching another title from this folder.
+
+Once newlib/pthread are available, `boot-early.log` records the remaining CRT stages. `main` opens
+`boot-launcher.log` or `boot-app.log`; these three files append, restarting the sequence at `begin entry`.
+Read the most recent run. They use an unbuffered FILE plus `fflush` and `fsync` after every event;
+the xsdk implements `fsync` with `NtFlushBuffersFile`. `boot_event` preserves the caller's `errno`.
+The legacy `launcher.log` also flushes/syncs each line. Existing `startup.log` and the SDK's title log
+remain useful, but are not substitutes for these checkpoints.
+
+All boot files stay in the physical title directory, including `\Device\Mass0\…` on USB. If no image
+path is available, `game:\` is used: it aliases the current title folder, not a fixed HDD. There is no
+fallback to another drive. Near xsdk's 260-byte POSIX path limit, shorter names are used:
+`bc.log` (raw CRT), `be.log`, `bl.log`, `ba.log`. A folder that already exhausts that limit can still
+prevent the regular log from opening. The raw kernel logger does not depend on POSIX path resolution.
+
+Storage that cannot create/write/flush the file cannot guarantee a log. Regular logging reports one
+`durability=failed` notice if flushing fails; the raw logger cannot reliably report failure of its own
+file. A hung file call can itself block. Kernel flush is the strongest request used here, not a guarantee
+against a USB bridge's volatile cache or power loss. No log can run before the loader resolves required
+imports and enters the title.
+
+## Reading the stages
+
+An unmatched `begin` identifies the call being attempted. `end` means that call returned, not that all
+hardware worked. A later worker can write after another thread's pending `begin`; inspect open stages,
+not just the last line. `+Nms` is elapsed monotonic time within that file/run, including flush latency.
+
+| File / stage | What the log establishes; next investigation if it stops there |
+| --- | --- |
+| raw `crt.entry` | Reached `xsdk_start`, before SDK initialization. Absence can also mean loader/storage failure. |
+| raw `crt.locks`, `crt.microcode`, `crt.pthread`, `crt.newlib` | Each SDK initialization is bracketed separately. A missing `end` precedes constructors, SDL and GPU. |
+| raw `crt.runtime-ready` | Runtime supports the regular logger; raw file is closed. |
+| early `entry`, `crt.image` | Physical XEX directory was selected and regular log opened. |
+| early `crt.sdk-log` | SDK title log, `dbgprint.txt` and `net_log.txt` setup; this includes legacy log preallocation and may be slow on USB. |
+| early `environment.dbgprint` | Whether debug output was requested and its optional kernel export found. No XBDM connection. |
+| early `crt.timezone`, `crt.unwind`, `crt.constructors`, `crt.main` | Timezone query, exception frame registration, C++ constructors and the call to main, respectively. |
+| app/launcher `entry`, `storage.paths` | Actual XEX path, inferred HDD/USB/unknown drive, cwd and boot-log location. |
+| `storage.volume` | `statvfs` result, block size/free blocks/name limit; filesystem remains unknown. No disk scan. |
+| `environment.xbdm`, `environment.export`, `environment.kernel` | Lookup result/status for optional diagnostics and kernel version. A version does not identify the exploit. |
+| `video.mode`, `video.connector`, `memory.available` | Dashboard dimensions/interlace/refresh, raw AV enum plus HDMI/component/VGA/unknown label, and available title pages. Queries only. |
+| app `environment.fault-handler`, `fault-handler` | Disabled by default. Opt-in status is explicit; see ABI restriction below. |
+| app `settings`, `sdl.init`, `storage.writable` | Interface configuration, SDL audio/controller initialization and writable-folder check. |
+| `fonts.preflight`, `fonts.header` | Four bundled TTF headers, each filename and validity; no Inter rendering required. |
+| app `gpu.init`, `gpu.instance`, `gpu.device`, `gpu.swapchain` | Requested output, Vulkan instance/surface, physical device/queue and actual swapchain extent/buffer count. |
+| app `gpu.resources`, `gpu.white-texture` | Pipeline/buffer setup, then initial texture upload/GPU wait, before loading font atlases. |
+| app `fonts.atlas`, `fonts.read`, `fonts.upload`, `icons` | Full TTF reads with byte counts, atlas upload and embedded glyph upload. |
+| app `video.memory`, `audio.init` | Mapped R8 capability, player/audio setup and whether mapped video is selected. This does not allocate all future decoder surfaces. |
+| `network.init`, `network.xnet`, `network.wsa`, `network.socket-policy`, `network.link` | Local socket probe, startup statuses, option support and link/address readiness. No remote connection in the probe; EAGAIN means DHCP pending. |
+| app `network.workers`, `phone.start` | HTTP/account/update threads created and optional phone receiver enabled. Workers can finish asynchronously. |
+| `tls.global`, `tls.first-request` | curl/Mbed TLS init and first real request, with clock epoch, curl/HTTP result, failure class and certificate flags. No URL/query/body/cookie/token is written to this boot log. Replay explicitly says no TLS request was made. |
+| app `app.first-frame`, `frame.fence/acquire/submit/present/complete` | First GPU submission and present return are separated; fence/acquire/completion request finite 5-second waits. Completion does not prove the physical TV image. |
+| launcher `launcher.legacy-log`, `launcher.gpu/swapchain/text/first-frame` | Legacy log creation, native GPU, present buffers, embedded text and first submission/fence. |
+| launcher `launcher.release-gpu`, `launcher.handoff` | Resources returned before launch; handoff is expected not to return on success. The app's new CRT/entry markers confirm arrival. The existing 20-second watchdog handles a returning/stalled handoff when its thread can run. |
+| `startup.fail`, `gpu.cleanup`, `error-screen.gpu` | A startup failure and the attempt to return/acquire GPU for the built-in error screen. This path can also stall if hardware is unresponsive. |
+| app `app.exit` | Reached normal shutdown. Abrupt termination is expected to omit this marker. |
+
+The first-frame native acquire path now rejects a failed `xsdk_present_begin` and an unknown buffer address.
+Previously a failure could appear to acquire an image. Timeout conversion saturates before rounding,
+including UINT64_MAX. A driver call that never returns cannot be bounded by a caller timeout. Initial
+texture/font uploads and GPU cleanup can still wait inside the driver; their preceding markers locate this.
+Checkpoint writes stop after the first frame, except actual errors and the first TLS request.
+
+## USB and memory review
+
+Neither launcher nor app hardcodes HDD for asset loading/handoff: xsdk's current directory starts as
+`game:\\` and `xsdk_launch` resolves relative names there. Boot logs derive the physical path from the image. This review does
+not prove the loader established the correct alias on every payload; `storage.paths` exposes it.
+
+The app reads four small TTFs once per atlas load, validates headers before GPU initialization, and bounds
+each file to 16 MiB. Reads are synchronous: a slow or failing device can delay them; the header/read markers
+show which file and how far it got. Boot logging intentionally adds synchronous I/O at startup.
+The SDK's older title logger has a separate 128-byte path buffer and fallback folders; its path is not
+evidence of where the new boot log resides.
+
+A 1 TB device does not identify its filesystem. The XEX and bundled fonts are far below FAT32's per-file
+limit; long paths, missing files, bridge behavior and mounting still need physical tests. No format,
+recursive scan or migration is attempted. Test both short paths and folders with spaces.
+
+Mapped video uses physical cached memory allocated by the kernel, with explicit cache maintenance;
+allocation failure retains the staging fallback. To compare the existing staging path, place
+`0 4 1 -1` in `decode-config.txt` in a disposable title folder (the third value disables mapped video).
+This does **not** disable the native display/scaler modifications or first-frame texture uploads.
+
+## Environment audit and ABadAvatar
+
+ABadAvatar has **not been tested**. Its primary repository describes launching a separate payload;
+exploit entry alone does not identify which kernel/HV permissions remain for the app. Record the exploit,
+payload name/version and launch method separately. The log always says `exploit=unknown`.
+
+| Dependency | Handling and remaining requirement |
+| --- | --- |
+| Unsigned XEX loading, executable/physical memory and GPU MMIO permissions | Supplied by the user's payload. The app does not install BadUpdate/HV/kernel patches or bypass access denial. Failure before title entry can leave no new log. |
+| Kernel/XAM imports | Standard file, VM/physical memory, threads, Vd GPU/display, input, title loader and NetDll exports remain required. `boot_link.py` enumerates the **linked** `.xsdk.imports`, not the SDK's unused catalog. An absent required import can stop loading before logging. |
+| Kernel version, AV connector, memory/video diagnostics | Runtime optional lookups log module/procedure status and continue if missing. `MmQueryStatistics` and `VdQueryVideoMode` are nevertheless also required by other existing GPU/display SDK paths; optional telemetry does not remove those static dependencies. |
+| XBDM | Optional module presence lookup only; no XBDM import, connection, command or required debugger patch. Absence is logged and startup continues. |
+| DbgPrint | Off without opt-in; dynamically resolve kernel ordinal 3 only when requested, with requested/present status. No strong DbgPrint import in either title. The file logger remains independent. |
+| SDK `net_log.txt` | Existing optional UDP diagnostics can initialize networking during `crt.sdk-log`. Omit it for the first isolated reproduction; boot logs need no PC receiver. |
+| XNet custom limits | Log exact startup status. Retry documented defaults only on WSAEINVAL/WSAEOPNOTSUPP (10022/10045). |
+| Socket option 0x5801 | Log accepted/unsupported/denied. Only WSAENOPROTOOPT/WSAEOPNOTSUPP (10042/10045) retain a standard socket. Access denied 10013 closes/fails normally. A retained socket does not prove connectivity on an unpatched kernel. TLS verification stays on. |
+| Xbox Live | No account login in the socket probe or native public browsing. NetDll networking and a usable LAN/DNS are still necessary. |
+| Fault handler ABI | Default off. `fault-handler.txt` containing `1` opts into the prior measured kernel-17559 handler, only if version and export 0x36d exist. It reads PCR offsets 0x70/0x74 and exception-context offsets; identical build numbers do not prove ABI compatibility. Leave off on untested environments. |
+| Fixed addresses | Hardware GPU/display MMIO and PPC cache operations remain in xsdk/vulkan4xenon. They are device-specific, not BadUpdate scratch addresses. Pool addresses come from allocation/physical-address APIs. This audit does not validate every board's scaler/GPU behavior. |
+| Thread affinity | Existing SDK/SDL worker placement uses kernel APIs and reports creation/placement errors; the application does not write kernel thread tables. |
+
+In particular, the Jasper/ANA/HANA/native-display review requested separately in coordinator item 8 is
+pending. The current display and video-memory patches remain enabled in this delivery; no board model
+detection or safe display fallback is claimed here.
+
+For a user report, request **only the boot files**, `startup.log`, relevant title/launcher logs, display
+connector/mode and exploit/payload/version. Do not request account, cookie, pairing or OAuth files. Logs
+include local file paths and the console clock; redact personal folder names before public posting.
+
+## Reproduction and console handoff
+
+PC commands and native simulations are in [tests/reddit](../tests/reddit/README.md). The native tests execute
+the real logger/platform/socket code with simulated kernel exports; they are not an ABadAvatar or GPU test.
+The final ELF audit checks that raw hooks are strong symbols and actually called before SDK locks/newlib.
+
+For the coordinator, use the existing temporary-folder procedure. Copy the two matching XEX builds and
+four TTFs to a short disposable folder on HDD or USB, without account/debug/network-log marker files.
+Launch directly and through the launcher. Capture the TV and collect `boot-crt.log`, `boot-early.log`,
+`boot-app.log`, `boot-launcher.log` (or their short names), `startup.log`, `launcher.log` and the SDK title log.
+After a hard freeze, power off as necessary and collect the files **before relaunching**. Compare the last
+unmatched begin on each thread/stage; do not infer that USB is the cause from drive capacity or a white flash.
+Repeat HDD/USB, HDMI/component and path cases only on hardware available to the coordinator, then archive
+the evidence and remove only that disposable folder. No physical console was accessed for this delivery.
+
+Primary references: [xsdk source](https://github.com/xenosworks/xsdk),
+[vulkan4xenon](https://github.com/xenosworks/vulkan4xenon),
+[ABadAvatar](https://github.com/shutterbug2000/ABadAvatar),
+[Xenia kernel export table](https://github.com/xenia-project/xenia/blob/master/src/xenia/kernel/xboxkrnl/xboxkrnl_table.inc),
+[Xenia XAM export table](https://github.com/xenia-project/xenia/blob/master/src/xenia/kernel/xam/xam_table.inc),
+[Xenia Canary AV pack options](https://github.com/xenia-canary/xenia-canary/wiki/Options).
