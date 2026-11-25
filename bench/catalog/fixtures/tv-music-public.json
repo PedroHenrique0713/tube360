@@ -1,0 +1,1334 @@
+{
+  "contents": {
+    "tvBrowseRenderer": {
+      "content": {
+        "tvSurfaceContentRenderer": {
+          "content": {
+            "sectionListRenderer": {
+              "contents": [
+                {
+                  "shelfRenderer": {
+                    "content": {
+                      "horizontalListRenderer": {
+                        "items": [
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_DEFAULT",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 320,
+                                        "height": 180
+                                      }
+                                    ]
+                                  },
+                                  "thumbnailOverlays": [
+                                    {
+                                      "thumbnailOverlayTimeStatusRenderer": {
+                                        "text": {
+                                          "simpleText": "2:55"
+                                        },
+                                        "style": "DEFAULT",
+                                        "icon": {
+                                          "iconType": "AUDIO"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 00"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 01"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "badge": {
+                                                "metadataBadgeRenderer": {
+                                                  "style": "BADGE_STYLE_TYPE_SIMPLE",
+                                                  "label": "Demo música 02"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 03"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 04"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "watchEndpoint": {
+                                  "videoId": "F35audio001",
+                                  "playlistId": "RD35mix001",
+                                  "params": "FIXTURE",
+                                  "playerParams": "FIXTURE"
+                                }
+                              },
+                              "contentId": "F35audio001",
+                              "contentType": "TILE_CONTENT_TYPE_VIDEO"
+                            }
+                          },
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_DEFAULT",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 320,
+                                        "height": 180
+                                      }
+                                    ]
+                                  },
+                                  "thumbnailOverlays": [
+                                    {
+                                      "thumbnailOverlayTimeStatusRenderer": {
+                                        "text": {
+                                          "simpleText": "2:39"
+                                        },
+                                        "style": "DEFAULT",
+                                        "icon": {
+                                          "iconType": "AUDIO"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 05"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 06"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "badge": {
+                                                "metadataBadgeRenderer": {
+                                                  "style": "BADGE_STYLE_TYPE_SIMPLE",
+                                                  "label": "Demo música 02"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 07"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 04"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "watchEndpoint": {
+                                  "videoId": "F35audio002",
+                                  "playlistId": "RD35mix002",
+                                  "params": "FIXTURE",
+                                  "playerParams": "FIXTURE"
+                                }
+                              },
+                              "onFocusCommand": {
+                                "showHintCommand": {
+                                  "shouldShowHint": true
+                                }
+                              },
+                              "contentId": "F35audio002",
+                              "contentType": "TILE_CONTENT_TYPE_VIDEO"
+                            }
+                          },
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_DEFAULT",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 320,
+                                        "height": 180
+                                      }
+                                    ]
+                                  },
+                                  "thumbnailOverlays": [
+                                    {
+                                      "thumbnailOverlayTimeStatusRenderer": {
+                                        "text": {
+                                          "simpleText": "2:41"
+                                        },
+                                        "style": "DEFAULT",
+                                        "icon": {
+                                          "iconType": "AUDIO"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 08"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 09"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "badge": {
+                                                "metadataBadgeRenderer": {
+                                                  "style": "BADGE_STYLE_TYPE_SIMPLE",
+                                                  "label": "Demo música 02"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 10"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 04"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "watchEndpoint": {
+                                  "videoId": "F35audio003",
+                                  "playlistId": "RD35mix003",
+                                  "params": "FIXTURE",
+                                  "playerParams": "FIXTURE"
+                                }
+                              },
+                              "contentId": "F35audio003",
+                              "contentType": "TILE_CONTENT_TYPE_VIDEO"
+                            }
+                          }
+                        ],
+                        "continuations": [
+                          {
+                            "nextContinuationData": {
+                              "continuation": "FIXTURE_CURSOR",
+                              "autoloadEnabled": true,
+                              "autoloadThresholdItemsFromEnd": 4
+                            }
+                          }
+                        ],
+                        "collapsedItemCount": 3,
+                        "visibleItemCount": 3
+                      }
+                    },
+                    "headerRenderer": {
+                      "shelfHeaderRenderer": {
+                        "avatarLockup": {
+                          "avatarLockupRenderer": {
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Demo música 11"
+                                }
+                              ]
+                            },
+                            "size": "AVATAR_LOCKUP_SIZE_SMALL"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "shelfRenderer": {
+                    "content": {
+                      "horizontalListRenderer": {
+                        "items": [
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_DEFAULT",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 320,
+                                        "height": 180
+                                      }
+                                    ]
+                                  },
+                                  "thumbnailOverlays": [
+                                    {
+                                      "thumbnailOverlayTimeStatusRenderer": {
+                                        "text": {
+                                          "simpleText": "3:35"
+                                        },
+                                        "style": "DEFAULT",
+                                        "icon": {
+                                          "iconType": "AUDIO"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 12"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 13"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "badge": {
+                                                "metadataBadgeRenderer": {
+                                                  "style": "BADGE_STYLE_TYPE_SIMPLE",
+                                                  "label": "Demo música 02"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 14"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 04"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "watchEndpoint": {
+                                  "videoId": "F35audio004",
+                                  "playlistId": "RD35mix004",
+                                  "params": "FIXTURE",
+                                  "playerParams": "FIXTURE"
+                                }
+                              },
+                              "onFocusCommand": {
+                                "showHintCommand": {
+                                  "shouldShowHint": true
+                                }
+                              },
+                              "contentId": "F35audio004",
+                              "contentType": "TILE_CONTENT_TYPE_VIDEO"
+                            }
+                          },
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_DEFAULT",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 320,
+                                        "height": 180
+                                      }
+                                    ]
+                                  },
+                                  "thumbnailOverlays": [
+                                    {
+                                      "thumbnailOverlayTimeStatusRenderer": {
+                                        "text": {
+                                          "simpleText": "3:49"
+                                        },
+                                        "style": "DEFAULT",
+                                        "icon": {
+                                          "iconType": "AUDIO"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 15"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 16"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "badge": {
+                                                "metadataBadgeRenderer": {
+                                                  "style": "BADGE_STYLE_TYPE_SIMPLE",
+                                                  "label": "Demo música 02"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 17"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 04"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "watchEndpoint": {
+                                  "videoId": "F35audio005",
+                                  "playlistId": "RD35mix005",
+                                  "params": "FIXTURE",
+                                  "playerParams": "FIXTURE"
+                                }
+                              },
+                              "contentId": "F35audio005",
+                              "contentType": "TILE_CONTENT_TYPE_VIDEO"
+                            }
+                          },
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_DEFAULT",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 320,
+                                        "height": 180
+                                      }
+                                    ]
+                                  },
+                                  "thumbnailOverlays": [
+                                    {
+                                      "thumbnailOverlayTimeStatusRenderer": {
+                                        "text": {
+                                          "simpleText": "2:35"
+                                        },
+                                        "style": "DEFAULT",
+                                        "icon": {
+                                          "iconType": "AUDIO"
+                                        }
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 18"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 19"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "badge": {
+                                                "metadataBadgeRenderer": {
+                                                  "style": "BADGE_STYLE_TYPE_SIMPLE",
+                                                  "label": "Demo música 02"
+                                                }
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 20"
+                                              }
+                                            }
+                                          },
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 04"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "watchEndpoint": {
+                                  "videoId": "F35audio006",
+                                  "playlistId": "RD35mix006",
+                                  "params": "FIXTURE",
+                                  "playerParams": "FIXTURE"
+                                }
+                              },
+                              "contentId": "F35audio006",
+                              "contentType": "TILE_CONTENT_TYPE_VIDEO"
+                            }
+                          }
+                        ],
+                        "continuations": [
+                          {
+                            "nextContinuationData": {
+                              "continuation": "FIXTURE_CURSOR",
+                              "autoloadEnabled": true,
+                              "autoloadThresholdItemsFromEnd": 4
+                            }
+                          }
+                        ],
+                        "collapsedItemCount": 3,
+                        "visibleItemCount": 3
+                      }
+                    },
+                    "headerRenderer": {
+                      "shelfHeaderRenderer": {
+                        "avatarLockup": {
+                          "avatarLockupRenderer": {
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Demo música 21"
+                                }
+                              ]
+                            },
+                            "size": "AVATAR_LOCKUP_SIZE_SMALL"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "shelfRenderer": {
+                    "content": {
+                      "horizontalListRenderer": {
+                        "items": [
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_SQUARE",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 192,
+                                        "height": 192
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 288,
+                                        "height": 288
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 384,
+                                        "height": 384
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 576,
+                                        "height": 576
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 1200,
+                                        "height": 1200
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 22"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "runs": [
+                                                  {
+                                                    "text": "Demo música 23",
+                                                    "navigationEndpoint": {
+                                                      "browseEndpoint": {
+                                                        "browseId": "UC0000000000000000000001"
+                                                      }
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 24"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "browseEndpoint": {
+                                  "browseId": "RD35mix007",
+                                  "browseEndpointContextSupportedConfigs": {
+                                    "browseEndpointContextMusicConfig": {
+                                      "pageType": "MUSIC_PAGE_TYPE_PLAYLIST"
+                                    }
+                                  },
+                                  "pageAnimation": {
+                                    "preloadPageConfig": {
+                                      "backgroundScrimConfig": {
+                                        "scrimStyle": "SCRIM_STYLE_DEFAULT"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "contentId": "RD35mix008",
+                              "contentType": "TILE_CONTENT_TYPE_PLAYLIST"
+                            }
+                          },
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_SQUARE",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 192,
+                                        "height": 192
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 288,
+                                        "height": 288
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 384,
+                                        "height": 384
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 576,
+                                        "height": 576
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 1200,
+                                        "height": 1200
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 25"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 26"
+                                              }
+                                            }
+                                          }
+                                        ],
+                                        "wrap": true
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "browseEndpoint": {
+                                  "browseId": "RD35mix009",
+                                  "browseEndpointContextSupportedConfigs": {
+                                    "browseEndpointContextMusicConfig": {
+                                      "pageType": "MUSIC_PAGE_TYPE_PLAYLIST"
+                                    }
+                                  },
+                                  "pageAnimation": {
+                                    "preloadPageConfig": {
+                                      "backgroundScrimConfig": {
+                                        "scrimStyle": "SCRIM_STYLE_DEFAULT"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "contentId": "RD35album001",
+                              "contentType": "TILE_CONTENT_TYPE_PLAYLIST"
+                            }
+                          },
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_SQUARE",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 192,
+                                        "height": 192
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 288,
+                                        "height": 288
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 384,
+                                        "height": 384
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 576,
+                                        "height": 576
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 1200,
+                                        "height": 1200
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 27"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "runs": [
+                                                  {
+                                                    "text": "Demo música 23",
+                                                    "navigationEndpoint": {
+                                                      "browseEndpoint": {
+                                                        "browseId": "UC0000000000000000000001"
+                                                      }
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 24"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "browseEndpoint": {
+                                  "browseId": "RD35mix010",
+                                  "browseEndpointContextSupportedConfigs": {
+                                    "browseEndpointContextMusicConfig": {
+                                      "pageType": "MUSIC_PAGE_TYPE_PLAYLIST"
+                                    }
+                                  },
+                                  "pageAnimation": {
+                                    "preloadPageConfig": {
+                                      "backgroundScrimConfig": {
+                                        "scrimStyle": "SCRIM_STYLE_DEFAULT"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "contentId": "RD35mix011",
+                              "contentType": "TILE_CONTENT_TYPE_PLAYLIST"
+                            }
+                          }
+                        ],
+                        "collapsedItemCount": 3,
+                        "visibleItemCount": 3
+                      }
+                    },
+                    "headerRenderer": {
+                      "shelfHeaderRenderer": {
+                        "avatarLockup": {
+                          "avatarLockupRenderer": {
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Demo música 28"
+                                }
+                              ]
+                            },
+                            "size": "AVATAR_LOCKUP_SIZE_SMALL"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "shelfRenderer": {
+                    "content": {
+                      "horizontalListRenderer": {
+                        "items": [
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_DEFAULT",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 320,
+                                        "height": 180
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 444,
+                                        "height": 250
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 640,
+                                        "height": 360
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 960,
+                                        "height": 540
+                                      }
+                                    ],
+                                    "sampledThumbnailColor": {
+                                      "red": 114,
+                                      "green": 39,
+                                      "blue": 18
+                                    },
+                                    "darkColorPalette": {
+                                      "section2Color": 3346696,
+                                      "iconInactiveColor": 9665654,
+                                      "iconDisabledColor": 6311497
+                                    },
+                                    "vibrantColorPalette": {
+                                      "iconInactiveColor": 10057067
+                                    }
+                                  },
+                                  "thumbnailOverlays": [
+                                    {
+                                      "thumbnailOverlayTimeStatusRenderer": {
+                                        "text": {
+                                          "runs": [
+                                            {
+                                              "text": "Demo música 29"
+                                            }
+                                          ]
+                                        },
+                                        "style": "DEFAULT",
+                                        "icon": {
+                                          "iconType": "MIX"
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "thumbnailOverlayStackingEffectRenderer": {
+                                        "upperStackColor": 4284501577,
+                                        "lowerStackColor": 4287855734
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 30"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 31"
+                                              }
+                                            }
+                                          }
+                                        ],
+                                        "wrap": true
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "browseEndpoint": {
+                                  "browseId": "RD35mix012",
+                                  "params": "FIXTURE",
+                                  "browseEndpointContextSupportedConfigs": {
+                                    "browseEndpointContextMusicConfig": {
+                                      "pageType": "MUSIC_PAGE_TYPE_PLAYLIST"
+                                    }
+                                  },
+                                  "pageAnimation": {
+                                    "preloadPageConfig": {
+                                      "backgroundScrimConfig": {
+                                        "scrimStyle": "SCRIM_STYLE_DEFAULT"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "contentId": "RD35mix013",
+                              "contentType": "TILE_CONTENT_TYPE_PLAYLIST"
+                            }
+                          },
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_SQUARE",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 180,
+                                        "height": 180
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 640,
+                                        "height": 640
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 1200,
+                                        "height": 1200
+                                      }
+                                    ],
+                                    "sampledThumbnailColor": {
+                                      "red": 114,
+                                      "green": 36,
+                                      "blue": 17
+                                    },
+                                    "darkColorPalette": {
+                                      "section2Color": 3346439,
+                                      "iconInactiveColor": 9665654,
+                                      "iconDisabledColor": 6311497
+                                    },
+                                    "vibrantColorPalette": {
+                                      "iconInactiveColor": 10056811
+                                    }
+                                  }
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 32"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "runs": [
+                                                  {
+                                                    "text": "Demo música 33",
+                                                    "navigationEndpoint": {
+                                                      "browseEndpoint": {
+                                                        "browseId": "UC0000000000000000000002",
+                                                        "canonicalBaseUrl": "/channel/UCwfEOn0O1DWcyTgzVVu28ig"
+                                                      }
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 34"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "browseEndpoint": {
+                                  "browseId": "RD35mix014",
+                                  "browseEndpointContextSupportedConfigs": {
+                                    "browseEndpointContextMusicConfig": {
+                                      "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                    }
+                                  },
+                                  "pageAnimation": {
+                                    "preloadPageConfig": {
+                                      "backgroundScrimConfig": {
+                                        "scrimStyle": "SCRIM_STYLE_DEFAULT"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "contentId": "RD35album002",
+                              "contentType": "TILE_CONTENT_TYPE_PLAYLIST"
+                            }
+                          },
+                          {
+                            "tileRenderer": {
+                              "style": "TILE_STYLE_YTLR_SQUARE",
+                              "header": {
+                                "tileHeaderRenderer": {
+                                  "thumbnail": {
+                                    "thumbnails": [
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 180,
+                                        "height": 180
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 640,
+                                        "height": 640
+                                      },
+                                      {
+                                        "url": "https://i.ytimg.com/vi/F35audio001/mqdefault.jpg",
+                                        "width": 1200,
+                                        "height": 1200
+                                      }
+                                    ],
+                                    "sampledThumbnailColor": {
+                                      "red": 114,
+                                      "green": 61,
+                                      "blue": 24
+                                    },
+                                    "darkColorPalette": {
+                                      "section2Color": 3349258,
+                                      "iconInactiveColor": 9667190,
+                                      "iconDisabledColor": 6312777
+                                    },
+                                    "vibrantColorPalette": {
+                                      "iconInactiveColor": 10059115
+                                    }
+                                  }
+                                }
+                              },
+                              "metadata": {
+                                "tileMetadataRenderer": {
+                                  "title": {
+                                    "simpleText": "Demo música 35"
+                                  },
+                                  "lines": [
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "runs": [
+                                                  {
+                                                    "text": "Demo música 09",
+                                                    "navigationEndpoint": {
+                                                      "browseEndpoint": {
+                                                        "browseId": "UC0000000000000000000003",
+                                                        "canonicalBaseUrl": "/channel/UCWTL-TU_Dkq6Rpsmwxe2RSQ"
+                                                      }
+                                                    }
+                                                  }
+                                                ]
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    {
+                                      "lineRenderer": {
+                                        "items": [
+                                          {
+                                            "lineItemRenderer": {
+                                              "text": {
+                                                "simpleText": "Demo música 36"
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    }
+                                  ]
+                                }
+                              },
+                              "onSelectCommand": {
+                                "browseEndpoint": {
+                                  "browseId": "RD35mix015",
+                                  "browseEndpointContextSupportedConfigs": {
+                                    "browseEndpointContextMusicConfig": {
+                                      "pageType": "MUSIC_PAGE_TYPE_ALBUM"
+                                    }
+                                  },
+                                  "pageAnimation": {
+                                    "preloadPageConfig": {
+                                      "backgroundScrimConfig": {
+                                        "scrimStyle": "SCRIM_STYLE_DEFAULT"
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              "contentId": "RD35album003",
+                              "contentType": "TILE_CONTENT_TYPE_PLAYLIST"
+                            }
+                          }
+                        ],
+                        "continuations": [
+                          {
+                            "nextContinuationData": {
+                              "continuation": "FIXTURE_CURSOR",
+                              "autoloadEnabled": true,
+                              "autoloadThresholdItemsFromEnd": 4
+                            }
+                          }
+                        ],
+                        "collapsedItemCount": 3,
+                        "visibleItemCount": 3
+                      }
+                    },
+                    "headerRenderer": {
+                      "shelfHeaderRenderer": {
+                        "avatarLockup": {
+                          "avatarLockupRenderer": {
+                            "title": {
+                              "runs": [
+                                {
+                                  "text": "Demo música 37"
+                                }
+                              ]
+                            },
+                            "size": "AVATAR_LOCKUP_SIZE_SMALL"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              ],
+              "continuations": [
+                {
+                  "nextContinuationData": {
+                    "continuation": "FIXTURE_CURSOR"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

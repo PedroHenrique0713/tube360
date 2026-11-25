@@ -92,6 +92,7 @@ inline string imageUrl(const string& u) {
   if (u.compare(0,8,"https://") != 0 || u.size() > 4096 || u.find_first_of("@\\ \r\n\t#") != string::npos) return {};
   const auto slash = u.find('/',8);
   const auto host = u.substr(8,slash-8);
+  if (host=="music.youtube.com" && slash!=string::npos && u.compare(slash,14,"/image/mixart?")==0) return u;
   for (const auto* domain : {"ytimg.com","ggpht.com","googleusercontent.com"}) {
     string d = domain;
     if (host == d || (host.size() > d.size() && host.compare(host.size()-d.size()-1,d.size()+1,"."+d) == 0)) return u;
@@ -118,9 +119,10 @@ inline int seconds(const string& s) {
 }
 struct Item { string type, id, title, channel, image, channelId, section; int duration = 0; Membership members = Membership::None; };
 struct Page {
-  string title, subtitle, image, banner, channelId, continuation, error;
+  string title, subtitle, image, banner, channelId, continuation, error, musicSource;
   std::vector<Item> items;
   bool subscribed = false;
+  int continuationDepth = 999;
 };
 inline string channel(const J& v) {
   if (const J* ep = find(v,"browseEndpoint")) {
@@ -143,6 +145,7 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   out.channel = text(get(v,"subtitle"));
   if (cols.size() > 1) out.channel = text(get(get(cols[1],"musicResponsiveListItemFlexColumnRenderer"),"text"));
   for (auto k : {"shortBylineText","longBylineText","ownerText"}) if (out.channel.empty()) out.channel = text(get(v,k));
+  if (out.channel.empty()) if (const auto* line = find(get(meta,"lines"),"lineItemRenderer")) out.channel = text(get(*line,"text"));
   out.id = str(v,"videoId");
   const J* ep = find(get(v,"navigationEndpoint"),"watchEndpoint");
   if (!ep) ep = find(first,"watchEndpoint");
@@ -175,6 +178,7 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   if (out.image.empty() && out.type == "video") out.image = "https://i.ytimg.com/vi/" + out.id + "/mqdefault.jpg";
   out.channelId = channel(cols.empty() ? v : get(v,"flexColumns"));
   out.duration = seconds(text(get(v,"lengthText")));
+  if (!out.duration) if (const auto* badge = find(get(v,"header"),"thumbnailOverlayTimeStatusRenderer")) out.duration = seconds(text(get(*badge,"text")));
   if (!out.duration) if (const auto* badge = find(get(v,"contentImage"),"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
   if (!out.duration) for (const auto& c : array(get(v,"fixedColumns"))) out.duration = seconds(text(get(get(c,"musicResponsiveListItemFixedColumnRenderer"),"text")));
   if (!out.duration && cols.size() > 1) {
@@ -188,27 +192,30 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   if (out.title.empty()) out.title = out.id;
   return out;
 }
-inline void walk(const J& v, Page& p, bool music, std::set<string>& seen, string section = {}) {
-  if (v.is<Array>()) { for (const auto& x : array(v)) walk(x,p,music,seen,section); return; }
+inline void walk(const J& v, Page& p, bool music, std::set<string>& seen, string section = {}, int depth = 0) {
+  if (v.is<Array>()) { for (const auto& x : array(v)) walk(x,p,music,seen,section,depth+1); return; }
   if (!v.is<Object>()) return;
   for (const auto& kv : v.get<Object>()) {
     const auto& key = kv.first; const auto& x = kv.second;
     if (key == "tabRenderer") {
-      if (flag(x,"selected") || (music && !x.contains("selected"))) walk(get(x,"content"),p,music,seen,section);
+      if (flag(x,"selected") || (music && !x.contains("selected"))) walk(get(x,"content"),p,music,seen,section,depth+1);
+    } else if (key == "horizontalListRenderer") {
+      walk(get(x,"items"),p,music,seen,section,depth+1);
     } else if (key == "musicCarouselShelfRenderer" || key == "musicShelfRenderer" || key == "shelfRenderer") {
       string heading = text(get(x,"title"));
       if (heading.empty()) if (const auto* t = find(get(x,"header"),"title")) heading = text(*t);
       if (heading.empty()) if (const auto* t = find(get(x,"headerRenderer"),"title")) heading = text(*t);
-      walk(get(x,"contents"),p,music,seen,heading.empty() ? section : heading);
-      walk(get(x,"content"),p,music,seen,heading.empty() ? section : heading);
-      walk(get(x,"continuations"),p,music,seen,section);
+      walk(get(x,"contents"),p,music,seen,heading.empty() ? section : heading,depth+1);
+      walk(get(x,"content"),p,music,seen,heading.empty() ? section : heading,depth+1);
+      if (key!="shelfRenderer") walk(get(x,"continuations"),p,music,seen,section,depth+1);
     } else if (key == "continuationCommand" || key == "nextContinuationData" || key == "nextRadioContinuationData") {
       string token = str(x,key == "continuationCommand" ? "token" : "continuation");
-      if (p.continuation.empty() && token.size() <= 16384) p.continuation = token;
+      // A TV também pagina cada carrossel. A continuação externa pertence à página.
+      if (!token.empty() && token.size() <= 16384 && depth < p.continuationDepth) { p.continuation=token; p.continuationDepth=depth; }
     } else if (key == "videoRenderer" || key == "gridVideoRenderer" || key == "playlistVideoRenderer" || key == "playlistPanelVideoRenderer" || key == "musicTwoRowItemRenderer" || key == "musicResponsiveListItemRenderer" || key == "lockupViewModel" || key == "tileRenderer" || key == "channelRenderer" || key == "gridChannelRenderer" || key == "playlistRenderer" || key == "gridPlaylistRenderer") {
       Item it = item(x,key,music,section);
       if (!it.id.empty() && p.items.size() < size_t(updates::rules()->n("catalogItems")) && seen.insert(it.type+it.id).second) p.items.push_back(std::move(it));
-    } else if (key != "header" && key != "menu" && key != "navigationEndpoint" && key != "onSelectCommand" && key != "onLongPressCommand" && key != "frameworkUpdates" && key != "playerOverlays" && key != "currentVideoEndpoint") walk(x,p,music,seen,section);
+    } else if (key != "header" && key != "menu" && key != "navigationEndpoint" && key != "onSelectCommand" && key != "onLongPressCommand" && key != "frameworkUpdates" && key != "playerOverlays" && key != "currentVideoEndpoint") walk(x,p,music,seen,section,depth+1);
   }
 }
 inline Page decode(const J& data, bool music) {
@@ -243,7 +250,7 @@ inline Page decode(const J& data, bool music) {
 }
 inline string wire(const Page& p) {
   if (!p.error.empty()) return "error\t" + clean(p.error) + "\n";
-  string out = "ok\t" + clean(p.title) + "\t" + clean(p.subtitle) + "\t" + p.image + "\t" + (p.subscribed ? "1" : "0") + "\t" + (p.continuation.empty() ? "0" : "1") + "\t" + p.channelId + "\t" + p.banner + "\n";
+  string out = "ok\t" + clean(p.title) + "\t" + clean(p.subtitle) + "\t" + p.image + "\t" + (p.subscribed ? "1" : "0") + "\t" + (p.continuation.empty() ? "0" : "1") + "\t" + p.channelId + "\t" + p.banner + "\t\t\t" + p.musicSource + "\n";
   for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + "\n";
   return out;
 }
@@ -270,19 +277,22 @@ inline bool supported(const string& path) {
   if (path.compare(0,17,"/api/nav/channel?") == 0 || path.compare(0,16,"/api/nav/lyrics?") == 0) return true;
   if (path.compare(0,9,"/api/nav?") != 0 && path.compare(0,14,"/api/nav/play?") != 0) return false;
   auto q = query(path); auto kind = q["kind"];
-  return kind == "channel" || kind == "playlist" || kind == "music" || kind == "music_search" || kind == "album" || kind == "artist" || kind == "radio" || kind == "music_playlist";
+  return kind == "channel" || kind == "playlist" || kind == "music" || kind == "music_search" || kind == "album" || kind == "artist" || kind == "radio" || kind == "music_playlist" || kind == "music_recent" || kind == "music_library";
 }
 class Client {
   Transport& net;
-  struct Context { J data; string version, visitor; } web, music, accountMusic;
+  struct Context { J data; string version, visitor; } web, music, accountMusic, tvMusic;
+  enum class MusicSource { Auto, Web, TV, Public };
   string token, language = "en";
   bool tokenRejected = false, musicTokenRejected = false;
 public:
   string authError; // último motivo de recusa do token (vazio se aceito)
+  string musicSource; // diagnóstico sem token nem identificadores pessoais
 private:
   // Com o UA Tube360 o Music devolve a página de navegador incompatível, sem contexto InnerTube.
   std::shared_ptr<const updates::Rules> policy=updates::rules();
   struct List {
+    MusicSource source = MusicSource::Auto;
     Page header;
     std::map<int,Page> pages;
     std::set<string> seen, tokens;
@@ -296,9 +306,16 @@ private:
     if (r.status != 200) return "HTTP " + std::to_string(r.status);
     return parse(r.body,data) ? "" : "invalid_json";
   }
+  static bool guestResponse(const J& data) {
+    const auto& context=get(data,"responseContext");
+    if (flag(context,"loggedOut")) return true;
+    for (const auto& service:array(get(context,"serviceTrackingParams"))) if (str(service,"service")=="GFEEDBACK")
+      for (const auto& param:array(get(service,"params"))) if (str(param,"key")=="logged_in" && str(param,"value")=="0") return true;
+    return false;
+  }
   void bindRules() {
     auto next=updates::rules();
-    if(next->version!=policy->version){policy=next;web={};music={};accountMusic={};lists.clear();tokenRejected=musicTokenRejected=false;}
+    if(next->version!=policy->version){policy=next;web={};music={};accountMusic={};tvMusic={};lists.clear();tokenRejected=musicTokenRejected=false;}
   }
   string bootstrap(bool isMusic) {
     auto& c = isMusic ? music : web;
@@ -318,60 +335,74 @@ private:
   }
   string bootstrapAccountMusic() {
     if (!accountMusic.version.empty()) return {};
-    Request r; r.url = policy->s("webOrigin")+policy->s("swPath"); r.agent = policy->s("catalogAgent");
-    // A sessão OAuth não herda os cookies da navegação pública no mesmo transporte.
-    r.headers = {"Accept: */*","Accept-Language: " + language,"Referer: "+policy->s("webOrigin")+policy->s("swReferer"),"Cookie: PREF=tz=UTC;"};
+    return bootstrapIdentity(accountMusic,false);
+  }
+  string bootstrapIdentity(Context& target, bool tv) {
+    if (!target.version.empty()) return {};
+    Request r; r.url = policy->s(tv ? "webOrigin" : "musicOrigin") + (tv ? policy->s("tvPath") : "/");
+    r.agent = tv ? policy->tv.agent : policy->s("catalogAgent");
+    r.headers = {"Accept: */*","Accept-Language: " + language,"Cookie:"};
     auto res = net.send(r);
     if (res.status != 200 || !res.error.empty()) return "session_unavailable";
     J data;
-    if (res.body.compare(0,4,")]}'") != 0 || !parse("{\"data\":"+res.body.substr(4)+"}",data)) return "invalid_context";
-    auto at = [](const J& v, size_t i) -> const J& { static const J nil; const auto& a = array(v); return i < a.size() ? a[i] : nil; };
-    const auto& device = at(at(at(at(get(data,"data"),0),2),0),0);
-    string visitor = str(at(device,13));
-    if (!device.is<Array>() || visitor.empty() || visitor.size() > 8192 ||
-        !std::all_of(visitor.begin(),visitor.end(),[](unsigned char c) { return c > 32 && c < 127; })) return "invalid_context";
-    Object client{{"hl",J(language)},{"gl",J(string(localeRegion(language)))},
-      {"screenDensityFloat",J(1.0)},{"screenHeightPoints",J(1440.0)},
-      {"screenPixelDensity",J(1.0)},{"screenWidthPoints",J(2560.0)},{"visitorData",at(device,13)},
-      {"clientName",J(policy->s("musicName"))},{"clientVersion",J(policy->s("musicVersion"))},
-      {"userAgent",J(policy->s("catalogAgent"))},
-      {"platform",J(string("DESKTOP"))},{"clientFormFactor",J(string("UNKNOWN_FORM_FACTOR"))},
-      {"userInterfaceTheme",J(string("USER_INTERFACE_THEME_LIGHT"))},{"timeZone",J(str(at(device,79)).empty() ? string("UTC") : str(at(device,79)))},
-      {"originalUrl",J(policy->s("webOrigin"))},{"utcOffsetMinutes",J(0.0)},
-      {"memoryTotalKbytes",J(string("8000000"))},
-      {"mainAppWebInfo",J(Object{{"graftUrl",J(policy->s("webOrigin"))},
-        {"pwaInstallabilityStatus",J(string("PWA_INSTALLABILITY_STATUS_UNKNOWN"))},
-        {"webDisplayMode",J(string("WEB_DISPLAY_MODE_BROWSER"))},{"isWebNativeShareAvailable",J(true)}})}};
-    // Campos opcionais ficam ausentes, como no JSON.stringify da youtubei.js 16.0.1.
-    for (auto field : {std::pair<const char*,size_t>{"remoteHost",3},{"osName",17},{"osVersion",18},
-        {"deviceMake",11},{"deviceModel",12},{"browserName",86},{"browserVersion",87},
-        {"rolloutToken",107},{"deviceExperimentId",103}})
-      if (field.second < array(device).size()) client[field.first] = at(device,field.second);
-    accountMusic.data = J(Object{{"client",J(client)},
-      {"user",J(Object{{"enableSafetyMode",J(false)},{"lockedSafetyMode",J(false)}})},
-      {"request",J(Object{{"useSsl",J(true)},{"internalExperimentFlags",J(Array{})}})}});
-    accountMusic.version = str(J(client),"clientVersion"); accountMusic.visitor = visitor;
+    auto at=res.body.find(policy->s("contextMarker"));
+    if (at==string::npos) return "invalid_context";
+    at=res.body.find('{',at+policy->s("contextMarker").size()); auto end=jsonEnd(res.body,at);
+    if (end==string::npos || !parse(res.body.substr(at,end-at),data)) return "invalid_context";
+    const auto& remote=get(data,"client");
+    auto version=str(remote,"clientVersion"), visitor=str(remote,"visitorData");
+    auto safe=[](const string& s) { return s.size()<=8192 && std::all_of(s.begin(),s.end(),[](unsigned char c) { return c>32 && c<127; }); };
+    if (str(remote,"clientName")!=(tv ? policy->tv.name : policy->s("musicName")) || version.empty() || !safe(version) || !safe(visitor)) return "invalid_context";
+    // Identidade publicada pelo próprio cliente; sem IP, rollout ou contexto desktop da sessão de TV.
+    Object client{{"clientName",J(str(remote,"clientName"))},{"clientVersion",J(version)}};
+    if (!visitor.empty()) client["visitorData"]=J(visitor);
+    target.data=J(Object{{"client",J(client)},{"user",J(Object{})}});
+    target.version=version; target.visitor=visitor;
     return {};
   }
-  string post(bool isMusic, const string& route, Object args, J& out) {
-    if (isMusic && !token.empty() && !musicTokenRejected) {
-      auto e = bootstrapAccountMusic(); if (!e.empty()) return e;
-      auto context = accountMusic.data.get<Object>();
-      auto client = get(accountMusic.data,"client").get<Object>();
+  string post(bool isMusic, const string& route, Object args, J& out, MusicSource* selected = nullptr) {
+    MusicSource local=MusicSource::Auto;
+    auto& source=selected ? *selected : local;
+    if (isMusic && !token.empty() && source!=MusicSource::Public) {
+      bool tv=source==MusicSource::TV || (source==MusicSource::Auto && musicTokenRejected);
+      auto& identity=tv ? tvMusic : accountMusic;
+      auto e=tv ? bootstrapIdentity(tvMusic,true) : bootstrapAccountMusic();
+      if (!e.empty()) return e;
+      auto context = identity.data.get<Object>();
+      auto client = get(identity.data,"client").get<Object>();
       client["hl"] = J(language); client["gl"] = J(string(localeRegion(language))); context["client"] = J(client);
-      Object payload = args; payload["context"] = J(context); payload["isAudioOnly"] = J(true);
-      Request r; r.url = policy->api(route,true)+"&alt=json";
-      r.body = J(payload).serialize(); r.agent = policy->s("catalogAgent");
-      // Cookie: vazio seleciona o handle sem pote do transporte, preservando a sessão pública.
-      r.headers = {"Accept: */*","Accept-Language: *","Origin: "+policy->s("musicOrigin"),"Cookie:",
-        policy->s("clientNameHeader")+": "+policy->s("musicCode"),policy->s("clientVersionHeader")+": " + accountMusic.version,
-        "Authorization: Bearer " + token};
-      r.headers.push_back(policy->s("visitorHeader")+": " + accountMusic.visitor);
-      auto res = net.send(r);
-      if (res.status != 400 && res.status != 401 && res.status != 403) {
-        auto e = error(res,out); if (e.empty()) authError.clear(); return e;
+      Object payload = args; payload["context"] = J(context);
+      if (!tv) payload["isAudioOnly"] = J(true);
+      if (tv && route=="browse") {
+        auto bid=str(J(args),"browseId");
+        if (bid==policy->s("musicHomeId")) payload["browseId"]=J(string("FEtopics_music"));
+        else if (bid=="FEmusic_history") payload["browseId"]=J(string("FEmusic_last_played"));
+        else if (bid=="FEmusic_liked_playlists") payload["browseId"]=J(policy->s("libraryId"));
       }
-      musicTokenRejected = true; authError = route + " HTTP " + std::to_string(res.status);
+      Request r; r.url = policy->api(route,!tv)+"&alt=json";
+      r.body = J(payload).serialize(); r.agent = tv ? policy->tv.agent : policy->s("catalogAgent");
+      // Cookie: vazio seleciona o handle sem pote do transporte, preservando a sessão pública.
+      r.headers = {"Accept: */*","Accept-Language: *","Origin: "+policy->s(tv ? "webOrigin" : "musicOrigin"),"Cookie:",
+        policy->s("clientNameHeader")+": "+(tv ? policy->tv.code : policy->s("musicCode")),policy->s("clientVersionHeader")+": " + identity.version,
+        "Authorization: Bearer " + token,"X-Goog-Request-Time: "+std::to_string(std::time(nullptr))};
+      if (tv) r.headers.push_back("Referer: "+policy->s("webOrigin")+policy->s("tvPath"));
+      if (!identity.visitor.empty()) r.headers.push_back(policy->s("visitorHeader")+": " + identity.visitor);
+      auto res = net.send(r);
+      bool signedOut=false;
+      if (res.status != 400 && res.status != 401 && res.status != 403) {
+        auto result = error(res,out);
+        signedOut=result.empty() && guestResponse(out);
+        if (!signedOut) {
+          if (result.empty()) { source=tv ? MusicSource::TV : MusicSource::Web; musicSource=tv ? "tv" : "web"; authError.clear(); }
+          return result;
+        }
+      }
+      authError = string(tv ? "TVHTML5 " : "WEB_REMIX ")+route + (signedOut ? " signed_out" : " HTTP " + std::to_string(res.status));
+      // Cursor e segunda etapa pertencem ao cliente que os emitiu. Nunca os enviar à reserva.
+      if (source!=MusicSource::Auto || args.count("continuation")) return "account_music_unavailable";
+      if (!tv) { musicTokenRejected=true; return post(true,route,args,out,&source); }
+      if (str(J(args),"browseId")=="FEmusic_history" || str(J(args),"browseId")=="FEmusic_liked_playlists" || str(J(args),"browseId")=="VLLM") return "account_music_unavailable";
+      source=MusicSource::Public;
       // A reserva pública precisa reconstruir URL, contexto e cabeçalhos, além de retirar o token.
     }
     auto e = bootstrap(isMusic); if (!e.empty()) return e;
@@ -394,6 +425,7 @@ private:
       res = net.send(r);
     }
     auto result=error(res,out);
+    if (isMusic && result.empty()) { source=MusicSource::Public; musicSource="public"; }
     updates::observe(policy->version,result.empty(),result=="invalid_json" || result=="HTTP 400" || result=="HTTP 403");
     return result;
   }
@@ -427,7 +459,7 @@ public:
   // Chamar no worker de navegação ao receber/renovar/remover o token da F11.
   bool setToken(const string& access) {
     if (access.size() > 8192 || !std::all_of(access.begin(),access.end(),[](unsigned char c) { return c > 32 && c < 127; })) return false;
-    if (token != access) { token = access; tokenRejected = musicTokenRejected = false; authError.clear(); lists.clear(); web = {}; music = {}; accountMusic = {}; }
+    if (token != access) { token = access; tokenRejected = musicTokenRejected = false; authError.clear(); musicSource.clear(); lists.clear(); web = {}; music = {}; accountMusic = {}; tvMusic = {}; }
     return true;
   }
   Page browse(const std::map<string,string>& q) {
@@ -437,13 +469,14 @@ public:
     language = localeLanguage(value("lang"));
     bool isMusic = kind != "channel" && kind != "playlist";
     Page failed;
+    if (token.empty() && (kind=="music_recent" || kind=="music_library")) { failed.error="signed_out"; return failed; }
     if ((kind == "channel" || kind == "artist") ? !channelId(id) : kind == "radio" ? !videoId(id) : (kind == "playlist" || kind == "music_playlist" || kind == "album") ? !identifier(id) : false) { failed.error = "invalid_navigation"; return failed; }
     string key = kind + "|" + id + "|" + search + "|" + tab + "|" + filter + "|" + language;
     int offset = std::max(0,std::atoi(value("offset").c_str()));
     if (lists.size() >= 12 && !lists.count(key)) lists.erase(lists.begin());
     auto& list = lists[key];
     if (!offset && (value("fresh") == "1" || std::time(nullptr)-list.created > 300)) list = {};
-    if (auto it = list.pages.find(offset); it != list.pages.end()) return it->second;
+    if (auto it = list.pages.find(offset); it != list.pages.end()) { if (isMusic) musicSource=it->second.musicSource; return it->second; }
     if (offset && (offset != list.offset || list.next.empty())) { failed.error = "continuation_expired"; return failed; }
     Object args; string route = "browse";
     if (offset) args["continuation"] = J(list.next);
@@ -461,10 +494,12 @@ public:
     } else if (!offset) {
       string browseId = id;
       if (kind == "music") browseId = search == "charts" ? policy->s("musicExploreId") : policy->s("musicHomeId");
+      if (kind == "music_recent") browseId="FEmusic_history";
+      if (kind == "music_library") browseId="FEmusic_liked_playlists";
       if ((kind == "playlist" || kind == "music_playlist") && id.compare(0,2,"VL") != 0) browseId = "VL"+id;
       args["browseId"] = J(browseId);
     }
-    J data; failed.error = post(isMusic,route,args,data);
+    J data; failed.error = post(isMusic,route,args,data,&list.source);
     if (!failed.error.empty()) return failed;
     if (!offset && kind == "channel") failed.error = channelTab(data,tab,isMusic);
     if (!offset && kind == "music" && search == "charts") {
@@ -473,11 +508,12 @@ public:
       else {
         Object charts; charts["browseId"] = J(string(policy->s("musicChartsId")));
         if (!str(*browse,"params").empty()) charts["params"] = get(*browse,"params");
-        failed.error = post(true,"browse",charts,data);
+        failed.error = post(true,"browse",charts,data,&list.source);
       }
     }
     if (!failed.error.empty()) return failed;
     Page p = decode(data,isMusic);
+    if (isMusic) p.musicSource=list.source==MusicSource::TV ? "tv" : list.source==MusicSource::Web ? "web" : "public";
     if (!p.error.empty()) return p;
     if (kind == "channel") p.channelId = id;
     if (!offset) { list.header = p; list.header.items.clear(); list.created = std::time(nullptr); }
@@ -504,7 +540,8 @@ public:
       if (!videoId(q["id"])) return "error\tinvalid_video\n";
       language = localeLanguage(q["lang"]);
       J data; Object args; args["videoId"] = J(q["id"]);
-      auto e = post(true,"next",args,data);
+      MusicSource source=MusicSource::Auto;
+      auto e = post(true,"next",args,data,&source);
       if (!e.empty()) return "error\t"+e+"\n";
       const auto* tabs = find(data,"tabs"); string id;
       if (tabs) for (const auto& t : array(*tabs)) {
@@ -513,7 +550,7 @@ public:
       }
       if (id.empty()) return "ok\t\n";
       args.clear(); args["browseId"] = J(id);
-      e = post(true,"browse",args,data);
+      e = post(true,"browse",args,data,&source);
       if (!e.empty()) return "error\t"+e+"\n";
       const auto* lyrics = find(data,"musicDescriptionShelfRenderer");
       return "ok\t" + clean(lyrics ? text(get(*lyrics,"description")) : "") + "\n";

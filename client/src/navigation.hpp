@@ -11,6 +11,7 @@ struct NavPage {
   std::string kind, id, query, tab = "videos", title, subtitle, image, channelId, error, displayTitle, displaySub, banner, historyVideo, laterVideo;
   std::vector<NavItem> items, channels;
   bool music = false, direct = false, native = false, loading = true, more = false, subscribed = false;
+  std::string musicSource, musicLabel;
   int sel = 0, channelSel = 0, zone = 3, tabSel = 0, offset = 0;
   struct Shelf { int first, end, selected; std::string title; };
   std::vector<Shelf> shelves;
@@ -60,6 +61,7 @@ struct Navigation {
     if (h.empty() || h[0] != "ok" || h.size() < 7) { p.error = h.size() > 1 ? h[1] : ""; return false; }
     if (!append) { p.title = h[1]; p.subtitle = h[2]; p.image = h[3]; p.subscribed = h[4] == "1"; p.channelId = h[6];
       p.banner = h.size() > 7 ? h[7] : ""; p.historyVideo = h.size() > 8 ? h[8] : ""; p.laterVideo = h.size() > 9 ? h[9] : "";
+      p.musicSource = h.size() > 10 ? h[10] : "";
     }
     if (p.kind == "channel" && p.id.empty()) p.id = p.channelId;
     p.more = h[5] == "1";
@@ -86,6 +88,19 @@ struct Navigation {
         for (const auto& v : r.feed.items) p.items.push_back({"video",v.id,v.title,v.channel,v.id,"","",v.dur,v.members});
         p.offset = (int)p.items.size();
       } else if (!parse(r.feed.title, p, !first) && p.error.empty()) p.error = i18n::get(lang, K::BadResponse);
+      if (p.error=="account_music_unavailable") p.error=i18n::get(lang,K::MusicAccountUnavailable);
+      if (p.error=="signed_out") p.error=i18n::get(lang,K::AccountRequired);
+      if (p.musicHome()) p.musicLabel=p.musicSource.empty() ? "" : gfx::ellipsize(g,ui::F_TINY,
+          i18n::get(lang,p.musicSource=="public" ? K::PublicMusic : K::YourMusic),ui::narrow ? ui::W-364 : 480);
+      if (first && p.musicHome() && p.query.empty() && p.error.empty() && (p.musicSource=="web" || p.musicSource=="tv")) {
+        std::vector<NavItem> shortcuts;
+        for (auto entry : {std::pair<const char*,K>{"music_recent",K::MusicRecent},{"music_library",K::Playlists},{"music_playlist",K::MusicLiked}}) {
+          NavItem item; item.type=entry.first; item.id=item.type=="music_playlist" ? "VLLM" : "ACCOUNT";
+          item.title=i18n::get(lang,entry.second); item.section=i18n::get(lang,K::YourMusic);
+          shortcuts.push_back(std::move(item));
+        }
+        p.items.insert(p.items.begin(),shortcuts.begin(),shortcuts.end());
+      }
       if (first && p.kind == "library" && p.error.empty()) {
         NavItem history; history.type = "history"; history.id = "HISTORY"; history.title = i18n::get(lang, K::History);
         NavItem later; later.type = "later"; later.id = "WL"; later.title = i18n::get(lang, K::WatchLater);
@@ -141,6 +156,8 @@ struct Navigation {
     if (p.kind == "history") return K::History;
     if (p.kind == "later") return K::WatchLater;
     if (p.kind == "music") return K::Music;
+    if (p.kind == "music_recent") return K::MusicRecent;
+    if (p.kind == "music_library") return K::Playlists;
     if (p.kind == "radio") return K::Radio;
     if (p.kind == "search" || p.kind == "music_search") return K::Results;
     if (p.kind == "playlist" || p.kind == "music_playlist") return K::Playlists;
@@ -167,8 +184,9 @@ struct Navigation {
 
     int titleFont = p.music && !p.musicHome() ? ui::F_HERO : ui::F_BIG;
     gfx::text(g, titleFont, p.displayTitle.empty() ? tr(titleKey(p)) : p.displayTitle, tx, p.music && !home ? 42 : 28, ui::TEXT);
+    if (home && !p.musicLabel.empty()) gfx::text(g, ui::F_TINY, p.musicLabel, ui::narrow ? 300 : tx, ui::narrow ? 32 : 69, ui::MUTED);
     if (!home) gfx::text(g, ui::F_CHAN, p.displaySub, tx, p.music ? 103 : 82, ui::MUTED);
-    bool channel = p.kind == "channel", playlist = p.kind == "playlist" || p.kind == "album" || p.kind == "music_playlist" || p.kind == "later" || p.kind == "radio";
+    bool channel = p.kind == "channel", playlist = p.kind == "playlist" || p.kind == "album" || p.kind == "music_playlist" || p.kind == "music_recent" || p.kind == "later" || p.kind == "radio";
     if (channel || playlist) {
       bool f = contentFocus && p.zone == 0;
       gfx::rect(g, ui::W-316, p.music ? 64 : 32, 252, 54, f ? ui::TEXT : ui::SURFACE2, 27);

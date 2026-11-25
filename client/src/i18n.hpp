@@ -302,6 +302,11 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(MoreOptions, "Options", "Opções", "Opciones") \
   X(ChooseTab, "Choose a tab", "Escolher aba", "Elegir pestaña") \
   X(MusicIntro, "Your next favourite sound.", "Seu próximo som favorito.", "Tu próxima canción favorita.") \
+  X(YourMusic, "Music from your account", "Música da sua conta", "Música de tu cuenta") \
+  X(PublicMusic, "Public Music", "Música pública", "Música pública") \
+  X(MusicRecent, "Recently played", "Ouvidas recentemente", "Escuchadas recientemente") \
+  X(MusicLiked, "Liked music", "Músicas curtidas", "Música que te gusta") \
+  X(MusicAccountUnavailable, "Account Music is unavailable. Try again later.", "A música da conta está indisponível. Tente mais tarde.", "La música de la cuenta no está disponible. Inténtalo más tarde.") \
   X(QueueLimit, "Playlists play up to 256 tracks.", "As playlists tocam até 256 faixas.", "Las listas reproducen hasta 256 pistas.") \
   X(SubscribeConfirm, "Unsubscribe from this channel?", "Cancelar a inscrição neste canal?", "¿Cancelar la suscripción a este canal?") \
   X(GoLive, "Jump to live", "Ir para o ao vivo", "Ir al directo") \

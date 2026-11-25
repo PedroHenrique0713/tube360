@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
   if (net.request("https://www.youtube.com/seed",{},false).status != 200) return 3;
   yt::catalog::Client c(net); c.setToken("console-fixture-token");
   auto page = c.browse({{"kind","music"},{"lang","pt"}});
-  if (!page.error.empty() || page.items.empty()) { std::cerr << page.error << '\n'; return 4; }
+  if (!page.error.empty() || page.items.empty() || page.musicSource!="tv") { std::cerr << page.error << '\n'; return 4; }
   // O pote precisa continuar existindo para os pedidos públicos posteriores.
   if (net.request("https://www.youtube.com/probe",{},false).status != 200) return 5;
   std::cout << page.items.size() << " Music items via production TLS\n";
