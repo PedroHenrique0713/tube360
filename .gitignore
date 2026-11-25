@@ -36,3 +36,6 @@ cast/.node-persist/
 **/yt-base.js.tmp
 **/yt-base.idx
 **/yt-base.idx.tmp
+
+**/local-library.json
+**/local-library.json.tmp

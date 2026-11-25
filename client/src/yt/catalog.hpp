@@ -88,7 +88,8 @@ inline const J* findValue(const J& v, const string& key, const string& value) {
   } else for (const auto& x : array(v)) if (const J* found = findValue(x,key,value)) return found;
   return nullptr;
 }
-inline string imageUrl(const string& u) {
+inline string imageUrl(string u) {
+  if (u.compare(0,2,"//")==0) u="https:"+u;
   if (u.compare(0,8,"https://") != 0 || u.size() > 4096 || u.find_first_of("@\\ \r\n\t#") != string::npos) return {};
   const auto slash = u.find('/',8);
   const auto host = u.substr(8,slash-8);
@@ -99,17 +100,31 @@ inline string imageUrl(const string& u) {
   }
   return {};
 }
+inline void thumbnailCandidates(const J& v, string& best, double& score) {
+  if (v.is<Object>()) {
+    auto url=imageUrl(str(v,"url"));
+    const auto& w=get(v,"width");
+    double width=w.is<double>()?w.get<double>():0;
+    if(!url.empty() && width<=1280 && width>score){best=url;score=width;}
+    for(const auto& kv:v.get<Object>())thumbnailCandidates(kv.second,best,score);
+  } else for(const auto& p:array(v))thumbnailCandidates(p,best,score);
+}
 inline string thumbnail(const J& v) {
-  const J* pics = find(v,"thumbnails");
-  if (!pics) pics = find(v,"sources");
-  string best; double score = -1;
-  if (pics) for (const auto& p : array(*pics)) {
-    auto url = imageUrl(str(p,"url"));
-    const auto& w = get(p,"width");
-    double width = w.is<double>() ? w.get<double>() : 0;
-    if (!url.empty() && width <= 1280 && width > score) { best = url; score = width; }
-  }
+  string best; double score=-1;
+  thumbnailCandidates(v,best,score);
   return best;
+}
+// stb_image só suporta JPEG/PNG neste app. Uma capa ytimg tem alternativa JPEG estável.
+inline string jpegThumbnail(const string& address) {
+  auto u=imageUrl(address); if(u.empty())return {};
+  auto start=u.find("/vi_webp/");size_t skip=9;
+  if(start==string::npos){start=u.find("/vi/");skip=4;}
+  if(start==string::npos)return {};
+  auto id=u.substr(start+skip,11);
+  if(!videoId(id) || u.size()<=start+skip+11 || u[start+skip+11]!='/')return {};
+  auto host=u.substr(8,u.find('/',8)-8);
+  if(host!="i.ytimg.com" && host!="i1.ytimg.com" && host!="i2.ytimg.com" && host!="i3.ytimg.com" && host!="i4.ytimg.com")return {};
+  return "https://i.ytimg.com/vi/"+id+"/mqdefault.jpg";
 }
 inline int seconds(const string& s) {
   if (s.empty() || s.size() > 11 || s.find(':') == string::npos || s.find_first_not_of("0123456789:") != string::npos) return 0;
@@ -158,6 +173,11 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   string contentType = str(v,"contentType");
   bool list = contentType.find("PLAYLIST") != string::npos || key == "playlistRenderer" || key == "gridPlaylistRenderer";
   bool artist = contentType.find("CHANNEL") != string::npos || key == "channelRenderer" || key == "gridChannelRenderer";
+  if (out.id.empty() && key=="reelItemRenderer") out.id=str(v,"videoId");
+  if (out.id.empty() && key=="shortsLockupViewModel") {
+    if(const auto* reel=find(get(v,"onTap"),"reelWatchEndpoint"))out.id=str(*reel,"videoId");
+    if(out.title.empty())out.title=str(get(get(v,"overlayMetadata"),"primaryText"),"content");
+  }
   if (out.id.empty() && !list && !artist && ep) out.id = str(*ep,"videoId");
   if (out.id.empty()) out.id = str(get(v,"playlistItemData"),"videoId");
   if (out.id.empty() && browse) out.id = str(*browse,"browseId");
@@ -172,9 +192,9 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   else if (channelId(out.id)) out.type = music ? "artist" : "channel";
   else if (pageType.find("PLAYLIST") != string::npos || out.id.compare(0,2,"VL") == 0 || out.id.compare(0,2,"PL") == 0 || out.id.compare(0,2,"RD") == 0 || out.id.compare(0,4,"OLAK") == 0) out.type = "playlist";
   if (out.type != "video") out.members = Membership::None;
-  if (!identifier(out.id) || out.type.empty() || find(get(v,"navigationEndpoint"),"reelWatchEndpoint") || flag(v,"isUpcoming") || find(v,"upcomingEventData") || (flag(v,"isUnplayable") && out.members == Membership::None)) out.id.clear();
+  if (!identifier(out.id) || out.type.empty() || flag(v,"isUpcoming") || find(v,"upcomingEventData") || (flag(v,"isUnplayable") && out.members == Membership::None)) out.id.clear();
   out.image = thumbnail(get(v,"thumbnail"));
-  for (auto k : {"thumbnailRenderer","header","contentImage"}) if (out.image.empty()) out.image = thumbnail(get(v,k));
+  for (auto k : {"thumbnailViewModel","thumbnailRenderer","contentImage","header"}) if (out.image.empty()) out.image = thumbnail(get(v,k));
   if (out.image.empty() && out.type == "video") out.image = "https://i.ytimg.com/vi/" + out.id + "/mqdefault.jpg";
   out.channelId = channel(cols.empty() ? v : get(v,"flexColumns"));
   out.duration = seconds(text(get(v,"lengthText")));
@@ -212,7 +232,7 @@ inline void walk(const J& v, Page& p, bool music, std::set<string>& seen, string
       string token = str(x,key == "continuationCommand" ? "token" : "continuation");
       // A TV também pagina cada carrossel. A continuação externa pertence à página.
       if (!token.empty() && token.size() <= 16384 && depth < p.continuationDepth) { p.continuation=token; p.continuationDepth=depth; }
-    } else if (key == "videoRenderer" || key == "gridVideoRenderer" || key == "playlistVideoRenderer" || key == "playlistPanelVideoRenderer" || key == "musicTwoRowItemRenderer" || key == "musicResponsiveListItemRenderer" || key == "lockupViewModel" || key == "tileRenderer" || key == "channelRenderer" || key == "gridChannelRenderer" || key == "playlistRenderer" || key == "gridPlaylistRenderer") {
+    } else if (key == "shortsLockupViewModel" || key == "reelItemRenderer" || key == "videoRenderer" || key == "gridVideoRenderer" || key == "playlistVideoRenderer" || key == "playlistPanelVideoRenderer" || key == "musicTwoRowItemRenderer" || key == "musicResponsiveListItemRenderer" || key == "lockupViewModel" || key == "tileRenderer" || key == "channelRenderer" || key == "gridChannelRenderer" || key == "playlistRenderer" || key == "gridPlaylistRenderer") {
       Item it = item(x,key,music,section);
       if (!it.id.empty() && p.items.size() < size_t(updates::rules()->n("catalogItems")) && seen.insert(it.type+it.id).second) p.items.push_back(std::move(it));
     } else if (key != "header" && key != "menu" && key != "navigationEndpoint" && key != "onSelectCommand" && key != "onLongPressCommand" && key != "frameworkUpdates" && key != "playerOverlays" && key != "currentVideoEndpoint") walk(x,p,music,seen,section,depth+1);
@@ -432,14 +452,14 @@ private:
   string channelTab(J& data, const string& tab, bool isMusic) {
     const J* tabs = find(get(data,"contents"),"tabs");
     if (!tabs) return "channel_tabs_missing";
-    string suffix = tab == "live" ? "/streams" : tab == "playlists" ? "/playlists" : "/videos";
+    string suffix = tab == "shorts" ? "/shorts" : tab == "live" ? "/streams" : tab == "playlists" ? "/playlists" : "/videos";
     for (const auto& t : array(*tabs)) {
       const auto& r = get(t,"tabRenderer");
       string url;
       if (const auto* u = find(get(r,"endpoint"),"webCommandMetadata")) url = str(*u,"url");
       string title = text(get(r,"title"));
       bool match = url.size() >= suffix.size() && url.compare(url.size()-suffix.size(),suffix.size(),suffix) == 0;
-      if (url.empty()) match = tab == "live" ? title == "Live" || title == "Ao vivo" : tab == "playlists" ? title == "Playlists" : title == "Videos" || title == "Vídeos";
+      if (url.empty()) match = tab == "shorts" ? title == "Shorts" : tab == "live" ? title == "Live" || title == "Ao vivo" : tab == "playlists" ? title == "Playlists" : title == "Videos" || title == "Vídeos";
       if (!match) continue;
       if (flag(r,"selected")) return {};
       if (const auto* ep = find(get(r,"endpoint"),"browseEndpoint")) {

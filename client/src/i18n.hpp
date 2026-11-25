@@ -356,7 +356,23 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(BtnA, "A", "A", "A") X(BtnB, "B", "B", "B") X(BtnX, "X", "X", "X") X(BtnY, "Y", "Y", "Y") \
   X(BtnView, "View", "View", "View") X(BtnMenu, "Menu", "Menu", "Menu") \
   X(BtnShoulders, "LB RB", "LB RB", "LB RB") X(BtnTriggers, "LT RT", "LT RT", "LT RT") \
-  X(BtnHorizontal, "< >", "< >", "< >") X(BtnVertical, "↑ ↓", "↑ ↓", "↑ ↓")
+  X(BtnHorizontal, "< >", "< >", "< >") X(BtnVertical, "↑ ↓", "↑ ↓", "↑ ↓") \
+  X(OnConsole, "On this console", "Neste console", "En esta consola") \
+  X(LocalLater, "Watch later · console", "Assistir mais tarde · console", "Ver más tarde · consola") \
+  X(LocalHistory, "Continue · console", "Continuar · console", "Continuar · consola") \
+  X(LocalOnly, "Saved here. Never sent to your account.", "Salvo aqui. Nunca enviado à sua conta.", "Guardado aquí. Nunca se envía a tu cuenta.") \
+  X(RemoveLocalLater, "Remove from local list", "Remover da lista local", "Quitar de la lista local") \
+  X(ClearLocalHistory, "Clear local history", "Apagar histórico local", "Borrar historial local") \
+  X(ClearLocalLater, "Clear local watch later", "Apagar lista local", "Borrar lista local") \
+  X(ConfirmLocalClear, "Delete these saved items on this console?", "Apagar estes itens salvos neste console?", "¿Borrar estos elementos guardados en esta consola?") \
+  X(LocalSaving, "Saving on this console…", "Salvando neste console…", "Guardando en esta consola…") \
+  X(LocalSaved, "Saved on this console", "Salvo neste console", "Guardado en esta consola") \
+  X(LocalSaveFailed, "Could not save locally. Check storage space.", "Não foi possível salvar. Confira o espaço no disco.", "No se pudo guardar. Revisa el espacio en el disco.") \
+  X(LocalCorrupt, "Local file unreadable. Lists start empty.", "Arquivo local ilegível. Listas iniciadas vazias.", "Archivo local ilegible. Las listas empiezan vacías.") \
+  X(ResumeLocal, "Continue where you left off?", "Continuar de onde parou?", "¿Continuar donde lo dejaste?") \
+  X(StartBeginning, "Start from beginning", "Começar do início", "Empezar desde el principio") \
+  X(LocalLimit, "200 saved videos · 500 resume positions", "200 vídeos salvos · 500 posições", "200 vídeos guardados · 500 posiciones") \
+  X(ChannelShorts, "Shorts", "Shorts", "Shorts")
 
 enum class Key {
 #define TEXT_KEY(k, en, pt, es) k,

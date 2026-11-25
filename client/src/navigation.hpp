@@ -24,6 +24,10 @@ struct NavPage {
   }
 };
 struct Navigation {
+  local::Library* local = nullptr;
+  bool signedIn = false;
+  uint64_t localRevision = 0;
+  i18n::Lang localLang = i18n::Lang::Count;
   std::vector<NavPage> pages;
   uint64_t serial = 0, actionStamp = 0;
   bool ownsQueue = false, cancelQueue = false, busy = false, musicSession = false, musicNow = false, lyricsOpen = false, unsubscribe = false;
@@ -41,6 +45,7 @@ struct Navigation {
     auto& p = page(); p.loading = true; p.error.clear(); p.stamp = ++serial;
     p.more = false;
     if (!append) { p.offset = 0; p.items.clear(); p.channels.clear(); p.channelSel = p.shelf = 0; p.shelves.clear(); }
+    if (p.kind == "local_later" || p.kind == "local_history" || (p.kind == "library" && !signedIn)) { p.loading=false; localRevision=0; return; }
     std::string path = p.path() + "&lang=" + i18n::code(lang) + "&offset=" + std::to_string(p.offset) + "&fresh=" + (fresh ? "1" : "0");
     Job job{6, path, p.stamp};
     job.native = p.kind == "search" && p.tabSel != 2 && !append; job.query = p.query; job.lang = lang; worker.add(job, true);
@@ -101,6 +106,7 @@ struct Navigation {
         }
         p.items.insert(p.items.begin(),shortcuts.begin(),shortcuts.end());
       }
+      if (p.kind=="library") localRevision=0;
       if (first && p.kind == "library" && p.error.empty()) {
         NavItem history; history.type = "history"; history.id = "HISTORY"; history.title = i18n::get(lang, K::History);
         NavItem later; later.type = "later"; later.id = "WL"; later.title = i18n::get(lang, K::WatchLater);
@@ -109,6 +115,11 @@ struct Navigation {
         for (const auto& item : p.items) if (item.id.starts_with("RD") || item.id.starts_with("VLRD")) { mixes.image = item.image; break; }
         p.items.insert(p.items.begin(), {history, later, mixes});
       }
+      format(p,g,lang,start);
+      return;
+    }
+  }
+  void format(NavPage& p, gfx::Gfx& g, i18n::Lang lang, size_t start=0) {
       for (size_t i = start; i < p.items.size(); i++) {
         auto& item = p.items[i];
         if (p.musicHome()) {
@@ -135,8 +146,28 @@ struct Navigation {
         sub = std::string(i18n::get(lang, K::QueueLimit)) + (sub.empty() ? "" : " · " + sub);
       p.displaySub = gfx::ellipsize(g, ui::F_CHAN, sub, 680);
       LOG("navegação %s: %u itens, %u canais, foco %d, zona %d", p.kind.c_str(), (unsigned)p.items.size(), (unsigned)p.channels.size(), p.sel, p.zone);
-      return;
+  }
+  void refreshLocal(gfx::Gfx& g, i18n::Lang lang) {
+    if (!local || pages.empty()) return;
+    auto& p=page();
+    bool list=p.kind=="local_later" || p.kind=="local_history", library=p.kind=="library";
+    if ((!list && !library) || (localRevision==local->revision && localLang==lang)) return;
+    localRevision=local->revision; localLang=lang;
+    if (list) {
+      p.items.clear(); p.loading=p.more=false; p.direct=true; p.image.clear();
+      p.subtitle=i18n::get(lang,K::LocalOnly);
+      for (const auto& e:p.kind=="local_later"?local->later:local->history) p.items.push_back({"video",e.id,e.title,e.channel,e.id,"","",e.duration});
+    } else {
+      p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[](const NavItem& i){return i.type=="local_later" || i.type=="local_history";}),p.items.end());
+      NavItem later,history; later.type="local_later";later.id="LOCAL_LATER";later.title=i18n::get(lang,K::LocalLater);
+      history.type="local_history";history.id="LOCAL_HISTORY";history.title=i18n::get(lang,K::LocalHistory);
+      if(!local->later.empty())later.image=local->later.front().id;
+      if(!local->history.empty())history.image=local->history.front().id;
+      p.items.insert(p.items.begin(),{later,history});
+      if(!signedIn){p.loading=p.more=false;p.direct=true;p.error.clear();p.subtitle=i18n::get(lang,K::LocalOnly);}
     }
+    if(!p.items.empty())p.sel=std::clamp(p.sel,0,int(p.items.size())-1);else p.sel=0;
+    format(p,g,lang);
   }
   void action(Worker& worker, const std::string& path) {
     if (busy) return;
@@ -151,6 +182,8 @@ struct Navigation {
     } else gfx::rect(g, x, y, w, h, ui::SURFACE2, radius);
   }
   static K titleKey(const NavPage& p) {
+    if (p.kind == "local_later") return K::LocalLater;
+    if (p.kind == "local_history") return K::LocalHistory;
     if (p.kind == "library") return K::Library;
     if (p.kind == "subscriptions") return K::Subscriptions;
     if (p.kind == "history") return K::History;
@@ -167,6 +200,7 @@ struct Navigation {
   }
   void draw(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, uint64_t now, i18n::Lang lang, bool contentFocus) {
     if (pages.empty()) return;
+    refreshLocal(g,lang);
     auto tr = [&](K k) { return i18n::get(lang, k); };
     auto& p = page();
     bool home = p.musicHome();
@@ -194,11 +228,11 @@ struct Navigation {
     }
     bool tabs = channel || p.kind == "music" || p.kind == "search" || p.kind == "music_search";
     if (tabs) {
-      const K channelTabs[] = {K::Videos,K::ChannelLive,K::Playlists};
+      const K channelTabs[] = {K::Videos,K::ChannelShorts,K::ChannelLive,K::Playlists};
       const K musicTabs[] = {K::Home,K::Charts,K::Mixes};
       const K searchTabs[] = {K::AllResults,K::Videos,K::Channel};
       const K songTabs[] = {K::AllResults,K::Songs,K::Albums,K::Artists};
-      int count = p.kind == "music_search" ? 4 : 3; float x = home && !ui::narrow ? 650 : 136;
+      int count = channel || p.kind == "music_search" ? 4 : 3; float x = home && !ui::narrow ? 650 : 136;
       float tabY = home ? (ui::narrow ? 88 : 32) : p.music ? 166 : 120;
       for (int i = 0; i < count; i++) {
         K key = channel ? channelTabs[i] : p.kind == "music" ? musicTabs[i] : p.kind == "music_search" ? songTabs[i] : searchTabs[i];
@@ -252,6 +286,9 @@ struct Navigation {
       if (f) gfx::rect(g, x - 5, y - 5, art + 10, h + 10, ui::TEXT, 12);
       artwork(g, thumbs, worker, item.image, frame, x, y, art, h, p.music || item.type == "channel" || item.type == "artist", item.type == "channel" || item.type == "artist", p.direct);
       memberBadge(g, item.members, lang, x + 7, y + 7);
+      const auto* saved=local && (!signedIn || p.kind=="local_later" || p.kind=="local_history")?local::Library::find(local->history,item.id):nullptr;
+      double pos=saved?saved->position:0,duration=saved?saved->duration:item.duration;
+      if(item.type=="video" && pos>0 && duration>0){gfx::rect(g,x+4,y+h-6,art-8,4,ui::SURFACE2,2);gfx::rect(g,x+4,y+h-6,(art-8)*float(std::clamp(pos/duration,0.0,1.0)),4,ui::A1,2);}
       if (p.kind == "library") {
         gfx::vgrad(g, x, y, art, h, {0,0,0,0}, {0,0,0,0.94f}, 12);
         float labelY = y + h - 12 - 27 * item.titleLines.size();
@@ -283,16 +320,16 @@ struct Navigation {
     auto tr = [&](K k) { return i18n::get(lang, k); };
     gfx::rect(g, 0, 0, ui::W, 720, {0,0,0,0.8f});
     float left=(ui::W-740)/2;
-    gfx::rect(g, left, 150, 740, 424, ui::SURFACE, 28);
+    gfx::rect(g, left, 150, 740, 480, ui::SURFACE, 28);
     gfx::text(g, ui::F_BIG, tr(K::CardMenu), left+38, 180, ui::TEXT);
     gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, menuItem.title, 662), left+38, 235, ui::TEXT);
     gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, menuItem.channel + " · " + fmtTime(menuItem.duration), 662), left+38, 272, ui::MUTED);
-    const K keys[] = {K::GoChannel,K::WatchLater,K::Radio};
-    for (int i = 0; i < 3; i++) {
+    const K keys[] = {K::GoChannel, !signedIn ? (local && local->contains(menuItem.id) ? K::RemoveLocalLater : K::LocalLater) : K::WatchLater, K::Radio, local && local->contains(menuItem.id) ? K::RemoveLocalLater : K::LocalLater};
+    for (int i = 0; i < (signedIn ? 4 : 3); i++) {
       gfx::rect(g, left+34, 320 + i * 60, 672, 50, i == menuSel ? ui::TEXT : ui::SURFACE2, 16);
       gfx::text(g, ui::F_KEY, tr(keys[i]), left+58, 334 + i * 60, i == menuSel ? ui::INK : ui::TEXT);
     }
-    float hx = hint(g, left+38, 528, "A", XA, tr(K::Open)); hint(g, hx, 528, "B", XB, tr(K::Back));
+    float hx = hint(g, left+38, 584, "A", XA, tr(K::Open)); hint(g, hx, 584, "B", XB, tr(K::Back));
   }
   void prepareNow(gfx::Gfx& g, Video& playing, i18n::Lang lang) {
     if (nowId == playing.id) return;
