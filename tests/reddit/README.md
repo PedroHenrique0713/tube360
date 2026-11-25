@@ -260,8 +260,9 @@ o arquivo depois da inicialização para provar que a escolha não muda durante 
 `video_driver.py` executa seis casos do display real contra o fonte original,
 com MMIO substituído por memória **do próprio processo Linux** em endereço
 reservado por MAP_FIXED_NOREPLACE. Nenhum /dev/mem, registrador físico ou console
-é acessado. Safe HD/SD/interlaced/contador parado têm snapshots iguais aos do
-original; native HD/SD mantém dimensões estendidas. Um contador que não avança
+é acessado. Safe HD/contador parado têm snapshots iguais aos do original 720p; SD/entrelaçado
+são comparados com o original no modo kernel, conservando o scaler do painel. Native HD
+mantém dimensões estendidas; SD usa o viewport kernel nos dois caminhos. Um contador que não avança
 retorna após os 50.000 µs simulados. Depois de desabilitar o trace, a rotina de
 flip usada pela IRQ não registra eventos.
 
@@ -373,3 +374,109 @@ Não misturar arquivos de conta; não alterar o serviço ou o app de uso diário
    Uma espera kernel/MMIO que não retorna ainda pode bloquear o timeout de software:
    guardar o último begin aberto. Arquivar por modelo/path/saída e restaurar/remover
    só a pasta temporária. Este roteiro não foi executado fisicamente pelo autor.
+
+
+## Adendo F32/12–13 — CRT e recuperação sem oscilação
+
+O coordenador confirmou no 360 E em 2026-11-25 ~02h a detecção **Corona/native** e
+a descida por degraus nos dois vídeos. Essa confirmação refere-se à entrega 9–11;
+não prova ainda os caminhos CRT/recuperação corrigidos aqui.
+
+```bash
+cmake --build client/build -j2 --target tube360 tube360-quality-fixture reddit-contract-test display-layout-test player-state-test h264-cadence-test
+client/build/reddit-contract-test
+client/build/display-layout-test bench
+python3 tests/reddit/video_driver.py .work/f32/items12-13/driver \
+  --source-sdk "$F32_ORIGINAL_XSDK" --source-v4x "$F32_ORIGINAL_V4X"
+python3 tests/reddit/boot_native.py .work/f32/items12-13/native
+python3 tests/reddit/settings_native.py
+python3 tests/reddit/settings_stress.py .work/f32/items12-13/settings-sd 480
+python3 tests/reddit/settings_stress.py .work/f32/items12-13/settings-hd
+python3 tests/reddit/recovery_cpu.py .work/f32/items12-13/cpu .work/f32/media
+python3 tests/reddit/adaptation.py .work/f32/items12-13/adaptation .work/f32/media
+python3 tests/reddit/playback.py .work/f32 recovery-seek preview release paused
+JOBS=2 tools/build-standalone.sh pc
+```
+
+O diretório `.work/f32/media` contém mídia sintética preparada pelo `prepare.py`,
+sem URLs reais. `recovery_cpu.py` repete os 80 s em arquivos de 240 s por remux,
+sem recodificar. Só a fixture liga `--wrap=avcodec_receive_frame`: o FFmpeg real
+continua decodificando e recebe atrasos de 44/19 ms por quadro 1080/720 **dentro**
+da fronteira medida. Nenhum atraso/flag de decode é compilado no app normal/XEX.
+A sessão de 170 s exige um único 1080→720, nenhuma volta a 1080 mesmo após o
+backoff, e histórico preservado no seek explícito. A bancada anterior continua
+exigindo 1080→720→1080 quando cessa a pressão de rede e o decode cabe com folga.
+
+A previsão de subida usa `decode ms/quadro × pixels seguintes/pixels atuais × fps
+seguintes`, normalizada por 1000. A largura real do formato também é preservada
+no parser. 720p30/19 ms prevê 42,75 ms/quadro de 1080p30 (128,25% do orçamento),
+portanto não permite subir. Exige previsão <70%, além da fila/rede/20 s de folga
+existentes. Não divide esse custo pela duração de pacotes. Um degrau rejeitado
+por CPU/cópia/apresentação espera 120/240/480/960 s nas falhas sucessivas, limitado
+a 960 s; cada par itag/cadência tem seu próprio histórico durante a sessão.
+Seek/pausa/renovação de URL e reinícios internos em IDLE não apagam isso.
+Outro vídeo/perfil ou encerrar o app reinicia o histórico; reabrir o mesmo vídeo
+no mesmo perfil conserva a medição durante essa execução do app.
+Falha de rede começa em 30 s e também aumenta a espera se repetir, permitindo
+recuperar uma interrupção transitória sem tratar capacidade nominal como medida.
+Logs `degrau rejeitado`, `historico preservado` e `subida ... decode medido ...
+escala pixels/fps ... projetado ... bloqueio ...` explicam a decisão.
+
+A bancada SD liga **setter + enumeração/capacidades/surface + swapchain +
+xsdk_present_open + xsdk_display_open/show reais**. Só MMIO, kernel e fronteiras de
+alocação/texture GPU são simulados. São oito casos: safe/native em 480i, 576i,
+480p, PAL widescreen e viewport inválido. Nos sete casos válidos, as dimensões
+precisam coincidir em todas as camadas, o primeiro show precisa terminar antes
+da instalação da IRQ e não pode haver escrita do nosso scaler. O viewport
+inválido precisa falhar antes de buffers/IRQ. Os testes de layout cobrem os dois
+eixos para pixels PAL não quadrados e margens físicas. As capturas 640×480 do
+app real mostram pt/en/es/texto grande, não uma simulação de sinal entrelaçado.
+
+### Console: 480i/576i/480p e retorno de qualidade
+
+Somente o coordenador executa; usar a pasta temporária e os comandos de
+transferência/captura do roteiro inicial. Conservar os dois XEX/fontes juntos.
+
+1. Guardar foto/configuração de vídeo atual do painel. No 360 E, **480p por HDMI**
+   verifica apenas SD progressivo: selecionar 480p nas opções de exibição, se a
+   TV aceitar. Para **480i real**, usar cabo AV composto próprio do 360 E na porta
+   AV circular e entrada composta compatível; deixar HDMI desconectado nessa
+   tentativa. Ligar amarelo no vídeo, vermelho/branco no áudio; confirmar que o
+   painel/Aurora já estão visíveis na TV antes do app. Selecionar formato 4:3 no
+   painel para CRT 4:3. Não há comando do Tube360 que troque o sinal HDMI para 480i.
+   O diagrama do fabricante citado no manual mostra esse cabo; não confundir
+   com o componente/VGA dos modelos anteriores. No Falcon/Jasper, componente
+   também pode ser testado com cabo/painel/TV que ofereçam esse modo.
+2. **576i/50 Hz:** repetir apenas se o painel/console/cabo/TV já oferecem PAL-50.
+   Não trocar região/firmware. Se não houver cabo AV/TV/captura apropriada, marcar
+   entrelaçado como pendente; 480p no HDMI não aprova 480i/576i.
+3. Na pasta isolada, usar `video-driver.txt` com `safe` primeiro. Abrir app direto
+   e pelo lançador, inicialmente com settings ausente/padrão e depois com pedido
+   `output_height=1080` salvo: em ambos deve respeitar o painel. Conferir `video.mode`
+   (dashboard, interlaced, wide, hz), `video.connector` (AV enum bruto e rótulo),
+   `display.signal ... kernel=1`, `display.kernel-viewport` e `display.output`.
+   O **viewport real**, por exemplo 640×480/640×576, deve coincidir com `tela`,
+   `gpu.swapchain`, `display.open`, buffers e primeiro frame. O tamanho do sinal
+   pode ser diferente do viewport; comparar dimensões de framebuffer entre si.
+4. Exigir `end display.first-show`, `end frame.present` e `end app.first-frame`,
+   sem retorno ao Aurora. Abrir Home/Configurações, reproduzir VOD, testar B,
+   legendas, 4:3/preencher, texto grande e idiomas pt/en/es. Fotografar, inclusive
+   bordas/margens. Trocas de saída no menu não podem alterar display/swapchain/atlas
+   no SD/kernel; texto grande continua podendo trocar atlas após idle/reset.
+   Repetir no Corona com `native`/auto e em widescreen, quando disponível, para
+   conferir que a política da placa permanece native mas a saída SD usa kernel.
+5. Voltar à conexão/configuração HD original e reproduzir `4p_9OPKgcDE` em 1080p30
+   por pelo menos três minutos. Depois da redução por CPU, exigir uma linha
+   `degrau rejeitado itag 137/30fps ... nova tentativa em 120000 ms`. Com 720 a
+   18–20 ms/quadro, a previsão de 1080 deve superar 100% e continuar bloqueando a
+   volta, inclusive depois do prazo. Não repetir a volta aos 95,8 s. Pausar e
+   fazer seek: `historico preservado` e prazo restante devem continuar coerentes.
+   Uma nova tentativa só é válida se a previsão cair abaixo de 70%, rede/fila
+   forem boas por 20 s e os prazos terminarem. Se ela falhar, exigir novo prazo
+   maior para aquele itag/cadência. A prova de recuperação com folga é a bancada;
+   não é necessário induzir outra sobrecarga no console para aprovar a trava.
+6. Guardar log normal/UDP e boot-early/app/launcher/CRT antes de relançar, com fotos
+   e modelo/path/conector/modo de cada tentativa. Um begin sem end ainda pode
+   localizar uma chamada de hardware que nunca devolveu; não afirmar timeout
+   protetor nesses casos. Restaurar o vídeo/cabo do painel e remover somente a
+   pasta temporária após arquivar. Não copiar conta/cookies/CPU key.

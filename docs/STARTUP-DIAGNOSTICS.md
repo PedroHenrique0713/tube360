@@ -122,8 +122,8 @@ Place **`video-driver.txt` beside both XEX files**, with exactly one of these wo
 
 | Content | Effect on the next title startup |
 | --- | --- |
-| `safe` | Original vulkan4xenon 1280×720 preference; original SDK scaler parameters; staging video. No Tube360 SD/1080 framebuffer, sampled linear R8, physical cached memory type, or added cache flush/invalidate instructions. |
-| `native` | Explicitly force the previous Tube360 SD/1080 framebuffer and mapped-video extensions, including on an unknown board. Logs that compatibility is unverified. Existing `decode-config.txt` may still disable mapped video. |
+| `safe` | Conservative SDK framebuffer/scaler and staging video. HD progressive retains the original 1280×720 preference; SD/interlaced uses the current kernel viewport in all Vulkan layers. No custom SD/1080 scaler, sampled linear R8, physical cached memory type, or added cache flush/invalidate instructions. |
+| `native` | Force Tube360 framebuffer/mapped-video extensions, including on an unknown board; SD/interlaced output still preserves the kernel viewport/scaler. Logs that compatibility is unverified. Existing `decode-config.txt` may still disable mapped video. |
 | `auto`, or no file | Corona/Winchester use native to preserve the coordinator's 360 E baseline; other/unknown families use safe. This family policy does not claim physical testing on both families or every subrevision. |
 
 An unreadable, empty, oversized, embedded-NUL or unrecognized file fails safe. Selection is read once before
@@ -135,7 +135,7 @@ For example, the complete content to restore the previous path is:
 native
 ```
 
-To return to the conservative path, replace that word with `safe`, or remove the file. A requested output
+To force the conservative path, replace that word with `safe`; removing the file restores the family default. A requested output
 of 480/1080 in settings is ignored by the safe driver; the log records the request and the actual extent.
 Source decoding quality remains governed by the existing playback profile. Staging adds CPU copies, so
 console playback performance requires measurement. This is a fallback from the Tube360 extensions,
@@ -160,7 +160,7 @@ see the normal board/path summary. The override file and raw hardware flags are 
 
 ### Changing Settings during use
 
-In safe mode, output-size requests save the preference but **do not touch** the current surface, swapchain,
+In safe mode or a dashboard SD/interlaced mode, output-size requests save the preference but **do not touch** the current surface, swapchain,
 framebuffers, pipelines or font atlas. A localized help message explains that the current output is fixed.
 Fit/crop changes adjust geometry/UV coordinates only. English/Portuguese/Spanish share the bundled atlas;
 changing language rebuilds category labels, not GPU/display resources.
@@ -181,12 +181,29 @@ strict native-output test.
 
 ### What still accesses hardware
 
-The line-counter wait **already exists upstream**. Returning to original 720p does not remove the xsdk's
-LUT, scaler, surface or interrupt-register access. `safe` preserves upstream parameters instead of applying
-our SD/1080 changes. The simulated safe path is compared against the original source's complete register
-snapshot; that comparison is not a physical Jasper test. With an interlaced kernel viewport, the original
-SDK may return 640×480 while stock V4X expects 1280×720, resulting in a startup error rather than a usable
-Vulkan surface. This baseline limitation remains; the embedded error screen attempts the SDK's actual size.
+The line-counter wait **already exists upstream**. Conservative operation does not remove the xsdk's
+LUT, surface or interrupt-register access. In HD progressive, `safe` preserves the upstream 720p scaler;
+in SD/interlaced, it uses the upstream `XSDK_DISPLAY_KERNEL` path, without custom scaler writes. Tests
+compare complete register snapshots against the original source using the corresponding mode; that is
+not a physical Jasper test. Previously the SDK could return 640×480 while V4X required 1280×720. The
+display extent, capabilities, surface, swapchain images and presentation now agree with the **actual kernel
+viewport**, which need not equal the dashboard signal dimensions. A durable `display.kernel-viewport`
+begin precedes the register read. Invalid/zero dimensions are rejected instead of assuming HDMI or HD.
+
+`display.signal` logs dashboard width/height, interlace, refresh, aspect and selection. SD (including 480p)
+and all interlaced modes use the dashboard scaler and timings in both safe and native policies. No
+`VdSetDisplayMode` is used. The UI uses dashboard 4:3/16:9 aspect with independent horizontal/vertical
+scales, safe margins and large text, so a PAL 640×576 or 720×576 viewport does not imply square pixels.
+The connector log retains raw AV-pack values; known Xenia Canary enum labels include 5 composite/S-Video,
+2 SCART and 7 TV, alongside HDMI/component/VGA. It does not identify the exact cable or chip from a guess.
+
+Hardware procedure: a 480p HDMI dashboard test checks progressive SD only. Actual 480i requires the
+appropriate Xbox 360 E composite AV cable and a compatible TV/capture input; HDMI 480p is not a substitute.
+For 576i/50 Hz, use a console/region/cable/display combination that already offers PAL-50. Do not change
+region/firmware for this check. Keep baseline photos/settings and restore them afterward. See the test
+README for steps. The manufacturer's [Xbox 360 E composite wiring diagram, page 8](https://gzhls.at/blob/ldb/8/7/f/1/f2a7b4149a7ae795e80dfd6d1a7a87322d30.pdf)
+and the [Xenia Canary AV-pack enum](https://github.com/xenia-canary/xenia-canary/blob/canary_experimental/src/xenia/kernel/xam/xam_info.cc)
+are the references; physical signal/scaler/IRQ compatibility still requires the console run.
 
 Both paths now bracket these setup operations with durable events **before** the access:
 
