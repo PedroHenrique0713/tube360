@@ -1,0 +1,1217 @@
+{
+  "contents": [
+    {
+      "lockupViewModel": {
+        "contentImage": {
+          "collectionThumbnailViewModel": {
+            "primaryThumbnail": {
+              "thumbnailViewModel": {
+                "image": {
+                  "sources": [
+                    {
+                      "url": "https://i.ytimg.com/vi/HiNR74zi8qQ/hq720.jpg?sqp=-oaymwEXCOgCEMoBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDoZar0de-NXxcQvn1i6NPknvEGQQ",
+                      "width": 360,
+                      "height": 202
+                    },
+                    {
+                      "url": "https://i.ytimg.com/vi/HiNR74zi8qQ/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLAZ2xbmjuAnoD68HagJxnuvi9P-kw",
+                      "width": 720,
+                      "height": 404
+                    }
+                  ]
+                },
+                "overlays": [
+                  {
+                    "thumbnailOverlayBadgeViewModel": {
+                      "thumbnailBadges": [
+                        {
+                          "thumbnailBadgeViewModel": {
+                            "icon": {
+                              "sources": [
+                                {
+                                  "clientResource": {
+                                    "imageName": "PLAYLISTS"
+                                  }
+                                }
+                              ]
+                            },
+                            "text": "10 vídeos",
+                            "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                            "backgroundColor": {
+                              "lightTheme": 1248307,
+                              "darkTheme": 1248307
+                            }
+                          }
+                        }
+                      ],
+                      "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                    }
+                  },
+                  {
+                    "thumbnailHoverOverlayViewModel": {
+                      "icon": {
+                        "sources": [
+                          {
+                            "clientResource": {
+                              "imageName": "PLAY_ALL"
+                            }
+                          }
+                        ]
+                      },
+                      "text": {
+                        "content": "Reproduzir tudo",
+                        "styleRuns": [
+                          {
+                            "startIndex": 0,
+                            "length": 15
+                          }
+                        ]
+                      },
+                      "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+                    }
+                  }
+                ],
+                "backgroundColor": {
+                  "lightTheme": 2233945,
+                  "darkTheme": 2233945
+                }
+              }
+            },
+            "stackColor": {
+              "lightTheme": 7564185,
+              "darkTheme": 8551579
+            }
+          }
+        },
+        "metadata": {
+          "lockupMetadataViewModel": {
+            "title": {
+              "content": "Astronomia: Temporada 3"
+            },
+            "metadata": {
+              "contentMetadataViewModel": {
+                "metadataRows": [
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Origens NT",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 10
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 10,
+                              "weightLabel": "FONT_WEIGHT_NORMAL"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "content": "Playlist",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 8
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 8,
+                              "weightLabel": "FONT_WEIGHT_NORMAL"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "lockupContentMetadataRowExtension": {
+                      "contentType": "METADATA_ROW_CONTENT_TYPE_BYLINE"
+                    }
+                  },
+                  {
+                    "isSpacerRow": true
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Astronomia - Origens · 2:03",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 28
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Introdução à Investigação Astronômica | Astronomia #1 · 28:01",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 68
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Ver playlist completa",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 21
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 21,
+                              "weightLabel": "FONT_WEIGHT_MEDIUM"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Como os mais recentes avanços tecnológicos e descobertas no campo da astronomia revelam nossas origens?"
+                        },
+                        "maxLines": 2
+                      }
+                    ],
+                    "lockupContentMetadataRowExtension": {
+                      "contentType": "METADATA_ROW_CONTENT_TYPE_DESCRIPTION"
+                    }
+                  }
+                ],
+                "delimiter": " "
+              }
+            },
+            "menuButton": {
+              "buttonViewModel": {
+                "iconName": "MORE_VERT",
+                "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                "type": "BUTTON_VIEW_MODEL_TYPE_TEXT",
+                "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+              }
+            }
+          }
+        },
+        "contentId": "PLUBR4s0w2cG1kyI2MDBJV0J3B5HuJoB7g",
+        "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+        "rendererContext": {
+          "loggingContext": {},
+          "commandContext": {}
+        }
+      }
+    },
+    {
+      "lockupViewModel": {
+        "contentImage": {
+          "collectionThumbnailViewModel": {
+            "primaryThumbnail": {
+              "thumbnailViewModel": {
+                "image": {
+                  "sources": [
+                    {
+                      "url": "https://i.ytimg.com/vi/Tt2dttH1NhY/hqdefault.jpg?sqp=-oaymwExCOADEI4CSFryq4qpAyMIARUAAIhCGAHwAQH4AYwFgALgA4oCDAgAEAEYSCBlKGUwDw==&rs=AOn4CLBTV9G1L1IfpO-f_KQGp2806ZcJHw",
+                      "width": 480,
+                      "height": 270
+                    }
+                  ]
+                },
+                "overlays": [
+                  {
+                    "thumbnailOverlayBadgeViewModel": {
+                      "thumbnailBadges": [
+                        {
+                          "thumbnailBadgeViewModel": {
+                            "icon": {
+                              "sources": [
+                                {
+                                  "clientResource": {
+                                    "imageName": "GRADUATION_CAP"
+                                  }
+                                }
+                              ]
+                            },
+                            "text": "35 lições",
+                            "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                            "backgroundColor": {
+                              "lightTheme": 1778982,
+                              "darkTheme": 1778982
+                            }
+                          }
+                        }
+                      ],
+                      "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                    }
+                  },
+                  {
+                    "thumbnailHoverOverlayViewModel": {
+                      "icon": {
+                        "sources": [
+                          {
+                            "clientResource": {
+                              "imageName": "PLAY_ALL"
+                            }
+                          }
+                        ]
+                      },
+                      "text": {
+                        "content": "Reproduzir tudo",
+                        "styleRuns": [
+                          {
+                            "startIndex": 0,
+                            "length": 15
+                          }
+                        ]
+                      },
+                      "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+                    }
+                  }
+                ],
+                "backgroundColor": {
+                  "lightTheme": 2965311,
+                  "darkTheme": 2965311
+                }
+              }
+            },
+            "stackColor": {
+              "lightTheme": 7116697,
+              "darkTheme": 7375756
+            }
+          }
+        },
+        "metadata": {
+          "lockupMetadataViewModel": {
+            "title": {
+              "content": "Astronomia - Uma Visão Geral I | Aulas USP |"
+            },
+            "metadata": {
+              "contentMetadataViewModel": {
+                "metadataRows": [
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Canal USP",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 9
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 9,
+                              "weightLabel": "FONT_WEIGHT_NORMAL"
+                            }
+                          ]
+                        },
+                        "icon": {
+                          "name": "CHECK_CIRCLE_FILLED",
+                          "height": 14,
+                          "width": 14,
+                          "accessibilityLabel": "Verificado"
+                        }
+                      },
+                      {
+                        "text": {
+                          "content": "Curso",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 5
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 5,
+                              "weightLabel": "FONT_WEIGHT_NORMAL"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "lockupContentMetadataRowExtension": {
+                      "contentType": "METADATA_ROW_CONTENT_TYPE_BYLINE"
+                    }
+                  },
+                  {
+                    "isSpacerRow": true
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Astronomia antes dos telescópios (Aula 1) · 26:39",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 51
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Telescópios: um histórico (Aula 2, parte 1) · 20:51",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 54
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Confira o curso completo",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 24
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 24,
+                              "weightLabel": "FONT_WEIGHT_MEDIUM"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "delimiter": " "
+              }
+            },
+            "menuButton": {
+              "buttonViewModel": {
+                "iconName": "MORE_VERT",
+                "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                "type": "BUTTON_VIEW_MODEL_TYPE_TEXT",
+                "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+              }
+            }
+          }
+        },
+        "contentId": "PLAudUnJeNg4sCipUkVJOe8hyN5E_mZqqs",
+        "contentType": "LOCKUP_CONTENT_TYPE_COURSE",
+        "rendererContext": {
+          "loggingContext": {},
+          "commandContext": {}
+        }
+      }
+    },
+    {
+      "lockupViewModel": {
+        "contentImage": {
+          "collectionThumbnailViewModel": {
+            "primaryThumbnail": {
+              "thumbnailViewModel": {
+                "image": {
+                  "sources": [
+                    {
+                      "url": "https://i.ytimg.com/vi/Mr97PrJZCag/hqdefault.jpg?sqp=-oaymwEXCOADEI4CSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLD9WEmRl9L1VbxbJYT6SNXnJnh44Q",
+                      "width": 480,
+                      "height": 270
+                    }
+                  ]
+                },
+                "overlays": [
+                  {
+                    "thumbnailOverlayBadgeViewModel": {
+                      "thumbnailBadges": [
+                        {
+                          "thumbnailBadgeViewModel": {
+                            "icon": {
+                              "sources": [
+                                {
+                                  "clientResource": {
+                                    "imageName": "PLAYLISTS"
+                                  }
+                                }
+                              ]
+                            },
+                            "text": "35 vídeos",
+                            "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                            "backgroundColor": {
+                              "lightTheme": 2435098,
+                              "darkTheme": 2435098
+                            }
+                          }
+                        }
+                      ],
+                      "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                    }
+                  },
+                  {
+                    "thumbnailHoverOverlayViewModel": {
+                      "icon": {
+                        "sources": [
+                          {
+                            "clientResource": {
+                              "imageName": "PLAY_ALL"
+                            }
+                          }
+                        ]
+                      },
+                      "text": {
+                        "content": "Reproduzir tudo",
+                        "styleRuns": [
+                          {
+                            "startIndex": 0,
+                            "length": 15
+                          }
+                        ]
+                      },
+                      "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+                    }
+                  }
+                ],
+                "backgroundColor": {
+                  "lightTheme": 3817257,
+                  "darkTheme": 3817257
+                }
+              }
+            },
+            "stackColor": {
+              "lightTheme": 11714437,
+              "darkTheme": 8752240
+            }
+          }
+        },
+        "metadata": {
+          "lockupMetadataViewModel": {
+            "title": {
+              "content": "Astronomia - Uma visão geral I"
+            },
+            "metadata": {
+              "contentMetadataViewModel": {
+                "metadataRows": [
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "UNIVESP",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 7
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 7,
+                              "weightLabel": "FONT_WEIGHT_NORMAL"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "content": "Playlist",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 8
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 8,
+                              "weightLabel": "FONT_WEIGHT_NORMAL"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "lockupContentMetadataRowExtension": {
+                      "contentType": "METADATA_ROW_CONTENT_TYPE_BYLINE"
+                    }
+                  },
+                  {
+                    "isSpacerRow": true
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Astronomia: Uma visão Geral I - Pgm 1 - Astronomia antes dos telescópios · 27:01",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 83
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Astronomia: Uma visão Geral I - Pgm 2 -Telescópios: um histórico - parte 1 · 24:54",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 86
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Ver playlist completa",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 21
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 21,
+                              "weightLabel": "FONT_WEIGHT_MEDIUM"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "AGA 0100 -- Astronomia: Uma Visão Geral  I\nProf. João Steiner\n\nDisciplina introdutória, destinada aos alunos do Bacharelado em Astronomia e também aos alunos do Bacharelado em Física, como optativa, visando proporcionar o primeiro contato com as diversas áreas da Astronomia. Os tópicos são oferecidos com destaque para as últimas descobertas e as questões ainda em aberto nesse campo de pesquisa. Para embasar a apresentação dos temas abordados, os conceitos básicos são vistos de forma introdutória. Nesta primeira parte da Visão Geral em Astronomia são vistos os tópicos referentes a : Instrumentação Astronômica, Sistema Solar e Exoplanetas e Estrelas. Os demais tópicos são abordados na segunda parte - Astronomia: Uma Visão Geral II.   \n\nBibliografia: \n- \"Voyages Through the Universe\", A. Fraknoi, D. Morrison & S. C. Wolff, Saunders College Publishers, 1997.\n - \"Astronomy: a Beginner's Guide to the Universe\", E. Chaisson & S. Mcmillan, Prentice Hall, 1998. \n- \"Astronomia: Uma Visão Geral do Universo\", A. Friaça, E. M. G. Dal Pino, L. Sodré Jr. & V. Jatenco-Pereira, EDUSP, 2003. \n- \"ABCD da Astronomia e Astrofísica\", J. E. Horvath, Livraria da Física, 2008. \n\nEMENTA\n\nTelescópios\nAstronomia antes dos telescópios \nTelescópios -- um histórico \nTelescópios modernos\nTelescópios no espaço\nEspectrógrafos e detectores\n                \nRadiação e estrutura do átomo\nA radiação eletromagnética\nAs leis da radiação \nO átomo de Bohr e as linhas espectrais\nO efeito Doppler\n\nO sistema solar\nO Sol: aspectos observacionais\nA estrutura interna do Sol                          \nOs planetas rochosos\nA Terra como planeta\nOs planetas gasosos\nLuas e anéis\nAsteroides\nCometas                             \n\nExoplanetas\nExoplanetas: métodos de busca                              \nExoplanetas: Estatísticas\nBio-astronomia\n\nBrilho e distância das estrelas\nEscala de magnitudes\nParalaxe trigonométrica e magnitudes absolutas\n\nClassificação espectral e diagrama HR\nClassificação espectral das estrelas\nO Diagrama HR\nDe onde vem a energia das estrelas?\nEstrelas: da adolescência à velhice \nEstrelas mortas: anãs brancas, estrelas de neutros e buracos negros    \n\nAglomerados e populações de estrelas\nAglomerados de estrelas\nPopulações de estrelas\n\nEstrelas binárias e variáveis\nEstrelas binárias \nEstrelas variáveis"
+                        },
+                        "maxLines": 2
+                      }
+                    ],
+                    "lockupContentMetadataRowExtension": {
+                      "contentType": "METADATA_ROW_CONTENT_TYPE_DESCRIPTION"
+                    }
+                  }
+                ],
+                "delimiter": " "
+              }
+            },
+            "menuButton": {
+              "buttonViewModel": {
+                "iconName": "MORE_VERT",
+                "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                "type": "BUTTON_VIEW_MODEL_TYPE_TEXT",
+                "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+              }
+            }
+          }
+        },
+        "contentId": "PLxI8Can9yAHd7kUPviBHxr-49QEl7PRXR",
+        "contentType": "LOCKUP_CONTENT_TYPE_PLAYLIST",
+        "rendererContext": {
+          "loggingContext": {},
+          "commandContext": {}
+        }
+      }
+    },
+    {
+      "lockupViewModel": {
+        "contentImage": {
+          "collectionThumbnailViewModel": {
+            "primaryThumbnail": {
+              "thumbnailViewModel": {
+                "image": {
+                  "sources": [
+                    {
+                      "url": "https://i.ytimg.com/vi/8c0oHpiFHUw/hq720.jpg?sqp=-oaymwEXCOgCEMoBSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLCauFEaOSosd42x4N7ohb5IRYcMyw",
+                      "width": 360,
+                      "height": 202
+                    },
+                    {
+                      "url": "https://i.ytimg.com/vi/8c0oHpiFHUw/hq720.jpg?sqp=-oaymwEXCNAFEJQDSFryq4qpAwkIARUAAIhCGAE=&rs=AOn4CLDqF4pKqVg0NJd-_OcuOdosoM7eVA",
+                      "width": 720,
+                      "height": 404
+                    }
+                  ]
+                },
+                "overlays": [
+                  {
+                    "thumbnailOverlayBadgeViewModel": {
+                      "thumbnailBadges": [
+                        {
+                          "thumbnailBadgeViewModel": {
+                            "icon": {
+                              "sources": [
+                                {
+                                  "clientResource": {
+                                    "imageName": "GRADUATION_CAP"
+                                  }
+                                }
+                              ]
+                            },
+                            "text": "31 lições",
+                            "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT",
+                            "backgroundColor": {
+                              "lightTheme": 2239027,
+                              "darkTheme": 2239027
+                            }
+                          }
+                        }
+                      ],
+                      "position": "THUMBNAIL_OVERLAY_BADGE_POSITION_BOTTOM_END"
+                    }
+                  },
+                  {
+                    "thumbnailHoverOverlayViewModel": {
+                      "icon": {
+                        "sources": [
+                          {
+                            "clientResource": {
+                              "imageName": "PLAY_ALL"
+                            }
+                          }
+                        ]
+                      },
+                      "text": {
+                        "content": "Reproduzir tudo",
+                        "styleRuns": [
+                          {
+                            "startIndex": 0,
+                            "length": 15
+                          }
+                        ]
+                      },
+                      "style": "THUMBNAIL_HOVER_OVERLAY_STYLE_COVER"
+                    }
+                  }
+                ],
+                "backgroundColor": {
+                  "lightTheme": 2831423,
+                  "darkTheme": 2831423
+                }
+              }
+            },
+            "stackColor": {
+              "lightTheme": 7045017,
+              "darkTheme": 7766931
+            }
+          }
+        },
+        "metadata": {
+          "lockupMetadataViewModel": {
+            "title": {
+              "content": "Astronomia e Astronáutica (antigo)"
+            },
+            "metadata": {
+              "contentMetadataViewModel": {
+                "metadataRows": [
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Astrofísica para Todos",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 22
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 22,
+                              "weightLabel": "FONT_WEIGHT_NORMAL"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "text": {
+                          "content": "Curso",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 5
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 5,
+                              "weightLabel": "FONT_WEIGHT_NORMAL"
+                            }
+                          ]
+                        }
+                      }
+                    ],
+                    "lockupContentMetadataRowExtension": {
+                      "contentType": "METADATA_ROW_CONTENT_TYPE_BYLINE"
+                    }
+                  },
+                  {
+                    "isSpacerRow": true
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Curso de Astronomia e Astronáutica · 1:08",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 43
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "01: Introdução à Astronomia · 30:33",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 39
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Confira o curso completo",
+                          "commandRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 24
+                            }
+                          ],
+                          "styleRuns": [
+                            {
+                              "startIndex": 0,
+                              "length": 24,
+                              "weightLabel": "FONT_WEIGHT_MEDIUM"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "metadataParts": [
+                      {
+                        "text": {
+                          "content": "Este curso já não está mais ativo.\nVocê ainda pode assistir às aulas, mas já não é mais possível se inscrever e receber certificados.\n\n----------------\n\nNo Curso de Astronomia e Astronáutica você terá uma introdução à Astronomia, Astrofísica e Astronáutica.\n\nO curso aborda todos os conteúdos da Olimpíada Brasileira de Astronomia e Astronáutica, níveis I e II, e boa parte dos conteúdos dos níveis III e IV.\n\n\n► Observação do céu e movimento das estrelas\n► Passagem do tempo\n► Coordenadas geográficas\n► Planetas e luas\n► Sol\n► Sistema Solar\n► Estrelas\n► Via Láctea\n► Galáxias\n► Big Bang\n► Aviões\n► Foguetes\n► Satélites\n► Ida e volta do homem à Lua\n► Exploração espacial do Sistema Solar\n► Programa espacial brasileiro\n► Missão Centenário\n\nQualquer pessoa, inclusive crianças, pode fazer o curso. Não é preciso nenhum tipo de pré-requisito.\n\nAcesse o site obtenha o material de apoio gratuitamente:\nhttp://astrofisica.ufsc.br/"
+                        },
+                        "maxLines": 2
+                      }
+                    ],
+                    "lockupContentMetadataRowExtension": {
+                      "contentType": "METADATA_ROW_CONTENT_TYPE_DESCRIPTION"
+                    }
+                  }
+                ],
+                "delimiter": " "
+              }
+            },
+            "menuButton": {
+              "buttonViewModel": {
+                "iconName": "MORE_VERT",
+                "style": "BUTTON_VIEW_MODEL_STYLE_MONO",
+                "type": "BUTTON_VIEW_MODEL_TYPE_TEXT",
+                "buttonSize": "BUTTON_VIEW_MODEL_SIZE_DEFAULT",
+                "state": "BUTTON_VIEW_MODEL_STATE_ACTIVE"
+              }
+            }
+          }
+        },
+        "contentId": "PL_my-TwWaWBixtv77UBLlrqSQ4_StZPs1",
+        "contentType": "LOCKUP_CONTENT_TYPE_COURSE",
+        "rendererContext": {
+          "loggingContext": {},
+          "commandContext": {}
+        }
+      }
+    },
+    {
+      "videoRenderer": {
+        "videoId": "_58KTOh-hec",
+        "thumbnail": {
+          "thumbnails": [
+            {
+              "url": "https://i.ytimg.com/vi/_58KTOh-hec/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAAAAGAElAADIQj0AgKJDeAG4AvMY&rs=AOn4CLBXXJ7wKIR8wQg7ZJXb3Y6vbWZ0GQ",
+              "width": 360,
+              "height": 202
+            },
+            {
+              "url": "https://i.ytimg.com/vi/_58KTOh-hec/hq720.jpg?sqp=-oaymwEbCNAFEJQDSFryq4qpAw0IARUAAIhCGAG4AvMY&rs=AOn4CLBLbitdbnk7KpH4W0uD8zYIxM-KMQ",
+              "width": 720,
+              "height": 404
+            }
+          ]
+        },
+        "title": {
+          "runs": [
+            {
+              "text": "1 Hora de Sergio Sacani Melhores Momentos - Tudo Sobre Astronomia"
+            }
+          ]
+        },
+        "longBylineText": {
+          "runs": [
+            {
+              "text": "Falatuh podcast",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UCDsSTDR60vaps6NP_g8-XRg",
+                  "canonicalBaseUrl": "/@falatuh.podcast"
+                }
+              }
+            }
+          ]
+        },
+        "lengthText": {
+          "simpleText": "1:05:34"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "_58KTOh-hec",
+            "params": "qgMKYXN0cm9ub21pYboDJBIiUExVQlI0czB3MmNHMWt5STJNREJKVjBKM0I1SHVKb0I3Z7oDJBIiUExBdWRVbkplTmc0c0NpcFVrVkpPZThoeU41RV9tWnFxc7oDCgiL7KXV-7e22HK6AwoI6oTd3KDsjeoIugMKCL6X_IHJ2oeudroDCwiX0ffZteONmfIBugMLCKrlqoyRgs-grAG6AwoIjNea2ozp2uUXugMLCOLeyoq73u6o4AG6AyQSIlBMeEk4Q2FuOXlBSGQ3a1VQdmlCSHhyLTQ5UUVsN1BSWFK6AwoI-5e2hKe5mrRUugMKCIvZkL7F8KejCroDCwiMq4vqgouFx5QBugMLCLGi55SmzaDW8AG6AwsIztbim6Sp3euHAboDJBIiUExfbXktVHdXYVdCaXh0djc3VUJMbHJxU1E0X1N0WlBzMboDCwi0sbf9_Pm_rvMBugMkEiJQTHRHbEQ2bExpWkZ6emtQVWZ0OVozZXZVa1p6SGkxaVNr8gMFDegQJz-CBAIYAQ%3D%3D",
+            "playerParams": "ygUKYXN0cm9ub21pYQ%3D%3D",
+            "watchEndpointSupportedOnesieConfig": {
+              "html5PlaybackOnesieConfig": {
+                "commonConfig": {
+                  "url": "https://rr4---sn-xhcg5uxa-jo4z.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=ff9f0a4ce87e85e7&ip=2804%3A58d8%3Ae01%3A13ab%3A0%3A0%3A0%3A1&initcwndbps=2279625&mt=1795597987&oweuc=&pxtags=Cg4KAnR4Egg1MTkyOTU2Ng&rxtags=Cg4KAnR4Egg1MTkyOTU2Ng%2CCg4KAnR4Egg1MTkyOTU2Nw%2CCg4KAnR4Egg1MTkyOTU2OA"
+                }
+              }
+            }
+          }
+        },
+        "shortBylineText": {
+          "runs": [
+            {
+              "text": "Falatuh podcast",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UCDsSTDR60vaps6NP_g8-XRg",
+                  "canonicalBaseUrl": "/@falatuh.podcast"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "videoRenderer": {
+        "videoId": "crDZv7qpdgs",
+        "thumbnail": {
+          "thumbnails": [
+            {
+              "url": "https://i.ytimg.com/vi/crDZv7qpdgs/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAAAAGAElAADIQj0AgKJDeAG4AvMY&rs=AOn4CLCiEKxQaPinC4u8VSfkggfnhCdloQ",
+              "width": 360,
+              "height": 202
+            },
+            {
+              "url": "https://i.ytimg.com/vi/crDZv7qpdgs/hq720.jpg?sqp=-oaymwEbCNAFEJQDSFryq4qpAw0IARUAAIhCGAG4AvMY&rs=AOn4CLCMV5peCHt4XtWiytx0nDoOh7YP7Q",
+              "width": 720,
+              "height": 404
+            }
+          ]
+        },
+        "title": {
+          "runs": [
+            {
+              "text": "UMA VIAGEM INCRÍVEL PELA VIA LÁCTEA | DOCUMENTARIO 2025"
+            }
+          ]
+        },
+        "longBylineText": {
+          "runs": [
+            {
+              "text": "Horizonte de Eventos",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UCOF4dAOdQWZ4e49ATDcjRHA",
+                  "canonicalBaseUrl": "/@HorizonttedeEventoss"
+                }
+              }
+            }
+          ]
+        },
+        "lengthText": {
+          "simpleText": "1:24:41"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "crDZv7qpdgs",
+            "params": "qgMKYXN0cm9ub21pYboDJBIiUExVQlI0czB3MmNHMWt5STJNREJKVjBKM0I1SHVKb0I3Z7oDCwjni_rDzsnCz_8BugMkEiJQTEF1ZFVuSmVOZzRzQ2lwVWtWSk9lOGh5TjVFX21acXFzugMKCOqE3dyg7I3qCLoDCgi-l_yBydqHrna6AwsIl9H32bXjjZnyAboDCwiq5aqMkYLPoKwBugMKCIzXmtqM6drlF7oDCwji3sqKu97uqOABugMkEiJQTHhJOENhbjl5QUhkN2tVUHZpQkh4ci00OVFFbDdQUlhSugMKCPuXtoSnuZq0VLoDCgiL2ZC-xfCnowq6AwsIjKuL6oKLhceUAboDCwixoueUps2g1vABugMLCM7W4pukqd3rhwG6AyQSIlBMX215LVR3V2FXQml4dHY3N1VCTGxycVNRNF9TdFpQczG6AwsItLG3_fz5v67zAboDJBIiUEx0R2xENmxMaVpGenprUFVmdDlaM2V2VWtaekhpMWlTa_IDBQ3oECc_ggQCGAE%3D",
+            "playerParams": "ygUKYXN0cm9ub21pYQ%3D%3D",
+            "watchEndpointSupportedOnesieConfig": {
+              "html5PlaybackOnesieConfig": {
+                "commonConfig": {
+                  "url": "https://rr3---sn-xhcg5uxa-jo4s.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=72b0d9bfbaa9760b&ip=2804%3A58d8%3Ae01%3A13ab%3A0%3A0%3A0%3A1&initcwndbps=2279625&mt=1795597987&oweuc=&pxtags=Cg4KAnR4Egg1MTkyOTU2Ng&rxtags=Cg4KAnR4Egg1MTkyOTU2Ng%2CCg4KAnR4Egg1MTkyOTU2Nw%2CCg4KAnR4Egg1MTkyOTU2OA"
+                }
+              }
+            }
+          }
+        },
+        "shortBylineText": {
+          "runs": [
+            {
+              "text": "Horizonte de Eventos",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UCOF4dAOdQWZ4e49ATDcjRHA",
+                  "canonicalBaseUrl": "/@HorizonttedeEventoss"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "videoRenderer": {
+        "videoId": "CNQ3YguXQmo",
+        "thumbnail": {
+          "thumbnails": [
+            {
+              "url": "https://i.ytimg.com/vi/CNQ3YguXQmo/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAAAAGAElAADIQj0AgKJDeAG4AvMY&rs=AOn4CLB37-LAUbonNBz5cXk6TT_jhE0xFQ",
+              "width": 360,
+              "height": 202
+            },
+            {
+              "url": "https://i.ytimg.com/vi/CNQ3YguXQmo/hq720.jpg?sqp=-oaymwEbCNAFEJQDSFryq4qpAw0IARUAAIhCGAG4AvMY&rs=AOn4CLDzFUJkPri0165xt5pmorjOq7aCSg",
+              "width": 720,
+              "height": 404
+            }
+          ]
+        },
+        "title": {
+          "runs": [
+            {
+              "text": "ONDAS GRAVITACIONAIS: A DESCOBERTA QUE MUDOU A ASTRONOMIA 🌌 #Astronomia #Espaço #Ciência"
+            }
+          ]
+        },
+        "longBylineText": {
+          "runs": [
+            {
+              "text": "ASTROHUB",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UC0p20cAZ6l4LwhTWvW1eRMw",
+                  "canonicalBaseUrl": "/@yt.astrohub"
+                }
+              }
+            }
+          ]
+        },
+        "lengthText": {
+          "simpleText": "1:32:36"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "CNQ3YguXQmo",
+            "params": "qgMKYXN0cm9ub21pYboDJBIiUExVQlI0czB3MmNHMWt5STJNREJKVjBKM0I1SHVKb0I3Z7oDCwjni_rDzsnCz_8BugMkEiJQTEF1ZFVuSmVOZzRzQ2lwVWtWSk9lOGh5TjVFX21acXFzugMKCIvspdX7t7bYcroDCgi-l_yBydqHrna6AwsIl9H32bXjjZnyAboDCwiq5aqMkYLPoKwBugMKCIzXmtqM6drlF7oDCwji3sqKu97uqOABugMkEiJQTHhJOENhbjl5QUhkN2tVUHZpQkh4ci00OVFFbDdQUlhSugMKCPuXtoSnuZq0VLoDCgiL2ZC-xfCnowq6AwsIjKuL6oKLhceUAboDCwixoueUps2g1vABugMLCM7W4pukqd3rhwG6AyQSIlBMX215LVR3V2FXQml4dHY3N1VCTGxycVNRNF9TdFpQczG6AwsItLG3_fz5v67zAboDJBIiUEx0R2xENmxMaVpGenprUFVmdDlaM2V2VWtaekhpMWlTa_IDBQ3oECc_ggQCGAE%3D",
+            "playerParams": "ygUKYXN0cm9ub21pYQ%3D%3D",
+            "watchEndpointSupportedOnesieConfig": {
+              "html5PlaybackOnesieConfig": {
+                "commonConfig": {
+                  "url": "https://rr1---sn-xhcg5uxa-jo46.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=08d437620b97426a&ip=2804%3A58d8%3Ae01%3A13ab%3A0%3A0%3A0%3A1&initcwndbps=2279625&mt=1795598003&oweuc=&pxtags=Cg4KAnR4Egg1MTkyOTU2Ng&rxtags=Cg4KAnR4Egg1MTkyOTU2Ng%2CCg4KAnR4Egg1MTkyOTU2Nw%2CCg4KAnR4Egg1MTkyOTU2OA"
+                }
+              }
+            }
+          }
+        },
+        "shortBylineText": {
+          "runs": [
+            {
+              "text": "ASTROHUB",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UC0p20cAZ6l4LwhTWvW1eRMw",
+                  "canonicalBaseUrl": "/@yt.astrohub"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "videoRenderer": {
+        "videoId": "dlwe1JA_C74",
+        "thumbnail": {
+          "thumbnails": [
+            {
+              "url": "https://i.ytimg.com/vi/dlwe1JA_C74/hq720.jpg?sqp=-oaymwEnCOgCEMoBSFryq4qpAxkIARUAAAAAGAElAADIQj0AgKJDeAG4AvMY&rs=AOn4CLAVLDLAhP5PblMCIrV3i03Nbw6BeQ",
+              "width": 360,
+              "height": 202
+            },
+            {
+              "url": "https://i.ytimg.com/vi/dlwe1JA_C74/hq720.jpg?sqp=-oaymwEbCNAFEJQDSFryq4qpAw0IARUAAIhCGAG4AvMY&rs=AOn4CLALsV1fUFVeDCKsgPNOeOvsoJLLwg",
+              "width": 720,
+              "height": 404
+            }
+          ]
+        },
+        "title": {
+          "runs": [
+            {
+              "text": "TODA A ASTRONOMIA Explicada em 14 minutos"
+            }
+          ]
+        },
+        "longBylineText": {
+          "runs": [
+            {
+              "text": "Ciência Mapeada",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UCUchos83q8hTGppX3fV5ppw",
+                  "canonicalBaseUrl": "/@cienciamapeada"
+                }
+              }
+            }
+          ]
+        },
+        "lengthText": {
+          "simpleText": "14:46"
+        },
+        "navigationEndpoint": {
+          "watchEndpoint": {
+            "videoId": "dlwe1JA_C74",
+            "params": "qgMKYXN0cm9ub21pYboDJBIiUExVQlI0czB3MmNHMWt5STJNREJKVjBKM0I1SHVKb0I3Z7oDCwjni_rDzsnCz_8BugMkEiJQTEF1ZFVuSmVOZzRzQ2lwVWtWSk9lOGh5TjVFX21acXFzugMKCIvspdX7t7bYcroDCgjqhN3coOyN6gi6AwsIl9H32bXjjZnyAboDCwiq5aqMkYLPoKwBugMKCIzXmtqM6drlF7oDCwji3sqKu97uqOABugMkEiJQTHhJOENhbjl5QUhkN2tVUHZpQkh4ci00OVFFbDdQUlhSugMKCPuXtoSnuZq0VLoDCgiL2ZC-xfCnowq6AwsIjKuL6oKLhceUAboDCwixoueUps2g1vABugMLCM7W4pukqd3rhwG6AyQSIlBMX215LVR3V2FXQml4dHY3N1VCTGxycVNRNF9TdFpQczG6AwsItLG3_fz5v67zAboDJBIiUEx0R2xENmxMaVpGenprUFVmdDlaM2V2VWtaekhpMWlTa-oDAhAB8gMFDegQJz-CBAIYAQ%3D%3D",
+            "playerParams": "ygUKYXN0cm9ub21pYQ%3D%3D",
+            "watchEndpointSupportedOnesieConfig": {
+              "html5PlaybackOnesieConfig": {
+                "commonConfig": {
+                  "url": "https://rr3---sn-xhcg5uxa-jo4s.googlevideo.com/initplayback?source=youtube&oeis=1&c=WEB&oad=3200&ovd=3200&oaad=11000&oavd=11000&ocs=700&oewis=1&oputc=1&epbp=1&msp=1&odepv=1&id=765c1ed4903f0bbe&ip=2804%3A58d8%3Ae01%3A13ab%3A0%3A0%3A0%3A1&initcwndbps=2279625&mt=1795598003&oweuc=&pxtags=Cg4KAnR4Egg1MTkyOTU2Ng&rxtags=Cg4KAnR4Egg1MTkyOTU2Ng%2CCg4KAnR4Egg1MTkyOTU2Nw%2CCg4KAnR4Egg1MTkyOTU2OA"
+                }
+              }
+            }
+          }
+        },
+        "shortBylineText": {
+          "runs": [
+            {
+              "text": "Ciência Mapeada",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UCUchos83q8hTGppX3fV5ppw",
+                  "canonicalBaseUrl": "/@cienciamapeada"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "channelRenderer": {
+        "channelId": "UCfOj-wa2wA7aI0UjZYeBgHg",
+        "title": {
+          "simpleText": "Astronomia Para Todos - IAG / USP"
+        },
+        "navigationEndpoint": {
+          "browseEndpoint": {
+            "browseId": "UCfOj-wa2wA7aI0UjZYeBgHg",
+            "canonicalBaseUrl": "/@AstronomiaParaTodos"
+          }
+        },
+        "thumbnail": {
+          "thumbnails": [
+            {
+              "url": "//yt3.ggpht.com/F-rJ4uE-RRN89hJBeDk2q3J5x9WhdDajURYjFl45sfetBa4Iyg74NnOYZ37YtbRYSq4cIf53vA=s88-c-k-c0x00ffffff-no-rj-mo",
+              "width": 88,
+              "height": 88
+            },
+            {
+              "url": "//yt3.ggpht.com/F-rJ4uE-RRN89hJBeDk2q3J5x9WhdDajURYjFl45sfetBa4Iyg74NnOYZ37YtbRYSq4cIf53vA=s176-c-k-c0x00ffffff-no-rj-mo",
+              "width": 176,
+              "height": 176
+            }
+          ]
+        },
+        "shortBylineText": {
+          "runs": [
+            {
+              "text": "Astronomia Para Todos - IAG / USP",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UCfOj-wa2wA7aI0UjZYeBgHg",
+                  "canonicalBaseUrl": "/@AstronomiaParaTodos"
+                }
+              }
+            }
+          ]
+        },
+        "longBylineText": {
+          "runs": [
+            {
+              "text": "Astronomia Para Todos - IAG / USP",
+              "navigationEndpoint": {
+                "browseEndpoint": {
+                  "browseId": "UCfOj-wa2wA7aI0UjZYeBgHg",
+                  "canonicalBaseUrl": "/@AstronomiaParaTodos"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

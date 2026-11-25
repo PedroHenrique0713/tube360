@@ -1,0 +1,177 @@
+[
+  {
+    "label": {
+      "simpleText": "Vídeos"
+    },
+    "status": "",
+    "params": "CAISAhAB"
+  },
+  {
+    "label": {
+      "simpleText": "Shorts"
+    },
+    "status": "",
+    "params": "CAISAhAJ"
+  },
+  {
+    "label": {
+      "simpleText": "Canais"
+    },
+    "status": "",
+    "params": "CAISAhAC"
+  },
+  {
+    "label": {
+      "simpleText": "Playlists"
+    },
+    "status": "",
+    "params": "CAISAhAD"
+  },
+  {
+    "label": {
+      "simpleText": "Filmes"
+    },
+    "status": "",
+    "params": "CAISAhAE"
+  },
+  {
+    "label": {
+      "simpleText": "Menos de 3 minutos"
+    },
+    "status": "",
+    "params": "CAISAhgE"
+  },
+  {
+    "label": {
+      "simpleText": "De 3 a 20 minutos"
+    },
+    "status": "",
+    "params": "CAISAhgF"
+  },
+  {
+    "label": {
+      "simpleText": "Com mais de 20 minutos"
+    },
+    "status": "",
+    "params": "CAISAhgC"
+  },
+  {
+    "label": {
+      "simpleText": "Hoje"
+    },
+    "status": "",
+    "params": "CAISAggC"
+  },
+  {
+    "label": {
+      "simpleText": "Esta semana"
+    },
+    "status": "",
+    "params": "CAISAggD"
+  },
+  {
+    "label": {
+      "simpleText": "Este mês"
+    },
+    "status": "",
+    "params": "CAISAggE"
+  },
+  {
+    "label": {
+      "simpleText": "Este ano"
+    },
+    "status": "",
+    "params": "CAISAggF"
+  },
+  {
+    "label": {
+      "simpleText": "Ao vivo"
+    },
+    "status": "",
+    "params": "CAISAkAB"
+  },
+  {
+    "label": {
+      "simpleText": "4K"
+    },
+    "status": "",
+    "params": "CAISAnAB"
+  },
+  {
+    "label": {
+      "simpleText": "Alta Definição‎‏‎‎‏‎"
+    },
+    "status": "",
+    "params": "CAISAiAB"
+  },
+  {
+    "label": {
+      "simpleText": "Legendas/CC"
+    },
+    "status": "",
+    "params": "CAISAigB"
+  },
+  {
+    "label": {
+      "simpleText": "Creative Commons"
+    },
+    "status": "",
+    "params": "CAISAjAB"
+  },
+  {
+    "label": {
+      "simpleText": "360°"
+    },
+    "status": "",
+    "params": "CAISAngB"
+  },
+  {
+    "label": {
+      "simpleText": "VR180"
+    },
+    "status": "",
+    "params": "CAISA9ABAQ%3D%3D"
+  },
+  {
+    "label": {
+      "simpleText": "3D"
+    },
+    "status": "",
+    "params": "CAISAjgB"
+  },
+  {
+    "label": {
+      "simpleText": "HDR"
+    },
+    "status": "",
+    "params": "CAISA8gBAQ%3D%3D"
+  },
+  {
+    "label": {
+      "simpleText": "Local"
+    },
+    "status": "",
+    "params": "CAISA7gBAQ%3D%3D"
+  },
+  {
+    "label": {
+      "simpleText": "Comprado"
+    },
+    "status": "",
+    "params": "CAISAkgB"
+  },
+  {
+    "label": {
+      "simpleText": "Relevância"
+    },
+    "status": "",
+    "params": "CAA%3D"
+  },
+  {
+    "label": {
+      "simpleText": "Popularidade"
+    },
+    "status": "",
+    "params": "CAM%3D"
+  }
+]

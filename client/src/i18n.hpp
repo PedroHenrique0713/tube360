@@ -134,6 +134,28 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(AccountPrefix, "Account: ", "Conta: ", "Cuenta: ") \
   X(SearchPrompt, "What do you want to watch?", "O que você quer assistir?", "¿Qué quieres ver?") \
   X(RecentSearches, "Recent searches", "Buscas recentes", "Búsquedas recientes") \
+  X(SearchSuggestions, "Suggestions", "Sugestões", "Sugerencias") \
+  X(SearchRecentTag, "Recent", "Recente", "Reciente") \
+  X(SearchFilters, "Filters", "Filtros", "Filtros") \
+  X(SearchType, "Result type", "Tipo de resultado", "Tipo de resultado") \
+  X(SearchDuration, "Duration", "Duração", "Duración") \
+  X(SearchDate, "Upload date", "Data de envio", "Fecha de subida") \
+  X(SearchOrder, "Sort by", "Ordenar por", "Ordenar por") \
+  X(SearchShort, "Short · under 3 min", "Curta · menos de 3 min", "Corta · menos de 3 min") \
+  X(SearchMedium, "Medium · 3–20 min", "Média · 3–20 min", "Media · 3–20 min") \
+  X(SearchLong, "Long · over 20 min", "Longa · mais de 20 min", "Larga · más de 20 min") \
+  X(SearchShortLabel, "Short", "Curta", "Corta") \
+  X(SearchMediumLabel, "Medium", "Média", "Media") \
+  X(SearchLongLabel, "Long", "Longa", "Larga") \
+  X(SearchToday, "Today", "Hoje", "Hoy") \
+  X(SearchWeek, "This week", "Esta semana", "Esta semana") \
+  X(SearchMonth, "This month", "Este mês", "Este mes") \
+  X(SearchYear, "This year", "Este ano", "Este año") \
+  X(SearchRelevance, "Relevance", "Relevância", "Relevancia") \
+  X(SearchViews, "View count", "Visualizações", "Visualizaciones") \
+  X(SearchApply, "Apply", "Aplicar", "Aplicar") \
+  X(SearchClear, "Clear filters", "Limpar filtros", "Borrar filtros") \
+  X(SearchAny, "Any", "Qualquer", "Cualquiera") \
   X(RecentEmpty, "Your searches will appear here.", "O que você buscar aparece aqui.", "Tus búsquedas aparecerán aquí.") \
   X(Type, "Type", "Digitar", "Escribir") \
   X(Delete, "Delete", "Apagar", "Borrar") \

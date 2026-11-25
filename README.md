@@ -35,6 +35,8 @@ SponsorBlock offers Off, Skip button (default) and automatic skipping. Y skips a
 
 Arabic uses contextual shaping and bidi, with Noto fonts loaded when needed in any language. RB switches the Arabic search keyboard to Latin. [Arabic support and review limits](docs/ARABIC.md).
 
+Search now offers suggestions while typing and LB opens type, duration, upload-date period and relevance/view-count ordering filters. Recent searches share the suggestion list; channel and playlist results open their pages. [Controls and verification](docs/SEARCH.md).
+
 ## Highlights
 
 | | |
@@ -185,6 +187,8 @@ Button prompts use the Xbox One / Series style (Menu / View are Start / Back on 
 | | Menu | Card actions: channel, Watch later or radio |
 | | B | Back one page |
 | Search keyboard | A · X · Y · Menu | Type · Delete · Space · Search |
+| Search / results | LB | Filters; A applies, B discards changes |
+| Search keyboard | Right past the last key · Up / Down · A | Suggestions and recent searches · Choose · Search now |
 | Player | A / Menu | Pause / resume (A activates the focused option when a panel is open) |
 | | Direction with hidden bar | Reveal timeline |
 | | Left / Right on timeline | −10 s / +10 s |
@@ -313,7 +317,7 @@ tools/           builds, packaging and optional service installation
 - [ ] Automatic speaker discovery, and Nest sound during live streams
 - [ ] Your own YouTube Music recommendations with a Premium account
 - [x] SponsorBlock: a Skip button or automatic skip, your choice
-- [ ] Search filters and suggestions
+- [x] Search filters and suggestions (Xbox acceptance pending)
 - [ ] Watch later and resume without an account
 
 Comments, estimated dislike counts, playback speed, repeat, CRT support, large text, Spanish and signed updates are included in v0.3.0. [CHANGELOG.md](CHANGELOG.md) records the delivery.
