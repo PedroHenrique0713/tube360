@@ -36,7 +36,7 @@ const settle = p => p.waitForFunction(() => !window.gsap?.isTweening('.hero-intr
    await page.keyboard.press('F2'); assert.equal(await page.getAttribute('#tv', 'data-state'), 'dialog');
    await page.keyboard.press('ArrowRight'); await page.keyboard.press('Escape');
    await page.locator('#search-filters').click();
-   assert.ok((await page.locator('[data-filter=type] strong').textContent()).match(/Any|Qualquer/));
+   assert.ok((await page.locator('[data-filter=type] strong').textContent()).match(/All|Tudo/));
    await page.keyboard.press('ArrowRight'); // Video
    await page.keyboard.press('ArrowDown'); await page.keyboard.press('ArrowRight'); // under 3 min
    await shot('filters');
@@ -48,12 +48,12 @@ const settle = p => p.waitForFunction(() => !window.gsap?.isTweening('.hero-intr
    await page.locator('#video-grid .video-card').nth(2).focus(); await page.keyboard.press('s');
    await shot('card-menu'); await page.locator('#dialog-actions button').nth(1).click();
    await page.locator('.sidebar-icon[data-page=library]').click();
-   await page.locator('#browse-content > .browse-button').first().click();
+   await page.locator('#browse-content .library-card').first().click();
    assert.ok((await page.locator('#browse-title').textContent()).includes('console'));
    assert.equal(await page.locator('#browse-content .video-card').count(), 2); await shot('later');
    await page.keyboard.press('Escape');
    await page.locator('.sidebar-icon[data-page=library]').click();
-   await page.locator('#browse-content > .browse-button').nth(1).click();
+   await page.locator('#browse-content .library-card').nth(1).click();
    await page.locator('#browse-content .video-card').first().click();
    assert.equal(await page.getAttribute('#tv', 'data-state'), 'dialog'); await shot('resume');
    // Modal focus stays inside the dialog, and B returns without playing.
@@ -72,7 +72,7 @@ const settle = p => p.waitForFunction(() => !window.gsap?.isTweening('.hero-intr
    await page.keyboard.press('y'); assert.ok(Number(await page.inputValue('#player-progress')) > before);
    await page.keyboard.press('y'); assert.equal(await page.getAttribute('#tv', 'data-state'), 'player-panel');
    const quality = await page.locator('#player-panel .panel-choice').allTextContents();
-   for (const value of ['1080p30', '480p', '360p', '240p', '144p']) assert.ok(quality.includes(value));
+   for (const value of ['1080p30', '480p', '360p', '240p', '144p']) assert.ok(quality.some(label => label.replace(/[ ·]/g, '').includes(value)));
    const qualityBox = await page.locator('#player-panel').boundingBox(), tvBox = await page.locator('#tv').boundingBox();
    assert.ok(qualityBox.x >= tvBox.x && qualityBox.x + qualityBox.width <= tvBox.x + tvBox.width + 1, JSON.stringify({ qualityBox, tvBox }));
    await shot('quality'); await page.locator('#player-panel .panel-choice').nth(2).click();
@@ -81,14 +81,14 @@ const settle = p => p.waitForFunction(() => !window.gsap?.isTweening('.hero-intr
    // Current Music shortcut artwork and channel Shorts navigation.
    await page.locator('.sidebar-icon[data-page=music]').click();
    assert.equal(await page.locator('.music-shortcut').count(), 3); await shot('music');
-   for (const name of ['clock', 'list', 'heart']) assert.equal(await page.locator(`.music-shortcut use[href="#i-${name}"]`).count(), 1);
+   assert.equal(await page.locator('.music-shortcut svg[viewBox="0 0 110 110"]').count(), 3);
    await page.locator('.music-shortcut').first().click(); assert.equal(await page.locator('.browse-grid .video-card').count(), 4);
    await page.locator('.sidebar-icon[data-page=subscriptions]').click(); await page.locator('.channel-avatar').first().click();
    await page.locator('.browse-tabs button').nth(1).click(); assert.equal(await page.locator('.browse-tabs button').nth(1).getAttribute('aria-pressed'), 'true');
    assert.equal(await page.locator('.shorts-grid .video-card').count(), 4); await shot('shorts');
    await page.keyboard.press('Escape');
    // Automatic skip and undo, selected through Settings, use the same synthetic marks.
-   await page.locator('.sidebar-icon[data-page=settings]').click(); await page.locator('.settings-row').nth(7).click();
+   await page.locator('.sidebar-icon[data-page=settings]').click(); await page.locator('#browse-content .settings-row').nth(15).click();
    await page.locator('#dialog-actions button').nth(2).click(); await page.keyboard.press('Escape');
    await page.locator('#video-grid .video-card').first().click();
    if (await page.getAttribute('#tv', 'data-state') === 'dialog') await page.locator('#dialog-actions button').nth(1).click();
