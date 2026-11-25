@@ -158,7 +158,39 @@ This uses the SDK's normal sink, including the existing optional `net_log.txt` U
 is reserved for errors and can be empty on a successful start; neither XBDM nor `boot-crt.log` is needed to
 see the normal board/path summary. The override file and raw hardware flags are never inferred from the exploit.
 
-### Changing Settings during use
+### Isolated Corona 480i/component contract
+
+This branch accepts a **limited** `board-sim.txt` beside the XEX, read once before GPU setup:
+
+```ini
+board=corona
+driver=native
+mode=480i
+cable=component
+```
+
+Repeat with `driver=safe` in a separate temporary folder. This models Tupapa2712's **Slim Corona**,
+RGH, component CRT combination. Corona E is a different connector profile: `board=corona-e` with
+component is rejected. The four supported keys are `board`, `driver`, `mode`, `cable`; duplicate,
+unknown, malformed or oversized input selects conservative safe mode without SD injection.
+This is the common display subset of F38's simulation format; F38's fault/memory/delay fields and
+environment overrides are not implemented here. Do not copy its full configuration into this branch.
+
+An explicit simulation driver takes precedence over `video-driver.txt`; removing `board-sim.txt`
+restores real board detection and the existing family default. The log records real flags/model in
+`video.board` separately from `board.sim ... profile=corona ... mode=480i cable=component simulated=1`.
+`board.sim.file` brackets the file read before any GPU access. Simulation changes policy/aspect and
+selects the kernel SD framebuffer path in **both native and safe**. It still reads the actual kernel
+viewport and preserves the physical signal/scaler. It cannot make an HDMI-connected 360 E emit a
+component 480i signal. Desktop captures model 640×480 layout; hardware-boundary tests use the actual
+prepared SDK/Vulkan pipeline. Physical interlaced output still needs the right console/cable/CRT.
+
+For both drivers, require matching surface/swapchain/present viewport, completed first show before
+IRQ registration, no custom scaler writes, and fixed SD output when changing output settings. The
+integration must retain the SD viewport correction even if F38 previously rejected safe 480i as an
+inherited-viewport error. See `tests/reddit/README.md` for the positive cases and calibration mutant.
+
+### Settings resource changes
 
 In safe mode or a dashboard SD/interlaced mode, output-size requests save the preference but **do not touch** the current surface, swapchain,
 framebuffers, pipelines or font atlas. A localized help message explains that the current output is fixed.

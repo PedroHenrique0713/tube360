@@ -29,7 +29,7 @@
 |---|---|
 | 🎮 **100% on Xbox, no Xbox Live** | Install, browse and watch on the console itself. No running PC, Xbox Live login or Xbox Live subscription required. |
 | 👤 **Your account on the TV** | Sign in with a TV code; recommendations, subscriptions, history/resume, Watch later, account playlists, likes and dislikes. Tokens stay on the console. |
-| 🎞️ **Playback and audio choices** | Automatic, 720p60 and 1080p30 source profiles; 480/720p/1080p output; original audio by default, with offered dubbed tracks selectable in the player. Actual resolution and frame rate adapt to the source, network and console load. |
+| 🎞️ **Playback and audio choices** | Adaptive Automatic, 720p60 and 1080p30 profiles, plus fixed 480p/360p/240p/144p sources. Settings and the player's Y menu offer available H.264 qualities during playback; manual choices warn under load and keep their source. 480/720p/1080p output and original/dubbed audio are separate choices. |
 | 🔴 **Captions and live** | VOD caption selection, seeking, live-edge action and autoplay. Live captions are not supported yet. |
 | 🔊 **Google Nest / Google Cast speaker** | The console sends the selected YouTube audio URL directly to the speaker and follows its clock. No PC or Bluetooth pairing needed. Direct live streams currently use TV sound. |
 | 📱 **Official YouTube phone app** | Pair with a TV code or find Tube360 on the local network. Play, pause, seek, volume and queues use the native Xbox receiver. |
@@ -82,7 +82,7 @@
 
 Your Xbox 360 can still be the living-room TV. Tube360 brings your account, controller, live streams close to the live edge, original audio and a Cast speaker into one app. Launch its own title in Aurora and watch without keeping another computer on or signing in to Xbox Live.
 
-720p60 and 1080p profiles give you more choices; actual frame rate and resolution depend on the video, network and console load. The app can lower quality to keep playing. The YouTube integration is unofficial and may change.
+720p60 and 1080p profiles give you more choices; actual frame rate and resolution depend on the video, network and console load. These adaptive profiles can lower quality to keep playing. Fixed 480p/360p/240p/144p choices retain their source and show a warning if it struggles. The YouTube integration is unofficial and may change.
 
 ## How it works
 
@@ -96,6 +96,8 @@ flowchart LR
 ```
 
 The normal path is native H.264/AAC playback. Automatic prefers detail up to 1080p, while the 720p60 profile favors frame rate and 1080p30 limits source selection to 30 fps. A profile is a preference, not a guarantee of sustained 60 fps: the player can reduce presentation to 30 fps and choose a lighter direct rendition before trying a configured PC reserve. 720p30 is the console target; performance still needs checking on your console and content.
+
+Choose fixed 480p, 360p, 240p or 144p in Settings or press Y during video playback to open Quality. The video menu lists only direct H.264/AAC choices offered by that video. Manual selection keeps the exact source height, position and pause state; sustained pressure shows a message instead of changing quality or using a PC reserve. An unavailable saved quality reports an error and Y opens the available choices. Return to Automatic to resume the adaptive ladder. Without an active video, Settings saves a default from all seven choices.
 
 MPEG-1 + MP2 is the compatibility path supplied by the optional server, up to 720p30. The older slice-parallel pl_mpeg decoder remains for that path. It is no longer the main YouTube playback route. [Architecture and qualification](docs/STANDALONE.md) · [Optional server protocol](docs/PROTOCOL.md)
 
@@ -173,7 +175,7 @@ Button prompts use the Xbox One / Series style (Menu / View are Start / Back on 
 | | Down from timeline · Up from icon row | Options below the timeline · Return to timeline |
 | | Left / Right, then A | Select / activate an icon: captions, quality, sound, timer, audio, like, dislike, channel or live edge |
 | | LB / RB | −1 min / +1 min |
-| | Y · X | Toggle quality · TV / speaker sound |
+| | Y · X | Open Quality menu · TV / speaker sound |
 | | LT / RT | Hold to rewind / fast-forward; accelerates, release to seek |
 | | B | Close one level at a time, then leave the video |
 | | View | Return to browsing |
@@ -188,7 +190,7 @@ Use Settings on the TV; values are saved beside the XEX in `settings.txt`. The p
 
 | File | Purpose |
 |---|---|
-| `settings.txt` | `lang=en\|pt\|es`, `cols=3\|4`, `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `video_mode=auto\|720p60\|1080p30`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, captions and timer target. |
+| `settings.txt` | `lang=en\|pt\|es`, `cols=3\|4`, legacy `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, captions and timer target. |
 | `nest.txt` | Speaker host and optional port on line 1; display name on line 2. |
 | `server.txt` | Optional reserve PC IP and port on the first line, e.g. `192.0.2.10 8091`. Without it, console only. `server=off` also disables the reserve when the address is present. |
 | `marca.txt` | Optional custom name on line 1 and `retangulo` on line 2. |

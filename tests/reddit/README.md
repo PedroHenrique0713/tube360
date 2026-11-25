@@ -12,6 +12,88 @@ python3 tests/reddit/tls.py client/build/reddit-tls-probe
 python3 tests/reddit/ui.py .work/f32/ui
 ```
 
+## Adendo 6 — qualidade manual e Corona 480i/componente
+
+```bash
+cmake --build client/build -j2 --target tube360 tube360-quality-fixture manual-quality-test display-layout-test
+client/build/manual-quality-test .work/f32/item14/contracts
+client/build/display-layout-test bench
+python3 tests/reddit/manual_quality.py .work/f32/item14/manual .work/f32/media sources
+python3 tests/reddit/manual_quality.py .work/f32/item14/manual .work/f32/media ui
+python3 tests/reddit/manual_quality.py .work/f32/item14/manual .work/f32/media warnings
+python3 tests/reddit/manual_quality.py .work/f32/item14/manual .work/f32/media automatic
+python3 tests/reddit/board_sim.py .work/f32/item14/board
+python3 tests/reddit/video_driver.py .work/f32/item14/driver \
+  --source-sdk "$F32_ORIGINAL_XSDK" --source-v4x "$F32_ORIGINAL_V4X"
+```
+
+Os grupos `sources/ui/warnings/automatic` usam a mesma mídia sintética preparada
+pelo primeiro grupo; sem argumentos de grupo o runner executa os quatro. São 24
+capturas do app, controle, decoder FFmpeg e Vulkan reais: fonte exata nas quatro
+resoluções; Configurações/menu pt/en/es em HD e SD; menu esparso contendo somente
+Automático/480/144 (240 em VP9 fica fora); troca 480→144 preservando pausa/posição;
+aviso de pressão e erro de qualidade ausente nas três línguas; falha da fonte
+sem troca/reserva; volta a Automático que reativa 1080→720. Os três perfis antigos
+continuam adaptativos; os quatro novos são fixos. O teste C++ cobre parser real,
+persistência dos sete IDs, AVC sem AAC e HLS fixo, consumindo a variante escolhida.
+HLS não tem prova completa de playback nesta rodada. Nenhum pedido ao YouTube.
+
+`board_sim.py` cobre dez casos do parser e o app real 640×480, inclusive três
+mudanças de saída ignoradas, com `board=corona`, `mode=480i`, `cable=component`
+em **native e safe**. `video_driver.py` acrescenta quatro casos do pipeline real
+preparado SDK/Vulkan: cada driver com sinal informado HD e com sinal 480i, mantendo
+viewport real 640×480. Exige surface=swapchain=present, dois buffers, primeiro show
+antes da única IRQ e zero escritas do nosso scaler. Dois mutantes removem o gancho
+SD de board-sim e precisam falhar no setter, comprovando que a fixture não mascara
+a regressão. A leitura do viewport é real dentro dessa fronteira; kernel/MMIO/
+alocação/textura são simulados. Não representa prova física do sinal entrelaçado.
+
+### Console: manual e Corona Slim
+
+Só o coordenador executa, em pasta temporária com os dois XEX e quatro fontes.
+Arquivar logs/prints antes de abrir novamente. Não usar conta ou Nest para aprovar
+estes casos. Usar som TV e vídeos públicos que ofereçam os formatos necessários.
+
+1. Sem vídeo, Configurações → Qualidade: verificar os sete valores; salvar 480p,
+   fechar/reabrir e conferir `video_mode=480p`. Durante um vídeo, Configurações
+   deve percorrer somente as escolhas AVC/AAC oferecidas naquele vídeo.
+2. No player, Y ou ícone Qualidade abre o menu com setas/A/B no estilo Series.
+   Conferir só as resoluções disponíveis. Testar 480/360/240/144 nos vídeos que
+   as tiverem; repetir pt/en/es, 4:3/texto grande e HD. B fecha sem alterar.
+3. Pausar, anotar posição, escolher outra qualidade: manter pausa e posição.
+   O log deve registrar `selecao 480p fixa=1 fonte=480p itag=...` (etc.). Sob
+   pressão sustentada, exigir aviso localizado e nenhuma troca de itag/fonte ou
+   reserva do servidor. Não prometer desempenho por altura: medir no console.
+4. Abrir outro vídeo sem a qualidade salva: erro localizado, Y abre escolhas;
+   selecionar disponível ou Automático. Se a fonte falhar, mostrar erro em vez
+   de escolher outra. Automático volta a `fixa=0`, com a escada dos itens 9/13:
+   assentamento, um degrau por vez, histórico de falhas e projeção antes de subir.
+   Repetir `4p_9OPKgcDE` por três minutos, sem a volta repetitiva ao 1080 incapaz.
+5. Em duas pastas separadas, usar o arquivo abaixo, uma com `native`, outra `safe`:
+
+   ```ini
+   board=corona
+   driver=native
+   mode=480i
+   cable=component
+   ```
+
+   Conferir `board.sim.file`, `board.sim ... simulated=1` e o modelo real separado.
+   Abrir pelo lançador e diretamente. Exigir `display.signal ... kernel=1`,
+   `display.kernel-viewport`, dimensões iguais no surface/swapchain/present e
+   `end display.first-show`, `end frame.present`, `end app.first-frame`. Pedido
+   `output_height=1080` não deve recriar a saída SD; navegar e reproduzir VOD.
+6. **Prova física do Tupapa2712:** Slim Corona/RGH com componente e painel/CRT já
+   funcionando em 480i, repetir ambos os drivers (arquivo acima) e depois remover
+   board-sim para validar detecção normal Corona/native. Simular no 360 E por HDMI
+   não aprova componente/480i. No 360 E, usar o AV composto adequado e o roteiro
+   CRT do item 12 para prova física distinta. Não alterar NAND/SMC/região ou forçar
+   timings. Arquivar boot-early/app/launcher/CRT, log normal/UDP, fotos e conector.
+
+O parser desta branch aceita só os quatro campos acima; extensões de faults/
+mapped/delay da F38 falham de forma conservadora. Ao integrar, conservar o fix
+de viewport/SD dos dois caminhos e a política Corona/Winchester native padrão.
+
 Prepare a mídia e execute o player:
 
 ```bash
