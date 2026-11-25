@@ -71,6 +71,10 @@ struct SlicePool {
 
 enum State { IDLE, CONNECTING, BUFFERING, PLAYING, ENDED, FAILED };
 
+#if defined(TUBE360_F40_BENCH) || defined(TUBE360_F33_BENCH)
+// Só nas builds de bancada: mudo.txt ao lado do xex zera o volume mantendo o relógio do áudio (teste de madrugada).
+inline bool benchMute = false;
+#endif
 struct Player {
   nest::Speaker directSpeaker;
   std::atomic<bool> castMediaReady{false};
@@ -214,6 +218,9 @@ struct Player {
     if (!audio) SDL_Log("áudio: %s", SDL_GetError());
     else {
       normalGain = SDL_GetAudioStreamGain(audio);
+#if defined(TUBE360_F40_BENCH) || defined(TUBE360_F33_BENCH)
+      if (benchMute) { normalGain = 0; SDL_SetAudioStreamGain(audio, 0.0f); }
+#endif
       SDL_AudioSpec device{};
       int samples = 0;
       if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(audio), &device, &samples) && device.freq > 0) {

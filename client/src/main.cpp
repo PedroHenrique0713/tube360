@@ -641,6 +641,9 @@ int run(int argc, char** argv) {
     std::fclose(f);
   }
   LOG("%s iniciando", brandName.c_str());
+#if defined(TUBE360_F40_BENCH) || defined(TUBE360_F33_BENCH)
+  if (FILE* f = std::fopen((assets + "mudo.txt").c_str(), "r")) { benchMute = true; std::fclose(f); LOG("bancada: mudo.txt, volume zero"); }
+#endif
   net::Server srv;
   if (FILE* f = std::fopen((assets + "server.txt").c_str(), "r")) {
     char ip[64] = {0}; int port = 0;
