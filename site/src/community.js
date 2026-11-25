@@ -81,15 +81,23 @@
     barTween?.kill();
     const versions = Array.isArray(data.versions) && data.versions.every(row => typeof row.tag_name === 'string' && Number.isSafeInteger(row.downloads) && row.downloads >= 0) && data.versions.reduce((sum, row) => sum + row.downloads, 0) === data.downloads ? data.versions : [];
     const largest = Math.max(0, ...versions.map(row => row.downloads));
+    const wasOpen = bars.querySelector('details')?.open;
     const fragment = document.createDocumentFragment();
-    versions.forEach(row => {
+    const recent = document.createElement('ul'), older = document.createElement('ul');
+    versions.forEach((row, index) => {
       const item = document.createElement('li'); item.dataset.version = row.tag_name;
       const label = document.createElement('div'), tag = document.createElement('span'), count = document.createElement('strong');
       tag.textContent = row.tag_name; count.textContent = number(row.downloads); label.append(tag, count);
       const track = document.createElement('div'), fill = document.createElement('i');
       track.className = 'version-track'; track.setAttribute('aria-hidden', 'true'); fill.style.setProperty('--fill', largest ? row.downloads / largest : 0);
-      track.append(fill); item.append(label, track); fragment.append(item);
+      track.append(fill); item.append(label, track); (index < 3 ? recent : older).append(item);
     });
+    fragment.append(recent);
+    if (older.childElementCount) {
+      const details = document.createElement('details'), summary = document.createElement('summary');
+      summary.textContent = t.older_versions; details.open = Boolean(wasOpen);
+      details.append(summary, older); fragment.append(details);
+    }
     bars.replaceChildren(fragment);
     section.querySelector('.version-pending').hidden = versions.length > 0;
     if (animate && window.gsap && !motion.matches) {

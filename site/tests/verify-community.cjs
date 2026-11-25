@@ -46,6 +46,14 @@ const expire = async page => page.evaluate(() => {
       assert.equal(await page.locator('.community-cta').getAttribute('href'), 'https://github.com/revive360/tube360');
       await page.screenshot({ path: `${out}/${lang}-${width}-community-viewport.png` });
       await page.locator('#community').screenshot({ path: `${out}/${lang}-${width}-community.png` });
+      if (snapshot.version_downloads.length > 3) {
+        const summary = page.locator('.version-downloads summary');
+        await summary.focus(); await page.keyboard.press('Enter');
+        assert.equal(await page.locator('.version-downloads details').getAttribute('open'), '');
+        assert.equal(await page.locator('.version-downloads details li').first().isVisible(), true);
+        if (lang === 'pt-BR' && width === 390) await page.locator('#community').screenshot({ path: `${out}/pt-BR-390-earlier-releases.png` });
+        await summary.press('Enter');
+      }
       const before = baseline.find(row => row.lang === lang && row.width === width);
       const firstBytes = first.documentBytes + first.resources.reduce((sum, row) => sum + row.bytes, 0);
       const beforeBytes = before ? before.bytes + before.documentBytes : null;

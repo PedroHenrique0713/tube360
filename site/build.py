@@ -170,11 +170,14 @@ def community_values(data, translations, lang):
     goal = next_star_goal(data['stargazers_count'])
     versions = data.get('version_downloads', [])
     largest = max((row['downloads'] for row in versions), default=0)
-    bars = ''.join(
+    rows = [
         f'<li data-version="{html.escape(row["tag_name"], quote=True)}"><div><span>{html.escape(row["tag_name"])}</span>'
         f'<strong>{number(row["downloads"])}</strong></div><div class="version-track" aria-hidden="true">'
         f'<i style="--fill:{row["downloads"] / largest if largest else 0:.6f}"></i></div></li>'
-        for row in versions)
+        for row in versions]
+    bars = f'<ul>{"".join(rows[:3])}</ul>'
+    if len(rows) > 3:
+        bars += f'<details><summary>{html.escape(translations["older_versions"])}</summary><ul>{"".join(rows[3:])}</ul></details>'
     snapshot = {'stars': data['stargazers_count'], 'downloads': data['download_count'],
                 'versions': versions, 'fetchedAt': data.get('fetched_at'),
                 'latestRelease': {'tag_name': data['tag_name'], 'published_at': data.get('published_at')}}

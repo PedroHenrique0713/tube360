@@ -461,5 +461,6 @@
   "stars_remaining": "faltam {count}",
   "community_downloads_title": "Mais 360s de volta ao jogo.",
   "downloads_by_version": "Downloads de pacotes por versão",
-  "version_pending": "Os downloads por versão aparecem quando o GitHub estiver disponível."
+  "version_pending": "Os downloads por versão aparecem quando o GitHub estiver disponível.",
+  "older_versions": "Versões anteriores"
 }

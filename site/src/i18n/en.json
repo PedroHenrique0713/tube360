@@ -461,5 +461,6 @@
   "stars_remaining": "{count} to go",
   "community_downloads_title": "More 360s, back in play.",
   "downloads_by_version": "Package downloads by release",
-  "version_pending": "Downloads by version will appear when GitHub is available."
+  "version_pending": "Downloads by version will appear when GitHub is available.",
+  "older_versions": "Earlier releases"
 }
