@@ -38,7 +38,7 @@ The data license is separate from the MIT code. Source contract:
 
 ```bash
 cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
-cmake --build client/build -j3 --target tube360 sponsorblock-test sponsorblock-worker-test tube360-sponsorblock-fixture
+cmake --build client/build -j2 --target tube360 sponsorblock-test sponsorblock-worker-test tube360-sponsorblock-fixture
 client/build/sponsorblock-test bench/sponsorblock/fixtures/public-prefix.json
 client/build/sponsorblock-worker-test
 python3 bench/sponsorblock/e2e.py
@@ -66,6 +66,46 @@ openssl s_client -connect sponsor.ajay.app:443 -servername sponsor.ajay.app \
 
 On 2026-11-24 the chain was `ajay.app` (`*.ajay.app`) → `WE1` → `GTS Root R4`; the leaf expires
 2026-12-27. Renewals may change the chain. Console TLS still requires the coordinator's check.
+
+## Console failure investigation, 2026-11-25
+
+The coordinator observed `SponsorBlock: 0 trechos` on real hardware with the original build. That line
+could mean an empty bucket **or** a TLS/network/HTTP/parser failure. The revised worker publishes a
+diagnostic together with its segments, preserving it through the negative cache and fencing stale replies.
+The UI stays silent, but the log now distinguishes `ok`, `empty`, `tls_error`, `network_error`, `http_error`,
+`parse_error`, cancellation and invalid IDs, with HTTP/libcurl/mbedTLS codes, error text, bucket/match counts,
+prefix, time and console clock. Parser errors include bounded context. No token, cookie or response body
+is dumped. `verify=unavailable` is explicit when curl has already released a failed TLS context.
+
+`https.cpp` retains `CURLOPT_ERRORBUFFER` and records level-1 Mbed TLS error codes through
+`CURLOPT_SSL_CTX_FUNCTION`; peer and hostname verification remain enabled. The buffers live as long as the
+transport, including cached TLS connections. No certificates or ciphers were changed without evidence.
+
+The **actual Xbox config** already enables ECDSA, P-256, P-384 and ECDHE-ECDSA. Native qualification now
+compiles Mbed TLS 3.6.8 and curl against `tools/mbedtls-x360/config.h`, using the same platform source;
+only the OS entropy provider is `getrandom` instead of `XeCryptRandom`. The effective configuration macros
+were compared with the PowerPC compiler (the native-only `MBEDTLS_ARCH_IS_X64` is the sole difference).
+Two real HTTP requests were made: SponsorBlock returned 200 / one segment in 0.469 s, and YouTube
+`robots.txt` returned 200 in 0.191 s. Both used the existing GTS bundle. This does **not** reproduce or
+resolve the hardware-specific failure; the new console log is required to choose its actual correction.
+
+Reproduce offline diagnostics and TLS rejection (no public requests in CTest):
+
+```bash
+cmake -S bench/sponsorblock/tls -B .work/sponsorblock-xbox-config-pc -DCMAKE_BUILD_TYPE=Release
+cmake --build .work/sponsorblock-xbox-config-pc -j2
+ctest --test-dir .work/sponsorblock-xbox-config-pc --output-on-failure
+```
+
+Optional public requests, one each:
+
+```bash
+.work/sponsorblock-xbox-config-pc/sponsorblock-transport-probe
+.work/sponsorblock-xbox-config-pc/sponsorblock-transport-probe https://www.youtube.com/robots.txt
+```
+
+The probe also builds as an XEX using the PowerPC toolchain, with one 512 KiB worker and one SponsorBlock
+request, without player load. Exact coordinator commands and log interpretation: [tls/CONSOLE.md](tls/CONSOLE.md).
 
 ## Console coordinator script
 
@@ -127,7 +167,7 @@ the log basename follows the launched XEX (`tube360.log` here, `default.log` whe
    position follows the seek. Test pause/manual seek/next and no segment state leaking to the next video.
 7. Logs: `SponsorBlock: 1 trechos`, `SponsorBlock: skip <pos> -> 20.877`,
    `SponsorBlock: undo <pos> -> 7.775` and normal `primeiro quadro` messages.
-   API/TLS failure intentionally yields `SponsorBlock: 0 trechos`. Check clock/DNS and certificate chain
+   API/TLS failure yields `SponsorBlock: 0 trechos status=<reason>` with transport codes and error text. Check clock/DNS and certificate chain
    **on the console** if PC succeeds. Compare first-frame time in Off/button (fetch must not block it).
 
 PC proofs do not establish Xbox performance/certificate validation, physical CRT overscan or real phone/
