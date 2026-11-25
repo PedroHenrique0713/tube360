@@ -111,6 +111,8 @@ flowchart LR
 
 O caminho normal é H.264/AAC nativo. Automático prefere detalhe até 1080p; 720p60 prioriza cadência; 1080p30 limita a escolha a fontes de até 30 fps. O perfil é uma preferência, não uma garantia de 60 fps sustentados: o player pode reduzir a apresentação a 30 fps e escolher uma fonte direta mais leve antes de tentar a reserva no PC. 720p30 é a meta do console; o desempenho precisa ser conferido no seu Xbox e conteúdo.
 
+Escolha 480p, 360p, 240p ou 144p fixos nas Configurações ou no menu Qualidade do player (Y quando não houver ação do SponsorBlock). Durante o vídeo, a lista oferece somente as fontes H.264/AAC disponíveis nele. A seleção manual mantém altura, posição e pausa; pressão sustentada mostra um aviso e não troca a fonte nem usa a reserva no PC. Uma qualidade salva indisponível mostra erro e permite escolher outra. Voltar a Automático reativa a escada adaptativa. Sem vídeo ativo, Configurações salva um padrão entre as sete opções.
+
 MPEG-1 + MP2 fica como compatibilidade fornecida pelo servidor opcional, até 720p30. O pl_mpeg com decodificação por fatias continua nesse caminho. Ele deixou de ser o caminho principal do YouTube. [Arquitetura e qualificação](docs/STANDALONE.md) · [Protocolo do servidor opcional](docs/PROTOCOL.md)
 
 ## Requisitos
@@ -189,7 +191,7 @@ As dicas usam o estilo Xbox One / Series (Menu / View correspondem a Start / Bac
 | | Baixo na linha do tempo · Cima nos ícones | Opções abaixo da linha do tempo · Voltar à linha do tempo |
 | | Esquerda / Direita, depois A | Selecionar / ativar ícone: legenda, qualidade, som, timer, áudio, gostei, não gostei, canal ou ao vivo |
 | | LB / RB | −1 min / +1 min |
-| | Y · X | Alternar qualidade · Som TV / caixa |
+| | Y · X | Pular/voltar no SponsorBlock ou abrir Qualidade · Som TV / caixa |
 | | LT / RT | Segure para voltar / avançar; acelera, solte para continuar |
 | | B | Fechar um nível por vez, depois sair do vídeo |
 | | View | Voltar à navegação |
@@ -311,8 +313,7 @@ Comentários, contagem estimada de não gostei, velocidade, repetir, TV de tubo,
 
 Em **Configurações → SponsorBlock**, escolha **Desligado**, **Botão "Pular" (padrão)** ou **Pular sozinho**.
 O botão **Y** pula ao fim do trecho marcado; no automático, o aviso oferece **Y Voltar** por seis segundos
-depois do seek. Voltar permite assistir ao trecho sem outro pulo nessa abertura. Fora do aviso, Y continua
-trocando a qualidade. Patrocínios, autopromoção e lembretes de inscrição entram; vinhetas e encerramentos
+depois do seek. Voltar permite assistir ao trecho sem outro pulo nessa abertura. Fora de uma ação de pular/voltar, Y abre Qualidade; A aplica a escolha e B fecha sem mudar. Patrocínios, autopromoção e lembretes de inscrição entram; vinhetas e encerramentos
 continuam. As marcas aparecem na linha do tempo. Os trechos são marcados pela comunidade e podem errar.
 O seek é o mesmo para vídeos transmitidos pelo celular e som no Nest; lives e Music só com áudio ficam de fora.
 Em `settings.txt`, a opção é `sponsorblock=off|button|auto`.

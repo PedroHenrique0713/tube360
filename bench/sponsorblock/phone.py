@@ -79,6 +79,7 @@ def run(undo):
         subprocess.run(['magick',str(WORK/(name+'.ppm')),str(WORK/(name+'.png'))],check=True)
         print('PASS',name,'native lounge, server=off, seek and phone clock, single API request',flush=True)
     finally:
+        (WORK/(name+'-events.json')).write_text(json.dumps(lounge.events,indent=2))
         if process and process.poll() is None:
             process.terminate()
             try: process.wait(timeout=10)

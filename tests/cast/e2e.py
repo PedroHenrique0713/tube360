@@ -101,6 +101,15 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path in {f'/PedroHenrique0713/tube360/rules/{name}' for name in ('rules.json', 'rules.json.sig', 'app.json', 'app.json.sig')}:
             self.response('', 404)
+        elif path.startswith('/api/skipSegments/'):
+            prefix = path.removeprefix('/api/skipSegments/')
+            assert len(prefix) == 4 and all(c in '0123456789abcdef' for c in prefix), path
+            query = parse_qs(urlsplit(self.path).query)
+            assert set(query) == {'categories', 'actionTypes'}, query
+            assert json.loads(query['categories'][0]) == ['sponsor', 'selfpromo', 'interaction'], query
+            assert json.loads(query['actionTypes'][0]) == ['skip'], query
+            # IDs sintéticos sem trechos; o teste SponsorBlock/celular cobre skip e undo com dados gravados.
+            self.response("[]", 404)
         elif path == '/votes':
             video = parse_qs(urlsplit(self.path).query)['videoId'][0]
             assert len(video) == 11

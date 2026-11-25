@@ -182,7 +182,8 @@ def app(name, seconds, mode='off', race=False):
         XT_CATALOG_REPLAY=str(replay), XT_CATALOG_AUDIT=str(music_audit), XT_KEYS_MS='200',
         XT_SHOT=str(work/(name+'.ppm')), XT_SHOT_FRAME='2147483647', XT_SHOT_MS=str(int(seconds*1000)))
     if mode == 'auto':
-        env.update(XT_SCREEN='rail', XT_KEYS='DDDDAAA')
+        # A Música da conta agora tem uma prateleira de atalhos antes dos vídeos.
+        env.update(XT_SCREEN='rail', XT_KEYS='DDDDADAA')
     else:
         env.update(XT_NAV='playlist' if race else 'radio', XT_NAV_ID='PLF14race' if race else 'F12audio001', XT_KEYS='UA')
         if not race:

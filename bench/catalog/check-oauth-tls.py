@@ -23,6 +23,7 @@ for source in ['bench/catalog/oauth-tls.cpp', 'client/src/yt/https.cpp']:
     subprocess.run(['c++', '-std=c++20', '-O1', '-DPICOJSON_USE_LOCALE=0', '-I'+str(folder),
         '-I'+str(root/'client/src'), '-I'+str(root/'client/third_party'),
         '-I'+str(root/'client/build/yt'),
+        '-I'+str(next((root/'.work/src').glob('mbedtls-*/include'))),
         '-I'+str(next((root/'.work/src').glob('curl-xenon-*/include'))), '-c', str(root/source), '-o', str(obj)], check=True)
     objects.append(str(obj))
 args = shlex.split((root/'client/build/CMakeFiles/tube360.dir/link.txt').read_text())

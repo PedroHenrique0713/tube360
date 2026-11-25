@@ -88,7 +88,8 @@ with tempfile.TemporaryDirectory(prefix='tube360-video-driver-') as tmp:
             result=run([work/'corona',driver+'-480i-'+signal],cwd=folder,capture_output=True,text=True)
             (folder/(signal+'-boot.log')).write_text(result.stdout)
             assert 'model=Corona;' in result.stdout and 'profile=corona' in result.stdout
-            assert 'mode=480i cable=component simulated=1' in result.stdout
+            assert 'board.sim.hardware synthetic=1 encoder=KSB mode=480i cable=component ' in result.stdout
+            assert 'board.sim active=1' in result.stdout and 'simulated=1' in result.stdout
             assert f'selected={driver}' in result.stdout and 'surface=swapchain=present=640x480' in result.stdout
             assert ('dashboard=1920x1080 interlaced=0' if signal=='real-hd' else 'dashboard=640x480 interlaced=1') in result.stdout
             print('PASS Corona board-sim mode=480i cable=component driver='+driver+' query='+signal+' surface=swapchain=present=640x480 buffers=2 IRQ=1',flush=True)

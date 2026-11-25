@@ -42,7 +42,7 @@ def run(name, mode='button', lang='pt', screen='player', keys='', seconds=3, at=
     for font in (ROOT / 'client/assets').glob('*.ttf'):
         shutil.copyfile(font, assets / font.name)
     (assets / 'settings.txt').write_text(f'lang={lang}\nserver=off\nsound={"nest" if speaker else "tv"}\n'
-        f'output_height={height}\nlarge_text={"on" if large else "off"}\nsponsorblock={mode}\n')
+        f'output_height={height}\nlarge_text={"on" if large else "off"}\nvideo_mode=auto\nsponsorblock={mode}\n')
     if screen == 'player':
         (assets / 'autoplay.txt').write_text(f'{VIDEO} {at}\n')
     env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
@@ -105,6 +105,8 @@ if __name__ == '__main__':
         cases[f'button-{lang}'] = dict(lang=lang, seconds=2)
         cases[f'auto-{lang}'] = dict(lang=lang, mode='auto', seconds=3)
     cases.update({
+        'settings-sd-ar': dict(screen='settings', lang='ar', height=480, keys='D'*15+'A', seconds=2.5, key_ms=70),
+        'settings-large-ar': dict(screen='settings', lang='ar', large=True, keys='D'*15+'A', seconds=2.5, key_ms=70),
         'settings-sd': dict(screen='settings', lang='es', height=480, keys='D'*15+'A', seconds=2.5, key_ms=70),
         'settings-large': dict(screen='settings', lang='pt', large=True, keys='D'*15+'A', seconds=2.5, key_ms=70),
         'settings-switch': dict(screen='settings', keys='D'*15+'ADR', seconds=3, key_ms=70),
@@ -148,6 +150,7 @@ if __name__ == '__main__':
             assert float(re.search(r'captura: .*posição ([\d.]+)', text)[1]) < 15, text
         if name == 'auto-undo-quality':
             assert 'SponsorBlock: undo' in text and 'video_mode=auto' in (WORK/name/'settings.txt').read_text() and 'captura opcao qualidade:' in text, text
+            assert text.count('console: MP4')==3, 'opening Quality must not reopen the video'
         if name == 'button-paused':
             assert len(skips)==1 and 'player: pause=1' in text, text
             assert abs(float(re.search(r'captura: .*posição ([\d.]+)',text)[1])-20.877)<.05, text

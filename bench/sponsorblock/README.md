@@ -197,7 +197,7 @@ the log basename follows the launched XEX (`tube360.log` here, `default.log` whe
    pt/en/es, large text and 480 / 4:3. B returns to settings, then browsing. Restart and verify saved mode.
 3. Set `sponsorblock=auto`, relaunch: skip occurs at the start; **Patrocínio pulado / Y Voltar** appears
    for six seconds after playback resumes. Y returns to 7.775 s and plays through without another skip.
-   Repeat without Y: prompt expires. Outside the prompt Y still changes quality.
+   Repeat without Y: prompt expires. Outside a skip/undo action, Y opens the Quality menu; A applies a choice and B cancels.
 4. Set Off, relaunch: no marks/button/skip or request. API failure also has no error on screen.
 5. With the coordinator's isolated Nest setup, repeat button/auto/undo; verify picture and actual speaker
    both seek and remain synchronized. This task never accesses the household Nest.

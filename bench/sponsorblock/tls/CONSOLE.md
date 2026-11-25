@@ -21,7 +21,7 @@ python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.
 
 Deixar tocar sem apertar Y até aparecer **Y Pular patrocínio** em aproximadamente **7.775 s**.
 Apertar Y enquanto a dica estiver visível: deve haver `SponsorBlock: skip ... -> 20.877`.
-Depois de 20.877 s, Y volta a ser qualidade e pode reabrir o vídeo; agora essa ação é registrada explicitamente.
+Depois de 20.877 s, fora de uma ação de pular/voltar, Y abre o menu Qualidade. Só A aplica a escolha e reabre o vídeo quando necessário; B fecha sem alterar. O log registra a abertura do menu explicitamente.
 
 Após o teste:
 

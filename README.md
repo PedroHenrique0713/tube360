@@ -189,7 +189,7 @@ Button prompts use the Xbox One / Series style (Menu / View are Start / Back on 
 | | Down from timeline · Up from icon row | Options below the timeline · Return to timeline |
 | | Left / Right, then A | Select / activate an icon: captions, quality, sound, timer, audio, like, dislike, channel or live edge |
 | | LB / RB | −1 min / +1 min |
-| | Y · X | Open Quality menu · TV / speaker sound |
+| | Y · X | SponsorBlock skip/undo or Quality menu · TV / speaker sound |
 | | LT / RT | Hold to rewind / fast-forward; accelerates, release to seek |
 | | B | Close one level at a time, then leave the video |
 | | View | Return to browsing |
@@ -205,7 +205,7 @@ Use Settings on the TV; values are saved beside the XEX in `settings.txt`. The p
 **Settings → SponsorBlock** offers **Off**, **Skip button (default)** and **Skip automatically**.
 During a marked segment, **Y** skips to its end. Automatic mode shows **Sponsor skipped · Y Go back**
 for six seconds after the seek; returning plays that segment without skipping it again during this opening.
-Outside that prompt, Y keeps its quality shortcut. Sponsors, self-promotion and subscription reminders are
+Outside that action, Y opens Quality; A applies a choice and B closes the menu. Sponsors, self-promotion and subscription reminders are
 enabled; intros/outros are preserved. Marks appear on the timeline. Community submissions may be wrong.
 The same player seek works with phone Cast and Nest sound. Live streams and audio-only Music are excluded.
 The optional `sponsorblock=off|button|auto` setting is saved with the other preferences.
