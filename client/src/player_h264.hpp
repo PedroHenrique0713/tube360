@@ -61,6 +61,18 @@ inline void Player::decodeOriginal() {
   SDL_Thread* reader = nullptr;
   double origin = 0;
   int r = 0;
+  auto openRange = [&](h264::Stream& stream,yt::RangeFile& file,bool sound,bool picture,double seconds) {
+    file.aheadEnabled=false;
+    uint64_t began=SDL_GetTicks();
+    int result=stream.open(&file,yt::RangeFile::pull,picture ? requestedThreads : 1,sound,picture,yt::RangeFile::seek);
+    uint64_t headerMs=SDL_GetTicks()-began;
+    if(result>=0)result=stream.seekTime(seconds);
+    LOG("cabecalho: %s resultado=%d tamanho=%lld bytes=%llu pedidos=%u header_ms=%llu seek_ms=%llu HTTP=%ld erro=%s",
+        picture ? "video" : "audio",result,(long long)file.length,(unsigned long long)file.bytes.load(),file.requests.load(),
+        (unsigned long long)headerMs,(unsigned long long)(SDL_GetTicks()-began-headerMs),file.failed ? file.status : file.current.status,file.error.c_str());
+    file.aheadEnabled=true;
+    return result;
+  };
   if (direct) {
     if (!youtube) {
       transport = yt::https(&stop);
@@ -152,28 +164,21 @@ inline void Player::decodeOriginal() {
       qualityLadder=media.videoLadder;
       if(qualityLadder.empty()) {qualityLadder.push_back(media.video);qualityLadder.insert(qualityLadder.end(),media.lowerVideo.begin(),media.lowerVideo.end());}
       videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.video.url, &netBytes, yt::https(&stop));
-      videoFile->aheadEnabled=false;
       s.source(media.video.height,media.video.fps,fullFilter);
       r = media.video.url.empty() ? AVERROR_STREAM_NOT_FOUND :
-          s.open(videoFile.get(), yt::RangeFile::pull, requestedThreads, media.muxed && audio, true, yt::RangeFile::seek);
-      if (r >= 0) r = s.seekTime(startAt);
-      videoFile->aheadEnabled=true;
+          openRange(s,*videoFile,media.muxed && audio,true,startAt);
       while (r<0 && !playback::manual(videoMode) && !stop && !media.muxed && videoFile->status!=403 && !media.lowerVideo.empty()) {
         auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
         LOG("qualidade: abertura direta %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
         s.reset(); videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
-        videoFile->aheadEnabled=false;
         s.source(next.height,next.fps,fullFilter);
-        r=s.open(videoFile.get(),yt::RangeFile::pull,requestedThreads,false,true,yt::RangeFile::seek);
-        if (r>=0) r=s.seekTime(startAt);
-        videoFile->aheadEnabled=true;
+        r=openRange(s,*videoFile,false,true,startAt);
         media.video=next; presentFps=30; adapted=true;
       }
       if (r >= 0 && audio && !media.muxed) {
         audioFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.audio.url, &netBytes);
         r = media.audio.url.empty() ? AVERROR_STREAM_NOT_FOUND :
-            separate.open(audioFile.get(), yt::RangeFile::pull, 1, true, false, yt::RangeFile::seek);
-        if (r >= 0) r = separate.seekTime(startAt);
+            openRange(separate,*audioFile,true,false,startAt);
       }
       actualHeight = media.video.height;
       origin = startAt;
@@ -330,12 +335,9 @@ inline void Player::decodeOriginal() {
         media.video.height,media.video.fps,next.height,next.fps,media.video.itag,next.itag,resume,reason);
     s.reset();
     videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
-    videoFile->aheadEnabled=false;
     s.source(next.height,next.fps,fullFilter);
     uint64_t began=SDL_GetTicks();
-    r=s.open(videoFile.get(),yt::RangeFile::pull,requestedThreads,false,true,yt::RangeFile::seek);
-    if(r>=0)r=s.seekTime(resume);
-    videoFile->aheadEnabled=true;
+    r=openRange(s,*videoFile,false,true,resume);
     media.video=next;
     publishPolicy();
     media.lowerVideo.assign(qualityLadder.begin()+index+1,qualityLadder.end());
