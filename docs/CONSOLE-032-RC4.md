@@ -13,7 +13,7 @@ token ou cookie sai para o PC. Não substituir a instalação habitual nesta rod
 1. **Busca com conta:** com a conta TV conectada, Y → `astronomia` → Pesquisar.
    Conferir resultados, LB/filtros e próxima página; repetir sem filtros e voltar
    com B. A busca é pública mesmo logado. Música, recomendações e biblioteca da
-   conta devem continuar funcionando. Em falha, guardar `catalogo: ... rota=WEB/search
+   conta devem continuar funcionando. Em falha, guardar `catalogo falha: rota=WEB/search
    http=... codigo=... api_code=...` e `navegação search`; não coletar credenciais.
 2. **MP4 grande:** com o app fechado, criar `autoplay.txt` com `5PQYM_KSXag 120`
    na pasta temporária. Usar `video_mode=1080p30`, abrir pelo lançador e conferir
