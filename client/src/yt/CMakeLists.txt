@@ -31,12 +31,16 @@ configure_file("${root}/client/src/update/rules-default.json" "${CMAKE_CURRENT_B
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/rules-default.hpp" "#pragma once\nnamespace updates { inline constexpr const char* defaultRules = R\"RULES(${default_rules})RULES\"; }\n")
 file(READ "${root}/client/src/update/roots.pem" update_roots)
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/update-roots.hpp" "static constexpr char updateRoots[] = R\"PEM(${update_roots})PEM\";\n")
+add_library(tube360-boot STATIC "${root}/client/src/boot_log.c" "${root}/client/src/boot_early.c" "${root}/client/src/boot_platform.cpp" "${root}/client/src/video_policy.c" "${root}/client/src/board_sim.c")
+target_include_directories(tube360-boot PUBLIC "${root}/client/src")
+target_compile_features(tube360-boot PUBLIC cxx_std_17)
+
 add_library(tube360-update-core STATIC "${root}/client/src/update/common.cpp" "${root}/client/src/update/app.cpp"
   "${root}/client/third_party/monocypher/monocypher.c" "${root}/client/third_party/monocypher/monocypher-ed25519.c")
 target_compile_features(tube360-update-core PUBLIC cxx_std_17)
 target_compile_definitions(tube360-update-core PUBLIC PICOJSON_USE_LOCALE=0)
 target_include_directories(tube360-update-core PUBLIC "${root}/client/src" "${root}/client/third_party" PRIVATE "${root}/client/third_party/monocypher")
-target_link_libraries(tube360-update-core PUBLIC mbedcrypto)
+target_link_libraries(tube360-update-core PUBLIC mbedcrypto tube360-boot)
 target_sources(tube360-yt PRIVATE "${root}/client/src/update/rules.cpp")
 target_link_libraries(tube360-yt PUBLIC tube360-update-core)
 set(TUBE360_BUILD_ID 1 CACHE STRING "Monotonic signed app build")

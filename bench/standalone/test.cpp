@@ -117,6 +117,7 @@ void audioProfiles(Http& h,yt::Client& c) {
         auto v=c.player(id,720,nullptr,mode);
         check(v.video.itag==(mode==1 ? 298 : 137),"saved playback profile selects 720p60 or 1080p30");
         check(mode!=1 || v.fallbackVideo.itag==136,"720p60 has a distinct 720p30 network fallback");
+        check(v.videoLadder.size()==v.lowerVideo.size()+1 && v.videoLadder.front().itag==v.video.itag,"immutable quality ladder includes the profile ceiling for cached seeks");
         check(mode!=1 || (v.lowerVideo.size()==2 && v.lowerVideo[1].itag==135),"720p30 falls to 480p30 before a server");
         check(v.audio.url=="https://fixture.googlevideo.com/en" && v.selectedAudio=="en-original","27f6785: original beats default automatic dub");
         check(v.audioTracks.size()==2 && !v.muxed,"audio catalog has both independent languages");

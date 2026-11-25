@@ -1,4 +1,6 @@
 #include "launcher.hpp"
+#include "boot_log.h"
+#include <unistd.h>
 #include <cerrno>
 #include <cstring>
 #include <ctime>
@@ -11,21 +13,24 @@ static uint64_t millis() {
 LauncherLog::LauncherLog(const string& directory,Trace sink):file(std::fopen((directory+"launcher.log").c_str(),"a")),network(std::move(sink)),started(millis()) {}
 LauncherLog::~LauncherLog(){if(file)std::fclose(file);}
 void LauncherLog::line(const string& message) {
+    boot_event("info","launcher","%s",message.c_str());
     string line="launcher +"+std::to_string(millis()-started)+"ms: "+message;
-    if(file){std::fprintf(file,"%s\n",line.c_str());std::fflush(file);}
+    if(file){std::fprintf(file,"%s\n",line.c_str());std::fflush(file);if(fsync(fileno(file)))boot_event("error","launcher.log-sync","errno=%d",errno);}
     if(network)network(line);
 }
 int launchApp(const string& directory,const string& key,LauncherHost& host) {
     host.log("inicio build="+std::to_string(buildId)+" version="+appVersion);
     host.log("tela inicio: Tube360 – abrindo…");
-    if(!host.screen()){host.log("tela erro; saindo para Aurora/dashboard");host.closeScreen();return 1;}
+    if(!host.screen()){host.log("tela erro");host.closeScreen();host.fail(i18n::Key::StartupVideo,"launcher display",i18n::Key::StartupRetry);return 1;}
     host.log("tela pronta");
+    auto missing=host.preflight(directory);
+    if(!missing.empty()){host.closeScreen();host.fail(i18n::Key::StartupFonts,missing,i18n::Key::StartupCopy);return 1;}
     AppUpdate app(directory,key,[&](const string& s){host.log(s);});
     string error,path=app.prepare(error);
     host.log("prepare fim caminho="+path+" erro="+(error.empty()?"nenhum":error));
     host.log("tela fechando antes do launch");
-    if(!host.closeScreen()){host.log("tela fechamento falhou; saindo para Aurora/dashboard");return 1;}
-    if(path.empty()){host.log("sem app; saindo para Aurora/dashboard");return 1;}
+    if(!host.closeScreen()){host.log("tela fechamento falhou");host.fail(i18n::Key::StartupVideo,"launcher GPU handback",i18n::Key::StartupRetry);return 1;}
+    if(path.empty()){host.log("sem app");host.fail(i18n::Key::StartupLaunch,error,i18n::Key::StartupCopy);return 1;}
     auto attempt=[&](const string& target) {
         // game: explicita a pasta do titulo; o xsdk tambem resolve caminhos relativos para ela.
         string resolved=directory.empty()?"game:\\"+target:target;
@@ -38,6 +43,7 @@ int launchApp(const string& directory,const string& key,LauncherHost& host) {
     host.log("launch falhou; verificando rollback");
     if(app.failed(error))attempt(app.executable());
     host.log("fim erro="+(error.empty()?string("launch"):error)+"; saindo para Aurora/dashboard");
+    host.fail(i18n::Key::StartupLaunch,error.empty()?"tube360.xex (launch failed)":error,i18n::Key::StartupCopy);
     return 1;
 }
 }

@@ -16,6 +16,7 @@
 #include "pl_mpeg.h"
 #include "h264.hpp"
 #include "playback_mode.hpp"
+#include "quality_recovery.hpp"
 #include "yt/media.hpp"
 #include "yt/console_account.hpp"
 #include "nest.hpp"
@@ -84,6 +85,8 @@ struct Player {
   std::vector<yt::AudioTrack> audioTracks;
   std::string selectedAudio;
   std::atomic<bool> tracksReady{false}, adapted{false};
+  std::atomic<unsigned> qualityAvailable{1};
+  std::atomic<bool> qualityModesReady{false},manualQualityWarning{false};
   std::atomic<int> presentFps{30};
   double sourceFpsHint = 0;
   std::atomic<int> state{IDLE};
@@ -124,6 +127,8 @@ struct Player {
   int queueMin = 0;
   uint64_t originalWatch = 0;
   std::atomic<unsigned> pauseChanges{0};
+  playback::QualityRecovery qualityRecovery;
+  void resetQualityMeasurements(){++pauseChanges;}
 
   // áudio
   SDL_AudioStream* audio = nullptr; std::atomic<bool> hasAudio{false};
@@ -225,10 +230,13 @@ struct Player {
   bool directFailed(bool fatal = true);
 
   void start(const net::Server& s, const std::string& vid, double t, const std::string& ttl, double dur, int q, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}, bool members = false) {
+    // Um restart interno pode já ter chamado halt; IDLE não apaga o custo deste vídeo.
+    bool newQualitySession=vid!=id || quality!=q || (mode>=0 && mode!=videoMode);
     if (vid != id || state == IDLE || quality != q) allowOriginal = true;
     if (vid != id) { speed=1; loop=false; }
     speaker = speaker && speed == 1;
     halt(!speaker);
+    if(newQualitySession)qualityRecovery=playback::QualityRecovery(SDL_GetTicks());
     memberVideo = members || (vid == id && memberVideo);
     tempo.reset(speed);
     if (mode >= 0) videoMode=mode;
@@ -236,7 +244,8 @@ struct Player {
     else if (vid != id) audioSelection="original";
     audioTracks.clear(); selectedAudio.clear(); tracksReady=false; adapted=false;
     presentFps=playback::rate(videoMode); sourceFpsHint=0;
-    direct = tryDirect && (!speaker || directSpeaker.configured());
+    direct = (tryDirect || playback::manual(videoMode)) && (!speaker || directSpeaker.configured());
+    qualityAvailable=1;qualityModesReady=false;manualQualityWarning=false;
     castMediaReady = false;
     endLiveReader = false; refreshed = renewing; renew = mediaReady = directReserveReady = false; actualHeight = actualFps = 0;
     if (renewing) validUntil = 0;
@@ -259,6 +268,7 @@ struct Player {
     nestFailed = false;
     speakerFallback = false;
     SDL_LockMutex(nmu); nestState = 0; nestClockReady = !direct; nestPos = 0; nestStampMs = nestSeenMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
+    if(playback::manual(videoMode) && !direct){error="manual_quality_failed";state=FAILED;return;}
     if (direct) {
       output = speaker || !directSpeaker.sample().quiet ? CAST : LOCAL; original = true;
       decThread = yt::worker(decMain, "youtube", this);

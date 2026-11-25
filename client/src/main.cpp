@@ -25,6 +25,10 @@
 #undef PL_MPEG_IMPLEMENTATION
 
 #include "gfx.hpp"
+#include "startup.hpp"
+#include "boot_log.h"
+#include "connection_error.hpp"
+#include "seek_hold.hpp"
 #include "gfx_video_memory.hpp"
 #include "net.hpp"
 #include "player.hpp"
@@ -66,7 +70,7 @@ inline Color mix(Color a, Color b, float t) { return {a.r + (b.r - a.r) * t, a.g
 }  // namespace ui
 
 struct Video { std::string id, channel, views, title; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; };
-struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; bool more = true, loadingMore = false, direct = false; };
+struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; std::string errorDetail; bool more = true, loadingMore = false, direct = false; };
 struct Shelf { std::string title, query; Feed feed; int sel = 0; std::string kind = "search"; uint64_t stamp = 0; };
 
 static std::string fmtTime(double s) {
@@ -201,7 +205,9 @@ struct Worker {
           }
           r.feed.title = j.kind == 6 ? j.query : j.a;
         } else if (!net::serverEnabled) {
-          r.feed.error = K::BadResponse;
+          r.feed.error = connection::message(page.failure);
+          if(page.failure==yt::Failure::TLS_DATE)r.feed.errorDetail=std::string(i18n::get(j.lang,K::ConsoleClock))+connection::clock();
+          LOG("catalogo: falha %s%s%s",yt::failureName(page.failure),r.feed.errorDetail.empty()?"":" ",r.feed.errorDetail.c_str());
         }
       }
       if (r.feed.direct || r.feed.error != K::None) {
@@ -336,7 +342,7 @@ struct Thumbs {
   void configure(gfx::Gfx& g, Worker& worker, int cols, bool cover = false, bool banner = false) {
     int w = cover ? 640 : cols == 3 ? 384 : 320, h = cover ? 360 : cols == 3 ? 216 : 180;
     if (w == width && h == height && banner == bool(bannerBytes)) return;
-    vkDeviceWaitIdle(g.dev);
+    gfx::quiesce(g,"thumbnail layout");
     for (auto& s : slots) release(g, s);
     if (bannerBytes) { release(g, bannerSlot); bannerSlot = {}; bannerBytes = 0; }
     if (banner) {
@@ -585,19 +591,40 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
 #include "update/ui.hpp"
 #include "nest_picker.hpp"
 
-int main(int argc, char** argv) {
+int run(int argc, char** argv) {
   (void)argc; (void)argv;
 #ifdef __XSDK__
+  boot_event("begin","environment.fault-handler","optional, opt-in only");
   install_player_fault_handler();
+  boot_event("end","environment.fault-handler","probe returned");
   SDL_SetHint("SDL_AUDIO_XSDK_HARDWARE_THREAD","1");
-  if (!SDL_Init(SDL_INIT_GAMEPAD | SDL_INIT_EVENTS | SDL_INIT_AUDIO)) { LOG("SDL: %s", SDL_GetError()); return 1; }
   std::string assets = "";
 #else
-  if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD | SDL_INIT_AUDIO)) { LOG("SDL: %s", SDL_GetError()); return 1; }
   std::string assets = std::getenv("XT_ASSETS") ? std::getenv("XT_ASSETS") : "assets/";
 #endif
   if (!assets.empty() && assets.back() != '/') assets += '/';
-  Settings settings; settings.load(assets); net::serverEnabled = settings.server;
+  boot_event("begin","settings","reading interface configuration");
+  startup::configure(assets);
+  boot_event("end","settings","language=%s",i18n::code(startup::language));
+  boot_event("begin","sdl.init","gamepad/audio; no Xbox Live requirement");
+#ifdef __XSDK__
+  bool initialized=SDL_Init(SDL_INIT_GAMEPAD|SDL_INIT_EVENTS|SDL_INIT_AUDIO);
+#else
+  bool initialized=SDL_Init(SDL_INIT_VIDEO|SDL_INIT_GAMEPAD|SDL_INIT_AUDIO);
+  const char* startupTest=std::getenv("XT_STARTUP_ERROR");
+  if(startupTest && !std::strcmp(startupTest,"sdl"))initialized=false;
+#endif
+  boot_event(initialized?"end":"error","sdl.init","ok=%d error=%s",initialized,initialized?"none":SDL_GetError());
+  if(!initialized)return startup::fail(K::StartupSDL,SDL_GetError());
+  boot_event("begin","storage.writable","title directory");
+  bool canWrite=startup::writable();
+  boot_event(canWrite?"end":"error","storage.writable","ok=%d errno=%d",canWrite,canWrite?0:errno);
+  if(!canWrite)return startup::fail(K::StartupFolder,assets,K::StartupStorage);
+  boot_event("begin","fonts.preflight","four bundled TTF headers");
+  auto missingFonts=startup::missingFonts(assets);
+  boot_event(missingFonts.empty()?"end":"error","fonts.preflight","missing=%s",missingFonts.empty()?"none":missingFonts.c_str());
+  if(!missingFonts.empty())return startup::fail(K::StartupFonts,missingFonts,K::StartupCopy);
+  Settings settings; settings.load(assets);
   auto tr = [&](K key) { return i18n::get(settings.lang, key); };
   if (FILE* f = std::fopen((assets + "marca.txt").c_str(), "r")) {
     char line[64] = {0};
@@ -615,23 +642,36 @@ int main(int argc, char** argv) {
   }
   if (const char* e = std::getenv("XT_SERVER")) { char ip[64] = {0}; int port = 0; if (std::sscanf(e, "%63[^:]:%d", ip, &port) == 2) { srv.ip = ip; srv.port = port; } }
   // Sem server.txt (nem XT_SERVER) o app é só do console: nenhum pedido ao PC, nem para o Nest ou o timer.
-  if (srv.ip == "0.0.0.0") net::serverEnabled = false;
+  net::serverEnabled = net::effectiveServer(srv,settings.server);
+  const std::string serverAddress=srv.ip+":"+std::to_string(srv.port);
   LOG("servidor %s:%d%s", srv.ip.c_str(), srv.port, net::serverEnabled ? "" : " (desligado: só console)");
 
-  gfx::Gfx g;
+  static gfx::Gfx g{};
+  gfx::emergencyGraphics=&g;startup::releaseGraphics=gfx::closeForEmergency;
+  gfx::failureScreen=[](const char* reason){startup::fail(K::StartupVideo,reason);};
   if (FILE* f = std::fopen((assets + "video-metrics.txt").c_str(),"r")) { std::fscanf(f,"%d",&g.videoMetrics); std::fclose(f); }
   const char* shotPath = std::getenv("XT_SHOT");
   g.readback = shotPath != nullptr;
-  if (!gfx::init(g, (settings.outputHeight==480 ? 640 : settings.outputHeight*16/9), settings.outputHeight, "Tube360")) return 1;
+  boot_event("begin","gpu.init","requested_output=%dp",settings.outputHeight);
+  if (!gfx::init(g, (settings.outputHeight==480 ? 640 : settings.outputHeight*16/9), settings.outputHeight, "Tube360")) return startup::fail(K::StartupVideo,SDL_GetError());
+#ifndef __XSDK__
+  if(startupTest && !std::strcmp(startupTest,"video"))return startup::fail(K::StartupVideo,"GPU initialization (fixture)");
+#endif
+#ifndef __XSDK__
+  if(startupTest && !std::strcmp(startupTest,"launch"))return startup::fail(K::StartupLaunch,"tube360.xex",K::StartupCopy);
+  if(startupTest && !std::strcmp(startupTest,"timeout"))return startup::fail(K::StartupLaunch,tr(K::StartupTimeout));
+#endif
+  boot_event("end","gpu.init","swapchain=%ux%u",g.extent.width,g.extent.height);
   const std::vector<gfx::FontSpec> fontSpecs={{"inter-400.ttf", 19}, {"inter-400.ttf", 16}, {"inter-600.ttf", 17}, {"inter-600.ttf", 23},
                                   {"inter-700.ttf", 27}, {"inter-700.ttf", 34}, {"inter-600.ttf", 22}, {"inter-700.ttf", 13},
                                   {"inter-700.ttf", 42}, {"inter-600.ttf", 18}, {"inter-300.ttf", 27}, {"inter-700.ttf", 58},
                                   {"inter-600.ttf", 24.2f}, {"inter-400.ttf", 17}, {"inter-400.ttf", 15.1f},
                                   {"inter-400.ttf", 18.2f}, {"inter-700.ttf", 11}};
   auto loadDisplay = [&]() {
-    auto layout = display::layout(g.extent.width,g.extent.height,settings.largeText);
+    boot_event("begin","settings.layout","extent=%ux%u large=%d",g.extent.width,g.extent.height,settings.largeText);
+    auto layout = display::layout(g.extent.width,g.extent.height,settings.largeText,gfx::outputAspect());
     ui::W = layout.width; ui::large = layout.large; ui::narrow = layout.narrow;
-    g.scale = layout.scale; g.insetX = layout.insetX; g.insetY = layout.insetY;
+    g.scale = layout.scale; g.scaleX = layout.scaleX; g.insetX = layout.insetX; g.insetY = layout.insetY;
     auto specs = fontSpecs;
     if (ui::large) {
       for (size_t i=0;i<specs.size();++i) {
@@ -640,14 +680,23 @@ int main(int argc, char** argv) {
       }
     }
     LOG("layout: %.0fx720, %s, texto %s, margem %.0fx%.0f",ui::W,ui::narrow ? "4:3" : "wide",ui::large ? "grande" : "normal",g.insetX,g.insetY);
-    return gfx::loadFonts(g,assets,specs);
+    bool loaded=gfx::loadFonts(g,assets,specs);
+    boot_event(loaded?"end":"error","settings.layout","font atlas loaded=%d",loaded);
+    return loaded;
   };
-  if (!loadDisplay()) { LOG("fontes não carregaram"); return 1; }
+  boot_event("begin","fonts.atlas","load and upload Inter");
+  if (!loadDisplay()) return startup::fail(K::StartupFonts,"inter-400.ttf, inter-600.ttf, inter-700.ttf, inter-300.ttf",K::StartupCopy);
+  boot_event("end","fonts.atlas","ready");
+  boot_event("begin","icons","embedded glyphs");
   loadIcons(g);
+  boot_event("end","icons","ready");
 
   gfx::Video videoTex; g.video = &videoTex;
+  boot_event("begin","video.memory","detect mapped R8 capability");
   gfx::DecodePool videoPool(g);
-  music::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); pl.videoMetrics = g.videoMetrics; pl.directSpeaker.init(assets);
+  boot_event("end","video.memory","mapped_capable=%d; allocation failure uses staging",videoPool.enabled);
+  boot_event("begin","audio.init","PCM and controller workers");
+  music::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); if(!pl.mu || !pl.cv || !pl.nmu || !pl.audio)return startup::fail(K::StartupSDL,SDL_GetError()); pl.videoMetrics = g.videoMetrics; pl.directSpeaker.init(assets);
   pl.videoBuffers = videoPool.enabled ? &videoPool : nullptr;
   if (FILE* f = std::fopen((assets + "decode-config.txt").c_str(),"r")) {
     int direct = 1, type = 1, threads = 4, loop = -1;
@@ -658,11 +707,14 @@ int main(int argc, char** argv) {
     }
     std::fclose(f);
   }
+  boot_event("end","audio.init","ready; mapped_video_selected=%d; decode-config.txt can disable it",pl.videoBuffers!=nullptr);
+  boot_network();
+  boot_event("begin","network.workers","HTTP/account/update workers");
   updates::Service updater(assets);
   updates::UI updateUI;
   auto accountNet = yt::accountTransport();
   auto consoleAccount = std::make_shared<yt::ConsoleAccount>(*accountNet, assets + "yt-console-account.json");
-  consoleAccount->select(!settings.server); pl.memberAccount = consoleAccount;
+  consoleAccount->select(!net::serverEnabled); pl.memberAccount = consoleAccount;
   Worker worker; worker.srv = srv; worker.consoleAccount = consoleAccount;
   SDL_Thread* wt = yt::worker(Worker::main, "trabalho", &worker);
   // Conta e pareamento não esperam as buscas do feed.
@@ -677,9 +729,14 @@ int main(int argc, char** argv) {
   Worker thumbsWorker; thumbsWorker.srv = srv; thumbsWorker.consoleAccount = consoleAccount; thumbsWorker.hw = 5;
   SDL_Thread* tw[3];
   for (auto& th : tw) th = yt::worker(Worker::main, "miniaturas", &thumbsWorker);
+  if(!wt || !ct || !nt || !st || !tw[0] || !tw[1] || !tw[2])return startup::fail(K::StartupSDL,"worker: "+std::string(SDL_GetError()));
   Remote remote; remote.srv = srv;
   SDL_Thread* rt = SDL_CreateThread(Remote::main, "controle", &remote);
+  if(!rt)return startup::fail(K::StartupSDL,"remote worker: "+std::string(SDL_GetError()));
+  boot_event("end","network.workers","threads created; failures remain local");
+  boot_event("begin","phone.start","optional SSDP/lounge receiver");
   cast::Receiver phone(assets, brandName); phone.enable(true);
+  boot_event("end","phone.start","enable returned; discovery failures do not block Home");
   cast::Status phoneStatus; uint64_t phoneStateAt = 0, phonePlaybackSerial = 0;
   float phoneGain = 1;
   bool endTimerPending = false;
@@ -726,14 +783,22 @@ int main(int argc, char** argv) {
   Color ambient{0.15f, 0.15f, 0.2f, 1}, ambientWant = ambient;
   std::string query; std::vector<std::string> recent;
   int keyRow = 0, keyCol = 0; bool keyInRecent = false; int recentSel = 0;
+  playback::SeekHold seekHold;
   PlayerUI playerUI; uint64_t& overlayUntil = playerUI.until;
+  playback::QualityChoices offeredQualities(1),defaultQualities;
+  bool qualityKnown=false;
+  std::vector<std::string> qualityHelpLines,manualNoticeLines;
+  uint64_t manualNoticeUntil=0,manualNoticeFont=0;
+  i18n::Lang manualNoticeLang=settings.lang;
+  float manualNoticeWidth=0;
   Screen backTo = HOME; std::string toast; uint64_t toastUntil = 0;
   Video playing; bool playerFromRemote = false;
   cc::Loader captionLoader; cc::Data captions;
   int captionIndex = -1; std::vector<std::string> captionLines; float captionWidth = 0;
   float captionLineWidths[2]{};
   int lastQuality = -1, lastSourceFps = -1, lastTargetFps=-1, lastOutput=-1; const char* lastMode = nullptr;
-  std::string qualityLabel, resolutionLabel;
+  std::string qualityLabel, resolutionLabel, seekLabel;
+  int seekSecond=-1;
   std::vector<yt::AudioTrack> audioTracks;
   std::vector<std::string> trackLabels;
   std::string selectedAudio, selectedTrackLabel;
@@ -826,6 +891,9 @@ int main(int argc, char** argv) {
     control.add(j);
   };
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
+    offeredQualities.assign(1);
+    qualityKnown=false;
+    manualNoticeUntil=0;
     if (track.empty()) track=v.id==playing.id ? pl.audioSelection : settings.originalAudio ? "original" : std::string("lang:")+i18n::code(settings.lang);
     if (!fromRemote) phonePlaybackSerial = 0;
     if (historyVideo != v.id) { recordHistory(); historyVideo = v.id; historyStarted = false; historyAt = 0; }
@@ -856,9 +924,15 @@ int main(int argc, char** argv) {
     if (pl.requestLanguage != i18n::code(settings.lang)) { pl.halt(); pl.requestLanguage=i18n::code(settings.lang); }
     pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track,v.members != yt::Membership::None);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
+    seekHold.cancel();
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
   };
+  auto openQuality = [&]() {
+    playerUI.panel=PlayerUI::QUALITY;playerUI.panelSel=offeredQualities.index(settings.videoMode);playerUI.touch(SDL_GetTicks());
+    qualityHelpLines=gfx::wrap(g,ui::F_SMALL,tr(K::ManualQualityHelp),648,2);
+  };
   auto stopVideo = [&]() {
+    seekHold.cancel();
     recordHistory(); historyVideo.clear(); historyStarted = false;
     extras.select("",i18n::code(settings.lang));
     if (nav.localQueue) { nav.clearLocalQueue(); nav.musicSession = nav.musicNow = false; }
@@ -958,8 +1032,14 @@ int main(int argc, char** argv) {
 
   Screen loggedScreen = HOME;
   const char* screenNames[] = {"Home", "Busca", "Player", "Ajustes", "Navegacao"};
+  boot_event("begin","app.first-frame","enter render loop; no disk logging each frame after ready");
   while (!quit) {
     uint64_t now = SDL_GetTicks();
+#ifndef __XSDK__
+    const Feed* capturedFeed=nullptr;
+    K capturedFeedTitle=K::None,capturedFeedHelp=K::None;
+    bool capturedServerError=false;
+#endif
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
       if (e.type == SDL_EVENT_QUIT) quit = true;
@@ -970,7 +1050,7 @@ int main(int argc, char** argv) {
         bool d = e.type == SDL_EVENT_KEY_DOWN; SDL_Keycode k = e.key.key;
         int b = k == SDLK_UP ? Input::UP : k == SDLK_DOWN ? Input::DOWN : k == SDLK_LEFT ? Input::LEFT : k == SDLK_RIGHT ? Input::RIGHT
               : k == SDLK_RETURN ? Input::A : k == SDLK_ESCAPE ? Input::B : k == SDLK_BACKSPACE ? Input::X : k == SDLK_TAB ? Input::Y
-              : k == SDLK_PAGEUP ? Input::LB : k == SDLK_PAGEDOWN ? Input::RB : k == SDLK_F10 ? Input::BACK : k == SDLK_F2 ? Input::START : -1;
+              : k == SDLK_Q ? Input::LT : k == SDLK_E ? Input::RT : k == SDLK_PAGEUP ? Input::LB : k == SDLK_PAGEDOWN ? Input::RB : k == SDLK_F10 ? Input::BACK : k == SDLK_F2 ? Input::START : -1;
         if (b >= 0) in.set(b, d, now);
       }
       if (e.type == SDL_EVENT_TEXT_INPUT && screen == SEARCH) query += e.text.text;
@@ -997,10 +1077,11 @@ int main(int argc, char** argv) {
       static int keyIndex = 0; static uint64_t keyAt = runStart + (uint64_t)std::max(0, interval);
       if (interval > 0) { step = -1; if (now >= keyAt) { step = keyIndex++ * 24; keyAt = now + interval; } }
 #endif
-      if (script && step >= 0 && step % 24 == 0 && step / 24 < (int)std::strlen(script)) {
+      if (script && step >= 0 && step % 24 == 0 && step / 24 <= (int)std::strlen(script)) {
         char k = script[step / 24];
         int b = k == 'U' ? Input::UP : k == 'D' ? Input::DOWN : k == 'L' ? Input::LEFT : k == 'R' ? Input::RIGHT : k == 'A' ? Input::A
               : k == 'B' ? Input::B : k == 'X' ? Input::X : k == 'Y' ? Input::Y : k == 'S' ? Input::START : k == '[' ? Input::LB : k == ']' ? Input::RB : k == 'l' ? Input::LT : k == 'r' ? Input::RT : -1;
+        in.set(Input::LT,k=='l',now);in.set(Input::RT,k=='r',now);
         if (b >= 0) in.fired[b] = true;
       }
     }
@@ -1340,13 +1421,14 @@ int main(int argc, char** argv) {
           captions.cues.clear(); captionIndex = -1; captionLines.clear();
         }
       } else {
-        int count = playerUI.panel == PlayerUI::QUALITY ? 3 : playerUI.panel==PlayerUI::TRACKS ? (int)audioTracks.size() : 2;
+        int count = playerUI.panel == PlayerUI::QUALITY ? offeredQualities.count : playerUI.panel==PlayerUI::TRACKS ? (int)audioTracks.size() : 2;
         if (in.hit(Input::UP) || in.hit(Input::LEFT)) playerUI.panelSel = (playerUI.panelSel + count - 1) % count;
         if (in.hit(Input::DOWN) || in.hit(Input::RIGHT)) playerUI.panelSel = (playerUI.panelSel + 1) % count;
         if (in.hit(Input::A)) {
           bool change = false;
           if (playerUI.panel == PlayerUI::QUALITY) {
-            change = playerUI.panelSel != settings.videoMode; settings.videoMode=playerUI.panelSel;
+            int mode=offeredQualities.modes[playerUI.panelSel];
+            change = mode != settings.videoMode; settings.videoMode=mode;
           } else if (playerUI.panel==PlayerUI::TRACKS && playerUI.panelSel < (int)audioTracks.size()) {
             bool wasPaused=pl.paused;
             std::string track=audioTracks[playerUI.panelSel].code;
@@ -1359,7 +1441,7 @@ int main(int argc, char** argv) {
             bool speaker = playerUI.panelSel == 1;
             change = speaker != pl.nest; nestOut = speaker; nestSkip = false;
           } else { toast = tr(K::NoSpeaker); toastUntil = now + 3000; }
-          if (change) { startVideo(playing, pl.live ? 0 : pl.position(), playerFromRemote); saveSettings(); }
+          if (change) { bool paused=pl.paused;startVideo(playing, pl.live ? 0 : pl.position(), playerFromRemote);pl.setPaused(paused);saveSettings(); }
           playerUI.options = true; playerUI.panel = PlayerUI::NONE;
         }
       }
@@ -1513,13 +1595,22 @@ int main(int argc, char** argv) {
           settings.cols = settings.cols == 4 ? 3 : 4;
           thumbs.configure(g, thumbsWorker, ui::columns(settings.cols)); scroll = 0;
         } else if (settingsRow == 2) {
-          settings.videoMode=(settings.videoMode+direction+playback::COUNT)%playback::COUNT;
+          bool videoActive=pl.state!=player::IDLE && !pl.playingAudio;
+          if(videoActive && !qualityKnown)changed=false;
+          else {
+            const auto& choices=videoActive?offeredQualities:defaultQualities;
+            settings.videoMode=choices.cycle(settings.videoMode,direction);
+            if(videoActive && !playing.id.empty()) {
+              bool paused=pl.paused;startVideo(playing,pl.live?0:pl.position(),playerFromRemote);pl.setPaused(paused);screen=SETTINGS;
+            }
+          }
         } else if (settingsRow == 3) {
           if (nestAvailable) { nestOut = !nestOut; if (nestOut && !pl.directSpeaker.configured()) control.add({5, "/api/nest/prepare", 0}); }
           else changed = false;
         } else if (settingsRow == 4) nestOffsetMs = std::clamp(nestOffsetMs + direction * 40, -2000, 2000);
         else if (settingsRow == 5) {
           settings.lang = i18n::cycle(settings.lang,direction);
+          boot_event("info","settings.language","lang=%s; bundled Latin atlas unchanged",i18n::code(settings.lang));
           rebuildCats(); scroll = 0; toast.clear();
         } else if (settingsRow == 6) { sleepChoice = (sleepChoice + direction + 8) % 8; applySleep(); changed = false; }
         else if (settingsRow == 7) {
@@ -1529,9 +1620,9 @@ int main(int argc, char** argv) {
           }
         }
         else if (settingsRow == 8) {
-          settings.server = !settings.server; net::serverEnabled = settings.server;
-          consoleAccount->select(!settings.server); account = {}; accountKnown = false;
-          if (!settings.server) {
+          settings.server = !settings.server; net::serverEnabled = net::effectiveServer(srv,settings.server);
+          consoleAccount->select(!net::serverEnabled); account = {}; accountKnown = false;
+          if (!net::serverEnabled) {
             account = {}; accountKnown = false; nestAvailable = pl.directSpeaker.configured(); sleep = {};
             SDL_LockMutex(remote.mu); remote.online = false; remote.cmds.clear(); remote.ended.clear(); SDL_UnlockMutex(remote.mu);
           }
@@ -1541,21 +1632,24 @@ int main(int argc, char** argv) {
           const int heights[]={480,720,1080};
           int index=settings.outputHeight==480 ? 0 : settings.outputHeight==1080 ? 2 : 1;
           settings.outputHeight=heights[(index+direction+3)%3];
-          gfx::output(g,settings.outputHeight);
-          if (!loadDisplay()) { LOG("fontes não carregaram"); quit=true; }
+          if(!gfx::fixedOutput())pl.resetQualityMeasurements();
+          if (gfx::output(g,settings.outputHeight) && !loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
+          if(!gfx::fixedOutput())pl.resetQualityMeasurements();
           scroll=0; nav.nowId.clear();
           overlayTitle = {}; overlayMeta = {}; overlayChapter = {}; tipLabel = {}; tipValue = {};
           metaChannel.clear(); clockSecond = -1;
-          if ((int)g.extent.height != settings.outputHeight) { toast=tr(K::Display1080Help); toastUntil=now+6000; }
+          if ((int)g.extent.height != settings.outputHeight) { toast=tr(gfx::fixedOutput()?K::SafeOutputHelp:K::Display1080Help); toastUntil=now+6000; }
         }
         else if (settingsRow == 10) settings.originalAudio=!settings.originalAudio;
         else if (settingsRow == 11) {
           settings.largeText=!settings.largeText;
-          if (!loadDisplay()) { LOG("fontes não carregaram"); quit=true; }
+          pl.resetQualityMeasurements();
+          if (!loadDisplay()) return startup::fail(K::StartupFonts,"font atlas",K::StartupCopy);
+          pl.resetQualityMeasurements();
           overlayTitle={}; overlayMeta={}; overlayChapter={}; tipLabel={}; tipValue={};
           metaChannel.clear(); clockSecond=-1; scroll=0; nav.nowId.clear();
         }
-        else if (settingsRow == 12) settings.videoFill=!settings.videoFill;
+        else if (settingsRow == 12) {settings.videoFill=!settings.videoFill;boot_event("info","settings.fit","fill=%d; geometry/UV only, no display or atlas recreation",settings.videoFill);}
         if (changed) saveSettings();
       }
       if (in.hit(Input::B)) { screen = HOME; railFocus = true; railSel = 6; }
@@ -1668,6 +1762,7 @@ int main(int argc, char** argv) {
         }
       }
     } else if (screen == PLAYER) {
+      if(seekHold.active)for(int b=0;b<Input::N;++b)if(b!=Input::B && b!=Input::BACK)in.fired[b]=false;
       bool any = false;
       int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
       // Na opção 1 aprovada os ícones ficam ABAIXO da barra: ↓ leva aos ícones, ↑ volta para a trilha.
@@ -1702,7 +1797,7 @@ int main(int argc, char** argv) {
         } else if (playerUI.selected == PlayerUI::CC) {
           if (captions.failed || captionLoader.loading || (!captions.live && !captions.tracks.empty())) playerUI.panel = PlayerUI::CAPTIONS;
         } else if (playerUI.selected == PlayerUI::VIDEO) {
-          playerUI.panel = PlayerUI::QUALITY; playerUI.panelSel = settings.videoMode;
+          openQuality();
         } else if (playerUI.selected == PlayerUI::AUDIO) {
           playerUI.panel = PlayerUI::SOUND; playerUI.panelSel = pl.nest ? 1 : 0;
         } else if (playerUI.selected == PlayerUI::TRACK && audioTracks.size()>1) {
@@ -1728,11 +1823,8 @@ int main(int argc, char** argv) {
         LOG("player: pause=%d pos=%.2f", pl.paused ? 1 : 0, pl.position());
         any = true;
       }
-      if (in.hit(Input::Y) && pl.state != player::FAILED) {
-        bool row = playerUI.options;
-        settings.videoMode=(settings.videoMode+1)%playback::COUNT;
-        startVideo(playing, pl.position(), playerFromRemote); playerUI.options = row;
-        toast = std::string(tr(K::QualityPrefix)) + tr(videoModeLabel(settings.videoMode)); toastUntil = now + 2500; saveSettings(); any = true;
+      if (in.hit(Input::Y)) {
+        openQuality();any=true;
       }
       if (in.hit(Input::X)) {
         if (pl.speed!=1) toast=tr(K::SpeedNest);
@@ -1747,19 +1839,27 @@ int main(int argc, char** argv) {
         }
         toastUntil = now + 3000; any = true;
       }
-      bool lt = in.hit(Input::LT), rt = in.hit(Input::RT);
-      if (nestOut && (lt || rt)) {
-        nestOffsetMs = std::clamp(nestOffsetMs + (rt ? 40 : -40), -2000, 2000); pl.nestOffset = nestOffsetMs / 1000.0;
-        toast = tr(K::SyncPrefix) + std::to_string(nestOffsetMs) + tr(K::Milliseconds);
-        toastUntil = now + 2500; saveSettings(); any = true;
+      in.hit(Input::LT);in.hit(Input::RT);
+      int trigger=in.held[Input::RT]==in.held[Input::LT]?0:in.held[Input::RT]?1:-1;
+      if(trigger && (pl.live || pl.state==player::CONNECTING || pl.state==player::FAILED)) {
+        if(pl.state!=player::FAILED){toast=tr(pl.live?K::PlayerLiveSeek:K::PlayerSeekWait);toastUntil=now+2500;}
+      } else {
+        bool wasActive=seekHold.active;
+        bool commit=seekHold.update(now,trigger,pl.position(),pl.duration,pl.paused);
+        if(!wasActive && seekHold.active){seekSecond=-1;pl.setPaused(true);LOG("busca: segurando %d desde %.3f",trigger,pl.position());}
+        if(seekHold.active){playerUI.options=false;any=true;}
+        if(commit){double to=seekHold.target;bool paused=seekHold.wasPaused;LOG("busca: soltou em %.3f",to);startVideo(playing,to,playerFromRemote);pl.setPaused(paused);any=true;}
       }
       if (any) playerUI.touch(now);
       if (in.hit(Input::BACK)) stopVideo();
-      else if (in.hit(Input::B) && !playerUI.back(now)) {
+      else if (in.hit(Input::B)) {
+        if(seekHold.active){bool paused=seekHold.wasPaused;seekHold.cancel(true);pl.setPaused(paused);}
+        else if(!playerUI.back(now)) {
         if (nav.musicSession) {
           double pos = pl.position(); bool paused = pl.paused;
           nav.musicNow = true; startVideo(playing,pos,playerFromRemote); pl.setPaused(paused);
         } else stopVideo();
+        }
       }
       if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
         nestSkip = true;
@@ -1768,7 +1868,13 @@ int main(int argc, char** argv) {
       }
 
     }
+    if(pl.qualityModesReady.exchange(false)) {
+        qualityKnown=true;
+        offeredQualities.assign(pl.qualityAvailable.load());
+        if(playerUI.panel==PlayerUI::QUALITY)playerUI.panelSel=offeredQualities.index(settings.videoMode);
+    }
     if (screen == PLAYER) {
+      if(pl.manualQualityWarning.exchange(false)){manualNoticeUntil=now+10000;manualNoticeLines.clear();}
       if (pl.speakerFallback.exchange(false)) {
         toast = tr(nav.musicNow ? K::MusicSpeakerFallback : K::SpeakerFallback); toastUntil = now + 5000;
       }
@@ -1924,9 +2030,19 @@ int main(int argc, char** argv) {
       if (n == 0) {
         if (cur.feed.loading) { spinner(g, ui::X0 + (ui::W - ui::X0) / 2 - 32, 380, 22, t); gfx::text(g, ui::F_BODY, tr(K::LoadingVideos), ui::X0 + (ui::W - ui::X0) / 2 - 32, 420, ui::MUTED, 1); }
         else if (cur.feed.error != K::None) {
-          gfx::text(g, ui::F_BIG, tr(settings.server ? K::ServerUnavailable : K::BadResponse), ui::X0, 190, ui::TEXT);
-          gfx::text(g, ui::F_BODY, settings.server ? std::string(tr(cur.feed.error)) + " (" + srv.ip + ":" + std::to_string(srv.port) + ")" : tr(K::Refresh), ui::X0, 240, ui::MUTED);
-          if (settings.server) gfx::text(g, ui::F_BODY, tr(K::RetryServer), ui::X0, 270, ui::MUTED);
+          float y=190;
+          bool serverError=net::serverEnabled && (cur.feed.error==K::NoResponse || cur.feed.error==K::BadResponse);
+          K errorTitle=serverError?K::ServerUnavailable:cur.feed.error, errorHelp=serverError?K::RetryServer:K::Refresh;
+#ifndef __XSDK__
+          capturedFeed=&cur.feed;capturedFeedTitle=errorTitle;capturedFeedHelp=errorHelp;capturedServerError=serverError;
+#endif
+          for(const auto& line:gfx::wrap(g,ui::F_H2,tr(errorTitle),ui::W-ui::X0-64,4)) {
+            gfx::text(g,ui::F_H2,line,ui::X0,y,ui::TEXT);y+=g.fonts[ui::F_H2].lineH+8;
+          }
+          const auto& errorDetail=serverError?serverAddress:cur.feed.errorDetail;
+          if(!errorDetail.empty()){gfx::text(g,ui::F_BODY,errorDetail,ui::X0,y+16,ui::MUTED);y+=48;}
+          if(serverError)gfx::text(g,ui::F_BODY,tr(errorHelp),ui::X0,y+16,ui::MUTED);
+          else hint(g,ui::X0,y+24,"X",XX,tr(errorHelp));
         } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
       }
       if (ui::large || ui::narrow) gfx::rect(g,96,648,ui::W-96,72,ui::BG);
@@ -2075,7 +2191,7 @@ int main(int argc, char** argv) {
         gfx::text(g,ui::F_KEY,shown,ui::large ? x+28 : right,y+(ui::large ? 47 : 15),disabled ? ui::MUTED : selected ? ui::A2 : ui::TEXT,ui::large ? 0 : 2);
         if (selected && i>0 && i<13 && !disabled) gfx::text(g,ui::F_KEY,"< >",x+w-20,y+(ui::large ? 47 : 15),ui::MUTED,2);
       }
-      K help=settingsRow==9 ? (g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
+      K help=settingsRow==2?K::ManualQualityHelp:settingsRow==9 ? (gfx::fixedOutput()?K::SafeOutputHelp:g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
       float hy=ui::large ? 608 : 610;
       for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::text(g,ui::F_SMALL,line,ui::X0,hy,ui::MUTED); hy+=ui::large ? 26 : 22; }
       float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
@@ -2141,11 +2257,12 @@ int main(int argc, char** argv) {
           overlayMeta.update(g, ui::F_META, meta.c_str(), ui::W-80);
         }
         overlayTitle.update(g, ui::F_VIDEO_TITLE, title.c_str(), options && !transportFocus ? ui::W-520 : ui::W-80);
+        if(!panelOpen && pl.state!=player::FAILED)hint(g,40,ui::large?508:523,"Y",XY,tr(K::PlayerQuality));
         gfx::text(g, ui::F_VIDEO_TITLE, overlayTitle.text, 40, ui::large ? 548 : 563, ui::TEXT);
         gfx::text(g, ui::F_META, overlayMeta.text, 40, 591, rgb(0xd4d4d8));
 
         const bool live = pl.live;
-        double pos = pl.position(), dur = pl.duration;
+        double pos = seekHold.active?seekHold.target:pl.position(), dur = pl.duration;
         const float bx = 40, by = 624, bw = ui::W-80;
         float frac = live ? 1.f : dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0;
         gfx::rect(g, bx, by, bw, 4, {1,1,1,0.25f}, 2);
@@ -2180,6 +2297,10 @@ int main(int argc, char** argv) {
           gfx::text(g, ui::F_META, overlayChapter.text, 46 + leftW, 658, ui::TEXT);
         }
 
+        if(seekHold.active) {
+          if(seekSecond!=int(seekHold.target)){seekSecond=int(seekHold.target);seekLabel=std::string(tr(K::SeekTarget))+fmtTime(seekHold.target);}
+          gfx::text(g,ui::F_H2,seekLabel,ui::W/2,490,ui::TEXT,1);
+        }
         constexpr icons::PlayerIcon symbols[] = {icons::CLOSED_CAPTIONING, icons::GEAR, icons::SPEAKER_HIGH, icons::TRANSLATE_PLAYER,
                                                  icons::MOON, icons::THUMBS_UP, icons::THUMBS_DOWN, icons::CHAT_CIRCLE_TEXT, icons::GAUGE, icons::REPEAT, icons::USER_CIRCLE, icons::BROADCAST};
         float rightW = 8 + (optionCount - 1 - (playerUI.tracks ? 0 : 1)) * 48, rightX = ui::W-32 - rightW;
@@ -2198,7 +2319,9 @@ int main(int argc, char** argv) {
             bool full = pl.actualHeight > 720;
             float badgeWidth = full ? 29 : 23;
             gfx::rect(g, cx - 3, 648, badgeWidth, 11, red, 3);
-            gfx::text(g, ui::F_BADGE, full ? "1080" : "720", cx - 3 + badgeWidth / 2, 648, rgb(0xffffff), 1);
+            int height=pl.actualHeight;
+            const char* badge=height>=1080?"1080":height>=720?"720":height>=480?"480":height>=360?"360":height>=240?"240":height>0?"144":"?";
+            gfx::text(g, ui::F_BADGE,badge, cx - 3 + badgeWidth / 2, 648, rgb(0xffffff), 1);
           } else if (i == PlayerUI::AUDIO && pl.nest) {
             gfx::rect(g, cx + 6, 652, 8, 8, rgb(0x22c55e), 4);
           }
@@ -2219,7 +2342,7 @@ int main(int argc, char** argv) {
               int targetFps = std::min(sourceFps, pl.presentFps.load());
               const char* mode = pl.waiting() ? nullptr : tr(pl.direct ? K::Console : pl.original ? K::ServerOriginal : K::ServerConverted);
               if (resolution != lastQuality || sourceFps != lastSourceFps || targetFps != lastTargetFps || lastOutput != (int)g.extent.height || mode != lastMode) {
-                resolutionLabel = resolution ? std::to_string(resolution) + "p" : "720p";
+                resolutionLabel = resolution ? std::to_string(resolution) + "p" : tr(K::Loading);
                 if (sourceFps) resolutionLabel += std::to_string(sourceFps);
                 if (sourceFps > targetFps) resolutionLabel += " -> " + std::to_string(targetFps) + " fps";
                 qualityLabel = resolutionLabel + " · " + std::to_string(g.extent.height) + "p";
@@ -2322,7 +2445,8 @@ int main(int argc, char** argv) {
         float hx=hint(g,x+36,y+h-44,tr(K::BtnHorizontal),XG,tr(K::ChooseRow));
         hx=hint(g,hx,y+h-44,"A",XA,tr(K::SleepApply)); hint(g,hx,y+h-44,"B",XB,tr(K::Back));
       } else if (playerUI.panel != PlayerUI::NONE) {
-        float w = 720, h = playerUI.panel==PlayerUI::TRACKS ? 430 : 330, x = (ui::W - w) / 2, y = playerUI.panel==PlayerUI::TRACKS ? 140 : 190;
+        bool list=playerUI.panel==PlayerUI::TRACKS || playerUI.panel==PlayerUI::QUALITY;
+        float w = 720, h = playerUI.panel==PlayerUI::QUALITY?490:list?430:330, x = (ui::W - w) / 2, y = playerUI.panel==PlayerUI::QUALITY?100:list?140:190;
         gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.55f});
         gfx::shadow(g, x, y + 10, w, h, 24, 32, 0.6f);
         gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
@@ -2331,8 +2455,8 @@ int main(int argc, char** argv) {
         if (ccPanel && (captionLoader.loading || captions.failed || captions.tracks.empty())) {
           gfx::text(g, ui::F_BODY, tr(captionLoader.loading ? K::CaptionsLoading : captions.failed ? K::CaptionsFailed : captions.reason == "live_clock" ? K::CaptionsLiveClock : pl.live ? K::CaptionsLiveNone : K::CaptionsNone), x + 36, y + 110, ui::MUTED);
         } else {
-          int count = ccPanel ? 2 : playerUI.panel == PlayerUI::QUALITY ? 3 : playerUI.panel==PlayerUI::TRACKS ? (int)audioTracks.size() : 2;
-          int first=playerUI.panel==PlayerUI::TRACKS ? std::max(0,playerUI.panelSel-3) : 0;
+          int count = ccPanel ? 2 : playerUI.panel == PlayerUI::QUALITY ? offeredQualities.count : playerUI.panel==PlayerUI::TRACKS ? (int)audioTracks.size() : 2;
+          int first=list ? std::max(0,playerUI.panelSel-3) : 0;
           for (int i = first; i < std::min(count,first+4); i++) {
             float ry = y + 90 + (i-first) * 58;
             bool focused = playerUI.panelSel == i;
@@ -2344,11 +2468,15 @@ int main(int argc, char** argv) {
               label = tr(K::CaptionsLanguage);
               for (const auto& track : captions.tracks) if (track.code == captions.selected)
                 label = track.name + " · " + tr(track.automatic ? K::CaptionsAuto : K::CaptionsManual);
-            } else if (playerUI.panel == PlayerUI::QUALITY) label = tr(videoModeLabel(i));
+            } else if (playerUI.panel == PlayerUI::QUALITY) label = tr(videoModeLabel(offeredQualities.modes[i]));
             else if (playerUI.panel==PlayerUI::TRACKS) label=trackLabels[i];
             else label = i ? nestName : tr(K::TV);
-            gfx::text(g, ui::F_BODY, gfx::ellipsize(g, ui::F_BODY, label, w - 132), x + 50, ry + 14, disabled ? ui::FAINT : focused ? ui::INK : ui::TEXT);
+            gfx::text(g, ui::F_BODY, gfx::ellipsize(g, ui::F_BODY, label, w - 132), x + 50, ry + (playerUI.panel==PlayerUI::QUALITY?(50-g.fonts[ui::F_BODY].size)/2:14), disabled ? ui::FAINT : focused ? ui::INK : ui::TEXT);
           }
+        }
+        if(playerUI.panel==PlayerUI::QUALITY) {
+          float hy=y+330;
+          for(const auto& line:qualityHelpLines){gfx::text(g,ui::F_SMALL,line,x+36,hy,ui::MUTED);hy+=g.fonts[ui::F_SMALL].lineH+2;}
         }
         float hx = hint(g, x + 36, y + h - 42, tr(K::BtnVertical), XG, tr(K::ChooseRow));
         hx = hint(g, hx, y + h - 42, "A", XA, tr(K::SleepApply));
@@ -2403,6 +2531,7 @@ int main(int argc, char** argv) {
         for (const auto& line:gfx::wrap(g,ui::F_BODY,tr(i18n::playerError(pl.error)),w-64,3)) {
           gfx::text(g,ui::F_BODY,line,ui::W/2,lineY,ui::MUTED,1); lineY+=g.fonts[ui::F_BODY].lineH+4;
         }
+        if(playback::manual(settings.videoMode))hint(g,(ui::W-w)/2+32,y+152,"Y",XY,tr(K::PlayerQuality));
       }
     }
 
@@ -2477,6 +2606,16 @@ int main(int argc, char** argv) {
         hint(g, hx, py + ph - 58, "B", XB, tr(K::Back));
       }
     }
+    if(screen==PLAYER && now<manualNoticeUntil) {
+      float w=std::min(880.f,ui::W-80),x=(ui::W-w)/2;
+      if(manualNoticeLines.empty() || manualNoticeFont!=g.fontRevision || manualNoticeLang!=settings.lang || manualNoticeWidth!=w) {
+        manualNoticeLines=gfx::wrap(g,ui::F_SMALL,tr(K::ManualQualityPressure),w-40,3);
+        manualNoticeFont=g.fontRevision;manualNoticeLang=settings.lang;manualNoticeWidth=w;
+      }
+      float lineH=g.fonts[ui::F_SMALL].lineH+2;
+      gfx::rect(g,x,24,w,24+lineH*manualNoticeLines.size(),ui::SURFACE2,16);
+      float y=36;for(const auto& line:manualNoticeLines){gfx::text(g,ui::F_SMALL,line,x+20,y,ui::TEXT);y+=lineH;}
+    }
     if (!toast.empty() && now < toastUntil) {
       std::string shown = gfx::ellipsize(g, ui::F_BODY, toast, ui::W - 100);
       float w = gfx::textWidth(g, ui::F_BODY, shown) + 52;
@@ -2521,6 +2660,14 @@ int main(int argc, char** argv) {
     if (shoot) {
       LOG("captura: frame %llu, tempo %llu ms, tela %d, vídeo %s, posição %.2f", (unsigned long long)frame, (unsigned long long)(now - runStart), (int)screen, playing.id.c_str(), pl.position());
       LOG("captura conta: conectada=%d foto=%d", account.signedIn(), !account.avatar.empty());
+#ifndef __XSDK__
+      if(screen==PLAYER){
+        LOG("captura qualidade: modo=%s fixa=%d mascara=%x painel=%d selecao=%d fonte=%d pausa=%d aviso=%d estado=%d erro=%s",playback::modeName(settings.videoMode),playback::manual(settings.videoMode),pl.qualityAvailable.load(),playerUI.panel,playerUI.panelSel,pl.actualHeight.load(),pl.paused.load(),now<manualNoticeUntil,pl.state.load(),pl.state==player::FAILED?pl.error.c_str():"");
+        if(playerUI.panel==PlayerUI::QUALITY)for(int i=0;i<offeredQualities.count;++i)LOG("captura opcao qualidade: %s | %s",playback::modeName(offeredQualities.modes[i]),tr(videoModeLabel(offeredQualities.modes[i])));
+      }
+      if(capturedFeed)LOG("captura erro Home: preferencia=%d efetivo=%d | %s | %s | %s",settings.server,int(net::serverEnabled.load()),
+          tr(capturedFeedTitle),tr(capturedFeedHelp),capturedServerError?serverAddress.c_str():capturedFeed->errorDetail.c_str());
+#endif
       if (screen == NAV && !nav.pages.empty()) LOG("captura navegação: %s sel=%d canal=%d zona=%d pilha=%u menu=%d prateleira=%d",
           nav.page().kind.c_str(), nav.page().sel, nav.page().channelSel, nav.page().zone, (unsigned)nav.pages.size(), railFocus, nav.page().shelf);
       quit = true;
@@ -2550,6 +2697,20 @@ int main(int argc, char** argv) {
   gfx::videoDestroy(g,videoTex);
   LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes + thumbs.bannerBytes), (unsigned)thumbs.peakPending);
   LOG("%s saindo", brandName.c_str());
+  boot_event("end","app.exit","normal shutdown");
+  boot_close();
   SDL_Quit();
   return 0;
+}
+
+int main(int argc,char** argv) {
+#ifdef __XSDK__
+  boot_open("","app");
+#else
+  boot_open(std::getenv("XT_ASSETS")?std::getenv("XT_ASSETS"):"assets/","app");
+#endif
+  boot_event("info","main","C runtime reached main; build=%u",unsigned(updates::buildId));
+  boot_environment();
+  try {return run(argc,argv);}
+  catch(const std::exception& error){return startup::fail(K::StartupVideo,error.what());}
 }

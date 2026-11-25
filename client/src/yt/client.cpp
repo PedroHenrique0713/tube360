@@ -1,6 +1,7 @@
 #include "client.hpp"
 #include "membership_json.hpp"
 #include "locale.hpp"
+#include "../playback_mode.hpp"
 #include "update/rules.hpp"
 #include "picojson.h"
 #include <algorithm>
@@ -146,9 +147,11 @@ Page Client::page(const string& route, const string& fields, const string& exclu
     bindRules();
     J j;
     Page out;
-    out.error = content(post(route,fields),j);
+    auto response=post(route,fields);
+    out.error = content(response,j);
+    out.failure = failureOf(response);
     if (!out.error.empty()) { updates::observe(policy->version,false,out.error=="invalid_json" || out.error=="web_context_missing" || out.error=="web_context_invalid" || out.error=="HTTP 400" || out.error=="HTTP 403"); return out; }
-    if (j.contains("error") || !j.contains("contents")) { out.error="invalid_page"; updates::observe(policy->version,false,true); return out; }
+    if (j.contains("error") || !j.contains("contents")) { out.error="invalid_page"; out.failure=Failure::JSON; updates::observe(policy->version,false,true); return out; }
     std::set<string> seen{exclude};
     collect(field(j,"contents"),out,seen,size_t(policy->n("cards")));
     updates::observe(policy->version,true,false);
@@ -384,6 +387,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
     int audioRate=0, audioRank=-1;
     Format bestAdaptive, bestMuxed, fallback;
     std::vector<Format> adaptive;
+    unsigned adaptiveModes=1,muxedModes=1;
     auto better = [mode](const Format& candidate, const Format& best) {
         if (candidate.height != best.height) return candidate.height > best.height;
         if (mode != 1 && (candidate.fps <= 30.1) != (best.fps <= 30.1)) return candidate.fps <= 30.1;
@@ -396,7 +400,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
             if (!f.is<Object>() || !array(field(f,"drmFamilies")).empty() || f.contains("licenseInfos")) continue;
             bool direct = httpsUrl(url);
             const auto& fps = field(f, "fps");
-            Format fmt{url,integer(f,"itag"),integer(f,"height"),fps.is<double>() ? fps.get<double>() : 0.0,integer(f,"bitrate")};
+            Format fmt{url,integer(f,"itag"),integer(f,"height"),fps.is<double>() ? fps.get<double>() : 0.0,integer(f,"bitrate"),integer(f,"width")};
             if (fmt.height == 720 && fmt.fps > 30 && mime.find("avc1") != string::npos) out.highFrameRate720 = true;
             if (mime.find("audio/mp4")==0 && mime.find("mp4a")!=string::npos) {
                 if (offers) {
@@ -434,7 +438,9 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
                         if (muxed && mime.find("mp4a")!=string::npos) ++count.muxedAac;
                     }
                 }
-                if (!direct || fmt.height>(height>=720 ? (mode==1 ? 720 : 1080) : height) ||
+                if(direct && (!muxed || mime.find("mp4a")!=string::npos))
+                    (muxed?muxedModes:adaptiveModes)|=playback::offeredMode(fmt.height,fmt.fps);
+                if (!direct || (playback::manual(mode)?fmt.height!=playback::fixedHeight(mode):fmt.height>(height>=720 ? (mode==1 ? 720 : 1080) : height)) ||
                     (muxed && (fmt.height>720 || mime.find("mp4a")==string::npos))) continue;
                 if (fmt.height<=720 && better(fmt,fallback)) fallback=fmt;
                 if (!muxed) adaptive.push_back(fmt);
@@ -454,6 +460,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
         });
     }
     if (chosen!=out.audioTracks.end()) out.audio=chosen->format;
+    out.qualityModes=muxedModes | (out.audio.url.empty()?1:adaptiveModes);
     for (const auto& track : out.audioTracks) if (track.format.url==out.audio.url) out.selectedAudio=track.code;
     out.muxed = !bestMuxed.url.empty() && (out.audio.url.empty() || !better(bestAdaptive,bestMuxed));
     out.video = out.muxed ? bestMuxed : bestAdaptive;
@@ -461,7 +468,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
         out.muxed=false;
         out.video=bestAdaptive.url.empty() ? bestMuxed : bestAdaptive;
     }
-    if (!out.muxed) {
+    if (!out.muxed && !playback::manual(mode)) {
         // Uma fonte distinta reduz os bytes de rede. Filtrar quadros do mesmo 298 não reduz sua vazão.
         for (const auto& fmt : adaptive) if (fmt.url!=out.video.url &&
             (fmt.height<out.video.height || (fmt.height==out.video.height && fmt.fps<=30.1 && out.video.fps>30.1))) out.lowerVideo.push_back(fmt);
@@ -474,11 +481,15 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
         if (!out.lowerVideo.empty()) out.fallbackVideo=out.lowerVideo.front();
         else if (out.video.height>720) { out.fallbackVideo=fallback; if (!fallback.url.empty()) out.lowerVideo.push_back(fallback); }
     }
+    if(!out.muxed) {
+        out.videoLadder.push_back(out.video);
+        out.videoLadder.insert(out.videoLadder.end(),out.lowerVideo.begin(),out.lowerVideo.end());
+    }
     out.speakerAudio = out.audio;
     if (out.muxed) out.audio={};
     if (out.hls.empty()) {
-        if (out.video.url.empty()) out.reason="no_direct_avc";
-        else if (!out.muxed && out.audio.url.empty()) out.reason="no_direct_aac";
+        if (out.video.url.empty()) out.reason=playback::manual(mode)?"manual_quality_unavailable":"no_direct_avc";
+        else if (!out.muxed && out.audio.url.empty()) out.reason=playback::manual(mode)?"manual_quality_unavailable":"no_direct_aac";
     }
     const auto now = std::time(nullptr);
     for (const auto* url : {&out.video.url, &out.audio.url, &out.fallbackVideo.url, &out.hls}) {

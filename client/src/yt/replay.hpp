@@ -16,6 +16,15 @@ public:
     }
     Response send(const Request& request) override {
         const auto& url = request.url;
+        if(!request.update)if(FILE* f=std::fopen((directory+"/error.txt").c_str(),"r")) {
+            char kind[32]{};std::fscanf(f,"%31s",kind);std::fclose(f);
+            Response r; r.error=kind;
+            r.failure=!std::strcmp(kind,"tls_date")?Failure::TLS_DATE:!std::strcmp(kind,"tls")?Failure::TLS:
+                !std::strcmp(kind,"dns")?Failure::DNS:!std::strcmp(kind,"network")?Failure::NETWORK:
+                !std::strcmp(kind,"http")?Failure::HTTP:Failure::JSON;
+            if(r.failure==Failure::HTTP){r.status=403;r.error.clear();}
+            return r;
+        }
         string file;
         bool media = false;
         if (request.update) {

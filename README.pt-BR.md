@@ -176,7 +176,7 @@ As dicas usam o estilo Xbox One / Series (Menu / View correspondem a Start / Bac
 | | Esquerda / Direita, depois A | Selecionar / ativar ícone: legenda, qualidade, som, timer, áudio, gostei, não gostei, canal ou ao vivo |
 | | LB / RB | −1 min / +1 min |
 | | Y · X | Alternar qualidade · Som TV / caixa |
-| | LT / RT | Sincronia da caixa −40 ms / +40 ms (salva) |
+| | LT / RT | Segure para voltar / avançar; acelera, solte para continuar |
 | | B | Fechar um nível por vez, depois sair do vídeo |
 | | View | Voltar à navegação |
 | Música, Tocando agora | B | Parar e limpar fila; voltar à página de origem |

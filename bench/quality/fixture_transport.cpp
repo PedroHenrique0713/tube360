@@ -9,6 +9,18 @@
 #include <dlfcn.h>
 #include <vulkan/vulkan.h>
 #include <mutex>
+extern "C" {
+#include <libavcodec/avcodec.h>
+int __real_avcodec_receive_frame(AVCodecContext*,AVFrame*);
+int __wrap_avcodec_receive_frame(AVCodecContext* codec,AVFrame* frame) {
+    int result=__real_avcodec_receive_frame(codec,frame);
+    if(result>=0 && codec->codec_type==AVMEDIA_TYPE_VIDEO) {
+        const char* delay=std::getenv(frame->height>=1080?"XT_QUALITY_DECODE_1080_MS":"XT_QUALITY_DECODE_720_MS");
+        if(delay)SDL_Delay(std::max(0,std::atoi(delay)));
+    }
+    return result;
+}
+}
 
 // Só o executável de prova injeta consumidor lento; o produto liga diretamente ao Vulkan.
 extern "C" VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentInfoKHR* info) {
@@ -33,6 +45,10 @@ public:
         Request r; r.url=url; r.body=body; r.form=form; return send(r);
     }
     Response send(const Request& r) override {
+        auto start=SDL_GetTicksNS();auto response=sendRaw(r);
+        response.seconds=std::max(.001,(SDL_GetTicksNS()-start)/1e9);return response;
+    }
+    Response sendRaw(const Request& r) {
         if (cancelled()) return {0,"","cancelled"};
         if (r.url.find("/watch?")!=string::npos)
             return {200,R"(<script>ytcfg.set({"VISITOR_DATA":"fixture","jsUrl":"/s/player/fixture/base.js"})</script>)"};
@@ -68,7 +84,11 @@ public:
                     if (cancelled()) return {0,"","cancelled"};
                 }
             }
-            if (name=="1080.mp4") if (const char* delay=std::getenv("XT_QUALITY_SLOW_MS")) SDL_Delay(std::max(0,std::atoi(delay)));
+            if (name=="1080.mp4") if (const char* delay=std::getenv("XT_QUALITY_SLOW_MS")) {
+                static uint64_t began=SDL_GetTicks();
+                const char* recover=std::getenv("XT_QUALITY_RECOVER_MS");
+                if(!recover || SDL_GetTicks()-began<uint64_t(std::atoi(recover)))SDL_Delay(std::max(0,std::atoi(delay)));
+            }
             if (!range) return {200,std::move(data)};
             return {206,std::move(data),"","bytes "+std::to_string(first)+"-"+std::to_string(last)+"/"+std::to_string(size)};
         }

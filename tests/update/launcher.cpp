@@ -12,6 +12,10 @@ struct Host:LauncherHost {
     string dir;
     std::vector<string> network,paths;
     LauncherLog logger;
+    int failures=0;
+    string missing;
+    string preflight(const string&) override {return missing;}
+    void fail(i18n::Key,const string& detail,i18n::Key) override {++failures;log("visible failure: "+detail);}
     bool opened=false,closed=false,brokenScreen=false,brokenClose=false;
     explicit Host(string directory):dir(std::move(directory)),logger(dir,[&](const string& s){network.push_back(s);}) {}
     void log(const string& s) override {
@@ -47,7 +51,9 @@ int main(int argc,char** argv) {
     {Host host(dir);launchApp(dir,key,host);}
     check(read(dir+"launcher.log").size()>before.size() && read(dir+"launcher.log").find(before)==0,"launcher log survives a second boot");
     dir=scenario("launcher-missing");std::remove((dir+"tube360.xex").c_str());
-    {Host host(dir);check(launchApp(dir,key,host)==1 && host.closed && host.paths.empty() && host.saw("missing_app"),"missing app exits without launch or waiting");}
+    {Host host(dir);check(launchApp(dir,key,host)==1 && host.closed && host.paths.empty() && host.saw("missing_app") && host.failures==1,"missing app shows failure without launch");}
+    dir=scenario("launcher-fonts");
+    {Host host(dir);host.missing="inter-400.ttf, inter-600.ttf";check(launchApp(dir,key,host)==1 && host.paths.empty() && host.failures==1 && host.closed,"missing fonts show error before handoff");}
     dir=scenario("launcher-screen-error");
     {Host host(dir);host.brokenScreen=true;check(launchApp(dir,key,host)==1 && host.closed && host.paths.empty(),"screen error closes resources and exits");}
     dir=scenario("launcher-close-error");

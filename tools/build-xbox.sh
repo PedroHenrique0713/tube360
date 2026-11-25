@@ -18,6 +18,8 @@ python3 "$root/tools/prepare-native-display.py" "$XSDK_DIR" "$V4X_DIR"
 XSDK_DIR="$root/.work/native-display/xsdk"
 V4X_DIR="$root/.work/native-display/vulkan4xenon"
 python3 "$root/tools/prepare-video-memory.py" "$V4X_DIR"
+python3 "$root/tools/prepare-boot-diagnostics.py" "$XSDK_DIR" "$V4X_DIR"
+python3 "$root/tools/prepare-video-policy.py" "$XSDK_DIR" "$V4X_DIR"
 export XSDK_DIR V4X_DIR
 make -C "$XSDK_DIR" -j3 "TOOLCHAIN=${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}/bin/powerpc-xsdk-elf-" build/libxsdk.a build/host/libxsc.so
 make -C "$V4X_DIR" -j3 "TOOLCHAIN=${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}/bin/powerpc-xsdk-elf-" "XSDK=$XSDK_DIR" build/libvulkan4xenon.a

@@ -1,10 +1,14 @@
 #include <cstdio>
 #include <cstdlib>
 #include "client.hpp"
+#include "boot_log.h"
+#include <ctime>
 #include "roots.hpp"
 #include "update-roots.hpp"
 #include "update/rules.hpp"
 #include <curl/curl.h>
+#include <mbedtls/ssl.h>
+#include <mbedtls/x509_crt.h>
 #include <strings.h>
 #include <sys/socket.h>
 #ifndef __XSDK__
@@ -43,14 +47,29 @@ int socketOptions(void*, curl_socket_t fd, curlsocktype) {
     setsockopt(fd,SOL_SOCKET,SO_SNDBUF,&bytes,sizeof(bytes));
     return CURL_SOCKOPT_OK;
 }
+// Observa as flags, sem limpar erros nem alterar a validação da cadeia/nome.
+int certificate(void* data, mbedtls_x509_crt*, int, uint32_t* flags) {
+    *static_cast<uint32_t*>(data) |= *flags;
+    return 0;
+}
+CURLcode tlsContext(CURL*, void* context, void* data) {
+    mbedtls_ssl_conf_verify(static_cast<mbedtls_ssl_config*>(context),certificate,data);
+    return CURLE_OK;
+}
 class Https final : public Transport {
+    uint32_t certificateFlags = 0;
     CURL* easy = nullptr;
     CURL* explicitCookies = nullptr;
     const std::atomic_bool* cancelFlag;
     std::atomic_bool aborted{false};
 public:
     explicit Https(const std::atomic_bool* flag) : cancelFlag(flag) {
-        static const auto init = curl_global_init(CURL_GLOBAL_DEFAULT);
+        static const auto init = [] {
+            boot_event("begin","tls.global","curl + mbedTLS, embedded roots");
+            auto result=curl_global_init(CURL_GLOBAL_DEFAULT);
+            boot_event(result==CURLE_OK?"end":"error","tls.global","result=%d verifypeer=1 verifyhost=2 clock_epoch=%lld",int(result),(long long)std::time(nullptr));
+            return result;
+        }();
         if (init == CURLE_OK) easy = curl_easy_init();
     }
     ~Https() override {
@@ -78,6 +97,7 @@ public:
         if (customCookies && !explicitCookies) explicitCookies = curl_easy_init();
         CURL* handle = customCookies ? explicitCookies : easy;
         if (!handle) { res.error = "tls_init"; return res; }
+        certificateFlags=0;
         curl_easy_reset(handle); // Mantém DNS, sessões TLS e conexões do mesmo worker e identidade.
         curl_blob ca{const_cast<char*>(r.update ? updateRoots : ytRoots), r.update ? sizeof(updateRoots) : sizeof(ytRoots), CURL_BLOB_NOCOPY};
         curl_slist* headers = nullptr;
@@ -106,6 +126,8 @@ public:
             set(CURLOPT_TCP_KEEPALIVE, 1L);
             set(CURLOPT_SOCKOPTFUNCTION, socketOptions);
         }
+        set(CURLOPT_SSL_CTX_FUNCTION, tlsContext);
+        set(CURLOPT_SSL_CTX_DATA, &certificateFlags);
         set(CURLOPT_HEADERFUNCTION, header);
         set(CURLOPT_HEADERDATA, &res);
         set(CURLOPT_WRITEFUNCTION, append);
@@ -128,6 +150,9 @@ public:
             set(CURLOPT_POSTFIELDS, body.data());
             set(CURLOPT_POSTFIELDSIZE, static_cast<long>(body.size()));
         }
+        static std::atomic_bool first{true};
+        bool trace=first.exchange(false);
+        if(trace)boot_event("begin","tls.first-request","kind=%s; URL, tokens and cookies omitted",r.media?"media":r.update?"update":"API");
         auto rc = setup == CURLE_OK ? curl_easy_perform(handle) : setup;
         curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &res.status);
         if (std::getenv("XT_HTTP_DEBUG") && res.status != 200) std::fprintf(stderr, "http %ld %s -> %s\n", (long)res.status, url.c_str(), res.location.c_str());
@@ -144,18 +169,27 @@ public:
             res.error = rc == CURLE_PEER_FAILED_VERIFICATION ? "tls_peer_verification" : curl_easy_strerror(rc);
             res.failure = rc==CURLE_ABORTED_BY_CALLBACK ? Failure::CANCELLED :
                 rc==CURLE_PEER_FAILED_VERIFICATION || rc==CURLE_SSL_CONNECT_ERROR || rc==CURLE_SSL_CERTPROBLEM || rc==CURLE_SSL_CACERT_BADFILE ? Failure::TLS : Failure::NETWORK;
+            if (rc==CURLE_COULDNT_RESOLVE_HOST || rc==CURLE_COULDNT_RESOLVE_PROXY) res.failure=Failure::DNS;
+            if (res.failure==Failure::TLS && (certificateFlags & (MBEDTLS_X509_BADCERT_EXPIRED | MBEDTLS_X509_BADCERT_FUTURE))) {
+                res.failure=Failure::TLS_DATE; res.error="tls_certificate_date";
+            }
             res.retryable = rc==CURLE_OPERATION_TIMEDOUT || rc==CURLE_PARTIAL_FILE || rc==CURLE_RECV_ERROR ||
                 rc==CURLE_SEND_ERROR || rc==CURLE_COULDNT_CONNECT || rc==CURLE_COULDNT_RESOLVE_HOST || rc==CURLE_SSL_CONNECT_ERROR;
             // Só Range pode aproveitar um prefixo, depois de validar Content-Range. JSON continua atômico.
             if (!r.media || !res.retryable) res.body.clear();
         }
+        if(trace)boot_event(rc==CURLE_OK?"end":"error","tls.first-request","curl=%d HTTP=%ld failure=%s cert_flags=%08x",int(rc),res.status,failureName(res.failure),unsigned(certificateFlags));
         return res;
     }
 };
 }
 std::unique_ptr<Transport> https(const std::atomic_bool* cancel) {
 #ifndef __XSDK__
-    if (const char* directory = std::getenv("XT_YT_REPLAY")) return std::make_unique<Replay>(directory);
+    if (const char* directory = std::getenv("XT_YT_REPLAY")) {
+        static std::atomic_bool first{true};
+        if(first.exchange(false))boot_event("info","tls.transport","desktop recorded responses; no TLS request made");
+        return std::make_unique<Replay>(directory);
+    }
 #endif
     return std::make_unique<Https>(cancel);
 }

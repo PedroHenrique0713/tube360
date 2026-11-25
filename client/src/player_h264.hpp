@@ -1,8 +1,10 @@
 // Implementação de Player para o stream negociado com codec=h264.
 #pragma once
+#include "quality_recovery.hpp"
 namespace player {
 
 inline bool Player::directFailed(bool fatal) {
+  if(playback::manual(videoMode)){if(fatal){error="manual_quality_failed";state=FAILED;}return false;}
   // Esta sonda roda no worker, depois das opções locais. Nunca bloqueia o desenho nem acorda o PC.
   net::Response response;
   directReserveReady = !stop && net::serverEnabled && srv.ip != "0.0.0.0" &&
@@ -48,6 +50,7 @@ inline void Player::decodeOriginal() {
   unsigned workUs = 0, workFrames = 0;
   h264::ffmpeg_work_metrics(&workUs,&workFrames);
   std::unique_ptr<yt::RangeFile> videoFile, audioFile;
+  std::vector<yt::Format> qualityLadder;
   std::unique_ptr<yt::Transport> liveTransport, playlistTransport;
   std::unique_ptr<yt::LiveFile> broadcast;
   struct LiveInput { Player* player; yt::LiveFile* file; std::deque<std::string> audio; } source{this,nullptr,{}};
@@ -79,6 +82,7 @@ inline void Player::decodeOriginal() {
       validUntil = SDL_GetTicks() + 1000ULL * (media.ttl - std::min(30,media.ttl/10));
     }
     if (stop) return;
+    qualityAvailable=media.qualityModes;qualityModesReady=true;
     if (media.status != "OK") {
       LOG("console: player %s, classe %s, cliente %s, %u pedidos: %s", media.status.c_str(), yt::failureName(media.failure),
           media.playerClient.c_str(), media.playerAttempts, media.reason.c_str());
@@ -91,11 +95,14 @@ inline void Player::decodeOriginal() {
     castMediaReady = true;
     state = BUFFERING;
     mediaReady = true;
+    if(playback::manual(videoMode) && (media.video.url.empty() || !(media.qualityModes&(1u<<videoMode))) && !live){error="manual_quality_unavailable";state=FAILED;return;}
     if (live) {
       liveTransport = yt::https(&endLiveReader);
       playlistTransport = yt::https(&endLiveReader);
       broadcast = std::make_unique<yt::LiveFile>(*playlistTransport, *liveTransport, endLiveReader);
-      if (!broadcast->open(media.hls, quality,videoMode==playback::FAST,media.selectedAudio.empty() ? audioSelection : media.selectedAudio)) r = AVERROR_INVALIDDATA;
+      bool opened=broadcast->open(media.hls,playback::manual(videoMode)?playback::fixedHeight(videoMode):quality,videoMode==playback::FAST,media.selectedAudio.empty() ? audioSelection : media.selectedAudio,playback::manual(videoMode));
+      qualityAvailable=broadcast->qualityModes;qualityModesReady=true;
+      if (!opened) {r = AVERROR_INVALIDDATA;if(playback::manual(videoMode)){error="manual_quality_unavailable";state=FAILED;return;}}
       else {
         source.file = broadcast.get();
         reader = yt::worker([](void* data) {
@@ -135,15 +142,18 @@ inline void Player::decodeOriginal() {
       if (r >= 0) LOG("console: live %s, master %dp %.3f fps", id.c_str(), broadcast->height, broadcast->frameRate);
       origin = NAN;
     } else {
+      // A lista original sobrevive ao cache de Media: seek/pausa não podem apagar o caminho de volta.
+      qualityLadder=media.videoLadder;
+      if(qualityLadder.empty()) {qualityLadder.push_back(media.video);qualityLadder.insert(qualityLadder.end(),media.lowerVideo.begin(),media.lowerVideo.end());}
       videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.video.url, &netBytes, yt::https(&stop));
       videoFile->aheadEnabled=false;
       r = media.video.url.empty() ? AVERROR_STREAM_NOT_FOUND :
           s.open(videoFile.get(), yt::RangeFile::pull, threads, media.muxed && audio, true, yt::RangeFile::seek);
       if (r >= 0) r = s.seekTime(startAt);
       videoFile->aheadEnabled=true;
-      while (r<0 && !stop && !media.muxed && videoFile->status!=403 && !media.lowerVideo.empty()) {
+      while (r<0 && !playback::manual(videoMode) && !stop && !media.muxed && videoFile->status!=403 && !media.lowerVideo.empty()) {
         auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
-        LOG("qualidade: abertura direta %dp%.3f -> %dp%.3f",media.video.height,media.video.fps,next.height,next.fps);
+        LOG("qualidade: abertura direta %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
         s.reset(); videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
         videoFile->aheadEnabled=false;
         r=s.open(videoFile.get(),yt::RangeFile::pull,threads,false,true,yt::RangeFile::seek);
@@ -163,6 +173,7 @@ inline void Player::decodeOriginal() {
         LOG("console: %s tem 720p60, selecionado %dp %.2f fps", id.c_str(), media.video.height, media.video.fps);
     }
     LOG("console: %s %dp, itags %d/%d, início %.3f", live ? "HLS" : "MP4", actualHeight.load(), media.video.itag, media.audio.itag, startAt);
+    LOG("qualidade: selecao %s fixa=%d fonte=%dp itag=%d disponiveis=%x",playback::modeName(videoMode),playback::manual(videoMode),actualHeight.load(),media.video.itag,qualityAvailable.load());
     audioTracks=broadcast ? broadcast->audioTracks : media.audioTracks;
     selectedAudio=broadcast ? broadcast->selectedAudio : media.selectedAudio;
     if (broadcast) for (auto& track : audioTracks) {
@@ -274,27 +285,45 @@ inline void Player::decodeOriginal() {
     }
     return AVERROR_EXIT;
   };
-  auto lowerVideo = [&]() {
-    if (!direct || broadcast || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
-    const auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
+  auto& recovery=qualityRecovery;
+  recovery.goodMs=0;recovery.holdUntil=std::max(recovery.holdUntil,SDL_GetTicks()+30000);
+  if(!recovery.failed.empty())LOG("qualidade: historico preservado na sessao, %u degraus rejeitados",unsigned(recovery.failed.size()));
+  playback::QualityPressure pressure(SDL_GetTicks());
+  uint64_t manualWarnAt=0;
+  uint64_t previousTransfer=0,previousBytes=0,networkAt=0;
+  double networkMbps=0;
+  auto ladderIndex=[&](){size_t i=0;while(i<qualityLadder.size() && qualityLadder[i].itag!=media.video.itag)++i;return i;};
+  auto switchVideo = [&](size_t index,const char* reason,bool up) {
+    if(index>=qualityLadder.size() || stop)return false;
+    auto next=qualityLadder[index];
     int clock=masterMs.load();
     handoffFloor=std::max(last,std::max(0,clock)/1000.0);
     double resume=origin+std::max(0.0,handoffFloor);
-    LOG("qualidade: fonte %dp%.3f -> %dp%.3f, itag %d -> %d em %.3f; mantendo AAC e fila",
-        media.video.height,media.video.fps,next.height,next.fps,media.video.itag,next.itag,resume);
+    LOG("qualidade: fonte %dp%.3f -> %dp%.3f, itag %d -> %d em %.3f; motivo=%s; mantendo AAC e fila",
+        media.video.height,media.video.fps,next.height,next.fps,media.video.itag,next.itag,resume,reason);
     s.reset();
     videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
     videoFile->aheadEnabled=false;
     uint64_t began=SDL_GetTicks();
     r=s.open(videoFile.get(),yt::RangeFile::pull,threads,false,true,yt::RangeFile::seek);
-    if (r>=0) r=s.seekTime(resume);
+    if(r>=0)r=s.seekTime(resume);
     videoFile->aheadEnabled=true;
     media.video=next;
-    media.fallbackVideo=media.lowerVideo.empty() ? yt::Format{} : media.lowerVideo.front();
-    actualHeight=next.height; sourceRate=next.fps; phase=AV_NOPTS_VALUE;
-    presentFps=30; adapted=true; slow=0; previousWait=0;
+    media.lowerVideo.assign(qualityLadder.begin()+index+1,qualityLadder.end());
+    media.fallbackVideo=media.lowerVideo.empty()?yt::Format{}:media.lowerVideo.front();
+    actualHeight=next.height;sourceRate=next.fps;phase=AV_NOPTS_VALUE;
+    presentFps=up?std::min(playback::rate(videoMode),std::max(1,int(std::lround(sourceRate)))):30;
+    adapted=index!=0;slow=0;previousWait=previousTransfer=previousBytes=networkAt=0;networkMbps=0;
+    recovery.changed(SDL_GetTicks(),up);
+    pressure.changed(SDL_GetTicks());
+    SDL_LockMutex(mu);previousShown=shownFrames;previousLost=droppedFrames;queueMin=int(frames.size());SDL_UnlockMutex(mu);
+    intervalPts=last;pauseEpoch=pauseChanges.load();
     LOG("qualidade: video reaberto em %llu ms, resultado %d",(unsigned long long)(SDL_GetTicks()-began),r);
     return true;
+  };
+  auto lowerVideo = [&](const char* reason) {
+    if (playback::manual(videoMode) || !direct || broadcast || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
+    return switchVideo(ladderIndex()+1,reason,false);
   };
   bool videoEnd = false, audioEnd = !separate.audio;
   while (r >= 0 && !stop) {
@@ -335,7 +364,7 @@ inline void Player::decodeOriginal() {
     } else {
       if (r < 0) {
         if (!readAudio && videoFile && videoFile->status!=403) {
-          while (lowerVideo() && r<0) {}
+          while (lowerVideo("leitura da fonte falhou") && r<0) {}
           if (r>=0) { videoEnd=false; continue; }
         }
         break;
@@ -385,19 +414,91 @@ inline void Player::decodeOriginal() {
         LOG("qualidade: HLS fonte alinhada por UTC, %dp %.3f fps, mantendo AAC, troca %u",
             broadcast->selectedHeight.load(),fps,liveSwitches);
       }
-      slow = state==PLAYING && !paused && pauseEpoch == epoch && ((minimum < 2 && (behind || insufficient)) || slowLive || slowUpload || networkPressure) ? slow + 1 : 0;
+      size_t index=ladderIndex();
+      bool fixed=playback::manual(videoMode);
+      bool canRaise=!fixed && videoFile && !media.muxed && !broadcast && index>0 && index<qualityLadder.size();
+      bool raisePresentation=!fixed && videoFile && !broadcast && sourceRate>30.1 && presentFps<=30 && playback::rate(videoMode)>30 && !canRaise;
+      double scale=1,nextMbps=0;
+      double measuredRate=std::min(sourceRate,double(presentFps.load()));
+      int nextItag=media.video.itag,nextFps=int(std::lround(sourceRate));
+      if(videoFile) {
+        uint64_t transferred=videoFile->transferMs.load(),bytes=videoFile->bytes.load();
+        if(transferred>previousTransfer && bytes>previousBytes) {
+          networkMbps=(bytes-previousBytes)*.008/(transferred-previousTransfer);networkAt=now;
+        }
+        previousTransfer=transferred;previousBytes=bytes;
+        if(canRaise) {
+          const auto& next=qualityLadder[index-1];
+          scale=playback::qualityWorkScale(media.video.width,media.video.height,measuredRate,next.width,next.height,next.fps);
+          nextItag=next.itag;nextFps=int(std::lround(next.fps));
+          double currentMbps=media.video.bitrate>0?media.video.bitrate/1e6:videoFile->length>0 && media.duration>0?videoFile->length*.000008/media.duration:0;
+          nextMbps=next.bitrate>0?next.bitrate/1e6:currentMbps*scale*1.35;
+        } else if(raisePresentation){scale=sourceRate/30;nextMbps=media.video.bitrate/1e6;}
+        nextMbps+=media.audio.bitrate/1e6;
+      }
+      bool running=state==PLAYING && !paused && pauseEpoch==epoch;
+      bool starvation=(minimum<2 && (behind || insufficient)) || slowLive || slowUpload || networkPressure;
+      double decodeFraction=videoSeconds>0?ns/1e9/videoSeconds:0;
+      double copyFraction=videoSeconds>0?copyNs/1e9/videoSeconds:0;
+      double currentMbps=videoFile && media.video.bitrate>0 ? media.video.bitrate/1e6 :
+          videoFile && videoFile->length>0 && media.duration>0 ? videoFile->length*.000008/media.duration : 0;
+      bool networkFresh=networkAt && now-networkAt<=10000;
+      bool videoPresentationPressure=playback::presentationPressure(media.video.height,presentFps,slowUpload,copyFraction);
+      playback::QualityLoad load(decodeFraction,copyFraction,videoPresentationPressure,networkPressure,networkFresh,networkMbps,currentMbps);
+      bool networkLimited=load.networkLimited,overloaded=load.overloaded;
+      bool vod=videoFile && !broadcast && !media.muxed;
+      bool measuredPressure=(vod || fixed) && pressure.sample(now,now-since,running,videoSeconds>=.25,starvation,overloaded);
+      bool down=!fixed && measuredPressure;
+      if(fixed && measuredPressure && now>=manualWarnAt){manualQualityWarning=true;manualWarnAt=now+30000;LOG("qualidade: manual %dp itag %d sob pressao sustentada; avisar sem trocar fonte",media.video.height,media.video.itag);}
+      bool settled=!vod || pressure.settled(now,now-since);
+      // Mede por quadro entregue, sem diluir custo por durações de pacotes/preroll.
+      double measuredDecode=playback::qualityDecodeFraction(avg,measuredRate);
+      uint64_t retryAt=recovery.retryAfter(nextItag,nextFps);
+      bool raise=recovery.sample(now,now-since,running && speed==1 && settled,
+          minimum,behind,lost-previousLost,measuredDecode,scale,networkMbps,nextMbps,networkFresh,retryAt);
+      if(canRaise || raisePresentation)LOG("qualidade: subida %s itag %d/%dfps, decode medido %.2f ms/quadro, escala pixels/fps %.3f, projetado %.1f%%, bloqueio %llu ms",
+          now<retryAt?"aguardar degrau que falhou":measuredDecode*scale>=.70?"sem folga de CPU":raise?"permitida":"medindo",
+          nextItag,nextFps,avg,scale,measuredDecode*scale*100,(unsigned long long)(now<retryAt?retryAt-now:0));
+      slow = !fixed && running && starvation && (!vod || (settled && overloaded)) ? slow + 1 : 0;
+      if(vod)LOG("qualidade: decisao %s, pressao %llu ms/%u janelas, decode %.1f%% copia %.1f%%, rede medida %.2f/necessaria %.2f Mbit/s, fila %d",
+          !settled?"assentando":down?"descer":overloaded && starvation?"medindo pressao":"manter",
+          (unsigned long long)pressure.pressureMs,pressure.windows,decodeFraction*100,copyFraction*100,networkMbps,currentMbps,minimum);
       previousShown = shown; previousLost = lost;
       intervalPts = last; pauseEpoch = epoch;
+      if(down && (presentFps>30 || !media.lowerVideo.empty())) {
+        bool cpu=!networkLimited;
+        recovery.rejected(now,media.video.itag,presentFps,cpu);
+        LOG("qualidade: degrau rejeitado itag %d/%dfps, decode %.2f ms/quadro, motivo=%s, nova tentativa em %llu ms",
+            media.video.itag,presentFps.load(),avg,cpu?"CPU/copia/apresentacao":"rede",
+            (unsigned long long)(recovery.retryAfter(media.video.itag,presentFps)-now));
+      }
       // A queda de fonte vem antes do filtro de apresentação: ela também reduz o tráfego.
       if (slow>=3 && broadcast && broadcast->requestLower()) {
         presentFps=30; adapted=true; slow=0;
         LOG("qualidade: HLS solicitando fonte menor na mesma linha do tempo");
-      } else if (slow>=3 && lowerVideo()) {
+      } else if (down && playback::cadenceBeforeResolution(media.video.height,sourceRate,presentFps,
+                 media.lowerVideo.empty()?0:media.lowerVideo.front().height)) {
+        presentFps=30;adapted=true;slow=0;pressure.changed(now);recovery.changed(now,false);
+        LOG("qualidade: fonte %dp%.3f mantida, apresentacao 60 -> 30; motivo=sem fonte 720p30 distinta; medir este degrau antes de reduzir resolucao; mesma rede",media.video.height,sourceRate);
+      } else if ((vod?down:slow>=3) && lowerVideo(networkLimited?"rede medida insuficiente apos estabilizacao":slowUpload?"apresentacao sob pressao sustentada":"decodificacao/fila sob pressao sustentada")) {
         videoEnd=false;
-        while (r<0 && lowerVideo()) {}
-      } else if (slow>=3 && presentFps>30) {
+        while (r<0 && lowerVideo("abertura da fonte falhou")) {}
+      } else if ((vod?down:slow>=3) && presentFps>30) {
         presentFps=30; adapted=true; slow=0;
-        LOG("qualidade: sem fonte menor; apresentacao 60 -> 30, mesma rede");
+        recovery.changed(now,false);
+        pressure.changed(now);
+        LOG("qualidade: sem fonte menor; apresentacao 60 -> 30, motivo=pressao sustentada, mesma rede");
+      }
+      else if(slow==0 && raise && canRaise) {
+        LOG("qualidade: folga estavel %llu ms, decode projetado %.1f%%, rede %.2f Mbit/s, proxima %.2f Mbit/s",
+            (unsigned long long)recovery.goodMs,measuredDecode*scale*100,networkMbps,nextMbps);
+        auto previous=index;
+        switchVideo(index-1,"20s de folga medida em decode e rede",true);
+        if(r<0){LOG("qualidade: subida falhou; restaurando fonte anterior");recovery.rejected(SDL_GetTicks(),nextItag,nextFps,false);switchVideo(previous,"falha ao subir",false);}
+        videoEnd=false;
+      } else if(slow==0 && raise && raisePresentation) {
+        presentFps=std::min(playback::rate(videoMode),int(std::lround(sourceRate)));adapted=false;recovery.changed(now,true);
+        LOG("qualidade: apresentacao 30 -> %d, motivo=20s de folga medida em decode e rede",presentFps.load());
       }
       if (slow>=5 && (!direct || broadcast || media.lowerVideo.empty())) {
         LOG("qualidade: opcoes locais esgotadas sob pressao; %d janelas, rede %d, fila %d",slow,(int)networkPressure,minimum);

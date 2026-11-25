@@ -52,6 +52,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(VideoAdjusted, "Adjusted to keep playback smooth", "Ajustado para manter a reprodução fluida", "Ajustado para mantener una reproducción fluida") \
   X(DisplayOutput, "TV output", "Saída da TV", "Salida de TV") \
   X(Display1080Help, "For native 1080p, select 1080p (progressive) in Xbox Display Settings and use HDMI.", "Para 1080p nativo, selecione 1080p progressivo no painel do Xbox e use HDMI.", "Para 1080p nativo, selecciona 1080p progresivo en la configuración de pantalla de Xbox y usa HDMI.") \
+  X(SafeOutputHelp, "This video mode keeps the current output. Picture fit and text size remain available.", "Este modo de vídeo mantém a saída atual. Ajustar a imagem e o texto continua disponível.", "Este modo de vídeo mantiene la salida actual. El ajuste de imagen y texto sigue disponible.") \
   X(AudioTrack, "Audio", "Áudio", "Audio") \
   X(AudioPreference, "Audio preference", "Preferência de áudio", "Preferencia de audio") \
   X(AudioAlwaysOriginal, "Always original", "Sempre o original", "Siempre original") \
@@ -95,6 +96,24 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(LoadingVideos, "Loading videos…", "Carregando vídeos…", "Cargando videos…") \
   X(ServerUnavailable, "Could not reach the server", "Não deu para falar com o servidor", "No se pudo conectar con el servidor") \
   X(NoResponse, "No response from the server", "Sem resposta do servidor", "El servidor no responde") \
+  X(ClockWrong, "Set the console date and time", "Acerte a data e a hora do console", "Ajusta la fecha y la hora de la consola") \
+  X(ConsoleClock, "Console clock: ", "Relógio do console: ", "Reloj de la consola: ") \
+  X(TLSFailed, "Secure connection failed. Check for app updates.", "Falha na conexão segura. Confira as atualizações do app.", "Falló la conexión segura. Busca actualizaciones de la app.") \
+  X(DNSFailed, "DNS failed. Check your network DNS settings.", "Falha no DNS. Confira o DNS nas configurações de rede.", "Falló el DNS. Revisa el DNS en los ajustes de red.") \
+  X(NetworkFailed, "No connection. Check your cable or Wi-Fi.", "Sem conexão. Confira o cabo ou Wi-Fi.", "Sin conexión. Revisa el cable o Wi-Fi.") \
+  X(YouTubeRefused, "YouTube refused the request. Try again later.", "YouTube recusou o pedido. Tente mais tarde.", "YouTube rechazó la solicitud. Inténtalo más tarde.") \
+  X(StartupTitle, "Tube360 could not start", "Tube360 não conseguiu iniciar", "Tube360 no pudo iniciar") \
+  X(StartupSDL, "Controller or audio initialization failed.", "Falha ao iniciar o controle ou áudio.", "Falló el inicio del mando o audio.") \
+  X(StartupVideo, "Video or GPU initialization failed.", "Falha ao iniciar o vídeo ou GPU.", "Falló el inicio del vídeo o GPU.") \
+  X(StartupFonts, "Missing or invalid fonts:", "Fontes ausentes ou inválidas:", "Fuentes ausentes o no válidas:") \
+  X(StartupCopy, "Extract the complete app folder again. Keep the fonts beside default.xex.", "Extraia a pasta completa do app de novo. Mantenha as fontes ao lado do default.xex.", "Extrae de nuevo la carpeta completa. Deja las fuentes junto a default.xex.") \
+  X(StartupRetry, "Restart the console and try again. If it persists, copy the complete app folder again.", "Reinicie o console e tente de novo. Se persistir, copie a pasta completa do app outra vez.", "Reinicia la consola y reintenta. Si persiste, copia de nuevo la carpeta completa de la app.") \
+  X(StartupFolder, "App folder is not writable.", "Não é possível gravar na pasta do app.", "No se puede escribir en la carpeta de la app.") \
+  X(StartupStorage, "Free storage space and check the app folder permissions.", "Libere espaço e confira as permissões da pasta do app.", "Libera espacio y revisa los permisos de la carpeta de la app.") \
+  X(StartupLaunch, "Could not open tube360.xex.", "Não foi possível abrir tube360.xex.", "No se pudo abrir tube360.xex.") \
+  X(StartupTimeout, "The app did not start within 20 seconds.", "O app não iniciou em 20 segundos.", "La app no inició en 20 segundos.") \
+  X(StartupExit, "Exit", "Sair", "Salir") \
+  X(SeekTarget, "Seek to ", "Ir para ", "Ir a ") \
   X(BadResponse, "Could not load this list", "Não deu para carregar esta lista", "No se pudo cargar esta lista") \
   X(RetryServer, "Start the server and press X to try again.", "Ligue o servidor e aperte X para tentar de novo.", "Inicia el servidor y presiona X para volver a intentarlo.") \
   X(Empty, "Nothing found.", "Nada encontrado.", "No se encontraron resultados.") \
@@ -118,6 +137,14 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(Q480, "480p", "480p", "480p") \
   X(Q360, "360p", "360p", "360p") \
   X(QualityPrefix, "Quality: ", "Qualidade: ", "Calidad: ") \
+  X(Video480, "480p", "480p", "480p") \
+  X(Video360, "360p", "360p", "360p") \
+  X(Video240, "240p", "240p", "240p") \
+  X(Video144, "144p", "144p", "144p") \
+  X(ManualQualityHelp, "Manual quality stays fixed. Automatic profiles adapt to playback.", "A qualidade manual fica fixa. Os perfis automáticos se adaptam à reprodução.", "La calidad manual queda fija. Los perfiles automáticos se adaptan a la reproducción.") \
+  X(ManualQualityPressure, "This quality is struggling. Choose a lower quality or Automatic.", "Esta qualidade está travando. Escolha uma menor ou Automático.", "Esta calidad se está trabando. Elige una menor o Automático.") \
+  X(ManualQualityMissing, "This quality is unavailable. Open Quality to choose another.", "Esta qualidade não está disponível. Abra Qualidade e escolha outra.", "Esta calidad no está disponible. Abre Calidad y elige otra.") \
+  X(ManualQualityFailed, "Could not keep this quality. Open Quality to choose another.", "Não foi possível manter esta qualidade. Abra Qualidade e escolha outra.", "No se pudo mantener esta calidad. Abre Calidad y elige otra.") \
   X(SoundPrefix, "Sound: ", "Som: ", "Sonido: ") \
   X(TV, "TV", "TV", "TV") \
   X(Nest, "Nest", "Nest", "Nest") \
@@ -331,6 +358,8 @@ inline Key quality(int q) { return q == 360 ? Key::Q360 : q == 480 ? Key::Q480 :
 
 // player.hpp mantém os diagnósticos internos; só a apresentação é traduzida.
 inline Key playerError(const std::string& error) {
+  if (error == "manual_quality_unavailable") return Key::ManualQualityMissing;
+  if (error == "manual_quality_failed") return Key::ManualQualityFailed;
   if (error == "console") return Key::ConsoleVideoError;
   if (error == "Sem conexão com o servidor do notebook") return Key::NoResponse;
   if (error == "O servidor não conseguiu abrir este vídeo") return Key::VideoOpenError;

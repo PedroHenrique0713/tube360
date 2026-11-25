@@ -1,5 +1,31 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Fixed 480p/360p/240p/144p H.264 choices in Settings and the player's Series-style Y Quality menu. During playback, choices follow the video's direct AVC/AAC offers; selection preserves position/pause and warns under sustained pressure without switching source or falling back to a PC. Existing Automatic/720p60/1080p30 profiles retain their adaptive ladder. New messages are available in Portuguese, English and Spanish.
+
+### Fixed
+
+- Corona 480i/component simulation selects the kernel SD viewport in both native and safe paths, even when the reported signal is HD. A bounded `board-sim.txt` contract supports board/driver/mode/cable overrides for isolated testing, preserving real hardware detection, viewport and signal timings.
+- SD/interlaced dashboard modes use the kernel's existing framebuffer dimensions consistently across display surfaces, swapchain and presentation. 480i/576i/480p preserve the dashboard scaler/signal and use its 4:3/widescreen aspect, including non-square PAL pixels. Boot logs include mode, connector and actual viewport.
+- Quality recovery projects the next format from measured decode milliseconds per frame, exact pixels and frame rate. Failed source/cadence steps stay remembered across seeks in the playback session, with increasing retry delays; transient network recovery remains possible.
+- Corona/Winchester keep the native video path by default, preserving the coordinator's 360 E baseline; other/unknown board families use the conservative framebuffer/staging path. `video-driver.txt` can explicitly select `safe`, `native` or `auto`. Board/path details appear in both durable boot logs and the normal app/UDP log.
+- VOD quality decisions ignore startup and post-switch settling, then require sustained measured overload before descending one rung. A viable 720p30 stream stays at 720p; when no separate 720p30 source exists, 720p60 first tries 30 fps presentation before a lower resolution. Stable measured headroom still restores quality.
+- Safe-mode output changes keep the existing display/framebuffer. Font/output resource replacements check GPU idle, reset completed command references and publish a new atlas before retiring the old one; language and fit changes do not recreate the display.
+- Native GPU/display setup records checkpoints before register access, including LUT/scaler/surface/line-counter steps. Initial display-show failures free buffers and return an error before interrupt registration.
+- Native startup records durable CRT, storage, video/GPU, font, memory, network and TLS checkpoints beside each XEX. First-frame acquire failures are reported instead of accepting an invalid buffer. See `docs/STARTUP-DIAGNOSTICS.md` for interpreting a freeze.
+- Startup no longer requires DbgPrint, and the measured kernel exception handler is opt-in. Unsupported XNet limits/socket options can use standard defaults; access-denied errors and TLS validation remain enforced. ABadAvatar compatibility is untested.
+- Without `server.txt`, default Automatic mode and settings toggles keep the server disabled. Home shows the native failure and console clock for certificate dates; server recovery instructions and the configured endpoint appear only when the server is effectively enabled.
+- Public browsing distinguishes certificate date errors (with the console clock), other TLS failures, DNS, network loss and YouTube refusal in English, Portuguese and Spanish. TLS verification remains enabled.
+- Startup failures show the reason and recovery steps with a built-in font, persist `startup.log`, and wait for B. The launcher checks all four fonts before handoff and reports launch failures/timeouts.
+- Direct VOD playback can recover higher source quality after sustained measured decoder/network headroom, with cooldown and backoff after unsuccessful upgrades. The original profile ceiling survives cached seeks.
+
+### Changed
+
+- Hold LT/RT to rewind/fast-forward with an accelerating destination preview; release seeks once and preserves pause. Speaker synchronization remains in Settings.
+
 ## [0.3.1] — 2026-11-24
 
 ### Fixed

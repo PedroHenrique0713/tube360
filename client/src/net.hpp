@@ -21,6 +21,8 @@ namespace net {
 struct Server { std::string ip = "0.0.0.0"; int port = 8091; };  // server.txt ao lado do .xex: "<IP do PC> <porta>"
 
 inline std::atomic_bool serverEnabled{true};
+// A preferência auto não configura um endereço: sem server.txt continua só console.
+inline bool effectiveServer(const Server& s, bool requested) { return requested && s.ip != "0.0.0.0"; }
 
 inline int connectTo(const Server& s, int timeoutMs) {
   if (!serverEnabled) return -1;

@@ -17,6 +17,10 @@ using NTSTATUS=int32_t;
 using HANDLE=uint32_t;
 #define NT_SUCCESS(s) ((s)>=0)
 inline constexpr int XSDK_DISPLAY_720P=0;
+inline constexpr int INPUT_GAMEPAD_B=0x2000;
+struct INPUT_GAMEPAD {uint16_t buttons;};
+struct INPUT_STATE {INPUT_GAMEPAD gamepad;};
+uint32_t XamInputGetState(uint32_t,uint32_t,INPUT_STATE*);
 extern const char* ExLoadedImageName;
 NTSTATUS xsdk_gpu_open(); NTSTATUS xsdk_gpu_close();
 NTSTATUS xsdk_present_open(int,uint32_t,uint32_t,uint32_t*,uint32_t*);
@@ -45,6 +49,8 @@ fake = r'''
 const char* ExLoadedImageName="game:\\default.xex";
 static bool gpu=false,present=false,text=false;
 static XsdkThreadEntry deadline=nullptr;
+static void* deadlineData=nullptr;
+static unsigned polls=0;
 static uint32_t slept=0;
 static bool mode(const char* s) {const char* m=std::getenv("SDK_FAIL");return m && !std::strcmp(m,s);}
 static void mark(const char* file,const char* value) {FILE* f=std::fopen(file,"a");assert(f);std::fprintf(f,"%s\n",value);std::fclose(f);}
@@ -63,14 +69,15 @@ void xsdk_gpu_resolve(uint32_t,uint32_t,uint32_t,uint32_t){assert(gpu && present
 void xsdk_gpu_set_target(uint32_t,uint32_t){assert(gpu);}
 uint32_t xsdk_gpu_fence(){return 1;}
 NTSTATUS xsdk_gpu_wait(uint32_t,uint32_t ms){assert(ms==1000);return mode("wait")?-1:0;}
-NTSTATUS xsdk_thread_create_on(HANDLE* h,uint32_t,XsdkThreadEntry fn,void*,uint32_t hw){assert(!gpu && !present && !text && hw==5);*h=1;deadline=fn;return mode("thread")?-1:0;}
+NTSTATUS xsdk_thread_create_on(HANDLE* h,uint32_t,XsdkThreadEntry fn,void* data,uint32_t hw){assert(!gpu && !present && !text && hw==5);*h=1;deadline=fn;deadlineData=data;return mode("thread")?-1:0;}
+uint32_t XamInputGetState(uint32_t user,uint32_t,INPUT_STATE* state){if(user)return 1;if(!polls && deadline && !mode("hang"))deadline(deadlineData);state->gamepad.buttons=++polls>1?INPUT_GAMEPAD_B:0;return 0;}
 NTSTATUS xsdk_thread_sleep(uint32_t ms){slept=ms;return 0;}
 void XamLoaderTerminateTitle(){assert(!gpu && !present && !text && slept==20000);mark("terminated.txt","deadline 20000");std::_Exit(124);}
 int xsdk_launch(const char* path,const void*,size_t){
     assert(!gpu && !present && !text && deadline);
     assert(!std::strcmp(path,"game:\\tube360.xex"));
     mark("launched.txt",path);
-    if(mode("hang"))deadline(nullptr);
+    if(mode("hang"))deadline(deadlineData);
     errno=ENOEXEC;return -1;
 }
 '''
@@ -86,7 +93,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-launcher-sdk-') as temp:
     link = shlex.split((build / 'CMakeFiles/yt-launcher-test.dir/link.txt').read_text())
     libs = [str(build / x) for x in link if x.endswith('.a')]
     binary = base / 'launcher'
-    subprocess.run([link[0], '-std=c++17', '-I' + str(base), '-I' + str(root / 'client/src'),
+    subprocess.run([link[0], '-std=c++17', '-D__XSDK__', '-I' + str(base), '-I' + str(root / 'client/src'),
                     '-I' + str(root / 'client/third_party'), str(root / 'client/src/update/launcher_x360.cpp'),
                     str(root / 'client/src/update/launcher.cpp'), str(base / 'fake.cpp'), *libs,
                     '-o', str(binary)], check=True)
@@ -97,12 +104,15 @@ with tempfile.TemporaryDirectory(prefix='tube360-launcher-sdk-') as temp:
         folder.mkdir()
         (folder / 'settings.txt').write_text('lang=' + lang + '\n')
         (folder / 'tube360.xex').write_bytes(b'XEX2simulated')
+        for weight in ('300','400','600','700'):
+            (folder / f'inter-{weight}.ttf').write_bytes(b'\0\1\0\0')
         (folder / 'default.log').write_text('app sentinel')
         result = subprocess.run([str(binary)], cwd=folder, env={**os.environ, 'SDK_FAIL': fail}, timeout=4)
-        assert result.returncode == (124 if fail == 'hang' else 1), (fail, result.returncode)
+        assert result.returncode == 1, (fail, result.returncode)
         log = (folder / 'launcher.log').read_text()
         sdk = (folder / 'sdk.log').read_text()
-        assert log == sdk, 'all launcher events must reach SDK network logger'
+        assert all(line in sdk for line in log.splitlines()), 'all launcher events must reach SDK network logger'
+        assert (folder/'startup.log').exists(), 'failure remains visible and persists until B'
         assert (folder / 'default.log').read_text() == 'app sentinel'
         if not fail or fail == 'hang':
             assert (folder / 'launched.txt').read_text().strip() == r'game:\tube360.xex'
@@ -111,9 +121,10 @@ with tempfile.TemporaryDirectory(prefix='tube360-launcher-sdk-') as temp:
         if label:
             assert label in (folder / 'draw.txt').read_text()
         if fail == 'hang':
-            assert (folder / 'terminated.txt').read_text().strip() == 'deadline 20000'
+            assert not (folder/'terminated.txt').exists()
+            assert '20 segundos' in (folder/'draw.txt').read_text()
             assert 'launch retorno=' not in log
         elif not fail:
             assert 'launch retorno=-1' in log
         print('PASS launcher Xbox main:', lang, fail or 'launch error', flush=True)
-print('11 SDK simulations passed; physical drawing, timing, UDP delivery and XAM termination remain unverified.')
+print('11 SDK simulations passed; physical drawing, timing, controller and UDP delivery remain unverified.')
