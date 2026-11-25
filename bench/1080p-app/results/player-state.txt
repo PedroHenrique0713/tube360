@@ -1,0 +1,10 @@
+primeiro quadro: 8 ms, pts 2.000, live 0, som TV
+primeiro quadro: 8 ms, pts 0.500, live 0, som Nest
+console: opcoes diretas esgotadas, servidor indisponivel
+console: opcoes diretas esgotadas, servidor indisponivel
+console: opcoes diretas esgotadas, servidor indisponivel
+console: opcoes diretas esgotadas, servidor respondendo
+primeiro quadro: 12 ms, pts 2.033, live 0, som TV
+primeiro quadro: 12 ms, pts 2.033, live 0, som TV
+PASS paused Cast preserves frame/clock; disabled or unavailable server never starts fallback
+PASS picture advances while Cast preload or PLAY confirmation is pending

@@ -1,0 +1,2 @@
+{"configuration": {"platform": "pc", "seconds": "10", "warmup": "2", "itag": "137", "nest": "0", "loop": "48", "id": "4p_9OPKgcDE", "nest_clock": "f25b_pending"}, "result": "FAIL", "fps": 29.86263189329086, "lost": 0.0, "av_p95_ms": 16.83, "samples": 11, "memory_measured": false, "free_min_mib": null, "console_gate": "pending_console", "log_sha256": "02d79dd6b70b2239f3987b00f90c3d1a66da10f8534197fe8510d7dade2b25c8"}
+lower-source FAIL console_gate=pending_console

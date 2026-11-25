@@ -1,0 +1,22 @@
+[  1%] Built target everest
+[  2%] Built target p256m
+[  3%] Built target tube360-boot
+[ 27%] Built target mbedcrypto
+[ 30%] Built target tube360-update-core
+[ 33%] Built target mbedx509
+[ 38%] Built target mbedtls
+[ 95%] Built target libcurl_static
+[ 96%] Built target tube360-yt
+[ 96%] Building CXX object CMakeFiles/tube360-main.dir/src/main.cpp.o
+[ 97%] Built target tube360-cast
+[ 97%] Building CXX object CMakeFiles/tube360-update.dir/src/update/service.cpp.o
+[ 97%] Linking CXX static library libtube360-update.a
+[ 97%] Built target tube360-update
+[ 98%] Built target tube360-main
+[100%] Building CXX object CMakeFiles/tube360-quality-fixture.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/quality/fixture_transport.cpp.o
+[100%] Linking CXX executable tube360-quality-fixture
+[100%] Built target tube360-quality-fixture
+[100%] Building CXX object CMakeFiles/h264-policy-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/1080p-app/policy_test.cpp.o
+[100%] Linking CXX executable h264-policy-test
+[100%] Built target h264-policy-test
+[100%] Building CXX object CMakeFiles/reddit-contract-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/tests/reddit/contracts.cpp.o

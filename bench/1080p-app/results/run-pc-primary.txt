@@ -1,0 +1,2 @@
+{"configuration": {"platform": "pc", "seconds": "120", "warmup": "10", "itag": "137", "nest": "0", "loop": "48", "id": "4p_9OPKgcDE", "nest_clock": "f25b_pending"}, "result": "PASS", "fps": 29.859659599880562, "lost": 0.0, "av_p95_ms": 16.76, "samples": 121, "memory_measured": false, "free_min_mib": null, "console_gate": "pending_console", "log_sha256": "0f5704cf4bc954f5422bdedc3c8755126c271f1240ed6f8ab6b4a1cbca92885d"}
+primary PASS console_gate=pending_console

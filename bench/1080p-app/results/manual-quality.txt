@@ -1,0 +1,1 @@
+PASS manual quality: 63 checks, exact source, sparse offers, settings/locales and pinned HLS

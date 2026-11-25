@@ -1,0 +1,63 @@
+[
+  {
+    "utc": "2026-11-25T06:38:17.826345+00:00",
+    "video": "cHWvPohcs-4",
+    "client": "ios",
+    "version": "21.26.4",
+    "cookies": false,
+    "requests": 1,
+    "http": 200,
+    "title": "Todos los 10 Coches Abandonados (Graneros - Barn Finds) | Forza Horizon 2",
+    "duration": "597",
+    "status": "OK",
+    "reason": null,
+    "hls_manifest": false,
+    "dash_manifest": false,
+    "formats": [
+      {
+        "itag": 299,
+        "mimeType": "video/mp4; codecs=\"avc1.64002A\"",
+        "bitrate": 5840588,
+        "averageBitrate": 4774768,
+        "width": 1920,
+        "height": 1080,
+        "fps": 60,
+        "qualityLabel": "1080p60",
+        "contentLength": "356095685"
+      },
+      {
+        "itag": 298,
+        "mimeType": "video/mp4; codecs=\"avc1.4D4020\"",
+        "bitrate": 3495798,
+        "averageBitrate": 2609992,
+        "width": 1280,
+        "height": 720,
+        "fps": 60,
+        "qualityLabel": "720p60",
+        "contentLength": "194649671"
+      },
+      {
+        "itag": 134,
+        "mimeType": "video/mp4; codecs=\"avc1.4D401E\"",
+        "bitrate": 652828,
+        "averageBitrate": 515471,
+        "width": 640,
+        "height": 360,
+        "fps": 30,
+        "qualityLabel": "360p",
+        "contentLength": "38443174"
+      },
+      {
+        "itag": 160,
+        "mimeType": "video/mp4; codecs=\"avc1.4D400C\"",
+        "bitrate": 116746,
+        "averageBitrate": 111921,
+        "width": 256,
+        "height": 144,
+        "fps": 30,
+        "qualityLabel": "144p",
+        "contentLength": "8346924"
+      }
+    ]
+  }
+]

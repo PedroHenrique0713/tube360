@@ -1,0 +1,43 @@
+{
+  "configuration": {
+    "schema": "1",
+    "platform": "xbox",
+    "mask": "7",
+    "threads": "6",
+    "only": "5",
+    "affinity": "1",
+    "thread_type": "frame",
+    "repeats": "3",
+    "ffmpeg": "7.1.5",
+    "cpu_flags": "1"
+  },
+  "results": [
+    {
+      "filter": "all",
+      "changed_frames": 600,
+      "mean_ms": {
+        "median": 22.567982,
+        "min": 22.537908,
+        "max": 22.783429
+      },
+      "completion_p95_ms": {
+        "median": 88.864441,
+        "min": 86.545344,
+        "max": 91.590356
+      },
+      "slice_p95_ms": {
+        "median": 174.834,
+        "min": 174.513,
+        "max": 175.074
+      },
+      "block30_p95_ms": {
+        "median": 26.407773,
+        "min": 26.355078,
+        "max": 26.423334
+      }
+    }
+  ],
+  "console_gate": "decode_only_playback_pending",
+  "log_sha256": "b096c69646902f0e5286e8045a8de830962e9d544b7fd13bdf058f13b10dc1cd",
+  "independent_oracle_frames": 600
+}

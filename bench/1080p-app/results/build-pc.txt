@@ -1,0 +1,748 @@
+[  0%] Building C object yt/tls/3rdparty/everest/CMakeFiles/everest.dir/library/everest.c.o
+[  0%] Building C object yt/tls/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m_driver_entrypoints.c.o
+[  0%] Building C object yt/tls/3rdparty/everest/CMakeFiles/everest.dir/library/x25519.c.o
+[  0%] Building C object yt/tls/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m/p256-m.c.o
+[  0%] Building C object yt/tls/3rdparty/everest/CMakeFiles/everest.dir/library/Hacl_Curve25519_joined.c.o
+[  0%] Linking C static library libp256m.a
+[  1%] Linking C static library libeverest.a
+[  1%] Built target p256m
+[  1%] Built target everest
+[  1%] Building C object yt/CMakeFiles/tube360-boot.dir/__/boot_log.c.o
+[  1%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/aes.c.o
+[  1%] Building C object yt/CMakeFiles/tube360-boot.dir/__/boot_early.c.o
+[  1%] Building CXX object yt/CMakeFiles/tube360-boot.dir/__/boot_platform.cpp.o
+[  2%] Building C object yt/CMakeFiles/tube360-boot.dir/__/video_policy.c.o
+[  2%] Building C object yt/CMakeFiles/tube360-boot.dir/__/board_sim.c.o
+[  2%] Linking CXX static library libtube360-boot.a
+[  2%] Built target tube360-boot
+[  2%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/aesni.c.o
+[  3%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/aesce.c.o
+[  3%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/aria.c.o
+[  3%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/asn1parse.c.o
+[  3%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/asn1write.c.o
+[  4%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/base64.c.o
+[  4%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/bignum.c.o
+[  4%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/bignum_core.c.o
+[  4%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/bignum_mod.c.o
+[  6%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/bignum_mod_raw.c.o
+[  6%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/block_cipher.c.o
+[  6%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/camellia.c.o
+[  6%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ccm.c.o
+[  7%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/chacha20.c.o
+[  7%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/chachapoly.c.o
+[  7%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/cipher.c.o
+[  7%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/cipher_wrap.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/constant_time.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/cmac.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ctr_drbg.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/des.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/dhm.c.o
+[  9%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecdh.c.o
+[  9%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecdsa.c.o
+[  9%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecjpake.c.o
+[  9%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecp.c.o
+[ 10%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecp_curves.c.o
+[ 10%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/entropy.c.o
+[ 10%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/entropy_poll.c.o
+[ 10%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/error.c.o
+[ 12%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/gcm.c.o
+[ 12%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/hkdf.c.o
+[ 12%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/hmac_drbg.c.o
+[ 12%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/lmots.c.o
+[ 13%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/lms.c.o
+[ 13%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/md.c.o
+[ 13%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/md5.c.o
+[ 13%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/memory_buffer_alloc.c.o
+[ 14%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/nist_kw.c.o
+[ 14%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/oid.c.o
+[ 14%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/padlock.c.o
+[ 14%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pem.c.o
+[ 15%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pk.c.o
+[ 15%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pk_ecc.c.o
+[ 15%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pk_wrap.c.o
+[ 15%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pkcs12.c.o
+[ 15%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pkcs5.c.o
+[ 17%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pkparse.c.o
+[ 17%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.o
+[ 17%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/platform.c.o
+[ 17%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/platform_util.c.o
+[ 18%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/poly1305.c.o
+[ 18%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto.c.o
+[ 18%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_aead.c.o
+[ 18%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_cipher.c.o
+[ 19%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_client.c.o
+[ 19%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_driver_wrappers_no_static.c.o
+[ 19%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_ecp.c.o
+[ 19%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_ffdh.c.o
+[ 20%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_hash.c.o
+[ 20%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_mac.c.o
+[ 20%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_pake.c.o
+[ 20%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_rsa.c.o
+[ 21%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_random.c.o
+[ 21%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_se.c.o
+[ 21%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_slot_management.c.o
+[ 21%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_storage.c.o
+[ 23%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_its_file.c.o
+[ 23%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_util.c.o
+[ 23%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ripemd160.c.o
+[ 23%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/rsa.c.o
+[ 23%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/rsa_alt_helpers.c.o
+[ 24%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/sha1.c.o
+[ 24%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/sha256.c.o
+[ 24%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/sha512.c.o
+[ 24%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/sha3.c.o
+[ 25%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/threading.c.o
+[ 25%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/timing.c.o
+[ 25%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/version.c.o
+[ 25%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/version_features.c.o
+[ 26%] Linking C static library libmbedcrypto.a
+[ 26%] Built target mbedcrypto
+[ 26%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/pkcs7.c.o
+[ 28%] Building CXX object yt/CMakeFiles/tube360-update-core.dir/__/update/common.cpp.o
+[ 29%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509.c.o
+[ 29%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509_create.c.o
+[ 29%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509_crl.c.o
+[ 29%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509_crt.c.o
+[ 30%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509_csr.c.o
+[ 30%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509write.c.o
+[ 30%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509write_crt.c.o
+[ 30%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509write_csr.c.o
+[ 31%] Linking C static library libmbedx509.a
+[ 31%] Built target mbedx509
+[ 31%] Building CXX object yt/CMakeFiles/tube360-update-core.dir/__/update/app.cpp.o
+[ 31%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/debug.c.o
+[ 31%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/mps_reader.c.o
+[ 31%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/mps_trace.c.o
+[ 32%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/net_sockets.c.o
+[ 32%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_cache.c.o
+[ 32%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_ciphersuites.c.o
+[ 32%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_client.c.o
+[ 34%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_cookie.c.o
+[ 34%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_debug_helpers_generated.c.o
+[ 34%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_msg.c.o
+[ 34%] Building C object yt/CMakeFiles/tube360-update-core.dir/__/__/third_party/monocypher/monocypher.c.o
+[ 34%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_ticket.c.o
+[ 35%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls.c.o
+[ 35%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls12_client.c.o
+[ 35%] Building C object yt/CMakeFiles/tube360-update-core.dir/__/__/third_party/monocypher/monocypher-ed25519.c.o
+[ 35%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls12_server.c.o
+[ 35%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls13_keys.c.o
+[ 35%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls13_server.c.o
+[ 36%] Linking CXX static library libtube360-update-core.a
+[ 36%] Built target tube360-update-core
+[ 37%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls13_client.c.o
+[ 37%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls13_generic.c.o
+[ 37%] Linking C static library libmbedtls.a
+[ 37%] Built target mbedtls
+[ 39%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/altsvc.c.o
+[ 39%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/amigaos.c.o
+[ 39%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/api.c.o
+[ 39%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/bufq.c.o
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/bufref.c.o
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-h1-proxy.c.o
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-h2-proxy.c.o
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-haproxy.c.o
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-https-connect.c.o
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-ip-happy.c.o
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-recvbuf.c.o
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-setup.c.o
+[ 42%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-socket.c.o
+[ 42%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cfilters.c.o
+[ 42%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/conncache.c.o
+[ 42%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/connect.c.o
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/content_encoding.c.o
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cookie.c.o
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/creds.c.o
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cshutdn.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_addrinfo.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_endian.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_fnmatch.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_fopen.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_get_line.c.o
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_gethostname.c.o
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_gssapi.c.o
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_memrchr.c.o
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_ntlm_core.c.o
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_range.c.o
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_sasl.c.o
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_sha512_256.c.o
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_share.c.o
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_sspi.c.o
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_threads.c.o
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_trc.c.o
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cw-out.c.o
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cw-pause.c.o
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/dict.c.o
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/dynhds.c.o
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/easy.c.o
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/easygetopt.c.o
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/easyoptions.c.o
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/escape.c.o
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/fake_addrinfo.c.o
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/file.c.o
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/formdata.c.o
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/fileinfo.c.o
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ftp.c.o
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ftplistparser.c.o
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/getenv.c.o
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/getinfo.c.o
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/gopher.c.o
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/hash.c.o
+[ 54%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/headers.c.o
+[ 54%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/hmac.c.o
+[ 54%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/hsts.c.o
+[ 54%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http.c.o
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http1.c.o
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http2.c.o
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_aws_sigv4.c.o
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_httpsig.c.o
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_ed25519.c.o
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_chunks.c.o
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_digest.c.o
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_negotiate.c.o
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_ntlm.c.o
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_proxy.c.o
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/idn.c.o
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/if2ip.c.o
+[ 59%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/imap.c.o
+[ 59%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ldap.c.o
+[ 59%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/llist.c.o
+[ 59%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/md4.c.o
+[ 59%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/macos.c.o
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/md5.c.o
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/memdebug.c.o
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/mime.c.o
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/mprintf.c.o
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/mqtt.c.o
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/multi.c.o
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/multi_ev.c.o
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/multi_ntfy.c.o
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/netrc.c.o
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/openldap.c.o
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/parsedate.c.o
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/peer.c.o
+[ 64%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/pingpong.c.o
+[ 64%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/pop3.c.o
+[ 64%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/progress.c.o
+[ 64%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/protocol.c.o
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/proxy.c.o
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/psl.c.o
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ptrarray.c.o
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/rand.c.o
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ratelimit.c.o
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/request.c.o
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/rtsp.c.o
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/select.c.o
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/sendf.c.o
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/setopt.c.o
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/sha256.c.o
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/slist.c.o
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/smtp.c.o
+[ 69%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socketpair.c.o
+[ 69%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socks.c.o
+[ 69%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socks_gssapi.c.o
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/splay.c.o
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socks_sspi.c.o
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/strcase.c.o
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/strequal.c.o
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/strerror.c.o
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/telnet.c.o
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/tftp.c.o
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/thrdpool.c.o
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/thrdqueue.c.o
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/transfer.c.o
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/u8_strset.c.o
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/u32_ptrset.c.o
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/uint-bset.c.o
+[ 74%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/uint-spbset.c.o
+[ 74%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/uint-table.c.o
+[ 74%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/url.c.o
+[ 74%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/urlapi.c.o
+[ 74%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/version.c.o
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ws.c.o
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/cleartext.c.o
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/cram.c.o
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/digest.c.o
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/digest_sspi.c.o
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/gsasl.c.o
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/krb5_gssapi.c.o
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/krb5_sspi.c.o
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/ntlm.c.o
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/ntlm_sspi.c.o
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/oauth2.c.o
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/spnego_gssapi.c.o
+[ 79%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/spnego_sspi.c.o
+[ 79%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/vauth.c.o
+[ 79%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/asyn-ares.c.o
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/asyn-base.c.o
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/asyn-thrdd.c.o
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/cf-dns.c.o
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/dnscache.c.o
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/doh.c.o
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/hostip.c.o
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/hostip4.c.o
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/hostip6.c.o
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/httpsrr.c.o
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/apple.c.o
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/cipher_suite.c.o
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/gtls.c.o
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/hostcheck.c.o
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/keylog.c.o
+[ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/mbedtls.c.o
+[ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/openssl.c.o
+[ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/rustls.c.o
+[ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/schannel.c.o
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/schannel_verify.c.o
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls.c.o
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_config.c.o
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_scache.c.o
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_spack.c.o
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/wolfssl.c.o
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/x509asn1.c.o
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/capsule.c.o
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-capsule.c.o
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-ngtcp2.c.o
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-ngtcp2-cmn.c.o
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-ngtcp2-proxy.c.o
+[ 89%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-quiche.c.o
+[ 89%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/vquic.c.o
+[ 89%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/vquic-tls.c.o
+[ 89%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vssh/libssh.c.o
+[ 89%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vssh/libssh2.c.o
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vssh/vssh.c.o
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/base64.c.o
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/basename.c.o
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/dynbuf.c.o
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/win32-fopen.c.o
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/inet_ntop.c.o
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/inet_pton.c.o
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/multibyte.c.o
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/nonblock.c.o
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/snprintf.c.o
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strcopy.c.o
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strdup.c.o
+[ 93%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strerr.c.o
+[ 93%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strparse.c.o
+[ 93%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/timediff.c.o
+[ 93%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/timeval.c.o
+[ 95%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/version_win32.c.o
+[ 95%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/wait.c.o
+[ 95%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/warnless.c.o
+[ 95%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/winapi.c.o
+[ 95%] Linking C static library libcurl.a
+[ 95%] Built target libcurl_static
+[ 95%] Building CXX object yt/CMakeFiles/tube360-yt.dir/https.cpp.o
+[ 95%] Building CXX object yt/CMakeFiles/tube360-yt.dir/client.cpp.o
+[ 95%] Building CXX object yt/CMakeFiles/tube360-yt.dir/console_account.cpp.o
+[ 96%] Building CXX object yt/CMakeFiles/tube360-yt.dir/account_transport.cpp.o
+[ 96%] Building CXX object yt/CMakeFiles/tube360-yt.dir/cast.cpp.o
+[ 96%] Building CXX object yt/CMakeFiles/tube360-yt.dir/__/update/rules.cpp.o
+[ 96%] Linking CXX static library libtube360-yt.a
+[ 96%] Built target tube360-yt
+[ 96%] Generating video.frag.h
+[ 96%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/discovery.cpp.o
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/video.frag
+[ 96%] Generating image.frag.h
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/image.frag
+[ 96%] Generating island.frag.h
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/island.frag
+[ 96%] Generating shape.frag.h
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/shape.frag
+[ 97%] Generating text.frag.h
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/text.frag
+[ 97%] Generating ui.vert.h
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/ui.vert
+[ 97%] Building CXX object CMakeFiles/tube360-main.dir/src/main.cpp.o
+[ 98%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/lounge.cpp.o
+[ 98%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/receiver.cpp.o
+[ 98%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/stream.cpp.o
+[ 98%] Linking CXX static library libtube360-cast.a
+[ 98%] Built target tube360-cast
+[ 98%] Building CXX object CMakeFiles/tube360-update.dir/src/update/service.cpp.o
+[ 98%] Linking CXX static library libtube360-update.a
+[ 98%] Built target tube360-update
+[ 98%] Built target tube360-main
+[100%] Building CXX object CMakeFiles/tube360-quality-fixture.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/quality/fixture_transport.cpp.o
+[100%] Linking CXX executable tube360-quality-fixture
+[100%] Built target tube360-quality-fixture
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8.tar.bz2: OK
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/curl-xenon.tar.gz: OK
+CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- USING O3
+-- Using CMake version 4.3.0
+-- curl version=[8.23.0-DEV]
+-- CMake platform flags: UNIX GCC
+-- Picky compiler options: -Werror-implicit-function-declaration -W -Wall -Wpedantic -Wbad-function-cast -Wconversion -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wno-long-long -Wno-multichar -Wpointer-arith -Wshadow -Wsign-compare -Wundef -Wunused -Wwrite-strings -Waddress -Wattributes -Wcast-align -Wcast-qual -Wdeclaration-after-statement -Wdiv-by-zero -Wempty-body -Wendif-labels -Wfloat-equal -Wformat-security -Wignored-qualifiers -Wmissing-field-initializers -Wmissing-noreturn -Wno-padded -Wno-sign-conversion -Wno-switch-default -Wno-switch-enum -Wno-system-headers -Wold-style-definition -Wredundant-decls -Wstrict-prototypes -Wtype-limits -Wunreachable-code -Wunused-parameter -Wvla -Wclobbered -Wmissing-parameter-type -Wold-style-declaration -Wpragmas -Wstrict-aliasing=3 -ftree-vrp -Wjump-misses-init -Wdouble-promotion -Wformat=2 -Wlogical-op -Wtrampolines -Warray-bounds=2 -Wformat-signedness -Wduplicated-cond -Wnull-dereference -fdelete-null-pointer-checks -Wshift-negative-value -Wshift-overflow=2 -Wunused-const-variable -Walloc-zero -Wduplicated-branches -Wformat-truncation=2 -Wimplicit-fallthrough -Wrestrict -Warith-conversion -Wenum-conversion -Warray-compare -Wenum-int-mismatch -Wxor-used-as-pow -Wleading-whitespace=spaces -Wtrailing-whitespace=any -Wunterminated-string-initialization
+-- Protocols: http https
+-- Features: AsynchDNS Largefile SSL threadsafe
+-- Enabled SSL backends: mbedTLS
+-- Configuring done (5.5s)
+-- Generating done (0.8s)
+-- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/build
+[  0%] Building C object yt/tls/3rdparty/everest/CMakeFiles/everest.dir/library/everest.c.o
+[  0%] Building C object yt/tls/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m_driver_entrypoints.c.o
+[  0%] Building C object yt/tls/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m/p256-m.c.o
+[  0%] Building C object yt/tls/3rdparty/everest/CMakeFiles/everest.dir/library/x25519.c.o
+[  1%] Linking C static library libp256m.a
+[  1%] Building C object yt/tls/3rdparty/everest/CMakeFiles/everest.dir/library/Hacl_Curve25519_joined.c.o
+[  2%] Linking C static library libeverest.a
+[  2%] Built target p256m
+[  3%] Built target tube360-boot
+[  3%] Built target everest
+[  5%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/aesni.c.o
+[  5%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/aes.c.o
+[  5%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/aesce.c.o
+[  5%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/aria.c.o
+[  5%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/asn1parse.c.o
+[  6%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/asn1write.c.o
+[  6%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/base64.c.o
+[  6%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/bignum.c.o
+[  6%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/bignum_core.c.o
+[  7%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/bignum_mod.c.o
+[  7%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/bignum_mod_raw.c.o
+[  7%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/block_cipher.c.o
+[  7%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/camellia.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ccm.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/chacha20.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/chachapoly.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/cipher.c.o
+[  8%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/cipher_wrap.c.o
+[ 10%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/constant_time.c.o
+[ 10%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/cmac.c.o
+[ 10%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ctr_drbg.c.o
+[ 10%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/des.c.o
+[ 11%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/dhm.c.o
+[ 11%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecdh.c.o
+[ 11%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecdsa.c.o
+[ 11%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecjpake.c.o
+[ 12%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecp.c.o
+[ 12%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ecp_curves.c.o
+[ 12%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/entropy.c.o
+[ 12%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/entropy_poll.c.o
+[ 13%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/error.c.o
+[ 13%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/gcm.c.o
+[ 13%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/hkdf.c.o
+[ 13%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/hmac_drbg.c.o
+[ 15%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/lmots.c.o
+[ 15%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/lms.c.o
+[ 15%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/md.c.o
+[ 15%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/md5.c.o
+[ 16%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/memory_buffer_alloc.c.o
+[ 16%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/nist_kw.c.o
+[ 16%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/oid.c.o
+[ 16%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/padlock.c.o
+[ 16%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pem.c.o
+[ 17%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pk.c.o
+[ 17%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pk_ecc.c.o
+[ 17%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pk_wrap.c.o
+[ 17%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pkcs12.c.o
+[ 18%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pkcs5.c.o
+[ 18%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pkparse.c.o
+[ 18%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.o
+[ 18%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/platform.c.o
+[ 20%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/platform_util.c.o
+[ 20%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/poly1305.c.o
+[ 20%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto.c.o
+[ 20%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_aead.c.o
+[ 21%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_cipher.c.o
+[ 21%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_client.c.o
+[ 21%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_driver_wrappers_no_static.c.o
+[ 21%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_ecp.c.o
+[ 22%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_ffdh.c.o
+[ 22%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_hash.c.o
+[ 22%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_mac.c.o
+[ 22%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_pake.c.o
+[ 22%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_rsa.c.o
+[ 23%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_random.c.o
+[ 23%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_se.c.o
+[ 23%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_slot_management.c.o
+[ 23%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_crypto_storage.c.o
+[ 25%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_its_file.c.o
+[ 25%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/psa_util.c.o
+[ 25%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/ripemd160.c.o
+[ 25%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/rsa.c.o
+[ 26%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/rsa_alt_helpers.c.o
+[ 26%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/sha1.c.o
+[ 26%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/sha256.c.o
+[ 26%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/sha512.c.o
+[ 27%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/sha3.c.o
+[ 27%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/threading.c.o
+[ 27%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/timing.c.o
+[ 27%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/version.c.o
+[ 28%] Building C object yt/tls/library/CMakeFiles/mbedcrypto.dir/version_features.c.o
+[ 28%] Linking C static library libmbedcrypto.a
+[ 28%] Built target mbedcrypto
+[ 30%] Building CXX object yt/CMakeFiles/tube360-update-core.dir/__/update/common.cpp.o
+[ 31%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/pkcs7.c.o
+[ 31%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509.c.o
+[ 31%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509_create.c.o
+[ 31%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509_crl.c.o
+[ 31%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509_crt.c.o
+[ 32%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509_csr.c.o
+[ 32%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509write.c.o
+[ 32%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509write_crt.c.o
+[ 32%] Building C object yt/tls/library/CMakeFiles/mbedx509.dir/x509write_csr.c.o
+[ 33%] Linking C static library libmbedx509.a
+[ 33%] Built target mbedx509
+[ 33%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/debug.c.o
+[ 33%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/mps_reader.c.o
+[ 33%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/mps_trace.c.o
+[ 35%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/net_sockets.c.o
+[ 35%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_cache.c.o
+[ 35%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_ciphersuites.c.o
+[ 35%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_client.c.o
+[ 36%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_cookie.c.o
+[ 36%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_debug_helpers_generated.c.o
+[ 36%] Building CXX object yt/CMakeFiles/tube360-update-core.dir/__/update/app.cpp.o
+[ 36%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_msg.c.o
+[ 36%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_ticket.c.o
+[ 37%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls.c.o
+[ 37%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls12_client.c.o
+[ 37%] Building C object yt/CMakeFiles/tube360-update-core.dir/__/__/third_party/monocypher/monocypher.c.o
+[ 37%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls12_server.c.o
+[ 37%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls13_keys.c.o
+[ 38%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls13_server.c.o
+[ 38%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls13_client.c.o
+[ 38%] Building C object yt/tls/library/CMakeFiles/mbedtls.dir/ssl_tls13_generic.c.o
+[ 38%] Building C object yt/CMakeFiles/tube360-update-core.dir/__/__/third_party/monocypher/monocypher-ed25519.c.o
+[ 38%] Linking C static library libmbedtls.a
+[ 38%] Built target mbedtls
+[ 38%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/altsvc.c.o
+[ 38%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/amigaos.c.o
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/api.c.o
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/bufq.c.o
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/bufref.c.o
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-h1-proxy.c.o
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-h2-proxy.c.o
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-haproxy.c.o
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-https-connect.c.o
+[ 42%] Linking CXX static library libtube360-update-core.a
+[ 42%] Built target tube360-update-core
+[ 42%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-ip-happy.c.o
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-recvbuf.c.o
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-setup.c.o
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-socket.c.o
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cfilters.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/conncache.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/connect.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/content_encoding.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cookie.c.o
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/creds.c.o
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cshutdn.c.o
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_addrinfo.c.o
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_endian.c.o
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_fnmatch.c.o
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_fopen.c.o
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_get_line.c.o
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_gethostname.c.o
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_gssapi.c.o
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_memrchr.c.o
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_ntlm_core.c.o
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_range.c.o
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_sasl.c.o
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_share.c.o
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_sha512_256.c.o
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_sspi.c.o
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_threads.c.o
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_trc.c.o
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cw-out.c.o
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cw-pause.c.o
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/dict.c.o
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/dynhds.c.o
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/easy.c.o
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/easygetopt.c.o
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/easyoptions.c.o
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/escape.c.o
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/fake_addrinfo.c.o
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/file.c.o
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/fileinfo.c.o
+[ 55%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ftp.c.o
+[ 55%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/formdata.c.o
+[ 55%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ftplistparser.c.o
+[ 55%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/getenv.c.o
+[ 55%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/getinfo.c.o
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/gopher.c.o
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/hash.c.o
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/headers.c.o
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/hmac.c.o
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/hsts.c.o
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http.c.o
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http1.c.o
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http2.c.o
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_aws_sigv4.c.o
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_httpsig.c.o
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_ed25519.c.o
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_chunks.c.o
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_digest.c.o
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_negotiate.c.o
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_ntlm.c.o
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_proxy.c.o
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/idn.c.o
+[ 61%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/if2ip.c.o
+[ 61%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/imap.c.o
+[ 61%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ldap.c.o
+[ 61%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/llist.c.o
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/macos.c.o
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/md4.c.o
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/md5.c.o
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/memdebug.c.o
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/mime.c.o
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/mprintf.c.o
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/mqtt.c.o
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/multi.c.o
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/multi_ev.c.o
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/multi_ntfy.c.o
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/netrc.c.o
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/openldap.c.o
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/parsedate.c.o
+[ 66%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/peer.c.o
+[ 66%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/pingpong.c.o
+[ 66%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/pop3.c.o
+[ 66%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/progress.c.o
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/protocol.c.o
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/proxy.c.o
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/psl.c.o
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ptrarray.c.o
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/rand.c.o
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ratelimit.c.o
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/request.c.o
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/rtsp.c.o
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/select.c.o
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/sendf.c.o
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/setopt.c.o
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/sha256.c.o
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/slist.c.o
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/smtp.c.o
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socks.c.o
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socketpair.c.o
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socks_gssapi.c.o
+[ 72%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socks_sspi.c.o
+[ 72%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/splay.c.o
+[ 72%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/strcase.c.o
+[ 72%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/strequal.c.o
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/strerror.c.o
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/telnet.c.o
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/tftp.c.o
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/thrdpool.c.o
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/thrdqueue.c.o
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/transfer.c.o
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/u8_strset.c.o
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/u32_ptrset.c.o
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/uint-bset.c.o
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/uint-spbset.c.o
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/uint-table.c.o
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/url.c.o
+[ 77%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/urlapi.c.o
+[ 77%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/version.c.o
+[ 77%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ws.c.o
+[ 77%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/cleartext.c.o
+[ 77%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/cram.c.o
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/digest.c.o
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/digest_sspi.c.o
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/gsasl.c.o
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/krb5_gssapi.c.o
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/krb5_sspi.c.o
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/ntlm.c.o
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/ntlm_sspi.c.o
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/oauth2.c.o
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/spnego_gssapi.c.o
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/spnego_sspi.c.o
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/vauth.c.o
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/asyn-base.c.o
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/asyn-ares.c.o
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/asyn-thrdd.c.o
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/cf-dns.c.o
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/dnscache.c.o
+[ 83%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/doh.c.o
+[ 83%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/hostip.c.o
+[ 83%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/hostip4.c.o
+[ 83%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/hostip6.c.o
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/httpsrr.c.o
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/apple.c.o
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/cipher_suite.c.o
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/gtls.c.o
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/hostcheck.c.o
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/keylog.c.o
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/mbedtls.c.o
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/openssl.c.o
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/rustls.c.o
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/schannel.c.o
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/schannel_verify.c.o
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls.c.o
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_config.c.o
+[ 88%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_scache.c.o
+[ 88%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_spack.c.o
+[ 88%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/wolfssl.c.o
+[ 88%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/x509asn1.c.o
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/capsule.c.o
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-capsule.c.o
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-ngtcp2.c.o
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-ngtcp2-cmn.c.o
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-ngtcp2-proxy.c.o
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-quiche.c.o
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/vquic.c.o
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/vquic-tls.c.o
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vssh/libssh.c.o
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vssh/libssh2.c.o
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vssh/vssh.c.o
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/base64.c.o
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/basename.c.o
+[ 93%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/dynbuf.c.o
+[ 93%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/win32-fopen.c.o
+[ 93%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/inet_ntop.c.o
+[ 93%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/inet_pton.c.o
+[ 95%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/multibyte.c.o
+[ 95%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/nonblock.c.o
+[ 95%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/snprintf.c.o
+[ 95%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strcopy.c.o
+[ 96%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strdup.c.o
+[ 96%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strerr.c.o
+[ 96%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strparse.c.o
+[ 96%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/timediff.c.o
+[ 97%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/timeval.c.o
+[ 97%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/version_win32.c.o
+[ 97%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/wait.c.o
+[ 97%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/warnless.c.o
+[ 97%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/winapi.c.o
+[ 98%] Linking C static library libcurl.a
+[ 98%] Built target libcurl_static
+[ 98%] Building CXX object yt/CMakeFiles/tube360-yt.dir/https.cpp.o
+[ 98%] Building CXX object yt/CMakeFiles/tube360-yt.dir/client.cpp.o
+[ 98%] Building CXX object yt/CMakeFiles/tube360-yt.dir/console_account.cpp.o
+[100%] Building CXX object yt/CMakeFiles/tube360-yt.dir/account_transport.cpp.o
+[100%] Building CXX object yt/CMakeFiles/tube360-yt.dir/cast.cpp.o
+[100%] Building CXX object yt/CMakeFiles/tube360-yt.dir/__/update/rules.cpp.o
+[100%] Linking CXX static library libtube360-yt.a
+[100%] Built target tube360-yt
+[100%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/discovery.cpp.o
+[101%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/lounge.cpp.o
+[101%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/receiver.cpp.o
+[101%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/stream.cpp.o
+[101%] Linking CXX static library libtube360-cast.a
+[101%] Built target tube360-cast
+[101%] Building CXX object CMakeFiles/player-state-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/quality/player_state.cpp.o
+[101%] Linking CXX executable player-state-test
+[101%] Built target player-state-test
+Building CXX object CMakeFiles/h264-cadence-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/quality/cadence.cpp.o
+Linking CXX executable h264-cadence-test
+Built target h264-cadence-test
+[  1%] Built target p256m
+[  2%] Built target everest
+[  3%] Built target tube360-boot
+[ 28%] Built target mbedcrypto
+[ 31%] Built target tube360-update-core
+[ 35%] Built target mbedx509
+[ 40%] Built target mbedtls
+[ 98%] Built target libcurl_static
+[100%] Built target tube360-yt
+[100%] Building CXX object CMakeFiles/manual-quality-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/tests/reddit/manual_quality.cpp.o
+[100%] Linking CXX executable manual-quality-test
+[100%] Built target manual-quality-test

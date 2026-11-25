@@ -1,0 +1,1090 @@
+video: model=desktop path=desktop; console policy does not change desktop Vulkan
+Tube360 iniciando
+servidor 0.0.0.0:8091 (desligado: só console)
+tela 1280x720
+layout: 1280x720, wide, texto normal, margem 0x0
+video-memoria: linear mapeada, pool ate 48 superficies/160 MiB, DPB + fila + fences
+catalogo: falha network
+autoplay 4p_9OPKgcDE em 0 s
+unexpected fixture URL: https://returnyoutubedislikeapi.com/votes?videoId=4p_9OPKgcDE
+F40 APP START platform=pc seconds=120 warmup=10 itag=137 nest=0 loop=48 id=4p_9OPKgcDE nest_clock=f25b_pending
+console: player OK, cliente VISIONOS, 1 pedidos: VISIONOS:none/200 OK 
+navegacao: Home -> Player
+console: MP4 1080p, itags 137/140, início 0.000
+qualidade: selecao 1080p30 fixa=0 fonte=1080p itag=137 disponiveis=5
+audio: selecionada und-dub, 1 faixas
+decod-config: threads 6, tipo solicitado 1 ativo 1, buffers diretos, loop 48 spread 1 politica=abertura
+legendas: 4p_9OPKgcDE , 0 frases, 0 idiomas
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 1, 2.99 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 2, 5.99 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 3, 8.98 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 4, 11.98 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 5, 14.97 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 6, 17.96 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 7, 20.96 MiB
+decod-fila: 1080p 30.000 fps, capacidade 18 inicio 12, livres 4294967295 MiB, extra ate 32 MiB (pool 160 MiB)
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 8, 23.95 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 9, 26.95 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 10, 29.94 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 11, 32.93 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 12, 35.93 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 13, 38.92 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 14, 41.92 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 15, 44.91 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 16, 47.90 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 17, 50.90 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 18, 53.89 MiB
+som: TV, Nest -1.000 TV 0.000 imagem 0.000
+primeiro quadro: 356 ms, pts 0.000, live 0, som TV
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 19, 56.89 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 20, 59.88 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 21, 62.87 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 22, 65.87 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 23, 68.86 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 24, 71.85 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 25, 74.85 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 26, 77.84 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 27, 80.84 MiB
+decod: H.264 6t, 40 quadros, 10.73 ms/quadro, fila mín 0, perdidos 0, PCM 5968 ms, rede 28.45 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 21.3 fps na TV, pacotes 46, decodificados 40, filtrados 0, decode 280.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 40/40, flush 0.002 ms/quadro, loop ALL 46/46 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 5, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 786.43/2097.15 Mbit/s
+qualidade: decisao assentando, pressao 0 ms/0 janelas, decode 28.0% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 0
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.199 ms, present-CPU 8.920 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.022 ms, acquire 0.034 ms, gravacao 0.201 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 6, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 986.90/2097.15 Mbit/s
+qualidade: decisao assentando, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.286 ms, present-CPU 8.804 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.035 ms, acquire 0.033 ms, gravacao 0.178 ms; 1 submit/quadro
+decod: H.264 6t, 30 quadros, 0.25 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.17 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 7.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 7, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 986.90/2516.58 Mbit/s
+qualidade: decisao assentando, pressao 0 ms/0 janelas, decode 0.8% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.178 ms, present-CPU 8.765 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.022 ms, acquire 0.034 ms, gravacao 0.189 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.30 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 8.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 8, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1165.08/2516.58 Mbit/s
+qualidade: decisao assentando, pressao 0 ms/0 janelas, decode 0.9% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.242 ms, present-CPU 9.539 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.023 ms, acquire 0.039 ms, gravacao 0.177 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.30 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 9.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 9, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1165.08/2796.20 Mbit/s
+qualidade: decisao assentando, pressao 0 ms/0 janelas, decode 0.9% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.319 ms, present-CPU 9.197 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.019 ms, acquire 0.111 ms, gravacao 0.335 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 5.4 quadros 164 perdidos 0
+decod: H.264 6t, 31 quadros, 0.19 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.05 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 5.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 10, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1324.52/2796.20 Mbit/s
+qualidade: decisao assentando, pressao 0 ms/0 janelas, decode 0.6% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.175 ms, present-CPU 8.546 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.022 ms, acquire 0.064 ms, gravacao 0.162 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.17 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 5.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 11, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1324.52/2995.93 Mbit/s
+qualidade: decisao assentando, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.245 ms, present-CPU 8.920 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.018 ms, acquire 0.025 ms, gravacao 0.114 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.04 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.001 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 12, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1468.01/2995.93 Mbit/s
+qualidade: decisao assentando, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.160 ms, present-CPU 8.942 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.030 ms, acquire 0.030 ms, gravacao 0.108 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 13, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1468.01/2287.80 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.168 ms, present-CPU 9.236 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.025 ms, acquire 0.034 ms, gravacao 0.156 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.55 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 16.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 13, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1468.01/2287.80 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 1.7% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=0 itag=137 source=1080p30 target=30 shown=0 lost=0 queue=18 pcm_ms=6014.0 av_ms=2.98 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.159 ms, present-CPU 9.612 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.019 ms, acquire 0.028 ms, gravacao 0.132 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.24 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 7.2 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 14, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1597.83/2287.80 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.7% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=1001 itag=137 source=1080p30 target=30 shown=30 lost=0 queue=18 pcm_ms=5990.7 av_ms=-17.70 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+player: 4p_9OPKgcDE pos 11.2 quadros 336 perdidos 0
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.169 ms, present-CPU 9.612 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.033 ms, gravacao 0.130 ms; 1 submit/quadro
+F40 APP SAMPLE ms=2001 itag=137 source=1080p30 target=30 shown=60 lost=0 queue=18 pcm_ms=5990.7 av_ms=-15.16 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.27 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.03 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 8.2 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.003 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 15, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1597.83/2446.68 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.8% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.165 ms, present-CPU 9.137 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.033 ms, acquire 0.052 ms, gravacao 0.213 ms; 1 submit/quadro
+F40 APP SAMPLE ms=3008 itag=137 source=1080p30 target=30 shown=90 lost=0 queue=18 pcm_ms=5990.7 av_ms=-12.61 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.25 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.5 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 7.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 15, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1597.83/2446.68 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.8% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.313 ms, present-CPU 8.631 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.021 ms, acquire 0.034 ms, gravacao 0.128 ms; 1 submit/quadro
+F40 APP SAMPLE ms=4008 itag=137 source=1080p30 target=30 shown=120 lost=0 queue=18 pcm_ms=5990.7 av_ms=-10.07 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.15 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.7 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.003 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 16, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1715.85/2446.68 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.219 ms, present-CPU 8.537 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.017 ms, acquire 0.028 ms, gravacao 0.127 ms; 1 submit/quadro
+F40 APP SAMPLE ms=5013 itag=137 source=1080p30 target=30 shown=151 lost=0 queue=18 pcm_ms=5990.7 av_ms=3.25 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.18 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 5.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 16, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1715.85/2446.68 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.183 ms, present-CPU 8.597 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.027 ms, acquire 0.050 ms, gravacao 0.147 ms; 1 submit/quadro
+F40 APP SAMPLE ms=6022 itag=137 source=1080p30 target=30 shown=181 lost=0 queue=18 pcm_ms=6014.0 av_ms=5.79 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 17, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1715.85/2581.11 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.202 ms, present-CPU 9.290 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.026 ms, gravacao 0.126 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 16.8 quadros 505 perdidos 0
+F40 APP SAMPLE ms=7023 itag=137 source=1080p30 target=30 shown=211 lost=0 queue=18 pcm_ms=5990.7 av_ms=-14.89 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.16 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.001 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 18, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1823.61/2581.11 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.197 ms, present-CPU 8.909 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.032 ms, gravacao 0.145 ms; 1 submit/quadro
+F40 APP SAMPLE ms=8028 itag=137 source=1080p30 target=30 shown=241 lost=0 queue=18 pcm_ms=5990.7 av_ms=-12.34 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.24 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 7.3 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 18, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1823.61/2581.11 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.7% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.161 ms, present-CPU 9.237 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.023 ms, acquire 0.034 ms, gravacao 0.127 ms; 1 submit/quadro
+F40 APP SAMPLE ms=9040 itag=137 source=1080p30 target=30 shown=272 lost=0 queue=18 pcm_ms=6014.0 av_ms=-0.02 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 8.24 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.5 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.001 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 20, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1922.39/2696.34 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.178 ms, present-CPU 8.992 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.022 ms, acquire 0.032 ms, gravacao 0.133 ms; 1 submit/quadro
+F40 APP SAMPLE ms=10045 itag=137 source=1080p30 target=30 shown=301 lost=0 queue=18 pcm_ms=5990.7 av_ms=2.52 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 29 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 28.9 fps na TV, pacotes 29, decodificados 29, filtrados 0, decode 4.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 29/29, flush 0.002 ms/quadro, loop ALL 29/29 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 21, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 1922.39/2330.17 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 29 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.169 ms, present-CPU 8.662 ms, GPU sem sonda
+pipeline: direto 29/29, ultimo fence 0.022 ms, acquire 0.033 ms, gravacao 0.135 ms; 1 submit/quadro
+F40 APP SAMPLE ms=11047 itag=137 source=1080p30 target=30 shown=331 lost=0 queue=18 pcm_ms=5990.7 av_ms=-18.16 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 8.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 23, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2013.27/2428.28 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.184 ms, present-CPU 8.691 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.018 ms, acquire 0.048 ms, gravacao 0.143 ms; 1 submit/quadro
+F40 APP SAMPLE ms=12047 itag=137 source=1080p30 target=30 shown=361 lost=0 queue=18 pcm_ms=5990.7 av_ms=-15.62 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 23, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2013.27/2428.28 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.162 ms, present-CPU 8.869 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.025 ms, acquire 0.044 ms, gravacao 0.143 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 22.6 quadros 676 perdidos 0
+F40 APP SAMPLE ms=13053 itag=137 source=1080p30 target=30 shown=391 lost=0 queue=18 pcm_ms=5990.7 av_ms=-13.07 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.07 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.17 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 2.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 24, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2097.15/2428.28 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.171 ms, present-CPU 8.953 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.032 ms, gravacao 0.142 ms; 1 submit/quadro
+F40 APP SAMPLE ms=14061 itag=137 source=1080p30 target=30 shown=422 lost=0 queue=18 pcm_ms=5990.7 av_ms=-0.75 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.17 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 5.2 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 25, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2097.15/2516.58 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.166 ms, present-CPU 8.622 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.023 ms, acquire 0.044 ms, gravacao 0.130 ms; 1 submit/quadro
+F40 APP SAMPLE ms=15062 itag=137 source=1080p30 target=30 shown=452 lost=0 queue=18 pcm_ms=5990.7 av_ms=1.79 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.49 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 8.14 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 14.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 26, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2174.82/2516.58 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 1.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.167 ms, present-CPU 8.860 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.033 ms, gravacao 0.121 ms; 1 submit/quadro
+F40 APP SAMPLE ms=16064 itag=137 source=1080p30 target=30 shown=482 lost=0 queue=18 pcm_ms=6014.0 av_ms=4.33 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.28 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 8.3 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 27, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2174.82/2596.47 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.8% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.180 ms, present-CPU 8.838 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.018 ms, acquire 0.035 ms, gravacao 0.119 ms; 1 submit/quadro
+F40 APP SAMPLE ms=17072 itag=137 source=1080p30 target=30 shown=512 lost=0 queue=18 pcm_ms=5990.7 av_ms=-16.35 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.001 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 28, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2246.95/2596.47 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.154 ms, present-CPU 8.577 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.034 ms, gravacao 0.113 ms; 1 submit/quadro
+F40 APP SAMPLE ms=18075 itag=137 source=1080p30 target=30 shown=542 lost=0 queue=18 pcm_ms=5990.7 av_ms=-13.80 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+player: 4p_9OPKgcDE pos 28.2 quadros 846 perdidos 0
+decod: H.264 6t, 31 quadros, 0.22 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 6.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.001 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 29, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2246.95/2669.10 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.7% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.254 ms, present-CPU 8.674 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.030 ms, gravacao 0.124 ms; 1 submit/quadro
+F40 APP SAMPLE ms=19075 itag=137 source=1080p30 target=30 shown=572 lost=0 queue=18 pcm_ms=5967.5 av_ms=-34.48 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.36 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 10.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.003 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 30, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2314.10/2669.10 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 1.1% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.156 ms, present-CPU 8.526 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.035 ms, gravacao 0.147 ms; 1 submit/quadro
+F40 APP SAMPLE ms=20080 itag=137 source=1080p30 target=30 shown=603 lost=0 queue=18 pcm_ms=6014.0 av_ms=1.06 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.53 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 15.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.001 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 30, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2314.10/2669.10 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 1.6% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.174 ms, present-CPU 9.232 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.024 ms, acquire 0.033 ms, gravacao 0.151 ms; 1 submit/quadro
+F40 APP SAMPLE ms=21086 itag=137 source=1080p30 target=30 shown=633 lost=0 queue=18 pcm_ms=5967.5 av_ms=-19.62 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.18 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 31, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2314.10/2735.42 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.164 ms, present-CPU 9.307 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.019 ms, acquire 0.031 ms, gravacao 0.112 ms; 1 submit/quadro
+F40 APP SAMPLE ms=22088 itag=137 source=1080p30 target=30 shown=663 lost=0 queue=18 pcm_ms=5990.7 av_ms=-17.08 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.24 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 7.3 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 32, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2376.77/2735.42 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.7% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.160 ms, present-CPU 9.164 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.019 ms, acquire 0.027 ms, gravacao 0.126 ms; 1 submit/quadro
+F40 APP SAMPLE ms=23093 itag=137 source=1080p30 target=30 shown=693 lost=0 queue=18 pcm_ms=5990.7 av_ms=-14.54 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 32, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2376.77/2735.42 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.164 ms, present-CPU 8.860 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.024 ms, acquire 0.041 ms, gravacao 0.134 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 34.0 quadros 1018 perdidos 0
+F40 APP SAMPLE ms=24096 itag=137 source=1080p30 target=30 shown=723 lost=0 queue=18 pcm_ms=5990.7 av_ms=-11.99 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 33, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2376.77/2796.20 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.276 ms, present-CPU 8.947 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.015 ms, acquire 0.025 ms, gravacao 0.107 ms; 1 submit/quadro
+F40 APP SAMPLE ms=25100 itag=137 source=1080p30 target=30 shown=754 lost=0 queue=18 pcm_ms=5990.7 av_ms=1.33 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 33, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2376.77/2796.20 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.177 ms, present-CPU 8.620 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.035 ms, gravacao 0.127 ms; 1 submit/quadro
+F40 APP SAMPLE ms=26109 itag=137 source=1080p30 target=30 shown=784 lost=0 queue=18 pcm_ms=6014.0 av_ms=3.87 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 34, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2435.40/2796.20 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.174 ms, present-CPU 8.818 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.059 ms, acquire 0.040 ms, gravacao 0.137 ms; 1 submit/quadro
+F40 APP SAMPLE ms=27110 itag=137 source=1080p30 target=30 shown=814 lost=0 queue=18 pcm_ms=6014.0 av_ms=6.41 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 35, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2435.40/2852.13 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.189 ms, present-CPU 8.719 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.022 ms, acquire 0.037 ms, gravacao 0.133 ms; 1 submit/quadro
+F40 APP SAMPLE ms=28119 itag=137 source=1080p30 target=30 shown=844 lost=0 queue=18 pcm_ms=5990.7 av_ms=-14.27 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.18 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 36, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2490.37/2852.13 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.167 ms, present-CPU 8.860 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.030 ms, gravacao 0.120 ms; 1 submit/quadro
+F40 APP SAMPLE ms=29128 itag=137 source=1080p30 target=30 shown=875 lost=0 queue=18 pcm_ms=5990.7 av_ms=-1.94 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+player: 4p_9OPKgcDE pos 39.6 quadros 1187 perdidos 0
+decod: H.264 6t, 31 quadros, 0.16 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 37, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2490.37/2903.75 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.168 ms, present-CPU 9.160 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.024 ms, acquire 0.033 ms, gravacao 0.138 ms; 1 submit/quadro
+F40 APP SAMPLE ms=30134 itag=137 source=1080p30 target=30 shown=904 lost=0 queue=18 pcm_ms=6014.0 av_ms=0.60 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 8.14 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.1 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 39, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2542.00/2951.55 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.164 ms, present-CPU 9.476 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.029 ms, gravacao 0.124 ms; 1 submit/quadro
+F40 APP SAMPLE ms=31137 itag=137 source=1080p30 target=30 shown=934 lost=0 queue=18 pcm_ms=6014.0 av_ms=3.14 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 40, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2590.60/2951.55 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.165 ms, present-CPU 8.680 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.022 ms, acquire 0.049 ms, gravacao 0.163 ms; 1 submit/quadro
+F40 APP SAMPLE ms=32142 itag=137 source=1080p30 target=30 shown=964 lost=0 queue=18 pcm_ms=5990.7 av_ms=-17.54 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.20 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 6.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 41, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2590.60/2995.93 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.6% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.168 ms, present-CPU 8.939 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.027 ms, acquire 0.041 ms, gravacao 0.136 ms; 1 submit/quadro
+F40 APP SAMPLE ms=33145 itag=137 source=1080p30 target=30 shown=994 lost=0 queue=18 pcm_ms=5990.7 av_ms=-15.00 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.13 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 3.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 41, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2590.60/2995.93 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.4% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.183 ms, present-CPU 8.663 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.029 ms, gravacao 0.151 ms; 1 submit/quadro
+F40 APP SAMPLE ms=34147 itag=137 source=1080p30 target=30 shown=1024 lost=0 queue=18 pcm_ms=5990.7 av_ms=-12.45 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 42, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2636.42/2995.93 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.435 ms, present-CPU 8.922 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.022 ms, acquire 0.037 ms, gravacao 0.133 ms; 1 submit/quadro
+F40 APP SAMPLE ms=35151 itag=137 source=1080p30 target=30 shown=1054 lost=0 queue=18 pcm_ms=5967.5 av_ms=-33.13 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+player: 4p_9OPKgcDE pos 45.3 quadros 1356 perdidos 0
+decod: H.264 6t, 31 quadros, 0.26 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.11 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.4 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 7.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 43, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2636.42/3037.25 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.8% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.175 ms, present-CPU 8.981 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.031 ms, gravacao 0.118 ms; 1 submit/quadro
+F40 APP SAMPLE ms=36154 itag=137 source=1080p30 target=30 shown=1085 lost=0 queue=18 pcm_ms=5990.7 av_ms=2.41 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 44, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2679.69/3037.25 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.162 ms, present-CPU 9.012 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.017 ms, acquire 0.029 ms, gravacao 0.138 ms; 1 submit/quadro
+F40 APP SAMPLE ms=37158 itag=137 source=1080p30 target=30 shown=1115 lost=0 queue=18 pcm_ms=5990.7 av_ms=-18.27 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.16 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.18 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 4.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 45, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2679.69/2796.20 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.358 ms, present-CPU 8.715 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.021 ms, acquire 0.033 ms, gravacao 0.120 ms; 1 submit/quadro
+F40 APP SAMPLE ms=38165 itag=137 source=1080p30 target=30 shown=1145 lost=0 queue=18 pcm_ms=5990.7 av_ms=-15.73 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.30 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 8.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.001 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 46, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2720.63/2796.20 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.9% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.165 ms, present-CPU 8.982 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.022 ms, acquire 0.047 ms, gravacao 0.170 ms; 1 submit/quadro
+F40 APP SAMPLE ms=39167 itag=137 source=1080p30 target=30 shown=1175 lost=0 queue=18 pcm_ms=5990.7 av_ms=-13.18 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 47, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2720.63/2837.32 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.159 ms, present-CPU 8.900 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.030 ms, gravacao 0.140 ms; 1 submit/quadro
+F40 APP SAMPLE ms=40168 itag=137 source=1080p30 target=30 shown=1205 lost=0 queue=18 pcm_ms=5967.5 av_ms=-33.86 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 48, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2759.41/2837.32 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+player: 4p_9OPKgcDE pos 51.0 quadros 1528 perdidos 0
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.175 ms, present-CPU 9.174 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.039 ms, gravacao 0.139 ms; 1 submit/quadro
+F40 APP SAMPLE ms=41176 itag=137 source=1080p30 target=30 shown=1236 lost=0 queue=18 pcm_ms=6014.0 av_ms=1.68 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.7 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 4.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 48, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2759.41/2837.32 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.162 ms, present-CPU 9.515 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.033 ms, acquire 0.027 ms, gravacao 0.131 ms; 1 submit/quadro
+F40 APP SAMPLE ms=42180 itag=137 source=1080p30 target=30 shown=1266 lost=0 queue=18 pcm_ms=6014.0 av_ms=4.22 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.13 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.5 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 49, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2759.41/2876.09 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.241 ms, present-CPU 8.771 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.018 ms, acquire 0.029 ms, gravacao 0.122 ms; 1 submit/quadro
+F40 APP SAMPLE ms=43181 itag=137 source=1080p30 target=30 shown=1296 lost=0 queue=18 pcm_ms=5990.7 av_ms=-16.46 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.18 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.6 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 5.3 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 49, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2759.41/2876.09 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.170 ms, present-CPU 8.900 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.037 ms, gravacao 0.128 ms; 1 submit/quadro
+F40 APP SAMPLE ms=44182 itag=137 source=1080p30 target=30 shown=1326 lost=0 queue=18 pcm_ms=5990.7 av_ms=-13.91 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 50, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2796.20/2876.09 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.163 ms, present-CPU 8.767 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.019 ms, acquire 0.027 ms, gravacao 0.110 ms; 1 submit/quadro
+F40 APP SAMPLE ms=45189 itag=137 source=1080p30 target=30 shown=1356 lost=0 queue=18 pcm_ms=5990.7 av_ms=-11.37 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.29 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 8.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 50, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2796.20/2876.09 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.9% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.165 ms, present-CPU 9.026 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.031 ms, gravacao 0.127 ms; 1 submit/quadro
+F40 APP SAMPLE ms=46197 itag=137 source=1080p30 target=30 shown=1387 lost=0 queue=18 pcm_ms=6014.0 av_ms=1.95 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+player: 4p_9OPKgcDE pos 56.8 quadros 1700 perdidos 0
+decod: H.264 6t, 31 quadros, 0.25 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 7.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 51, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2796.20/2912.71 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.7% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.275 ms, present-CPU 8.624 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.026 ms, acquire 0.037 ms, gravacao 0.156 ms; 1 submit/quadro
+F40 APP SAMPLE ms=47201 itag=137 source=1080p30 target=30 shown=1417 lost=0 queue=18 pcm_ms=5990.7 av_ms=4.49 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.12 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 3.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 52, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2831.16/2912.71 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.4% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.159 ms, present-CPU 8.941 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.030 ms, gravacao 0.127 ms; 1 submit/quadro
+F40 APP SAMPLE ms=48207 itag=137 source=1080p30 target=30 shown=1447 lost=0 queue=18 pcm_ms=5990.7 av_ms=-16.19 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.10 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 8.28 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.6 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 2.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 53, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2831.16/2726.30 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.3% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.164 ms, present-CPU 9.027 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.022 ms, acquire 0.038 ms, gravacao 0.124 ms; 1 submit/quadro
+F40 APP SAMPLE ms=49214 itag=137 source=1080p30 target=30 shown=1477 lost=0 queue=18 pcm_ms=5990.7 av_ms=-13.64 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 8.22 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.4 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 55, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2864.40/2762.10 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 29 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.289 ms, present-CPU 9.648 ms, GPU sem sonda
+pipeline: direto 29/29, ultimo fence 0.018 ms, acquire 0.026 ms, gravacao 0.117 ms; 1 submit/quadro
+F40 APP SAMPLE ms=50225 itag=137 source=1080p30 target=30 shown=1507 lost=0 queue=18 pcm_ms=5990.7 av_ms=-1.32 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.05 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 56, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2896.07/2762.10 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.156 ms, present-CPU 8.863 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.019 ms, acquire 0.028 ms, gravacao 0.123 ms; 1 submit/quadro
+F40 APP SAMPLE ms=51226 itag=137 source=1080p30 target=30 shown=1537 lost=0 queue=18 pcm_ms=5990.7 av_ms=1.22 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.4 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 57, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2896.07/2796.20 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.4% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.153 ms, present-CPU 8.932 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.022 ms, acquire 0.033 ms, gravacao 0.119 ms; 1 submit/quadro
+F40 APP SAMPLE ms=52229 itag=137 source=1080p30 target=30 shown=1567 lost=0 queue=18 pcm_ms=6014.0 av_ms=3.76 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+player: 4p_9OPKgcDE pos 62.5 quadros 1872 perdidos 0
+decod: H.264 6t, 31 quadros, 0.16 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 58, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2926.26/2796.20 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.166 ms, present-CPU 8.616 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.018 ms, acquire 0.032 ms, gravacao 0.115 ms; 1 submit/quadro
+F40 APP SAMPLE ms=53232 itag=137 source=1080p30 target=30 shown=1597 lost=0 queue=18 pcm_ms=5990.7 av_ms=-16.92 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.31 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 9.4 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 58, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2926.26/2796.20 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.9% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.167 ms, present-CPU 9.344 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.021 ms, acquire 0.045 ms, gravacao 0.126 ms; 1 submit/quadro
+F40 APP SAMPLE ms=54235 itag=137 source=1080p30 target=30 shown=1627 lost=0 queue=18 pcm_ms=5990.7 av_ms=-14.37 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.27 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 8.1 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 59, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2926.26/2828.72 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.8% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.168 ms, present-CPU 9.611 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.032 ms, gravacao 0.122 ms; 1 submit/quadro
+F40 APP SAMPLE ms=55238 itag=137 source=1080p30 target=30 shown=1657 lost=0 queue=18 pcm_ms=5990.7 av_ms=-11.83 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 8.18 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 61, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2955.08/2859.75 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=56240 itag=137 source=1080p30 target=30 shown=1687 lost=0 queue=18 pcm_ms=5990.7 av_ms=-9.29 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.163 ms, present-CPU 9.444 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.040 ms, acquire 0.072 ms, gravacao 0.306 ms; 1 submit/quadro
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.003 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 62, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2982.62/2859.75 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=57241 itag=137 source=1080p30 target=30 shown=1717 lost=0 queue=18 pcm_ms=5967.5 av_ms=-29.97 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.163 ms, present-CPU 8.689 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.034 ms, gravacao 0.126 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 68.2 quadros 2043 perdidos 0
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.03 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 63, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2982.62/2889.41 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=58241 itag=137 source=1080p30 target=30 shown=1748 lost=0 queue=18 pcm_ms=6014.0 av_ms=5.57 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.181 ms, present-CPU 9.049 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.018 ms, acquire 0.024 ms, gravacao 0.131 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.4 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.003 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 63, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 2982.62/2889.41 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=59241 itag=137 source=1080p30 target=30 shown=1778 lost=0 queue=18 pcm_ms=6014.0 av_ms=8.12 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.166 ms, present-CPU 8.665 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.032 ms, gravacao 0.142 ms; 1 submit/quadro
+decod: H.264 6t, 30 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.001 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 64, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3008.96/2889.41 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=60248 itag=137 source=1080p30 target=30 shown=1808 lost=0 queue=18 pcm_ms=5990.7 av_ms=-12.56 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.210 ms, present-CPU 9.208 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.022 ms, acquire 0.044 ms, gravacao 0.117 ms; 1 submit/quadro
+decod: H.264 6t, 30 quadros, 0.55 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.17 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 16.4 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 65, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3008.96/2917.78 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 1.6% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=61255 itag=137 source=1080p30 target=30 shown=1838 lost=0 queue=18 pcm_ms=5990.7 av_ms=-10.02 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.159 ms, present-CPU 8.849 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.030 ms, acquire 0.041 ms, gravacao 0.126 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 65, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3008.96/2917.78 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.4% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=62260 itag=137 source=1080p30 target=30 shown=1868 lost=0 queue=18 pcm_ms=5990.7 av_ms=-7.48 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.233 ms, present-CPU 8.625 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.034 ms, gravacao 0.124 ms; 1 submit/quadro
+decod: H.264 6t, 30 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.001 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 66, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3034.18/2917.78 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=63264 itag=137 source=1080p30 target=30 shown=1898 lost=0 queue=18 pcm_ms=5967.5 av_ms=-28.16 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.159 ms, present-CPU 8.851 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.023 ms, acquire 0.033 ms, gravacao 0.152 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 73.9 quadros 2214 perdidos 0
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 66, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3034.18/2917.78 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=64270 itag=137 source=1080p30 target=30 shown=1929 lost=0 queue=18 pcm_ms=6014.0 av_ms=8.39 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.182 ms, present-CPU 8.809 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.024 ms, acquire 0.047 ms, gravacao 0.179 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.08 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.4 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 67, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3034.18/2944.94 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.4% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=65279 itag=137 source=1080p30 target=30 shown=1959 lost=0 queue=18 pcm_ms=5990.7 av_ms=-12.29 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.166 ms, present-CPU 9.251 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.035 ms, gravacao 0.145 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.24 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 7.1 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 68, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3058.35/2944.94 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.7% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=66284 itag=137 source=1080p30 target=30 shown=1989 lost=0 queue=18 pcm_ms=5990.7 av_ms=-9.75 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.166 ms, present-CPU 9.701 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.022 ms, acquire 0.035 ms, gravacao 0.122 ms; 1 submit/quadro
+F40 APP SAMPLE ms=67292 itag=137 source=1080p30 target=30 shown=2019 lost=0 queue=18 pcm_ms=5967.5 av_ms=-30.43 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.09 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 2.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 68, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3058.35/2944.94 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.3% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.251 ms, present-CPU 9.008 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.033 ms, gravacao 0.139 ms; 1 submit/quadro
+F40 APP SAMPLE ms=68298 itag=137 source=1080p30 target=30 shown=2050 lost=0 queue=18 pcm_ms=6014.0 av_ms=5.11 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.16 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 69, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3058.35/2970.97 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.175 ms, present-CPU 8.783 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.034 ms, gravacao 0.126 ms; 1 submit/quadro
+F40 APP SAMPLE ms=69298 itag=137 source=1080p30 target=30 shown=2080 lost=0 queue=18 pcm_ms=6014.0 av_ms=7.66 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 8.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 71, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3081.53/2995.93 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+player: 4p_9OPKgcDE pos 79.7 quadros 2387 perdidos 0
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.172 ms, present-CPU 8.591 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.032 ms, acquire 0.044 ms, gravacao 0.137 ms; 1 submit/quadro
+F40 APP SAMPLE ms=70304 itag=137 source=1080p30 target=30 shown=2109 lost=0 queue=18 pcm_ms=5990.7 av_ms=-13.02 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.1 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 72, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3103.78/2995.93 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.167 ms, present-CPU 8.792 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.031 ms, gravacao 0.109 ms; 1 submit/quadro
+F40 APP SAMPLE ms=71310 itag=137 source=1080p30 target=30 shown=2139 lost=0 queue=18 pcm_ms=5990.7 av_ms=-10.48 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 73, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3103.78/3019.90 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.162 ms, present-CPU 8.926 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.023 ms, acquire 0.044 ms, gravacao 0.138 ms; 1 submit/quadro
+F40 APP SAMPLE ms=72317 itag=137 source=1080p30 target=30 shown=2169 lost=0 queue=18 pcm_ms=5967.5 av_ms=-31.16 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.22 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 6.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 74, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3125.17/3019.90 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.7% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.163 ms, present-CPU 9.345 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.040 ms, acquire 0.030 ms, gravacao 0.153 ms; 1 submit/quadro
+F40 APP SAMPLE ms=73322 itag=137 source=1080p30 target=30 shown=2200 lost=0 queue=18 pcm_ms=5990.7 av_ms=4.38 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.30 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 8.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 75, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3125.17/3042.93 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.9% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.163 ms, present-CPU 8.779 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.031 ms, gravacao 0.123 ms; 1 submit/quadro
+F40 APP SAMPLE ms=74323 itag=137 source=1080p30 target=30 shown=2230 lost=0 queue=18 pcm_ms=6014.0 av_ms=6.93 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.29 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.17 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 8.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 76, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3145.73/3042.93 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.9% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.157 ms, present-CPU 9.187 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.028 ms, gravacao 0.110 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 85.5 quadros 2558 perdidos 0
+F40 APP SAMPLE ms=75324 itag=137 source=1080p30 target=30 shown=2260 lost=0 queue=18 pcm_ms=6014.0 av_ms=9.47 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 77, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3145.73/2897.88 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.227 ms, present-CPU 9.003 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.022 ms, acquire 0.035 ms, gravacao 3.633 ms; 1 submit/quadro
+F40 APP SAMPLE ms=76330 itag=137 source=1080p30 target=30 shown=2290 lost=0 queue=18 pcm_ms=5990.7 av_ms=-11.21 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.45 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.05 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 13.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 78, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3165.51/2897.88 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 1.4% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.169 ms, present-CPU 8.892 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.019 ms, acquire 0.027 ms, gravacao 0.143 ms; 1 submit/quadro
+F40 APP SAMPLE ms=77333 itag=137 source=1080p30 target=30 shown=2320 lost=0 queue=18 pcm_ms=5990.7 av_ms=-8.67 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 79, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3165.51/2921.03 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.173 ms, present-CPU 8.876 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.026 ms, acquire 0.038 ms, gravacao 0.179 ms; 1 submit/quadro
+F40 APP SAMPLE ms=78334 itag=137 source=1080p30 target=30 shown=2350 lost=0 queue=18 pcm_ms=5990.7 av_ms=-6.13 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 80, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3184.56/2921.03 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.179 ms, present-CPU 9.177 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.033 ms, acquire 0.053 ms, gravacao 0.239 ms; 1 submit/quadro
+F40 APP SAMPLE ms=79339 itag=137 source=1080p30 target=30 shown=2380 lost=0 queue=18 pcm_ms=5990.7 av_ms=-26.80 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 81, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3184.56/2943.37 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.162 ms, present-CPU 9.052 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.023 ms, acquire 0.040 ms, gravacao 0.142 ms; 1 submit/quadro
+F40 APP SAMPLE ms=80347 itag=137 source=1080p30 target=30 shown=2411 lost=0 queue=18 pcm_ms=6014.0 av_ms=8.74 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.21 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 6.4 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 81, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3184.56/2943.37 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.6% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.282 ms, present-CPU 8.647 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.087 ms, acquire 0.041 ms, gravacao 0.452 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 91.2 quadros 2731 perdidos 0
+F40 APP SAMPLE ms=81355 itag=137 source=1080p30 target=30 shown=2441 lost=0 queue=18 pcm_ms=5990.7 av_ms=-11.94 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.08 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 6.56 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 2.3 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 82, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3202.92/2943.37 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.192 ms, present-CPU 8.601 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.023 ms, acquire 0.036 ms, gravacao 0.130 ms; 1 submit/quadro
+F40 APP SAMPLE ms=82356 itag=137 source=1080p30 target=30 shown=2471 lost=0 queue=18 pcm_ms=5990.7 av_ms=-9.40 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 82, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3202.92/2943.37 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.253 ms, present-CPU 8.795 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.022 ms, acquire 0.031 ms, gravacao 0.126 ms; 1 submit/quadro
+F40 APP SAMPLE ms=83359 itag=137 source=1080p30 target=30 shown=2501 lost=0 queue=18 pcm_ms=5990.7 av_ms=-6.86 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 83, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3202.92/2964.94 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.161 ms, present-CPU 8.605 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.021 ms, acquire 0.032 ms, gravacao 0.123 ms; 1 submit/quadro
+F40 APP SAMPLE ms=84366 itag=137 source=1080p30 target=30 shown=2531 lost=0 queue=18 pcm_ms=5967.5 av_ms=-27.54 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 84, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3220.63/2964.94 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.199 ms, present-CPU 8.715 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.026 ms, acquire 0.038 ms, gravacao 0.148 ms; 1 submit/quadro
+F40 APP SAMPLE ms=85368 itag=137 source=1080p30 target=30 shown=2562 lost=0 queue=18 pcm_ms=6014.0 av_ms=9.01 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.12 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 3.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 84, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3220.63/2964.94 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.4% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.171 ms, present-CPU 8.547 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.024 ms, acquire 0.041 ms, gravacao 0.134 ms; 1 submit/quadro
+F40 APP SAMPLE ms=86374 itag=137 source=1080p30 target=30 shown=2592 lost=0 queue=18 pcm_ms=6014.0 av_ms=11.55 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+player: 4p_9OPKgcDE pos 96.9 quadros 2901 perdidos 0
+decod: H.264 6t, 31 quadros, 0.16 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 85, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3220.63/2841.30 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.192 ms, present-CPU 8.805 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.028 ms, acquire 0.027 ms, gravacao 0.135 ms; 1 submit/quadro
+F40 APP SAMPLE ms=87381 itag=137 source=1080p30 target=30 shown=2622 lost=0 queue=18 pcm_ms=5990.7 av_ms=-9.13 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.25 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 7.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 85, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3220.63/2841.30 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.8% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.169 ms, present-CPU 9.232 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.028 ms, gravacao 0.126 ms; 1 submit/quadro
+F40 APP SAMPLE ms=88383 itag=137 source=1080p30 target=30 shown=2652 lost=0 queue=18 pcm_ms=5990.7 av_ms=-6.59 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 8.11 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 87, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3237.71/2862.78 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.169 ms, present-CPU 8.972 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.022 ms, acquire 0.029 ms, gravacao 0.145 ms; 1 submit/quadro
+F40 APP SAMPLE ms=89388 itag=137 source=1080p30 target=30 shown=2682 lost=0 queue=18 pcm_ms=5990.7 av_ms=-4.05 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.07 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 2.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 88, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3254.20/2862.78 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.190 ms, present-CPU 8.690 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.044 ms, acquire 0.053 ms, gravacao 0.163 ms; 1 submit/quadro
+F40 APP SAMPLE ms=90388 itag=137 source=1080p30 target=30 shown=2711 lost=0 queue=18 pcm_ms=5990.7 av_ms=-25.72 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 29 quadros, 0.61 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 8.36 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 28.9 fps na TV, pacotes 29, decodificados 29, filtrados 0, decode 18.3 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 29/29, flush 0.002 ms/quadro, loop ALL 29/29 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 90, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3270.14/2883.58 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 1.8% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.174 ms, present-CPU 9.211 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.040 ms, gravacao 0.130 ms; 1 submit/quadro
+F40 APP SAMPLE ms=91396 itag=137 source=1080p30 target=30 shown=2741 lost=0 queue=18 pcm_ms=5990.7 av_ms=-23.18 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 91, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3270.14/2903.75 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.4% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.163 ms, present-CPU 8.787 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.019 ms, acquire 0.028 ms, gravacao 0.130 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 102.6 quadros 3072 perdidos 0
+F40 APP SAMPLE ms=92401 itag=137 source=1080p30 target=30 shown=2772 lost=0 queue=18 pcm_ms=6014.0 av_ms=13.36 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 91, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3270.14/2903.75 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.171 ms, present-CPU 8.545 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.023 ms, acquire 0.038 ms, gravacao 0.138 ms; 1 submit/quadro
+F40 APP SAMPLE ms=93406 itag=137 source=1080p30 target=30 shown=2802 lost=0 queue=18 pcm_ms=5990.7 av_ms=-7.32 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.003 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 92, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3285.54/2903.75 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.159 ms, present-CPU 8.520 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.017 ms, acquire 0.029 ms, gravacao 0.111 ms; 1 submit/quadro
+F40 APP SAMPLE ms=94415 itag=137 source=1080p30 target=30 shown=2832 lost=0 queue=18 pcm_ms=5990.7 av_ms=-4.78 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.05 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 93, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3285.54/2923.30 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.213 ms, present-CPU 8.539 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.023 ms, acquire 0.043 ms, gravacao 0.141 ms; 1 submit/quadro
+F40 APP SAMPLE ms=95415 itag=137 source=1080p30 target=30 shown=2862 lost=0 queue=18 pcm_ms=5990.7 av_ms=-25.45 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 94, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3300.44/2923.30 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.173 ms, present-CPU 8.918 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.029 ms, gravacao 0.138 ms; 1 submit/quadro
+F40 APP SAMPLE ms=96417 itag=137 source=1080p30 target=30 shown=2892 lost=0 queue=18 pcm_ms=5967.5 av_ms=-22.91 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.07 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.18 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 2.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 95, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3300.44/2942.27 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.177 ms, present-CPU 9.355 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.025 ms, acquire 0.038 ms, gravacao 0.161 ms; 1 submit/quadro
+F40 APP SAMPLE ms=97421 itag=137 source=1080p30 target=30 shown=2923 lost=0 queue=18 pcm_ms=6014.0 av_ms=12.63 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+player: 4p_9OPKgcDE pos 108.3 quadros 3242 perdidos 0
+decod: H.264 6t, 31 quadros, 0.27 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 8.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 96, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3314.85/2942.27 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.8% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.271 ms, present-CPU 8.847 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.030 ms, gravacao 0.141 ms; 1 submit/quadro
+F40 APP SAMPLE ms=98421 itag=137 source=1080p30 target=30 shown=2953 lost=0 queue=18 pcm_ms=5990.7 av_ms=-8.05 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.16 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 97, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3314.85/2960.69 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.194 ms, present-CPU 8.980 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.044 ms, gravacao 0.125 ms; 1 submit/quadro
+F40 APP SAMPLE ms=99429 itag=137 source=1080p30 target=30 shown=2983 lost=0 queue=18 pcm_ms=5990.7 av_ms=-5.51 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.07 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 2.1 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 98, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3328.81/2960.69 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.264 ms, present-CPU 8.513 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.026 ms, acquire 0.043 ms, gravacao 0.165 ms; 1 submit/quadro
+F40 APP SAMPLE ms=100434 itag=137 source=1080p30 target=30 shown=3013 lost=0 queue=18 pcm_ms=5990.7 av_ms=-2.96 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.07 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 2.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 98, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3328.81/2960.69 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.166 ms, present-CPU 8.603 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.024 ms, acquire 0.038 ms, gravacao 0.123 ms; 1 submit/quadro
+F40 APP SAMPLE ms=101446 itag=137 source=1080p30 target=30 shown=3044 lost=0 queue=18 pcm_ms=6014.0 av_ms=9.36 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.003 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 99, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3328.81/2978.56 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.329 ms, present-CPU 8.721 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.020 ms, acquire 0.040 ms, gravacao 0.122 ms; 1 submit/quadro
+F40 APP SAMPLE ms=102454 itag=137 source=1080p30 target=30 shown=3074 lost=0 queue=18 pcm_ms=5990.7 av_ms=-11.32 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.31 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 9.4 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 99, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3328.81/2978.56 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.9% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.259 ms, present-CPU 9.104 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.030 ms, gravacao 0.133 ms; 1 submit/quadro
+F40 APP SAMPLE ms=103454 itag=137 source=1080p30 target=30 shown=3104 lost=0 queue=18 pcm_ms=5990.7 av_ms=-8.78 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+player: 4p_9OPKgcDE pos 113.9 quadros 3411 perdidos 0
+decod: H.264 6t, 31 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 4.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 100, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3342.34/2978.56 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.166 ms, present-CPU 8.622 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.029 ms, acquire 0.041 ms, gravacao 0.147 ms; 1 submit/quadro
+F40 APP SAMPLE ms=104458 itag=137 source=1080p30 target=30 shown=3134 lost=0 queue=18 pcm_ms=5990.7 av_ms=-6.24 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.40 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 12.1 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 101, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3342.34/2872.81 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 1.2% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.171 ms, present-CPU 8.765 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.019 ms, acquire 0.026 ms, gravacao 0.115 ms; 1 submit/quadro
+F40 APP SAMPLE ms=105463 itag=137 source=1080p30 target=30 shown=3164 lost=0 queue=18 pcm_ms=5967.5 av_ms=-26.91 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 101, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3342.34/2872.81 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.251 ms, present-CPU 8.680 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.023 ms, acquire 0.031 ms, gravacao 0.124 ms; 1 submit/quadro
+F40 APP SAMPLE ms=106469 itag=137 source=1080p30 target=30 shown=3195 lost=0 queue=18 pcm_ms=6014.0 av_ms=9.63 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.06 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 102, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3355.44/2872.81 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.167 ms, present-CPU 8.928 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.024 ms, acquire 0.030 ms, gravacao 0.133 ms; 1 submit/quadro
+F40 APP SAMPLE ms=107471 itag=137 source=1080p30 target=30 shown=3224 lost=0 queue=18 pcm_ms=5990.7 av_ms=-21.83 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.15 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 4.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 103, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3355.44/2890.67 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.5% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.247 ms, present-CPU 8.740 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.034 ms, acquire 0.045 ms, gravacao 0.252 ms; 1 submit/quadro
+F40 APP SAMPLE ms=108477 itag=137 source=1080p30 target=30 shown=3255 lost=0 queue=18 pcm_ms=5990.7 av_ms=-8.51 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.34 ms/quadro, fila mín 17, perdidos 0, PCM 6014 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 10.1 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 104, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3368.15/2890.67 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 1.0% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+player: 4p_9OPKgcDE pos 119.7 quadros 3582 perdidos 0
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.257 ms, present-CPU 8.569 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.031 ms, gravacao 0.134 ms; 1 submit/quadro
+F40 APP SAMPLE ms=109486 itag=137 source=1080p30 target=30 shown=3285 lost=0 queue=18 pcm_ms=5990.7 av_ms=-5.97 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.07 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.1 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.001 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 105, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3368.15/2908.05 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.181 ms, present-CPU 9.103 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.022 ms, acquire 0.058 ms, gravacao 0.124 ms; 1 submit/quadro
+F40 APP SAMPLE ms=110491 itag=137 source=1080p30 target=30 shown=3314 lost=0 queue=18 pcm_ms=5990.7 av_ms=-4.42 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 31 quadros, 0.07 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 8.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 2.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 107, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3380.48/2924.98 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.183 ms, present-CPU 8.882 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.021 ms, acquire 0.033 ms, gravacao 0.130 ms; 1 submit/quadro
+F40 APP SAMPLE ms=111492 itag=137 source=1080p30 target=30 shown=3344 lost=0 queue=18 pcm_ms=5990.7 av_ms=-25.10 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.17 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.8 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 108, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3392.45/2924.98 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=112492 itag=137 source=1080p30 target=30 shown=3374 lost=0 queue=18 pcm_ms=5990.7 av_ms=-22.56 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.258 ms, present-CPU 8.737 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.037 ms, gravacao 0.147 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.20 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.1 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 6.0 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 108, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3392.45/2924.98 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.6% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=113497 itag=137 source=1080p30 target=30 shown=3404 lost=0 queue=18 pcm_ms=5990.7 av_ms=-20.02 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.163 ms, present-CPU 9.207 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.019 ms, acquire 0.030 ms, gravacao 0.117 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.8 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.001 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 109, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3392.45/2831.16 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 1048.58/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=114503 itag=137 source=1080p30 target=30 shown=3435 lost=0 queue=18 pcm_ms=5990.7 av_ms=-6.70 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.406 ms, present-CPU 9.077 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.019 ms, acquire 0.034 ms, gravacao 0.127 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 125.4 quadros 3753 perdidos 0
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.18 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.9 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.001 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 110, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3404.07/2831.16 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=115510 itag=137 source=1080p30 target=30 shown=3465 lost=0 queue=18 pcm_ms=5990.7 av_ms=-4.15 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.174 ms, present-CPU 8.730 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.024 ms, acquire 0.026 ms, gravacao 0.124 ms; 1 submit/quadro
+decod: H.264 6t, 30 quadros, 0.22 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.0 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 6.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 111, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3404.07/2847.98 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.7% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=116514 itag=137 source=1080p30 target=30 shown=3495 lost=0 queue=18 pcm_ms=5990.7 av_ms=-1.61 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.184 ms, present-CPU 8.534 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.026 ms, acquire 0.041 ms, gravacao 0.144 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.21 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.04 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 6.2 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 112, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3415.36/2847.98 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.6% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=117521 itag=137 source=1080p30 target=30 shown=3525 lost=0 queue=18 pcm_ms=5967.5 av_ms=-22.29 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.276 ms, present-CPU 8.583 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.017 ms, acquire 0.023 ms, gravacao 0.100 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.12 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.4 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 113, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3415.36/2864.40 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=118529 itag=137 source=1080p30 target=30 shown=3555 lost=0 queue=18 pcm_ms=5967.5 av_ms=-19.75 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.167 ms, present-CPU 8.656 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 0.020 ms, acquire 0.029 ms, gravacao 0.113 ms; 1 submit/quadro
+decod: H.264 6t, 30 quadros, 0.06 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.14 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.6 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.7 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop ALL 30/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 114, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3426.33/2864.40 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.2% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=119531 itag=137 source=1080p30 target=30 shown=3586 lost=0 queue=18 pcm_ms=6014.0 av_ms=15.79 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.174 ms, present-CPU 8.593 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 0.021 ms, acquire 0.030 ms, gravacao 0.119 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.29 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.09 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.2 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 8.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop ALL 31/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 115, retomadas 0, conexoes 0, espera 9 ms, TCP 0/0 KiB, TLS 3426.33/2880.43 Mbit/s
+qualidade: decisao manter, pressao 0 ms/0 janelas, decode 0.9% copia 0.0%, rede medida 4194.30/necessaria 3.58 Mbit/s, fila 17
+F40 APP SAMPLE ms=120534 itag=137 source=1080p30 target=30 shown=3616 lost=0 queue=18 pcm_ms=5990.7 av_ms=-4.88 clock_age_ms=0.0 free_mib=4294967295 silent=0 feeder_wait_us=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1
+F40 APP DONE PASS fps=30.000 lost=0 source_ok=1 audio_ok=1 policy_ok=1 route_ok=1 av_samples=3617 av_p95_ms=16.75 av_max_ms=22.11 present_gap_p95_ms=42.00 queue_min=18 free_min_mib=4294967295 memory_measured=0 silent=0 elapsed_ms=120534 console_gate=pending_console qualified=0
+player: encerrando 4p_9OPKgcDE
+player: fim 4p_9OPKgcDE, buffers 6144 KiB liberados, 4 ms
+Nest: console saindo conectado=0 abriu=0 sessao=
+miniaturas: 0 bytes GPU, pico de RGBA aguardando upload 0 bytes
+Tube360 saindo

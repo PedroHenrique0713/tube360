@@ -1,0 +1,42 @@
+d9eb230 Playback: apply the measured six-worker 1080p30 policy
+ef2f094 Merge branch 'f33-1080p' into f40-1080p-app
+0c803f9 Docs: describe manual quality and Corona CRT console checks
+8675bf6 Playback: add fixed SD qualities and offered-source quick menu
+bfd8cec Video: cover Corona component 480i in native and safe simulation
+9b4eb96 Bench: skip the H.264 loop filter on every frame; console run on the real 137 clip
+1e6bf18 Docs: add CRT output and quality recovery console verification
+753b192 Playback: retain failed quality rungs and project decode cost per frame
+cb527a7 Video: preserve dashboard SD and interlaced framebuffer across Vulkan setup
+14d14e3 Docs: cover quality stability, settings safety and console verification
+3433cb5 Video: retain 360 E native defaults and report policy to the normal log
+2c7adfc Settings: keep safe output fixed and replace GPU resources after idle
+ac3a1b6 Playback: settle measurements and preserve viable quality rungs
+415655d Bench: F33 console results (kernels, CPU configs, app 1080p)
+683dd96 Docs: explain Jasper diagnostics and video driver overrides
+a8d5792 Video: gate native display and mapped memory by board policy
+729442d Docs: explain boot stages, environment requirements and console diagnosis
+7e82b9b Startup: persist early checkpoints and tolerate optional environment features
+233a447 Docs: record F33 evidence and pending console acceptance
+9dba055 Player: budget the 1080p queue and add timed playback evidence
+4b6c8ea Home: use effective server mode for errors and account routing
+235d5f8 H264: add Xenon-safe DSP kernels and paired CPU probes
+6859a11 Docs: describe Reddit fixes and updated trigger controls
+d2a662d Client: handle startup errors, quality recovery and held seeking
+8bb4b98 Merge branch 'f26-atualizacao' into integracao-032
+932e645 Update test: always use HDD: on the console (Hdd1: lists but refuses writes)
+f068c16 Nest: return sound to the TV after 10 s without contact once release is requested
+4a74157 Automate console update verification with a test-only file trigger
+34ec0b9 Test: document adversarial LAN limits and permanent Nest outages
+a2e0712 Phone: retry transient SSDP membership failures
+c934a6e Phone: renew SSDP sockets when the local address changes
+15d17c9 Nest: require clock samples before confirming a playback stall
+0b50fae Nest: reject reordered status before changing ownership
+7bf18e4 Verify console kit HTTP channels and private key isolation
+ec58231 Check signed Xbox test payloads through promotion and recovery
+4c4e5c0 Preserve Xenon compiler flags and verify distributed package bytes
+e9bd855 Verify package trust and capture update states in the real UI
+e489ab9 Nest: measure independent live HLS clocks and document console checks
+9190090 Phone: retry SSDP membership and expose LAN delivery diagnostics
+26e75d8 Nest: keep slow Wi-Fi status and clock observations alive
+fbe09cf Nest: discover speakers when the console has no netmask
+7763fb1 Complete signed app updates and add disposable console test kit

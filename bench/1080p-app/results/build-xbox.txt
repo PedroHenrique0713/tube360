@@ -1,0 +1,780 @@
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display
+make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk'
+make: 'build/libxsdk.a' is up to date.
+make: 'build/host/libxsc.so' is up to date.
+make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk'
+make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/vulkan4xenon'
+make: 'build/libvulkan4xenon.a' is up to date.
+make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/vulkan4xenon'
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/ffmpeg-7.1.5.tar.xz: OK
+install prefix            /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/ffmpeg-xbox
+source path               src
+C compiler                /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc
+C library                 newlib
+host C compiler           gcc
+host C library            glibc
+ARCH                      ppc (generic)
+big-endian                yes
+runtime cpu detection     yes
+AltiVec enabled           yes
+VSX enabled               no
+POWER8 enabled            no
+PPC 4xx optimizations     no
+dcbzl available           yes
+vec_xl available          no
+debug symbols             no
+strip symbols             yes
+optimize for size         no
+optimizations             yes
+static                    yes
+shared                    no
+postprocessing support    no
+network support           no
+threading support         pthreads
+safe bitstream reader     yes
+texi2html enabled         no
+perl enabled              yes
+pod2man enabled           yes
+makeinfo enabled          no
+makeinfo supports HTML    no
+xmllint enabled           yes
+
+External libraries:
+
+External libraries providing hardware acceleration:
+
+Libraries:
+avcodec                 avutil
+avformat                swresample
+
+Programs:
+
+Enabled decoders:
+aac                     h264                    opus
+
+Enabled encoders:
+
+Enabled hwaccels:
+
+Enabled parsers:
+aac                     h264
+ac3                     opus
+
+Enabled demuxers:
+aac                     hls                     mpegts
+ac3                     matroska
+eac3                    mov
+
+Enabled muxers:
+
+Enabled protocols:
+file
+
+Enabled filters:
+
+Enabled bsfs:
+
+Enabled indevs:
+
+Enabled outdevs:
+
+License: LGPL version 2.1 or later
+
+WARNING: /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
+config.h is unchanged
+config_components.h is unchanged
+libavutil/avconfig.h is unchanged
+libavfilter/filter_list.c is unchanged
+libavcodec/codec_list.c is unchanged
+libavcodec/parser_list.c is unchanged
+libavcodec/bsf_list.c is unchanged
+libavformat/demuxer_list.c is unchanged
+libavformat/muxer_list.c is unchanged
+libavdevice/indev_list.c is unchanged
+libavdevice/outdev_list.c is unchanged
+libavformat/protocol_list.c is unchanged
+ffbuild/config.sh is unchanged
+INSTALL	src/doc/examples/avio_http_serve_files.c
+INSTALL	src/doc/examples/avio_list_dir.c
+INSTALL	src/doc/examples/avio_read_callback.c
+INSTALL	src/doc/examples/decode_audio.c
+INSTALL	src/doc/examples/decode_filter_audio.c
+INSTALL	src/doc/examples/decode_filter_video.c
+INSTALL	src/doc/examples/decode_video.c
+INSTALL	src/doc/examples/demux_decode.c
+INSTALL	src/doc/examples/encode_audio.c
+INSTALL	src/doc/examples/encode_video.c
+INSTALL	src/doc/examples/extract_mvs.c
+INSTALL	src/doc/examples/filter_audio.c
+INSTALL	src/doc/examples/hw_decode.c
+INSTALL	src/doc/examples/mux.c
+INSTALL	src/doc/examples/qsv_decode.c
+INSTALL	src/doc/examples/qsv_transcode.c
+INSTALL	src/doc/examples/remux.c
+INSTALL	src/doc/examples/resample_audio.c
+INSTALL	src/doc/examples/scale_video.c
+INSTALL	src/doc/examples/show_metadata.c
+INSTALL	src/doc/examples/transcode.c
+INSTALL	src/doc/examples/transcode_aac.c
+INSTALL	src/doc/examples/vaapi_encode.c
+INSTALL	src/doc/examples/vaapi_transcode.c
+INSTALL	src/doc/examples/README
+INSTALL	src/doc/examples/Makefile
+INSTALL	libavformat/libavformat.a
+INSTALL	src/doc/examples/avio_http_serve_files.c
+INSTALL	src/doc/examples/avio_list_dir.c
+INSTALL	src/doc/examples/avio_read_callback.c
+INSTALL	src/doc/examples/decode_audio.c
+INSTALL	src/doc/examples/decode_filter_audio.c
+INSTALL	src/doc/examples/decode_filter_video.c
+INSTALL	src/doc/examples/decode_video.c
+INSTALL	src/doc/examples/demux_decode.c
+INSTALL	src/doc/examples/encode_audio.c
+INSTALL	src/doc/examples/encode_video.c
+INSTALL	src/doc/examples/extract_mvs.c
+INSTALL	src/doc/examples/filter_audio.c
+INSTALL	src/doc/examples/hw_decode.c
+INSTALL	src/doc/examples/mux.c
+INSTALL	src/doc/examples/qsv_decode.c
+INSTALL	src/doc/examples/qsv_transcode.c
+INSTALL	src/doc/examples/remux.c
+INSTALL	src/doc/examples/resample_audio.c
+INSTALL	src/doc/examples/scale_video.c
+INSTALL	src/doc/examples/show_metadata.c
+INSTALL	src/doc/examples/transcode.c
+INSTALL	src/doc/examples/transcode_aac.c
+INSTALL	src/doc/examples/vaapi_encode.c
+INSTALL	src/doc/examples/vaapi_transcode.c
+INSTALL	src/doc/examples/README
+INSTALL	src/doc/examples/Makefile
+CC	libavcodec/ppc/h264-tube360.o
+CC	libavcodec/ppc/h264chroma_init.o
+In file included from src/libavcodec/ppc/h264-tube360.c:9:
+src/libavcodec/ppc/h264-vmx128.h: In function 'tube_diagonal':
+src/libavcodec/ppc/h264-vmx128.h:78:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   78 |     tube_s16 v = vec_packs(hi, lo);
+      |     ^~~~~~~~
+src/libavcodec/ppc/h264-vmx128.h: In function 'tube_chroma':
+src/libavcodec/ppc/h264-vmx128.h:143:13: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  143 |             tube_s16 sum = vec_sl(top, vec_splat_u16(3));
+      |             ^~~~~~~~
+src/libavcodec/ppc/h264-vmx128.h:151:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  151 |         tube_u8 v = vec_packsu(r,r);
+      |         ^~~~~~~
+src/libavcodec/ppc/h264-vmx128.h: In function 'tube_weight_result':
+src/libavcodec/ppc/h264-vmx128.h:182:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  182 |     tube_s16 v = vec_packs(hi,lo);
+      |     ^~~~~~~~
+src/libavcodec/ppc/h264-tube360.c: In function 'ff_tube360_chroma_init':
+src/libavcodec/ppc/h264-tube360.c:23:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   23 |     h264_chroma_mc_func put[] = {tube_put_c8,tube_put_c4,tube_put_c2};
+      |     ^~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264-tube360.c: In function 'ff_tube360_qpel_init':
+src/libavcodec/ppc/h264-tube360.c:33:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   33 |     const qpel_mc_func put[3][16] = {TUBE_QTABLE(put,8),TUBE_QTABLE(put,4),TUBE_QTABLE(put,2)};
+      |     ^~~~~
+src/libavcodec/ppc/h264-tube360.c: In function 'ff_tube360_weight_init':
+src/libavcodec/ppc/h264-tube360.c:44:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   44 |     h264_weight_func w[] = {tube_w16,tube_w8,tube_w4,tube_w2};
+      |     ^~~~~~~~~~~~~~~~
+CC	libavcodec/ppc/h264dsp.o
+src/libavcodec/ppc/h264dsp.c: In function 'h264_idct8_add_altivec':
+src/libavcodec/ppc/h264dsp.c:229:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  229 |     const vec_u16 onev = vec_splat_u16(1);
+      |     ^~~~~
+src/libavcodec/ppc/h264dsp.c:256:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  256 |     ALTIVEC_STORE_SUM_CLIP(&dst[0*stride], idct0, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:257:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  257 |     ALTIVEC_STORE_SUM_CLIP(&dst[1*stride], idct1, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:258:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  258 |     ALTIVEC_STORE_SUM_CLIP(&dst[2*stride], idct2, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:259:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  259 |     ALTIVEC_STORE_SUM_CLIP(&dst[3*stride], idct3, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:260:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  260 |     ALTIVEC_STORE_SUM_CLIP(&dst[4*stride], idct4, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:261:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  261 |     ALTIVEC_STORE_SUM_CLIP(&dst[5*stride], idct5, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:262:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  262 |     ALTIVEC_STORE_SUM_CLIP(&dst[6*stride], idct6, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:263:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  263 |     ALTIVEC_STORE_SUM_CLIP(&dst[7*stride], idct7, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c: At top level:
+src/libavcodec/ppc/h264dsp.c:780:13: warning: 'biweight_h264_pixels8_altivec' defined but not used [-Wunused-function]
+  780 | static void biweight_h264_pixels ## W ## _altivec(uint8_t *dst, uint8_t *src, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:787:1: note: in expansion of macro 'H264_WEIGHT'
+  787 | H264_WEIGHT( 8)
+      | ^~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:775:13: warning: 'weight_h264_pixels8_altivec' defined but not used [-Wunused-function]
+  775 | static void weight_h264_pixels ## W ## _altivec(uint8_t *block, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:787:1: note: in expansion of macro 'H264_WEIGHT'
+  787 | H264_WEIGHT( 8)
+      | ^~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:780:13: warning: 'biweight_h264_pixels16_altivec' defined but not used [-Wunused-function]
+  780 | static void biweight_h264_pixels ## W ## _altivec(uint8_t *dst, uint8_t *src, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:786:1: note: in expansion of macro 'H264_WEIGHT'
+  786 | H264_WEIGHT(16)
+      | ^~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:775:13: warning: 'weight_h264_pixels16_altivec' defined but not used [-Wunused-function]
+  775 | static void weight_h264_pixels ## W ## _altivec(uint8_t *block, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:786:1: note: in expansion of macro 'H264_WEIGHT'
+  786 | H264_WEIGHT(16)
+      | ^~~~~~~~~~~
+CC	libavcodec/ppc/h264qpel.o
+src/libavcodec/ppc/h264qpel.c: In function 'tube360_mul_e':
+src/libavcodec/ppc/h264qpel.c:43:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   43 |     vec_s32 five = vec_add(vec_sl(words, vec_splat_u32(2)), words);
+      |     ^~~~~~~
+src/libavcodec/ppc/h264qpel.c: In function 'tube360_mul_o':
+src/libavcodec/ppc/h264qpel.c:51:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   51 |     vec_s32 five = vec_add(vec_sl(words, vec_splat_u32(2)), words);
+      |     ^~~~~~~
+In file included from src/libavcodec/ppc/h264qpel.c:65:
+src/libavcodec/ppc/h264qpel_template.c: In function 'put_h264_qpel16_h_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:114:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  114 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:112:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  112 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'put_h264_qpel16_v_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:206:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:215:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  215 |     const vec_u8 srcM1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:217:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  217 |     const vec_u8 srcP0 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:219:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  219 |     const vec_u8 srcP1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:221:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  221 |     const vec_u8 srcP2 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:224:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  224 |     vec_s16 srcM2ssA = (vec_s16) VEC_MERGEH(zero_u8v, srcM2);
+      |     ^~~~~~~
+src/libavcodec/ppc/h264qpel_template.c:208:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  208 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:206:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'put_h264_qpel16_hv_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:308:19: warning: unused variable 'v1ss' [-Wunused-variable]
+  308 |     const vec_s16 v1ss = vec_splat_s16(1);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:307:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  307 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:305:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  305 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+In file included from src/libavcodec/ppc/h264qpel.c:81:
+src/libavcodec/ppc/h264qpel_template.c: In function 'avg_h264_qpel16_h_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:114:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  114 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:112:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  112 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'avg_h264_qpel16_v_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:206:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:215:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  215 |     const vec_u8 srcM1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:217:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  217 |     const vec_u8 srcP0 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:219:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  219 |     const vec_u8 srcP1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:221:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  221 |     const vec_u8 srcP2 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:224:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  224 |     vec_s16 srcM2ssA = (vec_s16) VEC_MERGEH(zero_u8v, srcM2);
+      |     ^~~~~~~
+src/libavcodec/ppc/h264qpel_template.c:208:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  208 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:206:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'avg_h264_qpel16_hv_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:308:19: warning: unused variable 'v1ss' [-Wunused-variable]
+  308 |     const vec_s16 v1ss = vec_splat_s16(1);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:307:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  307 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:305:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  305 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+CC	libavcodec/pthread_frame.o
+src/libavcodec/pthread_frame.c: In function 'frame_worker_thread':
+src/libavcodec/pthread_frame.c:293:13: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  293 |             int64_t tube360_begin = av_gettime_relative();
+      |             ^~~~~~~
+src/libavcodec/pthread_frame.c:188:45: warning: '%d' directive output may be truncated writing between 1 and 9 bytes into a region of size between 3 and 10 [-Wformat-truncation=]
+  188 |     snprintf(name, sizeof(name), "av:%.7s:df%d", avctx->codec->name, idx);
+      |                                             ^~
+In function 'thread_set_name',
+    inlined from 'frame_worker_thread' at src/libavcodec/pthread_frame.c:252:5:
+src/libavcodec/pthread_frame.c:188:34: note: directive argument in the range [-25565281, 25565281]
+  188 |     snprintf(name, sizeof(name), "av:%.7s:df%d", avctx->codec->name, idx);
+      |                                  ^~~~~~~~~~~~~~
+src/libavcodec/pthread_frame.c:188:5: note: 'snprintf' output between 8 and 23 bytes into a destination of size 16
+  188 |     snprintf(name, sizeof(name), "av:%.7s:df%d", avctx->codec->name, idx);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+INSTALL	libswresample/libswresample.a
+INSTALL	libavutil/libavutil.a
+INSTALL	src/libavformat/avformat.h
+INSTALL	src/libavformat/avio.h
+INSTALL	src/libavformat/version.h
+INSTALL	src/libavformat/version_major.h
+INSTALL	libavformat/libavformat.pc
+INSTALL	src/libavcodec/ac3_parser.h
+INSTALL	src/libavcodec/adts_parser.h
+INSTALL	src/libavcodec/avcodec.h
+INSTALL	src/libavcodec/avdct.h
+INSTALL	src/libavcodec/avfft.h
+INSTALL	src/libavcodec/bsf.h
+INSTALL	src/libavcodec/codec.h
+INSTALL	src/libavcodec/codec_desc.h
+INSTALL	src/libavcodec/codec_id.h
+INSTALL	src/libavcodec/codec_par.h
+INSTALL	src/libavcodec/d3d11va.h
+INSTALL	src/libavcodec/defs.h
+INSTALL	src/libavcodec/dirac.h
+INSTALL	src/libavcodec/dv_profile.h
+INSTALL	src/libavcodec/dxva2.h
+INSTALL	src/libavcodec/jni.h
+INSTALL	src/libavcodec/mediacodec.h
+INSTALL	src/libavcodec/packet.h
+INSTALL	src/libavcodec/qsv.h
+INSTALL	src/libavcodec/vdpau.h
+INSTALL	src/libavcodec/version.h
+INSTALL	src/libavcodec/version_major.h
+INSTALL	src/libavcodec/videotoolbox.h
+INSTALL	src/libavcodec/vorbis_parser.h
+INSTALL	libavcodec/libavcodec.pc
+INSTALL	src/libswresample/swresample.h
+INSTALL	src/libswresample/version.h
+INSTALL	src/libswresample/version_major.h
+INSTALL	libswresample/libswresample.pc
+INSTALL	src/libavutil/adler32.h
+INSTALL	src/libavutil/aes.h
+INSTALL	src/libavutil/aes_ctr.h
+INSTALL	src/libavutil/ambient_viewing_environment.h
+INSTALL	src/libavutil/attributes.h
+INSTALL	src/libavutil/audio_fifo.h
+INSTALL	src/libavutil/avassert.h
+INSTALL	src/libavutil/avstring.h
+INSTALL	src/libavutil/avutil.h
+INSTALL	src/libavutil/base64.h
+INSTALL	src/libavutil/blowfish.h
+INSTALL	src/libavutil/bprint.h
+INSTALL	src/libavutil/bswap.h
+INSTALL	src/libavutil/buffer.h
+INSTALL	src/libavutil/cast5.h
+INSTALL	src/libavutil/camellia.h
+INSTALL	src/libavutil/channel_layout.h
+INSTALL	src/libavutil/common.h
+INSTALL	src/libavutil/cpu.h
+INSTALL	src/libavutil/crc.h
+INSTALL	src/libavutil/csp.h
+INSTALL	src/libavutil/des.h
+INSTALL	src/libavutil/detection_bbox.h
+INSTALL	src/libavutil/dict.h
+INSTALL	src/libavutil/display.h
+INSTALL	src/libavutil/dovi_meta.h
+INSTALL	src/libavutil/downmix_info.h
+INSTALL	src/libavutil/encryption_info.h
+INSTALL	src/libavutil/error.h
+INSTALL	src/libavutil/eval.h
+INSTALL	src/libavutil/executor.h
+INSTALL	src/libavutil/fifo.h
+INSTALL	src/libavutil/file.h
+INSTALL	src/libavutil/frame.h
+INSTALL	src/libavutil/hash.h
+INSTALL	src/libavutil/hdr_dynamic_metadata.h
+INSTALL	src/libavutil/hdr_dynamic_vivid_metadata.h
+INSTALL	src/libavutil/hmac.h
+INSTALL	src/libavutil/hwcontext.h
+INSTALL	src/libavutil/hwcontext_cuda.h
+INSTALL	src/libavutil/hwcontext_d3d11va.h
+INSTALL	src/libavutil/hwcontext_d3d12va.h
+INSTALL	src/libavutil/hwcontext_drm.h
+INSTALL	src/libavutil/hwcontext_dxva2.h
+INSTALL	src/libavutil/hwcontext_qsv.h
+INSTALL	src/libavutil/hwcontext_mediacodec.h
+INSTALL	src/libavutil/hwcontext_opencl.h
+INSTALL	src/libavutil/hwcontext_vaapi.h
+INSTALL	src/libavutil/hwcontext_videotoolbox.h
+INSTALL	src/libavutil/hwcontext_vdpau.h
+INSTALL	src/libavutil/hwcontext_vulkan.h
+INSTALL	src/libavutil/iamf.h
+INSTALL	src/libavutil/imgutils.h
+INSTALL	src/libavutil/intfloat.h
+INSTALL	src/libavutil/intreadwrite.h
+INSTALL	src/libavutil/lfg.h
+INSTALL	src/libavutil/log.h
+INSTALL	src/libavutil/lzo.h
+INSTALL	src/libavutil/macros.h
+INSTALL	src/libavutil/mathematics.h
+INSTALL	src/libavutil/mastering_display_metadata.h
+INSTALL	src/libavutil/md5.h
+INSTALL	src/libavutil/mem.h
+INSTALL	src/libavutil/motion_vector.h
+INSTALL	src/libavutil/murmur3.h
+INSTALL	src/libavutil/opt.h
+INSTALL	src/libavutil/parseutils.h
+INSTALL	src/libavutil/pixdesc.h
+INSTALL	src/libavutil/pixelutils.h
+INSTALL	src/libavutil/pixfmt.h
+INSTALL	src/libavutil/random_seed.h
+INSTALL	src/libavutil/rc4.h
+INSTALL	src/libavutil/rational.h
+INSTALL	src/libavutil/replaygain.h
+INSTALL	src/libavutil/ripemd.h
+INSTALL	src/libavutil/samplefmt.h
+INSTALL	src/libavutil/sha.h
+INSTALL	src/libavutil/sha512.h
+INSTALL	src/libavutil/spherical.h
+INSTALL	src/libavutil/stereo3d.h
+INSTALL	src/libavutil/threadmessage.h
+INSTALL	src/libavutil/time.h
+INSTALL	src/libavutil/timecode.h
+INSTALL	src/libavutil/timestamp.h
+INSTALL	src/libavutil/tree.h
+INSTALL	src/libavutil/twofish.h
+INSTALL	src/libavutil/uuid.h
+INSTALL	src/libavutil/version.h
+INSTALL	src/libavutil/video_enc_params.h
+INSTALL	src/libavutil/xtea.h
+INSTALL	src/libavutil/tea.h
+INSTALL	src/libavutil/tx.h
+INSTALL	src/libavutil/film_grain_params.h
+INSTALL	src/libavutil/video_hint.h
+INSTALL	libavutil/avconfig.h
+INSTALL	libavutil/ffversion.h
+INSTALL	libavutil/libavutil.pc
+AR	libavcodec/libavcodec.a
+INSTALL	libavcodec/libavcodec.a
+VMX h264qpel: 13406 instruções, 4600 vetoriais, 0 multiplicações incompatíveis
+VMX h264dsp: 1708 instruções, 488 vetoriais, 0 multiplicações incompatíveis
+VMX idctdsp: 1 instruções, 0 vetoriais, 0 multiplicações incompatíveis
+VMX h264-tube360: 15764 instruções, 5539 vetoriais, 0 multiplicações incompatíveis
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8.tar.bz2: OK
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/curl-xenon.tar.gz: OK
+CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- USING O3
+-- Using CMake version 4.3.0
+-- curl version=[8.23.0-DEV]
+-- CMake platform flags: GCC CROSS
+-- Cross-compiling: Linux/x86_64 -> Generic/powerpc
+-- Picky compiler options: -Werror-implicit-function-declaration -W -Wall -Wpedantic -Wbad-function-cast -Wconversion -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wno-long-long -Wno-multichar -Wpointer-arith -Wshadow -Wsign-compare -Wundef -Wunused -Wwrite-strings -Waddress -Wattributes -Wcast-align -Wcast-qual -Wdeclaration-after-statement -Wdiv-by-zero -Wempty-body -Wendif-labels -Wfloat-equal -Wformat-security -Wignored-qualifiers -Wmissing-field-initializers -Wmissing-noreturn -Wno-padded -Wno-sign-conversion -Wno-switch-default -Wno-switch-enum -Wno-system-headers -Wold-style-definition -Wredundant-decls -Wstrict-prototypes -Wtype-limits -Wunreachable-code -Wunused-parameter -Wvla -Wclobbered -Wmissing-parameter-type -Wold-style-declaration -Wpragmas -Wstrict-aliasing=3 -ftree-vrp -Wjump-misses-init -Wdouble-promotion -Wformat=2 -Wlogical-op -Wtrampolines -Warray-bounds=2 -Wformat-signedness -Wduplicated-cond -Wnull-dereference -fdelete-null-pointer-checks -Wshift-negative-value -Wshift-overflow=2 -Wunused-const-variable -Walloc-zero -Wduplicated-branches -Wformat-truncation=2 -Wimplicit-fallthrough -Wrestrict -Warith-conversion -Wenum-conversion -Warray-compare -Wenum-int-mismatch -Wxor-used-as-pow -Wleading-whitespace=spaces -Wtrailing-whitespace=any -Wunterminated-string-initialization
+-- Protocols: http https
+-- Features: AsynchDNS SSL threadsafe
+-- Enabled SSL backends: mbedTLS
+-- Configuring done (54.7s)
+-- Generating done (0.5s)
+-- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/build-x360
+[  1%] Built target p256m
+[  2%] Built target everest
+[  3%] Built target tube360-boot
+[ 27%] Built target mbedcrypto
+[ 29%] Built target tube360-update-core
+[ 32%] Built target mbedx509
+[ 33%] Built target tube360-launcher
+[ 38%] Built target mbedtls
+[ 93%] Built target libcurl_static
+[ 93%] Building CXX object yt/CMakeFiles/tube360-yt.dir/https.cpp.obj
+[ 93%] Building CXX object yt/CMakeFiles/tube360-yt.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/update/rules.cpp.obj
+[ 94%] Linking CXX static library libtube360-yt.a
+[ 95%] Built target tube360-yt
+[ 95%] Built target tube360-update
+[ 97%] Built target tube360-cast
+[ 98%] Building C object CMakeFiles/tube360.dir/shaders_bundle.c.obj
+[ 98%] Building CXX object CMakeFiles/tube360.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/main.cpp.obj
+[ 98%] Building C object CMakeFiles/tube360.dir/ffmpeg-libc.c.obj
+In file included from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/nest.hpp:5,
+                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/player.hpp:23,
+                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/main.cpp:34:
+In copy constructor 'picojson::value::value(const picojson::value&)',
+    inlined from 'constexpr _Tp* std::construct_at(_Tp*, _Args&& ...) [with _Tp = picojson::value; _Args = {picojson::value}]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_construct.h:110:9,
+    inlined from 'static constexpr void std::allocator_traits<std::allocator<_Up> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:676:21,
+    inlined from 'constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
+    inlined from 'constexpr void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
+    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:853:18,
+    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:695:33:
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+  249 |       u_ = x.u_;
+      |       ~~~^~~~~~
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h: In function 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:853:19: note: '<anonymous>' declared here
+  853 |       a.push_back(value());
+      |                   ^~~~~~~
+[100%] Linking CXX executable tube360
+xenia_scan: _Z22plm_video_decode_blockP11plm_video_ti: 8228240c rldic r9,r9,8,48
+xenia_scan: _ZN4h2646Stream5trackEi9AVCodecIDRP14AVCodecContexti: 822cd57c rldic r7,r10,24,39
+xenia_scan: _ZN4h2646Stream5trackEi9AVCodecIDRP14AVCodecContexti: 822cd584 rldic r8,r8,16,40
+xenia_scan: _ZNSt3setINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4lessIS5_ESaIS5_EE6insertERKS5_: 82300ae0 rldic r9,r9,24,39
+xenia_scan: _ZNSt3setINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4lessIS5_ESaIS5_EE6insertERKS5_: 82300b30 rldic r9,r9,24,39
+xenia_scan: _ZN6player6Player14decodeOriginalEv: 82329850 rldic r9,r9,10,52
+xenia_scan: vkCmdClearAttachments: 82352074 mcrf cr1,cr0
+xenia_scan: SDL_CreateCursor: 8238b868 mcrf cr1,cr0
+xenia_scan: SDL_PrivateParseGamepadElement.isra.0: 8239c524 rldic r9,r9,47,49
+xenia_scan: SDL_SW_BlitTriangle: 823d1c70 rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1c84 rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1cbc rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1cf0 rldic r11,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1d2c rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1d3c rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1d6c rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1db4 rldic r0,r0,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1dc8 rldic r29,r29,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1dd4 rldic r0,r20,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d1e28 rldic r26,r26,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d2224 rldic r7,r26,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d2258 rldic r6,r29,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d228c rldic r5,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d253c rldic r0,r0,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d254c rldic r29,r29,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d257c rldic r22,r22,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d2fe0 rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d2ff4 rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d302c rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3060 rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d309c rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d30ac rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d30dc rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3124 rldic r27,r27,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3138 rldic r30,r30,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3148 rldic r11,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d31b0 rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d32f8 rldic r6,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3330 rldic r7,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d34c8 rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d34dc rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3514 rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d37a8 rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3b6c rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3b80 rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3bac rldic r31,r31,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3be0 rldic r30,r30,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3c1c rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3c2c rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3c5c rldic r31,r31,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3cac rldic r25,r25,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3cb8 rldic r24,r24,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3ccc rldic r27,r27,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3d38 rldic r30,r30,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3ea8 rldic r31,r27,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3ee0 rldic r3,r27,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d3f18 rldic r7,r30,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d4058 rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d4070 rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823d40a0 rldic r31,r31,8,24
+xenia_scan: SDL_TimerThread: 823df0cc rldic r9,r3,5,27
+xenia_scan: SDL_AddTimer: 823dfa50 rldic r9,r10,5,27
+xenia_scan: SDL_Delay: 823dfe70 rldic r3,r3,5,27
+xenia_scan: SDL_RLESurface: 8244e3dc rldic r7,r7,16,16
+xenia_scan: SDL_Blit_Slow: 824b2a74 rldic r30,r30,8,24
+xenia_scan: SDL_Blit_Slow: 824b2a88 rldic r29,r29,8,24
+xenia_scan: SDL_Blit_Slow: 824b2ac0 rldic r31,r31,8,24
+xenia_scan: SDL_Blit_Slow: 824b2af4 rldic r18,r18,8,24
+xenia_scan: SDL_Blit_Slow: 824b2b24 rldic r29,r29,8,24
+xenia_scan: SDL_Blit_Slow: 824b2b34 rldic r30,r30,8,24
+xenia_scan: SDL_Blit_Slow: 824b2b64 rldic r31,r31,8,24
+xenia_scan: SDL_Blit_Slow: 824b30bc rldic r30,r30,8,24
+xenia_scan: SDL_Blit_Slow: 824b30d0 rldic r29,r29,8,24
+xenia_scan: SDL_Blit_Slow: 824b3108 rldic r31,r31,8,24
+xenia_scan: SDL_Blit_Slow: 824b313c rldic r27,r27,8,24
+xenia_scan: SDL_Blit_Slow: 824b33a0 rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 824b35ec rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 824b3620 rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824b3654 rldic r0,r0,8,24
+xenia_scan: SDL_Blit_Slow: 824b3688 rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 824b36d4 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 824b3708 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 824b373c rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 824b376c rldic r0,r0,8,24
+xenia_scan: SDL_Blit_Slow: 824b377c rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824b37ac rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 824b3a68 rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 824b3f54 rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824b41d4 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 824b4208 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 824b423c rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824b426c rldic r28,r28,8,24
+xenia_scan: SDL_Blit_Slow: 824b42a0 rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 824b42d4 rldic r0,r0,8,24
+xenia_scan: SDL_Blit_Slow: 824b4308 rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824b4348 rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824b4354 rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 824b4364 rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 824b4394 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 824b43ec rldic r0,r0,8,24
+xenia_scan: SDL_Blit_Slow: 824b43fc rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 824b4428 rldic r28,r28,8,24
+xenia_scan: SDL_Blit_Slow: 824b46c8 rldic r7,r7,8,24
+xenia_scan: _ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_St9_IdentityIS5_ESt4lessIS5_ESaIS5_EE16_M_insert_uniqueIRKS5_EESt4pairISt17_Rb_tree_iteratorIS5_EbEOT_: 824f9bbc rldic r3,r3,24,39
+xenia_scan: _ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_St9_IdentityIS5_ESt4lessIS5_ESaIS5_EE16_M_insert_uniqueIRKS5_EESt4pairISt17_Rb_tree_iteratorIS5_EbEOT_: 824f9bf8 rldic r3,r3,24,39
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519380 rldic r4,r7,7,50
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 825193a0 rldic r4,r7,14,43
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 825193c0 rldic r4,r7,21,36
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 825193e0 rldic r4,r7,28,29
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519400 rldic r4,r7,35,22
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519420 rldic r4,r7,42,15
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519440 rldic r4,r7,49,8
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519460 rldic r4,r7,56,1
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 8251950c rldic r3,r7,7,50
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 8251952c rldic r3,r7,14,43
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 8251954c rldic r3,r7,21,36
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 8251956c rldic r3,r7,28,29
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 8251958c rldic r3,r7,35,22
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 825195ac rldic r3,r7,42,15
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 825195cc rldic r3,r7,49,8
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 825195ec rldic r3,r7,56,1
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519678 rldic r7,r10,7,50
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519698 rldic r7,r10,14,43
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 825196b8 rldic r7,r10,21,36
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 825196d8 rldic r7,r10,28,29
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 825196f8 rldic r7,r10,35,22
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519718 rldic r7,r10,42,15
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519738 rldic r7,r10,49,8
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 82519758 rldic r7,r10,56,1
+xenia_scan: update_initial_timestamps: 8256fb30 rldic r8,r4,48,63
+xenia_scan: read_frame_internal: 825737b0 rldic r9,r9,48,63
+xenia_scan: av_read_frame: 82573e40 rldic r9,r9,48,63
+xenia_scan: av_read_frame: 82573e70 rldic r9,r9,48,63
+xenia_scan: ff_rfps_add_frame: 82574178 rldic r9,r9,48,63
+xenia_scan: ff_add_index_entry: 8257da04 rldic r9,r9,48,63
+xenia_scan: av_add_index_entry: 8257dc54 rldic r9,r9,48,63
+xenia_scan: ff_parse_ntp_time: 82581bd4 rldic r9,r3,5,27
+xenia_scan: matroska_probe: 82591800 rldic r7,r7,8,48
+xenia_scan: matroska_read_header: 82597c6c rldic r5,r7,1,47
+xenia_scan: mov_read_ddts: 825ab190 rldic r4,r9,2,61
+xenia_scan: mov_build_index: 825b0f38 rldic r7,r27,32,2
+xenia_scan: ff_get_wav_header: 825c1048 rldic r25,r25,3,29
+xenia_scan: ff_get_wav_header: 825c1354 rldic r25,r25,3,29
+xenia_scan: ff_ac3_parse_header: 825c95b4 rldic r12,r8,8,48
+xenia_scan: av_xiphlacing: 825f27d0 rldic r9,r7,8,24
+xenia_scan: ff_er_add_slice: 8261bf7c mcrf cr1,cr0
+xenia_scan: hl_decode_mb_complex: 8263d1ec rldic r9,r9,8,48
+xenia_scan: h264_parse: 82649aa8 rldic r5,r5,1,32
+xenia_scan: h264_slice_header_init: 826560dc rldic r5,r5,1,32
+xenia_scan: put_h264_qpel2_mc10_9_c: 8274a0cc rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_9_c: 8274a138 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_10_c: 8274a29c rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_10_c: 8274a308 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_12_c: 8274a46c rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_12_c: 8274a4d8 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_14_c: 8274a63c rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_14_c: 8274a6a8 rldic r8,r8,16,32
+xenia_scan: ff_h264_filter_mb: 82785da0 rldic r3,r3,32,16
+xenia_scan: ff_h264_filter_mb: 82785dc4 rldic r3,r3,16,32
+xenia_scan: ff_h264_filter_mb: 82786e90 rldic r9,r3,16,32
+xenia_scan: ff_h264_filter_mb: 82786e98 rldic r7,r3,32,16
+xenia_scan: ff_h264_filter_mb: 82786fd8 rldic r3,r3,32,16
+xenia_scan: ff_h264_filter_mb: 82787018 rldic r3,r3,16,32
+xenia_scan: ff_h264_filter_mb: 82789020 rldic r7,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8278902c rldic r8,r3,32,16
+xenia_scan: av_utf8_decode: 827c3888 rldic r8,r7,5,32
+xenia_scan: av_encryption_info_get_side_data: 827cca2c rldic r10,r3,3,29
+xenia_scan: av_image_alloc: 827d8898 rldic r3,r30,3,29
+xenia_scan: av_image_check_size2: 827d8b88 rldic r3,r31,3,29
+xenia_scan: av_image_check_size: 827d8c90 rldic r3,r31,3,29
+xenia_scan: av_image_fill_arrays: 827d9b48 rldic r3,r29,3,29
+xenia_scan: av_image_get_buffer_size: 827d9cbc rldic r3,r30,3,29
+xenia_scan: multi_wait: 8286017c mcrf cr1,cr0
+xenia_scan: multi_wait: 828602b4 mcrf cr1,cr0
+xenia_scan: Curl_conn_is_multiplex: 8289cb3c mcrf cr1,cr0
+xenia_scan: Curl_conn_http_version: 8289cd5c mcrf cr1,cr0
+xenia_scan: Curl_conn_cf_adjust_pollset: 8289cfb4 mcrf cr1,cr0
+xenia_scan: Curl_conn_cf_adjust_pollset: 8289d004 mcrf cr1,cr0
+xenia_scan: Curl_conn_adjust_pollset: 8289d0fc mcrf cr1,cr0
+xenia_scan: Curl_conn_adjust_pollset: 8289d14c mcrf cr1,cr0
+xenia_scan: Curl_conn_cf_poll: 8289d254 mcrf cr1,cr0
+xenia_scan: Curl_conn_cf_poll: 8289d2a4 mcrf cr1,cr0
+xenia_scan: mbedtls_ssl_read_record: 828d34e8 mcrf cr1,cr0
+xenia_scan: crypto_sha512_final: 829126dc rldic r7,r10,3,32
+xenia_scan: fe_frombytes_mask: 82919a08 rldic r5,r5,2,38
+xenia_scan: fe_frombytes_mask: 82919a80 rldic r12,r12,7,33
+xenia_scan: fe_frombytes_mask: 82919ac4 rldic r11,r11,5,35
+xenia_scan: fe_frombytes_mask: 82919ad0 rldic r10,r10,6,34
+xenia_scan: fe_frombytes_mask: 82919aec rldic r7,r28,5,35
+xenia_scan: fe_frombytes_mask: 82919afc rldic r6,r6,4,36
+xenia_scan: fe_frombytes_mask: 82919b24 rldic r9,r9,2,38
+xenia_scan: fe_frombytes_mask: 82919b38 rldic r10,r10,3,37
+xenia_scan: mod_l: 8291af14 rldic r15,r9,28,32
+xenia_scan: redc: 8291d6e0 rldic r23,r8,28,32
+xenia_scan: mbedtls_gcm_starts: 829429b4 rldic r10,r28,3,29
+xenia_scan: _ZNKSt7__cxx119money_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE9_M_insertILb1EEES4_S4_RSt8ios_basecRKNS_12basic_stringIcS3_SaIcEEE: 829a8488 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7__cxx119money_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE9_M_insertILb0EEES4_S4_RSt8ios_basecRKNS_12basic_stringIcS3_SaIcEEE: 829a8ce8 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7__cxx119money_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE9_M_insertILb1EEES4_S4_RSt8ios_basewRKNS_12basic_stringIwS3_SaIwEEE: 829c3088 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7__cxx119money_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE9_M_insertILb0EEES4_S4_RSt8ios_basewRKNS_12basic_stringIwS3_SaIwEEE: 829c3940 rldic r9,r31,24,32
+xenia_scan: _ZNKSt8time_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE6do_putES3_RSt8ios_basecPK2tmcc: 829cd644 rldic r3,r30,24,32
+xenia_scan: _ZNKSt9money_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE9_M_insertILb1EEES3_S3_RSt8ios_basecRKSs: 829d4154 rldic r9,r31,24,32
+xenia_scan: _ZNKSt9money_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE9_M_insertILb0EEES3_S3_RSt8ios_basecRKSs: 829d47f4 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE15_M_insert_floatIdEES3_S3_RSt8ios_baseccT_: 829d545c rldic r3,r29,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE15_M_insert_floatIeEES3_S3_RSt8ios_baseccT_: 829d591c rldic r3,r29,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE13_M_insert_intIlEES3_S3_RSt8ios_basecT_: 829d5dcc rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE6do_putES3_RSt8ios_basecb: 829d611c rldic r9,r25,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE6do_putES3_RSt8ios_basecb: 829d61cc rldic r9,r25,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE13_M_insert_intImEES3_S3_RSt8ios_basecT_: 829d63fc rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE13_M_insert_intIxEES3_S3_RSt8ios_basecT_: 829d67fc rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE13_M_insert_intIyEES3_S3_RSt8ios_basecT_: 829d6b34 rldic r3,r28,24,32
+xenia_scan: _ZNKSt8time_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE6do_putES3_RSt8ios_basewPK2tmcc: 829ecde8 rldic r9,r29,24,32
+xenia_scan: _ZNKSt9money_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE9_M_insertILb1EEES3_S3_RSt8ios_basewRKSbIwS2_SaIwEE: 829f3150 rldic r9,r31,24,32
+xenia_scan: _ZNKSt9money_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE9_M_insertILb0EEES3_S3_RSt8ios_basewRKSbIwS2_SaIwEE: 829f3958 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE15_M_insert_floatIdEES3_S3_RSt8ios_basewcT_: 829f43ec rldic r3,r26,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE15_M_insert_floatIeEES3_S3_RSt8ios_basewcT_: 829f4814 rldic r3,r26,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE13_M_insert_intIlEES3_S3_RSt8ios_basewT_: 829f4c68 rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE6do_putES3_RSt8ios_basewb: 829f5018 rldic r9,r25,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE13_M_insert_intImEES3_S3_RSt8ios_basewT_: 829f522c rldic r3,r27,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE13_M_insert_intIxEES3_S3_RSt8ios_basewT_: 829f5650 rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE13_M_insert_intIyEES3_S3_RSt8ios_basewT_: 829f5994 rldic r3,r27,24,32
+xenia_scan: has_return_type: 82a094ac rldic r10,r10,51,58
+xenia_scan: d_source_name: 82a09770 rldic r6,r6,59,53
+xenia_scan: d_encoding: 82a0d2ec rldic r7,r7,51,58
+xenia_scan: d_encoding: 82a0d330 rldic r7,r7,51,58
+xenia_scan: d_print_comp_inner: 82a10458 rldic r8,r8,51,58
+xenia_scan: d_print_comp_inner: 82a12264 rldic r6,r6,51,58
+xenia_scan: d_print_mod_list.part.0: 82a142e0 rldic r10,r10,51,58
+xenia_scan: d_print_mod_list.part.0: 82a14470 rldic r8,r8,51,58
+xenia_scan: d_demangle_callback.constprop.0: 82a14c20 rldic r9,r9,59,53
+xenia_scan: _ZNK10__cxxabiv121__vmi_class_type_info20__do_find_public_srcEiPKvPKNS_17__class_type_infoES2_: 82a1631c mcrf cr1,cr0
+xenia_scan: plan_values: 82a326cc rldic r9,r4,24,8
+xenia_scan: plan_values: 82a326dc rldic r10,r3,24,8
+xenia_scan: xsdk_xsc_integral_place: 82a7c350 rldic r31,r31,4,32
+xenia_scan: _dtoa_r: 82aadfe0 rldic r10,r9,32,1
+xenia_scan: 234 instructions Xenia skips; Xenia results through these functions are unreliable
+[100%] Built target tube360
+a3d53de3f39c6def402c7e0d3f22b0fc8d85496fe324058c5f228033303c9d89  build-x360/tube360.xex
+38f6927fc9fcf96cef8c8f25936be4a97cb554a33c463a8291a2a6d7a7782de0  build-x360/tube360-launcher.xex

@@ -1,0 +1,1 @@
+PASS product pthread wrapper: six unique HW, legacy order, reset, non-video threads and create failure

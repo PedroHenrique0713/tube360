@@ -1,0 +1,5 @@
+PASS real player 170s: 1080/44ms -> stable 720/19ms, no re-upgrade after cooldown; explicit seek retains failed rung
+qualidade: degrau rejeitado itag 137/30fps, decode 44.81 ms/quadro, motivo=CPU/copia/apresentacao, nova tentativa em 120000 ms
+qualidade: fonte 1080p30.000 -> 720p30.000, itag 137 -> 136 em 12.716; motivo=decodificacao/fila sob pressao sustentada; mantendo AAC e fila
+qualidade: historico preservado na sessao, 1 degraus rejeitados
+Projection after cooldown: ('0.00', '134.3')

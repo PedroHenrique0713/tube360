@@ -1,0 +1,2 @@
+usage: stage-console.py [-h] [--output OUTPUT]
+stage-console.py: error: choose a NEW empty stage; do not overwrite a Nest STOP journal
