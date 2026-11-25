@@ -1,10 +1,13 @@
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include "client.hpp"
 #include "roots.hpp"
 #include "update-roots.hpp"
 #include "update/rules.hpp"
 #include <curl/curl.h>
+#include <mbedtls/ssl.h>
+#include <mbedtls/debug.h>
 #include <strings.h>
 #include <sys/socket.h>
 #ifndef __XSDK__
@@ -43,14 +46,28 @@ int socketOptions(void*, curl_socket_t fd, curlsocktype) {
     setsockopt(fd,SOL_SOCKET,SO_SNDBUF,&bytes,sizeof(bytes));
     return CURL_SOCKOPT_OK;
 }
+struct TlsDiagnostic { int code=0; };
+void tlsDebug(void* context, int, const char*, int, const char* message) {
+    // Nível 1 contém erros; não gravar handshake, cabeçalhos, cookies ou material de chave.
+    const char* hex=std::strstr(message,"-0x");
+    if (!hex) return;
+    char* end=nullptr; long code=std::strtol(hex,&end,16);
+    if (end>hex+3 && code<0 && code>=-65535) static_cast<TlsDiagnostic*>(context)->code=(int)code;
+}
+CURLcode tlsContext(CURL*, void* context, void* diagnostic) {
+    mbedtls_ssl_conf_dbg(static_cast<mbedtls_ssl_config*>(context),tlsDebug,diagnostic);
+    return CURLE_OK;
+}
 class Https final : public Transport {
     CURL* easy = nullptr;
     CURL* explicitCookies = nullptr;
     const std::atomic_bool* cancelFlag;
     std::atomic_bool aborted{false};
+    TlsDiagnostic tlsDiagnostic;
+    char errorBuffer[CURL_ERROR_SIZE]={};
 public:
     explicit Https(const std::atomic_bool* flag) : cancelFlag(flag) {
-        static const auto init = curl_global_init(CURL_GLOBAL_DEFAULT);
+        static const auto init = [] { mbedtls_debug_set_threshold(1); return curl_global_init(CURL_GLOBAL_DEFAULT); }();
         if (init == CURLE_OK) easy = curl_easy_init();
     }
     ~Https() override {
@@ -79,6 +96,8 @@ public:
         CURL* handle = customCookies ? explicitCookies : easy;
         if (!handle) { res.error = "tls_init"; return res; }
         curl_easy_reset(handle); // Mantém DNS, sessões TLS e conexões do mesmo worker e identidade.
+        tlsDiagnostic={};
+        std::memset(errorBuffer,0,sizeof(errorBuffer));
         curl_blob ca{const_cast<char*>(r.update ? updateRoots : ytRoots), r.update ? sizeof(updateRoots) : sizeof(ytRoots), CURL_BLOB_NOCOPY};
         curl_slist* headers = nullptr;
         CURLcode setup = CURLE_OK;
@@ -90,6 +109,9 @@ public:
         set(CURLOPT_CAINFO_BLOB, &ca);
         set(CURLOPT_SSL_VERIFYHOST, 2L);
         set(CURLOPT_SSL_VERIFYPEER, 1L);
+        set(CURLOPT_ERRORBUFFER,errorBuffer);
+        set(CURLOPT_SSL_CTX_FUNCTION,tlsContext);
+        set(CURLOPT_SSL_CTX_DATA,&tlsDiagnostic);
         set(CURLOPT_HTTP_VERSION, long(CURL_HTTP_VERSION_1_1));
         set(CURLOPT_USERAGENT, r.agent.empty() ? "Tube360/1.0" : r.agent.c_str());
         // Pote de cookies em memória; o reset do handle não apaga os cookies. Sem cookies no libcurl, segue sem eles.
@@ -129,6 +151,19 @@ public:
             set(CURLOPT_POSTFIELDSIZE, static_cast<long>(body.size()));
         }
         auto rc = setup == CURLE_OK ? curl_easy_perform(handle) : setup;
+        res.transportCode=(long)rc; res.tlsCode=rc==CURLE_OK ? 0 : tlsDiagnostic.code;
+        res.transportDetail=errorBuffer;
+        // O backend pode soltar a conexão após falha; só consultar um contexto ainda disponível.
+        curl_tlssessioninfo* session=nullptr;
+        if (curl_easy_getinfo(handle,CURLINFO_TLS_SSL_PTR,&session)==CURLE_OK && session &&
+            session->backend==CURLSSLBACKEND_MBEDTLS && session->internals)
+            res.tlsVerify=(long)mbedtls_ssl_get_verify_result(static_cast<mbedtls_ssl_context*>(session->internals));
+        if (!res.tlsCode && rc==CURLE_PEER_FAILED_VERIFICATION) res.tlsCode=MBEDTLS_ERR_X509_CERT_VERIFY_FAILED;
+        // O erro final do handshake tem precedência sobre um erro interno capturado pelo debug.
+        if (rc!=CURLE_OK) {
+            const char* hex=std::strstr(errorBuffer,"-0x");
+            if (hex) res.tlsCode=(int)std::strtol(hex,nullptr,16);
+        }
         curl_easy_getinfo(handle, CURLINFO_RESPONSE_CODE, &res.status);
         if (std::getenv("XT_HTTP_DEBUG") && res.status != 200) std::fprintf(stderr, "http %ld %s -> %s\n", (long)res.status, url.c_str(), res.location.c_str());
         curl_easy_getinfo(handle, CURLINFO_NUM_CONNECTS, &res.newConnections);

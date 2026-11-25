@@ -20,6 +20,9 @@ struct Response {
     bool retryable = false;
     double seconds = 0;
     int receiveBuffer = 0, sendBuffer = 0;
+    long transportCode = 0, tlsVerify = -1;
+    int tlsCode = 0;
+    string transportDetail;
 };
 // Pedido com identidade própria: user agent, cabeçalhos extras e os cookies que o worker já recebeu.
 struct Request {

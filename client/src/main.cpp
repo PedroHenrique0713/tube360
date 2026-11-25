@@ -1271,7 +1271,7 @@ int main(int argc, char** argv) {
     bool behindLive = screen == PLAYER && pl.live && (pl.paused || (pl.shownFrames &&
         (pl.liveDebt >= 1.0 || (pl.lastFrameMs && now > pl.lastFrameMs + 1000))));
     if (extras.poll()) { commentIndex=-1; }
-    if (sponsorWorker.poll(sponsors)) LOG("SponsorBlock: %u trechos",(unsigned)sponsors.segments.size());
+    if (sponsorWorker.poll(sponsors)) LOG("SponsorBlock: %u trechos %s",(unsigned)sponsors.segments.size(),sponsorWorker.diagnostic.line().c_str());
     if (screen==PLAYER && !pl.live && !nav.musicNow && !shutdownAt) {
       auto action=sponsors.update(pl.position(),pl.duration,now,settings.sponsorBlock,pl.state==player::PLAYING && !pl.paused);
       if (action) sponsorSeek(action);

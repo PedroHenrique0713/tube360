@@ -79,6 +79,9 @@ def run(name, mode='button', lang='pt', screen='player', keys='', seconds=3, at=
     if screen == 'player':
         assert 'primeiro quadro' in text, text
         assert text.count('SponsorBlock fixture GET') == (0 if mode == 'off' else 1), text
+        if mode != 'off':
+            status = 'http_error' if 'XT_SPONSOR_FAIL' in extra else 'tls_error' if 'XT_SPONSOR_TLS_FAIL' in extra else 'parse_error' if 'XT_SPONSOR_PARSE_FAIL' in extra else 'ok'
+            assert f'status={status}' in text, text
     if nest:
         assert not nest.errors and nest.commands('LOAD') and nest.commands('STOP'), nest.errors
         # O seek do player pode reutilizar o LOAD ou enviar SEEK; ambos usam o Cast v2 real em loopback.
@@ -115,6 +118,8 @@ if __name__ == '__main__':
         'auto-sd': dict(mode='auto', height=480, seconds=3),
         'button-large': dict(large=True, seconds=2),
         'offline': dict(XT_SPONSOR_FAIL='1'),
+        'tls-failure': dict(XT_SPONSOR_TLS_FAIL='1'),
+        'parse-failure': dict(XT_SPONSOR_PARSE_FAIL='1'),
         'slow-api': dict(XT_SPONSOR_DELAY_MS='1000', seconds=3),
         'nest-auto': dict(mode='auto', speaker=True, seconds=6),
     })

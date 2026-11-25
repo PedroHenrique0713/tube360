@@ -29,7 +29,14 @@ public:
                 auto until=SDL_GetTicks()+unsigned(std::atoi(delay));
                 while (!cancelled() && SDL_GetTicks()<until) SDL_Delay(5);
             }
-            if (std::getenv("XT_SPONSOR_FAIL")) return {503,{},"fixture unavailable"};
+            if (std::getenv("XT_SPONSOR_FAIL")) return {503,{},{}};
+            if (std::getenv("XT_SPONSOR_TLS_FAIL")) {
+                Response failure; failure.failure=Failure::TLS; failure.error="tls_peer_verification";
+                failure.transportCode=60; failure.tlsCode=-0x2700;
+                failure.transportDetail="mbedTLS: The certificate is not correctly signed by the trusted CA";
+                return failure;
+            }
+            if (std::getenv("XT_SPONSOR_PARSE_FAIL")) return {200,"[{]}"};
             std::ifstream f(directory+"/public-prefix.json"); return {200,{std::istreambuf_iterator<char>(f),{}}};
         }
         if (r.url=="https://www.youtube.com/" || r.url.find("https://www.youtube.com/?hl=")==0)

@@ -11,6 +11,7 @@ struct Worker {
     std::string id;
     bool pending=false, ready=false;
     yt::sponsorblock::Segments reply;
+    yt::sponsorblock::Diagnostic replyDiagnostic, diagnostic;
     void init() { thread=yt::worker([](void* p) { static_cast<Worker*>(p)->run(); return 0; },"SponsorBlock",this); }
     void select(const std::string& video) {
         SDL_LockMutex(mu);
@@ -20,7 +21,7 @@ struct Worker {
     bool poll(Playback& playback) {
         SDL_LockMutex(mu);
         bool changed=ready;
-        if (ready) { playback.segments=std::move(reply); ready=false; }
+        if (ready) { playback.segments=std::move(reply); diagnostic=std::move(replyDiagnostic); ready=false; }
         SDL_UnlockMutex(mu); return changed;
     }
     void run() {
@@ -33,7 +34,7 @@ struct Worker {
             SDL_UnlockMutex(mu);
             auto result=client.fetch(video,SDL_GetTicks());
             SDL_LockMutex(mu);
-            if (revision==rev && !stop) { reply=std::move(result); ready=true; }
+            if (revision==rev && !stop) { reply=std::move(result); replyDiagnostic=client.diagnostic(); ready=true; }
             SDL_UnlockMutex(mu);
         }
     }
