@@ -15,12 +15,18 @@ stb_truetype rasteriza os glifos resultantes. Harakat conservam avanço zero, s�
 e ganham separação vertical quando combinados com shadda. É uma composição mínima: não implementa todas
 as âncoras GPOS, caligrafia ou ligaduras opcionais de uma fonte OpenType. As formas de FB50–FBFF, FE70–FEFC,
 ligaduras de palavras FDF0–FDFF e árabe básico/suplementar/estendido disponível na fonte entram no atlas.
-Ligaduras opcionais FC00–FDEF e emoji não têm cobertura garantida; caracteres ausentes usam `?`.
+Ligaduras opcionais FC00–FDEF e emoji não têm cobertura garantida. Caracteres sem glifo no atlas da fonte
+são omitidos, sem substituição por `?`; um ponto de interrogação literal continua aparecendo.
 
+Na preparação do cache por texto/fonte, o renderizador consulta a cobertura real do atlas e remove
+caracteres sem glifo. ZWJ/ZWNJ e controles bidi são preservados até o FriBidi compor/reordenar; portanto
+a omissão de emoji não elimina os controles de junção árabe. O resultado lógico e visual fica em cache.
+Texto composto só por emoji sem cobertura fica vazio, sem largura nem geometria de substituição.
+Medição, desenho, degradê, alinhamento, reticências e quebra usam essa mesma preparação.
 O corte e a quebra usam texto lógico, medem novamente as formas da borda e só depois reordenam cada linha.
 Não se corta uma sequência UTF-8 nem se separa harakat de sua base. Medição e desenho usam a mesma sequência
 composta. Strings compostas e quebras têm caches limitados a 512 KiB cada (mais estruturas de contêiner),
-invalidados quando necessário; o texto estável não recompõe letras nem recalcula quebras a cada quadro.
+invalidados quando a fonte/resolução é recarregada; o texto estável não recompõe letras nem recalcula quebras a cada quadro.
 
 Mantemos a posição da barra lateral, grade, botões, transportes e comandos do controle. Os blocos de títulos,
 metadados, busca, configurações e texto corrido recebem alinhamento à direita; botões e avisos centrais
