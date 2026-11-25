@@ -1,4 +1,10 @@
-# Música da conta no console (F35)
+# Música da conta no console
+
+**Resultado de 25/11/2026:** Música da conta validada no Xbox do dono. Isso não
+estabelece paridade de recomendações com o aplicativo YouTube Music, Premium ou
+compatibilidade de todas as contas. Veja os [resultados finais](CONSOLE-032-FINAL.md).
+O levantamento e o roteiro abaixo preservam a pesquisa de 24/11; para instalar a
+0.3.2, use o pacote completo descrito em [UPDATES.md](UPDATES.md).
 
 A Música tenta `WEB_REMIX` com o Bearer já obtido pelo código de TV. Se o servidor
 recusar com 400/401/403, tenta **TVHTML5 → `FEtopics_music` em `www.youtube.com`**,
@@ -74,8 +80,10 @@ linha do artista e a duração do tile. A arte de mixes aceita somente o endpoin
 `music.youtube.com/image/mixart`, além dos hosts de imagem já permitidos. As gravações versionadas removem sessão,
 tracking e menus e substituem nomes, IDs e imagens por marcadores Demo.
 
-**Não observado:** a causa exata do 401 do grant do dono, a aceitação desse grant
-pelo Music TV, a biblioteca particular ou igualdade com o início do YouTube Music.
+**Não observado no levantamento sem conta de 24/11:** a causa exata do 401 do grant
+do dono, a aceitação desse grant pelo Music TV, a biblioteca particular ou igualdade
+com o início do YouTube Music. O aceite posterior da Música da conta, informado
+pelo dono em 25/11, está registrado acima; a causa do 401 e a paridade não foram estabelecidas.
 O 401 de um token inválido comprova somente a recusa de um token inválido. A troca
 de identidade e a correção do contexto são caminhos fundamentados para testar no
 console, não prova de Premium. A/B, região e políticas do YouTube podem afetá-los.
@@ -153,6 +161,6 @@ Aurora/XeXMenu para as cópias **dentro do próprio console**.
    Reabrir a instalação principal e confirmar que continua conectada.
 
 Se recentes/playlists/curtidas retornarem `account_music_unavailable`, não tratar
-como biblioteca vazia ou Premium confirmado. A validação está pendente e precisa
-ser investigada no console; não pedir cookies nem refazer o login do dono como
+como biblioteca vazia ou Premium confirmado. Essa falha precisa ser investigada
+na instalação afetada; não pedir cookies nem refazer o login do dono como
 substituto para esse diagnóstico.
