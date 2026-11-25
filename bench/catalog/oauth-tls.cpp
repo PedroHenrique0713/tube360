@@ -22,7 +22,9 @@ int main(int argc, char** argv) {
   yt::catalog::Client c(net); c.setToken("console-fixture-token");
   auto page = c.browse({{"kind","music"},{"lang","pt"}});
   if (!page.error.empty() || page.items.empty() || page.musicSource!="tv") { std::cerr << page.error << '\n'; return 4; }
+  auto search=c.browse({{"kind","search"},{"q","fixture"},{"lang","pt"},{"params","CAM%3D"}});
+  if (!search.error.empty() || search.items.empty()) return 6;
   // O pote precisa continuar existindo para os pedidos públicos posteriores.
   if (net.request("https://www.youtube.com/probe",{},false).status != 200) return 5;
-  std::cout << page.items.size() << " Music items via production TLS\n";
+  std::cout << page.items.size() << " Music items and anonymous account search via production TLS\n";
 }
