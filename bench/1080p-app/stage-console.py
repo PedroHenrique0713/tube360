@@ -60,7 +60,9 @@ for case, video, start, nest, full, output in (
         write(f'{case}/nest.example.txt', 'REPLACE_WITH_SPEAKER_IP 8009\nF40 bench speaker\n')
 for name in ('LICENSE', 'THIRD_PARTY.md'):
     copy(ROOT/name, name)
-copy(ROOT/'bench/1080p-app/README.md', 'README.md')
+copy(ROOT/'docs/CONSOLE-032-RC2.md', 'README.md')
+copy(ROOT/'docs/CONSOLE-032-RC1.md', 'CONSOLE-032-RC1.md')
+copy(ROOT/'bench/1080p-app/README.md', 'F40-README.md')
 manifest = dict(stage=str(stage), files=files, executed_on_console=False, console_gate='pending_console',
                 source_commit=subprocess.check_output(['git','rev-parse','HEAD'],cwd=ROOT,text=True).strip(),
                 ffmpeg_recipe=(ROOT/'.work/ffmpeg-xbox/.tube360-source-id').read_text().strip())
