@@ -70,6 +70,16 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(Search, "Search", "Buscar", "Buscar") \
   X(Phone, "Phone", "Celular", "Teléfono") \
   X(Settings, "Settings", "Configurações", "Configuración") \
+  X(SponsorBlock, "SponsorBlock", "SponsorBlock", "SponsorBlock") \
+  X(SponsorOff, "Off", "Desligado", "Desactivado") \
+  X(SponsorButton, "Skip button (default)", "Botão \"Pular\" (padrão)", "Botón \"Saltar\" (predeterminado)") \
+  X(SponsorAuto, "Skip automatically", "Pular sozinho", "Saltar automáticamente") \
+  X(SponsorWarning, "Segments are marked by the community and may be wrong.", "Os trechos são marcados pela comunidade e podem errar.", "Los segmentos los marca la comunidad y pueden contener errores.") \
+  X(SponsorCredit, "Segments: SponsorBlock, sponsor.ajay.app", "Trechos: SponsorBlock, sponsor.ajay.app", "Segmentos: SponsorBlock, sponsor.ajay.app") \
+  X(SponsorCategories, "Sponsors, self-promotion and subscribe reminders. Intros and outros stay on.", "Patrocínio, autopromoção e lembretes de inscrição. Vinhetas e encerramentos continuam.", "Patrocinios, autopromoción y recordatorios de suscripción. Se conservan intros y cierres.") \
+  X(SponsorSkip, "Skip sponsor", "Pular patrocínio", "Saltar patrocinio") \
+  X(SponsorSkipped, "Sponsor skipped", "Patrocínio pulado", "Patrocinio saltado") \
+  X(SponsorUndo, "Go back", "Voltar", "Volver") \
   X(Exit, "Exit", "Sair", "Salir") \
   X(All, "All", "Tudo", "Todo") \
   X(ForYou, "For you", "Para você", "Para ti") \

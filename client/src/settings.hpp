@@ -5,11 +5,13 @@
 #include <string>
 #include "i18n.hpp"
 #include "playback_mode.hpp"
+#include "sponsorblock.hpp"
 
 struct Settings {
   i18n::Lang lang = i18n::Lang::EN;
   int cols = 4, quality = 720, syncMs = 0;
   int videoMode = playback::AUTO, outputHeight = 720;
+  int sponsorBlock = sponsorblock::BUTTON;
   bool originalAudio = true, largeText = false, videoFill = false;
   bool server = true, nest = false, sleepNotebook = false, captions = false;
   std::string captionLang;
@@ -24,6 +26,7 @@ struct Settings {
         size_t eq = s.find('='); if (eq == std::string::npos) continue;
         std::string key = s.substr(0, eq), val = s.substr(eq + 1);
         if (key == "lang") lang = i18n::language(val);
+        else if (key == "sponsorblock") sponsorBlock = val == "off" ? sponsorblock::OFF : val == "auto" ? sponsorblock::AUTO : sponsorblock::BUTTON;
         else if (key == "large_text") largeText = val == "on";
         else if (key == "video_fit") videoFill = val == "fill";
         else if (key == "server") server = val != "off";
@@ -62,6 +65,7 @@ struct Settings {
     bool ok = std::fprintf(f, "lang=%s\ncols=%d\nquality=%d\nsound=%s\nsync_ms=%d\nsleep_what=%s\ncaptions=%s\ncaption_lang=%s\nserver=%s\n", i18n::code(lang), cols, quality, nest ? "nest" : "tv", syncMs, sleepNotebook ? "xbox_notebook" : "xbox", captions ? "on" : "off", captionLang.c_str(), server ? "auto" : "off") > 0;
     ok = ok && std::fprintf(f,"video_mode=%s\noutput_height=%d\naudio_preference=%s\n",videoMode == playback::FAST ? "720p60" : videoMode == playback::DETAIL ? "1080p30" : "auto",outputHeight,originalAudio ? "original" : "interface") > 0;
     ok = ok && std::fprintf(f,"large_text=%s\nvideo_fit=%s\n",largeText ? "on" : "off",videoFill ? "fill" : "fit") > 0;
+    ok = ok && std::fprintf(f,"sponsorblock=%s\n",sponsorBlock == sponsorblock::OFF ? "off" : sponsorBlock == sponsorblock::AUTO ? "auto" : "button") > 0;
     if (std::fclose(f) != 0) ok = false;
     if (ok) ok = std::rename(tmp.c_str(), dest.c_str()) == 0;
     if (!ok) std::remove(tmp.c_str());
