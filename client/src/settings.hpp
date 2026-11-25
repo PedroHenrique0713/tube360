@@ -13,6 +13,7 @@ struct Settings {
   int videoMode = playback::AUTO, outputHeight = 720;
   int sponsorBlock = sponsorblock::BUTTON;
   bool originalAudio = true, largeText = false, videoFill = false;
+  bool h264FullFilter = false;
   bool server = true, nest = false, sleepNotebook = false, captions = false;
   std::string captionLang;
 
@@ -29,6 +30,7 @@ struct Settings {
         else if (key == "sponsorblock") sponsorBlock = val == "off" ? sponsorblock::OFF : val == "auto" ? sponsorblock::AUTO : sponsorblock::BUTTON;
         else if (key == "large_text") largeText = val == "on";
         else if (key == "video_fit") videoFill = val == "fill";
+        else if (key == "h264_loop_filter") h264FullFilter = val == "full";
         else if (key == "server") server = val != "off";
         else if (key == "video_mode") videoMode = playback::modeFromName(val.c_str());
         else if (key == "audio_preference") originalAudio = val != "interface";
@@ -66,6 +68,7 @@ struct Settings {
     ok = ok && std::fprintf(f,"video_mode=%s\noutput_height=%d\naudio_preference=%s\n",playback::modeName(videoMode),outputHeight,originalAudio ? "original" : "interface") > 0;
     ok = ok && std::fprintf(f,"large_text=%s\nvideo_fit=%s\n",largeText ? "on" : "off",videoFill ? "fill" : "fit") > 0;
     ok = ok && std::fprintf(f,"sponsorblock=%s\n",sponsorBlock == sponsorblock::OFF ? "off" : sponsorBlock == sponsorblock::AUTO ? "auto" : "button") > 0;
+    ok = ok && std::fprintf(f,"h264_loop_filter=%s\n",h264FullFilter ? "full" : "auto") > 0;
     if (std::fclose(f) != 0) ok = false;
     if (ok) ok = std::rename(tmp.c_str(), dest.c_str()) == 0;
     if (!ok) std::remove(tmp.c_str());

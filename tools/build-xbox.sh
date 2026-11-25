@@ -30,6 +30,8 @@ fresh=()
 if [[ -f build-x360/CMakeCache.txt ]] && ! grep -Fq "CMAKE_TOOLCHAIN_FILE:FILEPATH=$XSDK_DIR/cmake/xsdk.cmake" build-x360/CMakeCache.txt; then fresh+=(--fresh); fi
 cmake "${fresh[@]}" -S x360 -B build-x360 -DV4X_DIR="$V4X_DIR" \
   -DCMAKE_TOOLCHAIN_FILE="$XSDK_DIR/cmake/xsdk.cmake" -DXSDK_TOOLCHAIN="${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}" \
-  -DSDL3_DIR="$SDL3_XENON_DIR" -DAPP_NAME="${APP_NAME:-Tube360}" -DCMAKE_BUILD_TYPE=Release -DTUBE360_BUILD_ID="${TUBE360_BUILD_ID:-1}" -DTUBE360_VERSION="${TUBE360_VERSION:-0.3.0-dev}" -DTUBE360_NATIVE_BOARD="${TUBE360_NATIVE_BOARD:-unconfirmed}"
+  -DSDL3_DIR="$SDL3_XENON_DIR" -DAPP_NAME="${APP_NAME:-Tube360}" -DCMAKE_BUILD_TYPE=Release -DTUBE360_BUILD_ID="${TUBE360_BUILD_ID:-1}" -DTUBE360_VERSION="${TUBE360_VERSION:-0.3.0-dev}" \
+  -DTUBE360_NATIVE_BOARD="${TUBE360_NATIVE_BOARD:-unconfirmed}" \
+  -DTUBE360_F33_BENCH="${TUBE360_F33_BENCH:-OFF}" -DTUBE360_F40_BENCH="${TUBE360_F40_BENCH:-OFF}"
 cmake --build build-x360 -j"${JOBS:-2}"
 sha256sum build-x360/tube360.xex build-x360/tube360-launcher.xex

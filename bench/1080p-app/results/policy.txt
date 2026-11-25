@@ -1,0 +1,4 @@
+PASS actual decode height=1080 full=0 workers=6 loop=48 frames=600
+PASS actual decode height=1080 full=1 workers=6 loop=0 frames=600
+PASS actual decode height=720 full=0 workers=4 loop=0 frames=180
+PASS policy, recovery/backoff/bandwidth, thread roles and persistent settings

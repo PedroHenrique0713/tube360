@@ -1,0 +1,74 @@
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display
+make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk'
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/start.c -o build/sdk/start.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/log.c -o build/sdk/log.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/sbrk.c -o build/sdk/sbrk.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/thread.c -o build/sdk/thread.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/file.c -o build/sdk/file.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/path.c -o build/sdk/path.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/dir.c -o build/sdk/dir.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/pthread.c -o build/sdk/pthread.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/lock.c -o build/sdk/lock.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/reent.c -o build/sdk/reent.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/time.c -o build/sdk/time.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/sysconf.c -o build/sdk/sysconf.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/entropy.c -o build/sdk/entropy.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/exit.c -o build/sdk/exit.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu.c -o build/sdk/gpu.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_setup.c -o build/sdk/gpu_setup.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_resolve.c -o build/sdk/gpu_resolve.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_draw.c -o build/sdk/gpu_draw.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_constants.c -o build/sdk/gpu_constants.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_tiles.c -o build/sdk/gpu_tiles.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/display.c -o build/sdk/display.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/shader.c -o build/sdk/shader.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/microcode.c -o build/sdk/microcode.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/texture.c -o build/sdk/texture.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/texture_layout.c -o build/sdk/texture_layout.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/tiled.c -o build/sdk/tiled.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/present.c -o build/sdk/present.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/splash.c -o build/sdk/splash.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -fno-builtin -fno-tree-loop-distribute-patterns -c src/copy.c -o build/sdk/copy.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/socket.c -o build/sdk/socket.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/netdb.c -o build/sdk/netdb.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/net.c -o build/sdk/net.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/launch.c -o build/sdk/launch.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/libgen.c -o build/sdk/libgen.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/xam.c -o build/sdk/xam.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/save.c -o build/sdk/save.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/system_ui.c -o build/sdk/system_ui.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/semaphore.c -o build/sdk/semaphore.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/mman.c -o build/sdk/mman.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/jit.c -o build/sdk/jit.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/system.c -o build/sdk/system.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/terminate.c -o build/sdk/terminate.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/text.c -o build/sdk/text.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/audio.c -o build/sdk/audio.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_memory.c -o build/sdk/xsc_memory.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_spirv.c -o build/sdk/xsc_spirv.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_resolve.c -o build/sdk/xsc_resolve.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_unroll.c -o build/sdk/xsc_unroll.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_encode.c -o build/sdk/xsc_encode.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_container.c -o build/sdk/xsc_container.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_program.c -o build/sdk/xsc_program.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_optimize.c -o build/sdk/xsc_optimize.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower.c -o build/sdk/xsc_lower.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_block.c -o build/sdk/xsc_lower_block.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_matrix.c -o build/sdk/xsc_lower_matrix.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_glsl.c -o build/sdk/xsc_lower_glsl.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_stage.c -o build/sdk/xsc_lower_stage.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_vertex.c -o build/sdk/xsc_lower_vertex.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_fragment.c -o build/sdk/xsc_lower_fragment.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_loop.c -o build/sdk/xsc_lower_loop.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_flow.c -o build/sdk/xsc_lower_flow.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_sample.c -o build/sdk/xsc_lower_sample.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_inline.c -o build/sdk/xsc_inline.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_switch.c -o build/sdk/xsc_switch.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_ssa.c -o build/sdk/xsc_ssa.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -DXSDK_XSC_SOURCE_HASH='"ec52f9aae349f920"' -c src/xsc_compile.c -o build/sdk/xsc_compile.o
+python3 tools/gen_imports.py imports/imports.txt build/imports
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c tests/doloop_check.c -o build/check/doloop_check.o
+/home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc ends counted loops without bdnz; rebuild it with tools/toolchain/build.sh (milestone 52)
+make: *** [Makefile:216: build/check/doloop_check.o] Error 1
+make: *** Waiting for unfinished jobs....
+make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk'

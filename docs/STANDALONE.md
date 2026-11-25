@@ -37,6 +37,14 @@ Under pressure the player can reduce presentation to 30 fps and move to a lighte
 retaining the audio clock, before trying a configured server reserve. The project target is 720p30 including
 60 fps input; acceptance must measure actual displayed frames.
 
+The 1080p30 decoder profile now opens six FRAME workers across Xenon's HW threads `0,2,4,1,3,5`
+and skips the H.264 loop filter (ALL). This also applies when Automatic selects that source profile.
+720p and smaller sources keep the full filter. Set `h264_loop_filter=full` in `settings.txt` and restart
+to retain full filtering at 1080p too; this can reduce throughput. Policy is fixed at decoder opening,
+including source/seek reopenings, rather than changing during a GOP. The isolated F39 decoder measured
+22.57 ms/frame on the reference 137; app acceptance with audio, UI, network and Nest is still pending.
+See [F40 probe, thread map and console procedure](../bench/1080p-app/README.md).
+
 `output_height=720|1080` independently selects the framebuffer. Native 1080p requires HDMI and dashboard
 1080p progressive; unsupported dashboard output retains 720p. UI coordinates scale from the 1280×720 design,
 with fonts/icons rasterized at output scale. The GPU downscales larger YUV inputs with a filtered path.

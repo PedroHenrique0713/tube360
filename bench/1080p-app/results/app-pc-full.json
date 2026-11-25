@@ -1,0 +1,21 @@
+{
+  "configuration": {
+    "platform": "pc",
+    "seconds": "10",
+    "warmup": "2",
+    "itag": "137",
+    "nest": "0",
+    "loop": "0",
+    "id": "4p_9OPKgcDE",
+    "nest_clock": "f25b_pending"
+  },
+  "result": "PASS",
+  "fps": 29.892387405340774,
+  "lost": 0.0,
+  "av_p95_ms": 17.33,
+  "samples": 11,
+  "memory_measured": false,
+  "free_min_mib": null,
+  "console_gate": "pending_console",
+  "log_sha256": "7f175efb4d989e6d7523aa2fa54f395cdf407c8e796cc866dd15f6e6c50fef5d"
+}

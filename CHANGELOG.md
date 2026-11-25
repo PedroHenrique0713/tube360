@@ -4,6 +4,7 @@
 
 ### Added
 
+- Native H.264 1080p30 decoding uses the measured Xenon VMX kernels, six FRAME workers across HW 0,2,4,1,3,5 and a larger bounded frame queue. Only known 1080p sources up to 30.1 fps omit deblocking; `h264_loop_filter=full` restores the complete filter after restarting the app. Smaller/unknown/high-cadence sources retain full filtering. The inherited isolated decoder median is 22.57 ms/frame; integrated Xbox playback with audio/UI/network still awaits console acceptance. This does not promise 1080p60. Native 1080p output requires HDMI with 1080p progressive selected in the Xbox dashboard.
 - Saved Nest IPs connect directly; metadata discovery runs in the background. Cast clock filtering and bounded picture correction keep Wi-Fi status jitter from changing playback cadence.
 - Signed app updates through a separate `default.xex` launcher with startup confirmation and rollback. Migrate by copying the complete package once; keep account/settings files.
 - Board simulation through `XT_BOARD` / `board-sim.txt`, bounded fault/delay/mapped-memory controls and durable output/font checkpoints for isolated qualification.
@@ -11,6 +12,7 @@
 
 ### Fixed
 
+- Adaptive recovery uses the measured 1080p30 decoder cost as a floor and preserves higher costs observed in the session. Explicit worker priorities keep UI, PCM and network above video work; SponsorBlock retains its temporary HW5 TLS boost and restores the background priority afterward.
 - Video drawing bypasses both UI scale axes, so SD and 1080 output use the whole physical framebuffer while menus retain their scale and margins.
 - Cached same-video seeks, including SponsorBlock undo, notify the phone even when the fast reopen never appears as a sampled loading state. Continuous playback keeps its existing notification rate.
 - Corona 480i/component simulation selects the kernel SD viewport in both native and safe paths, even when the reported signal is HD. A bounded `board-sim.txt` contract supports board/driver/mode/cable overrides for isolated testing, preserving real hardware detection, viewport and signal timings.

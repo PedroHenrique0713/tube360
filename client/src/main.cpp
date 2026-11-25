@@ -45,6 +45,12 @@
 #include "sleep.hpp"
 #include "icons.hpp"
 #include "cast/receiver.hpp"
+#ifdef TUBE360_F33_BENCH
+#include "../../bench/1080p/playback_probe.hpp"
+#endif
+#ifdef TUBE360_F40_BENCH
+#include "../../bench/1080p-app/playback_probe.hpp"
+#endif
 
 #ifdef __XSDK__
 #include "xsdk/net.h"
@@ -115,7 +121,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
 
 struct Worker {
   net::Server srv; std::shared_ptr<yt::ConsoleAccount> consoleAccount; SDL_Mutex* mu = SDL_CreateMutex(); SDL_Condition* cv = SDL_CreateCondition();
-  std::deque<Job> jobs; std::deque<Result> results; bool quit = false, finishJobs = false; int hw = 4;
+  std::deque<Job> jobs; std::deque<Result> results; bool quit = false, finishJobs = false; int hw = 5;
   std::string musicToken;
   std::atomic_uint64_t musicRevision{0};
   bool setMusicToken(const std::string& access) {
@@ -628,6 +634,7 @@ int run(int argc, char** argv) {
   boot_event(missingFonts.empty()?"end":"error","fonts.preflight","missing=%s",missingFonts.empty()?"none":missingFonts.c_str());
   if(!missingFonts.empty())return startup::fail(K::StartupFonts,missingFonts,K::StartupCopy);
   Settings settings; settings.load(assets);
+  yt::placeThread("presentation",0,2);
   auto tr = [&](K key) { return i18n::get(settings.lang, key); };
   if (FILE* f = std::fopen((assets + "marca.txt").c_str(), "r")) {
     char line[64] = {0};
@@ -637,6 +644,9 @@ int run(int argc, char** argv) {
     std::fclose(f);
   }
   LOG("%s iniciando", brandName.c_str());
+#if defined(TUBE360_F40_BENCH) || defined(TUBE360_F33_BENCH)
+  if (FILE* f = std::fopen((assets + "mudo.txt").c_str(), "r")) { player::benchMute = true; std::fclose(f); LOG("bancada: mudo.txt, volume zero"); }
+#endif
   net::Server srv;
   if (FILE* f = std::fopen((assets + "server.txt").c_str(), "r")) {
     char ip[64] = {0}; int port = 0;
@@ -705,6 +715,7 @@ int run(int argc, char** argv) {
   boot_event("begin","audio.init","PCM and controller workers");
   music::Player pl; pl.cacheBase = assets + "yt-base"; pl.init(); if(!pl.mu || !pl.cv || !pl.nmu || !pl.audio)return startup::fail(K::StartupSDL,SDL_GetError()); pl.videoMetrics = g.videoMetrics; pl.directSpeaker.init(assets);
   pl.videoBuffers = videoPool.enabled ? &videoPool : nullptr;
+  pl.h264FullFilter=settings.h264FullFilter;
   if (FILE* f = std::fopen((assets + "decode-config.txt").c_str(),"r")) {
     int direct = 1, type = 1, threads = 4, loop = -1;
     if (std::fscanf(f,"%d %d %d %d",&direct,&threads,&type,&loop) == 4) {
@@ -1052,6 +1063,12 @@ int run(int argc, char** argv) {
   }
 
   Screen loggedScreen = HOME;
+#ifdef TUBE360_F33_BENCH
+  f33::PlaybackProbe f33Playback(assets,SDL_GetTicks());
+#endif
+#ifdef TUBE360_F40_BENCH
+  f40::PlaybackProbe f40Playback(assets,SDL_GetTicks());
+#endif
   const char* screenNames[] = {"Home", "Busca", "Player", "Ajustes", "Navegacao"};
   boot_event("begin","app.first-frame","enter render loop; no disk logging each frame after ready");
   while (!quit) {
@@ -2730,6 +2747,12 @@ int run(int argc, char** argv) {
       quit = true;
     }
     frame++;
+#ifdef TUBE360_F33_BENCH
+    if (f33Playback.update(pl,now)) quit=true;
+#endif
+#ifdef TUBE360_F40_BENCH
+    if (f40Playback.update(pl,now)) quit=true;
+#endif
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
   recordHistory();

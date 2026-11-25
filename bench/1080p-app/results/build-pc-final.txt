@@ -1,0 +1,15 @@
+[  1%] Built target p256m
+[  2%] Built target everest
+[  3%] Built target tube360-boot
+[ 27%] Built target mbedcrypto
+[ 31%] Built target mbedx509
+[ 33%] Built target tube360-update-core
+[ 38%] Built target mbedtls
+[ 95%] Built target libcurl_static
+[ 96%] Built target tube360-yt
+[ 97%] Built target tube360-cast
+[ 97%] Building CXX object CMakeFiles/tube360-main.dir/src/main.cpp.o
+[ 97%] Built target tube360-update
+[ 98%] Built target tube360-main
+[ 98%] Linking CXX executable tube360-quality-fixture
+[100%] Built target tube360-quality-fixture

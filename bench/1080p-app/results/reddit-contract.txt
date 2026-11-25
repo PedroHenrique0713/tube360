@@ -1,0 +1,5 @@
+PASS server: default auto without address, repeated toggle and configured/off modes
+PASS pressure: console opening timings, one rung, settling, healthy 720p30 floor, missing 720p30 cadence and real bandwidth pressure
+PASS recovery console: 44.4/95.8 seconds, 19ms -> 42.75ms projection, per-rung 120/240/480/960s memory and genuine improvement
+PASS seek: acceleration, both limits, single release, pause, cancel, variable fps
+PASS recovery: 1080 headroom, cooldown, backoff, pressure, pause, dropped frames, stale bandwidth

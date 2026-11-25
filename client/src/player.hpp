@@ -15,6 +15,7 @@
 #include "http_chunks.hpp"
 #include "pl_mpeg.h"
 #include "h264.hpp"
+#include "decode_budget.hpp"
 #include "playback_mode.hpp"
 #include "quality_recovery.hpp"
 #include "yt/media.hpp"
@@ -70,6 +71,10 @@ struct SlicePool {
 
 enum State { IDLE, CONNECTING, BUFFERING, PLAYING, ENDED, FAILED };
 
+#if defined(TUBE360_F40_BENCH) || defined(TUBE360_F33_BENCH)
+// Só nas builds de bancada: mudo.txt ao lado do xex zera o volume mantendo o relógio do áudio (teste de madrugada).
+inline bool benchMute = false;
+#endif
 struct Player {
   nest::Speaker directSpeaker;
   std::atomic<bool> castMediaReady{false};
@@ -99,7 +104,7 @@ struct Player {
   SDL_Thread *netThread = nullptr, *decThread = nullptr;
 
   // fila de quadros (protegida por mu)
-  std::deque<Frame*> frames; std::vector<Frame*> spare; int maxFrames = 10;
+  std::deque<Frame*> frames; std::vector<Frame*> spare; int maxFrames = 10, startupFrames = 6;
   bool decEnded = false;
   std::atomic<bool> original{false}, retryConverted{false};
   std::atomic<bool> allowOriginal{true};
@@ -124,6 +129,11 @@ struct Player {
   int videoMetrics = 0;
   video::Allocator* videoBuffers = nullptr;
   int h264Threads = 4, h264ThreadType = FF_THREAD_FRAME, h264LoopFilter = -1;
+  bool h264FullFilter = false;
+  std::atomic<int> activeH264Threads{0}, activeLoopFilter{0};
+  std::atomic<int> activeVideoItag{0};
+  std::atomic<bool> activeH264Spread{false};
+  double observed1080Ms = 0;
   int queueMin = 0;
   uint64_t originalWatch = 0;
   std::atomic<unsigned> pauseChanges{0};
@@ -209,6 +219,9 @@ struct Player {
     if (!audio) SDL_Log("áudio: %s", SDL_GetError());
     else {
       normalGain = SDL_GetAudioStreamGain(audio);
+#if defined(TUBE360_F40_BENCH) || defined(TUBE360_F33_BENCH)
+      if (benchMute) { normalGain = 0; SDL_SetAudioStreamGain(audio, 0.0f); }
+#endif
       SDL_AudioSpec device{};
       int samples = 0;
       if (SDL_GetAudioDeviceFormat(SDL_GetAudioStreamDevice(audio), &device, &samples) && device.freq > 0) {
@@ -236,6 +249,7 @@ struct Player {
     if (vid != id) { speed=1; loop=false; }
     speaker = speaker && speed == 1;
     halt(!speaker);
+    if(newQualitySession) observed1080Ms=0;
     if(newQualitySession)qualityRecovery=playback::QualityRecovery(SDL_GetTicks());
     memberVideo = members || (vid == id && memberVideo);
     tempo.reset(speed);
@@ -250,12 +264,13 @@ struct Player {
     endLiveReader = false; refreshed = renewing; renew = mediaReady = directReserveReady = false; actualHeight = actualFps = 0;
     if (renewing) validUntil = 0;
     SDL_SetAtomicInt(&netBytes, 0);
-    original = retryConverted = false; originalWatch = 0; queueMin = maxFrames;
+    original = retryConverted = false; originalWatch = 0; maxFrames = 10; startupFrames = 6; queueMin = maxFrames;
     speakerRequested = speaker; nest = false;
     srv = s; id = vid; startAt = std::max(0.0, t); title = ttl; duration = dur; quality = q; error.clear();
     ring.assign(6u << 20, 0); rhead = rcount = 0; netEof = netErr = false; decEnded = false;
     SDL_SetAtomicInt(&audioBaseMs, -1); SDL_SetAtomicInt(&pushed, 0); firstPts = -1; wallStart = 0; pausedAt = 0; pausedTotal = 0; lastPos = startAt;
     droppedFrames = shownFrames = 0;
+    activeH264Threads=0;activeLoopFilter=0;activeH264Spread=false;activeVideoItag=0;
     tvSample=-1;tvSampleAt=0;
     stop = false; paused = false; live = false; state = CONNECTING;
     hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = nextLiveFrame = 0;
@@ -767,7 +782,7 @@ struct Player {
     }
     SDL_LockMutex(mu);
     Frame* show = nullptr;
-    if (firstPts < 0 && !frames.empty() && (frames.size() >= (original || (speakerRequested && live) ? 6u : 2u) || decEnded) &&
+    if (firstPts < 0 && !frames.empty() && (frames.size() >= (original ? size_t(startupFrames) : speakerRequested && live ? 6u : 2u) || decEnded) &&
         (!hasAudio || audioQueuedSec() >= (speakerRequested && live ? 0.20 : 0.10) || decEnded)) {
       pictureReady = true;
       if (!readyMs) readyMs = ms;

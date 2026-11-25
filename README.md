@@ -111,6 +111,8 @@ The normal path is native H.264/AAC playback. Automatic prefers detail up to 108
 
 Choose fixed 480p, 360p, 240p or 144p in Settings or press Y during video playback to open Quality. The video menu lists only direct H.264/AAC choices offered by that video. Manual selection keeps the exact source height, position and pause state; sustained pressure shows a message instead of changing quality or using a PC reserve. An unavailable saved quality reports an error and Y opens the available choices. Return to Automatic to resume the adaptive ladder. Without an active video, Settings saves a default from all seven choices.
 
+Native **1080p30** now uses the measured Xenon VMX kernels, six FRAME workers on `0,2,4,1,3,5` and a larger bounded frame queue. Known H.264 1080p sources up to 30.1 fps omit the deblocking filter; smaller, unknown-rate and higher-rate sources keep it. Set `h264_loop_filter=full` in `settings.txt` and restart to retain full filtering at 1080p too, at a possible throughput cost. The isolated decoder measured 22.57 ms/frame; playback with UI, sound and network still needs Xbox acceptance. Source decoding also works with 720p output; **native 1080p output requires HDMI and 1080p progressive in the Xbox dashboard**. See the [rc2 console procedure](docs/CONSOLE-032-RC2.md).
+
 MPEG-1 + MP2 is the compatibility path supplied by the optional server, up to 720p30. The older slice-parallel pl_mpeg decoder remains for that path. It is no longer the main YouTube playback route. [Architecture and qualification](docs/STANDALONE.md) · [Optional server protocol](docs/PROTOCOL.md)
 
 ## Requirements
@@ -221,7 +223,7 @@ request. One recovery attempt may run after three seconds from selection, even b
 
 | File | Purpose |
 |---|---|
-| `settings.txt` | `lang=en\|pt\|es\|ar`, `cols=3\|4`, legacy `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `sponsorblock=off\|button\|auto`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, captions and timer target. |
+| `settings.txt` | `lang=en\|pt\|es\|ar`, `cols=3\|4`, legacy `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `sponsorblock=off\|button\|auto`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `h264_loop_filter=auto\|full`, `audio_preference=original\|interface`, captions and timer target. |
 | `nest.txt` | Speaker host and optional port on line 1; display name on line 2. |
 | `server.txt` | Optional reserve PC IP and port on the first line, e.g. `192.0.2.10 8091`. Without it, console only. `server=off` also disables the reserve when the address is present. |
 | `marca.txt` | Optional custom name on line 1 and `retangulo` on line 2. |

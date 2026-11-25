@@ -1,0 +1,42 @@
+{
+  "source_commit": "d9eb230be63b7caa6500364bab3c31d42aff3523",
+  "pc_build_exit": 0,
+  "xbox_build_exit": 0,
+  "ffmpeg_recipe": "bc1f6751f2705a72d42669fa194066eb4132cd35fc34223c67fd9c43c55b5fa7",
+  "ffmpeg_recipe_matches": true,
+  "xex_sha256": "a3d53de3f39c6def402c7e0d3f22b0fc8d85496fe324058c5f228033303c9d89",
+  "pc_primary": {
+    "configuration": {
+      "platform": "pc",
+      "seconds": "120",
+      "warmup": "10",
+      "itag": "137",
+      "nest": "0",
+      "loop": "48",
+      "id": "4p_9OPKgcDE",
+      "nest_clock": "f25b_pending"
+    },
+    "result": "PASS",
+    "fps": 29.859659599880562,
+    "lost": 0.0,
+    "av_p95_ms": 16.76,
+    "samples": 121,
+    "memory_measured": false,
+    "free_min_mib": null,
+    "console_gate": "pending_console",
+    "log_sha256": "0f5704cf4bc954f5422bdedc3c8755126c271f1240ed6f8ab6b4a1cbca92885d"
+  },
+  "pc_full_override": "PASS (10 seconds)",
+  "pc_lower_source": "expected FAIL (10 seconds)",
+  "product_wrapper": "PASS",
+  "decoder": "600 ALL + 600 FULL + 180 720p FULL frames",
+  "legacy_player_state": "PASS",
+  "cadence": "PASS",
+  "reddit_contract": "PASS",
+  "manual_quality": "63 checks PASS",
+  "false_evidence_rejected": 18,
+  "staged_files_verified": 49,
+  "console_gate": "pending_console",
+  "nest_gate": "pending_f25b_clock",
+  "no_console_or_real_nest_access": true
+}

@@ -1,0 +1,2232 @@
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display
+make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk'
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/DbgPrint.S -o build/imports/DbgPrint.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExCreateThread.S -o build/imports/ExCreateThread.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExGetXConfigSetting.S -o build/imports/ExGetXConfigSetting.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExRegisterTitleTerminateNotification.S -o build/imports/ExRegisterTitleTerminateNotification.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExTerminateThread.S -o build/imports/ExTerminateThread.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeDelayExecutionThread.S -o build/imports/KeDelayExecutionThread.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeQueryPerformanceFrequency.S -o build/imports/KeQueryPerformanceFrequency.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeQuerySystemTime.S -o build/imports/KeQuerySystemTime.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeSetAffinityThread.S -o build/imports/KeSetAffinityThread.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmAllocatePhysicalMemoryEx.S -o build/imports/MmAllocatePhysicalMemoryEx.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmFreePhysicalMemory.S -o build/imports/MmFreePhysicalMemory.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmGetPhysicalAddress.S -o build/imports/MmGetPhysicalAddress.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmQueryStatistics.S -o build/imports/MmQueryStatistics.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtAllocateVirtualMemory.S -o build/imports/NtAllocateVirtualMemory.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtClose.S -o build/imports/NtClose.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateEvent.S -o build/imports/NtCreateEvent.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateFile.S -o build/imports/NtCreateFile.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateSemaphore.S -o build/imports/NtCreateSemaphore.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtFlushBuffersFile.S -o build/imports/NtFlushBuffersFile.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryDirectoryFile.S -o build/imports/NtQueryDirectoryFile.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryFullAttributesFile.S -o build/imports/NtQueryFullAttributesFile.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryInformationFile.S -o build/imports/NtQueryInformationFile.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryVolumeInformationFile.S -o build/imports/NtQueryVolumeInformationFile.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtReadFile.S -o build/imports/NtReadFile.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtReleaseSemaphore.S -o build/imports/NtReleaseSemaphore.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSetEvent.S -o build/imports/NtSetEvent.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSetInformationFile.S -o build/imports/NtSetInformationFile.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtWaitForSingleObjectEx.S -o build/imports/NtWaitForSingleObjectEx.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtWriteFile.S -o build/imports/NtWriteFile.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtYieldExecution.S -o build/imports/NtYieldExecution.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlEnterCriticalSection.S -o build/imports/RtlEnterCriticalSection.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlInitializeCriticalSection.S -o build/imports/RtlInitializeCriticalSection.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlLeaveCriticalSection.S -o build/imports/RtlLeaveCriticalSection.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlTryEnterCriticalSection.S -o build/imports/RtlTryEnterCriticalSection.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsAlloc.S -o build/imports/KeTlsAlloc.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsFree.S -o build/imports/KeTlsFree.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsGetValue.S -o build/imports/KeTlsGetValue.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsSetValue.S -o build/imports/KeTlsSetValue.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XeCryptRandom.S -o build/imports/XeCryptRandom.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XeCryptSha.S -o build/imports/XeCryptSha.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XexGetModuleHandle.S -o build/imports/XexGetModuleHandle.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XexGetModuleSection.S -o build/imports/XexGetModuleSection.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XexGetProcedureAddress.S -o build/imports/XexGetProcedureAddress.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExLoadedCommandLine.S -o build/imports/ExLoadedCommandLine.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExLoadedImageName.S -o build/imports/ExLoadedImageName.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdCallGraphicsNotificationRoutines.S -o build/imports/VdCallGraphicsNotificationRoutines.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdEnableRingBufferRPtrWriteBack.S -o build/imports/VdEnableRingBufferRPtrWriteBack.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGetCurrentDisplayInformation.S -o build/imports/VdGetCurrentDisplayInformation.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGetSystemCommandBuffer.S -o build/imports/VdGetSystemCommandBuffer.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGlobalDevice.S -o build/imports/VdGlobalDevice.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGlobalXamDevice.S -o build/imports/VdGlobalXamDevice.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdInitializeEngines.S -o build/imports/VdInitializeEngines.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdInitializeRingBuffer.S -o build/imports/VdInitializeRingBuffer.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdQueryVideoMode.S -o build/imports/VdQueryVideoMode.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSetDisplayMode.S -o build/imports/VdSetDisplayMode.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSetGraphicsInterruptCallback.S -o build/imports/VdSetGraphicsInterruptCallback.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSetSystemCommandBufferGpuIdentifierAddress.S -o build/imports/VdSetSystemCommandBufferGpuIdentifierAddress.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdShutdownEngines.S -o build/imports/VdShutdownEngines.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioRegisterRenderDriverClient.S -o build/imports/XAudioRegisterRenderDriverClient.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioUnregisterRenderDriverClient.S -o build/imports/XAudioUnregisterRenderDriverClient.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioSubmitRenderDriverFrame.S -o build/imports/XAudioSubmitRenderDriverFrame.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSwap.S -o build/imports/VdSwap.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExThreadObjectType.S -o build/imports/ExThreadObjectType.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/InterlockedFlushSList.S -o build/imports/InterlockedFlushSList.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/InterlockedPopEntrySList.S -o build/imports/InterlockedPopEntrySList.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/InterlockedPushEntrySList.S -o build/imports/InterlockedPushEntrySList.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeQueryBasePriorityThread.S -o build/imports/KeQueryBasePriorityThread.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeSetBasePriorityThread.S -o build/imports/KeSetBasePriorityThread.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmQueryAddressProtect.S -o build/imports/MmQueryAddressProtect.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmSetAddressProtect.S -o build/imports/MmSetAddressProtect.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCancelTimer.S -o build/imports/NtCancelTimer.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtClearEvent.S -o build/imports/NtClearEvent.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateMutant.S -o build/imports/NtCreateMutant.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateTimer.S -o build/imports/NtCreateTimer.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtDuplicateObject.S -o build/imports/NtDuplicateObject.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtFreeVirtualMemory.S -o build/imports/NtFreeVirtualMemory.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtProtectVirtualMemory.S -o build/imports/NtProtectVirtualMemory.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtPulseEvent.S -o build/imports/NtPulseEvent.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryVirtualMemory.S -o build/imports/NtQueryVirtualMemory.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtReleaseMutant.S -o build/imports/NtReleaseMutant.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSetTimerEx.S -o build/imports/NtSetTimerEx.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSignalAndWaitForSingleObjectEx.S -o build/imports/NtSignalAndWaitForSingleObjectEx.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtWaitForMultipleObjectsEx.S -o build/imports/NtWaitForMultipleObjectsEx.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObCreateSymbolicLink.S -o build/imports/ObCreateSymbolicLink.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObDeleteSymbolicLink.S -o build/imports/ObDeleteSymbolicLink.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObDereferenceObject.S -o build/imports/ObDereferenceObject.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObReferenceObjectByHandle.S -o build/imports/ObReferenceObjectByHandle.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeSetEvent.S -o build/imports/KeSetEvent.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioGetSpeakerConfig.S -o build/imports/XAudioGetSpeakerConfig.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_WSAStartup.S -o build/imports/NetDll_WSAStartup.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_WSACleanup.S -o build/imports/NetDll_WSACleanup.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_socket.S -o build/imports/NetDll_socket.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_closesocket.S -o build/imports/NetDll_closesocket.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_shutdown.S -o build/imports/NetDll_shutdown.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_ioctlsocket.S -o build/imports/NetDll_ioctlsocket.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_setsockopt.S -o build/imports/NetDll_setsockopt.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_getsockopt.S -o build/imports/NetDll_getsockopt.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_getsockname.S -o build/imports/NetDll_getsockname.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_getpeername.S -o build/imports/NetDll_getpeername.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_bind.S -o build/imports/NetDll_bind.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_connect.S -o build/imports/NetDll_connect.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_listen.S -o build/imports/NetDll_listen.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_accept.S -o build/imports/NetDll_accept.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_select.S -o build/imports/NetDll_select.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_recv.S -o build/imports/NetDll_recv.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_recvfrom.S -o build/imports/NetDll_recvfrom.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_send.S -o build/imports/NetDll_send.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_sendto.S -o build/imports/NetDll_sendto.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_WSAGetLastError.S -o build/imports/NetDll_WSAGetLastError.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetStartup.S -o build/imports/NetDll_XNetStartup.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetCleanup.S -o build/imports/NetDll_XNetCleanup.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetDnsLookup.S -o build/imports/NetDll_XNetDnsLookup.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetDnsRelease.S -o build/imports/NetDll_XNetDnsRelease.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetGetTitleXnAddr.S -o build/imports/NetDll_XNetGetTitleXnAddr.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetGetEthernetLinkStatus.S -o build/imports/NetDll_XNetGetEthernetLinkStatus.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetGetOpt.S -o build/imports/NetDll_XNetGetOpt.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamInputGetState.S -o build/imports/XamInputGetState.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamInputSetState.S -o build/imports/XamInputSetState.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderLaunchTitle.S -o build/imports/XamLoaderLaunchTitle.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderSetLaunchData.S -o build/imports/XamLoaderSetLaunchData.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderGetLaunchDataSize.S -o build/imports/XamLoaderGetLaunchDataSize.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderGetLaunchData.S -o build/imports/XamLoaderGetLaunchData.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderTerminateTitle.S -o build/imports/XamLoaderTerminateTitle.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamGetOverlappedResult.S -o build/imports/XamGetOverlappedResult.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetXUID.S -o build/imports/XamUserGetXUID.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetName.S -o build/imports/XamUserGetName.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetSigninState.S -o build/imports/XamUserGetSigninState.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserReadProfileSettings.S -o build/imports/XamUserReadProfileSettings.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetSigninInfo.S -o build/imports/XamUserGetSigninInfo.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamEnumerate.S -o build/imports/XamEnumerate.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentCreateEx.S -o build/imports/XamContentCreateEx.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentClose.S -o build/imports/XamContentClose.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentDelete.S -o build/imports/XamContentDelete.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentCreateEnumerator.S -o build/imports/XamContentCreateEnumerator.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentCreateDeviceEnumerator.S -o build/imports/XamContentCreateDeviceEnumerator.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentGetDeviceData.S -o build/imports/XamContentGetDeviceData.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentGetDeviceName.S -o build/imports/XamContentGetDeviceName.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentGetDeviceState.S -o build/imports/XamContentGetDeviceState.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentFlush.S -o build/imports/XamContentFlush.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamNotifyCreateListener.S -o build/imports/XamNotifyCreateListener.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XNotifyGetNext.S -o build/imports/XNotifyGetNext.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamShowSigninUI.S -o build/imports/XamShowSigninUI.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamShowKeyboardUI.S -o build/imports/XamShowKeyboardUI.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamShowMessageBoxUI.S -o build/imports/XamShowMessageBoxUI.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamIsUIActive.S -o build/imports/XamIsUIActive.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XGetLanguage.S -o build/imports/XGetLanguage.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/GetTimeZoneInformation.S -o build/imports/GetTimeZoneInformation.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamGetLocaleEx.S -o build/imports/XamGetLocaleEx.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c tests/doloop_check.c -o build/check/doloop_check.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_memory.c -o build/host/xsc_memory.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_spirv.c -o build/host/xsc_spirv.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_resolve.c -o build/host/xsc_resolve.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_unroll.c -o build/host/xsc_unroll.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_encode.c -o build/host/xsc_encode.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_container.c -o build/host/xsc_container.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_program.c -o build/host/xsc_program.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_optimize.c -o build/host/xsc_optimize.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower.c -o build/host/xsc_lower.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_block.c -o build/host/xsc_lower_block.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_matrix.c -o build/host/xsc_lower_matrix.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_glsl.c -o build/host/xsc_lower_glsl.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_stage.c -o build/host/xsc_lower_stage.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_vertex.c -o build/host/xsc_lower_vertex.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_fragment.c -o build/host/xsc_lower_fragment.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_loop.c -o build/host/xsc_lower_loop.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_flow.c -o build/host/xsc_lower_flow.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_sample.c -o build/host/xsc_lower_sample.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_inline.c -o build/host/xsc_inline.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_switch.c -o build/host/xsc_switch.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_ssa.c -o build/host/xsc_ssa.o
+gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -DXSDK_XSC_SOURCE_HASH='"ec52f9aae349f920"' -ffp-contract=off -c src/xsc_compile.c -o build/host/xsc_compile.o
+rm -f build/libxsdk.a
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-ar rcs build/libxsdk.a build/sdk/start.o build/sdk/log.o build/sdk/sbrk.o build/sdk/thread.o build/sdk/file.o build/sdk/path.o build/sdk/dir.o build/sdk/pthread.o build/sdk/lock.o build/sdk/reent.o build/sdk/time.o build/sdk/sysconf.o build/sdk/entropy.o build/sdk/exit.o build/sdk/gpu.o build/sdk/gpu_setup.o build/sdk/gpu_resolve.o build/sdk/gpu_draw.o build/sdk/gpu_constants.o build/sdk/gpu_tiles.o build/sdk/display.o build/sdk/shader.o build/sdk/microcode.o build/sdk/texture.o build/sdk/texture_layout.o build/sdk/tiled.o build/sdk/present.o build/sdk/splash.o build/sdk/copy.o build/sdk/socket.o build/sdk/netdb.o build/sdk/net.o build/sdk/launch.o build/sdk/libgen.o build/sdk/xam.o build/sdk/save.o build/sdk/system_ui.o build/sdk/semaphore.o build/sdk/mman.o build/sdk/jit.o build/sdk/system.o build/sdk/terminate.o build/sdk/text.o build/sdk/audio.o build/sdk/xsc_memory.o build/sdk/xsc_spirv.o build/sdk/xsc_resolve.o build/sdk/xsc_unroll.o build/sdk/xsc_encode.o build/sdk/xsc_container.o build/sdk/xsc_program.o build/sdk/xsc_optimize.o build/sdk/xsc_lower.o build/sdk/xsc_lower_block.o build/sdk/xsc_lower_matrix.o build/sdk/xsc_lower_glsl.o build/sdk/xsc_lower_stage.o build/sdk/xsc_lower_vertex.o build/sdk/xsc_lower_fragment.o build/sdk/xsc_lower_loop.o build/sdk/xsc_lower_flow.o build/sdk/xsc_lower_sample.o build/sdk/xsc_inline.o build/sdk/xsc_switch.o build/sdk/xsc_ssa.o build/sdk/xsc_compile.o build/imports/DbgPrint.o build/imports/ExCreateThread.o build/imports/ExGetXConfigSetting.o build/imports/ExRegisterTitleTerminateNotification.o build/imports/ExTerminateThread.o build/imports/KeDelayExecutionThread.o build/imports/KeQueryPerformanceFrequency.o build/imports/KeQuerySystemTime.o build/imports/KeSetAffinityThread.o build/imports/MmAllocatePhysicalMemoryEx.o build/imports/MmFreePhysicalMemory.o build/imports/MmGetPhysicalAddress.o build/imports/MmQueryStatistics.o build/imports/NtAllocateVirtualMemory.o build/imports/NtClose.o build/imports/NtCreateEvent.o build/imports/NtCreateFile.o build/imports/NtCreateSemaphore.o build/imports/NtFlushBuffersFile.o build/imports/NtQueryDirectoryFile.o build/imports/NtQueryFullAttributesFile.o build/imports/NtQueryInformationFile.o build/imports/NtQueryVolumeInformationFile.o build/imports/NtReadFile.o build/imports/NtReleaseSemaphore.o build/imports/NtSetEvent.o build/imports/NtSetInformationFile.o build/imports/NtWaitForSingleObjectEx.o build/imports/NtWriteFile.o build/imports/NtYieldExecution.o build/imports/RtlEnterCriticalSection.o build/imports/RtlInitializeCriticalSection.o build/imports/RtlLeaveCriticalSection.o build/imports/RtlTryEnterCriticalSection.o build/imports/KeTlsAlloc.o build/imports/KeTlsFree.o build/imports/KeTlsGetValue.o build/imports/KeTlsSetValue.o build/imports/XeCryptRandom.o build/imports/XeCryptSha.o build/imports/XexGetModuleHandle.o build/imports/XexGetModuleSection.o build/imports/XexGetProcedureAddress.o build/imports/ExLoadedCommandLine.o build/imports/ExLoadedImageName.o build/imports/VdCallGraphicsNotificationRoutines.o build/imports/VdEnableRingBufferRPtrWriteBack.o build/imports/VdGetCurrentDisplayInformation.o build/imports/VdGetSystemCommandBuffer.o build/imports/VdGlobalDevice.o build/imports/VdGlobalXamDevice.o build/imports/VdInitializeEngines.o build/imports/VdInitializeRingBuffer.o build/imports/VdQueryVideoMode.o build/imports/VdSetDisplayMode.o build/imports/VdSetGraphicsInterruptCallback.o build/imports/VdSetSystemCommandBufferGpuIdentifierAddress.o build/imports/VdShutdownEngines.o build/imports/XAudioRegisterRenderDriverClient.o build/imports/XAudioUnregisterRenderDriverClient.o build/imports/XAudioSubmitRenderDriverFrame.o build/imports/VdSwap.o build/imports/ExThreadObjectType.o build/imports/InterlockedFlushSList.o build/imports/InterlockedPopEntrySList.o build/imports/InterlockedPushEntrySList.o build/imports/KeQueryBasePriorityThread.o build/imports/KeSetBasePriorityThread.o build/imports/MmQueryAddressProtect.o build/imports/MmSetAddressProtect.o build/imports/NtCancelTimer.o build/imports/NtClearEvent.o build/imports/NtCreateMutant.o build/imports/NtCreateTimer.o build/imports/NtDuplicateObject.o build/imports/NtFreeVirtualMemory.o build/imports/NtProtectVirtualMemory.o build/imports/NtPulseEvent.o build/imports/NtQueryVirtualMemory.o build/imports/NtReleaseMutant.o build/imports/NtSetTimerEx.o build/imports/NtSignalAndWaitForSingleObjectEx.o build/imports/NtWaitForMultipleObjectsEx.o build/imports/ObCreateSymbolicLink.o build/imports/ObDeleteSymbolicLink.o build/imports/ObDereferenceObject.o build/imports/ObReferenceObjectByHandle.o build/imports/KeSetEvent.o build/imports/XAudioGetSpeakerConfig.o build/imports/NetDll_WSAStartup.o build/imports/NetDll_WSACleanup.o build/imports/NetDll_socket.o build/imports/NetDll_closesocket.o build/imports/NetDll_shutdown.o build/imports/NetDll_ioctlsocket.o build/imports/NetDll_setsockopt.o build/imports/NetDll_getsockopt.o build/imports/NetDll_getsockname.o build/imports/NetDll_getpeername.o build/imports/NetDll_bind.o build/imports/NetDll_connect.o build/imports/NetDll_listen.o build/imports/NetDll_accept.o build/imports/NetDll_select.o build/imports/NetDll_recv.o build/imports/NetDll_recvfrom.o build/imports/NetDll_send.o build/imports/NetDll_sendto.o build/imports/NetDll_WSAGetLastError.o build/imports/NetDll_XNetStartup.o build/imports/NetDll_XNetCleanup.o build/imports/NetDll_XNetDnsLookup.o build/imports/NetDll_XNetDnsRelease.o build/imports/NetDll_XNetGetTitleXnAddr.o build/imports/NetDll_XNetGetEthernetLinkStatus.o build/imports/NetDll_XNetGetOpt.o build/imports/XamInputGetState.o build/imports/XamInputSetState.o build/imports/XamLoaderLaunchTitle.o build/imports/XamLoaderSetLaunchData.o build/imports/XamLoaderGetLaunchDataSize.o build/imports/XamLoaderGetLaunchData.o build/imports/XamLoaderTerminateTitle.o build/imports/XamGetOverlappedResult.o build/imports/XamUserGetXUID.o build/imports/XamUserGetName.o build/imports/XamUserGetSigninState.o build/imports/XamUserReadProfileSettings.o build/imports/XamUserGetSigninInfo.o build/imports/XamEnumerate.o build/imports/XamContentCreateEx.o build/imports/XamContentClose.o build/imports/XamContentDelete.o build/imports/XamContentCreateEnumerator.o build/imports/XamContentCreateDeviceEnumerator.o build/imports/XamContentGetDeviceData.o build/imports/XamContentGetDeviceName.o build/imports/XamContentGetDeviceState.o build/imports/XamContentFlush.o build/imports/XamNotifyCreateListener.o build/imports/XNotifyGetNext.o build/imports/XamShowSigninUI.o build/imports/XamShowKeyboardUI.o build/imports/XamShowMessageBoxUI.o build/imports/XamIsUIActive.o build/imports/XGetLanguage.o build/imports/GetTimeZoneInformation.o build/imports/XamGetLocaleEx.o
+gcc -shared -o build/host/libxsc.so build/host/xsc_memory.o build/host/xsc_spirv.o build/host/xsc_resolve.o build/host/xsc_unroll.o build/host/xsc_encode.o build/host/xsc_container.o build/host/xsc_program.o build/host/xsc_optimize.o build/host/xsc_lower.o build/host/xsc_lower_block.o build/host/xsc_lower_matrix.o build/host/xsc_lower_glsl.o build/host/xsc_lower_stage.o build/host/xsc_lower_vertex.o build/host/xsc_lower_fragment.o build/host/xsc_lower_loop.o build/host/xsc_lower_flow.o build/host/xsc_lower_sample.o build/host/xsc_inline.o build/host/xsc_switch.o build/host/xsc_ssa.o build/host/xsc_compile.o
+make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk'
+make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/vulkan4xenon'
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/host.c -o build/src/host.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/proc_addr.c -o build/src/proc_addr.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/instance.c -o build/src/instance.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/physical_device.c -o build/src/physical_device.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/display.c -o build/src/display.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/device.c -o build/src/device.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/memory.c -o build/src/memory.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/shader.c -o build/src/shader.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/pipeline.c -o build/src/pipeline.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/render_pass.c -o build/src/render_pass.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/command_buffer.c -o build/src/command_buffer.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/queue.c -o build/src/queue.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/transfer.c -o build/src/transfer.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/sync.c -o build/src/sync.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/swapchain.c -o build/src/swapchain.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/image.c -o build/src/image.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/sampler.c -o build/src/sampler.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/descriptor.c -o build/src/descriptor.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/pipeline_state.c -o build/src/pipeline_state.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/blit.c -o build/src/blit.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/blit_shaders.c -o build/src/blit_shaders.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/query.c -o build/src/query.o
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/xsdk/include -MMD -MP -c src/format.c -o build/src/format.o
+rm -f build/libvulkan4xenon.a
+/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-ar rcs build/libvulkan4xenon.a build/src/host.o build/src/proc_addr.o build/src/instance.o build/src/physical_device.o build/src/display.o build/src/device.o build/src/memory.o build/src/shader.o build/src/pipeline.o build/src/render_pass.o build/src/command_buffer.o build/src/queue.o build/src/transfer.o build/src/sync.o build/src/swapchain.o build/src/image.o build/src/sampler.o build/src/descriptor.o build/src/pipeline_state.o build/src/blit.o build/src/blit_shaders.o build/src/query.o build/src/format.o
+make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/native-display/vulkan4xenon'
+-- The C compiler identification is GNU 15.3.0
+-- The CXX compiler identification is GNU 15.3.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-g++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/ffmpeg-7.1.5.tar.xz: OK
+install prefix            /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/ffmpeg-xbox
+source path               src
+C compiler                /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc
+C library                 newlib
+host C compiler           gcc
+host C library            glibc
+ARCH                      ppc (generic)
+big-endian                yes
+runtime cpu detection     yes
+AltiVec enabled           yes
+VSX enabled               no
+POWER8 enabled            no
+PPC 4xx optimizations     no
+dcbzl available           yes
+vec_xl available          no
+debug symbols             no
+strip symbols             yes
+optimize for size         no
+optimizations             yes
+static                    yes
+shared                    no
+postprocessing support    no
+network support           no
+threading support         pthreads
+safe bitstream reader     yes
+texi2html enabled         no
+perl enabled              yes
+pod2man enabled           yes
+makeinfo enabled          no
+makeinfo supports HTML    no
+xmllint enabled           yes
+
+External libraries:
+
+External libraries providing hardware acceleration:
+
+Libraries:
+avcodec                 avutil
+avformat                swresample
+
+Programs:
+
+Enabled decoders:
+aac                     h264                    opus
+
+Enabled encoders:
+
+Enabled hwaccels:
+
+Enabled parsers:
+aac                     h264
+ac3                     opus
+
+Enabled demuxers:
+aac                     hls                     mpegts
+ac3                     matroska
+eac3                    mov
+
+Enabled muxers:
+
+Enabled protocols:
+file
+
+Enabled filters:
+
+Enabled bsfs:
+
+Enabled indevs:
+
+Enabled outdevs:
+
+License: LGPL version 2.1 or later
+
+WARNING: /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
+GEN	libavformat/libavformat.version
+GEN	libavcodec/libavcodec.version
+GEN	libavutil/libavutil.version
+GEN	libswresample/libswresample.version
+CC	libavformat/aacdec.o
+CC	libavformat/ac3dec.o
+INSTALL	src/doc/examples/avio_http_serve_files.c
+INSTALL	src/doc/examples/avio_list_dir.c
+INSTALL	src/doc/examples/avio_read_callback.c
+INSTALL	src/doc/examples/decode_audio.c
+INSTALL	src/doc/examples/decode_filter_audio.c
+INSTALL	src/doc/examples/decode_filter_video.c
+INSTALL	src/doc/examples/decode_video.c
+INSTALL	src/doc/examples/demux_decode.c
+INSTALL	src/doc/examples/encode_audio.c
+INSTALL	src/doc/examples/encode_video.c
+INSTALL	src/doc/examples/extract_mvs.c
+INSTALL	src/doc/examples/filter_audio.c
+INSTALL	src/doc/examples/hw_decode.c
+INSTALL	src/doc/examples/mux.c
+INSTALL	src/doc/examples/qsv_decode.c
+INSTALL	src/doc/examples/qsv_transcode.c
+INSTALL	src/doc/examples/remux.c
+INSTALL	src/doc/examples/resample_audio.c
+INSTALL	src/doc/examples/scale_video.c
+INSTALL	src/doc/examples/show_metadata.c
+INSTALL	src/doc/examples/transcode.c
+INSTALL	src/doc/examples/transcode_aac.c
+INSTALL	src/doc/examples/vaapi_encode.c
+INSTALL	src/doc/examples/vaapi_transcode.c
+INSTALL	src/doc/examples/README
+INSTALL	src/doc/examples/Makefile
+INSTALL	src/doc/examples/avio_http_serve_files.c
+INSTALL	src/doc/examples/avio_list_dir.c
+INSTALL	src/doc/examples/avio_read_callback.c
+INSTALL	src/doc/examples/decode_audio.c
+INSTALL	src/doc/examples/decode_filter_audio.c
+INSTALL	src/doc/examples/decode_filter_video.c
+INSTALL	src/doc/examples/decode_video.c
+INSTALL	src/doc/examples/demux_decode.c
+INSTALL	src/doc/examples/encode_audio.c
+INSTALL	src/doc/examples/encode_video.c
+INSTALL	src/doc/examples/extract_mvs.c
+INSTALL	src/doc/examples/filter_audio.c
+INSTALL	src/doc/examples/hw_decode.c
+INSTALL	src/doc/examples/mux.c
+INSTALL	src/doc/examples/qsv_decode.c
+INSTALL	src/doc/examples/qsv_transcode.c
+INSTALL	src/doc/examples/remux.c
+INSTALL	src/doc/examples/resample_audio.c
+INSTALL	src/doc/examples/scale_video.c
+INSTALL	src/doc/examples/show_metadata.c
+INSTALL	src/doc/examples/transcode.c
+INSTALL	src/doc/examples/transcode_aac.c
+INSTALL	src/doc/examples/vaapi_encode.c
+INSTALL	src/doc/examples/vaapi_transcode.c
+INSTALL	src/doc/examples/README
+INSTALL	src/doc/examples/Makefile
+CC	libavformat/allformats.o
+CC	libavformat/apetag.o
+CC	libavformat/avformat.o
+CC	libavformat/avio.o
+CC	libavformat/aviobuf.o
+CC	libavformat/demux.o
+CC	libavformat/demux_utils.o
+src/libavformat/demux.c: In function 'read_frame_internal':
+src/libavformat/demux.c:1389:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+ 1389 |         int new_extradata = !!av_packet_side_data_get(pkt->side_data, pkt->side_data_elems,
+      |         ^~~
+CC	libavformat/dovi_isom.o
+CC	libavformat/dump.o
+CC	libavformat/dv.o
+CC	libavformat/file.o
+CC	libavformat/flac_picture.o
+CC	libavformat/format.o
+CC	libavformat/hls.o
+CC	libavformat/hls_sample_encryption.o
+CC	libavformat/iamf.o
+CC	libavformat/iamf_parse.o
+CC	libavformat/iamf_reader.o
+CC	libavformat/id3v1.o
+CC	libavformat/id3v2.o
+CC	libavformat/img2.o
+CC	libavformat/isom.o
+CC	libavformat/isom_tags.o
+CC	libavformat/matroska.o
+CC	libavformat/matroskadec.o
+CC	libavformat/metadata.o
+CC	libavformat/mov.o
+src/libavformat/mov.c: In function 'mov_read_trak':
+src/libavformat/mov.c:5174:11: warning: statement will never be executed [-Wswitch-unreachable]
+ 5174 |         st->codecpar->width = 0; /* let decoder init width/height */
+      |         ~~^~~~~~~~~~
+CC	libavformat/mov_chan.o
+CC	libavformat/mov_esds.o
+CC	libavformat/mpegts.o
+CC	libavformat/mux.o
+CC	libavformat/mux_utils.o
+CC	libavformat/oggparsevorbis.o
+CC	libavformat/options.o
+CC	libavformat/os_support.o
+CC	libavformat/protocols.o
+CC	libavformat/qtpalette.o
+CC	libavformat/rawdec.o
+src/libavformat/rawdec.c:106:12: warning: 'raw_data_read_header' defined but not used [-Wunused-function]
+  106 | static int raw_data_read_header(AVFormatContext *s)
+      |            ^~~~~~~~~~~~~~~~~~~~
+CC	libavformat/replaygain.o
+CC	libavformat/riff.o
+CC	libavformat/riffdec.o
+CC	libavformat/rmsipr.o
+CC	libavformat/sdp.o
+CC	libavformat/seek.o
+CC	libavformat/url.o
+CC	libavformat/utils.o
+CC	libavformat/version.o
+CC	libavformat/vorbiscomment.o
+src/libavformat/vorbiscomment.c: In function 'ff_vorbiscomment_write':
+src/libavformat/vorbiscomment.c:103:63: warning: '%03d' directive output may be truncated writing between 3 and 10 bytes into a region of size 4 [-Wformat-truncation=]
+  103 |             snprintf(chapter_number, sizeof(chapter_number), "%03d", i);
+      |                                                               ^~~~
+src/libavformat/vorbiscomment.c:103:62: note: directive argument in the range [0, 1073741822]
+  103 |             snprintf(chapter_number, sizeof(chapter_number), "%03d", i);
+      |                                                              ^~~~~~
+src/libavformat/vorbiscomment.c:103:13: note: 'snprintf' output between 4 and 11 bytes into a destination of size 4
+  103 |             snprintf(chapter_number, sizeof(chapter_number), "%03d", i);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavformat/vorbiscomment.c:104:69: warning: '%02d' directive output may be truncated writing between 2 and 3 bytes into a region of size between 1 and 7 [-Wformat-truncation=]
+  104 |             snprintf(chapter_time, sizeof(chapter_time), "%02d:%02d:%02d.%03d", h, m, s, ms);
+      |                                                                     ^~~~
+src/libavformat/vorbiscomment.c:104:58: note: directive argument in the range [-59, 59]
+  104 |             snprintf(chapter_time, sizeof(chapter_time), "%02d:%02d:%02d.%03d", h, m, s, ms);
+      |                                                          ^~~~~~~~~~~~~~~~~~~~~
+src/libavformat/vorbiscomment.c:104:58: note: directive argument in the range [-999, 999]
+src/libavformat/vorbiscomment.c:104:13: note: 'snprintf' output between 13 and 21 bytes into a destination of size 13
+  104 |             snprintf(chapter_time, sizeof(chapter_time), "%02d:%02d:%02d.%03d", h, m, s, ms);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CC	libavcodec/mpegaudiotabs.o
+CC	libavcodec/to_upper4.o
+CC	libswresample/audioconvert.o
+CC	libswresample/dither.o
+CC	libswresample/options.o
+CC	libswresample/rematrix.o
+CC	libswresample/resample.o
+CC	libswresample/resample_dsp.o
+CC	libswresample/swresample.o
+CC	libswresample/swresample_frame.o
+CC	libswresample/version.o
+INSTALL	src/libavformat/avformat.h
+INSTALL	src/libavformat/avio.h
+INSTALL	src/libavformat/version.h
+INSTALL	src/libavformat/version_major.h
+GEN	libavformat/libavformat.pc
+INSTALL	src/libavcodec/ac3_parser.h
+INSTALL	src/libavcodec/adts_parser.h
+INSTALL	src/libavcodec/avcodec.h
+INSTALL	src/libavcodec/avdct.h
+INSTALL	src/libavcodec/avfft.h
+INSTALL	src/libavcodec/bsf.h
+INSTALL	src/libavcodec/codec.h
+INSTALL	src/libavcodec/codec_desc.h
+INSTALL	src/libavcodec/codec_id.h
+INSTALL	src/libavcodec/codec_par.h
+INSTALL	src/libavcodec/d3d11va.h
+INSTALL	src/libavcodec/defs.h
+INSTALL	src/libavcodec/dirac.h
+INSTALL	src/libavcodec/dv_profile.h
+INSTALL	src/libavcodec/dxva2.h
+INSTALL	src/libavcodec/jni.h
+INSTALL	src/libavcodec/mediacodec.h
+INSTALL	src/libavcodec/packet.h
+INSTALL	src/libavcodec/qsv.h
+INSTALL	src/libavcodec/vdpau.h
+INSTALL	src/libavcodec/version.h
+INSTALL	src/libavcodec/version_major.h
+INSTALL	src/libavcodec/videotoolbox.h
+INSTALL	src/libavcodec/vorbis_parser.h
+GEN	libavcodec/libavcodec.pc
+INSTALL	src/libswresample/swresample.h
+INSTALL	src/libswresample/version.h
+INSTALL	src/libswresample/version_major.h
+GEN	libswresample/libswresample.pc
+INSTALL	src/libavutil/adler32.h
+INSTALL	src/libavutil/aes.h
+INSTALL	src/libavutil/aes_ctr.h
+INSTALL	src/libavutil/ambient_viewing_environment.h
+INSTALL	src/libavutil/attributes.h
+INSTALL	src/libavutil/audio_fifo.h
+INSTALL	src/libavutil/avassert.h
+INSTALL	src/libavutil/avstring.h
+INSTALL	src/libavutil/avutil.h
+INSTALL	src/libavutil/base64.h
+INSTALL	src/libavutil/blowfish.h
+INSTALL	src/libavutil/bprint.h
+INSTALL	src/libavutil/bswap.h
+INSTALL	src/libavutil/buffer.h
+INSTALL	src/libavutil/cast5.h
+INSTALL	src/libavutil/camellia.h
+INSTALL	src/libavutil/channel_layout.h
+INSTALL	src/libavutil/common.h
+INSTALL	src/libavutil/cpu.h
+INSTALL	src/libavutil/crc.h
+INSTALL	src/libavutil/csp.h
+INSTALL	src/libavutil/des.h
+INSTALL	src/libavutil/detection_bbox.h
+INSTALL	src/libavutil/dict.h
+INSTALL	src/libavutil/display.h
+INSTALL	src/libavutil/dovi_meta.h
+INSTALL	src/libavutil/downmix_info.h
+INSTALL	src/libavutil/encryption_info.h
+INSTALL	src/libavutil/error.h
+INSTALL	src/libavutil/eval.h
+INSTALL	src/libavutil/executor.h
+INSTALL	src/libavutil/fifo.h
+INSTALL	src/libavutil/file.h
+INSTALL	src/libavutil/frame.h
+INSTALL	src/libavutil/hash.h
+INSTALL	src/libavutil/hdr_dynamic_metadata.h
+INSTALL	src/libavutil/hdr_dynamic_vivid_metadata.h
+INSTALL	src/libavutil/hmac.h
+INSTALL	src/libavutil/hwcontext.h
+INSTALL	src/libavutil/hwcontext_cuda.h
+INSTALL	src/libavutil/hwcontext_d3d11va.h
+INSTALL	src/libavutil/hwcontext_d3d12va.h
+INSTALL	src/libavutil/hwcontext_drm.h
+INSTALL	src/libavutil/hwcontext_dxva2.h
+INSTALL	src/libavutil/hwcontext_qsv.h
+INSTALL	src/libavutil/hwcontext_mediacodec.h
+INSTALL	src/libavutil/hwcontext_opencl.h
+INSTALL	src/libavutil/hwcontext_vaapi.h
+INSTALL	src/libavutil/hwcontext_videotoolbox.h
+INSTALL	src/libavutil/hwcontext_vdpau.h
+INSTALL	src/libavutil/hwcontext_vulkan.h
+INSTALL	src/libavutil/iamf.h
+INSTALL	src/libavutil/imgutils.h
+INSTALL	src/libavutil/intfloat.h
+INSTALL	src/libavutil/intreadwrite.h
+INSTALL	src/libavutil/lfg.h
+INSTALL	src/libavutil/log.h
+INSTALL	src/libavutil/lzo.h
+INSTALL	src/libavutil/macros.h
+INSTALL	src/libavutil/mathematics.h
+INSTALL	src/libavutil/mastering_display_metadata.h
+INSTALL	src/libavutil/md5.h
+INSTALL	src/libavutil/mem.h
+INSTALL	src/libavutil/motion_vector.h
+INSTALL	src/libavutil/murmur3.h
+INSTALL	src/libavutil/opt.h
+INSTALL	src/libavutil/parseutils.h
+INSTALL	src/libavutil/pixdesc.h
+INSTALL	src/libavutil/pixelutils.h
+INSTALL	src/libavutil/pixfmt.h
+INSTALL	src/libavutil/random_seed.h
+INSTALL	src/libavutil/rc4.h
+INSTALL	src/libavutil/rational.h
+INSTALL	src/libavutil/replaygain.h
+INSTALL	src/libavutil/ripemd.h
+INSTALL	src/libavutil/samplefmt.h
+INSTALL	src/libavutil/sha.h
+INSTALL	src/libavutil/sha512.h
+INSTALL	src/libavutil/spherical.h
+INSTALL	src/libavutil/stereo3d.h
+INSTALL	src/libavutil/threadmessage.h
+INSTALL	src/libavutil/time.h
+INSTALL	src/libavutil/timecode.h
+INSTALL	src/libavutil/timestamp.h
+INSTALL	src/libavutil/tree.h
+INSTALL	src/libavutil/twofish.h
+INSTALL	src/libavutil/uuid.h
+INSTALL	src/libavutil/version.h
+INSTALL	src/libavutil/video_enc_params.h
+INSTALL	src/libavutil/xtea.h
+INSTALL	src/libavutil/tea.h
+INSTALL	src/libavutil/tx.h
+INSTALL	src/libavutil/film_grain_params.h
+INSTALL	src/libavutil/video_hint.h
+INSTALL	libavutil/avconfig.h
+INSTALL	libavutil/ffversion.h
+GEN	libavutil/libavutil.pc
+AR	libavformat/libavformat.a
+CC	libavcodec/aac/aacdec.o
+CC	libavcodec/aac/aacdec_ac.o
+src/libavcodec/aac/aacdec.c: In function 'decode_close':
+src/libavcodec/aac/aacdec.c:1138:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+ 1138 |         AACUSACConfig *usac = &oc->usac;
+      |         ^~~~~~~~~~~~~
+CC	libavcodec/aac/aacdec_float.o
+CC	libavcodec/aac/aacdec_lpd.o
+CC	libavcodec/aac/aacdec_tab.o
+CC	libavcodec/aac/aacdec_usac.o
+src/libavcodec/aac/aacdec_usac.c: In function 'decode_usac_element_pair':
+src/libavcodec/aac/aacdec_usac.c:218:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  218 |         int numBands = ((int[]){0,28,20,14,10,7,5,4})[e->mps.freq_res]; // ISO/IEC 23003-1:2007, 5.2, Table 39
+      |         ^~~
+src/libavcodec/aac/aacdec_usac.c:226:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  226 |         int otts_bands_phase = ((int[]){0,10,10,7,5,3,2,2})[e->mps.freq_res]; // Table 109 — Default value of bsOttBandsPhase
+      |         ^~~
+CC	libavcodec/aac_ac3_parser.o
+src/libavcodec/aac_ac3_parser.c: In function 'ff_aac_ac3_parse':
+src/libavcodec/aac_ac3_parser.c:151:17: warning: unused variable 'profile' [-Wunused-variable]
+  151 |             int profile;
+      |                 ^~~~~~~
+CC	libavcodec/aac_parser.o
+CC	libavcodec/aacps_common.o
+CC	libavcodec/aacps_float.o
+CC	libavcodec/aacpsdsp_float.o
+CC	libavcodec/aacsbr.o
+CC	libavcodec/aactab.o
+CC	libavcodec/ac3_channel_layout_tab.o
+CC	libavcodec/ac3_parser.o
+CC	libavcodec/ac3tab.o
+CC	libavcodec/adts_header.o
+CC	libavcodec/adts_parser.o
+CC	libavcodec/allcodecs.o
+CC	libavcodec/aom_film_grain.o
+CC	libavcodec/atsc_a53.o
+CC	libavcodec/avcodec.o
+CC	libavcodec/avdct.o
+CC	libavcodec/avfft.o
+CC	libavcodec/bitstream.o
+CC	libavcodec/bitstream_filters.o
+CC	libavcodec/bsf.o
+CC	libavcodec/cabac.o
+CC	libavcodec/cbrt_data.o
+CC	libavcodec/codec_desc.o
+CC	libavcodec/codec_par.o
+CC	libavcodec/d3d11va.o
+CC	libavcodec/decode.o
+CC	libavcodec/dirac.o
+CC	libavcodec/dv_profile.o
+CC	libavcodec/encode.o
+CC	libavcodec/error_resilience.o
+CC	libavcodec/faandct.o
+CC	libavcodec/faanidct.o
+CC	libavcodec/fdctdsp.o
+CC	libavcodec/get_buffer.o
+CC	libavcodec/golomb.o
+CC	libavcodec/h2645_parse.o
+CC	libavcodec/h2645_sei.o
+CC	libavcodec/h2645_vui.o
+CC	libavcodec/h2645data.o
+CC	libavcodec/h264_cabac.o
+CC	libavcodec/h264_cavlc.o
+CC	libavcodec/h264_direct.o
+CC	libavcodec/h264_loopfilter.o
+src/libavcodec/h264_cabac.c: In function 'ff_h264_decode_mb_cabac':
+src/libavcodec/h264_cabac.c:2157:99: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+In file included from src/libavcodec/h264dec.h:32,
+                 from src/libavcodec/h264_cabac.c:37:
+src/libavcodec/h264dec.h:302:33: note: at offset 103 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 102 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2156:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2156 |                     sl->ref_cache[list][scan8[4 * i] + 1] =
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 95 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:99: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 117 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 116 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2156:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2156 |                     sl->ref_cache[list][scan8[4 * i] + 1] =
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 109 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:99: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 119 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 118 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2156:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2156 |                     sl->ref_cache[list][scan8[4 * i] + 1] =
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 111 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+CC	libavcodec/h264_mb.o
+CC	libavcodec/h264_parse.o
+CC	libavcodec/h264_parser.o
+src/libavcodec/h264_parser.c: In function 'scan_mmco_reset':
+src/libavcodec/h264_parser.c:229:13: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  229 |             MMCOOpcode opcode = get_ue_golomb_31(gb);
+      |             ^~~~~~~~~~
+CC	libavcodec/h264_picture.o
+CC	libavcodec/h264_ps.o
+CC	libavcodec/h264_refs.o
+CC	libavcodec/h264_sei.o
+CC	libavcodec/h264_slice.o
+CC	libavcodec/h264chroma.o
+CC	libavcodec/h264data.o
+CC	libavcodec/h264dec.o
+CC	libavcodec/h264dsp.o
+CC	libavcodec/h264idct.o
+CC	libavcodec/h264pred.o
+CC	libavcodec/h264qpel.o
+CC	libavcodec/h274.o
+CC	libavcodec/idctdsp.o
+CC	libavcodec/imgconvert.o
+CC	libavcodec/jfdctfst.o
+CC	libavcodec/jfdctint.o
+CC	libavcodec/jni.o
+CC	libavcodec/jrevdct.o
+src/libavcodec/jrevdct.c:215:28: warning: argument 1 of type 'int16_t[64]' {aka 'short int[64]'} with mismatched bound [-Warray-parameter=]
+  215 | void ff_j_rev_dct(DCTBLOCK data)
+      |                   ~~~~~~~~~^~~~
+In file included from src/libavcodec/jrevdct.c:70:
+src/libavcodec/dct.h:30:28: note: previously declared as 'int16_t *' {aka 'short int *'}
+   30 | void ff_j_rev_dct(int16_t *data);
+      |                   ~~~~~~~~~^~~~
+src/libavcodec/jrevdct.c:953:29: warning: argument 1 of type 'int16_t[64]' {aka 'short int[64]'} with mismatched bound [-Warray-parameter=]
+  953 | void ff_j_rev_dct4(DCTBLOCK data)
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/dct.h:31:29: note: previously declared as 'int16_t *' {aka 'short int *'}
+   31 | void ff_j_rev_dct4(int16_t *data);
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/jrevdct.c:1140:29: warning: argument 1 of type 'int16_t[64]' {aka 'short int[64]'} with mismatched bound [-Warray-parameter=]
+ 1140 | void ff_j_rev_dct2(DCTBLOCK data){
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/dct.h:32:29: note: previously declared as 'int16_t *' {aka 'short int *'}
+   32 | void ff_j_rev_dct2(int16_t *data);
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/jrevdct.c:1155:29: warning: argument 1 of type 'int16_t[64]' {aka 'short int[64]'} with mismatched bound [-Warray-parameter=]
+ 1155 | void ff_j_rev_dct1(DCTBLOCK data){
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/dct.h:33:29: note: previously declared as 'int16_t *' {aka 'short int *'}
+   33 | void ff_j_rev_dct1(int16_t *data);
+      |                    ~~~~~~~~~^~~~
+CC	libavcodec/kbdwin.o
+CC	libavcodec/mathtables.o
+CC	libavcodec/me_cmp.o
+CC	libavcodec/mediacodec.o
+CC	libavcodec/mpeg12framerate.o
+CC	libavcodec/mpeg4audio.o
+CC	libavcodec/mpeg4audio_sample_rates.o
+CC	libavcodec/options.o
+CC	libavcodec/opus/celt.o
+CC	libavcodec/opus/dec.o
+CC	libavcodec/opus/dec_celt.o
+CC	libavcodec/opus/dsp.o
+CC	libavcodec/opus/parse.o
+CC	libavcodec/opus/parser.o
+CC	libavcodec/opus/pvq.o
+CC	libavcodec/opus/rc.o
+CC	libavcodec/opus/silk.o
+CC	libavcodec/opus/tab.o
+CC	libavcodec/packet.o
+CC	libavcodec/parser.o
+CC	libavcodec/parsers.o
+CC	libavcodec/ppc/fdctdsp.o
+CC	libavcodec/ppc/h264-tube360.o
+In file included from src/libavcodec/ppc/h264-tube360.c:9:
+src/libavcodec/ppc/h264-vmx128.h: In function 'tube_diagonal':
+src/libavcodec/ppc/h264-vmx128.h:78:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   78 |     tube_s16 v = vec_packs(hi, lo);
+      |     ^~~~~~~~
+src/libavcodec/ppc/h264-vmx128.h: In function 'tube_chroma':
+src/libavcodec/ppc/h264-vmx128.h:143:13: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  143 |             tube_s16 sum = vec_sl(top, vec_splat_u16(3));
+      |             ^~~~~~~~
+src/libavcodec/ppc/h264-vmx128.h:151:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  151 |         tube_u8 v = vec_packsu(r,r);
+      |         ^~~~~~~
+src/libavcodec/ppc/h264-vmx128.h: In function 'tube_weight_result':
+src/libavcodec/ppc/h264-vmx128.h:182:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  182 |     tube_s16 v = vec_packs(hi,lo);
+      |     ^~~~~~~~
+src/libavcodec/ppc/h264-tube360.c: In function 'ff_tube360_chroma_init':
+src/libavcodec/ppc/h264-tube360.c:23:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   23 |     h264_chroma_mc_func put[] = {tube_put_c8,tube_put_c4,tube_put_c2};
+      |     ^~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264-tube360.c: In function 'ff_tube360_qpel_init':
+src/libavcodec/ppc/h264-tube360.c:33:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   33 |     const qpel_mc_func put[3][16] = {TUBE_QTABLE(put,8),TUBE_QTABLE(put,4),TUBE_QTABLE(put,2)};
+      |     ^~~~~
+src/libavcodec/ppc/h264-tube360.c: In function 'ff_tube360_weight_init':
+src/libavcodec/ppc/h264-tube360.c:44:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   44 |     h264_weight_func w[] = {tube_w16,tube_w8,tube_w4,tube_w2};
+      |     ^~~~~~~~~~~~~~~~
+CC	libavcodec/ppc/h264chroma_init.o
+CC	libavcodec/ppc/h264dsp.o
+src/libavcodec/ppc/h264dsp.c: In function 'h264_idct8_add_altivec':
+src/libavcodec/ppc/h264dsp.c:229:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  229 |     const vec_u16 onev = vec_splat_u16(1);
+      |     ^~~~~
+src/libavcodec/ppc/h264dsp.c:256:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  256 |     ALTIVEC_STORE_SUM_CLIP(&dst[0*stride], idct0, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:257:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  257 |     ALTIVEC_STORE_SUM_CLIP(&dst[1*stride], idct1, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:258:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  258 |     ALTIVEC_STORE_SUM_CLIP(&dst[2*stride], idct2, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:259:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  259 |     ALTIVEC_STORE_SUM_CLIP(&dst[3*stride], idct3, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:260:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  260 |     ALTIVEC_STORE_SUM_CLIP(&dst[4*stride], idct4, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:261:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  261 |     ALTIVEC_STORE_SUM_CLIP(&dst[5*stride], idct5, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:262:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  262 |     ALTIVEC_STORE_SUM_CLIP(&dst[6*stride], idct6, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:263:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  263 |     ALTIVEC_STORE_SUM_CLIP(&dst[7*stride], idct7, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c: At top level:
+src/libavcodec/ppc/h264dsp.c:780:13: warning: 'biweight_h264_pixels8_altivec' defined but not used [-Wunused-function]
+  780 | static void biweight_h264_pixels ## W ## _altivec(uint8_t *dst, uint8_t *src, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:787:1: note: in expansion of macro 'H264_WEIGHT'
+  787 | H264_WEIGHT( 8)
+      | ^~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:775:13: warning: 'weight_h264_pixels8_altivec' defined but not used [-Wunused-function]
+  775 | static void weight_h264_pixels ## W ## _altivec(uint8_t *block, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:787:1: note: in expansion of macro 'H264_WEIGHT'
+  787 | H264_WEIGHT( 8)
+      | ^~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:780:13: warning: 'biweight_h264_pixels16_altivec' defined but not used [-Wunused-function]
+  780 | static void biweight_h264_pixels ## W ## _altivec(uint8_t *dst, uint8_t *src, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:786:1: note: in expansion of macro 'H264_WEIGHT'
+  786 | H264_WEIGHT(16)
+      | ^~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:775:13: warning: 'weight_h264_pixels16_altivec' defined but not used [-Wunused-function]
+  775 | static void weight_h264_pixels ## W ## _altivec(uint8_t *block, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:786:1: note: in expansion of macro 'H264_WEIGHT'
+  786 | H264_WEIGHT(16)
+      | ^~~~~~~~~~~
+CC	libavcodec/ppc/h264qpel.o
+src/libavcodec/ppc/h264qpel.c: In function 'tube360_mul_e':
+src/libavcodec/ppc/h264qpel.c:43:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   43 |     vec_s32 five = vec_add(vec_sl(words, vec_splat_u32(2)), words);
+      |     ^~~~~~~
+src/libavcodec/ppc/h264qpel.c: In function 'tube360_mul_o':
+src/libavcodec/ppc/h264qpel.c:51:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   51 |     vec_s32 five = vec_add(vec_sl(words, vec_splat_u32(2)), words);
+      |     ^~~~~~~
+In file included from src/libavcodec/ppc/h264qpel.c:65:
+src/libavcodec/ppc/h264qpel_template.c: In function 'put_h264_qpel16_h_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:114:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  114 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:112:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  112 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'put_h264_qpel16_v_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:206:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:215:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  215 |     const vec_u8 srcM1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:217:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  217 |     const vec_u8 srcP0 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:219:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  219 |     const vec_u8 srcP1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:221:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  221 |     const vec_u8 srcP2 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:224:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  224 |     vec_s16 srcM2ssA = (vec_s16) VEC_MERGEH(zero_u8v, srcM2);
+      |     ^~~~~~~
+src/libavcodec/ppc/h264qpel_template.c:208:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  208 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:206:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'put_h264_qpel16_hv_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:308:19: warning: unused variable 'v1ss' [-Wunused-variable]
+  308 |     const vec_s16 v1ss = vec_splat_s16(1);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:307:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  307 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:305:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  305 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+In file included from src/libavcodec/ppc/h264qpel.c:81:
+src/libavcodec/ppc/h264qpel_template.c: In function 'avg_h264_qpel16_h_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:114:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  114 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:112:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  112 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'avg_h264_qpel16_v_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:206:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:215:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  215 |     const vec_u8 srcM1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:217:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  217 |     const vec_u8 srcP0 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:219:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  219 |     const vec_u8 srcP1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:221:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  221 |     const vec_u8 srcP2 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:224:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  224 |     vec_s16 srcM2ssA = (vec_s16) VEC_MERGEH(zero_u8v, srcM2);
+      |     ^~~~~~~
+src/libavcodec/ppc/h264qpel_template.c:208:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  208 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:206:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'avg_h264_qpel16_hv_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:308:19: warning: unused variable 'v1ss' [-Wunused-variable]
+  308 |     const vec_s16 v1ss = vec_splat_s16(1);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:307:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  307 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:305:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  305 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+CC	libavcodec/ppc/hpeldsp_altivec.o
+CC	libavcodec/ppc/idctdsp.o
+CC	libavcodec/ppc/me_cmp.o
+CC	libavcodec/ppc/videodsp.o
+CC	libavcodec/profiles.o
+CC	libavcodec/pthread.o
+CC	libavcodec/pthread_frame.o
+src/libavcodec/pthread_frame.c: In function 'frame_worker_thread':
+src/libavcodec/pthread_frame.c:293:13: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  293 |             int64_t tube360_begin = av_gettime_relative();
+      |             ^~~~~~~
+src/libavcodec/pthread_frame.c:188:45: warning: '%d' directive output may be truncated writing between 1 and 9 bytes into a region of size between 3 and 10 [-Wformat-truncation=]
+  188 |     snprintf(name, sizeof(name), "av:%.7s:df%d", avctx->codec->name, idx);
+      |                                             ^~
+In function 'thread_set_name',
+    inlined from 'frame_worker_thread' at src/libavcodec/pthread_frame.c:252:5:
+src/libavcodec/pthread_frame.c:188:34: note: directive argument in the range [-25565281, 25565281]
+  188 |     snprintf(name, sizeof(name), "av:%.7s:df%d", avctx->codec->name, idx);
+      |                                  ^~~~~~~~~~~~~~
+src/libavcodec/pthread_frame.c:188:5: note: 'snprintf' output between 8 and 23 bytes into a destination of size 16
+  188 |     snprintf(name, sizeof(name), "av:%.7s:df%d", avctx->codec->name, idx);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CC	libavcodec/pthread_slice.o
+CC	libavcodec/qsv_api.o
+CC	libavcodec/raw.o
+CC	libavcodec/refstruct.o
+CC	libavcodec/sbrdsp.o
+CC	libavcodec/simple_idct.o
+CC	libavcodec/sinewin.o
+CC	libavcodec/startcode.o
+CC	libavcodec/threadprogress.o
+CC	libavcodec/utils.o
+CC	libavcodec/version.o
+CC	libavcodec/videodsp.o
+CC	libavcodec/vlc.o
+CC	libavcodec/vorbis_data.o
+CC	libavcodec/vorbis_parser.o
+CC	libavcodec/xiph.o
+AR	libswresample/libswresample.a
+CC	libavutil/adler32.o
+CC	libavutil/aes.o
+In function 'add_level',
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'vlc_multi_gen' at src/libavcodec/vlc.c:508:5,
+    inlined from 'ff_vlc_init_multi_from_lengths' at src/libavcodec/vlc.c:564:11:
+src/libavcodec/vlc.c:443:36: warning: array subscript 3 is above array bounds of 'uint16_t[3]' {aka 'short unsigned int[3]'} [-Warray-bounds=]
+  443 |             if (is16bit) info.val16[curlevel] = sym;
+      |                          ~~~~~~~~~~^~~~~~~~~~
+In file included from src/libavcodec/vlc.c:39:
+src/libavcodec/vlc.h: In function 'ff_vlc_init_multi_from_lengths':
+src/libavcodec/vlc.h:45:18: note: while referencing 'val16'
+   45 |         uint16_t val16[VLC_MULTI_MAX_SYMBOLS / 2];
+      |                  ^~~~~
+In function 'add_level',
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'vlc_multi_gen' at src/libavcodec/vlc.c:508:5,
+    inlined from 'ff_vlc_init_multi_from_lengths' at src/libavcodec/vlc.c:564:11:
+src/libavcodec/vlc.c:443:36: warning: array subscript 4 is above array bounds of 'uint16_t[3]' {aka 'short unsigned int[3]'} [-Warray-bounds=]
+  443 |             if (is16bit) info.val16[curlevel] = sym;
+      |                          ~~~~~~~~~~^~~~~~~~~~
+src/libavcodec/vlc.h: In function 'ff_vlc_init_multi_from_lengths':
+src/libavcodec/vlc.h:45:18: note: while referencing 'val16'
+   45 |         uint16_t val16[VLC_MULTI_MAX_SYMBOLS / 2];
+      |                  ^~~~~
+In function 'add_level',
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'add_level' at src/libavcodec/vlc.c:457:17,
+    inlined from 'vlc_multi_gen' at src/libavcodec/vlc.c:508:5,
+    inlined from 'ff_vlc_init_multi_from_lengths' at src/libavcodec/vlc.c:564:11:
+src/libavcodec/vlc.c:443:36: warning: array subscript 5 is above array bounds of 'uint16_t[3]' {aka 'short unsigned int[3]'} [-Warray-bounds=]
+  443 |             if (is16bit) info.val16[curlevel] = sym;
+      |                          ~~~~~~~~~~^~~~~~~~~~
+src/libavcodec/vlc.h: In function 'ff_vlc_init_multi_from_lengths':
+src/libavcodec/vlc.h:45:18: note: while referencing 'val16'
+   45 |         uint16_t val16[VLC_MULTI_MAX_SYMBOLS / 2];
+      |                  ^~~~~
+CC	libavutil/aes_ctr.o
+CC	libavutil/ambient_viewing_environment.o
+CC	libavutil/audio_fifo.o
+CC	libavutil/avsscanf.o
+CC	libavutil/avstring.o
+CC	libavutil/base64.o
+CC	libavutil/blowfish.o
+CC	libavutil/bprint.o
+CC	libavutil/buffer.o
+CC	libavutil/camellia.o
+CC	libavutil/cast5.o
+CC	libavutil/channel_layout.o
+CC	libavutil/cpu.o
+CC	libavutil/crc.o
+CC	libavutil/csp.o
+CC	libavutil/des.o
+CC	libavutil/detection_bbox.o
+CC	libavutil/dict.o
+CC	libavutil/display.o
+CC	libavutil/dovi_meta.o
+CC	libavutil/downmix_info.o
+CC	libavutil/encryption_info.o
+CC	libavutil/error.o
+CC	libavutil/eval.o
+src/libavutil/eval.c: In function 'make_eval_expr':
+src/libavutil/eval.c:546:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  546 |     AVExpr *e = av_mallocz(sizeof(AVExpr));
+      |     ^~~~~~
+CC	libavutil/executor.o
+CC	libavutil/fifo.o
+CC	libavutil/file.o
+CC	libavutil/file_open.o
+CC	libavutil/film_grain_params.o
+CC	libavutil/fixed_dsp.o
+CC	libavutil/float_dsp.o
+CC	libavutil/frame.o
+CC	libavutil/hash.o
+CC	libavutil/hdr_dynamic_metadata.o
+CC	libavutil/hdr_dynamic_vivid_metadata.o
+CC	libavutil/hmac.o
+CC	libavutil/hwcontext.o
+CC	libavutil/hwcontext_stub.o
+CC	libavutil/iamf.o
+CC	libavutil/imgutils.o
+CC	libavutil/integer.o
+CC	libavutil/intmath.o
+CC	libavutil/lfg.o
+CC	libavutil/lls.o
+CC	libavutil/log.o
+CC	libavutil/log2_tab.o
+CC	libavutil/lzo.o
+CC	libavutil/mastering_display_metadata.o
+CC	libavutil/mathematics.o
+CC	libavutil/md5.o
+CC	libavutil/mem.o
+CC	libavutil/murmur3.o
+CC	libavutil/opt.o
+CC	libavutil/parseutils.o
+CC	libavutil/pixdesc.o
+CC	libavutil/pixelutils.o
+CC	libavutil/ppc/cpu.o
+CC	libavutil/ppc/float_dsp_altivec.o
+CC	libavutil/ppc/float_dsp_init.o
+CC	libavutil/random_seed.o
+CC	libavutil/rational.o
+CC	libavutil/rc4.o
+CC	libavutil/reverse.o
+CC	libavutil/ripemd.o
+CC	libavutil/samplefmt.o
+CC	libavutil/sha.o
+CC	libavutil/sha512.o
+CC	libavutil/slicethread.o
+CC	libavutil/spherical.o
+CC	libavutil/stereo3d.o
+CC	libavutil/tea.o
+CC	libavutil/threadmessage.o
+CC	libavutil/time.o
+CC	libavutil/timecode.o
+CC	libavutil/timestamp.o
+CC	libavutil/tree.o
+CC	libavutil/twofish.o
+CC	libavutil/tx.o
+src/libavutil/tx.c: In function 'reset_ctx':
+src/libavutil/tx.c:287:5: warning: 'memset' used with length equal to number of elements without multiplication by element size [-Wmemset-elt-size]
+  287 |     memset(s->fn, 0, sizeof(*s->fn));
+      |     ^~~~~~
+CC	libavutil/tx_double.o
+CC	libavutil/tx_float.o
+CC	libavutil/tx_int32.o
+CC	libavutil/utils.o
+CC	libavutil/uuid.o
+CC	libavutil/version.o
+CC	libavutil/video_enc_params.o
+CC	libavutil/video_hint.o
+CC	libavutil/xga_font_data.o
+CC	libavutil/xtea.o
+INSTALL	libavformat/libavformat.pc
+INSTALL	libavcodec/libavcodec.pc
+INSTALL	libswresample/libswresample.pc
+INSTALL	libavutil/libavutil.pc
+INSTALL	libavformat/libavformat.a
+AR	libavcodec/libavcodec.a
+INSTALL	libswresample/libswresample.a
+INSTALL	libavcodec/libavcodec.a
+AR	libavutil/libavutil.a
+INSTALL	libavutil/libavutil.a
+VMX h264qpel: 13406 instruções, 4600 vetoriais, 0 multiplicações incompatíveis
+VMX h264dsp: 1708 instruções, 488 vetoriais, 0 multiplicações incompatíveis
+VMX idctdsp: 1 instruções, 0 vetoriais, 0 multiplicações incompatíveis
+VMX h264-tube360: 15764 instruções, 5539 vetoriais, 0 multiplicações incompatíveis
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/mbedtls-3.6.8.tar.bz2: OK
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/curl-xenon.tar.gz: OK
+CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
+  Compatibility with CMake < 3.10 will be removed from a future version of
+  CMake.
+
+  Update the VERSION argument <min> value.  Or, use the <min>...<max> syntax
+  to tell CMake that the project requires at least <min> but has been updated
+  to work with policies introduced by <max> or earlier.
+
+
+-- Found Python3: /home/pedrohenriquequadro/.pyenv/shims/python3.12 (found version "3.12.7") found components: Interpreter
+-- Found Threads: TRUE
+-- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS
+-- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS - Success
+-- USING O3
+-- Using CMake version 4.3.0
+-- curl version=[8.23.0-DEV]
+-- CMake platform flags: GCC CROSS
+-- Cross-compiling: Linux/x86_64 -> Generic/powerpc
+-- Picky compiler options: -Werror-implicit-function-declaration -W -Wall -Wpedantic -Wbad-function-cast -Wconversion -Wmissing-declarations -Wmissing-prototypes -Wnested-externs -Wno-long-long -Wno-multichar -Wpointer-arith -Wshadow -Wsign-compare -Wundef -Wunused -Wwrite-strings -Waddress -Wattributes -Wcast-align -Wcast-qual -Wdeclaration-after-statement -Wdiv-by-zero -Wempty-body -Wendif-labels -Wfloat-equal -Wformat-security -Wignored-qualifiers -Wmissing-field-initializers -Wmissing-noreturn -Wno-padded -Wno-sign-conversion -Wno-switch-default -Wno-switch-enum -Wno-system-headers -Wold-style-definition -Wredundant-decls -Wstrict-prototypes -Wtype-limits -Wunreachable-code -Wunused-parameter -Wvla -Wclobbered -Wmissing-parameter-type -Wold-style-declaration -Wpragmas -Wstrict-aliasing=3 -ftree-vrp -Wjump-misses-init -Wdouble-promotion -Wformat=2 -Wlogical-op -Wtrampolines -Warray-bounds=2 -Wformat-signedness -Wduplicated-cond -Wnull-dereference -fdelete-null-pointer-checks -Wshift-negative-value -Wshift-overflow=2 -Wunused-const-variable -Walloc-zero -Wduplicated-branches -Wformat-truncation=2 -Wimplicit-fallthrough -Wrestrict -Warith-conversion -Wenum-conversion -Warray-compare -Wenum-int-mismatch -Wxor-used-as-pow -Wleading-whitespace=spaces -Wtrailing-whitespace=any -Wunterminated-string-initialization
+-- Found Perl: /usr/bin/perl (found version "5.42.3")
+-- Looking for connect in socket
+-- Looking for connect in socket - not found
+-- Found MbedTLS: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/../.work/src/mbedtls-3.6.8/include (found version "3.6.8")
+-- Looking for mbedtls_des_crypt_ecb
+-- Looking for mbedtls_des_crypt_ecb - not found
+-- Looking for sys/eventfd.h
+-- Looking for sys/eventfd.h - not found
+-- Looking for sys/filio.h
+-- Looking for sys/filio.h - not found
+-- Looking for sys/ioctl.h
+-- Looking for sys/ioctl.h - not found
+-- Looking for sys/param.h
+-- Looking for sys/param.h - found
+-- Looking for sys/poll.h
+-- Looking for sys/poll.h - not found
+-- Looking for sys/resource.h
+-- Looking for sys/resource.h - found
+-- Looking for 3 include files sys/socket.h, ..., sys/select.h
+-- Looking for 3 include files sys/socket.h, ..., sys/select.h - found
+-- Looking for sys/sockio.h
+-- Looking for sys/sockio.h - not found
+-- Looking for 4 include files sys/socket.h, ..., sys/types.h
+-- Looking for 4 include files sys/socket.h, ..., sys/types.h - found
+-- Looking for sys/un.h
+-- Looking for sys/un.h - not found
+-- Looking for 5 include files sys/socket.h, ..., sys/utime.h
+-- Looking for 5 include files sys/socket.h, ..., sys/utime.h - found
+-- Looking for 6 include files sys/socket.h, ..., arpa/inet.h
+-- Looking for 6 include files sys/socket.h, ..., arpa/inet.h - found
+-- Looking for fcntl.h
+-- Looking for fcntl.h - found
+-- Looking for 7 include files sys/socket.h, ..., ifaddrs.h
+-- Looking for 7 include files sys/socket.h, ..., ifaddrs.h - not found
+-- Looking for io.h
+-- Looking for io.h - not found
+-- Looking for 7 include files sys/socket.h, ..., libgen.h
+-- Looking for 7 include files sys/socket.h, ..., libgen.h - found
+-- Looking for linux/tcp.h
+-- Looking for linux/tcp.h - not found
+-- Looking for locale.h
+-- Looking for locale.h - found
+-- Looking for 8 include files sys/socket.h, ..., net/if.h
+-- Looking for 8 include files sys/socket.h, ..., net/if.h - not found
+-- Looking for 8 include files sys/socket.h, ..., netdb.h
+-- Looking for 8 include files sys/socket.h, ..., netdb.h - found
+-- Looking for 9 include files sys/socket.h, ..., netinet/in.h
+-- Looking for 9 include files sys/socket.h, ..., netinet/in.h - found
+-- Looking for netinet/in6.h
+-- Looking for netinet/in6.h - not found
+-- Looking for netinet/ip.h
+-- Looking for netinet/ip.h - not found
+-- Looking for 10 include files sys/socket.h, ..., netinet/tcp.h
+-- Looking for 10 include files sys/socket.h, ..., netinet/tcp.h - found
+-- Looking for 11 include files sys/socket.h, ..., netinet/udp.h
+-- Looking for 11 include files sys/socket.h, ..., netinet/udp.h - not found
+-- Looking for poll.h
+-- Looking for poll.h - found
+-- Looking for pwd.h
+-- Looking for pwd.h - found
+-- Looking for stdatomic.h
+-- Looking for stdatomic.h - found
+-- Looking for stdbool.h
+-- Looking for stdbool.h - found
+-- Looking for strings.h
+-- Looking for strings.h - found
+-- Looking for stropts.h
+-- Looking for stropts.h - not found
+-- Looking for termio.h
+-- Looking for termio.h - not found
+-- Looking for termios.h
+-- Looking for termios.h - not found
+-- Looking for 11 include files sys/socket.h, ..., unistd.h
+-- Looking for 11 include files sys/socket.h, ..., unistd.h - found
+-- Looking for utime.h
+-- Looking for utime.h - not found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of size_t
+-- Check size of size_t - done
+-- Check size of ssize_t
+-- Check size of ssize_t - done
+-- Check size of long
+-- Check size of long - done
+-- Check size of int
+-- Check size of int - done
+-- Check size of __int64
+-- Check size of __int64 - failed
+-- Check size of time_t
+-- Check size of time_t - done
+-- Check size of suseconds_t
+-- Check size of suseconds_t - done
+-- Looking for accept4
+-- Looking for accept4 - not found
+-- Looking for fnmatch
+-- Looking for fnmatch - not found
+-- Looking for basename
+-- Looking for basename - found
+-- Looking for poll
+-- Looking for poll - found
+-- Looking for socket
+-- Looking for socket - found
+-- Looking for socketpair
+-- Looking for socketpair - not found
+-- Looking for recv
+-- Looking for recv - found
+-- Looking for send
+-- Looking for send - found
+-- Looking for sendmsg
+-- Looking for sendmsg - not found
+-- Looking for sendmmsg
+-- Looking for sendmmsg - not found
+-- Looking for memrchr
+-- Looking for memrchr - not found
+-- Looking for alarm
+-- Looking for alarm - not found
+-- Looking for fcntl
+-- Looking for fcntl - found
+-- Looking for getppid
+-- Looking for getppid - not found
+-- Looking for utimes
+-- Looking for utimes - not found
+-- Looking for closesocket
+-- Looking for closesocket - not found
+-- Looking for sigsetjmp
+-- Looking for sigsetjmp - not found
+-- Looking for getpass_r
+-- Looking for getpass_r - not found
+-- Looking for getpwuid
+-- Looking for getpwuid - not found
+-- Looking for getpwuid_r
+-- Looking for getpwuid_r - not found
+-- Looking for geteuid
+-- Looking for geteuid - not found
+-- Looking for utime
+-- Looking for utime - not found
+-- Looking for gmtime_r
+-- Looking for gmtime_r - found
+-- Looking for localtime_r
+-- Looking for localtime_r - found
+-- Looking for gethostbyname_r
+-- Looking for gethostbyname_r - not found
+-- Looking for gethostname
+-- Looking for gethostname - not found
+-- Looking for signal
+-- Looking for signal - found
+-- Looking for strerror_r
+-- Looking for strerror_r - found
+-- Looking for sigaction
+-- Looking for sigaction - not found
+-- Looking for siginterrupt
+-- Looking for siginterrupt - not found
+-- Looking for getaddrinfo
+-- Looking for getaddrinfo - found
+-- Looking for getifaddrs
+-- Looking for getifaddrs - not found
+-- Looking for freeaddrinfo
+-- Looking for freeaddrinfo - found
+-- Looking for pipe
+-- Looking for pipe - not found
+-- Looking for eventfd
+-- Looking for eventfd - not found
+-- Looking for getpeername
+-- Looking for getpeername - found
+-- Looking for getsockname
+-- Looking for getsockname - found
+-- Looking for getrlimit
+-- Looking for getrlimit - not found
+-- Looking for setlocale
+-- Looking for setlocale - found
+-- Looking for setrlimit
+-- Looking for setrlimit - not found
+-- Looking for pipe2
+-- Looking for pipe2 - not found
+-- Looking for dirent.h
+-- Looking for dirent.h - found
+-- Looking for fchmod
+-- Looking for fchmod - found
+-- Looking for gettimeofday
+-- Looking for gettimeofday - found
+-- Looking for if_nametoindex
+-- Looking for if_nametoindex - not found
+-- Looking for realpath
+-- Looking for realpath - not found
+-- Looking for sched_yield
+-- Looking for sched_yield - found
+-- Looking for opendir
+-- Looking for opendir - found
+-- Looking for strcasecmp
+-- Looking for strcasecmp - found
+-- Looking for stricmp
+-- Looking for stricmp - not found
+-- Looking for strcmpi
+-- Looking for strcmpi - not found
+-- Looking for memset_s
+-- Looking for memset_s - not found
+-- Looking for memset_explicit
+-- Looking for memset_explicit - not found
+-- Looking for fsetxattr
+-- Looking for fsetxattr - not found
+-- Check size of sa_family_t
+-- Check size of sa_family_t - done
+-- Performing Test HAVE_FCNTL_O_NONBLOCK
+-- Performing Test HAVE_FCNTL_O_NONBLOCK - Success
+-- Performing Test HAVE_IOCTLSOCKET
+-- Performing Test HAVE_IOCTLSOCKET - Failed
+-- Performing Test HAVE_IOCTLSOCKET_CAMEL
+-- Performing Test HAVE_IOCTLSOCKET_CAMEL - Failed
+-- Performing Test HAVE_IOCTLSOCKET_CAMEL_FIONBIO
+-- Performing Test HAVE_IOCTLSOCKET_CAMEL_FIONBIO - Failed
+-- Performing Test HAVE_IOCTLSOCKET_FIONBIO
+-- Performing Test HAVE_IOCTLSOCKET_FIONBIO - Failed
+-- Performing Test HAVE_IOCTL_FIONBIO
+-- Performing Test HAVE_IOCTL_FIONBIO - Failed
+-- Performing Test HAVE_IOCTL_SIOCGIFADDR
+-- Performing Test HAVE_IOCTL_SIOCGIFADDR - Failed
+-- Performing Test HAVE_SETSOCKOPT_SO_NONBLOCK
+-- Performing Test HAVE_SETSOCKOPT_SO_NONBLOCK - Failed
+-- Performing Test HAVE_GETHOSTBYNAME_R_3
+-- Performing Test HAVE_GETHOSTBYNAME_R_3 - Failed
+-- Performing Test HAVE_GETHOSTBYNAME_R_5
+-- Performing Test HAVE_GETHOSTBYNAME_R_5 - Failed
+-- Performing Test HAVE_GETHOSTBYNAME_R_6
+-- Performing Test HAVE_GETHOSTBYNAME_R_6 - Failed
+-- Performing Test HAVE_BOOL_T
+-- Performing Test HAVE_BOOL_T - Success
+-- Performing Test HAVE_ATOMIC
+-- Performing Test HAVE_ATOMIC - Success
+-- Performing Test HAVE_GETHOSTBYNAME_R_3_REENTRANT
+-- Performing Test HAVE_GETHOSTBYNAME_R_3_REENTRANT - Failed
+-- Performing Test HAVE_GETHOSTBYNAME_R_5_REENTRANT
+-- Performing Test HAVE_GETHOSTBYNAME_R_5_REENTRANT - Failed
+-- Performing Test HAVE_GETHOSTBYNAME_R_6_REENTRANT
+-- Performing Test HAVE_GETHOSTBYNAME_R_6_REENTRANT - Failed
+-- Performing Test HAVE_FILE_OFFSET_BITS
+-- Performing Test HAVE_FILE_OFFSET_BITS - Failed
+-- Check size of off_t
+-- Check size of off_t - done
+-- Looking for fseeko
+-- Looking for fseeko - found
+-- Check size of curl_off_t
+-- Check size of curl_off_t - done
+-- Check size of curl_socket_t
+-- Check size of curl_socket_t - done
+-- Performing Test HAVE_TIME_T_UNSIGNED
+-- Performing Test HAVE_TIME_T_UNSIGNED - Failed
+-- Performing Test HAVE_GLIBC_STRERROR_R
+-- Performing Test HAVE_GLIBC_STRERROR_R - Failed
+-- Performing Test HAVE_POSIX_STRERROR_R
+-- Performing Test HAVE_POSIX_STRERROR_R - Success
+-- Performing Test HAVE_CLOCK_GETTIME_MONOTONIC
+-- Performing Test HAVE_CLOCK_GETTIME_MONOTONIC - Success
+-- Check size of struct sockaddr_storage
+-- Check size of struct sockaddr_storage - done
+-- Performing Test HAVE_STRUCT_TIMEVAL
+-- Performing Test HAVE_STRUCT_TIMEVAL - Success
+-- Performing Test HAVE_H_ERRNO
+-- Performing Test HAVE_H_ERRNO - Failed
+-- Performing Test HAVE_H_ERRNO_ASSIGNABLE
+-- Performing Test HAVE_H_ERRNO_ASSIGNABLE - Failed
+-- Performing Test HAVE_H_ERRNO_SBS_ISSUE_7
+-- Performing Test HAVE_H_ERRNO_SBS_ISSUE_7 - Success
+-- Performing Test HAVE_CLOCK_GETTIME_MONOTONIC_RAW
+-- Performing Test HAVE_CLOCK_GETTIME_MONOTONIC_RAW - Failed
+-- Protocols: http https
+-- Features: AsynchDNS SSL threadsafe
+-- Enabled SSL backends: mbedTLS
+-- Configuring done (101.8s)
+-- Generating done (0.1s)
+-- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/build-x360
+[  0%] Building C object yt/tls/upstream/3rdparty/everest/CMakeFiles/everest.dir/library/everest.c.obj
+[  0%] Building C object yt/tls/upstream/3rdparty/everest/CMakeFiles/everest.dir/library/x25519.c.obj
+[  0%] Building C object yt/tls/upstream/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m/p256-m.c.obj
+[  0%] Building C object yt/tls/upstream/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m_driver_entrypoints.c.obj
+[  1%] Building C object yt/tls/upstream/3rdparty/everest/CMakeFiles/everest.dir/library/Hacl_Curve25519_joined.c.obj
+[  1%] Linking C static library libeverest.a
+[  2%] Linking C static library libp256m.a
+[  2%] Built target everest
+[  2%] Built target p256m
+[  3%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/aes.c.obj
+[  3%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/aesni.c.obj
+[  3%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/asn1parse.c.obj
+[  3%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/asn1write.c.obj
+[  4%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/base64.c.obj
+[  4%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/aria.c.obj
+[  4%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/aesce.c.obj
+[  5%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/bignum.c.obj
+[  5%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/bignum_core.c.obj
+[  5%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/bignum_mod.c.obj
+[  6%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/bignum_mod_raw.c.obj
+[  6%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/block_cipher.c.obj
+[  6%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/camellia.c.obj
+[  7%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/ccm.c.obj
+[  7%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/chacha20.c.obj
+[  7%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/chachapoly.c.obj
+[  7%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/cipher.c.obj
+[  8%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/cipher_wrap.c.obj
+[  8%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/constant_time.c.obj
+[  8%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/cmac.c.obj
+[  9%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/ctr_drbg.c.obj
+[  9%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/des.c.obj
+[  9%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/dhm.c.obj
+[  9%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/ecdh.c.obj
+[ 10%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/ecdsa.c.obj
+[ 10%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/ecjpake.c.obj
+[ 10%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/ecp.c.obj
+[ 11%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/ecp_curves.c.obj
+[ 11%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/entropy.c.obj
+[ 11%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/entropy_poll.c.obj
+[ 11%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/error.c.obj
+[ 12%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/gcm.c.obj
+[ 12%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/hkdf.c.obj
+[ 12%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/hmac_drbg.c.obj
+[ 13%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/lmots.c.obj
+[ 13%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/lms.c.obj
+[ 13%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/md.c.obj
+[ 13%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/md5.c.obj
+[ 14%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/memory_buffer_alloc.c.obj
+[ 14%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/nist_kw.c.obj
+[ 14%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/oid.c.obj
+[ 15%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/padlock.c.obj
+[ 15%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/pem.c.obj
+[ 15%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/pk.c.obj
+[ 15%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/pk_ecc.c.obj
+[ 16%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/pk_wrap.c.obj
+[ 16%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/pkcs12.c.obj
+[ 16%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/pkcs5.c.obj
+[ 17%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/pkparse.c.obj
+[ 17%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/pkwrite.c.obj
+[ 17%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/platform.c.obj
+[ 17%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/platform_util.c.obj
+[ 18%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/poly1305.c.obj
+[ 18%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto.c.obj
+[ 18%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_aead.c.obj
+[ 19%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_cipher.c.obj
+[ 19%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_client.c.obj
+[ 19%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_driver_wrappers_no_static.c.obj
+[ 19%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_ffdh.c.obj
+[ 20%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_ecp.c.obj
+[ 20%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_hash.c.obj
+[ 20%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_mac.c.obj
+[ 21%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_pake.c.obj
+[ 21%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_rsa.c.obj
+[ 21%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_random.c.obj
+[ 22%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_se.c.obj
+[ 22%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_slot_management.c.obj
+[ 22%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_crypto_storage.c.obj
+[ 22%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_its_file.c.obj
+[ 23%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/psa_util.c.obj
+[ 23%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/ripemd160.c.obj
+[ 23%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/rsa.c.obj
+[ 24%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/rsa_alt_helpers.c.obj
+[ 24%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/sha1.c.obj
+[ 24%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/sha256.c.obj
+[ 24%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/sha512.c.obj
+[ 25%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/sha3.c.obj
+[ 25%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/threading.c.obj
+[ 25%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/timing.c.obj
+[ 26%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/version.c.obj
+[ 26%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/version_features.c.obj
+[ 26%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/tools/mbedtls-x360/platform.c.obj
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/tools/mbedtls-x360/platform.c:6:5: warning: no previous prototype for 'mbedtls_hardware_poll' [-Wmissing-prototypes]
+    6 | int mbedtls_hardware_poll(void *context, unsigned char *out, size_t len, size_t *written) {
+      |     ^~~~~~~~~~~~~~~~~~~~~
+[ 26%] Linking C static library libmbedcrypto.a
+[ 26%] Built target mbedcrypto
+[ 26%] Building CXX object yt/CMakeFiles/tube360-update-core.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/update/common.cpp.obj
+[ 27%] Building CXX object yt/CMakeFiles/tube360-update-core.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/update/app.cpp.obj
+[ 27%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/pkcs7.c.obj
+[ 27%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509_create.c.obj
+[ 27%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509_crl.c.obj
+[ 27%] Building C object yt/CMakeFiles/tube360-update-core.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/monocypher/monocypher-ed25519.c.obj
+[ 28%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509.c.obj
+[ 28%] Building C object yt/CMakeFiles/tube360-update-core.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/monocypher/monocypher.c.obj
+[ 28%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509_crt.c.obj
+[ 29%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509_csr.c.obj
+[ 29%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509write.c.obj
+[ 29%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509write_crt.c.obj
+[ 30%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509write_csr.c.obj
+[ 30%] Linking C static library libmbedx509.a
+[ 30%] Built target mbedx509
+[ 30%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/mps_trace.c.obj
+[ 32%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/net_sockets.c.obj
+[ 32%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/debug.c.obj
+[ 32%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/mps_reader.c.obj
+[ 32%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_cache.c.obj
+[ 32%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_ciphersuites.c.obj
+[ 32%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_client.c.obj
+[ 33%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_cookie.c.obj
+[ 33%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_debug_helpers_generated.c.obj
+[ 33%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_msg.c.obj
+[ 34%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_ticket.c.obj
+[ 34%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls.c.obj
+[ 34%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls12_client.c.obj
+[ 34%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls12_server.c.obj
+[ 35%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls13_keys.c.obj
+[ 35%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls13_server.c.obj
+[ 35%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls13_client.c.obj
+[ 36%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls13_generic.c.obj
+[ 36%] Linking C static library libmbedtls.a
+[ 36%] Built target mbedtls
+[ 36%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/altsvc.c.obj
+[ 36%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/bufq.c.obj
+[ 37%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/api.c.obj
+[ 37%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/bufref.c.obj
+[ 37%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/amigaos.c.obj
+[ 38%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-h1-proxy.c.obj
+[ 38%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-h2-proxy.c.obj
+[ 38%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-haproxy.c.obj
+[ 38%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-https-connect.c.obj
+[ 38%] Linking CXX static library libtube360-update-core.a
+[ 39%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-ip-happy.c.obj
+[ 39%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-recvbuf.c.obj
+[ 39%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-setup.c.obj
+[ 39%] Built target tube360-update-core
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cf-socket.c.obj
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cfilters.c.obj
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/conncache.c.obj
+[ 40%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/connect.c.obj
+[ 40%] Building CXX object CMakeFiles/tube360-launcher.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/update/launcher.cpp.obj
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/content_encoding.c.obj
+[ 41%] Building CXX object CMakeFiles/tube360-launcher.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/update/launcher_x360.cpp.obj
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cookie.c.obj
+[ 41%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/creds.c.obj
+[ 42%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cshutdn.c.obj
+[ 42%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_endian.c.obj
+[ 42%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_addrinfo.c.obj
+[ 42%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_fnmatch.c.obj
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_fopen.c.obj
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_get_line.c.obj
+[ 43%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_gethostname.c.obj
+[ 44%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_gssapi.c.obj
+[ 44%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_memrchr.c.obj
+[ 44%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_ntlm_core.c.obj
+[ 44%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_range.c.obj
+[ 44%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_sha512_256.c.obj
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_sasl.c.obj
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_share.c.obj
+[ 45%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_threads.c.obj
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_sspi.c.obj
+[ 46%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_trc.c.obj
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cw-out.c.obj
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/cw-pause.c.obj
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/dict.c.obj
+[ 47%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/dynhds.c.obj
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/easy.c.obj
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/easygetopt.c.obj
+[ 48%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/easyoptions.c.obj
+[ 49%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/escape.c.obj
+[ 49%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/fake_addrinfo.c.obj
+[ 49%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/file.c.obj
+[ 49%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/fileinfo.c.obj
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/formdata.c.obj
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ftp.c.obj
+[ 50%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ftplistparser.c.obj
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/getenv.c.obj
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/getinfo.c.obj
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/gopher.c.obj
+[ 51%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/hash.c.obj
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/headers.c.obj
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/hmac.c.obj
+[ 52%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/hsts.c.obj
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http.c.obj
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http1.c.obj
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http2.c.obj
+[ 53%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_aws_sigv4.c.obj
+[ 54%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_httpsig.c.obj
+[ 54%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curl_ed25519.c.obj
+[ 54%] Linking CXX executable tube360-launcher
+[ 54%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_chunks.c.obj
+[ 55%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_digest.c.obj
+[ 55%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_negotiate.c.obj
+[ 55%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_ntlm.c.obj
+[ 55%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/http_proxy.c.obj
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/idn.c.obj
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/if2ip.c.obj
+[ 56%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/imap.c.obj
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ldap.c.obj
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/macos.c.obj
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/llist.c.obj
+[ 57%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/md4.c.obj
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/md5.c.obj
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/memdebug.c.obj
+[ 58%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/mime.c.obj
+[ 59%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/mprintf.c.obj
+[ 59%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/mqtt.c.obj
+[ 59%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/multi.c.obj
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/multi_ev.c.obj
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/multi_ntfy.c.obj
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/netrc.c.obj
+[ 60%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/openldap.c.obj
+[ 61%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/parsedate.c.obj
+[ 61%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/peer.c.obj
+[ 61%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/pingpong.c.obj
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/pop3.c.obj
+xenia_scan: crypto_sha512_final: 8206a5dc rldic r7,r10,3,32
+xenia_scan: fe_frombytes_mask: 82071908 rldic r5,r5,2,38
+xenia_scan: fe_frombytes_mask: 82071980 rldic r12,r12,7,33
+xenia_scan: fe_frombytes_mask: 820719c4 rldic r11,r11,5,35
+xenia_scan: fe_frombytes_mask: 820719d0 rldic r10,r10,6,34
+xenia_scan: fe_frombytes_mask: 820719ec rldic r7,r28,5,35
+xenia_scan: fe_frombytes_mask: 820719fc rldic r6,r6,4,36
+xenia_scan: fe_frombytes_mask: 82071a24 rldic r9,r9,2,38
+xenia_scan: fe_frombytes_mask: 82071a38 rldic r10,r10,3,37
+xenia_scan: mod_l: 82072e14 rldic r15,r9,28,32
+xenia_scan: redc: 820755e0 rldic r23,r8,28,32
+xenia_scan: has_return_type: 82093b44 rldic r10,r10,51,58
+xenia_scan: d_source_name: 82093e08 rldic r6,r6,59,53
+xenia_scan: d_encoding: 82097984 rldic r7,r7,51,58
+xenia_scan: d_encoding: 820979c8 rldic r7,r7,51,58
+xenia_scan: d_print_comp_inner: 8209aaf0 rldic r8,r8,51,58
+xenia_scan: d_print_comp_inner: 8209c8fc rldic r6,r6,51,58
+xenia_scan: d_print_mod_list.part.0: 8209e978 rldic r10,r10,51,58
+xenia_scan: d_print_mod_list.part.0: 8209eb08 rldic r8,r8,51,58
+xenia_scan: d_demangle_callback.constprop.0: 8209f2b8 rldic r9,r9,59,53
+xenia_scan: plan_values: 820b9e4c rldic r9,r4,24,8
+xenia_scan: plan_values: 820b9e5c rldic r10,r3,24,8
+xenia_scan: _dtoa_r: 820db5e0 rldic r10,r9,32,1
+xenia_scan: 23 instructions Xenia skips; Xenia results through these functions are unreliable
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/protocol.c.obj
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/progress.c.obj
+[ 62%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/proxy.c.obj
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/psl.c.obj
+[ 63%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ptrarray.c.obj
+[ 63%] Built target tube360-launcher
+[ 64%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ratelimit.c.obj
+[ 64%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/rand.c.obj
+[ 64%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/request.c.obj
+[ 64%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/rtsp.c.obj
+[ 64%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/select.c.obj
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/sendf.c.obj
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/setopt.c.obj
+[ 65%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/sha256.c.obj
+[ 66%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/slist.c.obj
+[ 66%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/smtp.c.obj
+[ 66%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socketpair.c.obj
+[ 66%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socks.c.obj
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socks_gssapi.c.obj
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/socks_sspi.c.obj
+[ 67%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/splay.c.obj
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/strcase.c.obj
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/strequal.c.obj
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/strerror.c.obj
+[ 68%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/telnet.c.obj
+[ 69%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/tftp.c.obj
+[ 69%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/thrdpool.c.obj
+[ 69%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/thrdqueue.c.obj
+[ 69%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/u8_strset.c.obj
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/transfer.c.obj
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/u32_ptrset.c.obj
+[ 70%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/uint-bset.c.obj
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/uint-spbset.c.obj
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/uint-table.c.obj
+[ 71%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/url.c.obj
+[ 72%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/urlapi.c.obj
+[ 72%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/version.c.obj
+[ 72%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/ws.c.obj
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/cleartext.c.obj
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/cram.c.obj
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/digest.c.obj
+[ 73%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/digest_sspi.c.obj
+[ 74%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/gsasl.c.obj
+[ 74%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/krb5_gssapi.c.obj
+[ 74%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/krb5_sspi.c.obj
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/ntlm.c.obj
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/ntlm_sspi.c.obj
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/oauth2.c.obj
+[ 75%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/spnego_gssapi.c.obj
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/spnego_sspi.c.obj
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vauth/vauth.c.obj
+[ 76%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/asyn-ares.c.obj
+[ 77%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/asyn-base.c.obj
+[ 77%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/asyn-thrdd.c.obj
+[ 77%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/cf-dns.c.obj
+[ 77%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/dnscache.c.obj
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/doh.c.obj
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/hostip.c.obj
+[ 78%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/hostip4.c.obj
+[ 79%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/hostip6.c.obj
+[ 79%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/cipher_suite.c.obj
+[ 79%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vdns/httpsrr.c.obj
+[ 79%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/apple.c.obj
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/gtls.c.obj
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/hostcheck.c.obj
+[ 80%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/keylog.c.obj
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/mbedtls.c.obj
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/openssl.c.obj
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/rustls.c.obj
+[ 81%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/schannel.c.obj
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/schannel_verify.c.obj
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls.c.obj
+[ 82%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_config.c.obj
+[ 83%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_scache.c.obj
+[ 83%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_spack.c.obj
+[ 83%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/wolfssl.c.obj
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08c5daaa6b4/lib/vtls/vtls_scache.c: In function 'cf_ssl_peer_key_add_path':
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08c5daaa6b4/lib/vtls/vtls_scache.c:69:48: warning: unused parameter 'is_local' [-Wunused-parameter]
+   69 |                                          bool *is_local)
+      |                                          ~~~~~~^~~~~~~~
+[ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/x509asn1.c.obj
+[ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/capsule.c.obj
+[ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-capsule.c.obj
+[ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-ngtcp2.c.obj
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-ngtcp2-cmn.c.obj
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-ngtcp2-proxy.c.obj
+[ 85%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/cf-quiche.c.obj
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/vquic.c.obj
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vquic/vquic-tls.c.obj
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vssh/libssh.c.obj
+[ 86%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vssh/libssh2.c.obj
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vssh/vssh.c.obj
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/base64.c.obj
+[ 87%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/basename.c.obj
+[ 88%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/dynbuf.c.obj
+[ 88%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/win32-fopen.c.obj
+[ 88%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/inet_ntop.c.obj
+[ 88%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/inet_pton.c.obj
+[ 89%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/multibyte.c.obj
+[ 89%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/nonblock.c.obj
+[ 89%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/snprintf.c.obj
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strcopy.c.obj
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strdup.c.obj
+[ 90%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strerr.c.obj
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/timediff.c.obj
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/strparse.c.obj
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/timeval.c.obj
+[ 91%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/version_win32.c.obj
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/wait.c.obj
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/warnless.c.obj
+[ 92%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/curlx/winapi.c.obj
+[ 92%] Linking C static library libcurl.a
+[ 92%] Built target libcurl_static
+[ 92%] Building CXX object yt/CMakeFiles/tube360-yt.dir/client.cpp.obj
+[ 93%] Building CXX object yt/CMakeFiles/tube360-yt.dir/account_transport.cpp.obj
+[ 94%] Building CXX object yt/CMakeFiles/tube360-yt.dir/https.cpp.obj
+[ 94%] Building CXX object yt/CMakeFiles/tube360-yt.dir/console_account.cpp.obj
+[ 94%] Building CXX object yt/CMakeFiles/tube360-yt.dir/cast.cpp.obj
+[ 94%] Building CXX object yt/CMakeFiles/tube360-yt.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/update/rules.cpp.obj
+[ 95%] Linking CXX static library libtube360-yt.a
+[ 95%] Built target tube360-yt
+[ 96%] Building CXX object CMakeFiles/tube360-cast.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/cast/discovery.cpp.obj
+[ 96%] Building CXX object CMakeFiles/tube360-cast.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/cast/receiver.cpp.obj
+[ 96%] Building CXX object CMakeFiles/tube360-cast.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/cast/lounge.cpp.obj
+[ 97%] Building CXX object CMakeFiles/tube360-update.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/update/service.cpp.obj
+[ 97%] Building CXX object CMakeFiles/tube360-cast.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/cast/stream.cpp.obj
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/cast/receiver.cpp: In function 'std::string cast::{anonymous}::localAddress(const sockaddr_in&)':
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/cast/receiver.cpp:155:40: warning: unused parameter 'remote' [-Wunused-parameter]
+  155 | string localAddress(const sockaddr_in& remote) {
+      |                     ~~~~~~~~~~~~~~~~~~~^~~~~~
+[ 97%] Linking CXX static library libtube360-update.a
+[ 97%] Built target tube360-update
+In file included from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/cast/discovery.cpp:3:
+In copy constructor 'picojson::value::value(const picojson::value&)',
+    inlined from 'picojson::value& picojson::value::operator=(const picojson::value&)' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:256:16,
+    inlined from 'picojson::value& picojson::value::operator=(const picojson::value&)' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:254:17,
+    inlined from 'bool picojson::default_parse_context::set_null()' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:826:21,
+    inlined from 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:755:7:
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+  249 |       u_ = x.u_;
+      |       ~~~^~~~~~
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h: In function 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:826:21: note: '<anonymous>' declared here
+  826 |       *out_ = value();
+      |                     ^
+In copy constructor 'picojson::value::value(const picojson::value&)',
+    inlined from 'void std::__new_allocator<_Tp>::construct(_Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/new_allocator.h:191:4,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:674:17,
+    inlined from 'std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
+    inlined from 'void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
+    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:853:18,
+    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:695:33,
+    inlined from 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:762:26:
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+  249 |       u_ = x.u_;
+      |       ~~~^~~~~~
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h: In function 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:853:19: note: '<anonymous>' declared here
+  853 |       a.push_back(value());
+      |                   ^~~~~~~
+In file included from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/cast/lounge.hpp:3,
+                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/cast/lounge.cpp:2:
+In copy constructor 'picojson::value::value(const picojson::value&)',
+    inlined from 'void std::__new_allocator<_Tp>::construct(_Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/new_allocator.h:191:4,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:674:17,
+    inlined from 'std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
+    inlined from 'void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
+    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:853:18,
+    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:695:33,
+    inlined from 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:762:26:
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+  249 |       u_ = x.u_;
+      |       ~~~^~~~~~
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h: In function 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/third_party/picojson.h:853:19: note: '<anonymous>' declared here
+  853 |       a.push_back(value());
+      |                   ^~~~~~~
+[ 98%] Linking CXX static library libtube360-cast.a
+[ 98%] Built target tube360-cast
+[ 98%] Building C object CMakeFiles/tube360.dir/shaders_bundle.c.obj
+[ 98%] Building CXX object CMakeFiles/tube360.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/main.cpp.obj
+[100%] Building C object CMakeFiles/tube360.dir/ffmpeg-libc.c.obj
+[100%] Building C object CMakeFiles/tube360.dir/player-fault.c.obj
+In file included from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/nest.hpp:5,
+                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/player.hpp:22,
+                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/src/main.cpp:30:
+In copy constructor 'picojson::value::value(const picojson::value&)',
+    inlined from 'constexpr _Tp* std::construct_at(_Tp*, _Args&& ...) [with _Tp = picojson::value; _Args = {picojson::value}]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_construct.h:110:9,
+    inlined from 'static constexpr void std::allocator_traits<std::allocator<_Up> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:676:21,
+    inlined from 'constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
+    inlined from 'constexpr void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
+    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/x360/../third_party/picojson.h:853:18,
+    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/x360/../third_party/picojson.h:695:33:
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/x360/../third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+  249 |       u_ = x.u_;
+      |       ~~~^~~~~~
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/x360/../third_party/picojson.h: In function 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/x360/../third_party/picojson.h:853:19: note: '<anonymous>' declared here
+  853 |       a.push_back(value());
+      |                   ^~~~~~~
+[100%] Linking CXX executable tube360
+xenia_scan: _Z22plm_video_decode_blockP11plm_video_ti: 8227374c rldic r9,r9,8,48
+xenia_scan: _ZNSt3setINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4lessIS5_ESaIS5_EE6insertERKS5_: 822ca558 rldic r9,r9,24,39
+xenia_scan: _ZNSt3setINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4lessIS5_ESaIS5_EE6insertERKS5_: 822ca5a8 rldic r9,r9,24,39
+xenia_scan: _ZN6player6Player14decodeOriginalEv: 823105f8 rldic r9,r9,10,52
+xenia_scan: vkCmdClearAttachments: 8233624c mcrf cr1,cr0
+xenia_scan: SDL_CreateCursor: 8236f8e8 mcrf cr1,cr0
+xenia_scan: SDL_PrivateParseGamepadElement.isra.0: 823805a4 rldic r9,r9,47,49
+xenia_scan: SDL_SW_BlitTriangle: 823b5cf0 rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5d04 rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5d3c rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5d70 rldic r11,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5dac rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5dbc rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5dec rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5e34 rldic r0,r0,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5e48 rldic r29,r29,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5e54 rldic r0,r20,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b5ea8 rldic r26,r26,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b62a4 rldic r7,r26,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b62d8 rldic r6,r29,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b630c rldic r5,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b65bc rldic r0,r0,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b65cc rldic r29,r29,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b65fc rldic r22,r22,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7060 rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7074 rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b70ac rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b70e0 rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b711c rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b712c rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b715c rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b71a4 rldic r27,r27,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b71b8 rldic r30,r30,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b71c8 rldic r11,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7230 rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7378 rldic r6,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b73b0 rldic r7,r11,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7548 rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b755c rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7594 rldic r6,r6,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7828 rldic r5,r5,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7bec rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7c00 rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7c2c rldic r31,r31,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7c60 rldic r30,r30,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7c9c rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7cac rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7cdc rldic r31,r31,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7d2c rldic r25,r25,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7d38 rldic r24,r24,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7d4c rldic r27,r27,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7db8 rldic r30,r30,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7f28 rldic r31,r27,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7f60 rldic r3,r27,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b7f98 rldic r7,r30,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b80d8 rldic r3,r3,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b80f0 rldic r7,r7,8,24
+xenia_scan: SDL_SW_BlitTriangle: 823b8120 rldic r31,r31,8,24
+xenia_scan: SDL_TimerThread: 823c314c rldic r9,r3,5,27
+xenia_scan: SDL_AddTimer: 823c3ad0 rldic r9,r10,5,27
+xenia_scan: SDL_Delay: 823c3ef0 rldic r3,r3,5,27
+xenia_scan: SDL_RLESurface: 8243245c rldic r7,r7,16,16
+xenia_scan: SDL_Blit_Slow: 82496af4 rldic r30,r30,8,24
+xenia_scan: SDL_Blit_Slow: 82496b08 rldic r29,r29,8,24
+xenia_scan: SDL_Blit_Slow: 82496b40 rldic r31,r31,8,24
+xenia_scan: SDL_Blit_Slow: 82496b74 rldic r18,r18,8,24
+xenia_scan: SDL_Blit_Slow: 82496ba4 rldic r29,r29,8,24
+xenia_scan: SDL_Blit_Slow: 82496bb4 rldic r30,r30,8,24
+xenia_scan: SDL_Blit_Slow: 82496be4 rldic r31,r31,8,24
+xenia_scan: SDL_Blit_Slow: 8249713c rldic r30,r30,8,24
+xenia_scan: SDL_Blit_Slow: 82497150 rldic r29,r29,8,24
+xenia_scan: SDL_Blit_Slow: 82497188 rldic r31,r31,8,24
+xenia_scan: SDL_Blit_Slow: 824971bc rldic r27,r27,8,24
+xenia_scan: SDL_Blit_Slow: 82497420 rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 8249766c rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 824976a0 rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824976d4 rldic r0,r0,8,24
+xenia_scan: SDL_Blit_Slow: 82497708 rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 82497754 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 82497788 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 824977bc rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 824977ec rldic r0,r0,8,24
+xenia_scan: SDL_Blit_Slow: 824977fc rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 8249782c rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 82497ae8 rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 82497fd4 rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 82498254 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 82498288 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 824982bc rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824982ec rldic r28,r28,8,24
+xenia_scan: SDL_Blit_Slow: 82498320 rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 82498354 rldic r0,r0,8,24
+xenia_scan: SDL_Blit_Slow: 82498388 rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824983c8 rldic r7,r7,8,24
+xenia_scan: SDL_Blit_Slow: 824983d4 rldic r6,r6,8,24
+xenia_scan: SDL_Blit_Slow: 824983e4 rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 82498414 rldic r5,r5,8,24
+xenia_scan: SDL_Blit_Slow: 8249846c rldic r0,r0,8,24
+xenia_scan: SDL_Blit_Slow: 8249847c rldic r25,r25,8,24
+xenia_scan: SDL_Blit_Slow: 824984a8 rldic r28,r28,8,24
+xenia_scan: SDL_Blit_Slow: 82498748 rldic r7,r7,8,24
+xenia_scan: _ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_St9_IdentityIS5_ESt4lessIS5_ESaIS5_EE16_M_insert_uniqueIRKS5_EESt4pairISt17_Rb_tree_iteratorIS5_EbEOT_: 824dd464 rldic r3,r3,24,39
+xenia_scan: _ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEES5_St9_IdentityIS5_ESt4lessIS5_ESaIS5_EE16_M_insert_uniqueIRKS5_EESt4pairISt17_Rb_tree_iteratorIS5_EbEOT_: 824dd4a0 rldic r3,r3,24,39
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcc28 rldic r4,r7,7,50
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcc48 rldic r4,r7,14,43
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcc68 rldic r4,r7,21,36
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcc88 rldic r4,r7,28,29
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcca8 rldic r4,r7,35,22
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fccc8 rldic r4,r7,42,15
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcce8 rldic r4,r7,49,8
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcd08 rldic r4,r7,56,1
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcdb4 rldic r3,r7,7,50
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcdd4 rldic r3,r7,14,43
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcdf4 rldic r3,r7,21,36
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fce14 rldic r3,r7,28,29
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fce34 rldic r3,r7,35,22
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fce54 rldic r3,r7,42,15
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fce74 rldic r3,r7,49,8
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fce94 rldic r3,r7,56,1
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcf20 rldic r7,r10,7,50
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcf40 rldic r7,r10,14,43
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcf60 rldic r7,r10,21,36
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcf80 rldic r7,r10,28,29
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcfa0 rldic r7,r10,35,22
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcfc0 rldic r7,r10,42,15
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fcfe0 rldic r7,r10,49,8
+xenia_scan: _ZN4cast10Connection4readERNS_7MessageEi: 824fd000 rldic r7,r10,56,1
+xenia_scan: update_initial_timestamps: 82553538 rldic r8,r4,48,63
+xenia_scan: read_frame_internal: 825571b8 rldic r9,r9,48,63
+xenia_scan: av_read_frame: 82557848 rldic r9,r9,48,63
+xenia_scan: av_read_frame: 82557878 rldic r9,r9,48,63
+xenia_scan: ff_rfps_add_frame: 82557b80 rldic r9,r9,48,63
+xenia_scan: ff_add_index_entry: 8256140c rldic r9,r9,48,63
+xenia_scan: av_add_index_entry: 8256165c rldic r9,r9,48,63
+xenia_scan: ff_parse_ntp_time: 825655dc rldic r9,r3,5,27
+xenia_scan: matroska_probe: 82575208 rldic r7,r7,8,48
+xenia_scan: matroska_read_header: 8257b674 rldic r5,r7,1,47
+xenia_scan: mov_read_ddts: 8258eb98 rldic r4,r9,2,61
+xenia_scan: mov_build_index: 82594940 rldic r7,r27,32,2
+xenia_scan: ff_get_wav_header: 825a4a50 rldic r25,r25,3,29
+xenia_scan: ff_get_wav_header: 825a4d5c rldic r25,r25,3,29
+xenia_scan: ff_ac3_parse_header: 825acfbc rldic r12,r8,8,48
+xenia_scan: av_xiphlacing: 825d61d8 rldic r9,r7,8,24
+xenia_scan: ff_er_add_slice: 825ff984 mcrf cr1,cr0
+xenia_scan: hl_decode_mb_complex: 82620bf4 rldic r9,r9,8,48
+xenia_scan: h264_parse: 8262d4b0 rldic r5,r5,1,32
+xenia_scan: h264_slice_header_init: 82639ae4 rldic r5,r5,1,32
+xenia_scan: put_h264_qpel2_mc10_9_c: 8272dad4 rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_9_c: 8272db40 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_10_c: 8272dca4 rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_10_c: 8272dd10 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_12_c: 8272de74 rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_12_c: 8272dee0 rldic r8,r8,16,32
+xenia_scan: put_h264_qpel2_mc10_14_c: 8272e044 rldic r10,r10,32,16
+xenia_scan: put_h264_qpel2_mc10_14_c: 8272e0b0 rldic r8,r8,16,32
+xenia_scan: ff_h264_filter_mb: 827697a8 rldic r3,r3,32,16
+xenia_scan: ff_h264_filter_mb: 827697cc rldic r3,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8276a898 rldic r9,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8276a8a0 rldic r7,r3,32,16
+xenia_scan: ff_h264_filter_mb: 8276a9e0 rldic r3,r3,32,16
+xenia_scan: ff_h264_filter_mb: 8276aa20 rldic r3,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8276ca28 rldic r7,r3,16,32
+xenia_scan: ff_h264_filter_mb: 8276ca34 rldic r8,r3,32,16
+xenia_scan: av_utf8_decode: 827a7290 rldic r8,r7,5,32
+xenia_scan: av_encryption_info_get_side_data: 827b0434 rldic r10,r3,3,29
+xenia_scan: av_image_alloc: 827bc2a0 rldic r3,r30,3,29
+xenia_scan: av_image_check_size2: 827bc590 rldic r3,r31,3,29
+xenia_scan: av_image_check_size: 827bc698 rldic r3,r31,3,29
+xenia_scan: av_image_fill_arrays: 827bd550 rldic r3,r29,3,29
+xenia_scan: av_image_get_buffer_size: 827bd6c4 rldic r3,r30,3,29
+xenia_scan: multi_wait: 82843b84 mcrf cr1,cr0
+xenia_scan: multi_wait: 82843cbc mcrf cr1,cr0
+xenia_scan: Curl_conn_is_multiplex: 82880544 mcrf cr1,cr0
+xenia_scan: Curl_conn_http_version: 82880764 mcrf cr1,cr0
+xenia_scan: Curl_conn_cf_adjust_pollset: 828809bc mcrf cr1,cr0
+xenia_scan: Curl_conn_cf_adjust_pollset: 82880a0c mcrf cr1,cr0
+xenia_scan: Curl_conn_adjust_pollset: 82880b04 mcrf cr1,cr0
+xenia_scan: Curl_conn_adjust_pollset: 82880b54 mcrf cr1,cr0
+xenia_scan: Curl_conn_cf_poll: 82880c5c mcrf cr1,cr0
+xenia_scan: Curl_conn_cf_poll: 82880cac mcrf cr1,cr0
+xenia_scan: mbedtls_ssl_read_record: 828b6ef0 mcrf cr1,cr0
+xenia_scan: crypto_sha512_final: 828f60e4 rldic r7,r10,3,32
+xenia_scan: fe_frombytes_mask: 828fd410 rldic r5,r5,2,38
+xenia_scan: fe_frombytes_mask: 828fd488 rldic r12,r12,7,33
+xenia_scan: fe_frombytes_mask: 828fd4cc rldic r11,r11,5,35
+xenia_scan: fe_frombytes_mask: 828fd4d8 rldic r10,r10,6,34
+xenia_scan: fe_frombytes_mask: 828fd4f4 rldic r7,r28,5,35
+xenia_scan: fe_frombytes_mask: 828fd504 rldic r6,r6,4,36
+xenia_scan: fe_frombytes_mask: 828fd52c rldic r9,r9,2,38
+xenia_scan: fe_frombytes_mask: 828fd540 rldic r10,r10,3,37
+xenia_scan: mod_l: 828fe91c rldic r15,r9,28,32
+xenia_scan: redc: 829010e8 rldic r23,r8,28,32
+xenia_scan: mbedtls_gcm_starts: 829263bc rldic r10,r28,3,29
+xenia_scan: _ZNKSt7__cxx119money_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE9_M_insertILb1EEES4_S4_RSt8ios_basecRKNS_12basic_stringIcS3_SaIcEEE: 82989228 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7__cxx119money_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE9_M_insertILb0EEES4_S4_RSt8ios_basecRKNS_12basic_stringIcS3_SaIcEEE: 82989a88 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7__cxx119money_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE9_M_insertILb1EEES4_S4_RSt8ios_basewRKNS_12basic_stringIwS3_SaIwEEE: 829a3e28 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7__cxx119money_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE9_M_insertILb0EEES4_S4_RSt8ios_basewRKNS_12basic_stringIwS3_SaIwEEE: 829a46e0 rldic r9,r31,24,32
+xenia_scan: _ZNKSt8time_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE6do_putES3_RSt8ios_basecPK2tmcc: 829ae3e4 rldic r3,r30,24,32
+xenia_scan: _ZNKSt9money_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE9_M_insertILb1EEES3_S3_RSt8ios_basecRKSs: 829b4ef4 rldic r9,r31,24,32
+xenia_scan: _ZNKSt9money_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE9_M_insertILb0EEES3_S3_RSt8ios_basecRKSs: 829b5594 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE15_M_insert_floatIdEES3_S3_RSt8ios_baseccT_: 829b61fc rldic r3,r29,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE15_M_insert_floatIeEES3_S3_RSt8ios_baseccT_: 829b66bc rldic r3,r29,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE13_M_insert_intIlEES3_S3_RSt8ios_basecT_: 829b6b6c rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE6do_putES3_RSt8ios_basecb: 829b6ebc rldic r9,r25,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE6do_putES3_RSt8ios_basecb: 829b6f6c rldic r9,r25,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE13_M_insert_intImEES3_S3_RSt8ios_basecT_: 829b719c rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE13_M_insert_intIxEES3_S3_RSt8ios_basecT_: 829b759c rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIcSt19ostreambuf_iteratorIcSt11char_traitsIcEEE13_M_insert_intIyEES3_S3_RSt8ios_basecT_: 829b78d4 rldic r3,r28,24,32
+xenia_scan: _ZNKSt8time_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE6do_putES3_RSt8ios_basewPK2tmcc: 829cdb88 rldic r9,r29,24,32
+xenia_scan: _ZNKSt9money_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE9_M_insertILb1EEES3_S3_RSt8ios_basewRKSbIwS2_SaIwEE: 829d3ef0 rldic r9,r31,24,32
+xenia_scan: _ZNKSt9money_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE9_M_insertILb0EEES3_S3_RSt8ios_basewRKSbIwS2_SaIwEE: 829d46f8 rldic r9,r31,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE15_M_insert_floatIdEES3_S3_RSt8ios_basewcT_: 829d518c rldic r3,r26,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE15_M_insert_floatIeEES3_S3_RSt8ios_basewcT_: 829d55b4 rldic r3,r26,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE13_M_insert_intIlEES3_S3_RSt8ios_basewT_: 829d5a08 rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE6do_putES3_RSt8ios_basewb: 829d5db8 rldic r9,r25,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE13_M_insert_intImEES3_S3_RSt8ios_basewT_: 829d5fcc rldic r3,r27,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE13_M_insert_intIxEES3_S3_RSt8ios_basewT_: 829d63f0 rldic r3,r28,24,32
+xenia_scan: _ZNKSt7num_putIwSt19ostreambuf_iteratorIwSt11char_traitsIwEEE13_M_insert_intIyEES3_S3_RSt8ios_basewT_: 829d6734 rldic r3,r27,24,32
+xenia_scan: has_return_type: 829ea24c rldic r10,r10,51,58
+xenia_scan: d_source_name: 829ea510 rldic r6,r6,59,53
+xenia_scan: d_encoding: 829ee08c rldic r7,r7,51,58
+xenia_scan: d_encoding: 829ee0d0 rldic r7,r7,51,58
+xenia_scan: d_print_comp_inner: 829f11f8 rldic r8,r8,51,58
+xenia_scan: d_print_comp_inner: 829f3004 rldic r6,r6,51,58
+xenia_scan: d_print_mod_list.part.0: 829f5080 rldic r10,r10,51,58
+xenia_scan: d_print_mod_list.part.0: 829f5210 rldic r8,r8,51,58
+xenia_scan: d_demangle_callback.constprop.0: 829f59c0 rldic r9,r9,59,53
+xenia_scan: _ZNK10__cxxabiv121__vmi_class_type_info20__do_find_public_srcEiPKvPKNS_17__class_type_infoES2_: 829f70fc mcrf cr1,cr0
+xenia_scan: plan_values: 82a12cd4 rldic r9,r4,24,8
+xenia_scan: plan_values: 82a12ce4 rldic r10,r3,24,8
+xenia_scan: xsdk_xsc_integral_place: 82a5b1e0 rldic r31,r31,4,32
+xenia_scan: _dtoa_r: 82a8ce80 rldic r10,r9,32,1
+xenia_scan: 232 instructions Xenia skips; Xenia results through these functions are unreliable
+[100%] Built target tube360
+d949be6e243ee1d4a8d2781796a7450d8e744d1c9820b88162fed75e2223c544  build-x360/tube360.xex
+63f1e74a44983d3760897c49ad44fbd18a6e82e63127f43f632e7be24b61e724  build-x360/tube360-launcher.xex

@@ -17,10 +17,27 @@ clock_t times(struct tms *buf) {
 #include <xsdk/thread.h>
 #include <xsdk/log.h>
 #include <stdatomic.h>
+#ifdef __XSDK__
+#include <xsdk/audio.h>
+NTSTATUS __real_xsdk_audio_next_frame(uint32_t timeout_ms,float** frame);
+NTSTATUS __wrap_xsdk_audio_next_frame(uint32_t timeout_ms,float** frame) {
+    NTSTATUS result=__real_xsdk_audio_next_frame(timeout_ms,frame);
+    static int reported;
+    if (!reported) {
+        reported=1;
+        int scheduling=0;struct sched_param priority={0};
+        int query=pthread_getschedparam(pthread_self(),&scheduling,&priority);
+        xsdk_log_write("app-audio: HW %u effective_priority %d query_status %d",
+                       xsdk_thread_hardware_thread(),priority.sched_priority,query);
+    }
+    return result;
+}
+#endif
 
 // O wrapper só distribui as threads criadas por avcodec_open2 no decodificador.
 static atomic_uint owner;
 static unsigned worker;
+static int spread;
 static atomic_uint video_us, video_frames;
 void ffmpeg_video_work(unsigned us, int frame) {
     atomic_fetch_add(&video_us, us);
@@ -31,7 +48,7 @@ void ffmpeg_work_metrics(unsigned* us, unsigned* frames) {
     *frames = atomic_exchange(&video_frames, 0);
 }
 void ffmpeg_workers(int active) {
-    if (active) worker = 0;
+    if (active) { worker = 0; spread = active == 2; }
     atomic_store(&owner, active ? (unsigned)pthread_self() : 0);
 }
 int __real_pthread_create(pthread_t*, const pthread_attr_t*, void* (*)(void*), void*);
@@ -39,13 +56,20 @@ int __wrap_pthread_create(pthread_t* id, const pthread_attr_t* attr, void* (*fn)
     int result = __real_pthread_create(id, attr, fn, arg);
     unsigned parent = atomic_load(&owner);
     if (!result && parent && parent == (unsigned)pthread_self()) {
-        // Núcleo 0 (HW 0/1) reservado ao desenho, demux/AAC e SDL; H.264 nos núcleos 1 e 2.
+        // Fontes menores conservam dois núcleos; 1080p30 usa os seis HW medidos na F39.
         static const unsigned hw[] = {2, 4, 3, 5};
-        unsigned core = hw[worker++ % 4];
+        static const unsigned all_hw[] = {0, 2, 4, 1, 3, 5};
+        unsigned core = spread ? all_hw[worker++ % 6] : hw[worker++ % 4];
         NTSTATUS status = xsdk_thread_place(xsdk_pthread_handle(*id), core);
-        int scheduling = 0; struct sched_param priority = {0};
-        int query = pthread_getschedparam(*id, &scheduling, &priority);
-        xsdk_log_write("decod-worker: %u HW %u, afinidade %08x prioridade %d consulta %d",worker,core,(unsigned)status,query ? -999 : priority.sched_priority,query);
+        NTSTATUS priority = xsdk_thread_set_priority(xsdk_pthread_handle(*id),0,NULL);
+        xsdk_log_write("decod-worker: %u HW %u, afinidade %08x prioridade 0 status %08x spread %d",
+                       worker,core,(unsigned)status,(unsigned)priority,spread);
+#ifdef __XSDK__
+        int scheduling = 0; struct sched_param effective = {0};
+        int query = pthread_getschedparam(*id, &scheduling, &effective);
+        xsdk_log_write("decod-priority: %u effective %d query_status %d",
+                       worker,query ? -999 : effective.sched_priority,query);
+#endif
     }
     return result;
 }

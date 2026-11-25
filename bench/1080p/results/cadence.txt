@@ -1,0 +1,7 @@
+24.000 fps: 240 / 240 frames presented in 10 source seconds
+25.000 fps: 250 / 250 frames presented in 10 source seconds
+29.970 fps: 300 / 300 frames presented in 10 source seconds
+30.000 fps: 300 / 300 frames presented in 10 source seconds
+50.000 fps: 300 / 500 frames presented in 10 source seconds
+59.940 fps: 300 / 599 frames presented in 10 source seconds
+60.000 fps: 300 / 600 frames presented in 10 source seconds

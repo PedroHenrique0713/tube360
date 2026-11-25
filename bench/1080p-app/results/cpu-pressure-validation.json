@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "observed_ms": 170001,
+  "downshifts": 1,
+  "upshifts": 0,
+  "seek_preserved_rejected_rung": true,
+  "projected_after_cooldown_percent": 134.3,
+  "source_sha256": "22d05b5aa32ac7f3a4ffbc93a5897d6bc120d1e59e514e570838f2d906d49871",
+  "note": "Completed behavioral assertions on saved real-player run; outer command session ended 143 after printing PASS."
+}

@@ -6,8 +6,9 @@ import subprocess
 import sys
 
 forbidden = set("vmladduhm vmhaddshs vmhraddshs vmulesb vmulesh vmuleub vmuleuh vmulosb vmulosh vmuloub vmulouh vmsummbm vmsumshm vmsumshs vmsumubm vmsumuhm vmsumuhs".split())
-objdump, build = sys.argv[1:]
-for name in ("h264qpel", "h264dsp", "idctdsp"):
+objdump, build = sys.argv[1:3]
+names = sys.argv[3:] or ("h264qpel", "h264dsp", "idctdsp", "h264-tube360")
+for name in names:
     path = Path(build) / f"libavcodec/ppc/{name}.o"
     text = subprocess.check_output([objdump, "-d", path], text=True)
     opcodes = re.findall(r"^\s*[0-9a-f]+:\s+(?:[0-9a-f]{2}\s+){4}\s*([a-z0-9.]+)", text, re.M)

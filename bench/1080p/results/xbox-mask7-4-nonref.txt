@@ -1,0 +1,191 @@
+log: game:\f33-cpu.log
+log: named after \Device\Harddisk0\Partition1\Apps\Tube360-F33-CPU\f33-cpu.xex
+log: no net_log.txt beside the .xex, so not over the network
+F33 START schema=1 platform=xbox mask=7 threads=4 filter=nonref cpu_flags=1 ffmpeg=7.1.5 repeats=3
+F33 MEDIA youtube137=1
+F30 CLIP name=720p30-4000 packets=180 bytes=3237678 width=1280 height=720 fps=30 kbps=4000 level=31
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 AUDIT clip=720p30-4000 frames=180 pixels_equal=1 syntax_equal=1 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=720p30-4000 mode=full repeat=1 threads=4 frames=180 samples=138 mean_ms=18.602347 completion_p50_ms=5.978666 completion_p95_ms=66.850166 slice_p50_ms=71.573000 slice_p95_ms=80.941000 block30_p50_ms=18.966260 block30_p95_ms=19.486960 total_ms=3441.011 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=720p30-4000 mode=full repeat=1 threads=4 frames=180 samples=138 mean_ms=17.042276 completion_p50_ms=4.655599 completion_p95_ms=62.461534 slice_p50_ms=65.922000 slice_p95_ms=74.711000 block30_p50_ms=17.415253 block30_p95_ms=17.836476 total_ms=3154.424 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=720p30-4000 mode=full repeat=2 threads=4 frames=180 samples=138 mean_ms=17.026170 completion_p50_ms=4.489664 completion_p95_ms=62.436411 slice_p50_ms=65.771000 slice_p95_ms=73.590000 block30_p50_ms=17.387018 block30_p95_ms=17.867570 total_ms=3150.889 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=720p30-4000 mode=full repeat=2 threads=4 frames=180 samples=138 mean_ms=18.668642 completion_p50_ms=6.021394 completion_p95_ms=67.791438 slice_p50_ms=72.104000 slice_p95_ms=81.154000 block30_p50_ms=19.046904 block30_p95_ms=19.580551 total_ms=3454.577 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=720p30-4000 mode=full repeat=3 threads=4 frames=180 samples=138 mean_ms=18.728313 completion_p50_ms=5.922346 completion_p95_ms=67.782817 slice_p50_ms=72.042000 slice_p95_ms=81.540000 block30_p50_ms=19.110014 block30_p95_ms=19.627820 total_ms=3464.246 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=720p30-4000 mode=full repeat=3 threads=4 frames=180 samples=138 mean_ms=17.053409 completion_p50_ms=4.542637 completion_p95_ms=62.946807 slice_p50_ms=65.783000 slice_p95_ms=75.223000 block30_p50_ms=17.409825 block30_p95_ms=17.854199 total_ms=3156.467 PASS
+F30 CLIP name=1080p30-2500 packets=180 bytes=1985003 width=1920 height=1080 fps=30 kbps=2500 level=40
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 AUDIT clip=1080p30-2500 frames=180 pixels_equal=1 syntax_equal=1 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-2500 mode=full repeat=1 threads=4 frames=180 samples=138 mean_ms=33.648682 completion_p50_ms=4.796311 completion_p95_ms=123.177925 slice_p50_ms=130.240000 slice_p95_ms=143.796000 block30_p50_ms=34.698925 block30_p95_ms=35.039252 total_ms=6172.398 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-2500 mode=full repeat=1 threads=4 frames=180 samples=138 mean_ms=29.963217 completion_p50_ms=3.585063 completion_p95_ms=115.401664 slice_p50_ms=115.649000 slice_p95_ms=130.101000 block30_p50_ms=31.016933 block30_p95_ms=31.183803 total_ms=5496.074 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-2500 mode=full repeat=2 threads=4 frames=180 samples=138 mean_ms=29.924935 completion_p50_ms=3.248882 completion_p95_ms=115.445554 slice_p50_ms=115.581000 slice_p95_ms=129.056000 block30_p50_ms=31.038327 block30_p95_ms=31.172103 total_ms=5488.134 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-2500 mode=full repeat=2 threads=4 frames=180 samples=138 mean_ms=33.519849 completion_p50_ms=5.029233 completion_p95_ms=122.356211 slice_p50_ms=129.790000 slice_p95_ms=142.332000 block30_p50_ms=34.594892 block30_p95_ms=34.936581 total_ms=6145.474 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-2500 mode=full repeat=3 threads=4 frames=180 samples=138 mean_ms=33.637703 completion_p50_ms=5.050727 completion_p95_ms=122.205815 slice_p50_ms=130.117000 slice_p95_ms=143.751000 block30_p50_ms=34.702903 block30_p95_ms=35.086073 total_ms=6169.049 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-2500 mode=full repeat=3 threads=4 frames=180 samples=138 mean_ms=29.793661 completion_p50_ms=3.286777 completion_p95_ms=115.128962 slice_p50_ms=115.217000 slice_p95_ms=129.392000 block30_p50_ms=30.839071 block30_p95_ms=31.025696 total_ms=5465.267 PASS
+F30 CLIP name=1080p30-5500 packets=180 bytes=4388409 width=1920 height=1080 fps=30 kbps=5500 level=40
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 AUDIT clip=1080p30-5500 frames=180 pixels_equal=1 syntax_equal=1 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-5500 mode=full repeat=1 threads=4 frames=180 samples=138 mean_ms=37.539830 completion_p50_ms=7.244391 completion_p95_ms=137.683789 slice_p50_ms=145.005000 slice_p95_ms=165.256000 block30_p50_ms=38.697515 block30_p95_ms=39.047199 total_ms=6903.877 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-5500 mode=full repeat=1 threads=4 frames=180 samples=138 mean_ms=33.823960 completion_p50_ms=4.687098 completion_p95_ms=130.299890 slice_p50_ms=130.743000 slice_p95_ms=150.725000 block30_p50_ms=34.869774 block30_p95_ms=35.379193 total_ms=6228.495 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-5500 mode=full repeat=2 threads=4 frames=180 samples=138 mean_ms=33.835656 completion_p50_ms=4.302136 completion_p95_ms=130.575137 slice_p50_ms=130.811000 slice_p95_ms=150.826000 block30_p50_ms=34.838798 block30_p95_ms=35.400456 total_ms=6230.874 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-5500 mode=full repeat=2 threads=4 frames=180 samples=138 mean_ms=37.588321 completion_p50_ms=7.273845 completion_p95_ms=138.530466 slice_p50_ms=145.091000 slice_p95_ms=165.626000 block30_p50_ms=38.690143 block30_p95_ms=39.142125 total_ms=6911.571 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-5500 mode=full repeat=3 threads=4 frames=180 samples=138 mean_ms=37.628798 completion_p50_ms=7.179950 completion_p95_ms=139.234507 slice_p50_ms=145.466000 slice_p95_ms=165.884000 block30_p50_ms=38.786550 block30_p95_ms=39.149400 total_ms=6921.467 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=1080p30-5500 mode=full repeat=3 threads=4 frames=180 samples=138 mean_ms=33.766337 completion_p50_ms=4.344221 completion_p95_ms=128.954827 slice_p50_ms=130.593000 slice_p95_ms=150.197000 block30_p50_ms=34.786726 block30_p95_ms=35.329405 total_ms=6219.149 PASS
+F30 CLIP name=youtube137 packets=600 bytes=8851123 width=1920 height=1080 fps=30 kbps=3533 level=40
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 AUDIT clip=youtube137 frames=600 pixels_equal=1 syntax_equal=1 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=youtube137 mode=full repeat=1 threads=4 frames=600 samples=558 mean_ms=49.527434 completion_p50_ms=16.293594 completion_p95_ms=183.454917 slice_p50_ms=196.803000 slice_p95_ms=244.873000 block30_p50_ms=49.260423 block30_p95_ms=56.789323 total_ms=30134.133 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=youtube137 mode=full repeat=1 threads=4 frames=600 samples=558 mean_ms=40.735288 completion_p50_ms=17.946527 completion_p95_ms=140.393284 slice_p50_ms=161.375000 slice_p95_ms=207.377000 block30_p50_ms=40.559705 block30_p95_ms=46.063172 total_ms=24907.147 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=youtube137 mode=full repeat=2 threads=4 frames=600 samples=558 mean_ms=41.112438 completion_p50_ms=17.801945 completion_p95_ms=139.969884 slice_p50_ms=162.941000 slice_p95_ms=209.374000 block30_p50_ms=40.979054 block30_p95_ms=46.422017 total_ms=25137.328 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=youtube137 mode=full repeat=2 threads=4 frames=600 samples=558 mean_ms=49.603235 completion_p50_ms=16.501594 completion_p95_ms=184.297624 slice_p50_ms=197.061000 slice_p95_ms=245.245000 block30_p50_ms=49.282366 block30_p95_ms=56.844295 total_ms=30181.889 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=baseline mask=0 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=youtube137 mode=full repeat=3 threads=4 frames=600 samples=558 mean_ms=49.600653 completion_p50_ms=16.095298 completion_p95_ms=184.071759 slice_p50_ms=197.305000 slice_p95_ms=244.462000 block30_p50_ms=49.331169 block30_p95_ms=56.865222 total_ms=30179.254 PASS
+decod-worker: 1 HW 2, afinidade 00000000
+decod-worker: 2 HW 4, afinidade 00000000
+decod-worker: 3 HW 3, afinidade 00000000
+decod-worker: 4 HW 5, afinidade 00000000
+F33 CASE role=candidate mask=7 threads=4 filter=nonref
+F30 RESULT platform=xbox clip=youtube137 mode=full repeat=3 threads=4 frames=600 samples=558 mean_ms=40.666012 completion_p50_ms=19.746927 completion_p95_ms=136.576441 slice_p50_ms=160.990000 slice_p95_ms=207.007000 block30_p50_ms=40.418290 block30_p95_ms=46.104535 total_ms=24868.550 PASS
+F33 DONE PASS audits=4 results=24
+exit: status 0

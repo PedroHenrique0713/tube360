@@ -1,0 +1,888 @@
+/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/ffmpeg-7.1.5.tar.xz: OK
+install prefix            /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/ffmpeg-xbox
+source path               src
+C compiler                /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc
+C library                 newlib
+host C compiler           gcc
+host C library            glibc
+ARCH                      ppc (generic)
+big-endian                yes
+runtime cpu detection     yes
+AltiVec enabled           yes
+VSX enabled               no
+POWER8 enabled            no
+PPC 4xx optimizations     no
+dcbzl available           yes
+vec_xl available          no
+debug symbols             no
+strip symbols             yes
+optimize for size         no
+optimizations             yes
+static                    yes
+shared                    no
+postprocessing support    no
+network support           no
+threading support         pthreads
+safe bitstream reader     yes
+texi2html enabled         no
+perl enabled              yes
+pod2man enabled           yes
+makeinfo enabled          no
+makeinfo supports HTML    no
+xmllint enabled           yes
+
+External libraries:
+
+External libraries providing hardware acceleration:
+
+Libraries:
+avcodec                 avutil
+avformat                swresample
+
+Programs:
+
+Enabled decoders:
+aac                     h264                    opus
+
+Enabled encoders:
+
+Enabled hwaccels:
+
+Enabled parsers:
+aac                     h264
+ac3                     opus
+
+Enabled demuxers:
+aac                     hls                     mpegts
+ac3                     matroska
+eac3                    mov
+
+Enabled muxers:
+
+Enabled protocols:
+file
+
+Enabled filters:
+
+Enabled bsfs:
+
+Enabled indevs:
+
+Enabled outdevs:
+
+License: LGPL version 2.1 or later
+
+WARNING: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
+GEN	libavformat/libavformat.version
+GEN	libavcodec/libavcodec.version
+GEN	libavutil/libavutil.version
+GEN	libswresample/libswresample.version
+CC	libavformat/aacdec.o
+CC	libavformat/ac3dec.o
+INSTALL	src/doc/examples/avio_http_serve_files.c
+INSTALL	src/doc/examples/avio_list_dir.c
+INSTALL	src/doc/examples/avio_read_callback.c
+INSTALL	src/doc/examples/decode_audio.c
+INSTALL	src/doc/examples/decode_filter_audio.c
+INSTALL	src/doc/examples/decode_filter_video.c
+INSTALL	src/doc/examples/decode_video.c
+INSTALL	src/doc/examples/demux_decode.c
+INSTALL	src/doc/examples/encode_audio.c
+INSTALL	src/doc/examples/encode_video.c
+INSTALL	src/doc/examples/extract_mvs.c
+INSTALL	src/doc/examples/filter_audio.c
+INSTALL	src/doc/examples/hw_decode.c
+INSTALL	src/doc/examples/mux.c
+INSTALL	src/doc/examples/qsv_decode.c
+INSTALL	src/doc/examples/qsv_transcode.c
+INSTALL	src/doc/examples/remux.c
+INSTALL	src/doc/examples/resample_audio.c
+INSTALL	src/doc/examples/scale_video.c
+INSTALL	src/doc/examples/show_metadata.c
+INSTALL	src/doc/examples/transcode.c
+INSTALL	src/doc/examples/transcode_aac.c
+INSTALL	src/doc/examples/vaapi_encode.c
+INSTALL	src/doc/examples/vaapi_transcode.c
+INSTALL	src/doc/examples/README
+INSTALL	src/doc/examples/Makefile
+INSTALL	src/doc/examples/avio_http_serve_files.c
+INSTALL	src/doc/examples/avio_list_dir.c
+INSTALL	src/doc/examples/avio_read_callback.c
+INSTALL	src/doc/examples/decode_audio.c
+INSTALL	src/doc/examples/decode_filter_audio.c
+INSTALL	src/doc/examples/decode_filter_video.c
+INSTALL	src/doc/examples/decode_video.c
+INSTALL	src/doc/examples/demux_decode.c
+INSTALL	src/doc/examples/encode_audio.c
+INSTALL	src/doc/examples/encode_video.c
+INSTALL	src/doc/examples/extract_mvs.c
+INSTALL	src/doc/examples/filter_audio.c
+INSTALL	src/doc/examples/hw_decode.c
+INSTALL	src/doc/examples/mux.c
+INSTALL	src/doc/examples/qsv_decode.c
+INSTALL	src/doc/examples/qsv_transcode.c
+INSTALL	src/doc/examples/remux.c
+INSTALL	src/doc/examples/resample_audio.c
+INSTALL	src/doc/examples/scale_video.c
+INSTALL	src/doc/examples/show_metadata.c
+INSTALL	src/doc/examples/transcode.c
+INSTALL	src/doc/examples/transcode_aac.c
+INSTALL	src/doc/examples/vaapi_encode.c
+INSTALL	src/doc/examples/vaapi_transcode.c
+INSTALL	src/doc/examples/README
+INSTALL	src/doc/examples/Makefile
+CC	libavformat/allformats.o
+CC	libavformat/apetag.o
+CC	libavformat/avformat.o
+CC	libavformat/avio.o
+CC	libavformat/aviobuf.o
+CC	libavformat/demux.o
+src/libavformat/demux.c: In function 'read_frame_internal':
+src/libavformat/demux.c:1389:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+ 1389 |         int new_extradata = !!av_packet_side_data_get(pkt->side_data, pkt->side_data_elems,
+      |         ^~~
+CC	libavformat/demux_utils.o
+CC	libavformat/dovi_isom.o
+CC	libavformat/dump.o
+CC	libavformat/dv.o
+CC	libavformat/file.o
+CC	libavformat/flac_picture.o
+CC	libavformat/format.o
+CC	libavformat/hls.o
+CC	libavformat/hls_sample_encryption.o
+CC	libavformat/iamf.o
+CC	libavformat/iamf_parse.o
+CC	libavformat/iamf_reader.o
+CC	libavformat/id3v1.o
+CC	libavformat/id3v2.o
+CC	libavformat/img2.o
+CC	libavformat/isom.o
+CC	libavformat/isom_tags.o
+CC	libavformat/matroska.o
+CC	libavformat/matroskadec.o
+CC	libavformat/metadata.o
+CC	libavformat/mov.o
+CC	libavformat/mov_chan.o
+src/libavformat/mov.c: In function 'mov_read_trak':
+src/libavformat/mov.c:5174:11: warning: statement will never be executed [-Wswitch-unreachable]
+ 5174 |         st->codecpar->width = 0; /* let decoder init width/height */
+      |         ~~^~~~~~~~~~
+CC	libavformat/mov_esds.o
+CC	libavformat/mpegts.o
+CC	libavformat/mux.o
+CC	libavformat/mux_utils.o
+CC	libavformat/oggparsevorbis.o
+CC	libavformat/options.o
+CC	libavformat/os_support.o
+CC	libavformat/protocols.o
+CC	libavformat/qtpalette.o
+CC	libavformat/rawdec.o
+src/libavformat/rawdec.c:106:12: warning: 'raw_data_read_header' defined but not used [-Wunused-function]
+  106 | static int raw_data_read_header(AVFormatContext *s)
+      |            ^~~~~~~~~~~~~~~~~~~~
+CC	libavformat/replaygain.o
+CC	libavformat/riff.o
+CC	libavformat/riffdec.o
+CC	libavformat/rmsipr.o
+CC	libavformat/sdp.o
+CC	libavformat/seek.o
+CC	libavformat/url.o
+CC	libavformat/utils.o
+CC	libavformat/version.o
+CC	libavformat/vorbiscomment.o
+src/libavformat/vorbiscomment.c: In function 'ff_vorbiscomment_write':
+src/libavformat/vorbiscomment.c:103:63: warning: '%03d' directive output may be truncated writing between 3 and 10 bytes into a region of size 4 [-Wformat-truncation=]
+  103 |             snprintf(chapter_number, sizeof(chapter_number), "%03d", i);
+      |                                                               ^~~~
+src/libavformat/vorbiscomment.c:103:62: note: directive argument in the range [0, 1073741822]
+  103 |             snprintf(chapter_number, sizeof(chapter_number), "%03d", i);
+      |                                                              ^~~~~~
+src/libavformat/vorbiscomment.c:103:13: note: 'snprintf' output between 4 and 11 bytes into a destination of size 4
+  103 |             snprintf(chapter_number, sizeof(chapter_number), "%03d", i);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavformat/vorbiscomment.c:104:69: warning: '%02d' directive output may be truncated writing between 2 and 3 bytes into a region of size between 1 and 7 [-Wformat-truncation=]
+  104 |             snprintf(chapter_time, sizeof(chapter_time), "%02d:%02d:%02d.%03d", h, m, s, ms);
+      |                                                                     ^~~~
+src/libavformat/vorbiscomment.c:104:58: note: directive argument in the range [-59, 59]
+  104 |             snprintf(chapter_time, sizeof(chapter_time), "%02d:%02d:%02d.%03d", h, m, s, ms);
+      |                                                          ^~~~~~~~~~~~~~~~~~~~~
+src/libavformat/vorbiscomment.c:104:58: note: directive argument in the range [-999, 999]
+src/libavformat/vorbiscomment.c:104:13: note: 'snprintf' output between 13 and 21 bytes into a destination of size 13
+  104 |             snprintf(chapter_time, sizeof(chapter_time), "%02d:%02d:%02d.%03d", h, m, s, ms);
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CC	libavcodec/mpegaudiotabs.o
+CC	libavcodec/to_upper4.o
+CC	libswresample/audioconvert.o
+CC	libswresample/dither.o
+CC	libswresample/options.o
+CC	libswresample/rematrix.o
+CC	libswresample/resample.o
+CC	libswresample/resample_dsp.o
+CC	libswresample/swresample.o
+CC	libswresample/swresample_frame.o
+CC	libswresample/version.o
+INSTALL	src/libavformat/avformat.h
+INSTALL	src/libavformat/avio.h
+INSTALL	src/libavformat/version.h
+INSTALL	src/libavformat/version_major.h
+GEN	libavformat/libavformat.pc
+INSTALL	src/libavcodec/ac3_parser.h
+INSTALL	src/libavcodec/adts_parser.h
+INSTALL	src/libavcodec/avcodec.h
+INSTALL	src/libavcodec/avdct.h
+INSTALL	src/libavcodec/avfft.h
+INSTALL	src/libavcodec/bsf.h
+INSTALL	src/libavcodec/codec.h
+INSTALL	src/libavcodec/codec_desc.h
+INSTALL	src/libavcodec/codec_id.h
+INSTALL	src/libavcodec/codec_par.h
+INSTALL	src/libavcodec/d3d11va.h
+INSTALL	src/libavcodec/defs.h
+INSTALL	src/libavcodec/dirac.h
+INSTALL	src/libavcodec/dv_profile.h
+INSTALL	src/libavcodec/dxva2.h
+INSTALL	src/libavcodec/jni.h
+INSTALL	src/libavcodec/mediacodec.h
+INSTALL	src/libavcodec/packet.h
+INSTALL	src/libavcodec/qsv.h
+INSTALL	src/libavcodec/vdpau.h
+INSTALL	src/libavcodec/version.h
+INSTALL	src/libavcodec/version_major.h
+INSTALL	src/libavcodec/videotoolbox.h
+INSTALL	src/libavcodec/vorbis_parser.h
+GEN	libavcodec/libavcodec.pc
+INSTALL	src/libswresample/swresample.h
+INSTALL	src/libswresample/version.h
+INSTALL	src/libswresample/version_major.h
+GEN	libswresample/libswresample.pc
+INSTALL	src/libavutil/adler32.h
+INSTALL	src/libavutil/aes.h
+INSTALL	src/libavutil/aes_ctr.h
+INSTALL	src/libavutil/ambient_viewing_environment.h
+INSTALL	src/libavutil/attributes.h
+INSTALL	src/libavutil/audio_fifo.h
+INSTALL	src/libavutil/avassert.h
+INSTALL	src/libavutil/avstring.h
+INSTALL	src/libavutil/avutil.h
+INSTALL	src/libavutil/base64.h
+INSTALL	src/libavutil/blowfish.h
+INSTALL	src/libavutil/bprint.h
+INSTALL	src/libavutil/bswap.h
+INSTALL	src/libavutil/buffer.h
+INSTALL	src/libavutil/cast5.h
+INSTALL	src/libavutil/camellia.h
+INSTALL	src/libavutil/channel_layout.h
+INSTALL	src/libavutil/common.h
+INSTALL	src/libavutil/cpu.h
+INSTALL	src/libavutil/crc.h
+INSTALL	src/libavutil/csp.h
+INSTALL	src/libavutil/des.h
+INSTALL	src/libavutil/detection_bbox.h
+INSTALL	src/libavutil/dict.h
+INSTALL	src/libavutil/display.h
+INSTALL	src/libavutil/dovi_meta.h
+INSTALL	src/libavutil/downmix_info.h
+INSTALL	src/libavutil/encryption_info.h
+INSTALL	src/libavutil/error.h
+INSTALL	src/libavutil/eval.h
+INSTALL	src/libavutil/executor.h
+INSTALL	src/libavutil/fifo.h
+INSTALL	src/libavutil/file.h
+INSTALL	src/libavutil/frame.h
+INSTALL	src/libavutil/hash.h
+INSTALL	src/libavutil/hdr_dynamic_metadata.h
+INSTALL	src/libavutil/hdr_dynamic_vivid_metadata.h
+INSTALL	src/libavutil/hmac.h
+INSTALL	src/libavutil/hwcontext.h
+INSTALL	src/libavutil/hwcontext_cuda.h
+INSTALL	src/libavutil/hwcontext_d3d11va.h
+INSTALL	src/libavutil/hwcontext_d3d12va.h
+INSTALL	src/libavutil/hwcontext_drm.h
+INSTALL	src/libavutil/hwcontext_dxva2.h
+INSTALL	src/libavutil/hwcontext_qsv.h
+INSTALL	src/libavutil/hwcontext_mediacodec.h
+INSTALL	src/libavutil/hwcontext_opencl.h
+INSTALL	src/libavutil/hwcontext_vaapi.h
+INSTALL	src/libavutil/hwcontext_videotoolbox.h
+INSTALL	src/libavutil/hwcontext_vdpau.h
+INSTALL	src/libavutil/hwcontext_vulkan.h
+INSTALL	src/libavutil/iamf.h
+INSTALL	src/libavutil/imgutils.h
+INSTALL	src/libavutil/intfloat.h
+INSTALL	src/libavutil/intreadwrite.h
+INSTALL	src/libavutil/lfg.h
+INSTALL	src/libavutil/log.h
+INSTALL	src/libavutil/lzo.h
+INSTALL	src/libavutil/macros.h
+INSTALL	src/libavutil/mathematics.h
+INSTALL	src/libavutil/mastering_display_metadata.h
+INSTALL	src/libavutil/md5.h
+INSTALL	src/libavutil/mem.h
+INSTALL	src/libavutil/motion_vector.h
+INSTALL	src/libavutil/murmur3.h
+INSTALL	src/libavutil/opt.h
+INSTALL	src/libavutil/parseutils.h
+INSTALL	src/libavutil/pixdesc.h
+INSTALL	src/libavutil/pixelutils.h
+INSTALL	src/libavutil/pixfmt.h
+INSTALL	src/libavutil/random_seed.h
+INSTALL	src/libavutil/rc4.h
+INSTALL	src/libavutil/rational.h
+INSTALL	src/libavutil/replaygain.h
+INSTALL	src/libavutil/ripemd.h
+INSTALL	src/libavutil/samplefmt.h
+INSTALL	src/libavutil/sha.h
+INSTALL	src/libavutil/sha512.h
+INSTALL	src/libavutil/spherical.h
+INSTALL	src/libavutil/stereo3d.h
+INSTALL	src/libavutil/threadmessage.h
+INSTALL	src/libavutil/time.h
+INSTALL	src/libavutil/timecode.h
+INSTALL	src/libavutil/timestamp.h
+INSTALL	src/libavutil/tree.h
+INSTALL	src/libavutil/twofish.h
+INSTALL	src/libavutil/uuid.h
+INSTALL	src/libavutil/version.h
+INSTALL	src/libavutil/video_enc_params.h
+INSTALL	src/libavutil/xtea.h
+INSTALL	src/libavutil/tea.h
+INSTALL	src/libavutil/tx.h
+INSTALL	src/libavutil/film_grain_params.h
+INSTALL	src/libavutil/video_hint.h
+INSTALL	libavutil/avconfig.h
+INSTALL	libavutil/ffversion.h
+GEN	libavutil/libavutil.pc
+AR	libavformat/libavformat.a
+CC	libavcodec/aac/aacdec.o
+CC	libavcodec/aac/aacdec_ac.o
+src/libavcodec/aac/aacdec.c: In function 'decode_close':
+src/libavcodec/aac/aacdec.c:1138:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+ 1138 |         AACUSACConfig *usac = &oc->usac;
+      |         ^~~~~~~~~~~~~
+CC	libavcodec/aac/aacdec_float.o
+CC	libavcodec/aac/aacdec_lpd.o
+CC	libavcodec/aac/aacdec_tab.o
+CC	libavcodec/aac/aacdec_usac.o
+src/libavcodec/aac/aacdec_usac.c: In function 'decode_usac_element_pair':
+src/libavcodec/aac/aacdec_usac.c:218:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  218 |         int numBands = ((int[]){0,28,20,14,10,7,5,4})[e->mps.freq_res]; // ISO/IEC 23003-1:2007, 5.2, Table 39
+      |         ^~~
+src/libavcodec/aac/aacdec_usac.c:226:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  226 |         int otts_bands_phase = ((int[]){0,10,10,7,5,3,2,2})[e->mps.freq_res]; // Table 109 — Default value of bsOttBandsPhase
+      |         ^~~
+CC	libavcodec/aac_ac3_parser.o
+src/libavcodec/aac_ac3_parser.c: In function 'ff_aac_ac3_parse':
+src/libavcodec/aac_ac3_parser.c:151:17: warning: unused variable 'profile' [-Wunused-variable]
+  151 |             int profile;
+      |                 ^~~~~~~
+CC	libavcodec/aac_parser.o
+CC	libavcodec/aacps_common.o
+CC	libavcodec/aacps_float.o
+CC	libavcodec/aacpsdsp_float.o
+CC	libavcodec/aacsbr.o
+CC	libavcodec/aactab.o
+CC	libavcodec/ac3_channel_layout_tab.o
+CC	libavcodec/ac3_parser.o
+CC	libavcodec/ac3tab.o
+CC	libavcodec/adts_header.o
+CC	libavcodec/adts_parser.o
+CC	libavcodec/allcodecs.o
+CC	libavcodec/aom_film_grain.o
+CC	libavcodec/atsc_a53.o
+CC	libavcodec/avcodec.o
+CC	libavcodec/avdct.o
+CC	libavcodec/avfft.o
+CC	libavcodec/bitstream.o
+CC	libavcodec/bitstream_filters.o
+CC	libavcodec/bsf.o
+CC	libavcodec/cabac.o
+CC	libavcodec/cbrt_data.o
+CC	libavcodec/codec_desc.o
+CC	libavcodec/codec_par.o
+CC	libavcodec/d3d11va.o
+CC	libavcodec/decode.o
+CC	libavcodec/dirac.o
+CC	libavcodec/dv_profile.o
+CC	libavcodec/encode.o
+CC	libavcodec/error_resilience.o
+CC	libavcodec/faandct.o
+CC	libavcodec/faanidct.o
+CC	libavcodec/fdctdsp.o
+CC	libavcodec/get_buffer.o
+CC	libavcodec/golomb.o
+CC	libavcodec/h2645_parse.o
+CC	libavcodec/h2645_sei.o
+CC	libavcodec/h2645_vui.o
+CC	libavcodec/h2645data.o
+CC	libavcodec/h264_cabac.o
+CC	libavcodec/h264_cavlc.o
+CC	libavcodec/h264_direct.o
+CC	libavcodec/h264_loopfilter.o
+src/libavcodec/h264_cabac.c: In function 'ff_h264_decode_mb_cabac':
+src/libavcodec/h264_cabac.c:2157:99: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+In file included from src/libavcodec/h264dec.h:32,
+                 from src/libavcodec/h264_cabac.c:37:
+src/libavcodec/h264dec.h:302:33: note: at offset 103 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 102 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2156:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2156 |                     sl->ref_cache[list][scan8[4 * i] + 1] =
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 95 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:99: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 117 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 116 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2156:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2156 |                     sl->ref_cache[list][scan8[4 * i] + 1] =
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 109 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:99: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 119 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2157:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 118 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+src/libavcodec/h264_cabac.c:2156:59: warning: writing 1 byte into a region of size 0 [-Wstringop-overflow=]
+ 2156 |                     sl->ref_cache[list][scan8[4 * i] + 1] =
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+ 2157 |                     sl->ref_cache[list][scan8[4 * i] + 8] = sl->ref_cache[list][scan8[4 * i] + 9] = ref[list][i];
+      |                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:33: note: at offset 111 into destination object 'ref_cache' of size 80
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |                                 ^~~~~~~~~
+src/libavutil/mem_internal.h:85:73: note: in definition of macro 'DECLARE_ALIGNED_T'
+   85 |     #define DECLARE_ALIGNED_T(n,t,v)    t __attribute__ ((aligned (n))) v
+      |                                                                         ^
+src/libavutil/mem_internal.h:113:34: note: in expansion of macro 'DECLARE_ALIGNED_8'
+  113 | #define DECLARE_ALIGNED_V(n,t,v) DECLARE_ALIGNED_##n(t,v)
+      |                                  ^~~~~~~~~~~~~~~~
+src/libavutil/mem_internal.h:109:32: note: in expansion of macro 'DECLARE_ALIGNED_V'
+  109 | #define DECLARE_ALIGNED(n,t,v) DECLARE_ALIGNED_V(n,t,v)
+      |                                ^~~~~~~~~~~~~~~~~
+src/libavcodec/h264dec.h:302:5: note: in expansion of macro 'DECLARE_ALIGNED'
+  302 |     DECLARE_ALIGNED(8,  int8_t, ref_cache)[2][5 * 8];
+      |     ^~~~~~~~~~~~~~~
+CC	libavcodec/h264_mb.o
+CC	libavcodec/h264_parse.o
+CC	libavcodec/h264_parser.o
+CC	libavcodec/h264_picture.o
+src/libavcodec/h264_parser.c: In function 'scan_mmco_reset':
+src/libavcodec/h264_parser.c:229:13: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  229 |             MMCOOpcode opcode = get_ue_golomb_31(gb);
+      |             ^~~~~~~~~~
+CC	libavcodec/h264_ps.o
+CC	libavcodec/h264_refs.o
+CC	libavcodec/h264_sei.o
+CC	libavcodec/h264_slice.o
+CC	libavcodec/h264chroma.o
+CC	libavcodec/h264data.o
+CC	libavcodec/h264dec.o
+CC	libavcodec/h264dsp.o
+CC	libavcodec/h264idct.o
+CC	libavcodec/h264pred.o
+CC	libavcodec/h264qpel.o
+CC	libavcodec/h274.o
+CC	libavcodec/idctdsp.o
+CC	libavcodec/imgconvert.o
+CC	libavcodec/jfdctfst.o
+CC	libavcodec/jfdctint.o
+CC	libavcodec/jni.o
+CC	libavcodec/jrevdct.o
+src/libavcodec/jrevdct.c:215:28: warning: argument 1 of type 'int16_t[64]' {aka 'short int[64]'} with mismatched bound [-Warray-parameter=]
+  215 | void ff_j_rev_dct(DCTBLOCK data)
+      |                   ~~~~~~~~~^~~~
+In file included from src/libavcodec/jrevdct.c:70:
+src/libavcodec/dct.h:30:28: note: previously declared as 'int16_t *' {aka 'short int *'}
+   30 | void ff_j_rev_dct(int16_t *data);
+      |                   ~~~~~~~~~^~~~
+src/libavcodec/jrevdct.c:953:29: warning: argument 1 of type 'int16_t[64]' {aka 'short int[64]'} with mismatched bound [-Warray-parameter=]
+  953 | void ff_j_rev_dct4(DCTBLOCK data)
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/dct.h:31:29: note: previously declared as 'int16_t *' {aka 'short int *'}
+   31 | void ff_j_rev_dct4(int16_t *data);
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/jrevdct.c:1140:29: warning: argument 1 of type 'int16_t[64]' {aka 'short int[64]'} with mismatched bound [-Warray-parameter=]
+ 1140 | void ff_j_rev_dct2(DCTBLOCK data){
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/dct.h:32:29: note: previously declared as 'int16_t *' {aka 'short int *'}
+   32 | void ff_j_rev_dct2(int16_t *data);
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/jrevdct.c:1155:29: warning: argument 1 of type 'int16_t[64]' {aka 'short int[64]'} with mismatched bound [-Warray-parameter=]
+ 1155 | void ff_j_rev_dct1(DCTBLOCK data){
+      |                    ~~~~~~~~~^~~~
+src/libavcodec/dct.h:33:29: note: previously declared as 'int16_t *' {aka 'short int *'}
+   33 | void ff_j_rev_dct1(int16_t *data);
+      |                    ~~~~~~~~~^~~~
+CC	libavcodec/kbdwin.o
+CC	libavcodec/mathtables.o
+CC	libavcodec/me_cmp.o
+CC	libavcodec/mediacodec.o
+CC	libavcodec/mpeg12framerate.o
+CC	libavcodec/mpeg4audio.o
+CC	libavcodec/mpeg4audio_sample_rates.o
+CC	libavcodec/options.o
+CC	libavcodec/opus/celt.o
+CC	libavcodec/opus/dec.o
+CC	libavcodec/opus/dec_celt.o
+CC	libavcodec/opus/dsp.o
+CC	libavcodec/opus/parse.o
+CC	libavcodec/opus/parser.o
+CC	libavcodec/opus/pvq.o
+CC	libavcodec/opus/rc.o
+CC	libavcodec/opus/silk.o
+CC	libavcodec/opus/tab.o
+CC	libavcodec/packet.o
+CC	libavcodec/parser.o
+CC	libavcodec/parsers.o
+CC	libavcodec/ppc/fdctdsp.o
+CC	libavcodec/ppc/h264-tube360.o
+In file included from src/libavcodec/ppc/h264-tube360.c:9:
+src/libavcodec/ppc/h264-vmx128.h: In function 'tube_diagonal':
+src/libavcodec/ppc/h264-vmx128.h:78:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   78 |     tube_s16 v = vec_packs(hi, lo);
+      |     ^~~~~~~~
+src/libavcodec/ppc/h264-vmx128.h: In function 'tube_chroma':
+src/libavcodec/ppc/h264-vmx128.h:143:13: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  143 |             tube_s16 sum = vec_sl(top, vec_splat_u16(3));
+      |             ^~~~~~~~
+src/libavcodec/ppc/h264-vmx128.h:151:9: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  151 |         tube_u8 v = vec_packsu(r,r);
+      |         ^~~~~~~
+src/libavcodec/ppc/h264-vmx128.h: In function 'tube_weight_result':
+src/libavcodec/ppc/h264-vmx128.h:182:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  182 |     tube_s16 v = vec_packs(hi,lo);
+      |     ^~~~~~~~
+src/libavcodec/ppc/h264-tube360.c: At top level:
+src/libavcodec/ppc/h264-tube360.c:13:6: error: no previous prototype for 'ff_tube360_set_vmx' [-Werror=missing-prototypes]
+   13 | void ff_tube360_set_vmx(unsigned mask) { tube_vmx_mask = mask & 7; }
+      |      ^~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264-tube360.c:15:6: error: no previous prototype for 'ff_tube360_chroma_init' [-Werror=missing-prototypes]
+   15 | void ff_tube360_chroma_init(H264ChromaContext *c, int depth)
+      |      ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264-tube360.c: In function 'ff_tube360_chroma_init':
+src/libavcodec/ppc/h264-tube360.c:18:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   18 |     h264_chroma_mc_func put[] = {tube_put_c8,tube_put_c4,tube_put_c2};
+      |     ^~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264-tube360.c: At top level:
+src/libavcodec/ppc/h264-tube360.c:25:6: error: no previous prototype for 'ff_tube360_qpel_init' [-Werror=missing-prototypes]
+   25 | void ff_tube360_qpel_init(H264QpelContext *c, int depth)
+      |      ^~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264-tube360.c: In function 'ff_tube360_qpel_init':
+src/libavcodec/ppc/h264-tube360.c:28:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   28 |     const qpel_mc_func put[3][16] = {TUBE_QTABLE(put,8),TUBE_QTABLE(put,4),TUBE_QTABLE(put,2)};
+      |     ^~~~~
+src/libavcodec/ppc/h264-tube360.c: At top level:
+src/libavcodec/ppc/h264-tube360.c:36:6: error: no previous prototype for 'ff_tube360_weight_init' [-Werror=missing-prototypes]
+   36 | void ff_tube360_weight_init(H264DSPContext *c, int depth)
+      |      ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264-tube360.c: In function 'ff_tube360_weight_init':
+src/libavcodec/ppc/h264-tube360.c:39:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   39 |     h264_weight_func w[] = {tube_w16,tube_w8,tube_w4,tube_w2};
+      |     ^~~~~~~~~~~~~~~~
+CC	libavcodec/ppc/h264chroma_init.o
+CC	libavcodec/ppc/h264dsp.o
+src/libavcodec/ppc/h264dsp.c: In function 'h264_idct8_add_altivec':
+src/libavcodec/ppc/h264dsp.c:229:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  229 |     const vec_u16 onev = vec_splat_u16(1);
+      |     ^~~~~
+src/libavcodec/ppc/h264dsp.c:256:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  256 |     ALTIVEC_STORE_SUM_CLIP(&dst[0*stride], idct0, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:257:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  257 |     ALTIVEC_STORE_SUM_CLIP(&dst[1*stride], idct1, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:258:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  258 |     ALTIVEC_STORE_SUM_CLIP(&dst[2*stride], idct2, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:259:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  259 |     ALTIVEC_STORE_SUM_CLIP(&dst[3*stride], idct3, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:260:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  260 |     ALTIVEC_STORE_SUM_CLIP(&dst[4*stride], idct4, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:261:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  261 |     ALTIVEC_STORE_SUM_CLIP(&dst[5*stride], idct5, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:262:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  262 |     ALTIVEC_STORE_SUM_CLIP(&dst[6*stride], idct6, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:263:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  263 |     ALTIVEC_STORE_SUM_CLIP(&dst[7*stride], idct7, perm_ldv, perm_stv, sel);
+      |     ^~~~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c: At top level:
+src/libavcodec/ppc/h264dsp.c:780:13: warning: 'biweight_h264_pixels8_altivec' defined but not used [-Wunused-function]
+  780 | static void biweight_h264_pixels ## W ## _altivec(uint8_t *dst, uint8_t *src, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:787:1: note: in expansion of macro 'H264_WEIGHT'
+  787 | H264_WEIGHT( 8)
+      | ^~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:775:13: warning: 'weight_h264_pixels8_altivec' defined but not used [-Wunused-function]
+  775 | static void weight_h264_pixels ## W ## _altivec(uint8_t *block, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:787:1: note: in expansion of macro 'H264_WEIGHT'
+  787 | H264_WEIGHT( 8)
+      | ^~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:780:13: warning: 'biweight_h264_pixels16_altivec' defined but not used [-Wunused-function]
+  780 | static void biweight_h264_pixels ## W ## _altivec(uint8_t *dst, uint8_t *src, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:786:1: note: in expansion of macro 'H264_WEIGHT'
+  786 | H264_WEIGHT(16)
+      | ^~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:775:13: warning: 'weight_h264_pixels16_altivec' defined but not used [-Wunused-function]
+  775 | static void weight_h264_pixels ## W ## _altivec(uint8_t *block, ptrdiff_t stride, int height, \
+      |             ^~~~~~~~~~~~~~~~~~
+src/libavcodec/ppc/h264dsp.c:786:1: note: in expansion of macro 'H264_WEIGHT'
+  786 | H264_WEIGHT(16)
+      | ^~~~~~~~~~~
+CC	libavcodec/ppc/h264qpel.o
+src/libavcodec/ppc/h264qpel.c: In function 'tube360_mul_e':
+src/libavcodec/ppc/h264qpel.c:43:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   43 |     vec_s32 five = vec_add(vec_sl(words, vec_splat_u32(2)), words);
+      |     ^~~~~~~
+src/libavcodec/ppc/h264qpel.c: In function 'tube360_mul_o':
+src/libavcodec/ppc/h264qpel.c:51:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+   51 |     vec_s32 five = vec_add(vec_sl(words, vec_splat_u32(2)), words);
+      |     ^~~~~~~
+In file included from src/libavcodec/ppc/h264qpel.c:65:
+src/libavcodec/ppc/h264qpel_template.c: In function 'put_h264_qpel16_h_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:114:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  114 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:112:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  112 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'put_h264_qpel16_v_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:206:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:215:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  215 |     const vec_u8 srcM1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:217:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  217 |     const vec_u8 srcP0 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:219:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  219 |     const vec_u8 srcP1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:221:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  221 |     const vec_u8 srcP2 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:224:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  224 |     vec_s16 srcM2ssA = (vec_s16) VEC_MERGEH(zero_u8v, srcM2);
+      |     ^~~~~~~
+src/libavcodec/ppc/h264qpel_template.c:208:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  208 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:206:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'put_h264_qpel16_hv_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:308:19: warning: unused variable 'v1ss' [-Wunused-variable]
+  308 |     const vec_s16 v1ss = vec_splat_s16(1);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:307:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  307 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:305:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  305 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+In file included from src/libavcodec/ppc/h264qpel.c:81:
+src/libavcodec/ppc/h264qpel_template.c: In function 'avg_h264_qpel16_h_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:114:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  114 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:112:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  112 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'avg_h264_qpel16_v_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:206:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:215:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  215 |     const vec_u8 srcM1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:217:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  217 |     const vec_u8 srcP0 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:219:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  219 |     const vec_u8 srcP1 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:221:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  221 |     const vec_u8 srcP2 = load_with_perm_vec(0, srcbis, perm);
+      |     ^~~~~
+src/libavcodec/ppc/h264qpel_template.c:224:5: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  224 |     vec_s16 srcM2ssA = (vec_s16) VEC_MERGEH(zero_u8v, srcM2);
+      |     ^~~~~~~
+src/libavcodec/ppc/h264qpel_template.c:208:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  208 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:206:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  206 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+src/libavcodec/ppc/h264qpel_template.c: In function 'avg_h264_qpel16_hv_lowpass_altivec':
+src/libavcodec/ppc/h264qpel_template.c:308:19: warning: unused variable 'v1ss' [-Wunused-variable]
+  308 |     const vec_s16 v1ss = vec_splat_s16(1);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:307:19: warning: unused variable 'v5ss' [-Wunused-variable]
+  307 |     const vec_s16 v5ss = vec_splat_s16(5);
+      |                   ^~~~
+src/libavcodec/ppc/h264qpel_template.c:305:19: warning: unused variable 'v20ss' [-Wunused-variable]
+  305 |     const vec_s16 v20ss = vec_sl(vec_splat_s16(5),vec_splat_u16(2));
+      |                   ^~~~~
+CC	libavcodec/ppc/hpeldsp_altivec.o
+CC	libavcodec/ppc/idctdsp.o
+CC	libavcodec/ppc/me_cmp.o
+CC	libavcodec/ppc/videodsp.o
+CC	libavcodec/profiles.o
+CC	libavcodec/pthread.o
+CC	libavcodec/pthread_frame.o
+src/libavcodec/pthread_frame.c: In function 'frame_worker_thread':
+src/libavcodec/pthread_frame.c:293:13: warning: ISO C90 forbids mixed declarations and code [-Wdeclaration-after-statement]
+  293 |             int64_t tube360_begin = av_gettime_relative();
+      |             ^~~~~~~
+src/libavcodec/pthread_frame.c:188:45: warning: '%d' directive output may be truncated writing between 1 and 9 bytes into a region of size between 3 and 10 [-Wformat-truncation=]
+  188 |     snprintf(name, sizeof(name), "av:%.7s:df%d", avctx->codec->name, idx);
+      |                                             ^~
+In function 'thread_set_name',
+    inlined from 'frame_worker_thread' at src/libavcodec/pthread_frame.c:252:5:
+src/libavcodec/pthread_frame.c:188:34: note: directive argument in the range [-25565281, 25565281]
+  188 |     snprintf(name, sizeof(name), "av:%.7s:df%d", avctx->codec->name, idx);
+      |                                  ^~~~~~~~~~~~~~
+src/libavcodec/pthread_frame.c:188:5: note: 'snprintf' output between 8 and 23 bytes into a destination of size 16
+  188 |     snprintf(name, sizeof(name), "av:%.7s:df%d", avctx->codec->name, idx);
+      |     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CC	libavcodec/pthread_slice.o
+CC	libavcodec/qsv_api.o
+CC	libavcodec/raw.o
+CC	libavcodec/refstruct.o
+CC	libavcodec/sbrdsp.o
+cc1: some warnings being treated as errors
+make: *** [src/ffbuild/common.mak:81: libavcodec/ppc/h264-tube360.o] Error 1
+make: *** Waiting for unfinished jobs....

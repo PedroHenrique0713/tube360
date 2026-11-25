@@ -1,0 +1,59 @@
+F33 START schema=1 platform=pc mask=7 threads=6 filter=full cpu_flags=3fd3db ffmpeg=7.1.5 repeats=3
+F33 MEDIA youtube137=1
+F30 CLIP name=720p30-4000 packets=180 bytes=3237678 width=1280 height=720 fps=30 kbps=4000 level=31
+F33 AUDIT clip=720p30-4000 frames=180 pixels_equal=1 syntax_equal=1 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=720p30-4000 mode=full repeat=1 threads=6 frames=180 samples=138 mean_ms=4.144891 completion_p50_ms=3.438307 completion_p95_ms=10.012431 slice_p50_ms=21.589000 slice_p95_ms=34.087000 block30_p50_ms=3.889780 block30_p95_ms=4.516024 total_ms=773.901 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=720p30-4000 mode=full repeat=1 threads=6 frames=180 samples=138 mean_ms=4.346186 completion_p50_ms=3.766746 completion_p95_ms=12.996011 slice_p50_ms=21.698000 slice_p95_ms=34.171000 block30_p50_ms=4.234358 block30_p95_ms=4.898134 total_ms=824.959 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=720p30-4000 mode=full repeat=2 threads=6 frames=180 samples=138 mean_ms=4.235071 completion_p50_ms=3.043954 completion_p95_ms=13.912043 slice_p50_ms=20.875000 slice_p95_ms=34.201000 block30_p50_ms=4.263045 block30_p95_ms=4.710035 total_ms=781.829 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=720p30-4000 mode=full repeat=2 threads=6 frames=180 samples=138 mean_ms=5.348165 completion_p50_ms=4.256294 completion_p95_ms=13.048228 slice_p50_ms=28.527000 slice_p95_ms=40.269000 block30_p50_ms=5.058366 block30_p95_ms=5.863470 total_ms=998.876 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=720p30-4000 mode=full repeat=3 threads=6 frames=180 samples=138 mean_ms=6.186793 completion_p50_ms=5.132293 completion_p95_ms=16.564427 slice_p50_ms=32.763000 slice_p95_ms=45.573000 block30_p50_ms=5.677741 block30_p95_ms=7.463612 total_ms=1143.005 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=720p30-4000 mode=full repeat=3 threads=6 frames=180 samples=138 mean_ms=4.357494 completion_p50_ms=3.653077 completion_p95_ms=12.011090 slice_p50_ms=23.007000 slice_p95_ms=33.923000 block30_p50_ms=4.289398 block30_p95_ms=4.688884 total_ms=851.070 PASS
+F30 CLIP name=1080p30-2500 packets=180 bytes=1985003 width=1920 height=1080 fps=30 kbps=2500 level=40
+F33 AUDIT clip=1080p30-2500 frames=180 pixels_equal=1 syntax_equal=1 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-2500 mode=full repeat=1 threads=6 frames=180 samples=138 mean_ms=8.637972 completion_p50_ms=7.517303 completion_p95_ms=24.612385 slice_p50_ms=45.000000 slice_p95_ms=61.660000 block30_p50_ms=8.438377 block30_p95_ms=9.447643 total_ms=1569.436 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-2500 mode=full repeat=1 threads=6 frames=180 samples=138 mean_ms=8.316891 completion_p50_ms=5.599178 completion_p95_ms=27.680958 slice_p50_ms=41.075000 slice_p95_ms=70.104000 block30_p50_ms=8.316921 block30_p95_ms=10.065054 total_ms=1519.264 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-2500 mode=full repeat=2 threads=6 frames=180 samples=138 mean_ms=9.460304 completion_p50_ms=6.664831 completion_p95_ms=27.582541 slice_p50_ms=49.953000 slice_p95_ms=72.974000 block30_p50_ms=9.603115 block30_p95_ms=11.347772 total_ms=1682.700 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-2500 mode=full repeat=2 threads=6 frames=180 samples=138 mean_ms=7.948692 completion_p50_ms=4.721887 completion_p95_ms=27.889745 slice_p50_ms=43.365000 slice_p95_ms=59.037000 block30_p50_ms=7.649847 block30_p95_ms=8.991404 total_ms=1449.130 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-2500 mode=full repeat=3 threads=6 frames=180 samples=138 mean_ms=6.480835 completion_p50_ms=4.990771 completion_p95_ms=18.862622 slice_p50_ms=36.661000 slice_p95_ms=51.226000 block30_p50_ms=5.793181 block30_p95_ms=7.920422 total_ms=1198.002 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-2500 mode=full repeat=3 threads=6 frames=180 samples=138 mean_ms=6.390366 completion_p50_ms=5.172073 completion_p95_ms=15.610673 slice_p50_ms=34.940000 slice_p95_ms=44.402000 block30_p50_ms=6.222620 block30_p95_ms=6.723083 total_ms=1154.113 PASS
+F30 CLIP name=1080p30-5500 packets=180 bytes=4388409 width=1920 height=1080 fps=30 kbps=5500 level=40
+F33 AUDIT clip=1080p30-5500 frames=180 pixels_equal=1 syntax_equal=1 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-5500 mode=full repeat=1 threads=6 frames=180 samples=138 mean_ms=8.072638 completion_p50_ms=4.941396 completion_p95_ms=29.813162 slice_p50_ms=44.482000 slice_p95_ms=67.181000 block30_p50_ms=7.965284 block30_p95_ms=9.299782 total_ms=1525.465 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-5500 mode=full repeat=1 threads=6 frames=180 samples=138 mean_ms=7.835172 completion_p50_ms=5.945563 completion_p95_ms=22.724501 slice_p50_ms=44.249000 slice_p95_ms=59.114000 block30_p50_ms=7.878384 block30_p95_ms=8.076548 total_ms=1480.780 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-5500 mode=full repeat=2 threads=6 frames=180 samples=138 mean_ms=7.936134 completion_p50_ms=6.097791 completion_p95_ms=24.726465 slice_p50_ms=43.042000 slice_p95_ms=58.683000 block30_p50_ms=7.891035 block30_p95_ms=9.368294 total_ms=1522.832 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-5500 mode=full repeat=2 threads=6 frames=180 samples=138 mean_ms=9.890507 completion_p50_ms=6.284975 completion_p95_ms=35.895255 slice_p50_ms=51.429000 slice_p95_ms=85.576000 block30_p50_ms=8.588498 block30_p95_ms=10.819421 total_ms=1780.767 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-5500 mode=full repeat=3 threads=6 frames=180 samples=138 mean_ms=14.028606 completion_p50_ms=9.156041 completion_p95_ms=48.465184 slice_p50_ms=75.637000 slice_p95_ms=106.704000 block30_p50_ms=12.809414 block30_p95_ms=16.892851 total_ms=2551.196 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=1080p30-5500 mode=full repeat=3 threads=6 frames=180 samples=138 mean_ms=7.709884 completion_p50_ms=5.694151 completion_p95_ms=24.699997 slice_p50_ms=42.196000 slice_p95_ms=67.262000 block30_p50_ms=7.421420 block30_p95_ms=8.073614 total_ms=1678.238 PASS
+F30 CLIP name=youtube137 packets=600 bytes=8851123 width=1920 height=1080 fps=30 kbps=3533 level=40
+F33 AUDIT clip=youtube137 frames=600 pixels_equal=1 syntax_equal=1 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=youtube137 mode=full repeat=1 threads=6 frames=600 samples=558 mean_ms=12.417741 completion_p50_ms=6.643410 completion_p95_ms=46.225649 slice_p50_ms=66.933000 slice_p95_ms=103.800000 block30_p50_ms=11.587527 block30_p95_ms=16.827891 total_ms=7623.620 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=youtube137 mode=full repeat=1 threads=6 frames=600 samples=558 mean_ms=10.949229 completion_p50_ms=5.343023 completion_p95_ms=42.650137 slice_p50_ms=58.347000 slice_p95_ms=94.774000 block30_p50_ms=10.466170 block30_p95_ms=15.277545 total_ms=6633.756 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=youtube137 mode=full repeat=2 threads=6 frames=600 samples=558 mean_ms=7.198604 completion_p50_ms=3.376902 completion_p95_ms=25.495090 slice_p50_ms=38.180000 slice_p95_ms=63.230000 block30_p50_ms=6.881938 block30_p95_ms=9.386584 total_ms=4382.943 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=youtube137 mode=full repeat=2 threads=6 frames=600 samples=558 mean_ms=7.341473 completion_p50_ms=3.274126 completion_p95_ms=26.966840 slice_p50_ms=39.117000 slice_p95_ms=64.500000 block30_p50_ms=6.906219 block30_p95_ms=10.421511 total_ms=4509.290 PASS
+F33 CASE role=baseline mask=0 threads=6 filter=full
+F30 RESULT platform=pc clip=youtube137 mode=full repeat=3 threads=6 frames=600 samples=558 mean_ms=7.165120 completion_p50_ms=3.345751 completion_p95_ms=28.548148 slice_p50_ms=39.366000 slice_p95_ms=57.900000 block30_p50_ms=7.231648 block30_p95_ms=10.489811 total_ms=4410.875 PASS
+F33 CASE role=candidate mask=7 threads=6 filter=full
+F30 RESULT platform=pc clip=youtube137 mode=full repeat=3 threads=6 frames=600 samples=558 mean_ms=7.471831 completion_p50_ms=3.428525 completion_p95_ms=27.387770 slice_p50_ms=39.256000 slice_p95_ms=65.406000 block30_p50_ms=7.101900 block30_p95_ms=8.884199 total_ms=4583.447 PASS
+F33 DONE PASS audits=4 results=24

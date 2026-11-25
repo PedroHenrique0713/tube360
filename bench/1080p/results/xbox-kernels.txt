@@ -1,0 +1,10 @@
+log: game:\f33-kernels.log
+log: named after \Device\Harddisk0\Partition1\Apps\Tube360-F33-K\f33-kernels.xex
+log: no net_log.txt beside the .xex, so not over the network
+F33 KERNEL START actual_PPC_VMX vs FFmpeg_7.1.5_C
+
+F33 KERNEL qpel_chroma cases=946176
+
+F33 KERNEL DONE PASS cases=1291520
+
+exit: status 0

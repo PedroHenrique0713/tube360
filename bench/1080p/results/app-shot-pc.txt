@@ -1,0 +1,79 @@
+Tube360 iniciando
+servidor 0.0.0.0:8091 (desligado: só console)
+tela 1920x1080
+layout: 1280x720, wide, texto normal, margem 0x0
+video-memoria: linear mapeada, pool ate 48 superficies/160 MiB, DPB + fila + fences
+autoplay 4p_9OPKgcDE em 0 s
+unexpected fixture URL: https://returnyoutubedislikeapi.com/votes?videoId=4p_9OPKgcDE
+navegacao: Home -> Player
+console: player OK, cliente VISIONOS, 1 pedidos: VISIONOS:none/200 OK
+legendas: 4p_9OPKgcDE , 0 frases, 0 idiomas
+console: MP4 1080p, itags 137/140, início 0.000
+audio: selecionada und-dub, 1 faixas
+decod-config: threads 6, tipo solicitado 1 ativo 1, buffers diretos, loop 0
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 1, 2.99 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 2, 5.99 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 3, 8.98 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 4, 11.98 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 5, 14.97 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 6, 17.96 MiB
+decod-fila: 1080p 30.000 fps, capacidade 18 inicio 12, livres 4294967295 MiB, extra ate 32 MiB (pool 160 MiB)
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 7, 20.96 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 8, 23.95 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 9, 26.95 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 10, 29.94 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 11, 32.93 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 12, 35.93 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 13, 38.92 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 14, 41.92 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 15, 44.91 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 16, 47.90 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 17, 50.90 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 18, 53.89 MiB
+som: TV, Nest -1.000 TV 0.000 imagem 0.000
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 19, 56.89 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 20, 59.88 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 21, 62.87 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 22, 65.87 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 23, 68.86 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 24, 71.85 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 25, 74.85 MiB
+primeiro quadro: 234 ms, pts 0.033, live 0, som TV
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 26, 77.84 MiB
+video-memoria: 1920x1080, codec 1920x1090, pitch 1920/960/960, pool 27, 80.84 MiB
+decod: H.264 6t, 44 quadros, 4.39 ms/quadro, fila mín 0, perdidos 0, PCM 5968 ms, rede 26.97 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 25.2 fps na TV, pacotes 50, decodificados 44, filtrados 0, decode 116.1 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 44/44, flush 0.002 ms/quadro, loop NONREF 0/50 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 7, retomadas 0, conexoes 0, espera 3 ms, TCP 0/0 KiB, TLS 0.00/0.00 Mbit/s
+upload: 1920x1080, 32 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.159 ms, present-CPU 0.051 ms, GPU sem sonda
+pipeline: direto 32/32, ultimo fence 3.785 ms, acquire 0.036 ms, gravacao 0.197 ms; 1 submit/quadro
+decod: H.264 6t, 30 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.19 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 30, decodificados 30, filtrados 0, decode 1.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 30/30, flush 0.002 ms/quadro, loop NONREF 0/30 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 8, retomadas 0, conexoes 0, espera 3 ms, TCP 0/0 KiB, TLS 0.00/0.00 Mbit/s
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.159 ms, present-CPU 0.052 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 3.742 ms, acquire 0.042 ms, gravacao 0.205 ms; 1 submit/quadro
+player: 4p_9OPKgcDE pos 2.3 quadros 69 perdidos 0
+decod: H.264 6t, 31 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5991 ms, rede 4.04 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 29.9 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop NONREF 0/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 9, retomadas 0, conexoes 0, espera 3 ms, TCP 0/0 KiB, TLS 0.00/0.00 Mbit/s
+upload: 1920x1080, 30 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.161 ms, present-CPU 0.441 ms, GPU sem sonda
+pipeline: direto 30/30, ultimo fence 3.779 ms, acquire 0.044 ms, gravacao 0.201 ms; 1 submit/quadro
+decod: H.264 6t, 31 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5968 ms, rede 4.10 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 30.3 fps na TV, pacotes 31, decodificados 31, filtrados 0, decode 1.5 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 31/31, flush 0.002 ms/quadro, loop NONREF 0/31 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 10, retomadas 0, conexoes 0, espera 3 ms, TCP 0/0 KiB, TLS 0.00/0.00 Mbit/s
+upload: 1920x1080, 31 quadros, 0.00 MB/s, staging 0.000 ms/quadro, max 0.000 ms, submit-CPU 0.162 ms, present-CPU 0.302 ms, GPU sem sonda
+pipeline: direto 31/31, ultimo fence 3.050 ms, acquire 0.041 ms, gravacao 0.230 ms; 1 submit/quadro
+captura: frame 1170, tempo 5003 ms, tela 2, vídeo 4p_9OPKgcDE, posição 4.80
+captura conta: conectada=0 foto=0
+player: encerrando 4p_9OPKgcDE
+decod: H.264 6t, 26 quadros, 0.05 ms/quadro, fila mín 17, perdidos 0, PCM 5805 ms, rede 0.00 Mbit/s
+qualidade: VOD 1080p 30.000 fps, alvo 30, 24.3 fps na TV, pacotes 27, decodificados 27, filtrados 0, decode 1.6 ms/s de video, copia 0.00 ms/quadro, perdidos +0
+decod-memoria: direto 26/26, flush 0.002 ms/quadro, loop NONREF 0/27 pacotes, tipo 1, workers 6
+rede: Range 512 KiB, 2 TLS video, pedidos 10, retomadas 0, conexoes 0, espera 3 ms, TCP 0/0 KiB, TLS 0.00/0.00 Mbit/s
+player: fim 4p_9OPKgcDE, buffers 6144 KiB liberados, 2 ms
+Nest: console saindo conectado=0 abriu=0 sessao=
+miniaturas: 0 bytes GPU, pico de RGBA aguardando upload 0 bytes
+Tube360 saindo

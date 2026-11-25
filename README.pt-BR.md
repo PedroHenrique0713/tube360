@@ -113,6 +113,8 @@ O caminho normal é H.264/AAC nativo. Automático prefere detalhe até 1080p; 72
 
 Escolha 480p, 360p, 240p ou 144p fixos nas Configurações ou no menu Qualidade do player (Y quando não houver ação do SponsorBlock). Durante o vídeo, a lista oferece somente as fontes H.264/AAC disponíveis nele. A seleção manual mantém altura, posição e pausa; pressão sustentada mostra um aviso e não troca a fonte nem usa a reserva no PC. Uma qualidade salva indisponível mostra erro e permite escolher outra. Voltar a Automático reativa a escada adaptativa. Sem vídeo ativo, Configurações salva um padrão entre as sete opções.
 
+O **1080p30 nativo** passa a usar os kernels VMX medidos no Xenon, seis workers FRAME em `0,2,4,1,3,5` e uma fila de imagens maior, com orçamento limitado. Fontes H.264 de 1080 linhas com taxa conhecida até 30,1 fps omitem o filtro de deblock; fontes menores, de taxa desconhecida ou maior mantêm o filtro completo. Para religá-lo também em 1080p, salve `h264_loop_filter=full` em `settings.txt` e reabra o app; a cadência pode cair. O decoder isolado mediu 22,57 ms/quadro; reprodução com interface, som e rede ainda depende do aceite no Xbox. A fonte 1080p também pode ser reduzida para saída 720p; **saída 1080p nativa pede HDMI e 1080p progressivo no painel do Xbox**. Consulte o [roteiro rc2](docs/CONSOLE-032-RC2.md).
+
 MPEG-1 + MP2 fica como compatibilidade fornecida pelo servidor opcional, até 720p30. O pl_mpeg com decodificação por fatias continua nesse caminho. Ele deixou de ser o caminho principal do YouTube. [Arquitetura e qualificação](docs/STANDALONE.md) · [Protocolo do servidor opcional](docs/PROTOCOL.md)
 
 ## Requisitos
@@ -206,7 +208,7 @@ Use Configurações na TV; os valores ficam em `settings.txt` ao lado do XEX. Os
 
 | Arquivo | Função |
 |---|---|
-| `settings.txt` | `lang=en\|pt\|es\|ar`, `cols=3\|4`, `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `sponsorblock=off\|button\|auto`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `audio_preference=original\|interface`, legendas e alvo do timer. |
+| `settings.txt` | `lang=en\|pt\|es\|ar`, `cols=3\|4`, `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `sponsorblock=off\|button\|auto`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `h264_loop_filter=auto\|full`, `audio_preference=original\|interface`, legendas e alvo do timer. |
 | `nest.txt` | Host e porta opcional da caixa na linha 1; nome exibido na linha 2. |
 | `server.txt` | IP e porta do PC de reserva na primeira linha, por exemplo `192.0.2.10 8091`. Sem ele, só console. `server=off` também desativa a reserva mesmo com o endereço presente. |
 | `marca.txt` | Nome personalizado na linha 1 e `retangulo` opcional na linha 2. |

@@ -48,6 +48,14 @@ case "$target" in
     pc) ;;
     *) echo "usage: $0 [xbox|scalar|pc]" >&2; exit 2 ;;
 esac
+compiler=${prefix:-}gcc
+[[ $target != pc ]] || compiler=${CC:-cc}
+compiler_id=$(python3 "$root/tools/ffmpeg-x360/source-id.py" --cc "$compiler" --compiler-only)
+# Make não invalida objetos quando só CC muda (por exemplo, GCC do milestone 52).
+if [[ ! -f "$work/build-$target/.tube360-compiler-id" || $(cat "$work/build-$target/.tube360-compiler-id") != "$compiler_id" ]]; then
+    rm -rf -- "$work/build-$target"
+    mkdir -p "$work/build-$target"
+fi
 cd "$work/build-$target"
 ln -sfnT "$src" src
 "$src/configure" --prefix="$work/ffmpeg-$target" --disable-autodetect --disable-everything \
@@ -62,3 +70,5 @@ for feature in HAVE_PTHREADS CONFIG_H264_DECODER CONFIG_AAC_DECODER CONFIG_OPUS_
 done
 make "${make_args[@]}" -j"${JOBS:-3}" install
 if [[ $target == xbox ]]; then python3 "$root/tools/ffmpeg-x360/check-vmx.py" "${prefix}objdump" "$PWD"; fi
+printf '%s\n' "$compiler_id" > "$work/build-$target/.tube360-compiler-id"
+python3 "$root/tools/ffmpeg-x360/source-id.py" --cc "$compiler" > "$work/ffmpeg-$target/.tube360-source-id"

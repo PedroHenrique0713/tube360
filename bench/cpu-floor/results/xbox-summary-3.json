@@ -1,0 +1,687 @@
+{
+  "schema": 1,
+  "platform": "xbox",
+  "threads": 6,
+  "results": [
+    {
+      "clip": "1080p30-2500",
+      "mode": "entropy",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 9.502542,
+        "min": 9.478351,
+        "max": 9.612686
+      },
+      "completion_p50_ms": {
+        "median": 1.17997,
+        "min": 0.935378,
+        "max": 4.399399
+      },
+      "completion_p95_ms": {
+        "median": 43.374757,
+        "min": 41.224,
+        "max": 43.571228
+      },
+      "slice_p50_ms": {
+        "median": 48.861,
+        "min": 46.773,
+        "max": 50.386
+      },
+      "slice_p95_ms": {
+        "median": 72.423,
+        "min": 69.567,
+        "max": 72.776
+      },
+      "block30_p50_ms": {
+        "median": 9.312876,
+        "min": 9.299201,
+        "max": 9.331869
+      },
+      "block30_p95_ms": {
+        "median": 10.099317,
+        "min": 9.953186,
+        "max": 10.230224
+      },
+      "total_ms": {
+        "median": 1750.511,
+        "min": 1750.481,
+        "max": 1751.665
+      }
+    },
+    {
+      "clip": "1080p30-2500",
+      "mode": "full",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 36.597502,
+        "min": 36.52348,
+        "max": 36.674819
+      },
+      "completion_p50_ms": {
+        "median": 9.047398,
+        "min": 8.265263,
+        "max": 10.016802
+      },
+      "completion_p95_ms": {
+        "median": 163.041564,
+        "min": 156.771449,
+        "max": 164.716391
+      },
+      "slice_p50_ms": {
+        "median": 208.464,
+        "min": 208.125,
+        "max": 210.624
+      },
+      "slice_p95_ms": {
+        "median": 276.914,
+        "min": 269.548,
+        "max": 290.622
+      },
+      "block30_p50_ms": {
+        "median": 35.519953,
+        "min": 35.513115,
+        "max": 36.076728
+      },
+      "block30_p95_ms": {
+        "median": 39.65549,
+        "min": 38.931592,
+        "max": 39.898278
+      },
+      "total_ms": {
+        "median": 6615.989,
+        "min": 6614.598,
+        "max": 6630.632
+      }
+    },
+    {
+      "clip": "1080p30-2500",
+      "mode": "no_loop_filter",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 30.692839,
+        "min": 30.571921,
+        "max": 30.909323
+      },
+      "completion_p50_ms": {
+        "median": 5.17201,
+        "min": 5.023158,
+        "max": 6.138105
+      },
+      "completion_p95_ms": {
+        "median": 137.331729,
+        "min": 132.394065,
+        "max": 137.857845
+      },
+      "slice_p50_ms": {
+        "median": 174.333,
+        "min": 171.067,
+        "max": 175.092
+      },
+      "slice_p95_ms": {
+        "median": 228.443,
+        "min": 217.983,
+        "max": 237.805
+      },
+      "block30_p50_ms": {
+        "median": 29.195354,
+        "min": 28.711032,
+        "max": 29.368644
+      },
+      "block30_p95_ms": {
+        "median": 33.313174,
+        "min": 33.077919,
+        "max": 33.507345
+      },
+      "total_ms": {
+        "median": 5560.118,
+        "min": 5556.28,
+        "max": 5573.225
+      }
+    },
+    {
+      "clip": "1080p30-5500",
+      "mode": "entropy",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 13.274656,
+        "min": 13.27025,
+        "max": 13.341056
+      },
+      "completion_p50_ms": {
+        "median": 1.9597,
+        "min": 1.424582,
+        "max": 3.524371
+      },
+      "completion_p95_ms": {
+        "median": 58.675007,
+        "min": 54.204772,
+        "max": 63.600201
+      },
+      "slice_p50_ms": {
+        "median": 71.404,
+        "min": 70.925,
+        "max": 72.143
+      },
+      "slice_p95_ms": {
+        "median": 100.779,
+        "min": 98.542,
+        "max": 105.59
+      },
+      "block30_p50_ms": {
+        "median": 12.987447,
+        "min": 12.639407,
+        "max": 13.164146
+      },
+      "block30_p95_ms": {
+        "median": 13.910536,
+        "min": 13.87933,
+        "max": 14.114982
+      },
+      "total_ms": {
+        "median": 2468.118,
+        "min": 2464.141,
+        "max": 2493.89
+      }
+    },
+    {
+      "clip": "1080p30-5500",
+      "mode": "full",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 41.293834,
+        "min": 41.145973,
+        "max": 41.317633
+      },
+      "completion_p50_ms": {
+        "median": 14.657644,
+        "min": 14.062356,
+        "max": 15.524752
+      },
+      "completion_p95_ms": {
+        "median": 141.773434,
+        "min": 134.514527,
+        "max": 165.704662
+      },
+      "slice_p50_ms": {
+        "median": 239.754,
+        "min": 229.347,
+        "max": 243.2
+      },
+      "slice_p95_ms": {
+        "median": 321.093,
+        "min": 307.298,
+        "max": 326.659
+      },
+      "block30_p50_ms": {
+        "median": 40.530768,
+        "min": 39.440926,
+        "max": 40.825569
+      },
+      "block30_p95_ms": {
+        "median": 44.220569,
+        "min": 43.526769,
+        "max": 45.48657
+      },
+      "total_ms": {
+        "median": 7474.38,
+        "min": 7462.948,
+        "max": 7490.335
+      }
+    },
+    {
+      "clip": "1080p30-5500",
+      "mode": "no_loop_filter",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 35.45981,
+        "min": 35.278669,
+        "max": 35.605074
+      },
+      "completion_p50_ms": {
+        "median": 7.198236,
+        "min": 6.159799,
+        "max": 7.698767
+      },
+      "completion_p95_ms": {
+        "median": 160.637794,
+        "min": 158.853113,
+        "max": 174.881844
+      },
+      "slice_p50_ms": {
+        "median": 200.165,
+        "min": 198.232,
+        "max": 206.874
+      },
+      "slice_p95_ms": {
+        "median": 282.642,
+        "min": 274.311,
+        "max": 288.89
+      },
+      "block30_p50_ms": {
+        "median": 34.002528,
+        "min": 33.740144,
+        "max": 34.066514
+      },
+      "block30_p95_ms": {
+        "median": 38.746441,
+        "min": 38.292654,
+        "max": 38.86069
+      },
+      "total_ms": {
+        "median": 6434.888,
+        "min": 6433.378,
+        "max": 6442.052
+      }
+    },
+    {
+      "clip": "1080p60-2500",
+      "mode": "entropy",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 8.135264,
+        "min": 8.124259,
+        "max": 8.140381
+      },
+      "completion_p50_ms": {
+        "median": 0.505323,
+        "min": 0.393384,
+        "max": 0.733273
+      },
+      "completion_p95_ms": {
+        "median": 38.002827,
+        "min": 36.497544,
+        "max": 40.729685
+      },
+      "slice_p50_ms": {
+        "median": 40.053,
+        "min": 40.016,
+        "max": 40.631
+      },
+      "slice_p95_ms": {
+        "median": 60.404,
+        "min": 58.323,
+        "max": 61.639
+      },
+      "block30_p50_ms": {
+        "median": 8.104404,
+        "min": 7.978116,
+        "max": 8.128836
+      },
+      "block30_p95_ms": {
+        "median": 8.868595,
+        "min": 8.85717,
+        "max": 8.939642
+      },
+      "total_ms": {
+        "median": 2957.55,
+        "min": 2955.671,
+        "max": 2962.588
+      }
+    },
+    {
+      "clip": "1080p60-2500",
+      "mode": "full",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 37.324374,
+        "min": 37.190314,
+        "max": 37.482553
+      },
+      "completion_p50_ms": {
+        "median": 8.222917,
+        "min": 8.050286,
+        "max": 8.732592
+      },
+      "completion_p95_ms": {
+        "median": 165.029133,
+        "min": 155.595168,
+        "max": 177.734657
+      },
+      "slice_p50_ms": {
+        "median": 211.667,
+        "min": 209.757,
+        "max": 214.657
+      },
+      "slice_p95_ms": {
+        "median": 277.232,
+        "min": 271.767,
+        "max": 277.523
+      },
+      "block30_p50_ms": {
+        "median": 36.707173,
+        "min": 36.243237,
+        "max": 36.998507
+      },
+      "block30_p95_ms": {
+        "median": 41.202721,
+        "min": 40.874238,
+        "max": 43.694435
+      },
+      "total_ms": {
+        "median": 13467.023,
+        "min": 13446.171,
+        "max": 13471.713
+      }
+    },
+    {
+      "clip": "1080p60-2500",
+      "mode": "no_loop_filter",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 31.167486,
+        "min": 31.101276,
+        "max": 31.2041
+      },
+      "completion_p50_ms": {
+        "median": 4.855017,
+        "min": 4.604732,
+        "max": 5.050566
+      },
+      "completion_p95_ms": {
+        "median": 152.488902,
+        "min": 146.333093,
+        "max": 152.737784
+      },
+      "slice_p50_ms": {
+        "median": 176.727,
+        "min": 175.58,
+        "max": 179.23
+      },
+      "slice_p95_ms": {
+        "median": 226.225,
+        "min": 224.069,
+        "max": 232.717
+      },
+      "block30_p50_ms": {
+        "median": 30.25724,
+        "min": 30.005331,
+        "max": 30.64797
+      },
+      "block30_p95_ms": {
+        "median": 33.956787,
+        "min": 33.755834,
+        "max": 34.115121
+      },
+      "total_ms": {
+        "median": 11210.179,
+        "min": 11198.425,
+        "max": 11215.3
+      }
+    },
+    {
+      "clip": "1080p60-5500",
+      "mode": "entropy",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 9.731749,
+        "min": 9.687465,
+        "max": 9.779526
+      },
+      "completion_p50_ms": {
+        "median": 1.724832,
+        "min": 1.236692,
+        "max": 1.870696
+      },
+      "completion_p95_ms": {
+        "median": 38.851408,
+        "min": 38.616441,
+        "max": 43.325433
+      },
+      "slice_p50_ms": {
+        "median": 52.022,
+        "min": 51.767,
+        "max": 53.424
+      },
+      "slice_p95_ms": {
+        "median": 73.225,
+        "min": 71.523,
+        "max": 74.411
+      },
+      "block30_p50_ms": {
+        "median": 9.558486,
+        "min": 9.550402,
+        "max": 9.642753
+      },
+      "block30_p95_ms": {
+        "median": 10.325869,
+        "min": 10.318659,
+        "max": 10.545146
+      },
+      "total_ms": {
+        "median": 3555.564,
+        "min": 3553.294,
+        "max": 3565.11
+      }
+    },
+    {
+      "clip": "1080p60-5500",
+      "mode": "full",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 39.424889,
+        "min": 39.405791,
+        "max": 39.491673
+      },
+      "completion_p50_ms": {
+        "median": 10.11563,
+        "min": 8.697725,
+        "max": 10.161845
+      },
+      "completion_p95_ms": {
+        "median": 178.238236,
+        "min": 175.609344,
+        "max": 181.664462
+      },
+      "slice_p50_ms": {
+        "median": 224.235,
+        "min": 222.91,
+        "max": 226.053
+      },
+      "slice_p95_ms": {
+        "median": 294.292,
+        "min": 290.647,
+        "max": 295.652
+      },
+      "block30_p50_ms": {
+        "median": 38.186399,
+        "min": 38.040813,
+        "max": 38.427217
+      },
+      "block30_p95_ms": {
+        "median": 42.805238,
+        "min": 42.795745,
+        "max": 45.941933
+      },
+      "total_ms": {
+        "median": 14191.951,
+        "min": 14183.017,
+        "max": 14199.911
+      }
+    },
+    {
+      "clip": "1080p60-5500",
+      "mode": "no_loop_filter",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 33.356289,
+        "min": 33.294043,
+        "max": 33.365704
+      },
+      "completion_p50_ms": {
+        "median": 5.444471,
+        "min": 4.584221,
+        "max": 5.902537
+      },
+      "completion_p95_ms": {
+        "median": 149.580351,
+        "min": 144.281384,
+        "max": 161.051007
+      },
+      "slice_p50_ms": {
+        "median": 189.887,
+        "min": 188.554,
+        "max": 190.22
+      },
+      "slice_p95_ms": {
+        "median": 246.611,
+        "min": 244.279,
+        "max": 247.347
+      },
+      "block30_p50_ms": {
+        "median": 32.839572,
+        "min": 32.520082,
+        "max": 33.202409
+      },
+      "block30_p95_ms": {
+        "median": 36.461031,
+        "min": 36.398549,
+        "max": 36.707528
+      },
+      "total_ms": {
+        "median": 12022.626,
+        "min": 12008.615,
+        "max": 12027.852
+      }
+    },
+    {
+      "clip": "720p30-4000",
+      "mode": "entropy",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 7.889064,
+        "min": 7.769461,
+        "max": 7.900273
+      },
+      "completion_p50_ms": {
+        "median": 2.26386,
+        "min": 1.520401,
+        "max": 2.845233
+      },
+      "completion_p95_ms": {
+        "median": 33.198055,
+        "min": 31.379368,
+        "max": 34.068451
+      },
+      "slice_p50_ms": {
+        "median": 40.087,
+        "min": 39.914,
+        "max": 40.299
+      },
+      "slice_p95_ms": {
+        "median": 60.369,
+        "min": 60.354,
+        "max": 60.451
+      },
+      "block30_p50_ms": {
+        "median": 7.511378,
+        "min": 7.357168,
+        "max": 7.80845
+      },
+      "block30_p95_ms": {
+        "median": 8.617921,
+        "min": 8.472273,
+        "max": 8.627149
+      },
+      "total_ms": {
+        "median": 1451.736,
+        "min": 1444.921,
+        "max": 1456.203
+      }
+    },
+    {
+      "clip": "720p30-4000",
+      "mode": "full",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 20.456084,
+        "min": 20.34189,
+        "max": 20.474263
+      },
+      "completion_p50_ms": {
+        "median": 9.590456,
+        "min": 9.140151,
+        "max": 11.639338
+      },
+      "completion_p95_ms": {
+        "median": 78.088862,
+        "min": 76.466206,
+        "max": 83.087759
+      },
+      "slice_p50_ms": {
+        "median": 113.507,
+        "min": 112.778,
+        "max": 115.487
+      },
+      "slice_p95_ms": {
+        "median": 162.788,
+        "min": 160.762,
+        "max": 164.128
+      },
+      "block30_p50_ms": {
+        "median": 20.254145,
+        "min": 20.158863,
+        "max": 20.540883
+      },
+      "block30_p95_ms": {
+        "median": 21.809089,
+        "min": 21.222166,
+        "max": 22.201071
+      },
+      "total_ms": {
+        "median": 3701.634,
+        "min": 3688.564,
+        "max": 3701.82
+      }
+    },
+    {
+      "clip": "720p30-4000",
+      "mode": "no_loop_filter",
+      "repeats": 3,
+      "mean_ms": {
+        "median": 17.59181,
+        "min": 17.357243,
+        "max": 17.742764
+      },
+      "completion_p50_ms": {
+        "median": 5.356612,
+        "min": 5.040121,
+        "max": 6.075709
+      },
+      "completion_p95_ms": {
+        "median": 74.012812,
+        "min": 68.71581,
+        "max": 82.05963
+      },
+      "slice_p50_ms": {
+        "median": 99.537,
+        "min": 98.186,
+        "max": 99.721
+      },
+      "slice_p95_ms": {
+        "median": 136.888,
+        "min": 131.574,
+        "max": 148.342
+      },
+      "block30_p50_ms": {
+        "median": 17.620271,
+        "min": 17.523646,
+        "max": 18.050189
+      },
+      "block30_p95_ms": {
+        "median": 18.419472,
+        "min": 18.417466,
+        "max": 18.85708
+      },
+      "total_ms": {
+        "median": 3198.218,
+        "min": 3197.513,
+        "max": 3204.789
+      }
+    }
+  ],
+  "decision": {
+    "1080p30": "prototype_only",
+    "1080p60": "prototype_only"
+  },
+  "note": "Prototype gate only; no export/packing, GPU, audio, network or UI measured. Short synthetic clips."
+}

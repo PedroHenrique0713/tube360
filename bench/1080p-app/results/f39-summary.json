@@ -1,0 +1,275 @@
+{
+  "source_commit": "046398941d61d50ea85105ada1a6009ac0446418",
+  "results": [
+    {
+      "file": "bench/1080p-brechas/results/xbox-all-1.json",
+      "log_sha256": "533fcc85e5af4955f477ef5bae52fa658965349d95bfed6858a18cd321a70dfa",
+      "results": [
+        {
+          "filter": "all",
+          "changed_frames": 600,
+          "mean_ms": {
+            "median": 32.958347,
+            "min": 32.940907,
+            "max": 33.598562
+          },
+          "completion_p95_ms": {
+            "median": 107.306326,
+            "min": 105.042467,
+            "max": 107.436692
+          },
+          "slice_p95_ms": {
+            "median": 175.714,
+            "min": 175.466,
+            "max": 180.036
+          },
+          "block30_p95_ms": {
+            "median": 38.666363,
+            "min": 38.510167,
+            "max": 38.741861
+          }
+        }
+      ]
+    },
+    {
+      "file": "bench/1080p-brechas/results/xbox-control-4-all-1.json",
+      "log_sha256": "f17471ddb889043465a9c68e873d32dc8c3994ecf12951771b8d7c138ca33cde",
+      "results": [
+        {
+          "filter": "all",
+          "changed_frames": 600,
+          "mean_ms": {
+            "median": 32.938451,
+            "min": 32.858537,
+            "max": 33.956574
+          },
+          "completion_p95_ms": {
+            "median": 107.062256,
+            "min": 105.899228,
+            "max": 107.517072
+          },
+          "slice_p95_ms": {
+            "median": 176.228,
+            "min": 176.078,
+            "max": 181.669
+          },
+          "block30_p95_ms": {
+            "median": 38.507614,
+            "min": 38.469983,
+            "max": 39.101856
+          }
+        }
+      ]
+    },
+    {
+      "file": "bench/1080p-brechas/results/xbox-core-spread-3-all-1.json",
+      "log_sha256": "a4ce7bd7389a3a9d681e30e9009d04ae3e606eaaefc91ad67b9e9ad0f8a7e134",
+      "results": [
+        {
+          "filter": "all",
+          "changed_frames": 600,
+          "mean_ms": {
+            "median": 29.841763,
+            "min": 29.761657,
+            "max": 29.959474
+          },
+          "completion_p95_ms": {
+            "median": 88.40377,
+            "min": 88.376982,
+            "max": 88.577825
+          },
+          "slice_p95_ms": {
+            "median": 120.101,
+            "min": 119.143,
+            "max": 120.463
+          },
+          "block30_p95_ms": {
+            "median": 33.642401,
+            "min": 33.503951,
+            "max": 33.736692
+          }
+        }
+      ]
+    },
+    {
+      "file": "bench/1080p-brechas/results/xbox-core-spread-4-all-1.json",
+      "log_sha256": "44d032be355e2af979b0eac372cdd64c1bfc7f9ec4ea6fab2f97d4c550e8dfe4",
+      "results": [
+        {
+          "filter": "all",
+          "changed_frames": 600,
+          "mean_ms": {
+            "median": 28.846659,
+            "min": 28.815315,
+            "max": 28.906302
+          },
+          "completion_p95_ms": {
+            "median": 104.612391,
+            "min": 102.915429,
+            "max": 104.902556
+          },
+          "slice_p95_ms": {
+            "median": 151.2,
+            "min": 150.554,
+            "max": 151.408
+          },
+          "block30_p95_ms": {
+            "median": 35.354155,
+            "min": 35.352018,
+            "max": 35.468209
+          }
+        }
+      ]
+    },
+    {
+      "file": "bench/1080p-brechas/results/xbox-core-spread-5-all-1.json",
+      "log_sha256": "abb7aa669b61792c88549c0b8db9f76b69209a87198ce0e811fe104645ec0eac",
+      "results": [
+        {
+          "filter": "all",
+          "changed_frames": 600,
+          "mean_ms": {
+            "median": 25.762605,
+            "min": 25.745362,
+            "max": 25.776663
+          },
+          "completion_p95_ms": {
+            "median": 104.444511,
+            "min": 99.967258,
+            "max": 104.802306
+          },
+          "slice_p95_ms": {
+            "median": 166.713,
+            "min": 166.607,
+            "max": 166.879
+          },
+          "block30_p95_ms": {
+            "median": 29.974352,
+            "min": 29.929823,
+            "max": 30.135646
+          }
+        }
+      ]
+    },
+    {
+      "file": "bench/1080p-brechas/results/xbox-core-spread-6-all-1.json",
+      "log_sha256": "b096c69646902f0e5286e8045a8de830962e9d544b7fd13bdf058f13b10dc1cd",
+      "results": [
+        {
+          "filter": "all",
+          "changed_frames": 600,
+          "mean_ms": {
+            "median": 22.567982,
+            "min": 22.537908,
+            "max": 22.783429
+          },
+          "completion_p95_ms": {
+            "median": 88.864441,
+            "min": 86.545344,
+            "max": 91.590356
+          },
+          "slice_p95_ms": {
+            "median": 174.834,
+            "min": 174.513,
+            "max": 175.074
+          },
+          "block30_p95_ms": {
+            "median": 26.407773,
+            "min": 26.355078,
+            "max": 26.423334
+          }
+        }
+      ]
+    },
+    {
+      "file": "bench/1080p-brechas/results/xbox-nonintra-1.json",
+      "log_sha256": "ef5004e566148df5fcaddda76daa12e955eeead2edcccab32d1af4fc3439a838",
+      "results": [
+        {
+          "filter": "nonintra",
+          "changed_frames": 594,
+          "mean_ms": {
+            "median": 33.073631,
+            "min": 32.89182,
+            "max": 33.177186
+          },
+          "completion_p95_ms": {
+            "median": 107.910496,
+            "min": 106.70835,
+            "max": 108.105083
+          },
+          "slice_p95_ms": {
+            "median": 177.304,
+            "min": 176.948,
+            "max": 178.313
+          },
+          "block30_p95_ms": {
+            "median": 37.997017,
+            "min": 37.556852,
+            "max": 38.390181
+          }
+        }
+      ]
+    },
+    {
+      "file": "bench/1080p-brechas/results/xbox-nonkey-1.json",
+      "log_sha256": "8e7715672ce4085bd9c83a3a572e59c7e3b6406986e7ea8cd6be1685b61283d5",
+      "results": [
+        {
+          "filter": "nonkey",
+          "changed_frames": 596,
+          "mean_ms": {
+            "median": 33.030217,
+            "min": 32.998275,
+            "max": 33.034389
+          },
+          "completion_p95_ms": {
+            "median": 105.338245,
+            "min": 104.879599,
+            "max": 105.599399
+          },
+          "slice_p95_ms": {
+            "median": 175.129,
+            "min": 174.444,
+            "max": 175.295
+          },
+          "block30_p95_ms": {
+            "median": 38.564837,
+            "min": 38.397242,
+            "max": 38.680862
+          }
+        }
+      ]
+    },
+    {
+      "file": "bench/1080p-brechas/results/xbox-o2-control-4-all-1.json",
+      "log_sha256": "0686564744a9980006fd667730367bbb598af343467d8f22b42d20ce5d2f3a4a",
+      "results": [
+        {
+          "filter": "all",
+          "changed_frames": 600,
+          "mean_ms": {
+            "median": 32.986207,
+            "min": 32.950474,
+            "max": 32.988012
+          },
+          "completion_p95_ms": {
+            "median": 106.958356,
+            "min": 104.433083,
+            "max": 107.695599
+          },
+          "slice_p95_ms": {
+            "median": 176.597,
+            "min": 175.681,
+            "max": 177.357
+          },
+          "block30_p95_ms": {
+            "median": 38.462362,
+            "min": 38.406685,
+            "max": 38.552759
+          }
+        }
+      ]
+    }
+  ]
+}

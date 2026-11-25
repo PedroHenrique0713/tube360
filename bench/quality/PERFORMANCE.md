@@ -28,17 +28,19 @@ Arquivo opcional `decode-config.txt`, ao lado do `.xex` e das fontes, com quatro
 | Campo | Valores |
 |---|---|
 | Buffers diretos | `1` habilita, `0` usa staging como controle |
-| Threads H.264 | `1` a `6`; padrão `4` |
-| Tipo | `1` FRAME; `2` SLICE (a fonte precisa ter fatias para aproveitar) |
-| Loop filter | `-1` automático, `0` completo, `1` NONREF |
+| Threads H.264 | `1` a `6`; padrão `4`; perfil 1080p30 usa `6` |
+| Tipo | `1` FRAME; `2` SLICE (1080p30 sempre FRAME) |
+| Loop filter | `-1` ou `1` política do perfil, `0` completo |
 
-Automático usa `AVDISCARD_NONREF` em 1080p e quando o player está tocando com menos de dois quadros prontos.
-Isso mantém o filtro das referências; não é `AVDISCARD_ALL`. A redução de 60 para 30 e a reserva 1080→720
-existentes continuam funcionando. Para um controle de 720p60 com todos os filtros, use `1 4 1 0`.
+O perfil 1080p com taxa conhecida até 30,1 fps usa `AVDISCARD_ALL`; 720p e abaixo mantêm filtro completo.
+`h264_loop_filter=full` em `settings.txt` restaura o filtro também no perfil 1080p30. A política é fixada
+antes de abrir o decoder, inclusive nas trocas de fonte/seek, sem mudar no meio do GOP por pressão de fila.
+A redução de 60 para 30 e a reserva 1080→720 continuam funcionando. Ver [F40](../1080p-app/README.md).
 
-No Xbox, os workers seguem HW `2,4,3,5` (dois núcleos). Render fica em HW 0; demux/AAC e SDL áudio em HW 1.
-Com seis workers de bancada há sobreposição nos mesmos quatro HW: não ocupa o núcleo de desenho. A afinidade
-aparece em `decod-worker`; `decod-config` mostra o tipo efetivamente aceito pelo FFmpeg.
+No Xbox, 1080p30 usa HW `0,2,4,1,3,5`; os demais perfis seguem HW `2,4,3,5`. Apresentação/UI ficam em HW0,
+demux/AAC e SDL áudio em HW1; TLS de vídeo vai para HW3. Prioridades, Nest, lounge e fundo estão no mapa F40.
+A afinidade aparece em `decod-worker` e `app-thread`; `app-audio` observa o feeder PCM real.
+`decod-config` mostra o tipo efetivamente aceito pelo FFmpeg. Aceite do app Xbox F40 ainda pendente.
 
 O build mantém IDCT H.264/deblock em AltiVec e habilita qpel 16 com multiplicações por 1/5/20 substituídas por
 permutações, shifts e somas inteiras exatas. Chroma/weighted prediction e o IDCT genérico com multiplicações
