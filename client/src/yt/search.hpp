@@ -15,13 +15,13 @@ struct Filters {
     bool operator!=(const Filters& b) const { return !(*this==b); }
     void normalize() {
         type=std::clamp(type,0,4); duration=std::clamp(duration,0,3);
-        date=std::clamp(date,0,4); order=std::clamp(order,0,2);
+        date=std::clamp(date,0,4); order=std::clamp(order,0,1);
         if (type==2 || type==3) duration=date=0;
         if (type==4) duration=0;
     }
     void change(int row,int direction) {
         int* values[]={&type,&duration,&date,&order};
-        const int counts[]={5,4,5,3};
+        const int counts[]={5,4,5,2};
         if (row<0 || row>3 || disabled(row)) return;
         *values[row]=(*values[row]+counts[row]+direction)%counts[row];
         if (row==1 && duration && type==0) type=1;
@@ -37,7 +37,7 @@ struct Filters {
         const int durations[]={0,4,5,2};
         if (f.duration) field(inner,3,durations[f.duration]);
         if (f.type==4) field(inner,8,1);
-        if (f.order) field(bytes,1,f.order==1 ? 2 : 3);
+        if (f.order) field(bytes,1,3);
         if (!inner.empty()) { bytes+=char(0x12); bytes+=char(inner.size()); bytes+=inner; }
         static const char* alphabet="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
         std::string out;

@@ -1,0 +1,33 @@
+{
+  "provenance": "Coordinator-supplied measurement in the task conversation; real requests, not raw response recordings. Not repeated by the feature agent.",
+  "observed_at": "2026-11-25 07h, as reported by coordinator",
+  "endpoint": "WEB youtubei/v1/search",
+  "query": "astronomia",
+  "hl": "pt",
+  "gl": "BR",
+  "observations": [
+    {
+      "params": null,
+      "dates_preview": ["há 1 ano", "há 3 meses", "há 1 ano", "há 10 meses"],
+      "role": "relevance baseline; preview only"
+    },
+    {
+      "params": "CAI=",
+      "meaning": "legacy upload-date ordering, protobuf field 1 = 2",
+      "result": "Same order as relevance except the eighth entry; ordering ignored."
+    },
+    {
+      "params": "CAISAhAB",
+      "meaning": "legacy upload-date ordering plus video type",
+      "dates_preview": ["há 1 mês", "há 1 mês", "há 7 meses", "há 2 meses", "há 1 ano", "há 5 minutos"],
+      "result": "Not chronological."
+    },
+    {
+      "params": "CAM=",
+      "meaning": "view-count ordering, protobuf field 1 = 3",
+      "views_millions_preview": [477, 183, 89, 80, 48],
+      "result": "Strictly decreasing view counts; works in the measured results."
+    }
+  ],
+  "decision": "Offer Relevance and View count only. Keep the separate upload-date period filter: today/week/month/year."
+}

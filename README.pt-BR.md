@@ -37,7 +37,7 @@ SponsorBlock oferece Desligado, Botão para pular (padrão) e automático. Y pul
 
 Árabe usa formas contextuais, bidi e fontes Noto sob demanda em qualquer idioma. RB alterna o teclado árabe para latim. [Suporte e limites de revisão](docs/ARABIC.md).
 
-A busca agora oferece sugestões enquanto você digita; LB abre filtros de tipo, duração, data de envio e ordenação. Buscas recentes compartilham a lista; canais e playlists abrem suas páginas. [Controles, limites de ordenação do YouTube e provas](docs/SEARCH.md).
+A busca agora oferece sugestões enquanto você digita; LB abre filtros de tipo, duração, período de envio e ordenação por relevância ou visualizações. Buscas recentes compartilham a lista; canais e playlists abrem suas páginas. [Controles e provas](docs/SEARCH.md).
 
 ## Destaques
 

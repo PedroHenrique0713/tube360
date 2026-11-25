@@ -19,7 +19,6 @@ inline const char* arabic(Key key) {
     case Key::SearchMonth: return "هذا الشهر";
     case Key::SearchYear: return "هذا العام";
     case Key::SearchRelevance: return "مدى الصلة";
-    case Key::SearchNewest: return "تاريخ التحميل";
     case Key::SearchViews: return "عدد المشاهدات";
     case Key::SearchApply: return "تطبيق";
     case Key::SearchClear: return "مسح الفلاتر";

@@ -152,7 +152,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SearchMonth, "This month", "Este mês", "Este mes") \
   X(SearchYear, "This year", "Este ano", "Este año") \
   X(SearchRelevance, "Relevance", "Relevância", "Relevancia") \
-  X(SearchNewest, "Upload date", "Data de envio", "Fecha de subida") \
   X(SearchViews, "View count", "Visualizações", "Visualizaciones") \
   X(SearchApply, "Apply", "Aplicar", "Aplicar") \
   X(SearchClear, "Clear filters", "Limpar filtros", "Borrar filtros") \

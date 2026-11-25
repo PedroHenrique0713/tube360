@@ -35,7 +35,7 @@ SponsorBlock offers Off, Skip button (default) and automatic skipping. Y skips a
 
 Arabic uses contextual shaping and bidi, with Noto fonts loaded when needed in any language. RB switches the Arabic search keyboard to Latin. [Arabic support and review limits](docs/ARABIC.md).
 
-Search now offers suggestions while typing and LB opens type, duration, upload-date and ordering filters. Recent searches share the suggestion list; channel and playlist results open their pages. [Controls, YouTube ordering limits and verification](docs/SEARCH.md).
+Search now offers suggestions while typing and LB opens type, duration, upload-date period and relevance/view-count ordering filters. Recent searches share the suggestion list; channel and playlist results open their pages. [Controls and verification](docs/SEARCH.md).
 
 ## Highlights
 

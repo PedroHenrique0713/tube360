@@ -20,7 +20,7 @@ struct SearchUI {
         const K types[]={K::AllResults,K::Videos,K::Channel,K::Playlists,K::Live};
         const K durations[]={K::SearchAny,K::SearchShort,K::SearchMedium,K::SearchLong};
         const K dates[]={K::SearchAny,K::SearchToday,K::SearchWeek,K::SearchMonth,K::SearchYear};
-        const K orders[]={K::SearchRelevance,K::SearchNewest,K::SearchViews};
+        const K orders[]={K::SearchRelevance,K::SearchViews};
         return row==0 ? types[f.type] : row==1 ? durations[f.duration] : row==2 ? dates[f.date] : orders[f.order];
     }
     static std::string summary(const yt::search::Filters& f,i18n::Lang lang) {

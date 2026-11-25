@@ -15,7 +15,7 @@ and returning with B. The keyboard reuses the current results' choices.
 
 Types: all, video, channel, playlist and live. Duration: any, under 3 minutes,
 3–20 minutes and over 20 minutes. Upload date: any, today, week, month and year.
-Order: relevance, upload date and view count. Channel/playlist disable duration
+Order: relevance and view count. Channel/playlist disable duration
 and upload date; live disables duration. Selecting duration from All selects
 Video. Filtering happens on YouTube, before pagination; the app does not sort a
 partial page locally. Typed results open channels/playlists without starting the
@@ -50,15 +50,27 @@ agrees on the changed 3-minute boundary. It replaces the older 4-minute duration
 values; copying the old short/medium constants would silently request the wrong
 range.
 
-The public menu observed on 2026-11-25 exposes Relevance and Popularity instead of
-the older sort list. Upload-date order is retained as requested using field 1 = 2,
-documented in the
-[v16.0.1 schema](https://github.com/LuanRT/YouTube.js/blob/v16.0.1/protos/misc/params.proto).
-A public request with `CAI%3D` returned HTTP 200 and preserved that field when
-combining menu filters. This suggests recognition, but does **not** establish
-effective chronological ordering. Date order and current view-count semantics
-need acceptance on actual results; Popularity may rank differently from strict
-view count. No claim of verified ordering follows from the replay tests.
+The public menu observed on 2026-11-25 exposes Relevance and Popularity. The
+coordinator then measured actual WEB `youtubei/v1/search` results for `astronomia`,
+`hl=pt`, `gl=BR`, at 07h on that date and supplied this evidence:
+
+| Params | Observation |
+|---|---|
+| None | Relevance baseline: dates began “há 1 ano, há 3 meses, há 1 ano, há 10 meses…” |
+| `CAI=` (field 1 = 2) | Same order as relevance except the eighth entry; date ordering was ignored. |
+| `CAISAhAB` (date order + video) | “há 1 mês, há 1 mês, há 7 meses, há 2 meses, há 1 ano, há 5 minutos…”; not chronological. |
+| `CAM=` (field 1 = 3) | View counts began 477, 183, 89, 80, 48 million, strictly decreasing. |
+
+Consequently, Sort by offers **Relevance** and **View count** only. Both controller
+directions cycle between those two values; no supported state emits field 1 = 2.
+The separate **Upload date** period filter (today/week/month/year) remains.
+HTTP 200 and preserved menu parameters were insufficient evidence for the removed
+date-order option. View-count ordering is supported by the coordinator's measured
+results, rather than inferred from the menu label or replay tests. This evidence
+is transcribed in
+[`order-coordinator-20261125.json`](../bench/search/fixtures/order-coordinator-20261125.json);
+it is a reported measurement, not a raw response fixture or a new request by this
+feature agent. No additional live requests were needed for this correction.
 
 Public search now uses the typed catalogue in `yt/catalog.hpp`, sharing channel,
 playlist, WEB bootstrap, pagination and cache infrastructure. The cache/cursor key
@@ -121,10 +133,11 @@ installation/log procedure. Keep real accounts and `net_log.txt` out of packages
 2. Move right off the final keyboard key; navigate up/down and A. It should search
    the selected suggestion immediately. Repeat a search and confirm a single
    recent entry, with recent searches still available when internet is absent.
-3. LB → choose video, short, week, date order → Apply → Menu. Check all active
+3. LB → choose video, short, week, view-count order → Apply → Menu. Check all active
    choices on results. From results, LB → change each type/date/duration/order;
    Apply reloads, B discards, Clear returns to relevance/all. Validate actual
-   durations/upload dates and the order caveat above against today's YouTube.
+   durations/upload dates and decreasing view counts. Sort by must cycle only
+   Relevance ↔ View count, while the separate upload-date period row stays available.
 4. Open a channel result and a playlist result. Expect
    `navegação channel` / `navegação playlist`; no `player: pedido` until a video or
    Play all is selected. B restores the original search selection and filters.

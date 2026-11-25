@@ -34,7 +34,7 @@ def run(name,lang='pt',height=720,large=False,keys='',seconds=2.8,**extra):
     if name.startswith('suggestions-'): assert 'sugestoes=8' in text,text[-2000:]
     if name.startswith('filters-'): assert 'painel=1 tipo=1 duracao=1 data=2 ordem=1' in text,text[-2000:]
     if name.startswith('results-'):
-        assert 'captura navegação: search' in text and 'CAISBggDEAEYBA%3D%3D' in audit,text[-3000:]+audit[-3000:]
+        assert 'captura navegação: search' in text and 'CAMSBggDEAEYBA%3D%3D' in audit,text[-3000:]+audit[-3000:]
     if name=='suggestion-accept': assert 'captura navegação: search' in text and 'astronomia musica' in audit,audit[-3000:]
     if name=='recent-accept': assert 'captura navegação: search' in text and 'palmeiras 4x1 corinthians' in audit and 'recentes=3' in text,audit[-3000:]+text[-2000:]
     if name in ('offline','typing-slow','typing-fast'): assert 'tela 1, vídeo' in text,text[-2000:]
@@ -43,6 +43,10 @@ def run(name,lang='pt',height=720,large=False,keys='',seconds=2.8,**extra):
     if name=='clear-filters': assert 'captura navegação: search' in text and 'ordem=0' in text,text[-2000:]
     if name in ('search-back','list-back'): assert 'tela 0, vídeo' in text,text[-2000:]
     if name=='offline-search': assert 'captura navegação: search' in text,text[-2000:]
+    if name=='order-cycle-relevance':
+        searches=[json.loads(line.split('\t',1)[1]) for line in audit.splitlines() if line.startswith('body\t') and '"query"' in line]
+        assert len(searches)==1 and searches[0].get('params')=='EgYIAxABGAQ%3D',searches
+        assert 'captura navegação: search' in text and 'tipo=1 duracao=1 data=2 ordem=0' in text,text[-2000:]
     if name=='clear-filters':
         searches=[json.loads(line.split('\t',1)[1]) for line in audit.splitlines() if line.startswith('body\t') and '"query"' in line]
         assert len(searches)==2 and 'params' in searches[0] and 'params' not in searches[-1],searches
@@ -58,7 +62,7 @@ def run(name,lang='pt',height=720,large=False,keys='',seconds=2.8,**extra):
     results.append(dict(name=name,image=str(assets/'screen.png'),frames=metrics))
     print(name,'OK',metrics,flush=True)
 
-# LB, video, duration short, week, date order. Apply at row 4.
+# LB, video, duration short, week, view-count order. Apply at row 4.
 draft='[RDRDRRDR'
 for lang in ('pt','en','es','ar'):
     run('suggestions-'+lang,lang=lang)
@@ -75,6 +79,7 @@ run('recent-accept',keys='RRRRRRRRRRA',seconds=2.8,XT_SEARCH_ERROR='1')
 run('offline',XT_SEARCH_ERROR='1')
 run('offline-search',keys='S',XT_SEARCH_ERROR='1')
 run('cancel-filters',keys=draft+'B')
+run('order-cycle-relevance',keys=draft+'RDAS',seconds=3.4)
 run('clear-filters',keys=draft+'DAS...[DDDDRA',seconds=4)
 run('search-back',keys='B')
 run('list-back',keys='........RRRRRRRRRRLB')

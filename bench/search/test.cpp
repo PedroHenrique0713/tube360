@@ -41,7 +41,7 @@ int main(int argc,char** argv) {
     const std::pair<const char*,Filters> cases[]={
         {"Vídeos",{1}}, {"Canais",{2}}, {"Playlists",{3}}, {"Ao vivo",{4}},
         {"Menos de 3 minutos",{0,1}}, {"De 3 a 20 minutos",{0,2}}, {"Com mais de 20 minutos",{0,3}},
-        {"Hoje",{0,0,1}}, {"Esta semana",{0,0,2}}, {"Este mês",{0,0,3}}, {"Este ano",{0,0,4}}, {"Popularidade",{0,0,0,2}}
+        {"Hoje",{0,0,1}}, {"Esta semana",{0,0,2}}, {"Este mês",{0,0,3}}, {"Este ano",{0,0,4}}, {"Popularidade",{0,0,0,1}}
     };
     for (auto& c:cases) {
         string expected;
@@ -49,13 +49,20 @@ int main(int argc,char** argv) {
         check(!expected.empty() && c.second.params()==expected,"params equals actual YouTube searchEndpoint");
     }
     check(Filters{}.params().empty(),"clear omits params");
-    check(Filters{0,0,0,1}.params()=="CAI%3D","legacy upload-date ordering documented in youtubei.js v16.0.1");
+    check(Filters{0,0,0,1}.params()=="CAM%3D","view-count order verified by coordinator on real WEB search");
+    Filters sort;
+    for (int direction:{1,1,-1,-1}) {
+        sort.change(3,direction);
+        check(sort.params()==(sort.order ? "CAM%3D" : ""),"order cycles only relevance/view count in both directions");
+    }
+    check(sort.order==0,"two steps return to relevance in either direction");
     Filters state; state.change(1,1); check(state.type==1 && state.duration==1,"duration selects video");
     state.change(0,1); check(state.type==2 && !state.duration && state.disabled(1) && state.disabled(2),"channel clears incompatible filters");
     for (int t=-1;t<=6;++t) for (int d=-1;d<=5;++d) for (int date=-1;date<=6;++date) for (int order=-1;order<=4;++order) {
         Filters f{t,d,date,order}; f.normalize();
-        check(f.type>=0 && f.type<=4 && f.duration>=0 && f.duration<=3 && f.date>=0 && f.date<=4 && f.order>=0 && f.order<=2,"bounds");
+        check(f.type>=0 && f.type<=4 && f.duration>=0 && f.duration<=3 && f.date>=0 && f.date<=4 && f.order>=0 && f.order<=1,"bounds");
         check((f.type!=2 && f.type!=3) || (!f.duration && !f.date),"incompatible wire filters removed");
+        check(f.params().compare(0,3,"CAI")!=0,"no normalized combination emits removed date ordering");
     }
     Http h; Client client(h);
     auto publicPage=read(dir,"search-public.json");
