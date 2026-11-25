@@ -350,9 +350,9 @@
   "rating_removed": "Avaliação removida",
   "latest_release": "Última versão",
   "release_date_unknown": "Ver data da versão",
-  "community_title": "Cada download é mais um 360.",
-  "community_description": "Todos os pacotes, de todas as versões. Volte para acompanhar a comunidade crescer.",
-  "count_note": "Downloads contam pacotes, não pessoas únicas.",
+  "community_title": "Cada estrela acende o céu do 360.",
+  "community_description": "Um app aberto. Um console com muito pela frente. Faça parte do que vem aí.",
+  "count_note": "Soma de ZIP, 7z e XEX. Pacotes, não pessoas únicas.",
   "stats_snapshot": "Registro do GitHub",
   "stats_live": "Atualizado pelo GitHub",
   "stats_updated": "Atualizado",
@@ -454,5 +454,12 @@
     "source_link": "Ler o CHANGELOG completo",
     "nav": "Novidades"
   },
-  "news": "Notícias"
+  "news": "Notícias",
+  "sky_caption": "Uma luz para cada estrela no GitHub",
+  "stars_label": "estrelas no GitHub",
+  "next_goal": "Próxima marca:",
+  "stars_remaining": "faltam {count}",
+  "community_downloads_title": "Mais 360s de volta ao jogo.",
+  "downloads_by_version": "Downloads de pacotes por versão",
+  "version_pending": "Os downloads por versão aparecem quando o GitHub estiver disponível."
 }
