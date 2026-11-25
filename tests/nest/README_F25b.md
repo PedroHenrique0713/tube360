@@ -1,5 +1,8 @@
 # F25b — IP salvo sem descoberta no caminho do áudio
 
+Para a correção posterior de cadência/sincronismo sob jitter (RC2), veja
+[README_JITTER.md](README_JITTER.md).
+
 O worker Cast abre diretamente o host/porta de `nest.txt`, mesmo com apenas as
 duas linhas da v0.3.1. Depois de PLAYING, outro worker tenta ler os metadados e
 salvar UUID/modelo. Falha nessa leitura não inicia uma busca nem altera a saída.
@@ -34,7 +37,7 @@ Os testes de descoberta compartilham portas e devem rodar em sequência.
 
 ```bash
 PATH=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f5-h264/.work/src/usr/bin:$PATH cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
-cmake --build client/build -j3 --target tube360 nest-test nest-discovery-test cast-test-app cast-protocol-test cast-lan-test nest-scan-fault-test nest-live-clock-test
+cmake --build client/build -j2 --target tube360 nest-test nest-discovery-test cast-test-app cast-protocol-test cast-lan-test nest-scan-fault-test nest-live-clock-test
 python3 tests/nest/discovery_test.py
 python3 tests/nest/saved_ip_test.py
 LP_NUM_THREADS=2 python3 tests/nest/saved_player_test.py

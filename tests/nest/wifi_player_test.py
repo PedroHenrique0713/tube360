@@ -153,6 +153,8 @@ def run(name, silence=False, permanent=False, missing_time=False, handshake_dela
     if missing_time:
         commands = [data['type'] for namespace, data in receiver.events if namespace.endswith('.media')]
         assert commands[:commands.index('STOP')].count('LOAD') == 1
+        active = log.split('som: Nest,', 1)[1].split('liberando para TV', 1)[0]
+        assert 'som: aguardando' not in active, 'observed vivo deve manter o relógio em holdover'
     else:
         assert len(receiver.commands('LOAD')) == 1
     assert permanent or receiver.commands('STOP')

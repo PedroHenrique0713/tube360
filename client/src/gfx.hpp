@@ -717,7 +717,7 @@ inline void end(Gfx& g, const char* shotPath = nullptr) {
   if (uploaded) {
     uint64_t presentation = SDL_GetTicksNS() - beganPresent, now = SDL_GetTicks();
     g.submitNs += submission; g.presentNs += presentation;
-    if (g.videoMetrics) LOG("render-quadro: pts %.6f, submit-CPU %.3f ms, present-CPU %.3f ms",g.video->pts,submission / 1e6,presentation / 1e6);
+    if (g.videoMetrics) LOG("render-quadro: pts %.6f, submit-CPU %.3f ms, present-CPU %.3f ms, monotonic-ms %.3f",g.video->pts,submission / 1e6,presentation / 1e6,SDL_GetTicksNS()/1e6);
     if (now - g.uploadAt >= 1000 && g.uploadCount) {
       LOG("upload: %dx%d, %llu quadros, %.2f MB/s, staging %.3f ms/quadro, max %.3f ms, submit-CPU %.3f ms, present-CPU %.3f ms, GPU %s",
           g.video->w,g.video->h,(unsigned long long)g.uploadCount,g.uploadBytes / 1000.0 / (now - g.uploadAt),
