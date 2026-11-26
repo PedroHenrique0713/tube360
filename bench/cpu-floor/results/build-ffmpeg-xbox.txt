@@ -1,7 +1,7 @@
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/src/ffmpeg-7.1.5.tar.xz: OK
-install prefix            /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/ffmpeg-xbox
+<repo>/bench/cpu-floor/.work/app-build/.work/src/ffmpeg-7.1.5.tar.xz: OK
+install prefix            <repo>/bench/cpu-floor/.work/app-build/.work/ffmpeg-xbox
 source path               src
-C compiler                /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc
+C compiler                ~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc
 C library                 newlib
 host C compiler           gcc
 host C library            glibc
@@ -72,7 +72,7 @@ Enabled outdevs:
 
 License: LGPL version 2.1 or later
 
-WARNING: /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
+WARNING: ~/xsdk-gcc-52/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
 GEN	libavformat/libavformat.version
 GEN	libavcodec/libavcodec.version
 GEN	libavutil/libavutil.version
@@ -1035,7 +1035,7 @@ VMX h264qpel: 13406 instruções, 4600 vetoriais, 0 multiplicações incompatív
 VMX h264dsp: 1708 instruções, 488 vetoriais, 0 multiplicações incompatíveis
 VMX idctdsp: 1 instruções, 0 vetoriais, 0 multiplicações incompatíveis
 VMX h264-tube360: 15764 instruções, 5539 vetoriais, 0 multiplicações incompatíveis
-make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/build-xbox'
+make: Entering directory '<repo>/bench/cpu-floor/.work/app-build/.work/build-xbox'
 INSTALL	libavformat/libavformat.a
 INSTALL	src/doc/examples/avio_http_serve_files.c
 INSTALL	src/doc/examples/avio_list_dir.c
@@ -1462,7 +1462,7 @@ INSTALL	libavutil/ffversion.h
 INSTALL	libavutil/libavutil.pc
 AR	libavcodec/libavcodec.a
 INSTALL	libavcodec/libavcodec.a
-make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/build-xbox'
+make: Leaving directory '<repo>/bench/cpu-floor/.work/app-build/.work/build-xbox'
 VMX h264qpel: 13406 instruções, 4600 vetoriais, 0 multiplicações incompatíveis
 VMX h264dsp: 1708 instruções, 488 vetoriais, 0 multiplicações incompatíveis
 VMX idctdsp: 1 instruções, 0 vetoriais, 0 multiplicações incompatíveis

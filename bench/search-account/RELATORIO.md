@@ -1,9 +1,9 @@
 # F47 — busca com conta, qualidade e atalhos da Música
 
 Base: `af792a2` (`f45-integracao`, v0.3.2-rc3). Trabalho exclusivo no worktree
-`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta`, branch
+`<repo>`, branch
 `f47-busca-conta`. Provas em
-`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/`.
+`<repo>/.work/provas/f47/`.
 
 ## Entrega por item
 
@@ -104,7 +104,7 @@ Uma falha do pedido anônimo continua sendo falha e ganha diagnóstico completo.
 
   ```sh
   TUBE360_BUILD_ENV="$PWD/.work/build.env" JOBS=2 TUBE360_VERSION=0.3.2-f47-test \
-    flock /home/pedrohenriquequadro/.cache/tube360-frota-xbox.lock \
+    flock ~/.cache/tube360-frota-xbox.lock \
     systemd-run --user --scope -q -p MemoryMax=6G -p MemorySwapMax=1G tools/build-xbox.sh
   ```
 
@@ -128,13 +128,13 @@ início. O manifesto `ui/screenshots.json` lista os caminhos absolutos.
 
 | Idioma | Busca com filtro | Atalhos | Player | Menu Y | Aviso | Música 4:3/texto grande |
 |---|---|---|---|---|---|---|
-| pt | [search-filtered-pt](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/search-filtered-pt/screen.png) | [music-pt](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/music-pt/screen.png) | [player-pt](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/player-pt/screen.png) | [quality-pt](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/quality-pt/screen.png) | [warning-pt](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/warning-pt/screen.png) | [music-crt-pt](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/music-crt-pt/screen.png) |
-| en | [search-filtered-en](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/search-filtered-en/screen.png) | [music-en](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/music-en/screen.png) | [player-en](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/player-en/screen.png) | [quality-en](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/quality-en/screen.png) | [warning-en](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/warning-en/screen.png) | [music-crt-en](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/music-crt-en/screen.png) |
-| es | [search-filtered-es](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/search-filtered-es/screen.png) | [music-es](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/music-es/screen.png) | [player-es](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/player-es/screen.png) | [quality-es](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/quality-es/screen.png) | [warning-es](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/warning-es/screen.png) | [music-crt-es](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/music-crt-es/screen.png) |
-| ar | [search-filtered-ar](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/search-filtered-ar/screen.png) | [music-ar](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/music-ar/screen.png) | [player-ar](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/player-ar/screen.png) | [quality-ar](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/quality-ar/screen.png) | [warning-ar](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/warning-ar/screen.png) | [music-crt-ar](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/music-crt-ar/screen.png) |
+| pt | [search-filtered-pt](<repo>/.work/provas/f47/ui/search-filtered-pt/screen.png) | [music-pt](<repo>/.work/provas/f47/ui/music-pt/screen.png) | [player-pt](<repo>/.work/provas/f47/ui/player-pt/screen.png) | [quality-pt](<repo>/.work/provas/f47/ui/quality-pt/screen.png) | [warning-pt](<repo>/.work/provas/f47/ui/warning-pt/screen.png) | [music-crt-pt](<repo>/.work/provas/f47/ui/music-crt-pt/screen.png) |
+| en | [search-filtered-en](<repo>/.work/provas/f47/ui/search-filtered-en/screen.png) | [music-en](<repo>/.work/provas/f47/ui/music-en/screen.png) | [player-en](<repo>/.work/provas/f47/ui/player-en/screen.png) | [quality-en](<repo>/.work/provas/f47/ui/quality-en/screen.png) | [warning-en](<repo>/.work/provas/f47/ui/warning-en/screen.png) | [music-crt-en](<repo>/.work/provas/f47/ui/music-crt-en/screen.png) |
+| es | [search-filtered-es](<repo>/.work/provas/f47/ui/search-filtered-es/screen.png) | [music-es](<repo>/.work/provas/f47/ui/music-es/screen.png) | [player-es](<repo>/.work/provas/f47/ui/player-es/screen.png) | [quality-es](<repo>/.work/provas/f47/ui/quality-es/screen.png) | [warning-es](<repo>/.work/provas/f47/ui/warning-es/screen.png) | [music-crt-es](<repo>/.work/provas/f47/ui/music-crt-es/screen.png) |
+| ar | [search-filtered-ar](<repo>/.work/provas/f47/ui/search-filtered-ar/screen.png) | [music-ar](<repo>/.work/provas/f47/ui/music-ar/screen.png) | [player-ar](<repo>/.work/provas/f47/ui/player-ar/screen.png) | [quality-ar](<repo>/.work/provas/f47/ui/quality-ar/screen.png) | [warning-ar](<repo>/.work/provas/f47/ui/warning-ar/screen.png) | [music-crt-ar](<repo>/.work/provas/f47/ui/music-crt-ar/screen.png) |
 
 Há ainda busca sem filtros nos quatro idiomas, convidados, as quatro recusas
-adversariais e o erro 200 anônimo em [search-failure](/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f47-busca-conta/.work/provas/f47/ui/search-failure/screen.png).
+adversariais e o erro 200 anônimo em [search-failure](<repo>/.work/provas/f47/ui/search-failure/screen.png).
 `languages.png` reúne as quatro línguas; `warnings.png` e `crt.png` reúnem os avisos e a disposição 4:3; `before-after.png` e os PNGs em
 `baseline/{search-pt,music-pt,player-pt}/` mostram a comparação com a rc3. Os avisos
 vêm de sobrecarga real induzida somente no transporte/decoder de fixture e

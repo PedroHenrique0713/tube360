@@ -341,17 +341,17 @@
 [ 96%] Built target tube360-yt
 [ 96%] Generating video.frag.h
 [ 96%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/discovery.cpp.o
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/video.frag
+<repo>/client/shaders/video.frag
 [ 96%] Generating image.frag.h
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/image.frag
+<repo>/client/shaders/image.frag
 [ 96%] Generating island.frag.h
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/island.frag
+<repo>/client/shaders/island.frag
 [ 96%] Generating shape.frag.h
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/shape.frag
+<repo>/client/shaders/shape.frag
 [ 97%] Generating text.frag.h
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/text.frag
+<repo>/client/shaders/text.frag
 [ 97%] Generating ui.vert.h
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/shaders/ui.vert
+<repo>/client/shaders/ui.vert
 [ 97%] Building CXX object CMakeFiles/tube360-main.dir/src/main.cpp.o
 [ 98%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/lounge.cpp.o
 [ 98%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/receiver.cpp.o
@@ -362,12 +362,12 @@
 [ 98%] Linking CXX static library libtube360-update.a
 [ 98%] Built target tube360-update
 [ 98%] Built target tube360-main
-[100%] Building CXX object CMakeFiles/tube360-quality-fixture.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/quality/fixture_transport.cpp.o
+[100%] Building CXX object CMakeFiles/tube360-quality-fixture.dir<repo>/bench/quality/fixture_transport.cpp.o
 [100%] Linking CXX executable tube360-quality-fixture
 [100%] Built target tube360-quality-fixture
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8.tar.bz2: OK
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/curl-xenon.tar.gz: OK
-CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
+<repo>/.work/src/mbedtls-3.6.8.tar.bz2: OK
+<repo>/.work/src/curl-xenon.tar.gz: OK
+CMake Deprecation Warning at <repo>/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
   Compatibility with CMake < 3.10 will be removed from a future version of
   CMake.
 
@@ -386,7 +386,7 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 -- Enabled SSL backends: mbedTLS
 -- Configuring done (5.5s)
 -- Generating done (0.8s)
--- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/build
+-- Build files have been written to: <repo>/client/build
 [  0%] Building C object yt/tls/3rdparty/everest/CMakeFiles/everest.dir/library/everest.c.o
 [  0%] Building C object yt/tls/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m_driver_entrypoints.c.o
 [  0%] Building C object yt/tls/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m/p256-m.c.o
@@ -728,10 +728,10 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 [101%] Building CXX object CMakeFiles/tube360-cast.dir/src/cast/stream.cpp.o
 [101%] Linking CXX static library libtube360-cast.a
 [101%] Built target tube360-cast
-[101%] Building CXX object CMakeFiles/player-state-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/quality/player_state.cpp.o
+[101%] Building CXX object CMakeFiles/player-state-test.dir<repo>/bench/quality/player_state.cpp.o
 [101%] Linking CXX executable player-state-test
 [101%] Built target player-state-test
-Building CXX object CMakeFiles/h264-cadence-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/quality/cadence.cpp.o
+Building CXX object CMakeFiles/h264-cadence-test.dir<repo>/bench/quality/cadence.cpp.o
 Linking CXX executable h264-cadence-test
 Built target h264-cadence-test
 [  1%] Built target p256m
@@ -743,6 +743,6 @@ Built target h264-cadence-test
 [ 40%] Built target mbedtls
 [ 98%] Built target libcurl_static
 [100%] Built target tube360-yt
-[100%] Building CXX object CMakeFiles/manual-quality-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/tests/reddit/manual_quality.cpp.o
+[100%] Building CXX object CMakeFiles/manual-quality-test.dir<repo>/tests/reddit/manual_quality.cpp.o
 [100%] Linking CXX executable manual-quality-test
 [100%] Built target manual-quality-test

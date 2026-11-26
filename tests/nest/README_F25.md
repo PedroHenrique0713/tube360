@@ -3,7 +3,7 @@
 As provas usam loopback, conteúdo sintético e diretórios em `.work/f25`. Não acessam Xbox, Nest físico nem conta real.
 
 ```bash
-PATH=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f5-h264/.work/src/usr/bin:$PATH cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
+PATH=<repo>/.work/src/usr/bin:$PATH cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
 cmake --build client/build -j3 --target tube360 nest-test nest-discovery-test cast-test-app cast-protocol-test nest-live-clock-test
 python3 tests/nest/discovery_test.py
 python3 bench/standalone/cast_test.py client/build/nest-test

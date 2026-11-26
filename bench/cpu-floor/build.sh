@@ -12,7 +12,7 @@ cp -a "$root/tools/ffmpeg-x360" "$stage/tools/"
 archive=${FFMPEG_ARCHIVE:-$root/.work/src/ffmpeg-7.1.5.tar.xz}
 if [[ -f $archive ]]; then cp --reflink=auto "$archive" "$stage/.work/src/"; fi
 export TUBE360_BUILD_ENV=/dev/null
-export PATH="/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f5-h264/.work/src/usr/bin:$PATH"
+export PATH="${XSDK_BIN:-$root/.work/src/usr/bin}:$PATH"
 src="$stage/.work/src/ffmpeg-7.1.5"
 [[ $target == pc ]] || src+="-xbox"
 compiler=${CC:-cc}

@@ -45,7 +45,7 @@ A compilação do console usa o lock compartilhado (não executa nem instala no 
 
 ```sh
 TUBE360_BUILD_ENV="$PWD/.work/arabic/build.env" \
-  flock /home/pedrohenriquequadro/.cache/tube360-frota-xbox.lock \
+  flock ~/.cache/tube360-frota-xbox.lock \
   systemd-run --user --scope -q -p MemoryMax=6G -p MemorySwapMax=1G tools/build-xbox.sh
 python3 tools/package-xbox.py --version 0.3.2-f36 --output-dir .work/arabic/package
 python3 tests/update/package-test.py .work/arabic/package/tube360-v0.3.2-f36-xbox360.zip

@@ -1,6 +1,6 @@
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/mbedtls-3.6.8.tar.bz2: OK
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/curl-xenon.tar.gz: OK
-CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
+<repo>/.work/src/mbedtls-3.6.8.tar.bz2: OK
+<repo>/.work/src/curl-xenon.tar.gz: OK
+CMake Deprecation Warning at <repo>/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
   Compatibility with CMake < 3.10 will be removed from a future version of
   CMake.
 
@@ -19,7 +19,7 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 -- Enabled SSL backends: mbedTLS
 -- Configuring done (3.3s)
 -- Generating done (0.5s)
--- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/build
+-- Build files have been written to: <repo>/client/build
 [  0%] Building C object yt/tls/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m_driver_entrypoints.c.o
 [  0%] Building C object yt/tls/3rdparty/everest/CMakeFiles/everest.dir/library/everest.c.o
 [  0%] Building C object yt/tls/3rdparty/everest/CMakeFiles/everest.dir/library/x25519.c.o
@@ -365,7 +365,7 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 [ 96%] Linking CXX static library libtube360-update.a
 [ 96%] Built target tube360-update
 [ 98%] Built target tube360-main
-[ 98%] Building CXX object CMakeFiles/tube360-quality-fixture.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/quality/fixture_transport.cpp.o
+[ 98%] Building CXX object CMakeFiles/tube360-quality-fixture.dir<repo>/bench/quality/fixture_transport.cpp.o
 [100%] Linking CXX executable tube360-quality-fixture
 [100%] Built target tube360-quality-fixture
 [  0%] Built target p256m
@@ -377,12 +377,12 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 [ 96%] Built target libcurl_static
 [ 98%] Built target tube360-yt
 [100%] Built target tube360-cast
-[100%] Building CXX object CMakeFiles/player-state-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/quality/player_state.cpp.o
+[100%] Building CXX object CMakeFiles/player-state-test.dir<repo>/bench/quality/player_state.cpp.o
 [100%] Linking CXX executable player-state-test
 [100%] Built target player-state-test
-Building CXX object CMakeFiles/h264-cadence-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/quality/cadence.cpp.o
+Building CXX object CMakeFiles/h264-cadence-test.dir<repo>/bench/quality/cadence.cpp.o
 Linking CXX executable h264-cadence-test
 Built target h264-cadence-test
-[  0%] Building CXX object CMakeFiles/video-memory-test.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/quality/video_memory.cpp.o
+[  0%] Building CXX object CMakeFiles/video-memory-test.dir<repo>/bench/quality/video_memory.cpp.o
 [  0%] Linking CXX executable video-memory-test
 [100%] Built target video-memory-test

@@ -185,9 +185,9 @@ de 2.520 quadros com oracle externo, não uma captura selecionada. Não testei a
 Build Xbox executado com trava compartilhada e limite de memória:
 
 ```bash
-XSDK_DIR=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/vendor/xsdk \
-XSDK_TOOLCHAIN=/home/pedrohenriquequadro/xsdk-gcc JOBS=3 \
-flock /home/pedrohenriquequadro/.cache/tube360-frota-xbox.lock \
+XSDK_DIR=<forcepush-360>/vendor/xsdk \
+XSDK_TOOLCHAIN=~/xsdk-gcc JOBS=3 \
+flock ~/.cache/tube360-frota-xbox.lock \
 systemd-run --user --scope -q -p MemoryMax=3G -p MemorySwapMax=512M \
 bench/cpu-floor/build.sh xbox
 ```
@@ -208,7 +208,7 @@ XEX: Microsoft Xbox 360 executable
 
 Metadados em [`results/xbox-artifact.json`](results/xbox-artifact.json). Binário ignorado no Git,
 presente no caminho absoluto
-`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f30-hibrido/bench/cpu-floor/build-xbox/cpu-floor.xex`.
+`<repo>/bench/cpu-floor/build-xbox/cpu-floor.xex`.
 Se integrar só commits em outro lugar, recompilar com o README. Não foi instalado no console.
 
 Checagens auxiliares: `bash -n`, `python3 -m py_compile` dos quatro scripts, compilação C++

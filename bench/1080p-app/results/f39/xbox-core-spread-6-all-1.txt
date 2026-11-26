@@ -2,7 +2,7 @@ log: game:\f39-cpu.log
 log: named after \Device\Harddisk0\Partition1\Apps\Tube360-F39\f39-cpu.xex
 log: no net_log.txt beside the .xex, so not over the network
 F39 START schema=1 platform=xbox mask=7 threads=6 only=5 affinity=1 thread_type=frame repeats=3 ffmpeg=7.1.5 cpu_flags=1
-F39 CONFIG --prefix=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f39-brechas/bench/cpu-floor/.work/app-build/.work/ffmpeg-xbox --disable-autodetect --disable-everything --enable-static --disable-shared --disable-gpl --disable-version3 --disable-nonfree --disable-network --disable-programs --disable-doc --disable-debug --disable-avdevice --disable-avfilter --disable-swscale --disable-postproc --enable-pthreads --enable-decoder='h264,aac,opus' --enable-parser='h264,aac,opus' --enable-demuxer='mov,m
+F39 CONFIG --prefix=<repo>/bench/cpu-floor/.work/app-build/.work/ffmpeg-xbox --disable-autodetect --disable-everything --enable-static --disable-shared --disable-gpl --disable-version3 --disable-nonfree --disable-network --disable-programs --disable-doc --disable-debug --disable-avdevice --disable-avfilter --disable-swscale --disable-postproc --enable-pthreads --enable-decoder='h264,aac,opus' --enable-parser='h264,aac,opus' --enable-demuxer='mov,m
 F30 CLIP name=youtube137 packets=600 bytes=8851123 width=1920 height=1080 fps=30 kbps=3533 level=40
 F39 AFFINITY worker=1 hw=0 status=00000000
 F39 AFFINITY worker=2 hw=2 status=00000000

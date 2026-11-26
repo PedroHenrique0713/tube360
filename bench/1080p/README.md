@@ -38,14 +38,14 @@ A decisão de avançar ao híbrido depende dos resultados CPU abaixo.
 Use os caminhos públicos do SDK, sem configuração/conta pessoal:
 
 ```bash
-export XSDK_DIR=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/vendor/xsdk
-export XSDK_TOOLCHAIN=/home/pedrohenriquequadro/xsdk-gcc-52
-export V4X_DIR=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/vendor/vulkan4xenon
-export SDL3_XENON_DIR=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/vendor/SDL-xenon/build-xsdk
+export XSDK_DIR=<forcepush-360>/vendor/xsdk
+export XSDK_TOOLCHAIN=~/xsdk-gcc-52
+export V4X_DIR=<forcepush-360>/vendor/vulkan4xenon
+export SDL3_XENON_DIR=<forcepush-360>/vendor/SDL-xenon/build-xsdk
 export TUBE360_BUILD_ENV=/dev/null
-JOBS=3 flock /home/pedrohenriquequadro/.cache/tube360-frota-xbox.lock \
+JOBS=3 flock ~/.cache/tube360-frota-xbox.lock \
   systemd-run --user --scope -q -p MemoryMax=6G -p MemorySwapMax=1G bash bench/1080p/build.sh xbox
-TUBE360_F33_BENCH=ON flock /home/pedrohenriquequadro/.cache/tube360-frota-xbox.lock \
+TUBE360_F33_BENCH=ON flock ~/.cache/tube360-frota-xbox.lock \
   systemd-run --user --scope -q -p MemoryMax=6G -p MemorySwapMax=1G tools/build-xbox.sh
 python3 bench/1080p/stage-console.py
 ```
@@ -56,7 +56,7 @@ no verificador. Os modos/filtros/tempos/contadores e executável F30 padrão per
 A instrumentação fica na biblioteca privada da bancada, nunca na do app.
 
 ```bash
-PATH=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f5-h264/.work/src/usr/bin:$PATH \
+PATH=<repo>/.work/src/usr/bin:$PATH \
   JOBS=2 bash bench/1080p/build.sh pc
 bench/1080p/build-pc/f33-cpu > bench/1080p/results/pc-run.txt
 python3 bench/1080p/summarize.py bench/1080p/results/pc-run.txt bench/1080p/results/pc-summary.json
@@ -90,7 +90,7 @@ não substitua o Tube360 instalado. Os XEX encerram sozinhos; log junto ao nome 
 Sem `dbgprint.txt` ou `net_log.txt`: logging síncrono/UDP não participa do tempo.
 
 ```bash
-F33_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
+F33_XBDM=<forcepush-360>/tools/xbdm.py
 F33_IP=192.168.1.50
 F33_REMOTE='HDD:\Apps\Tube360-F33-CPU'
 python3 "$F33_XBDM" "$F33_IP" mkdir "$F33_REMOTE"

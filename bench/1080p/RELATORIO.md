@@ -11,7 +11,7 @@ Foi solicitado ao coordenador devolver primeiro os logs de `f33-kernels.xex` e
 `f33-cpu.xex` com **`1 6 0`** (chroma, seis FRAME workers, FULL). O roteiro completo está
 em [README.md](README.md), e o diretório pronto para copiar é:
 
-`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/1080p/.work/console/`
+`<repo>/bench/1080p/.work/console/`
 
 ## 1. Entrega por item do brief
 
@@ -39,7 +39,7 @@ O scanner do objeto final achou 5.539 instruções vetoriais e zero multiplicaç
 incompatível. A lista não é prova universal da ISA.
 
 O SDK atual recusa o prefixo antigo no guard de loops contados. O conjunto final usa
-**`/home/pedrohenriquequadro/xsdk-gcc-52`**, ainda GCC 15.3.0. O build agora identifica a
+**`~/xsdk-gcc-52`**, ainda GCC 15.3.0. O build agora identifica a
 receita e também os binários GCC/cc1; trocar o gerador limpa os objetos FFmpeg. CMake deixa
 de reutilizar biblioteca antiga só porque `libavformat.a` existe. A identidade conferida é
 igual no FFmpeg do app e na biblioteca privada da bancada; só esta última recebe a
@@ -107,7 +107,7 @@ no mesmo binário F33, não apenas subtrair a medição antiga da nova.
 ### Correção PowerPC
 
 ```bash
-XSDK_TOOLCHAIN=/home/pedrohenriquequadro/xsdk-gcc-52 \
+XSDK_TOOLCHAIN=~/xsdk-gcc-52 \
 FFMPEG_SRC="$PWD/.work/src/ffmpeg-7.1.5" \
 FFMPEG_CONFIG="$PWD/bench/1080p/.work/config" \
 bash bench/1080p/check-kernels.sh
@@ -160,7 +160,7 @@ instrumentada somente nas bancadas. HOME/cache/assets isolados e transporte grav
 - `video-memory-test`: modos mapeado, staging e alocador recusado, **600 imagens em cada**,
   todas apresentadas; hash YUV **`e9de7564bd5b36fc`** igual. As nove capturas RGB dos quadros
   31/91/151 também são idênticas. [Comparação](results/video-memory-comparison.json).
-- Capturas olhadas: `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/app-1080p.png`
+- Capturas olhadas: `<repo>/.work/quality/proofs/app-1080p.png`
   mostra o player com badge 1080 e a fixture identificada; `mapped-091.png` na mesma pasta
   mostra o quadro completo sem corrupção de planos/strides. Os PPM e controles estão ao lado.
 

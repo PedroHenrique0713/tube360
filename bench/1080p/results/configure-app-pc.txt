@@ -18,12 +18,12 @@
                                  Dload  Upload  Total   Spent   Left   Speed
   0      0   0      0   0      0      0      0                              0  0      0   0      0   0      0      0      0                              0  0      0   0      0   0      0      0      0                              0
   0      0   0      0   0      0      0      0                              0100  5.29M 100  5.29M   0      0  6.43M      0                              0100  5.29M 100  5.29M   0      0  6.40M      0                              0100  5.29M 100  5.29M   0      0  6.40M      0                              0
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/mbedtls-3.6.8.tar.bz2: OK
+<repo>/.work/src/mbedtls-3.6.8.tar.bz2: OK
   % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current
                                  Dload  Upload  Total   Spent   Left   Speed
   0      0   0      0   0      0      0      0                              0100  3.60M   0  3.60M   0      0  4.46M      0                              0100  3.60M   0  3.60M   0      0  4.46M      0                              0100  3.60M   0  3.60M   0      0  4.46M      0                              0
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/curl-xenon.tar.gz: OK
-CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
+<repo>/.work/src/curl-xenon.tar.gz: OK
+CMake Deprecation Warning at <repo>/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
   Compatibility with CMake < 3.10 will be removed from a future version of
   CMake.
 
@@ -32,7 +32,7 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
   to work with policies introduced by <max> or earlier.
 
 
--- Found Python3: /home/pedrohenriquequadro/.pyenv/shims/python3.12 (found version "3.12.7") found components: Interpreter
+-- Found Python3: ~/.pyenv/shims/python3.12 (found version "3.12.7") found components: Interpreter
 -- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS
 -- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS - Success
 -- USING O3
@@ -43,7 +43,7 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 -- Found Perl: /usr/bin/perl (found version "5.42.3")
 -- Looking for connect in socket
 -- Looking for connect in socket - not found
--- Found MbedTLS: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/../.work/src/mbedtls-3.6.8/include (found version "3.6.8")
+-- Found MbedTLS: <repo>/client/../.work/src/mbedtls-3.6.8/include (found version "3.6.8")
 -- Looking for mbedtls_des_crypt_ecb
 -- Looking for mbedtls_des_crypt_ecb - not found
 -- Looking for sys/eventfd.h
@@ -288,7 +288,7 @@ CMake Error at /usr/share/cmake/Modules/CheckTypeSize.cmake:348 (try_compile):
   Failed to configure test project build system.
 Call Stack (most recent call first):
   /usr/share/cmake/Modules/CheckTypeSize.cmake:481 (__check_type_size_impl)
-  /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08c5daaa6b4/CMakeLists.txt:1778 (check_type_size)
+  <repo>/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08c5daaa6b4/CMakeLists.txt:1778 (check_type_size)
 
 
 -- Configuring incomplete, errors occurred!

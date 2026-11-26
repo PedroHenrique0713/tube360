@@ -1,7 +1,7 @@
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/src/ffmpeg-7.1.5.tar.xz: OK
-install prefix            /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/ffmpeg-xbox
+<repo>/.work/src/ffmpeg-7.1.5.tar.xz: OK
+install prefix            <repo>/.work/ffmpeg-xbox
 source path               src
-C compiler                /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc
+C compiler                ~/xsdk-gcc/bin/powerpc-xsdk-elf-gcc
 C library                 newlib
 host C compiler           gcc
 host C library            glibc
@@ -72,7 +72,7 @@ Enabled outdevs:
 
 License: LGPL version 2.1 or later
 
-WARNING: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
+WARNING: ~/xsdk-gcc/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
 GEN	libavformat/libavformat.version
 GEN	libavcodec/libavcodec.version
 GEN	libavutil/libavutil.version

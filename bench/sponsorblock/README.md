@@ -187,12 +187,12 @@ shutil.copyfile('client/build-x360/tube360.xex',folder/'tube360.xex')
 (folder/'autoplay.txt').write_text('wWC8wVI4E3E 5\n')
 (folder/'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\nsponsorblock=button\n')
 PY
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 mkdir 'HDD:\F34-SponsorBlock'
+python3 <forcepush-360>/tools/xbdm.py 192.168.1.50 mkdir 'HDD:\F34-SponsorBlock'
 for asset in .work/console-f34/*; do
-  python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 put "$asset" "HDD:\\F34-SponsorBlock\\${asset##*/}"
+  python3 <forcepush-360>/tools/xbdm.py 192.168.1.50 put "$asset" "HDD:\\F34-SponsorBlock\\${asset##*/}"
 done
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 run 'HDD:\F34-SponsorBlock\tube360.xex'
-python3 /home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py 192.168.1.50 get 'HDD:\F34-SponsorBlock\tube360.log' .work/proofs/console-f34.log
+python3 <forcepush-360>/tools/xbdm.py 192.168.1.50 run 'HDD:\F34-SponsorBlock\tube360.xex'
+python3 <forcepush-360>/tools/xbdm.py 192.168.1.50 get 'HDD:\F34-SponsorBlock\tube360.log' .work/proofs/console-f34.log
 ```
 
 The commands are documentation and were **not executed by this task**. Confirm the current console IP;

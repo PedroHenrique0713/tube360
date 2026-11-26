@@ -6,27 +6,27 @@
     {
       "frame": 31,
       "paths": [
-        "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/mapped-031.ppm",
-        "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/staging-031.ppm",
-        "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/rejected-031.ppm"
+        "<repo>/.work/quality/proofs/mapped-031.ppm",
+        "<repo>/.work/quality/proofs/staging-031.ppm",
+        "<repo>/.work/quality/proofs/rejected-031.ppm"
       ],
       "rgb_sha256": "e72836377f99bfbf51ada963b84d505ed8199c40f6097839bd5bce1c49918269"
     },
     {
       "frame": 91,
       "paths": [
-        "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/mapped-091.ppm",
-        "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/staging-091.ppm",
-        "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/rejected-091.ppm"
+        "<repo>/.work/quality/proofs/mapped-091.ppm",
+        "<repo>/.work/quality/proofs/staging-091.ppm",
+        "<repo>/.work/quality/proofs/rejected-091.ppm"
       ],
       "rgb_sha256": "c13515d1bae5f19b270716ab16cfc3f3ecc3235c1cf3df1eb754869a90223f3d"
     },
     {
       "frame": 151,
       "paths": [
-        "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/mapped-151.ppm",
-        "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/staging-151.ppm",
-        "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/proofs/rejected-151.ppm"
+        "<repo>/.work/quality/proofs/mapped-151.ppm",
+        "<repo>/.work/quality/proofs/staging-151.ppm",
+        "<repo>/.work/quality/proofs/rejected-151.ppm"
       ],
       "rgb_sha256": "82911f3590109d915d7ad9e6bd84648826679037f85203e92a66818435a92b52"
     }

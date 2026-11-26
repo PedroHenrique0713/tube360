@@ -1,15 +1,15 @@
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display
-make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk'
+<repo>/.work/native-display
+make: Entering directory '<repo>/.work/native-display/xsdk'
 make: 'build/libxsdk.a' is up to date.
 make: 'build/host/libxsc.so' is up to date.
-make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk'
-make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/vulkan4xenon'
+make: Leaving directory '<repo>/.work/native-display/xsdk'
+make: Entering directory '<repo>/.work/native-display/vulkan4xenon'
 make: 'build/libvulkan4xenon.a' is up to date.
-make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/vulkan4xenon'
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/ffmpeg-7.1.5.tar.xz: OK
-install prefix            /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/ffmpeg-xbox
+make: Leaving directory '<repo>/.work/native-display/vulkan4xenon'
+<repo>/.work/src/ffmpeg-7.1.5.tar.xz: OK
+install prefix            <repo>/.work/ffmpeg-xbox
 source path               src
-C compiler                /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc
+C compiler                ~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc
 C library                 newlib
 host C compiler           gcc
 host C library            glibc
@@ -80,7 +80,7 @@ Enabled outdevs:
 
 License: LGPL version 2.1 or later
 
-WARNING: /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
+WARNING: ~/xsdk-gcc-52/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
 config.h is unchanged
 config_components.h is unchanged
 libavutil/avconfig.h is unchanged
@@ -481,9 +481,9 @@ VMX h264qpel: 13406 instruções, 4600 vetoriais, 0 multiplicações incompatív
 VMX h264dsp: 1708 instruções, 488 vetoriais, 0 multiplicações incompatíveis
 VMX idctdsp: 1 instruções, 0 vetoriais, 0 multiplicações incompatíveis
 VMX h264-tube360: 15764 instruções, 5539 vetoriais, 0 multiplicações incompatíveis
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8.tar.bz2: OK
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/curl-xenon.tar.gz: OK
-CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
+<repo>/.work/src/mbedtls-3.6.8.tar.bz2: OK
+<repo>/.work/src/curl-xenon.tar.gz: OK
+CMake Deprecation Warning at <repo>/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
   Compatibility with CMake < 3.10 will be removed from a future version of
   CMake.
 
@@ -503,7 +503,7 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 -- Enabled SSL backends: mbedTLS
 -- Configuring done (54.7s)
 -- Generating done (0.5s)
--- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/build-x360
+-- Build files have been written to: <repo>/client/build-x360
 [  1%] Built target p256m
 [  2%] Built target everest
 [  3%] Built target tube360-boot
@@ -514,29 +514,29 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 [ 38%] Built target mbedtls
 [ 93%] Built target libcurl_static
 [ 93%] Building CXX object yt/CMakeFiles/tube360-yt.dir/https.cpp.obj
-[ 93%] Building CXX object yt/CMakeFiles/tube360-yt.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/update/rules.cpp.obj
+[ 93%] Building CXX object yt/CMakeFiles/tube360-yt.dir<repo>/client/src/update/rules.cpp.obj
 [ 94%] Linking CXX static library libtube360-yt.a
 [ 95%] Built target tube360-yt
 [ 95%] Built target tube360-update
 [ 97%] Built target tube360-cast
 [ 98%] Building C object CMakeFiles/tube360.dir/shaders_bundle.c.obj
-[ 98%] Building CXX object CMakeFiles/tube360.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/main.cpp.obj
+[ 98%] Building CXX object CMakeFiles/tube360.dir<repo>/client/src/main.cpp.obj
 [ 98%] Building C object CMakeFiles/tube360.dir/ffmpeg-libc.c.obj
-In file included from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/nest.hpp:5,
-                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/player.hpp:23,
-                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/main.cpp:34:
+In file included from <repo>/client/src/nest.hpp:5,
+                 from <repo>/client/src/player.hpp:23,
+                 from <repo>/client/src/main.cpp:34:
 In copy constructor 'picojson::value::value(const picojson::value&)',
-    inlined from 'constexpr _Tp* std::construct_at(_Tp*, _Args&& ...) [with _Tp = picojson::value; _Args = {picojson::value}]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_construct.h:110:9,
-    inlined from 'static constexpr void std::allocator_traits<std::allocator<_Up> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:676:21,
-    inlined from 'constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
-    inlined from 'constexpr void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
-    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:853:18,
-    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:695:33:
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+    inlined from 'constexpr _Tp* std::construct_at(_Tp*, _Args&& ...) [with _Tp = picojson::value; _Args = {picojson::value}]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_construct.h:110:9,
+    inlined from 'static constexpr void std::allocator_traits<std::allocator<_Up> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:676:21,
+    inlined from 'constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
+    inlined from 'constexpr void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
+    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/x360/../third_party/picojson.h:853:18,
+    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/x360/../third_party/picojson.h:695:33:
+<repo>/client/x360/../third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
   249 |       u_ = x.u_;
       |       ~~~^~~~~~
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h: In function 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:853:19: note: '<anonymous>' declared here
+<repo>/client/x360/../third_party/picojson.h: In function 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+<repo>/client/x360/../third_party/picojson.h:853:19: note: '<anonymous>' declared here
   853 |       a.push_back(value());
       |                   ^~~~~~~
 [100%] Linking CXX executable tube360

@@ -79,7 +79,7 @@ continua +3 e restaura a prioridade anterior. Conferir os testes F34 de restaura
 ## Builds e verificações locais
 
 ```bash
-PATH=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f5-h264/.work/src/usr/bin:$PATH \
+PATH=<repo>/.work/src/usr/bin:$PATH \
   JOBS=2 cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release -DTUBE360_F40_BENCH=ON
 cmake --build client/build -j2 --target tube360-quality-fixture h264-policy-test player-state-test h264-cadence-test manual-quality-test reddit-contract-test
 python3 bench/1080p-app/check-summary.py
@@ -100,7 +100,7 @@ rotulados; rejeita evidência truncada, falsa plataforma/afinidade/áudio/contad
 Build Xbox (configuração local `.work/build.env`, apenas caminhos públicos de toolchain):
 
 ```bash
-flock /home/pedrohenriquequadro/.cache/tube360-frota-xbox.lock \
+flock ~/.cache/tube360-frota-xbox.lock \
   systemd-run --user --scope -q -p MemoryMax=6G -p MemorySwapMax=1G \
   env TUBE360_BUILD_ENV="$PWD/.work/build.env" JOBS=2 TUBE360_F40_BENCH=ON \
       TUBE360_F33_BENCH=OFF tools/build-xbox.sh
@@ -119,7 +119,7 @@ identidade Cast ou `nest-owner.json` no kit. As identidades geradas durante a ex
 ficam apenas na pasta temporária. Conferir no painel saída HDMI antes dos testes.
 
 ```bash
-F40_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
+F40_XBDM=<forcepush-360>/tools/xbdm.py
 F40_IP=192.168.1.50
 F40_CASE=tv137
 F40_REMOTE="HDD:\\Apps\\Tube360-F40-$F40_CASE"

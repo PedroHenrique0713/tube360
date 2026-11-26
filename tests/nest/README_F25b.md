@@ -36,7 +36,7 @@ Tudo usa loopback, respostas gravadas, vídeo/som sintéticos e HOME próprio.
 Os testes de descoberta compartilham portas e devem rodar em sequência.
 
 ```bash
-PATH=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f5-h264/.work/src/usr/bin:$PATH cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
+PATH=<repo>/.work/src/usr/bin:$PATH cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
 cmake --build client/build -j2 --target tube360 nest-test nest-discovery-test cast-test-app cast-protocol-test cast-lan-test nest-scan-fault-test nest-live-clock-test
 python3 tests/nest/discovery_test.py
 python3 tests/nest/saved_ip_test.py
@@ -92,7 +92,7 @@ já usado pelo coordenador. `HDD:` é o nome que aceita escrita nesta máquina.
 Os comandos abaixo **não são executados pela frente**:
 
 ```bash
-xbdm=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
+xbdm=<forcepush-360>/tools/xbdm.py
 python3 "$xbdm" 192.168.1.50 mkdir 'HDD:\Games\Tube360-F25b'
 for file in .work/f25b/console/*; do
   python3 "$xbdm" 192.168.1.50 put "$file" "HDD:\\Games\\Tube360-F25b\\${file##*/}"

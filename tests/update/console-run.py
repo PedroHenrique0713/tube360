@@ -20,7 +20,7 @@ import uuid
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[2]
-TOOL = Path('/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py')
+TOOL = Path(os.environ.get('XBDM_TOOL', 'xbdm.py'))
 AURORA = r'Usb0:\Aurora\Aurora.xex'
 TEST_FOLDER = 'Tube360 Teste'
 

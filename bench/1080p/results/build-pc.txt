@@ -1,4 +1,4 @@
-F30 patched /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/src/ffmpeg-7.1.5
+F30 patched <repo>/bench/cpu-floor/.work/app-build/.work/src/ffmpeg-7.1.5
 -- The C compiler identification is GNU 16.2.1
 -- The CXX compiler identification is GNU 16.2.1
 -- Detecting C compiler ABI info
@@ -16,7 +16,7 @@ F30 patched /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/benc
 -- Found Threads: TRUE
 -- Configuring done (2.5s)
 -- Generating done (0.0s)
--- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/build-pc
+-- Build files have been written to: <repo>/bench/cpu-floor/build-pc
 [ 50%] Building CXX object CMakeFiles/cpu-floor.dir/main.cpp.o
 [100%] Linking CXX executable cpu-floor
 [100%] Built target cpu-floor
@@ -37,7 +37,7 @@ F30 patched /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/benc
 -- Found Threads: TRUE
 -- Configuring done (3.4s)
 -- Generating done (0.0s)
--- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/1080p/build-pc
+-- Build files have been written to: <repo>/bench/1080p/build-pc
 [ 50%] Building CXX object CMakeFiles/f33-cpu.dir/main.cpp.o
 [100%] Linking CXX executable f33-cpu
 [100%] Built target f33-cpu

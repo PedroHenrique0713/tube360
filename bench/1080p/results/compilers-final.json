@@ -1,5 +1,5 @@
 {
-  "client/build-x360": "/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-g++",
-  "bench/1080p/build-xbox": "/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-g++",
-  "bench/cpu-floor/build-xbox": "/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-g++"
+  "client/build-x360": "~/xsdk-gcc-52/bin/powerpc-xsdk-elf-g++",
+  "bench/1080p/build-xbox": "~/xsdk-gcc-52/bin/powerpc-xsdk-elf-g++",
+  "bench/cpu-floor/build-xbox": "~/xsdk-gcc-52/bin/powerpc-xsdk-elf-g++"
 }

@@ -1,6 +1,6 @@
 # F43 — busca com filtros e sugestões
 
-Trabalho em `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca`, branch
+Trabalho em `<repo>`, branch
 `f43-busca`, base `f42-integracao` (`c56fd85`). Implementação exercitada no app de PC
 e compilada para Xbox. Nada publicado, instalado ou executado no console.
 
@@ -48,13 +48,13 @@ e o período Esta semana preservado (caminhos absolutos):
 
 | Idioma | Painel HD |
 |---|---|
-| pt | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/ui/filters-pt/screen.png` |
-| en | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/ui/filters-en/screen.png` |
-| es | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/ui/filters-es/screen.png` |
-| ar | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/ui/filters-ar/screen.png` |
+| pt | `<repo>/.work/search/order-review/ui/filters-pt/screen.png` |
+| en | `<repo>/.work/search/order-review/ui/filters-en/screen.png` |
+| es | `<repo>/.work/search/order-review/ui/filters-es/screen.png` |
+| ar | `<repo>/.work/search/order-review/ui/filters-ar/screen.png` |
 
 Também abri as quatro pranchas com as três telas HD e 4:3/texto grande renovadas:
-`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/order-review/contact-{pt,en,es,ar}.png`.
+`<repo>/.work/search/order-review/contact-{pt,en,es,ar}.png`.
 Os oito painéis estão dentro dos limites; o resumo espanhol grande usa duas linhas.
 O manifesto com os 40 caminhos absolutos é .work/search/order-review/ui/screenshots.json.
 
@@ -91,7 +91,7 @@ A funcionalidade de ordenar por data foi removida, não ficou como pendência oc
 Implementação inicial: `5cbb0d3`; bancada/relatório: `9ef4a72`.
 Correção da ordenação após medição real do coordenador: `37435df Remove ineffective upload-date search ordering`.
 O histórico completo pedido (`git log --oneline v032..HEAD`) está em
-`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/log-v032.txt`;
+`<repo>/.work/search/log-v032.txt`;
 o recorte da F43 está em `.work/search/log-f43.txt`. Os 91 commits anteriores da
 integração são a base, não trabalho atribuído à F43.
 
@@ -140,9 +140,9 @@ pelo curl/Mbed TLS de produção. Nenhuma mídia ou credencial foi coletada.
 ### Builds e contratos
 
 ```sh
-PATH=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f5-h264/.work/src/usr/bin:$PATH \
+PATH=<repo>/.work/src/usr/bin:$PATH \
   cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release \
-  -DFFMPEG_PREFIX=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f5-h264/.work/ffmpeg-pc
+  -DFFMPEG_PREFIX=<repo>/.work/ffmpeg-pc
 cmake --build client/build -j2 --target tube360 search-test search-worker-test \
   arabic-text-test arabic-render-test display-layout-test yt-contract-test
 client/build/search-test "$PWD/bench/search/fixtures"
@@ -188,26 +188,26 @@ busca árabe com números, falha silenciosa, envio após falha, B, cancelar, lim
 abrir canal/playlist e medição. Os testes de destinos também exigem o browseId e
 nenhuma tentativa de player. Manifesto com os 39 caminhos absolutos e números:
 
-`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/ui-final/screenshots.json`.
+`<repo>/.work/search/ui-final/screenshots.json`.
 
 As quatro pranchas foram abertas e inspecionadas. Cada uma mostra sugestões,
 filtros e resultados em HD na primeira linha e 4:3/texto grande na segunda:
 
 | Idioma | Caminho absoluto da prancha |
 |---|---|
-| Português | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/contact-pt.png` |
-| Inglês | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/contact-en.png` |
-| Espanhol | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/contact-es.png` |
-| Árabe | `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/contact-ar.png` |
+| Português | `<repo>/.work/search/contact-pt.png` |
+| Inglês | `<repo>/.work/search/contact-en.png` |
+| Espanhol | `<repo>/.work/search/contact-es.png` |
+| Árabe | `<repo>/.work/search/contact-ar.png` |
 
 No espanhol grande, o resumo usa duas linhas sem tocar a grade. No árabe, os blocos
 estão alinhados à direita e as letras aparecem ligadas. Também abri individualmente:
 
-- `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/ui-final/suggestions-arabic-query/screen.png`: oito linhas árabes e número misto.
-- `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/ui-final/suggestions-arabic-query-crt-large/screen.png`: foco da segunda sugestão na faixa rolável de 4:3.
-- `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/ui-final/offline/screen.png`: recentes disponíveis, sem alerta de sugestões.
-- `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/ui-final/channel-open/screen.png`: página de canal com tabs, cabeçalho e itens do template.
-- `/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f43-busca/.work/search/ui-final/playlist-open/screen.png`: página de playlist, três faixas e Tocar tudo; sem player iniciado.
+- `<repo>/.work/search/ui-final/suggestions-arabic-query/screen.png`: oito linhas árabes e número misto.
+- `<repo>/.work/search/ui-final/suggestions-arabic-query-crt-large/screen.png`: foco da segunda sugestão na faixa rolável de 4:3.
+- `<repo>/.work/search/ui-final/offline/screen.png`: recentes disponíveis, sem alerta de sugestões.
+- `<repo>/.work/search/ui-final/channel-open/screen.png`: página de canal com tabs, cabeçalho e itens do template.
+- `<repo>/.work/search/ui-final/playlist-open/screen.png`: página de playlist, três faixas e Tocar tudo; sem player iniciado.
 
 Capas são gradientes/placeholders de teste. Replays filtrados repetem a página
 pública gravada: provam UI e parâmetros, não que o conteúdo gravado satisfaça o
@@ -249,8 +249,8 @@ no Xenon nem garantia de ausência de pausas de abertura/fontes.
 ```sh
 JOBS=2 TUBE360_BUILD_ENV="$PWD/.work/search/build.env" \
 TUBE360_BUILD_ID=4 TUBE360_VERSION=0.3.2-f43 \
-PATH=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f5-h264/.work/src/usr/bin:$PATH \
-flock /home/pedrohenriquequadro/.cache/tube360-frota-xbox.lock \
+PATH=<repo>/.work/src/usr/bin:$PATH \
+flock ~/.cache/tube360-frota-xbox.lock \
 systemd-run --user --scope -q -p MemoryMax=6G -p MemorySwapMax=1G tools/build-xbox.sh
 ```
 

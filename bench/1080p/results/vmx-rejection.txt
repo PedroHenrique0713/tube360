@@ -1,5 +1,5 @@
 Traceback (most recent call last):
-  File "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/tools/ffmpeg-x360/check-vmx.py", line 18, in <module>
+  File "<repo>/tools/ffmpeg-x360/check-vmx.py", line 18, in <module>
     raise RuntimeError(f"VMX inválido: {path}: {len(opcodes)} instruções, {vectors} vetoriais, proibidas {sorted(bad)}")
 RuntimeError: VMX inválido: bench/1080p/.work/unit-scan/libavcodec/ppc/bad.o: 2 instruções, 1 vetoriais, proibidas ['vmladduhm']
 PASS: incompatible instruction rejected with nonzero exit

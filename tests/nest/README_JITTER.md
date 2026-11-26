@@ -84,7 +84,7 @@ na própria medição. O log agregado `qualidade` já está ativo.
 Com o título fechado, o coordenador pode enviar/abrir a pasta nova:
 
 ```bash
-xbdm=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
+xbdm=<forcepush-360>/tools/xbdm.py
 python3 "$xbdm" 192.168.1.50 mkdir 'HDD:\Games\Tube360-F25b-Jitter'
 for file in .work/f25b-jitter/console/*; do
   python3 "$xbdm" 192.168.1.50 put "$file" "HDD:\\Games\\Tube360-F25b-Jitter\\${file##*/}"

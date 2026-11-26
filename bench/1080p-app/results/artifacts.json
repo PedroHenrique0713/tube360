@@ -1,5 +1,5 @@
 {
-  "stage": "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/1080p-app/.work/console",
+  "stage": "<repo>/bench/1080p-app/.work/console",
   "files": {
     "tv137/tube360.xex": "a3d53de3f39c6def402c7e0d3f22b0fc8d85496fe324058c5f228033303c9d89",
     "tv137/inter-300.ttf": "a557dfee34d7889fee7107095a5635dc2fe1aaceddcfada52223e5db28d67101",

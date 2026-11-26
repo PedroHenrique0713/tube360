@@ -2,7 +2,7 @@ log: game:\cpu-floor.log
 log: named after \Device\Harddisk0\Partition1\Apps\Tube360-F30-CPU\cpu-floor.xex
 log: no net_log.txt beside the .xex, so not over the network
 F30 START schema=1 platform=xbox ffmpeg=7.1.5 threads=6 repeats=3 audit=1
-F30 CONFIG --prefix=/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f30-hibrido/bench/cpu-floor/.work/app-build/.work/ffmpeg-xbox --disable-autodetect --disable-everything --enable-static --disable-shared --disable-gpl --disable-version3 --disable-nonfree --disable-network --disable-programs --disable-doc --disable-debug --disable-avdevice --disable-avfilter --disable-swscale --disable-postproc --enable-pthreads --enable-decoder='h264,aac,opus' --enable-parser='h264,aac,opus' --enable-demuxer='mov,m
+F30 CONFIG --prefix=<repo>/bench/cpu-floor/.work/app-build/.work/ffmpeg-xbox --disable-autodetect --disable-everything --enable-static --disable-shared --disable-gpl --disable-version3 --disable-nonfree --disable-network --disable-programs --disable-doc --disable-debug --disable-avdevice --disable-avfilter --disable-swscale --disable-postproc --enable-pthreads --enable-decoder='h264,aac,opus' --enable-parser='h264,aac,opus' --enable-demuxer='mov,m
 F30 LICENSE LGPL version 2.1 or later
 F30 CLIP name=720p30-4000 packets=180 bytes=3237678 width=1280 height=720 fps=30 kbps=4000 level=31
 decod-worker: 1 HW 2, afinidade 00000000

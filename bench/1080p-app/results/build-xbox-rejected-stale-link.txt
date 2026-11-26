@@ -1,73 +1,73 @@
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display
-make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk'
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/start.c -o build/sdk/start.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/log.c -o build/sdk/log.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/sbrk.c -o build/sdk/sbrk.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/thread.c -o build/sdk/thread.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/file.c -o build/sdk/file.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/path.c -o build/sdk/path.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/dir.c -o build/sdk/dir.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/pthread.c -o build/sdk/pthread.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/lock.c -o build/sdk/lock.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/reent.c -o build/sdk/reent.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/time.c -o build/sdk/time.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/sysconf.c -o build/sdk/sysconf.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/entropy.c -o build/sdk/entropy.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/exit.c -o build/sdk/exit.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu.c -o build/sdk/gpu.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_setup.c -o build/sdk/gpu_setup.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_resolve.c -o build/sdk/gpu_resolve.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_draw.c -o build/sdk/gpu_draw.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_constants.c -o build/sdk/gpu_constants.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_tiles.c -o build/sdk/gpu_tiles.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/display.c -o build/sdk/display.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/shader.c -o build/sdk/shader.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/microcode.c -o build/sdk/microcode.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/texture.c -o build/sdk/texture.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/texture_layout.c -o build/sdk/texture_layout.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/tiled.c -o build/sdk/tiled.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/present.c -o build/sdk/present.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/splash.c -o build/sdk/splash.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -fno-builtin -fno-tree-loop-distribute-patterns -c src/copy.c -o build/sdk/copy.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/socket.c -o build/sdk/socket.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/netdb.c -o build/sdk/netdb.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/net.c -o build/sdk/net.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/launch.c -o build/sdk/launch.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/libgen.c -o build/sdk/libgen.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/xam.c -o build/sdk/xam.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/save.c -o build/sdk/save.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/system_ui.c -o build/sdk/system_ui.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/semaphore.c -o build/sdk/semaphore.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/mman.c -o build/sdk/mman.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/system.c -o build/sdk/system.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/jit.c -o build/sdk/jit.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/terminate.c -o build/sdk/terminate.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/text.c -o build/sdk/text.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/audio.c -o build/sdk/audio.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_memory.c -o build/sdk/xsc_memory.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_spirv.c -o build/sdk/xsc_spirv.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_resolve.c -o build/sdk/xsc_resolve.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_unroll.c -o build/sdk/xsc_unroll.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_encode.c -o build/sdk/xsc_encode.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_container.c -o build/sdk/xsc_container.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_program.c -o build/sdk/xsc_program.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_optimize.c -o build/sdk/xsc_optimize.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower.c -o build/sdk/xsc_lower.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_block.c -o build/sdk/xsc_lower_block.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_matrix.c -o build/sdk/xsc_lower_matrix.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_glsl.c -o build/sdk/xsc_lower_glsl.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_stage.c -o build/sdk/xsc_lower_stage.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_vertex.c -o build/sdk/xsc_lower_vertex.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_fragment.c -o build/sdk/xsc_lower_fragment.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_loop.c -o build/sdk/xsc_lower_loop.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_flow.c -o build/sdk/xsc_lower_flow.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_sample.c -o build/sdk/xsc_lower_sample.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_inline.c -o build/sdk/xsc_inline.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_switch.c -o build/sdk/xsc_switch.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_ssa.c -o build/sdk/xsc_ssa.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -DXSDK_XSC_SOURCE_HASH='"ec52f9aae349f920"' -c src/xsc_compile.c -o build/sdk/xsc_compile.o
+<repo>/.work/native-display
+make: Entering directory '<repo>/.work/native-display/xsdk'
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/start.c -o build/sdk/start.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/log.c -o build/sdk/log.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/sbrk.c -o build/sdk/sbrk.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/thread.c -o build/sdk/thread.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/file.c -o build/sdk/file.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/path.c -o build/sdk/path.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/dir.c -o build/sdk/dir.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/pthread.c -o build/sdk/pthread.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/lock.c -o build/sdk/lock.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/reent.c -o build/sdk/reent.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/time.c -o build/sdk/time.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/sysconf.c -o build/sdk/sysconf.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/entropy.c -o build/sdk/entropy.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/exit.c -o build/sdk/exit.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu.c -o build/sdk/gpu.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_setup.c -o build/sdk/gpu_setup.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_resolve.c -o build/sdk/gpu_resolve.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_draw.c -o build/sdk/gpu_draw.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_constants.c -o build/sdk/gpu_constants.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/gpu_tiles.c -o build/sdk/gpu_tiles.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/display.c -o build/sdk/display.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/shader.c -o build/sdk/shader.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/microcode.c -o build/sdk/microcode.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/texture.c -o build/sdk/texture.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/texture_layout.c -o build/sdk/texture_layout.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/tiled.c -o build/sdk/tiled.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/present.c -o build/sdk/present.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/splash.c -o build/sdk/splash.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -fno-builtin -fno-tree-loop-distribute-patterns -c src/copy.c -o build/sdk/copy.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/socket.c -o build/sdk/socket.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/netdb.c -o build/sdk/netdb.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/net.c -o build/sdk/net.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/launch.c -o build/sdk/launch.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/libgen.c -o build/sdk/libgen.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/xam.c -o build/sdk/xam.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/save.c -o build/sdk/save.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/system_ui.c -o build/sdk/system_ui.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/semaphore.c -o build/sdk/semaphore.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/mman.c -o build/sdk/mman.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/system.c -o build/sdk/system.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/jit.c -o build/sdk/jit.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/terminate.c -o build/sdk/terminate.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/text.c -o build/sdk/text.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c src/audio.c -o build/sdk/audio.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_memory.c -o build/sdk/xsc_memory.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_spirv.c -o build/sdk/xsc_spirv.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_resolve.c -o build/sdk/xsc_resolve.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_unroll.c -o build/sdk/xsc_unroll.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_encode.c -o build/sdk/xsc_encode.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_container.c -o build/sdk/xsc_container.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_program.c -o build/sdk/xsc_program.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_optimize.c -o build/sdk/xsc_optimize.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower.c -o build/sdk/xsc_lower.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_block.c -o build/sdk/xsc_lower_block.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_matrix.c -o build/sdk/xsc_lower_matrix.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_glsl.c -o build/sdk/xsc_lower_glsl.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_stage.c -o build/sdk/xsc_lower_stage.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_vertex.c -o build/sdk/xsc_lower_vertex.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_fragment.c -o build/sdk/xsc_lower_fragment.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_loop.c -o build/sdk/xsc_lower_loop.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_flow.c -o build/sdk/xsc_lower_flow.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_lower_sample.c -o build/sdk/xsc_lower_sample.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_inline.c -o build/sdk/xsc_inline.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_switch.c -o build/sdk/xsc_switch.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_ssa.c -o build/sdk/xsc_ssa.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -ffp-contract=off -DXSDK_XSC_SOURCE_HASH='"ec52f9aae349f920"' -c src/xsc_compile.c -o build/sdk/xsc_compile.o
 python3 tools/gen_imports.py imports/imports.txt build/imports
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c tests/doloop_check.c -o build/check/doloop_check.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -MMD -MP -c tests/doloop_check.c -o build/check/doloop_check.o
 gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_memory.c -o build/host/xsc_memory.o
 gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_spirv.c -o build/host/xsc_spirv.o
 gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_resolve.c -o build/host/xsc_resolve.o
@@ -90,201 +90,201 @@ gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contra
 gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_switch.c -o build/host/xsc_switch.o
 gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -ffp-contract=off -c src/xsc_ssa.c -o build/host/xsc_ssa.o
 gcc -std=gnu17 -O2 -g -Wall -Wextra -Werror -fPIC -Iinclude -MMD -MP -DXSDK_XSC_SOURCE_HASH='"ec52f9aae349f920"' -ffp-contract=off -c src/xsc_compile.c -o build/host/xsc_compile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/DbgPrint.S -o build/imports/DbgPrint.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExCreateThread.S -o build/imports/ExCreateThread.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExGetXConfigSetting.S -o build/imports/ExGetXConfigSetting.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExRegisterTitleTerminateNotification.S -o build/imports/ExRegisterTitleTerminateNotification.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExTerminateThread.S -o build/imports/ExTerminateThread.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeDelayExecutionThread.S -o build/imports/KeDelayExecutionThread.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeQueryPerformanceFrequency.S -o build/imports/KeQueryPerformanceFrequency.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeQuerySystemTime.S -o build/imports/KeQuerySystemTime.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeSetAffinityThread.S -o build/imports/KeSetAffinityThread.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmAllocatePhysicalMemoryEx.S -o build/imports/MmAllocatePhysicalMemoryEx.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmFreePhysicalMemory.S -o build/imports/MmFreePhysicalMemory.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmGetPhysicalAddress.S -o build/imports/MmGetPhysicalAddress.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmQueryStatistics.S -o build/imports/MmQueryStatistics.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtAllocateVirtualMemory.S -o build/imports/NtAllocateVirtualMemory.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtClose.S -o build/imports/NtClose.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateEvent.S -o build/imports/NtCreateEvent.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateFile.S -o build/imports/NtCreateFile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateSemaphore.S -o build/imports/NtCreateSemaphore.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtFlushBuffersFile.S -o build/imports/NtFlushBuffersFile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryDirectoryFile.S -o build/imports/NtQueryDirectoryFile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryFullAttributesFile.S -o build/imports/NtQueryFullAttributesFile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryInformationFile.S -o build/imports/NtQueryInformationFile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryVolumeInformationFile.S -o build/imports/NtQueryVolumeInformationFile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtReadFile.S -o build/imports/NtReadFile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtReleaseSemaphore.S -o build/imports/NtReleaseSemaphore.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSetEvent.S -o build/imports/NtSetEvent.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSetInformationFile.S -o build/imports/NtSetInformationFile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtWaitForSingleObjectEx.S -o build/imports/NtWaitForSingleObjectEx.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtWriteFile.S -o build/imports/NtWriteFile.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtYieldExecution.S -o build/imports/NtYieldExecution.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlEnterCriticalSection.S -o build/imports/RtlEnterCriticalSection.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlInitializeCriticalSection.S -o build/imports/RtlInitializeCriticalSection.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlLeaveCriticalSection.S -o build/imports/RtlLeaveCriticalSection.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlTryEnterCriticalSection.S -o build/imports/RtlTryEnterCriticalSection.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsAlloc.S -o build/imports/KeTlsAlloc.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsFree.S -o build/imports/KeTlsFree.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsGetValue.S -o build/imports/KeTlsGetValue.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsSetValue.S -o build/imports/KeTlsSetValue.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XeCryptRandom.S -o build/imports/XeCryptRandom.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XeCryptSha.S -o build/imports/XeCryptSha.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XexGetModuleHandle.S -o build/imports/XexGetModuleHandle.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XexGetModuleSection.S -o build/imports/XexGetModuleSection.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XexGetProcedureAddress.S -o build/imports/XexGetProcedureAddress.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExLoadedCommandLine.S -o build/imports/ExLoadedCommandLine.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExLoadedImageName.S -o build/imports/ExLoadedImageName.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdCallGraphicsNotificationRoutines.S -o build/imports/VdCallGraphicsNotificationRoutines.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdEnableRingBufferRPtrWriteBack.S -o build/imports/VdEnableRingBufferRPtrWriteBack.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGetCurrentDisplayInformation.S -o build/imports/VdGetCurrentDisplayInformation.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGetSystemCommandBuffer.S -o build/imports/VdGetSystemCommandBuffer.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGlobalDevice.S -o build/imports/VdGlobalDevice.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGlobalXamDevice.S -o build/imports/VdGlobalXamDevice.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdInitializeEngines.S -o build/imports/VdInitializeEngines.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdInitializeRingBuffer.S -o build/imports/VdInitializeRingBuffer.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdQueryVideoMode.S -o build/imports/VdQueryVideoMode.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSetDisplayMode.S -o build/imports/VdSetDisplayMode.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSetGraphicsInterruptCallback.S -o build/imports/VdSetGraphicsInterruptCallback.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSetSystemCommandBufferGpuIdentifierAddress.S -o build/imports/VdSetSystemCommandBufferGpuIdentifierAddress.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdShutdownEngines.S -o build/imports/VdShutdownEngines.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioRegisterRenderDriverClient.S -o build/imports/XAudioRegisterRenderDriverClient.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioUnregisterRenderDriverClient.S -o build/imports/XAudioUnregisterRenderDriverClient.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioSubmitRenderDriverFrame.S -o build/imports/XAudioSubmitRenderDriverFrame.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSwap.S -o build/imports/VdSwap.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExThreadObjectType.S -o build/imports/ExThreadObjectType.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/InterlockedFlushSList.S -o build/imports/InterlockedFlushSList.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/InterlockedPopEntrySList.S -o build/imports/InterlockedPopEntrySList.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/InterlockedPushEntrySList.S -o build/imports/InterlockedPushEntrySList.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeQueryBasePriorityThread.S -o build/imports/KeQueryBasePriorityThread.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeSetBasePriorityThread.S -o build/imports/KeSetBasePriorityThread.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmQueryAddressProtect.S -o build/imports/MmQueryAddressProtect.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmSetAddressProtect.S -o build/imports/MmSetAddressProtect.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCancelTimer.S -o build/imports/NtCancelTimer.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtClearEvent.S -o build/imports/NtClearEvent.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateMutant.S -o build/imports/NtCreateMutant.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateTimer.S -o build/imports/NtCreateTimer.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtDuplicateObject.S -o build/imports/NtDuplicateObject.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtFreeVirtualMemory.S -o build/imports/NtFreeVirtualMemory.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtProtectVirtualMemory.S -o build/imports/NtProtectVirtualMemory.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtPulseEvent.S -o build/imports/NtPulseEvent.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryVirtualMemory.S -o build/imports/NtQueryVirtualMemory.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtReleaseMutant.S -o build/imports/NtReleaseMutant.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSetTimerEx.S -o build/imports/NtSetTimerEx.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSignalAndWaitForSingleObjectEx.S -o build/imports/NtSignalAndWaitForSingleObjectEx.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtWaitForMultipleObjectsEx.S -o build/imports/NtWaitForMultipleObjectsEx.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObCreateSymbolicLink.S -o build/imports/ObCreateSymbolicLink.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObDeleteSymbolicLink.S -o build/imports/ObDeleteSymbolicLink.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObDereferenceObject.S -o build/imports/ObDereferenceObject.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObReferenceObjectByHandle.S -o build/imports/ObReferenceObjectByHandle.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeSetEvent.S -o build/imports/KeSetEvent.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioGetSpeakerConfig.S -o build/imports/XAudioGetSpeakerConfig.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_WSAStartup.S -o build/imports/NetDll_WSAStartup.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_WSACleanup.S -o build/imports/NetDll_WSACleanup.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_socket.S -o build/imports/NetDll_socket.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_closesocket.S -o build/imports/NetDll_closesocket.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_shutdown.S -o build/imports/NetDll_shutdown.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_ioctlsocket.S -o build/imports/NetDll_ioctlsocket.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_setsockopt.S -o build/imports/NetDll_setsockopt.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_getsockopt.S -o build/imports/NetDll_getsockopt.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_getsockname.S -o build/imports/NetDll_getsockname.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_getpeername.S -o build/imports/NetDll_getpeername.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_bind.S -o build/imports/NetDll_bind.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_connect.S -o build/imports/NetDll_connect.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_listen.S -o build/imports/NetDll_listen.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_accept.S -o build/imports/NetDll_accept.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_select.S -o build/imports/NetDll_select.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_recv.S -o build/imports/NetDll_recv.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_recvfrom.S -o build/imports/NetDll_recvfrom.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_send.S -o build/imports/NetDll_send.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_sendto.S -o build/imports/NetDll_sendto.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_WSAGetLastError.S -o build/imports/NetDll_WSAGetLastError.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetStartup.S -o build/imports/NetDll_XNetStartup.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetCleanup.S -o build/imports/NetDll_XNetCleanup.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetDnsLookup.S -o build/imports/NetDll_XNetDnsLookup.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetDnsRelease.S -o build/imports/NetDll_XNetDnsRelease.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetGetTitleXnAddr.S -o build/imports/NetDll_XNetGetTitleXnAddr.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetGetEthernetLinkStatus.S -o build/imports/NetDll_XNetGetEthernetLinkStatus.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetGetOpt.S -o build/imports/NetDll_XNetGetOpt.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamInputGetState.S -o build/imports/XamInputGetState.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamInputSetState.S -o build/imports/XamInputSetState.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderLaunchTitle.S -o build/imports/XamLoaderLaunchTitle.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderSetLaunchData.S -o build/imports/XamLoaderSetLaunchData.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderGetLaunchDataSize.S -o build/imports/XamLoaderGetLaunchDataSize.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderGetLaunchData.S -o build/imports/XamLoaderGetLaunchData.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderTerminateTitle.S -o build/imports/XamLoaderTerminateTitle.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamGetOverlappedResult.S -o build/imports/XamGetOverlappedResult.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetXUID.S -o build/imports/XamUserGetXUID.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetName.S -o build/imports/XamUserGetName.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetSigninState.S -o build/imports/XamUserGetSigninState.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserReadProfileSettings.S -o build/imports/XamUserReadProfileSettings.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetSigninInfo.S -o build/imports/XamUserGetSigninInfo.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamEnumerate.S -o build/imports/XamEnumerate.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentCreateEx.S -o build/imports/XamContentCreateEx.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentClose.S -o build/imports/XamContentClose.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentDelete.S -o build/imports/XamContentDelete.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentCreateEnumerator.S -o build/imports/XamContentCreateEnumerator.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentCreateDeviceEnumerator.S -o build/imports/XamContentCreateDeviceEnumerator.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentGetDeviceData.S -o build/imports/XamContentGetDeviceData.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentGetDeviceName.S -o build/imports/XamContentGetDeviceName.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentGetDeviceState.S -o build/imports/XamContentGetDeviceState.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentFlush.S -o build/imports/XamContentFlush.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamNotifyCreateListener.S -o build/imports/XamNotifyCreateListener.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XNotifyGetNext.S -o build/imports/XNotifyGetNext.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamShowSigninUI.S -o build/imports/XamShowSigninUI.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamShowKeyboardUI.S -o build/imports/XamShowKeyboardUI.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamShowMessageBoxUI.S -o build/imports/XamShowMessageBoxUI.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamIsUIActive.S -o build/imports/XamIsUIActive.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XGetLanguage.S -o build/imports/XGetLanguage.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/GetTimeZoneInformation.S -o build/imports/GetTimeZoneInformation.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamGetLocaleEx.S -o build/imports/XamGetLocaleEx.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/DbgPrint.S -o build/imports/DbgPrint.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExCreateThread.S -o build/imports/ExCreateThread.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExGetXConfigSetting.S -o build/imports/ExGetXConfigSetting.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExRegisterTitleTerminateNotification.S -o build/imports/ExRegisterTitleTerminateNotification.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExTerminateThread.S -o build/imports/ExTerminateThread.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeDelayExecutionThread.S -o build/imports/KeDelayExecutionThread.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeQueryPerformanceFrequency.S -o build/imports/KeQueryPerformanceFrequency.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeQuerySystemTime.S -o build/imports/KeQuerySystemTime.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeSetAffinityThread.S -o build/imports/KeSetAffinityThread.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmAllocatePhysicalMemoryEx.S -o build/imports/MmAllocatePhysicalMemoryEx.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmFreePhysicalMemory.S -o build/imports/MmFreePhysicalMemory.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmGetPhysicalAddress.S -o build/imports/MmGetPhysicalAddress.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmQueryStatistics.S -o build/imports/MmQueryStatistics.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtAllocateVirtualMemory.S -o build/imports/NtAllocateVirtualMemory.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtClose.S -o build/imports/NtClose.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateEvent.S -o build/imports/NtCreateEvent.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateFile.S -o build/imports/NtCreateFile.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateSemaphore.S -o build/imports/NtCreateSemaphore.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtFlushBuffersFile.S -o build/imports/NtFlushBuffersFile.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryDirectoryFile.S -o build/imports/NtQueryDirectoryFile.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryFullAttributesFile.S -o build/imports/NtQueryFullAttributesFile.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryInformationFile.S -o build/imports/NtQueryInformationFile.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryVolumeInformationFile.S -o build/imports/NtQueryVolumeInformationFile.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtReadFile.S -o build/imports/NtReadFile.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtReleaseSemaphore.S -o build/imports/NtReleaseSemaphore.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSetEvent.S -o build/imports/NtSetEvent.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSetInformationFile.S -o build/imports/NtSetInformationFile.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtWaitForSingleObjectEx.S -o build/imports/NtWaitForSingleObjectEx.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtWriteFile.S -o build/imports/NtWriteFile.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtYieldExecution.S -o build/imports/NtYieldExecution.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlEnterCriticalSection.S -o build/imports/RtlEnterCriticalSection.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlInitializeCriticalSection.S -o build/imports/RtlInitializeCriticalSection.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlLeaveCriticalSection.S -o build/imports/RtlLeaveCriticalSection.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/RtlTryEnterCriticalSection.S -o build/imports/RtlTryEnterCriticalSection.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsAlloc.S -o build/imports/KeTlsAlloc.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsFree.S -o build/imports/KeTlsFree.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsGetValue.S -o build/imports/KeTlsGetValue.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeTlsSetValue.S -o build/imports/KeTlsSetValue.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XeCryptRandom.S -o build/imports/XeCryptRandom.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XeCryptSha.S -o build/imports/XeCryptSha.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XexGetModuleHandle.S -o build/imports/XexGetModuleHandle.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XexGetModuleSection.S -o build/imports/XexGetModuleSection.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XexGetProcedureAddress.S -o build/imports/XexGetProcedureAddress.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExLoadedCommandLine.S -o build/imports/ExLoadedCommandLine.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExLoadedImageName.S -o build/imports/ExLoadedImageName.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdCallGraphicsNotificationRoutines.S -o build/imports/VdCallGraphicsNotificationRoutines.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdEnableRingBufferRPtrWriteBack.S -o build/imports/VdEnableRingBufferRPtrWriteBack.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGetCurrentDisplayInformation.S -o build/imports/VdGetCurrentDisplayInformation.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGetSystemCommandBuffer.S -o build/imports/VdGetSystemCommandBuffer.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGlobalDevice.S -o build/imports/VdGlobalDevice.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdGlobalXamDevice.S -o build/imports/VdGlobalXamDevice.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdInitializeEngines.S -o build/imports/VdInitializeEngines.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdInitializeRingBuffer.S -o build/imports/VdInitializeRingBuffer.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdQueryVideoMode.S -o build/imports/VdQueryVideoMode.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSetDisplayMode.S -o build/imports/VdSetDisplayMode.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSetGraphicsInterruptCallback.S -o build/imports/VdSetGraphicsInterruptCallback.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSetSystemCommandBufferGpuIdentifierAddress.S -o build/imports/VdSetSystemCommandBufferGpuIdentifierAddress.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdShutdownEngines.S -o build/imports/VdShutdownEngines.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioRegisterRenderDriverClient.S -o build/imports/XAudioRegisterRenderDriverClient.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioUnregisterRenderDriverClient.S -o build/imports/XAudioUnregisterRenderDriverClient.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioSubmitRenderDriverFrame.S -o build/imports/XAudioSubmitRenderDriverFrame.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/VdSwap.S -o build/imports/VdSwap.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ExThreadObjectType.S -o build/imports/ExThreadObjectType.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/InterlockedFlushSList.S -o build/imports/InterlockedFlushSList.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/InterlockedPopEntrySList.S -o build/imports/InterlockedPopEntrySList.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/InterlockedPushEntrySList.S -o build/imports/InterlockedPushEntrySList.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeQueryBasePriorityThread.S -o build/imports/KeQueryBasePriorityThread.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeSetBasePriorityThread.S -o build/imports/KeSetBasePriorityThread.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmQueryAddressProtect.S -o build/imports/MmQueryAddressProtect.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/MmSetAddressProtect.S -o build/imports/MmSetAddressProtect.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCancelTimer.S -o build/imports/NtCancelTimer.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtClearEvent.S -o build/imports/NtClearEvent.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateMutant.S -o build/imports/NtCreateMutant.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtCreateTimer.S -o build/imports/NtCreateTimer.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtDuplicateObject.S -o build/imports/NtDuplicateObject.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtFreeVirtualMemory.S -o build/imports/NtFreeVirtualMemory.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtProtectVirtualMemory.S -o build/imports/NtProtectVirtualMemory.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtPulseEvent.S -o build/imports/NtPulseEvent.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtQueryVirtualMemory.S -o build/imports/NtQueryVirtualMemory.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtReleaseMutant.S -o build/imports/NtReleaseMutant.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSetTimerEx.S -o build/imports/NtSetTimerEx.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtSignalAndWaitForSingleObjectEx.S -o build/imports/NtSignalAndWaitForSingleObjectEx.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NtWaitForMultipleObjectsEx.S -o build/imports/NtWaitForMultipleObjectsEx.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObCreateSymbolicLink.S -o build/imports/ObCreateSymbolicLink.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObDeleteSymbolicLink.S -o build/imports/ObDeleteSymbolicLink.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObDereferenceObject.S -o build/imports/ObDereferenceObject.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/ObReferenceObjectByHandle.S -o build/imports/ObReferenceObjectByHandle.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/KeSetEvent.S -o build/imports/KeSetEvent.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XAudioGetSpeakerConfig.S -o build/imports/XAudioGetSpeakerConfig.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_WSAStartup.S -o build/imports/NetDll_WSAStartup.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_WSACleanup.S -o build/imports/NetDll_WSACleanup.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_socket.S -o build/imports/NetDll_socket.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_closesocket.S -o build/imports/NetDll_closesocket.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_shutdown.S -o build/imports/NetDll_shutdown.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_ioctlsocket.S -o build/imports/NetDll_ioctlsocket.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_setsockopt.S -o build/imports/NetDll_setsockopt.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_getsockopt.S -o build/imports/NetDll_getsockopt.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_getsockname.S -o build/imports/NetDll_getsockname.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_getpeername.S -o build/imports/NetDll_getpeername.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_bind.S -o build/imports/NetDll_bind.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_connect.S -o build/imports/NetDll_connect.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_listen.S -o build/imports/NetDll_listen.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_accept.S -o build/imports/NetDll_accept.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_select.S -o build/imports/NetDll_select.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_recv.S -o build/imports/NetDll_recv.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_recvfrom.S -o build/imports/NetDll_recvfrom.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_send.S -o build/imports/NetDll_send.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_sendto.S -o build/imports/NetDll_sendto.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_WSAGetLastError.S -o build/imports/NetDll_WSAGetLastError.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetStartup.S -o build/imports/NetDll_XNetStartup.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetCleanup.S -o build/imports/NetDll_XNetCleanup.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetDnsLookup.S -o build/imports/NetDll_XNetDnsLookup.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetDnsRelease.S -o build/imports/NetDll_XNetDnsRelease.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetGetTitleXnAddr.S -o build/imports/NetDll_XNetGetTitleXnAddr.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetGetEthernetLinkStatus.S -o build/imports/NetDll_XNetGetEthernetLinkStatus.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/NetDll_XNetGetOpt.S -o build/imports/NetDll_XNetGetOpt.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamInputGetState.S -o build/imports/XamInputGetState.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamInputSetState.S -o build/imports/XamInputSetState.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderLaunchTitle.S -o build/imports/XamLoaderLaunchTitle.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderSetLaunchData.S -o build/imports/XamLoaderSetLaunchData.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderGetLaunchDataSize.S -o build/imports/XamLoaderGetLaunchDataSize.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderGetLaunchData.S -o build/imports/XamLoaderGetLaunchData.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamLoaderTerminateTitle.S -o build/imports/XamLoaderTerminateTitle.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamGetOverlappedResult.S -o build/imports/XamGetOverlappedResult.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetXUID.S -o build/imports/XamUserGetXUID.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetName.S -o build/imports/XamUserGetName.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetSigninState.S -o build/imports/XamUserGetSigninState.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserReadProfileSettings.S -o build/imports/XamUserReadProfileSettings.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamUserGetSigninInfo.S -o build/imports/XamUserGetSigninInfo.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamEnumerate.S -o build/imports/XamEnumerate.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentCreateEx.S -o build/imports/XamContentCreateEx.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentClose.S -o build/imports/XamContentClose.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentDelete.S -o build/imports/XamContentDelete.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentCreateEnumerator.S -o build/imports/XamContentCreateEnumerator.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentCreateDeviceEnumerator.S -o build/imports/XamContentCreateDeviceEnumerator.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentGetDeviceData.S -o build/imports/XamContentGetDeviceData.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentGetDeviceName.S -o build/imports/XamContentGetDeviceName.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentGetDeviceState.S -o build/imports/XamContentGetDeviceState.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamContentFlush.S -o build/imports/XamContentFlush.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamNotifyCreateListener.S -o build/imports/XamNotifyCreateListener.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XNotifyGetNext.S -o build/imports/XNotifyGetNext.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamShowSigninUI.S -o build/imports/XamShowSigninUI.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamShowKeyboardUI.S -o build/imports/XamShowKeyboardUI.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamShowMessageBoxUI.S -o build/imports/XamShowMessageBoxUI.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamIsUIActive.S -o build/imports/XamIsUIActive.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XGetLanguage.S -o build/imports/XGetLanguage.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/GetTimeZoneInformation.S -o build/imports/GetTimeZoneInformation.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -Wa,-mregnames -Iinclude -MMD -MP -c build/imports/XamGetLocaleEx.S -o build/imports/XamGetLocaleEx.o
 gcc -shared -o build/host/libxsc.so build/host/xsc_memory.o build/host/xsc_spirv.o build/host/xsc_resolve.o build/host/xsc_unroll.o build/host/xsc_encode.o build/host/xsc_container.o build/host/xsc_program.o build/host/xsc_optimize.o build/host/xsc_lower.o build/host/xsc_lower_block.o build/host/xsc_lower_matrix.o build/host/xsc_lower_glsl.o build/host/xsc_lower_stage.o build/host/xsc_lower_vertex.o build/host/xsc_lower_fragment.o build/host/xsc_lower_loop.o build/host/xsc_lower_flow.o build/host/xsc_lower_sample.o build/host/xsc_inline.o build/host/xsc_switch.o build/host/xsc_ssa.o build/host/xsc_compile.o
 rm -f build/libxsdk.a
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-ar rcs build/libxsdk.a build/sdk/start.o build/sdk/log.o build/sdk/sbrk.o build/sdk/thread.o build/sdk/file.o build/sdk/path.o build/sdk/dir.o build/sdk/pthread.o build/sdk/lock.o build/sdk/reent.o build/sdk/time.o build/sdk/sysconf.o build/sdk/entropy.o build/sdk/exit.o build/sdk/gpu.o build/sdk/gpu_setup.o build/sdk/gpu_resolve.o build/sdk/gpu_draw.o build/sdk/gpu_constants.o build/sdk/gpu_tiles.o build/sdk/display.o build/sdk/shader.o build/sdk/microcode.o build/sdk/texture.o build/sdk/texture_layout.o build/sdk/tiled.o build/sdk/present.o build/sdk/splash.o build/sdk/copy.o build/sdk/socket.o build/sdk/netdb.o build/sdk/net.o build/sdk/launch.o build/sdk/libgen.o build/sdk/xam.o build/sdk/save.o build/sdk/system_ui.o build/sdk/semaphore.o build/sdk/mman.o build/sdk/jit.o build/sdk/system.o build/sdk/terminate.o build/sdk/text.o build/sdk/audio.o build/sdk/xsc_memory.o build/sdk/xsc_spirv.o build/sdk/xsc_resolve.o build/sdk/xsc_unroll.o build/sdk/xsc_encode.o build/sdk/xsc_container.o build/sdk/xsc_program.o build/sdk/xsc_optimize.o build/sdk/xsc_lower.o build/sdk/xsc_lower_block.o build/sdk/xsc_lower_matrix.o build/sdk/xsc_lower_glsl.o build/sdk/xsc_lower_stage.o build/sdk/xsc_lower_vertex.o build/sdk/xsc_lower_fragment.o build/sdk/xsc_lower_loop.o build/sdk/xsc_lower_flow.o build/sdk/xsc_lower_sample.o build/sdk/xsc_inline.o build/sdk/xsc_switch.o build/sdk/xsc_ssa.o build/sdk/xsc_compile.o build/imports/DbgPrint.o build/imports/ExCreateThread.o build/imports/ExGetXConfigSetting.o build/imports/ExRegisterTitleTerminateNotification.o build/imports/ExTerminateThread.o build/imports/KeDelayExecutionThread.o build/imports/KeQueryPerformanceFrequency.o build/imports/KeQuerySystemTime.o build/imports/KeSetAffinityThread.o build/imports/MmAllocatePhysicalMemoryEx.o build/imports/MmFreePhysicalMemory.o build/imports/MmGetPhysicalAddress.o build/imports/MmQueryStatistics.o build/imports/NtAllocateVirtualMemory.o build/imports/NtClose.o build/imports/NtCreateEvent.o build/imports/NtCreateFile.o build/imports/NtCreateSemaphore.o build/imports/NtFlushBuffersFile.o build/imports/NtQueryDirectoryFile.o build/imports/NtQueryFullAttributesFile.o build/imports/NtQueryInformationFile.o build/imports/NtQueryVolumeInformationFile.o build/imports/NtReadFile.o build/imports/NtReleaseSemaphore.o build/imports/NtSetEvent.o build/imports/NtSetInformationFile.o build/imports/NtWaitForSingleObjectEx.o build/imports/NtWriteFile.o build/imports/NtYieldExecution.o build/imports/RtlEnterCriticalSection.o build/imports/RtlInitializeCriticalSection.o build/imports/RtlLeaveCriticalSection.o build/imports/RtlTryEnterCriticalSection.o build/imports/KeTlsAlloc.o build/imports/KeTlsFree.o build/imports/KeTlsGetValue.o build/imports/KeTlsSetValue.o build/imports/XeCryptRandom.o build/imports/XeCryptSha.o build/imports/XexGetModuleHandle.o build/imports/XexGetModuleSection.o build/imports/XexGetProcedureAddress.o build/imports/ExLoadedCommandLine.o build/imports/ExLoadedImageName.o build/imports/VdCallGraphicsNotificationRoutines.o build/imports/VdEnableRingBufferRPtrWriteBack.o build/imports/VdGetCurrentDisplayInformation.o build/imports/VdGetSystemCommandBuffer.o build/imports/VdGlobalDevice.o build/imports/VdGlobalXamDevice.o build/imports/VdInitializeEngines.o build/imports/VdInitializeRingBuffer.o build/imports/VdQueryVideoMode.o build/imports/VdSetDisplayMode.o build/imports/VdSetGraphicsInterruptCallback.o build/imports/VdSetSystemCommandBufferGpuIdentifierAddress.o build/imports/VdShutdownEngines.o build/imports/XAudioRegisterRenderDriverClient.o build/imports/XAudioUnregisterRenderDriverClient.o build/imports/XAudioSubmitRenderDriverFrame.o build/imports/VdSwap.o build/imports/ExThreadObjectType.o build/imports/InterlockedFlushSList.o build/imports/InterlockedPopEntrySList.o build/imports/InterlockedPushEntrySList.o build/imports/KeQueryBasePriorityThread.o build/imports/KeSetBasePriorityThread.o build/imports/MmQueryAddressProtect.o build/imports/MmSetAddressProtect.o build/imports/NtCancelTimer.o build/imports/NtClearEvent.o build/imports/NtCreateMutant.o build/imports/NtCreateTimer.o build/imports/NtDuplicateObject.o build/imports/NtFreeVirtualMemory.o build/imports/NtProtectVirtualMemory.o build/imports/NtPulseEvent.o build/imports/NtQueryVirtualMemory.o build/imports/NtReleaseMutant.o build/imports/NtSetTimerEx.o build/imports/NtSignalAndWaitForSingleObjectEx.o build/imports/NtWaitForMultipleObjectsEx.o build/imports/ObCreateSymbolicLink.o build/imports/ObDeleteSymbolicLink.o build/imports/ObDereferenceObject.o build/imports/ObReferenceObjectByHandle.o build/imports/KeSetEvent.o build/imports/XAudioGetSpeakerConfig.o build/imports/NetDll_WSAStartup.o build/imports/NetDll_WSACleanup.o build/imports/NetDll_socket.o build/imports/NetDll_closesocket.o build/imports/NetDll_shutdown.o build/imports/NetDll_ioctlsocket.o build/imports/NetDll_setsockopt.o build/imports/NetDll_getsockopt.o build/imports/NetDll_getsockname.o build/imports/NetDll_getpeername.o build/imports/NetDll_bind.o build/imports/NetDll_connect.o build/imports/NetDll_listen.o build/imports/NetDll_accept.o build/imports/NetDll_select.o build/imports/NetDll_recv.o build/imports/NetDll_recvfrom.o build/imports/NetDll_send.o build/imports/NetDll_sendto.o build/imports/NetDll_WSAGetLastError.o build/imports/NetDll_XNetStartup.o build/imports/NetDll_XNetCleanup.o build/imports/NetDll_XNetDnsLookup.o build/imports/NetDll_XNetDnsRelease.o build/imports/NetDll_XNetGetTitleXnAddr.o build/imports/NetDll_XNetGetEthernetLinkStatus.o build/imports/NetDll_XNetGetOpt.o build/imports/XamInputGetState.o build/imports/XamInputSetState.o build/imports/XamLoaderLaunchTitle.o build/imports/XamLoaderSetLaunchData.o build/imports/XamLoaderGetLaunchDataSize.o build/imports/XamLoaderGetLaunchData.o build/imports/XamLoaderTerminateTitle.o build/imports/XamGetOverlappedResult.o build/imports/XamUserGetXUID.o build/imports/XamUserGetName.o build/imports/XamUserGetSigninState.o build/imports/XamUserReadProfileSettings.o build/imports/XamUserGetSigninInfo.o build/imports/XamEnumerate.o build/imports/XamContentCreateEx.o build/imports/XamContentClose.o build/imports/XamContentDelete.o build/imports/XamContentCreateEnumerator.o build/imports/XamContentCreateDeviceEnumerator.o build/imports/XamContentGetDeviceData.o build/imports/XamContentGetDeviceName.o build/imports/XamContentGetDeviceState.o build/imports/XamContentFlush.o build/imports/XamNotifyCreateListener.o build/imports/XNotifyGetNext.o build/imports/XamShowSigninUI.o build/imports/XamShowKeyboardUI.o build/imports/XamShowMessageBoxUI.o build/imports/XamIsUIActive.o build/imports/XGetLanguage.o build/imports/GetTimeZoneInformation.o build/imports/XamGetLocaleEx.o
-make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk'
-make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/vulkan4xenon'
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/host.c -o build/src/host.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/proc_addr.c -o build/src/proc_addr.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/instance.c -o build/src/instance.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/physical_device.c -o build/src/physical_device.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/display.c -o build/src/display.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/device.c -o build/src/device.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/memory.c -o build/src/memory.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/shader.c -o build/src/shader.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/pipeline.c -o build/src/pipeline.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/render_pass.c -o build/src/render_pass.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/command_buffer.c -o build/src/command_buffer.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/queue.c -o build/src/queue.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/transfer.c -o build/src/transfer.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/sync.c -o build/src/sync.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/swapchain.c -o build/src/swapchain.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/image.c -o build/src/image.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/sampler.c -o build/src/sampler.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/descriptor.c -o build/src/descriptor.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/pipeline_state.c -o build/src/pipeline_state.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/blit.c -o build/src/blit.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/blit_shaders.c -o build/src/blit_shaders.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/query.c -o build/src/query.o
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/xsdk/include -MMD -MP -c src/format.c -o build/src/format.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-ar rcs build/libxsdk.a build/sdk/start.o build/sdk/log.o build/sdk/sbrk.o build/sdk/thread.o build/sdk/file.o build/sdk/path.o build/sdk/dir.o build/sdk/pthread.o build/sdk/lock.o build/sdk/reent.o build/sdk/time.o build/sdk/sysconf.o build/sdk/entropy.o build/sdk/exit.o build/sdk/gpu.o build/sdk/gpu_setup.o build/sdk/gpu_resolve.o build/sdk/gpu_draw.o build/sdk/gpu_constants.o build/sdk/gpu_tiles.o build/sdk/display.o build/sdk/shader.o build/sdk/microcode.o build/sdk/texture.o build/sdk/texture_layout.o build/sdk/tiled.o build/sdk/present.o build/sdk/splash.o build/sdk/copy.o build/sdk/socket.o build/sdk/netdb.o build/sdk/net.o build/sdk/launch.o build/sdk/libgen.o build/sdk/xam.o build/sdk/save.o build/sdk/system_ui.o build/sdk/semaphore.o build/sdk/mman.o build/sdk/jit.o build/sdk/system.o build/sdk/terminate.o build/sdk/text.o build/sdk/audio.o build/sdk/xsc_memory.o build/sdk/xsc_spirv.o build/sdk/xsc_resolve.o build/sdk/xsc_unroll.o build/sdk/xsc_encode.o build/sdk/xsc_container.o build/sdk/xsc_program.o build/sdk/xsc_optimize.o build/sdk/xsc_lower.o build/sdk/xsc_lower_block.o build/sdk/xsc_lower_matrix.o build/sdk/xsc_lower_glsl.o build/sdk/xsc_lower_stage.o build/sdk/xsc_lower_vertex.o build/sdk/xsc_lower_fragment.o build/sdk/xsc_lower_loop.o build/sdk/xsc_lower_flow.o build/sdk/xsc_lower_sample.o build/sdk/xsc_inline.o build/sdk/xsc_switch.o build/sdk/xsc_ssa.o build/sdk/xsc_compile.o build/imports/DbgPrint.o build/imports/ExCreateThread.o build/imports/ExGetXConfigSetting.o build/imports/ExRegisterTitleTerminateNotification.o build/imports/ExTerminateThread.o build/imports/KeDelayExecutionThread.o build/imports/KeQueryPerformanceFrequency.o build/imports/KeQuerySystemTime.o build/imports/KeSetAffinityThread.o build/imports/MmAllocatePhysicalMemoryEx.o build/imports/MmFreePhysicalMemory.o build/imports/MmGetPhysicalAddress.o build/imports/MmQueryStatistics.o build/imports/NtAllocateVirtualMemory.o build/imports/NtClose.o build/imports/NtCreateEvent.o build/imports/NtCreateFile.o build/imports/NtCreateSemaphore.o build/imports/NtFlushBuffersFile.o build/imports/NtQueryDirectoryFile.o build/imports/NtQueryFullAttributesFile.o build/imports/NtQueryInformationFile.o build/imports/NtQueryVolumeInformationFile.o build/imports/NtReadFile.o build/imports/NtReleaseSemaphore.o build/imports/NtSetEvent.o build/imports/NtSetInformationFile.o build/imports/NtWaitForSingleObjectEx.o build/imports/NtWriteFile.o build/imports/NtYieldExecution.o build/imports/RtlEnterCriticalSection.o build/imports/RtlInitializeCriticalSection.o build/imports/RtlLeaveCriticalSection.o build/imports/RtlTryEnterCriticalSection.o build/imports/KeTlsAlloc.o build/imports/KeTlsFree.o build/imports/KeTlsGetValue.o build/imports/KeTlsSetValue.o build/imports/XeCryptRandom.o build/imports/XeCryptSha.o build/imports/XexGetModuleHandle.o build/imports/XexGetModuleSection.o build/imports/XexGetProcedureAddress.o build/imports/ExLoadedCommandLine.o build/imports/ExLoadedImageName.o build/imports/VdCallGraphicsNotificationRoutines.o build/imports/VdEnableRingBufferRPtrWriteBack.o build/imports/VdGetCurrentDisplayInformation.o build/imports/VdGetSystemCommandBuffer.o build/imports/VdGlobalDevice.o build/imports/VdGlobalXamDevice.o build/imports/VdInitializeEngines.o build/imports/VdInitializeRingBuffer.o build/imports/VdQueryVideoMode.o build/imports/VdSetDisplayMode.o build/imports/VdSetGraphicsInterruptCallback.o build/imports/VdSetSystemCommandBufferGpuIdentifierAddress.o build/imports/VdShutdownEngines.o build/imports/XAudioRegisterRenderDriverClient.o build/imports/XAudioUnregisterRenderDriverClient.o build/imports/XAudioSubmitRenderDriverFrame.o build/imports/VdSwap.o build/imports/ExThreadObjectType.o build/imports/InterlockedFlushSList.o build/imports/InterlockedPopEntrySList.o build/imports/InterlockedPushEntrySList.o build/imports/KeQueryBasePriorityThread.o build/imports/KeSetBasePriorityThread.o build/imports/MmQueryAddressProtect.o build/imports/MmSetAddressProtect.o build/imports/NtCancelTimer.o build/imports/NtClearEvent.o build/imports/NtCreateMutant.o build/imports/NtCreateTimer.o build/imports/NtDuplicateObject.o build/imports/NtFreeVirtualMemory.o build/imports/NtProtectVirtualMemory.o build/imports/NtPulseEvent.o build/imports/NtQueryVirtualMemory.o build/imports/NtReleaseMutant.o build/imports/NtSetTimerEx.o build/imports/NtSignalAndWaitForSingleObjectEx.o build/imports/NtWaitForMultipleObjectsEx.o build/imports/ObCreateSymbolicLink.o build/imports/ObDeleteSymbolicLink.o build/imports/ObDereferenceObject.o build/imports/ObReferenceObjectByHandle.o build/imports/KeSetEvent.o build/imports/XAudioGetSpeakerConfig.o build/imports/NetDll_WSAStartup.o build/imports/NetDll_WSACleanup.o build/imports/NetDll_socket.o build/imports/NetDll_closesocket.o build/imports/NetDll_shutdown.o build/imports/NetDll_ioctlsocket.o build/imports/NetDll_setsockopt.o build/imports/NetDll_getsockopt.o build/imports/NetDll_getsockname.o build/imports/NetDll_getpeername.o build/imports/NetDll_bind.o build/imports/NetDll_connect.o build/imports/NetDll_listen.o build/imports/NetDll_accept.o build/imports/NetDll_select.o build/imports/NetDll_recv.o build/imports/NetDll_recvfrom.o build/imports/NetDll_send.o build/imports/NetDll_sendto.o build/imports/NetDll_WSAGetLastError.o build/imports/NetDll_XNetStartup.o build/imports/NetDll_XNetCleanup.o build/imports/NetDll_XNetDnsLookup.o build/imports/NetDll_XNetDnsRelease.o build/imports/NetDll_XNetGetTitleXnAddr.o build/imports/NetDll_XNetGetEthernetLinkStatus.o build/imports/NetDll_XNetGetOpt.o build/imports/XamInputGetState.o build/imports/XamInputSetState.o build/imports/XamLoaderLaunchTitle.o build/imports/XamLoaderSetLaunchData.o build/imports/XamLoaderGetLaunchDataSize.o build/imports/XamLoaderGetLaunchData.o build/imports/XamLoaderTerminateTitle.o build/imports/XamGetOverlappedResult.o build/imports/XamUserGetXUID.o build/imports/XamUserGetName.o build/imports/XamUserGetSigninState.o build/imports/XamUserReadProfileSettings.o build/imports/XamUserGetSigninInfo.o build/imports/XamEnumerate.o build/imports/XamContentCreateEx.o build/imports/XamContentClose.o build/imports/XamContentDelete.o build/imports/XamContentCreateEnumerator.o build/imports/XamContentCreateDeviceEnumerator.o build/imports/XamContentGetDeviceData.o build/imports/XamContentGetDeviceName.o build/imports/XamContentGetDeviceState.o build/imports/XamContentFlush.o build/imports/XamNotifyCreateListener.o build/imports/XNotifyGetNext.o build/imports/XamShowSigninUI.o build/imports/XamShowKeyboardUI.o build/imports/XamShowMessageBoxUI.o build/imports/XamIsUIActive.o build/imports/XGetLanguage.o build/imports/GetTimeZoneInformation.o build/imports/XamGetLocaleEx.o
+make: Leaving directory '<repo>/.work/native-display/xsdk'
+make: Entering directory '<repo>/.work/native-display/vulkan4xenon'
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/host.c -o build/src/host.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/proc_addr.c -o build/src/proc_addr.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/instance.c -o build/src/instance.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/physical_device.c -o build/src/physical_device.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/display.c -o build/src/display.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/device.c -o build/src/device.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/memory.c -o build/src/memory.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/shader.c -o build/src/shader.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/pipeline.c -o build/src/pipeline.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/render_pass.c -o build/src/render_pass.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/command_buffer.c -o build/src/command_buffer.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/queue.c -o build/src/queue.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/transfer.c -o build/src/transfer.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/sync.c -o build/src/sync.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/swapchain.c -o build/src/swapchain.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/image.c -o build/src/image.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/sampler.c -o build/src/sampler.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/descriptor.c -o build/src/descriptor.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/pipeline_state.c -o build/src/pipeline_state.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/blit.c -o build/src/blit.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/blit_shaders.c -o build/src/blit_shaders.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/query.c -o build/src/query.o
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc -mcpu=cell -fno-pic -std=gnu17 -O2 -g -Wall -Wextra -Werror -Iinclude -Ithird_party/vulkan-headers/include -I<repo>/.work/native-display/xsdk/include -MMD -MP -c src/format.c -o build/src/format.o
 rm -f build/libvulkan4xenon.a
-/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-ar rcs build/libvulkan4xenon.a build/src/host.o build/src/proc_addr.o build/src/instance.o build/src/physical_device.o build/src/display.o build/src/device.o build/src/memory.o build/src/shader.o build/src/pipeline.o build/src/render_pass.o build/src/command_buffer.o build/src/queue.o build/src/transfer.o build/src/sync.o build/src/swapchain.o build/src/image.o build/src/sampler.o build/src/descriptor.o build/src/pipeline_state.o build/src/blit.o build/src/blit_shaders.o build/src/query.o build/src/format.o
-make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/native-display/vulkan4xenon'
+~/xsdk-gcc-52/bin/powerpc-xsdk-elf-ar rcs build/libvulkan4xenon.a build/src/host.o build/src/proc_addr.o build/src/instance.o build/src/physical_device.o build/src/display.o build/src/device.o build/src/memory.o build/src/shader.o build/src/pipeline.o build/src/render_pass.o build/src/command_buffer.o build/src/queue.o build/src/transfer.o build/src/sync.o build/src/swapchain.o build/src/image.o build/src/sampler.o build/src/descriptor.o build/src/pipeline_state.o build/src/blit.o build/src/blit_shaders.o build/src/query.o build/src/format.o
+make: Leaving directory '<repo>/.work/native-display/vulkan4xenon'
 -- The C compiler identification is GNU 15.3.0
 -- The CXX compiler identification is GNU 15.3.0
 -- Detecting C compiler ABI info
 -- Detecting C compiler ABI info - done
--- Check for working C compiler: /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc - skipped
+-- Check for working C compiler: ~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc - skipped
 -- Detecting C compile features
 -- Detecting C compile features - done
 -- Detecting CXX compiler ABI info
 -- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-g++ - skipped
+-- Check for working CXX compiler: ~/xsdk-gcc-52/bin/powerpc-xsdk-elf-g++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/ffmpeg-7.1.5.tar.xz: OK
-install prefix            /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/ffmpeg-xbox
+<repo>/.work/src/ffmpeg-7.1.5.tar.xz: OK
+install prefix            <repo>/.work/ffmpeg-xbox
 source path               src
-C compiler                /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc
+C compiler                ~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc
 C library                 newlib
 host C compiler           gcc
 host C library            glibc
@@ -355,7 +355,7 @@ Enabled outdevs:
 
 License: LGPL version 2.1 or later
 
-WARNING: /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
+WARNING: ~/xsdk-gcc-52/bin/powerpc-xsdk-elf-pkg-config not found, library detection may fail.
 GEN	libavformat/libavformat.version
 GEN	libavcodec/libavcodec.version
 GEN	libavutil/libavutil.version
@@ -1318,9 +1318,9 @@ VMX h264qpel: 13406 instruções, 4600 vetoriais, 0 multiplicações incompatív
 VMX h264dsp: 1708 instruções, 488 vetoriais, 0 multiplicações incompatíveis
 VMX idctdsp: 1 instruções, 0 vetoriais, 0 multiplicações incompatíveis
 VMX h264-tube360: 15764 instruções, 5539 vetoriais, 0 multiplicações incompatíveis
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8.tar.bz2: OK
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/curl-xenon.tar.gz: OK
-CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
+<repo>/.work/src/mbedtls-3.6.8.tar.bz2: OK
+<repo>/.work/src/curl-xenon.tar.gz: OK
+CMake Deprecation Warning at <repo>/.work/src/mbedtls-3.6.8/CMakeLists.txt:21 (cmake_minimum_required):
   Compatibility with CMake < 3.10 will be removed from a future version of
   CMake.
 
@@ -1329,7 +1329,7 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
   to work with policies introduced by <max> or earlier.
 
 
--- Found Python3: /home/pedrohenriquequadro/.pyenv/shims/python3.12 (found version "3.12.7") found components: Interpreter
+-- Found Python3: ~/.pyenv/shims/python3.12 (found version "3.12.7") found components: Interpreter
 -- Found Threads: TRUE
 -- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS
 -- Performing Test C_COMPILER_SUPPORTS_WFORMAT_SIGNEDNESS - Success
@@ -1342,7 +1342,7 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 -- Found Perl: /usr/bin/perl (found version "5.42.3")
 -- Looking for connect in socket
 -- Looking for connect in socket - not found
--- Found MbedTLS: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/../.work/src/mbedtls-3.6.8/include (found version "3.6.8")
+-- Found MbedTLS: <repo>/client/../.work/src/mbedtls-3.6.8/include (found version "3.6.8")
 -- Looking for mbedtls_des_crypt_ecb
 -- Looking for mbedtls_des_crypt_ecb - not found
 -- Looking for sys/eventfd.h
@@ -1610,7 +1610,7 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 -- Enabled SSL backends: mbedTLS
 -- Configuring done (309.4s)
 -- Generating done (0.4s)
--- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/build-x360
+-- Build files have been written to: <repo>/client/build-x360
 [  0%] Building C object yt/tls/upstream/3rdparty/everest/CMakeFiles/everest.dir/library/everest.c.obj
 [  1%] Building C object yt/tls/upstream/3rdparty/p256-m/CMakeFiles/p256m.dir/p256-m_driver_entrypoints.c.obj
 [  1%] Building C object yt/tls/upstream/3rdparty/everest/CMakeFiles/everest.dir/library/x25519.c.obj
@@ -1619,13 +1619,13 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 [  2%] Linking C static library libeverest.a
 [  2%] Built target everest
 [  2%] Linking C static library libp256m.a
-[  2%] Building C object yt/CMakeFiles/tube360-boot.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/boot_log.c.obj
+[  2%] Building C object yt/CMakeFiles/tube360-boot.dir<repo>/client/src/boot_log.c.obj
 [  2%] Built target p256m
 [  3%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/aes.c.obj
-[  3%] Building C object yt/CMakeFiles/tube360-boot.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/boot_early.c.obj
-[  3%] Building CXX object yt/CMakeFiles/tube360-boot.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/boot_platform.cpp.obj
-[  4%] Building C object yt/CMakeFiles/tube360-boot.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/video_policy.c.obj
-[  4%] Building C object yt/CMakeFiles/tube360-boot.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/board_sim.c.obj
+[  3%] Building C object yt/CMakeFiles/tube360-boot.dir<repo>/client/src/boot_early.c.obj
+[  3%] Building CXX object yt/CMakeFiles/tube360-boot.dir<repo>/client/src/boot_platform.cpp.obj
+[  4%] Building C object yt/CMakeFiles/tube360-boot.dir<repo>/client/src/video_policy.c.obj
+[  4%] Building C object yt/CMakeFiles/tube360-boot.dir<repo>/client/src/board_sim.c.obj
 [  4%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/aesni.c.obj
 [  4%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/aesce.c.obj
 [  5%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/aria.c.obj
@@ -1708,13 +1708,13 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 [ 26%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/timing.c.obj
 [ 26%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/version.c.obj
 [ 26%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/version_features.c.obj
-[ 27%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/tools/mbedtls-x360/platform.c.obj
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/tools/mbedtls-x360/platform.c:6:5: warning: no previous prototype for 'mbedtls_hardware_poll' [-Wmissing-prototypes]
+[ 27%] Building C object yt/tls/upstream/library/CMakeFiles/mbedcrypto.dir<repo>/tools/mbedtls-x360/platform.c.obj
+<repo>/tools/mbedtls-x360/platform.c:6:5: warning: no previous prototype for 'mbedtls_hardware_poll' [-Wmissing-prototypes]
     6 | int mbedtls_hardware_poll(void *context, unsigned char *out, size_t len, size_t *written) {
       |     ^~~~~~~~~~~~~~~~~~~~~
 [ 27%] Linking C static library libmbedcrypto.a
 [ 27%] Built target mbedcrypto
-[ 27%] Building CXX object yt/CMakeFiles/tube360-update-core.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/update/common.cpp.obj
+[ 27%] Building CXX object yt/CMakeFiles/tube360-update-core.dir<repo>/client/src/update/common.cpp.obj
 [ 28%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/pkcs7.c.obj
 [ 28%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509.c.obj
 [ 28%] Building C object yt/tls/upstream/library/CMakeFiles/mbedx509.dir/x509_create.c.obj
@@ -1732,27 +1732,27 @@ CMake Deprecation Warning at /home/pedrohenriquequadro/Documentos/VS/tube360-fro
 [ 31%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/net_sockets.c.obj
 [ 31%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_cache.c.obj
 [ 32%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_ciphersuites.c.obj
-[ 33%] Building CXX object yt/CMakeFiles/tube360-update-core.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/update/app.cpp.obj
+[ 33%] Building CXX object yt/CMakeFiles/tube360-update-core.dir<repo>/client/src/update/app.cpp.obj
 [ 33%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_client.c.obj
 [ 33%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_cookie.c.obj
 [ 34%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_debug_helpers_generated.c.obj
 [ 34%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_msg.c.obj
 [ 34%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_ticket.c.obj
 [ 34%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls.c.obj
-[ 34%] Building C object yt/CMakeFiles/tube360-update-core.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/monocypher/monocypher.c.obj
+[ 34%] Building C object yt/CMakeFiles/tube360-update-core.dir<repo>/client/third_party/monocypher/monocypher.c.obj
 [ 35%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls12_client.c.obj
 [ 35%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls12_server.c.obj
 [ 35%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls13_keys.c.obj
-[ 35%] Building C object yt/CMakeFiles/tube360-update-core.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/monocypher/monocypher-ed25519.c.obj
+[ 35%] Building C object yt/CMakeFiles/tube360-update-core.dir<repo>/client/third_party/monocypher/monocypher-ed25519.c.obj
 [ 36%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls13_server.c.obj
 [ 36%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls13_client.c.obj
 [ 36%] Building C object yt/tls/upstream/library/CMakeFiles/mbedtls.dir/ssl_tls13_generic.c.obj
 [ 37%] Linking CXX static library libtube360-update-core.a
 [ 37%] Built target tube360-update-core
-[ 37%] Building CXX object CMakeFiles/tube360-launcher.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/update/launcher.cpp.obj
+[ 37%] Building CXX object CMakeFiles/tube360-launcher.dir<repo>/client/src/update/launcher.cpp.obj
 [ 37%] Linking C static library libmbedtls.a
 [ 37%] Built target mbedtls
-[ 37%] Building CXX object CMakeFiles/tube360-launcher.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/update/launcher_x360.cpp.obj
+[ 37%] Building CXX object CMakeFiles/tube360-launcher.dir<repo>/client/src/update/launcher_x360.cpp.obj
 [ 37%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/altsvc.c.obj
 [ 37%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/amigaos.c.obj
 [ 38%] Linking CXX executable tube360-launcher
@@ -1941,8 +1941,8 @@ xenia_scan: 23 instructions Xenia skips; Xenia results through these functions a
 [ 83%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls.c.obj
 [ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_config.c.obj
 [ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_scache.c.obj
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08c5daaa6b4/lib/vtls/vtls_scache.c: In function 'cf_ssl_peer_key_add_path':
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08c5daaa6b4/lib/vtls/vtls_scache.c:69:48: warning: unused parameter 'is_local' [-Wunused-parameter]
+<repo>/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08c5daaa6b4/lib/vtls/vtls_scache.c: In function 'cf_ssl_peer_key_add_path':
+<repo>/.work/src/curl-xenon-a6b70bd06820e1c625f47fe0e592e08c5daaa6b4/lib/vtls/vtls_scache.c:69:48: warning: unused parameter 'is_local' [-Wunused-parameter]
    69 |                                          bool *is_local)
       |                                          ~~~~~~^~~~~~~~
 [ 84%] Building C object yt/curl/lib/CMakeFiles/libcurl_static.dir/vtls/vtls_spack.c.obj
@@ -1985,90 +1985,90 @@ xenia_scan: 23 instructions Xenia skips; Xenia results through these functions a
 [ 93%] Building CXX object yt/CMakeFiles/tube360-yt.dir/console_account.cpp.obj
 [ 94%] Building CXX object yt/CMakeFiles/tube360-yt.dir/account_transport.cpp.obj
 [ 94%] Building CXX object yt/CMakeFiles/tube360-yt.dir/cast.cpp.obj
-[ 94%] Building CXX object yt/CMakeFiles/tube360-yt.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/update/rules.cpp.obj
+[ 94%] Building CXX object yt/CMakeFiles/tube360-yt.dir<repo>/client/src/update/rules.cpp.obj
 [ 95%] Linking CXX static library libtube360-yt.a
 [ 95%] Built target tube360-yt
-[ 95%] Building CXX object CMakeFiles/tube360-update.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/update/service.cpp.obj
-[ 96%] Building CXX object CMakeFiles/tube360-cast.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/cast/discovery.cpp.obj
+[ 95%] Building CXX object CMakeFiles/tube360-update.dir<repo>/client/src/update/service.cpp.obj
+[ 96%] Building CXX object CMakeFiles/tube360-cast.dir<repo>/client/src/cast/discovery.cpp.obj
 [ 96%] Linking CXX static library libtube360-update.a
 [ 96%] Built target tube360-update
-[ 96%] Building CXX object CMakeFiles/tube360-cast.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/cast/lounge.cpp.obj
-In file included from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/cast/discovery.cpp:3:
+[ 96%] Building CXX object CMakeFiles/tube360-cast.dir<repo>/client/src/cast/lounge.cpp.obj
+In file included from <repo>/client/src/cast/discovery.cpp:3:
 In copy constructor 'picojson::value::value(const picojson::value&)',
-    inlined from 'picojson::value& picojson::value::operator=(const picojson::value&)' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:256:16,
-    inlined from 'picojson::value& picojson::value::operator=(const picojson::value&)' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:254:17,
-    inlined from 'bool picojson::default_parse_context::set_null()' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:826:21,
-    inlined from 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:755:7:
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+    inlined from 'picojson::value& picojson::value::operator=(const picojson::value&)' at <repo>/client/third_party/picojson.h:256:16,
+    inlined from 'picojson::value& picojson::value::operator=(const picojson::value&)' at <repo>/client/third_party/picojson.h:254:17,
+    inlined from 'bool picojson::default_parse_context::set_null()' at <repo>/client/third_party/picojson.h:826:21,
+    inlined from 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/third_party/picojson.h:755:7:
+<repo>/client/third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
   249 |       u_ = x.u_;
       |       ~~~^~~~~~
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h: In function 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:826:21: note: '<anonymous>' declared here
+<repo>/client/third_party/picojson.h: In function 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+<repo>/client/third_party/picojson.h:826:21: note: '<anonymous>' declared here
   826 |       *out_ = value();
       |                     ^
 In copy constructor 'picojson::value::value(const picojson::value&)',
-    inlined from 'void std::__new_allocator<_Tp>::construct(_Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/new_allocator.h:191:4,
-    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:674:17,
-    inlined from 'std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
-    inlined from 'void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
-    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:853:18,
-    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:695:33,
-    inlined from 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:762:26:
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+    inlined from 'void std::__new_allocator<_Tp>::construct(_Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/new_allocator.h:191:4,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:674:17,
+    inlined from 'std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
+    inlined from 'void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
+    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/third_party/picojson.h:853:18,
+    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/third_party/picojson.h:695:33,
+    inlined from 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/third_party/picojson.h:762:26:
+<repo>/client/third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
   249 |       u_ = x.u_;
       |       ~~~^~~~~~
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h: In function 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:853:19: note: '<anonymous>' declared here
+<repo>/client/third_party/picojson.h: In function 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+<repo>/client/third_party/picojson.h:853:19: note: '<anonymous>' declared here
   853 |       a.push_back(value());
       |                   ^~~~~~~
-[ 96%] Building CXX object CMakeFiles/tube360-cast.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/cast/receiver.cpp.obj
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/cast/receiver.cpp: In function 'std::string cast::{anonymous}::localAddress(const sockaddr_in&)':
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/cast/receiver.cpp:155:40: warning: unused parameter 'remote' [-Wunused-parameter]
+[ 96%] Building CXX object CMakeFiles/tube360-cast.dir<repo>/client/src/cast/receiver.cpp.obj
+<repo>/client/src/cast/receiver.cpp: In function 'std::string cast::{anonymous}::localAddress(const sockaddr_in&)':
+<repo>/client/src/cast/receiver.cpp:155:40: warning: unused parameter 'remote' [-Wunused-parameter]
   155 | string localAddress(const sockaddr_in& remote) {
       |                     ~~~~~~~~~~~~~~~~~~~^~~~~~
-In file included from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/cast/lounge.hpp:3,
-                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/cast/lounge.cpp:2:
+In file included from <repo>/client/src/cast/lounge.hpp:3,
+                 from <repo>/client/src/cast/lounge.cpp:2:
 In copy constructor 'picojson::value::value(const picojson::value&)',
-    inlined from 'void std::__new_allocator<_Tp>::construct(_Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/new_allocator.h:191:4,
-    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:674:17,
-    inlined from 'std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
-    inlined from 'void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
-    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:853:18,
-    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:695:33,
-    inlined from 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:762:26:
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+    inlined from 'void std::__new_allocator<_Tp>::construct(_Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/new_allocator.h:191:4,
+    inlined from 'static void std::allocator_traits<std::allocator<_CharT> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:674:17,
+    inlined from 'std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
+    inlined from 'void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
+    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/third_party/picojson.h:853:18,
+    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/third_party/picojson.h:695:33,
+    inlined from 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/third_party/picojson.h:762:26:
+<repo>/client/third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
   249 |       u_ = x.u_;
       |       ~~~^~~~~~
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h: In function 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/third_party/picojson.h:853:19: note: '<anonymous>' declared here
+<repo>/client/third_party/picojson.h: In function 'bool picojson::_parse(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+<repo>/client/third_party/picojson.h:853:19: note: '<anonymous>' declared here
   853 |       a.push_back(value());
       |                   ^~~~~~~
-[ 96%] Building CXX object CMakeFiles/tube360-cast.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/cast/stream.cpp.obj
+[ 96%] Building CXX object CMakeFiles/tube360-cast.dir<repo>/client/src/cast/stream.cpp.obj
 [ 97%] Linking CXX static library libtube360-cast.a
 [ 97%] Built target tube360-cast
-[ 97%] Building CXX object CMakeFiles/tube360.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/main.cpp.obj
+[ 97%] Building CXX object CMakeFiles/tube360.dir<repo>/client/src/main.cpp.obj
 [ 98%] Building C object CMakeFiles/tube360.dir/shaders_bundle.c.obj
 [ 98%] Building C object CMakeFiles/tube360.dir/ffmpeg-libc.c.obj
 [ 98%] Building C object CMakeFiles/tube360.dir/player-fault.c.obj
-In file included from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/nest.hpp:5,
-                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/player.hpp:23,
-                 from /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/src/main.cpp:34:
+In file included from <repo>/client/src/nest.hpp:5,
+                 from <repo>/client/src/player.hpp:23,
+                 from <repo>/client/src/main.cpp:34:
 In copy constructor 'picojson::value::value(const picojson::value&)',
-    inlined from 'constexpr _Tp* std::construct_at(_Tp*, _Args&& ...) [with _Tp = picojson::value; _Args = {picojson::value}]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_construct.h:110:9,
-    inlined from 'static constexpr void std::allocator_traits<std::allocator<_Up> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:676:21,
-    inlined from 'constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
-    inlined from 'constexpr void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at /home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
-    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:853:18,
-    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:695:33:
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
+    inlined from 'constexpr _Tp* std::construct_at(_Tp*, _Args&& ...) [with _Tp = picojson::value; _Args = {picojson::value}]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_construct.h:110:9,
+    inlined from 'static constexpr void std::allocator_traits<std::allocator<_Up> >::construct(allocator_type&, _Up*, _Args&& ...) [with _Up = picojson::value; _Args = {picojson::value}; _Tp = picojson::value]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/alloc_traits.h:676:21,
+    inlined from 'constexpr std::vector<_Tp, _Alloc>::reference std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {picojson::value}; _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/vector.tcc:117:30,
+    inlined from 'constexpr void std::vector<_Tp, _Alloc>::push_back(value_type&&) [with _Tp = picojson::value; _Alloc = std::allocator<picojson::value>]' at ~/xsdk-gcc-52/powerpc-xsdk-elf/include/c++/15.3.0/bits/stl_vector.h:1434:21,
+    inlined from 'bool picojson::default_parse_context::parse_array_item(picojson::input<Iter>&, size_t) [with Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/x360/../third_party/picojson.h:853:18,
+    inlined from 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]' at <repo>/client/x360/../third_party/picojson.h:695:33:
+<repo>/client/x360/../third_party/picojson.h:249:10: warning: '<unnamed>.picojson::value::u_' may be used uninitialized [-Wmaybe-uninitialized]
   249 |       u_ = x.u_;
       |       ~~~^~~~~~
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h: In function 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/client/x360/../third_party/picojson.h:853:19: note: '<anonymous>' declared here
+<repo>/client/x360/../third_party/picojson.h: In function 'bool picojson::_parse_array(Context&, input<Iter>&) [with Context = default_parse_context; Iter = __gnu_cxx::__normal_iterator<const char*, std::__cxx11::basic_string<char> >]':
+<repo>/client/x360/../third_party/picojson.h:853:19: note: '<anonymous>' declared here
   853 |       a.push_back(value());
       |                   ^~~~~~~
 [100%] Linking CXX executable tube360
-/home/pedrohenriquequadro/xsdk-gcc-52/powerpc-xsdk-elf/bin/ld: CMakeFiles/tube360.dir/ffmpeg-libc.c.obj: in function `__wrap_xsdk_audio_next_frame':
+~/xsdk-gcc-52/powerpc-xsdk-elf/bin/ld: CMakeFiles/tube360.dir/ffmpeg-libc.c.obj: in function `__wrap_xsdk_audio_next_frame':
 ffmpeg-libc.c:(.text+0x6c): undefined reference to `__real_xsdk_audio_next_frame'
 collect2: error: ld returned 1 exit status
 gmake[2]: *** [CMakeFiles/tube360.dir/build.make:170: tube360] Error 1

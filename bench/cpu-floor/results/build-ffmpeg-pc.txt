@@ -1,5 +1,5 @@
-/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/src/ffmpeg-7.1.5.tar.xz: OK
-install prefix            /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/ffmpeg-pc
+<repo>/bench/cpu-floor/.work/app-build/.work/src/ffmpeg-7.1.5.tar.xz: OK
+install prefix            <repo>/bench/cpu-floor/.work/app-build/.work/ffmpeg-pc
 source path               src
 C compiler                gcc
 C library                 glibc
@@ -797,7 +797,7 @@ INSTALL	libswresample/libswresample.a
 STRIP	libavutil/x86/tx_float.o
 AR	libavutil/libavutil.a
 INSTALL	libavutil/libavutil.a
-make: Entering directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/build-pc'
+make: Entering directory '<repo>/bench/cpu-floor/.work/app-build/.work/build-pc'
 INSTALL	src/doc/examples/avio_http_serve_files.c
 INSTALL	src/doc/examples/avio_list_dir.c
 INSTALL	src/doc/examples/avio_read_callback.c
@@ -999,4 +999,4 @@ INSTALL	libavutil/ffversion.h
 INSTALL	libavutil/libavutil.pc
 AR	libavcodec/libavcodec.a
 INSTALL	libavcodec/libavcodec.a
-make: Leaving directory '/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/build-pc'
+make: Leaving directory '<repo>/bench/cpu-floor/.work/app-build/.work/build-pc'

@@ -1,5 +1,5 @@
 {
-  "stage": "/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/1080p/.work/console",
+  "stage": "<repo>/bench/1080p/.work/console",
   "files": {
     "cpu/f33-cpu.xex": "9e1c442ff9a236df56c083959088205d907669606f9203a8cf5767c372515c38",
     "kernels/f33-kernels.xex": "59e26089d068e004ef5c5867f63b55db7f9c5c6c3a335f51eb89d3f083365bd3",
@@ -35,7 +35,7 @@
   },
   "executed_on_console": false,
   "recipe_id": "bc1f6751f2705a72d42669fa194066eb4132cd35fc34223c67fd9c43c55b5fa7",
-  "compiler": "/home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc",
+  "compiler": "~/xsdk-gcc-52/bin/powerpc-xsdk-elf-gcc",
   "source_recipe_matches_app_and_bench": true,
   "ffmpeg_version": "7.1.5",
   "lgpl_configuration_checked": true

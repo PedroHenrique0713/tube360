@@ -1,21 +1,21 @@
-F30 patched /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/.work/app-build/.work/src/ffmpeg-7.1.5-xbox
+F30 patched <repo>/bench/cpu-floor/.work/app-build/.work/src/ffmpeg-7.1.5-xbox
 -- The C compiler identification is GNU 15.3.0
 -- The CXX compiler identification is GNU 15.3.0
 -- Detecting C compiler ABI info
 -- Detecting C compiler ABI info - done
--- Check for working C compiler: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc - skipped
+-- Check for working C compiler: ~/xsdk-gcc/bin/powerpc-xsdk-elf-gcc - skipped
 -- Detecting C compile features
 -- Detecting C compile features - done
 -- Detecting CXX compiler ABI info
 -- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-g++ - skipped
+-- Check for working CXX compiler: ~/xsdk-gcc/bin/powerpc-xsdk-elf-g++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
 -- Configuring done (0.6s)
 -- Generating done (0.0s)
--- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/cpu-floor/build-xbox
+-- Build files have been written to: <repo>/bench/cpu-floor/build-xbox
 [ 66%] Building CXX object CMakeFiles/cpu-floor.dir/main.cpp.obj
-[ 66%] Building C object CMakeFiles/cpu-floor.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/x360/ffmpeg-libc.c.obj
+[ 66%] Building C object CMakeFiles/cpu-floor.dir<repo>/client/x360/ffmpeg-libc.c.obj
 [100%] Linking CXX executable cpu-floor
 xenia_scan: update_initial_timestamps: 82101fc0 rldic r8,r4,48,63
 xenia_scan: read_frame_internal: 82105c40 rldic r9,r9,48,63
@@ -79,20 +79,20 @@ xenia_scan: 56 instructions Xenia skips; Xenia results through these functions a
 -- The CXX compiler identification is GNU 15.3.0
 -- Detecting C compiler ABI info
 -- Detecting C compiler ABI info - done
--- Check for working C compiler: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-gcc - skipped
+-- Check for working C compiler: ~/xsdk-gcc/bin/powerpc-xsdk-elf-gcc - skipped
 -- Detecting C compile features
 -- Detecting C compile features - done
 -- Detecting CXX compiler ABI info
 -- Detecting CXX compiler ABI info - done
--- Check for working CXX compiler: /home/pedrohenriquequadro/xsdk-gcc/bin/powerpc-xsdk-elf-g++ - skipped
+-- Check for working CXX compiler: ~/xsdk-gcc/bin/powerpc-xsdk-elf-g++ - skipped
 -- Detecting CXX compile features
 -- Detecting CXX compile features - done
 -- Configuring done (0.6s)
 -- Generating done (0.0s)
--- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/bench/1080p/build-xbox
+-- Build files have been written to: <repo>/bench/1080p/build-xbox
 [ 20%] Building C object CMakeFiles/f33-kernels.dir/kernels.c.obj
 [ 40%] Building CXX object CMakeFiles/f33-cpu.dir/main.cpp.obj
-[ 60%] Building C object CMakeFiles/f33-cpu.dir/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/client/x360/ffmpeg-libc.c.obj
+[ 60%] Building C object CMakeFiles/f33-cpu.dir<repo>/client/x360/ffmpeg-libc.c.obj
 [ 80%] Linking CXX executable f33-cpu
 xenia_scan: update_initial_timestamps: 82102cd8 rldic r8,r4,48,63
 xenia_scan: read_frame_internal: 82106958 rldic r9,r9,48,63

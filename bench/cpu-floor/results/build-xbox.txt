@@ -1,6 +1,6 @@
 -- Configuring done (0.0s)
 -- Generating done (0.0s)
--- Build files have been written to: /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f30-hibrido/bench/cpu-floor/build-xbox
+-- Build files have been written to: <repo>/bench/cpu-floor/build-xbox
 [ 33%] Building CXX object CMakeFiles/cpu-floor.dir/main.cpp.obj
 [ 66%] Linking CXX executable cpu-floor
 xenia_scan: update_initial_timestamps: 82101f98 rldic r8,r4,48,63

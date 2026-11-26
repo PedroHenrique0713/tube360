@@ -98,9 +98,9 @@ dois modos com `framemd5` do FFmpeg externo e testa rejeição de mídia/log inc
 Não precisa SDL, GPU, fontes, configuração pessoal ou rede do console:
 
 ```bash
-export XSDK_DIR=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/vendor/xsdk
-export XSDK_TOOLCHAIN=/home/pedrohenriquequadro/xsdk-gcc
-JOBS=3 flock /home/pedrohenriquequadro/.cache/tube360-frota-xbox.lock \
+export XSDK_DIR=<forcepush-360>/vendor/xsdk
+export XSDK_TOOLCHAIN=~/xsdk-gcc
+JOBS=3 flock ~/.cache/tube360-frota-xbox.lock \
   systemd-run --user --scope -q -p MemoryMax=3G -p MemorySwapMax=512M \
   bench/cpu-floor/build.sh xbox > bench/cpu-floor/results/build-xbox.txt 2>&1
 sha256sum bench/cpu-floor/build-xbox/cpu-floor.xex
@@ -118,7 +118,7 @@ Feche o player. Use pasta nova no HDD, sem substituir o instalado. No shell do P
 deste worktree (confirme o IP e o nome do drive do console; neste ambiente, `HDD:`):
 
 ```bash
-F30_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
+F30_XBDM=<forcepush-360>/tools/xbdm.py
 F30_IP=192.168.1.50
 F30_REMOTE='HDD:\Apps\Tube360-F30-CPU'
 python3 "$F30_XBDM" "$F30_IP" mkdir "$F30_REMOTE"

@@ -147,7 +147,7 @@ O teste de certificado acima prova a classificação sem essa alteração.
 Da raiz deste worktree, com o app atual fechado:
 
 ```bash
-F32_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
+F32_XBDM=<forcepush-360>/tools/xbdm.py
 F32_IP=192.168.1.50
 F32_REMOTE='HDD:\Games\Tube360 F32'
 mkdir -p .work/f32/console

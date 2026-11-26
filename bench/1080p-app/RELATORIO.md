@@ -68,7 +68,7 @@ App final reproduzível:
 
 ```bash
 python3 bench/1080p-app/run-pc.py \
-  /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f33-1080p/.work/quality/media \
+  <repo>/.work/quality/media \
   --work .work/f40-final --case primary
 # repetir com --case full e --case lower-source
 python3 bench/1080p-app/check-summary.py
@@ -86,7 +86,7 @@ medição dos kernels PowerPC. A memória PC é sentinela, `memory_measured=0`, 
 512 MiB. Os campos PCM/clock não substituem escuta de sincronismo labial na TV/Nest.
 
 Captura aberta e inspecionada:
-`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/.work/f40-pc/screen.png`.
+`<repo>/.work/f40-pc/screen.png`.
 Mostra o futebol137 reduzido para1280×720, imagem completa, cores/planos e geometria íntegros.
 [Log de captura](results/screenshot-pc.txt). Não é captura HDMI do Xbox.
 
@@ -109,7 +109,7 @@ conversão desses códigos em prova de console nem alegação de CI completo.
 não instalar sobre o app existente, não rebootar nem usar magicboot automaticamente.
 
 Pasta pronta:
-`/home/pedrohenriquequadro/Documentos/VS/tube360-frota/f40-1080p-app/bench/1080p-app/.work/console/`.
+`<repo>/bench/1080p-app/.work/console/`.
 Transferir `tv137` para `HDD:\Apps\Tube360-F40-tv137`, executar e recuperar `tube360.log`;
 resumir por `summarize.py`. Repetir `tv137-1080`, `motion137`, controle `full137` e `nest137`.
 Exigir todos os critérios do item4, status de afinidade/prioridade válidos, som contínuo,
