@@ -11,4 +11,9 @@ cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release
 cmake --build client/build -j2
 tools/ci/checks.sh
 export FFMPEG_PREFIX=/opt/devkit/.deps/tube360/.work/ffmpeg-xbox
+recipe=$(python3 tools/ffmpeg-x360/source-id.py --cc "$XSDK_TOOLCHAIN/bin/powerpc-xsdk-elf-gcc")
+if [[ $(cat "$FFMPEG_PREFIX/.tube360-source-id") != "$recipe" ]]; then
+    echo "FFmpeg recipe/compiler differs from the pinned image; rebuild devkit first." >&2
+    exit 1
+fi
 tools/build-xbox.sh

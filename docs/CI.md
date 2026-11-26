@@ -4,7 +4,7 @@
 
 Both build workflows consume the exact public OCI digest in [devkit-image.txt](../.github/devkit-image.txt). The input job rejects tags, other registries and missing digests before starting a container. Only record a digest after verifying the devkit image's provenance and anonymous availability. The initial F55 rollout leaves this file pending until that image exists; it must never silently use a developer compiler or a mutable image tag.
 
-The image exports its toolchain/library paths. `tools/ci/build.sh` isolates downloads/builds in the fresh Actions checkout, uses two compiler workers and disables local build.env loading. It copies pinned mbedTLS/curl source from the image and passes its prebuilt Xbox FFmpeg using `FFMPEG_PREFIX`; changed FFmpeg recipes require a newly reviewed devkit image. mbedTLS/curl still compile with the app's current configuration. No PR-produced caches feed release builds. Native and Xbox build directories are separate. No CI step contacts a console, Nest speaker or Bluetooth device.
+The image exports its toolchain/library paths. `tools/ci/build.sh` isolates downloads/builds in the fresh Actions checkout, uses two compiler workers and disables local build.env loading. It copies pinned mbedTLS/curl source from the image and passes its prebuilt Xbox FFmpeg using `FFMPEG_PREFIX`; The build compares its FFmpeg recipe/compiler identity with the image and refuses a mismatch; changed recipes require a newly reviewed devkit image. mbedTLS/curl still compile with the app's current configuration. No PR-produced caches feed release builds. Native and Xbox build directories are separate. No CI step contacts a console, Nest speaker or Bluetooth device.
 
 ## Proving a branch without creating a tag
 
