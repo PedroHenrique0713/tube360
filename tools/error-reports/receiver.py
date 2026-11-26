@@ -320,6 +320,21 @@ class GitHub:
         return self.request('POST', prefix, {'title': title, 'body': body, 'labels': ['crash-report']})['number']
 
 
+
+def trusted_proxy(ip, proxies):
+    """Aceita IP exato ou faixa (rede overlay do Swarm, onde o IP do proxy muda ao reiniciar)."""
+    try:
+        addr = ipaddress.ip_address(ip)
+    except ValueError:
+        return False
+    for entry in proxies:
+        try:
+            if addr in ipaddress.ip_network(entry.strip(), strict=False):
+                return True
+        except ValueError:
+            continue
+    return False
+
 def configured_github(environ=None):
     env = os.environ if environ is None else environ
     repo, token = env.get('REPORT_TRIAGE_REPO', '').strip(), env.get('GITHUB_TOKEN', '').strip()
@@ -366,7 +381,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         try:
             ip = self.client_address[0]
             # Só o peer explicitamente autorizado pode fornecer UM endereço, sobrescrito pelo proxy.
-            if ip in self.server.trusted_proxies:
+            if trusted_proxy(ip, self.server.trusted_proxies):
                 ip = str(ipaddress.ip_address(self.headers.get('X-Real-IP', '')))
             raw = self.rfile.read(length)
             if len(raw) != length:

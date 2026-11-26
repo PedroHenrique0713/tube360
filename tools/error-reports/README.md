@@ -22,7 +22,9 @@ limit bodies to 64 KiB, disable access/error logs containing IPs, and do not cac
 Do not expose the HTTP listener to the internet. For one local reverse proxy, set
 `REPORT_TRUSTED_PROXIES=127.0.0.1` and **overwrite** `X-Real-IP` with the proxy's peer
 IP. Headers from other peers are ignored. With a CDN, configure the proxy's trusted
-CDN ranges first. Use the exact container/proxy peer address, not every address.
+CDN ranges first. Use the exact proxy peer address; behind Docker Swarm, where the
+proxy's overlay IP changes on restart, the overlay subnet (e.g. `10.11.0.0/16`) is accepted,
+as long as only your own services share that network.
 `REPORT_BIND`, `REPORT_PORT`, `REPORT_DATA` are optional. The Dockerfile uses an
 unprivileged user; mount writable `/data`, publish only to loopback
 (`-p 127.0.0.1:8080:8080`).

@@ -90,3 +90,15 @@ class AdversarialTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main(verbosity=2)
+
+
+class TrustedProxyRanges(unittest.TestCase):
+    def test_cidr_and_exact(self):
+        from receiver import trusted_proxy
+        self.assertTrue(trusted_proxy('10.11.3.7', {'10.11.0.0/16'}))
+        self.assertFalse(trusted_proxy('10.12.0.1', {'10.11.0.0/16'}))
+        self.assertTrue(trusted_proxy('127.0.0.1', {'127.0.0.1'}))
+        self.assertFalse(trusted_proxy('127.0.0.2', {'127.0.0.1'}))
+        self.assertFalse(trusted_proxy('not-an-ip', {'0.0.0.0/0'}))
+        self.assertFalse(trusted_proxy('10.11.3.7', {'lixo', ''}))
+
