@@ -26,8 +26,27 @@ static const OBJECT_ATTRIBUTES terminate_attributes={.root_directory=0,.name=&te
 static const char terminate_marker[]="clean\nterminated by system\n";
 static IO_STATUS_BLOCK terminate_io;
 static HANDLE terminate_file;
+static volatile uint64_t session_heartbeat;
+static volatile uint32_t session_heartbeat_ready;
+static uint64_t session_time_base(void) {
+#if defined(__PPC__) || defined(__powerpc__)
+    uint32_t upper,lower,check;
+    do {
+        __asm__ volatile("mftbu %0" : "=r"(upper));
+        __asm__ volatile("mftb %0" : "=r"(lower));
+        __asm__ volatile("mftbu %0" : "=r"(check));
+    } while(upper!=check);
+    return (uint64_t)upper<<32 | lower;
+#elif defined(TUBE360_BOOT_TEST_TIME_BASE)
+    extern uint64_t tube360_boot_test_time_base(void);
+    return tube360_boot_test_time_base();
+#else
+    return 0;
+#endif
+}
 static void session_prepare_terminate(void) {
     terminate_name.length=0;
+    session_heartbeat_ready=0;
     const char* image=ExLoadedImageName?ExLoadedImageName:"";
     const char* slash=strrchr(image,'\\');
     if(strncmp(image,"\\Device\\",8) || !slash)return;
@@ -40,10 +59,21 @@ static void session_prepare_terminate(void) {
     terminate_name.length=terminate_name.maximum_length-1;
 }
 #endif
+void boot_session_heartbeat(void) {
+#if defined(__XSDK__) && (defined(__PPC__) || defined(__powerpc__) || defined(TUBE360_BOOT_TEST_TIME_BASE))
+    // Em PPC32 o callback pode congelar o título entre as duas metades da gravação de 64 bits.
+    __atomic_store_n(&session_heartbeat_ready,0,__ATOMIC_RELAXED);
+    __atomic_thread_fence(__ATOMIC_SEQ_CST);
+    session_heartbeat=session_time_base();
+    __atomic_store_n(&session_heartbeat_ready,1,__ATOMIC_RELEASE);
+#endif
+}
 void boot_session_terminated(void) {
 #ifdef __XSDK__
     // Threads congeladas, handles fechados e game: removido: só kernel e dados preparados antes do registro.
-    if(!terminate_name.length)return;
+    if(!terminate_name.length || !__atomic_load_n(&session_heartbeat_ready,__ATOMIC_ACQUIRE))return;
+    // Mesma time base de 49,875 MHz do xsdk: 5 s toleram quadros lentos sem ocultar laço parado.
+    if(session_time_base()-session_heartbeat>UINT64_C(49875000)*5)return;
     NTSTATUS status=NtCreateFile(&terminate_file,GENERIC_WRITE|SYNCHRONIZE,&terminate_attributes,&terminate_io,NULL,
         FILE_ATTRIBUTE_NORMAL,0,FILE_OVERWRITE_IF,FILE_SYNCHRONOUS_IO_NONALERT|FILE_NON_DIRECTORY_FILE);
     if(!NT_SUCCESS(status))return;

@@ -31,12 +31,13 @@ with tempfile.TemporaryDirectory(prefix='tube360-f56-terminate-') as temporary:
     base = Path(temporary)
     obj = base / 'boot_log.o'
     include = ['-I' + str(ROOT / 'client/src'), '-I' + str(ROOT / '.work/native-display/xsdk/include')]
-    subprocess.run(['cc', '-std=c11', '-D_POSIX_C_SOURCE=200809L', '-D__XSDK__', *include,
+    subprocess.run(['cc', '-std=c11', '-D_POSIX_C_SOURCE=200809L', '-D__XSDK__',
+                    '-DTUBE360_BOOT_TEST_TIME_BASE', *include,
                     '-c', str(ROOT / 'client/src/boot_log.c'), '-o', str(obj)], check=True)
     native = base / 'native'
     subprocess.run(['cc', '-std=c11', '-D_POSIX_C_SOURCE=200809L', '-D__XSDK__', *include,
                     str(ROOT / 'tests/update/terminate-session.c'), str(obj), '-pthread',
-                    '-Wl,--wrap=fopen', '-Wl,--wrap=malloc', '-Wl,--wrap=pthread_mutex_lock',
+                    '-Wl,--wrap=fopen', '-Wl,--wrap=malloc', '-Wl,--wrap=pthread_mutex_lock', '-Wl,--wrap=clock_gettime',
                     '-o', str(native)], check=True)
     cpp = base / 'launcher.cpp'
     cpp.write_text(probe)
@@ -52,6 +53,11 @@ with tempfile.TemporaryDirectory(prefix='tube360-f56-terminate-') as temporary:
     hdd = '\\Device\\Harddisk0\\Partition1\\Apps\\Tube360\\'
     usb = '\\Device\\Mass0\\Apps with spaces\\Tube360\\'
     cases = [(hdd, 'system', True), (usb, 'system', True),
+             (hdd, 'at-limit', True), (usb, 'over-limit', False),
+             (hdd, 'stale', False), (usb, 'long-hang', False),
+             (usb, 'refreshed', True), (hdd, 'no-heartbeat', False),
+             (usb, 'interrupted-heartbeat', False),
+             (hdd, 'counter-wrap', True), (usb, 'counter-zero', True),
              ('\\Device\\Mass1\\' + 'x' * 230 + '\\', 'system', True),
              (hdd, 'crash', False), (usb, 'hang', False),
              (usb, 'create-fail', False), (usb, 'write-fail', False),
@@ -60,12 +66,14 @@ with tempfile.TemporaryDirectory(prefix='tube360-f56-terminate-') as temporary:
         folder = base / str(index)
         folder.mkdir()
         (folder / 'tube360.xex').write_bytes(b'XEX2fixture')
+        original = 'open\napp_started=1\nversion=0.3.3 build=33\n'
+        (folder / 'session.txt').write_text(original)
         result = subprocess.run([str(native), root, mode], cwd=folder, capture_output=True, text=True)
         assert result.returncode == (73 if mode in ('crash', 'hang') else 0), result.stderr
         marker = (folder / 'session.txt').read_text()
         assert (marker == 'clean\nterminated by system\n') == clean, (mode, marker)
-        if mode in ('crash', 'hang', 'create-fail'):
-            assert marker.startswith('open\n'), (mode, marker)
+        if not clean and mode != 'write-fail':
+            assert marker == original + 'app_started=1\nversion=0.3.3 build=33\n', (mode, marker)
         subprocess.run([str(launcher), 'clean' if clean else 'open'], cwd=folder, check=True)
         print(result.stdout.strip() or 'PASS no callback: ' + mode, flush=True)
         print(f'PASS launcher after {mode}: reports={0 if clean else 1}', flush=True)

@@ -1221,6 +1221,7 @@ int run(int argc, char** argv) {
       in.set(Input::LT, SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER) > 12000, now); in.set(Input::RT, SDL_GetGamepadAxis(pad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER) > 12000, now);
     }
     in.tick(now);
+    boot_session_heartbeat();
     if (shotPath) {
       in.clear();
       static const char* script = std::getenv("XT_KEYS");
