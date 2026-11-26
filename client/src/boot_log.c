@@ -18,6 +18,31 @@ static char path[1024],component[24];
 static unsigned sequence;
 static uint64_t began;
 static int sync_warned;
+static char session_path[1024];
+static void session_write(const char* state,const char* metadata) {
+    if(!session_path[0])return;
+    FILE* marker=fopen(session_path,"w");
+    if(marker){fprintf(marker,"%s\n%s\n",state,metadata?metadata:"");fflush(marker);fsync(fileno(marker));fclose(marker);}
+}
+void boot_session_begin(const char* directory,const char* metadata) {
+    snprintf(session_path,sizeof(session_path),"%ssession.txt",directory?directory:"");
+    char detail[2048];int used=snprintf(detail,sizeof(detail),"%s\n",metadata?metadata:"");
+    const char* names[]={"boot-app.log","ba.log","boot-early.log","be.log","startup.log","tube360.log","default.log"};
+    for(unsigned i=0;i<sizeof(names)/sizeof(names[0]) && used>0 && used<(int)sizeof(detail);++i) {
+        char log[1024];snprintf(log,sizeof(log),"%s%s",directory?directory:"",names[i]);
+        FILE* previous=fopen(log,"rb");long offset=0;
+        if(previous){if(!fseek(previous,0,SEEK_END))offset=ftell(previous);fclose(previous);}
+        used+=snprintf(detail+used,sizeof(detail)-(size_t)used,"%s=%ld\n",names[i],offset<0?0:offset);
+    }
+    session_write("open",detail);
+}
+void boot_session_clean(void) {session_write("clean","");}
+void boot_session_resume(void) {session_write("open","power down returned unexpectedly");}
+void boot_session_version(unsigned build,const char* version) {
+    if(!session_path[0])return;
+    FILE* marker=fopen(session_path,"a");
+    if(marker){fprintf(marker,"app_started=1\nversion=%s build=%u\n",version,build);fflush(marker);fsync(fileno(marker));fclose(marker);}
+}
 static uint64_t millis(void) {
     struct timespec t={0};clock_gettime(CLOCK_MONOTONIC,&t);
     return (uint64_t)t.tv_sec*1000+(uint64_t)t.tv_nsec/1000000;
@@ -72,6 +97,13 @@ void boot_open(const char* directory,const char* role) {
     int error=file?0:errno;
     sequence=0;began=millis();sync_warned=0;
     if(file)setvbuf(file,NULL,_IONBF,0);
+    if(!strcmp(component,"app")) {
+        // O launcher já abriu o marcador antes do handoff; abrir o app diretamente também é coberto.
+        snprintf(session_path,sizeof(session_path),"%ssession.txt",folder);
+        FILE* marker=fopen(session_path,"r");char state[8]={0};
+        if(marker){fgets(state,sizeof(state),marker);fclose(marker);}
+        if(strcmp(state,"open\n"))boot_session_begin(folder,"direct app start; version in boot/main logs");
+    }
     pthread_mutex_unlock(&lock);
     if(file)boot_event("begin","entry","path=%s short_name=%d sync=fflush+fsync; exploit=unknown",path,short_name);
     else fprintf(stderr,"boot log unavailable role=%s errno=%d (no fallback to another drive)\n",component,error);

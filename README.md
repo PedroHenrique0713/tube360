@@ -21,11 +21,14 @@
 > [!TIP]
 > **Tube360 is free and MIT licensed.** If it brought your old console back to life, **give the repo a ⭐**. It's the only thing I ask, and it's how other people find it.
 
-**Tube360** is a native YouTube client for the Xbox 360. Open the `.xex` from Aurora, FSD or XeXMenu and watch YouTube **directly on the console, without a PC**. Your account, history, subscriptions, library, Music, phone Cast and Google Nest sound run on the Xbox too. A PC server is an optional playback reserve.
+**Tube360** is a native YouTube client for the Xbox 360. Open the `.xex` from Aurora, FSD or XeXMenu and watch YouTube **directly on the console, without a PC**. Your account, history, subscriptions, library, Music, phone Cast and Google Nest sound run on the Xbox too. v0.3.2 is the last version with a companion server.
 
 A [Revive360](https://github.com/revive360) project: open source homebrew for the Xbox 360.
 
 ---
+
+
+> **Privacy in 0.3.3:** automatic error reports are on by default. On the next launch, the launcher sends version, console model/board, screen, error and up to 300 sanitized log lines to `tube360.hypermind.space`. IPs, video IDs, Cast names and tokens are removed before upload. Turn off in **Settings → Error reports** or create `no-error-reports.txt` beside `default.xex`. [Data, retention and scrubber source](docs/PRIVACY.md).
 
 ## What's new in 0.3.2
 
@@ -143,16 +146,15 @@ flowchart LR
     P["YouTube phone app"] <-->|DIAL / lounge| X
     X -->|Cast v2 control| N["Nest / Google Cast speaker"]
     YT -->|selected audio URL| N
-    X -. optional HTTP reserve .-> S["PC · yt-dlp / FFmpeg"]
 ```
 
-The normal path is native H.264/AAC playback. Automatic prefers detail up to 1080p, while the 720p60 profile favors frame rate and 1080p30 limits source selection to 30 fps. A profile is a preference, not a guarantee of sustained 60 fps: the player can reduce presentation to 30 fps and choose a lighter direct rendition before trying a configured PC reserve. 720p30 is the console target; performance still needs checking on your console and content.
+The normal path is native H.264/AAC playback. Automatic prefers detail up to 1080p, while the 720p60 profile favors frame rate and 1080p30 limits source selection to 30 fps. A profile is a preference, not a guarantee of sustained 60 fps: the player can reduce presentation to 30 fps and choose a lighter direct rendition. 720p30 is the console target; performance still needs checking on your console and content.
 
-Choose fixed 480p, 360p, 240p or 144p in Settings or press Y during video playback to open Quality. The video menu lists only direct H.264/AAC choices offered by that video. Manual selection keeps the exact source height, position and pause state; sustained pressure shows a message instead of changing quality or using a PC reserve. An unavailable saved quality reports an error and Y opens the available choices. Return to Automatic to resume the adaptive ladder. Without an active video, Settings saves a default from all seven choices.
+Choose fixed 480p, 360p, 240p or 144p in Settings or press Y during video playback to open Quality. The video menu lists only direct H.264/AAC choices offered by that video. Manual selection keeps the exact source height, position and pause state; sustained pressure shows a message instead of changing quality. An unavailable saved quality reports an error and Y opens the available choices. Return to Automatic to resume the adaptive ladder. Without an active video, Settings saves a default from all seven choices.
 
 Native **1080p30** now uses the measured Xenon VMX kernels, six FRAME workers on `0,2,4,1,3,5` and a larger bounded frame queue. Known H.264 1080p sources up to 30.1 fps omit the deblocking filter; smaller, unknown-rate and higher-rate sources keep it. Set `h264_loop_filter=full` in `settings.txt` and restart to retain full filtering at 1080p too, at a possible throughput cost. The isolated decoder measured 22.57 ms/frame; integrated playback with UI, sound and network passed the owner’s Xbox check on 2026-11-25. Source decoding also works with 720p output; **native 1080p output requires HDMI and 1080p progressive in the Xbox dashboard**. At 720p dashboard output the app downscales, which can show aliasing in fast motion. See the [final console results](docs/CONSOLE-032-FINAL.md).
 
-MPEG-1 + MP2 is the compatibility path supplied by the optional server, up to 720p30. The older slice-parallel pl_mpeg decoder remains for that path. It is no longer the main YouTube playback route. [Architecture and qualification](docs/STANDALONE.md) · [Optional server protocol](docs/PROTOCOL.md)
+[Architecture and qualification](docs/STANDALONE.md).
 
 ## Requirements
 
@@ -166,7 +168,7 @@ MPEG-1 + MP2 is the compatibility path supplied by the optional server, up to 72
 
 ### 1. Copy the app folder
 
-Download the ZIP or .7z from [Releases](https://github.com/revive360/tube360/releases), extract it and copy the whole `Tube360` folder to `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`. Keep `default.xex` (launcher), `tube360.xex` (app), all four `inter-*.ttf` and four `noto-sans-arabic-*.ttf` fonts and the license notices together. **Leave `server.txt` absent** for console-only use; `.example.txt` files remain inactive until renamed.
+Download the ZIP or .7z from [Releases](https://github.com/revive360/tube360/releases), extract it and copy the whole `Tube360` folder to `Hdd1:\Games\Tube360\` or `Usb0:\Apps\Tube360\`. Keep `default.xex` (launcher), `tube360.xex` (app), all four `inter-*.ttf` and four `noto-sans-arabic-*.ttf` fonts and the license notices together. `.example.txt` files remain inactive until renamed.
 
 ### 2. Launch from Aurora, FSD or XeXMenu
 
@@ -264,42 +266,12 @@ request. One recovery attempt may run after three seconds from selection, even b
 
 | File | Purpose |
 |---|---|
-| `settings.txt` | `lang=en\|pt\|es\|ar`, `cols=3\|4`, legacy `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `server=auto\|off`, `sponsorblock=off\|button\|auto`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `h264_loop_filter=auto\|full`, `audio_preference=original\|interface`, captions and timer target. |
+| `settings.txt` | `lang=en\|pt\|es\|ar`, `cols=3\|4`, legacy `quality=720\|480\|360`, `sound=tv\|nest`, `sync_ms`, `sponsorblock=off\|button\|auto`, `video_mode=auto\|720p60\|1080p30\|480p\|360p\|240p\|144p`, `output_height=480\|720\|1080`, `large_text=on\|off`, `video_fit=fit\|fill`, `h264_loop_filter=auto\|full`, `audio_preference=original\|interface`, `error_reports=on\|off` (default on), captions and timer target. |
 | `nest.txt` | Speaker host and optional port on line 1; display name on line 2. |
-| `server.txt` | Optional reserve PC IP and port on the first line, e.g. `192.0.2.10 8091`. Without it, console only. `server=off` also disables the reserve when the address is present. |
 | `marca.txt` | Optional custom name on line 1 and `retangulo` on line 2. |
 | `net_log.txt` | Optional debug UDP destination (`<PC-IP> <port>`). Keep it private. |
 
 Legacy `quality.txt` / `audio.txt` are read when `settings.txt` is absent. Original audio is preferred even when YouTube marks an automatic dub as default. Interface-language audio falls back to original if unavailable. Output size is separate from source quality.
-
-## Optional PC server (reserve)
-
-Set this up only if you want a reserve for blocked or incompatible direct media. Console account, phone Cast and Nest work without it. Some account/navigation operations in `server=auto` still use PC services; no `server.txt` is the clearest way to keep everything native.
-
-Linux is the tested host (Fedora). Install Python 3.11+, FFmpeg and Node.js 22+ in PATH:
-
-```bash
-git clone https://github.com/revive360/tube360.git
-cd tube360
-python3 -m venv .venv
-.venv/bin/pip install -r server/requirements.txt
-cp server/config.example.json server/config.json
-TUBE360_PYTHON="$PWD/.venv/bin/python" ./server/run.sh
-```
-
-For the optional server's account/navigation bridge, in another terminal:
-
-```bash
-cd cast
-npm install
-node receptor.mjs
-```
-
-Open `http://<PC-IP>:8091` to see status. On the Xbox, copy `server.example.txt` to `server.txt`, put the PC's actual IP and `8091` on its first line, and select **Server → Automatic**. Direct sources are tried before the reserve. Keep PC and Xbox on the same LAN and allow TCP 8091 from the Xbox through the host firewall.
-
-`server/config.json` controls server-side `language`, `home_queries`, `warm_queries`, `brand`, optional `nest` (`host` and `name`), and `cookies_file` / `cookies_from_browser` if YouTube challenges the server. Browser cookies are not copied to the console. Nest in this file is only for reserve playback; the console uses `nest.txt` for direct playback. The HTTP API has no account authentication; keep it on a trusted LAN. Native phone discovery uses UDP 1900/TCP 8134; the optional Node receiver uses 8098 and can advertise a second device, so it is unnecessary for native phone pairing.
-
-`tools/install-services.sh` is optional Linux/systemd setup. PC shutdown at timer expiry and laptop-lid inhibition apply only to the server path. A remote host or Termux setup is experimental, needs extra networking/security configuration, and cannot replace a local Cast connection to your speaker. See [protocol](docs/PROTOCOL.md).
 
 ## Building from source
 
@@ -328,7 +300,7 @@ The build produces `client/build-x360/tube360.xex`. The packager installs the la
 
 ```text
 client/          native Xbox/PC app, UI, player, account, Music, Cast and HTTPS client
-server/          optional FastAPI / yt-dlp / FFmpeg reserve
+server/          legacy companion server (last supported in v0.3.2)
 cast/            optional PC account and phone bridge (Node)
 bench/, tests/   isolated fixtures and performance checks
 docs/            architecture, protocol, build and release instructions
@@ -338,7 +310,7 @@ tools/           builds, packaging and optional service installation
 ## Limitations & troubleshooting
 
 - Phone casting: pair with the TV code from the **Phone** panel (YouTube app → Settings → Watch on TV → Enter TV code). The console does not show up by itself in the phone's cast list yet, because it cannot join the network's discovery group. If another receiver on your network uses the same name, the phone may cast to it instead.
-- YouTube is an unofficial integration and can change or block clients. Age/region restrictions, DRM and paid content are not bypassed; account sign-in does not guarantee media access. Reload a failed feed or retry later; an optional server reserve may help.
+- YouTube is an unofficial integration and can change or block clients. Age/region restrictions, DRM and paid content are not bypassed; account sign-in does not guarantee media access. Reload a failed feed or retry later.
 - 720p60/1080p30 are source profiles. The Xbox may lower rate or resolution under load. Check the actual player status; native 1080p needs the dashboard HDMI mode described above. No promise of 1080p60, HDR, VP9 or AV1 decoding.
 - Music tries the TV music catalogue with the existing grant before falling back to clearly labeled public browsing; account Music was validated on the owner’s Xbox on November 25, 2026; Music/TV recommendation parity is not guaranteed. [Music account behavior](docs/MUSIC-ACCOUNT.md). Lyrics are optional. Live captions and direct live Nest audio are not implemented; live uses TV sound.
 - Empty text or app exits at startup: copy all eight fonts beside `default.xex`. HTTPS failures: check the console clock and internet/DNS access.
@@ -378,7 +350,7 @@ Tube360 lives in the [Revive360](https://github.com/revive360) organization, a h
 
 **Risk notice:** Homebrew can lead to an Xbox Live account/console ban, data loss or console damage. Use at your own risk. Revive360 is independent of Microsoft. Software is **as is** under its license; no badge or review guarantees safety, service access or compatibility.
 
-**Privacy:** No telemetry. Tube360 only talks to YouTube and Google, SponsorBlock, Return YouTube Dislike and GitHub (app updates). Your sign in and tokens stay on your console; never send them to Revive360 or include them in issues or logs.
+**Privacy:** optional error reports are on by default; [see what is sent and how to disable them](docs/PRIVACY.md). Sign-in credentials and tokens stay on your console; never include them manually in issues or logs.
 
 **Responsibility:** Owner: [@PedroHenrique0713](https://github.com/PedroHenrique0713). License: MIT. Membership is not certification. Security: repository **Security → Report a vulnerability**. Bugs and ideas: [issues](https://github.com/revive360/tube360/issues).
 

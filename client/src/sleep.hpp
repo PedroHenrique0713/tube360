@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cmath>
 #include "net.hpp"
+#include "boot_log.h"
 #ifdef __XSDK__
 #include "xsdk/kernel.h"
 #endif
@@ -34,7 +35,9 @@ static bool powerDownXbox() {
   }
   constexpr uint32_t HalPowerDownRoutine = 5;
   LOG("timer: HalReturnToFirmware(HalPowerDownRoutine)");
+  boot_session_clean();
   ((void (*)(uint32_t))address)(HalPowerDownRoutine);
+  boot_session_resume();
   return false;  // só retorna se o kernel não desligou
 #else
   LOG("timer: desligar recebido; build PC fecha o app sem desligar a máquina");

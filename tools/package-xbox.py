@@ -98,10 +98,10 @@ def main():
         files[name] = read_file(ROOT / "client/assets" / name)
         name = f"noto-sans-arabic-{weight}.ttf"
         files[name] = read_file(ROOT / "client/assets" / name)
-    for name in ("nest", "server", "settings"):
+    for name in ("nest", "settings"):
         filename = f"{name}.example.txt"
         files[filename] = read_file(ROOT / "deploy/xbox" / filename)
-    for name in ("LICENSE", "THIRD_PARTY.md"):
+    for name in ("LICENSE", "THIRD_PARTY.md", "docs/PRIVACY.md"):
         files[name] = read_file(ROOT / name)
     notices = {
         "Monocypher-LICENSE.txt": "client/third_party/monocypher/LICENCE.md",
@@ -162,7 +162,11 @@ def main():
         "From v0.3.0/v0.3.1: close the app and copy this entire folder one last time.\n"
         "Keep your settings/account files; replace BOTH XEX files together. Never rename the app to default.xex.\n"
         "Allow three app copies of free space. YouTube rule fixes also arrive signed automatically.\n"
-        "No server.txt = console only. Example files are inactive; rename and edit only if needed.\n"
+        "v0.3.2 is the last version with a companion server. Example files are inactive until renamed.\n"
+        "PRIVACY: Automatic error reports are ON. After a crash/hang, the next launch sends sanitized diagnostics\n"
+        "to https://tube360.hypermind.space/api/report (30 days; private triage items can remain longer).\n"
+        "No IPs, video IDs, Cast names or tokens. Disable in Settings > Error reports or create\n"
+        "no-error-reports.txt beside default.xex BEFORE launching. Details and scrubber: docs/PRIVACY.md.\n"
         "Nest: host + port on line 1, display name on line 2. Use your speaker's real LAN IP.\n"
         "TV-code account login is in Settings; phone Cast has a separate code in Phone.\n"
         "Press B back to browsing before closing the app, so the speaker receives STOP.\n\n"
@@ -175,7 +179,11 @@ def main():
         "Vindo da v0.3.0/v0.3.1: feche o app e copie esta pasta inteira uma ultima vez.\n"
         "Preserve configuracoes/conta; substitua OS DOIS XEX juntos. Nao renomeie tube360.xex para default.xex.\n"
         "Reserve espaco para tres copias do app. As regras do YouTube tambem chegam assinadas sozinhas.\n"
-        "Sem server.txt = so console. Exemplos sao inativos; renomeie e edite apenas se precisar.\n"
+        "A v0.3.2 e a ultima com servidor auxiliar. Exemplos sao inativos ate renomear.\n"
+        "PRIVACIDADE: Relatorios de erro LIGADOS. Apos falha/travamento, o launcher envia diagnosticos limpos\n"
+        "a https://tube360.hypermind.space/api/report (30 dias; itens privados podem durar mais).\n"
+        "Sem IPs, IDs de video, nomes Cast ou tokens. Desligue em Configuracoes > Relatorios de erro ou crie\n"
+        "no-error-reports.txt junto do default.xex ANTES de abrir. Detalhes e limpeza: docs/PRIVACY.md.\n"
         "Nest: host + porta na linha 1, nome na linha 2. Use o IP local real da caixa.\n"
         "Login por codigo em Configuracoes; Cast do celular tem outro codigo no painel Celular.\n"
         "Saia com B ate a navegacao antes de fechar o app para o STOP chegar a caixa.\n\n"

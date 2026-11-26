@@ -21,8 +21,41 @@ void LauncherLog::line(const string& message) {
 int launchApp(const string& directory,const string& key,LauncherHost& host) {
     host.log("inicio build="+std::to_string(buildId)+" version="+appVersion);
     host.log("tela inicio: Tube360 – abrindo…");
-    if(!host.screen()){host.log("tela erro");host.closeScreen();host.fail(i18n::Key::StartupVideo,"launcher display",i18n::Key::StartupRetry);return 1;}
+    if(!host.screen()){host.log("tela erro");host.closeScreen();if(read(directory+"session.txt").rfind("open\n",0)!=0)boot_session_begin(directory.c_str(),"launcher display failed");host.fail(i18n::Key::StartupVideo,"launcher display",i18n::Key::StartupRetry);return 1;}
     host.log("tela pronta");
+    auto reportStarted=millis();
+    if(reports::enabled(directory)) {
+        string id=reports::installation(directory,[&](unsigned char* bytes,size_t size){return host.randomBytes(bytes,size);});
+        string pending=id.empty()?string{}:reports::sanitize(read(directory+"error-report.json"),id);
+        if(pending.empty()) {
+            if(!id.empty())pending=reports::sanitize(reports::make(directory,id),id);
+        }
+        if(!pending.empty() && !write(directory+"error-report.json",pending))pending.clear();
+        if(!pending.empty()) {
+            if(read(directory+"error-report.sent")==sha256(pending)) {
+                std::remove((directory+"error-report.json").c_str());
+                write(directory+"session.txt","reported\n");
+                pending.clear();
+            }
+        }
+        if(!pending.empty()) {
+            // 1,5 s de rede + 4 s de código; coleta local limitada e sem tentativas nesta partida.
+            yt::Request request;request.url=reports::endpoint;request.agent="Tube360/1.0";
+            request.body=pending;request.timeoutMs=1500;request.connectTimeoutMs=1000;request.maxBytes=1024;
+            auto code=reports::code(host.postReport(request));
+            if(!code.empty()) {
+                if(write(directory+"error-report.sent",sha256(pending))) {
+                    std::remove((directory+"error-report.json").c_str());
+                    // Uma sessão já enviada não volta à fila se o launcher falhar antes do app.
+                    write(directory+"session.txt","reported\n");
+                }
+                unsigned elapsed=unsigned(millis()-reportStarted);
+                host.reportCode(code,elapsed<5800?std::min(4000u,5800-elapsed):0);
+                host.log("relatorio enviado: "+code);
+            } else host.log("relatorio pendente; proxima partida");
+        }
+    }
+    boot_session_begin(directory.c_str(),("launcher=1\nversion="+string(appVersion)+" build="+std::to_string(buildId)).c_str());
     auto missing=host.preflight(directory);
     if(!missing.empty()){host.closeScreen();host.fail(i18n::Key::StartupFonts,missing,i18n::Key::StartupCopy);return 1;}
     AppUpdate app(directory,key,[&](const string& s){host.log(s);});
@@ -36,6 +69,7 @@ int launchApp(const string& directory,const string& key,LauncherHost& host) {
         string resolved=directory.empty()?"game:\\"+target:target;
         host.log("caminho resolvido="+resolved);
         host.log("launch chamada: "+resolved);
+        boot_session_begin(directory.c_str(),("launcher=1\nversion="+string(appVersion)+" build="+std::to_string(buildId)).c_str());
         errno=0;int result=host.launch(resolved);int saved=errno;
         host.log("launch retorno="+std::to_string(result)+" errno="+std::to_string(saved)+" ("+std::strerror(saved)+")");
     };

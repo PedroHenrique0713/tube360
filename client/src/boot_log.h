@@ -10,6 +10,10 @@ const char* boot_log_path(void);
 void tube360_boot_early(void);
 void boot_environment(void);
 void boot_network(void);
+void boot_session_begin(const char* directory,const char* metadata);
+void boot_session_clean(void);
+void boot_session_resume(void);
+void boot_session_version(unsigned build,const char* version);
 #ifdef __cplusplus
 }
 #endif

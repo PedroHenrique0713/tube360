@@ -2876,6 +2876,7 @@ int run(int argc, char** argv) {
   boot_event("end","app.exit","normal shutdown frames=%llu run_ms=%llu simulated_frame_delay_ms=%u",(unsigned long long)frame,(unsigned long long)(SDL_GetTicks()-runStart),g.simFrameDelay);
   boot_close();
   SDL_Quit();
+  boot_session_clean();
   return 0;
 }
 
@@ -2885,7 +2886,8 @@ int main(int argc,char** argv) {
 #else
   boot_open(std::getenv("XT_ASSETS")?std::getenv("XT_ASSETS"):"assets/","app");
 #endif
-  boot_event("info","main","C runtime reached main; build=%u",unsigned(updates::buildId));
+  boot_session_version(unsigned(updates::buildId),updates::appVersion);
+  boot_event("info","main","C runtime reached main; build=%u version=%s",unsigned(updates::buildId),updates::appVersion);
   boot_environment();
   try {return run(argc,argv);}
   catch(const std::exception& error){return startup::fail(K::StartupVideo,error.what());}
