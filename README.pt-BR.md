@@ -30,7 +30,17 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 ---
 
 
-> **Privacidade na 0.3.3:** relatórios automáticos de falhas vêm ligados. Na próxima abertura, o launcher envia versão, modelo/placa, tela, erro e até 300 linhas de log limpas para `tube360.hypermind.space`. IPs, IDs de vídeo, nomes Cast e tokens são removidos antes do envio. Desligue em **Configurações → Relatórios de erro** ou crie `no-error-reports.txt` junto de `default.xex`. [Dados, retenção e código da limpeza](docs/PRIVACY.md).
+> **Privacidade na 0.3.3:** relatórios automáticos de falhas vêm ligados. Depois de um travamento ou de uma abertura que falhou, na próxima abertura o launcher envia versão, modelo/placa, tela, erro e até 300 linhas de log limpas para `tube360.hypermind.space`. IPs, IDs de vídeo, nomes Cast e tokens são removidos antes do envio. Desligue em **Configurações → Relatórios de erro** ou crie `no-error-reports.txt` junto de `default.xex`. [Dados, retenção e código da limpeza](docs/PRIVACY.md).
+
+## Novidades da 0.3.3
+
+- **Busca sem buracos**: os resultados enchem a tela como a grade da Início, sem fileira vazia entre as fileiras ([#21](https://github.com/revive360/tube360/issues/21))
+- **Shorts na fileira deles**: cartões verticais menores na busca, na Início, em Inscrições e na biblioteca, e os vídeos comuns continuam sendo o principal. Configurações → Mostrar Shorts: Em fileira ou Esconder ([#22](https://github.com/revive360/tube360/issues/22))
+- **Nest ocupado não trava mais o vídeo**: se a caixa estiver tocando Bluetooth de outro aparelho ou não responder, o vídeo começa na TV em uns 9 segundos com um aviso, e o X tenta o Nest de novo ([#12](https://github.com/revive360/tube360/issues/12))
+- **Mensagem clara em vídeo de membros**: eles ainda não tocam no Xbox, e agora o app diz isso em vez de um erro genérico ([#11](https://github.com/revive360/tube360/issues/11))
+- **Relatórios de erro**: travamentos e aberturas que falham chegam até nós sem você precisar caçar log. Vêm ligados, desligam fácil e não mandam nada pessoal. Veja o aviso de privacidade acima ([#41](https://github.com/revive360/tube360/issues/41))
+- **Só console, de verdade**: a opção de servidor no PC e o timer de desligar o notebook saíram das Configurações. A v0.3.2 é a última com servidor no PC ([#31](https://github.com/revive360/tube360/issues/31))
+- **Compilado pelo CI da Revive360**: esta versão é compilada às claras pelo GitHub Actions da org, com atestação de build assinada que você pode conferir
 
 ## Novidades da 0.3.2
 
@@ -47,9 +57,11 @@ Sem TV stick, sem smart TV, sem navegador. Só o Xbox 360 que você já tem.
 
 **Corrigido a partir dos relatos de vocês:** busca com a conta conectada; qualidade que caía e não voltava; o app fechando ao abrir sem dizer nada (agora mostra o motivo na tela e salva o `startup.log`); erros mais claros quando o relógio do console está errado ou a rede bloqueia a conexão; a mensagem antiga de "servidor" no modo só console.
 
-### Atualizando da 0.3.0 ou 0.3.1
+### Atualizando
 
-Copie a pasta `Tube360` nova inteira por cima da antiga **uma última vez**. A conta e as configurações continuam. Agora o `default.xex` é o lançador e o `tube360.xex` é o app: mantenha os dois lado a lado com as oito fontes, e nunca renomeie um por cima do outro. Daí em diante, as atualizações vêm de Configurações → Atualizações do app.
+Da 0.3.2: Configurações → Atualizações do app, aperte A.
+
+Da 0.3.0 ou 0.3.1: copie a pasta `Tube360` nova inteira por cima da antiga **uma última vez**. A conta e as configurações continuam. Agora o `default.xex` é o lançador e o `tube360.xex` é o app: mantenha os dois lado a lado com as oito fontes, e nunca renomeie um por cima do outro. Daí em diante, as atualizações vêm de Configurações → Atualizações do app.
 
 O resto está no [CHANGELOG](CHANGELOG.md).
 

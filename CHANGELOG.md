@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.3.3] — 2026-11-26
+
+### Added
+
+- Shorts are grouped into one row of smaller 9:16 cards in search, Home (public and signed in), Subscriptions, History, Watch later and Library, placed where the first Short appeared. `shorts=row|hide` in Settings (Show Shorts); hiding keeps pagination indexes intact. The channel Shorts tab is unchanged.
+- Automatic error reports (#41): the app keeps a durable session marker; after a crash or failed start the launcher sends a sanitized report (IPv4/IPv6, host:port, video IDs, Cast/Wi-Fi names, cookies, tokens and user paths removed) within a 1.5 s bound and shows a receipt code. Opt out with `no-error-reports.txt` or Settings → Error reports. The receiver (`tools/error-reports/`) classifies reports, keeps network/YouTube refusals as counters only, and opens private triage only for crash/startup signatures seen on three installations. [Privacy](docs/PRIVACY.md).
+- Org CI: PR builds and tagged release drafts are built inside the pinned public `ghcr.io/revive360/devkit` image, with SHA256SUMS and signed build provenance for the ZIP, 7z and XEX.
+
+### Changed
+
+- Console-only Settings: the PC server row and the notebook/both sleep options were removed; legacy `server=` and `sleep_what=notebook|together|xbox_notebook` values load as console-only. READMEs and the package no longer include PC server instructions or `server.example.txt`; v0.3.2 is the last release with the PC server.
+- The sleep timer marks the session clean before powering the console off.
+
+### Fixed
+
+- Search results no longer leave an empty row between rows: a card whose text crossed the footer was dropped entirely (#21).
+- Opening a video with the Nest busy (another Cast/Bluetooth app holding it) or silent no longer hangs: after 9 s the video plays on the TV with the existing notice and X retries the Nest; 25 s of tolerance during playback is unchanged (#12).
+- Members-only videos opened through the TV account stop at the first HTTP 403 (MP4, HLS, fixed quality) with a specific message instead of retrying with a generic error; ordinary videos still renew their links (#11).
+
 ## [0.3.2] — 2026-11-25
 
 ### Added

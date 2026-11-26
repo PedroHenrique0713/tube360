@@ -28,7 +28,17 @@ A [Revive360](https://github.com/revive360) project: open source homebrew for th
 ---
 
 
-> **Privacy in 0.3.3:** automatic error reports are on by default. On the next launch, the launcher sends version, console model/board, screen, error and up to 300 sanitized log lines to `tube360.hypermind.space`. IPs, video IDs, Cast names and tokens are removed before upload. Turn off in **Settings → Error reports** or create `no-error-reports.txt` beside `default.xex`. [Data, retention and scrubber source](docs/PRIVACY.md).
+> **Privacy in 0.3.3:** automatic error reports are on by default. After a crash or a failed start, on the next launch the launcher sends version, console model/board, screen, error and up to 300 sanitized log lines to `tube360.hypermind.space`. IPs, video IDs, Cast names and tokens are removed before upload. Turn off in **Settings → Error reports** or create `no-error-reports.txt` beside `default.xex`. [Data, retention and scrubber source](docs/PRIVACY.md).
+
+## What's new in 0.3.3
+
+- **Search without holes**: results fill the screen like the Home grid, with no empty row between rows ([#21](https://github.com/revive360/tube360/issues/21))
+- **Shorts in their own row**: smaller vertical cards in search, Home, Subscriptions and your library, so regular videos stay the main results. Settings → Show Shorts: In a row or Hide ([#22](https://github.com/revive360/tube360/issues/22))
+- **Busy Nest no longer hangs the video**: if the speaker is playing Bluetooth audio from another device or doesn't answer, the video starts on the TV after about 9 seconds with a notice, and X tries the Nest again ([#12](https://github.com/revive360/tube360/issues/12))
+- **Clear message for members-only videos**: they can't play on the Xbox yet, and now the app says so instead of a generic error ([#11](https://github.com/revive360/tube360/issues/11))
+- **Error reports**: crashes and failed starts can now reach us without you digging for logs. On by default, easy to turn off, nothing personal sent. See the privacy note above ([#41](https://github.com/revive360/tube360/issues/41))
+- **Console only, for real**: the PC server option and the notebook sleep options are gone from Settings. v0.3.2 is the last version with the PC server ([#31](https://github.com/revive360/tube360/issues/31))
+- **Built by the Revive360 CI**: this release is compiled in the open by the org's GitHub Actions, with a signed build attestation you can verify
 
 ## What's new in 0.3.2
 
@@ -45,9 +55,11 @@ A [Revive360](https://github.com/revive360) project: open source homebrew for th
 
 **Fixed from your reports:** search with your account signed in; quality that dropped and never came back; the app closing on start without a word (now it shows the reason on screen and saves `startup.log`); clearer errors when the console clock is wrong or the network blocks the connection; the old "server" message in console-only mode.
 
-### Updating from 0.3.0 or 0.3.1
+### Updating
 
-Copy the whole new `Tube360` folder over the old one **one last time**. Your sign in and settings stay. `default.xex` is now the launcher and `tube360.xex` is the app: keep both side by side with all eight fonts, and never rename one over the other. From then on, updates come from Settings → App updates.
+From 0.3.2: Settings → App updates, press A.
+
+From 0.3.0 or 0.3.1: copy the whole new `Tube360` folder over the old one **one last time**. Your sign in and settings stay. `default.xex` is now the launcher and `tube360.xex` is the app: keep both side by side with all eight fonts, and never rename one over the other. From then on, updates come from Settings → App updates.
 
 Everything else is in the [CHANGELOG](CHANGELOG.md).
 
