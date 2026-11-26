@@ -230,14 +230,17 @@ class Store:
             data = json.loads(raw)
             body = '<!-- tube360-signature:' + signature + ' -->\n'
             body += f"Reports (30 days): {count}\nDistinct installations (30 days): {installations}\nLatest receipt: {code}\nPoint: {point}\n\n"
-            body += '\n'.join(k + ': ' + data[k] for k in ('category', 'version', 'build', 'hardware', 'screen', 'error'))
+            # Campos e linhas são dados literais, inclusive quebras/Markdown enviados pelo cliente.
+            metadata = '\n'.join(k + ': ' + data[k] for k in ('category', 'version', 'build', 'hardware', 'screen', 'error'))
+            body += '\n'.join('    ' + line for line in metadata.splitlines())
             body += '\n\nLatest sanitized log:\n' + '\n'.join('    ' + line for line in data['log'].splitlines())
             body = body[:60000]
             revision = hashlib.sha256(body.encode()).hexdigest()
             if prior and prior[0] == revision:
                 continue
             try:
-                issue = self.github.upsert('tube360-signature:' + signature, (data['category'].title() + ' ' + data['version'] + ': ' + point)[:160], body)
+                version = re.sub(r'[^A-Za-z0-9_.+-]', '?', data['version'])
+                issue = self.github.upsert('tube360-signature:' + signature, (data['category'].title() + ' ' + version + ': ' + point)[:160], body)
             except (OSError, ValueError, urllib.error.URLError):
                 continue
             with self.lock:
