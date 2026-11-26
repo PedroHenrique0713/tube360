@@ -10,8 +10,8 @@ Fechar normalmente o Tube360 antes de enviar. Usar uma pasta nova, preservando a
 `HDD:` é o nome testado para escrita; `Hdd1:` pode listar mas negar gravação.
 
 ```bash
-cd /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f41-integracao
-F41_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
+cd <repo>
+F41_XBDM=<forcepush-360>/tools/xbdm.py
 F41_IP=192.168.1.50
 F41_REMOTE='HDD:\Games\Tube360-032-RC1'
 mkdir -p .work/f41/console-logs

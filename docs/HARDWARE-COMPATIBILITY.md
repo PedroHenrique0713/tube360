@@ -343,11 +343,11 @@ python3 tests/hardware/settings.py .work/f38/settings
 python3 tests/reddit/boot_log_test.py .work/f38/boot
 python3 tests/reddit/video_policy.py .work/f38/policy
 python3 tests/reddit/video_driver.py .work/f38/driver \
-  --source-sdk /home/pedrohenriquequadro/Documentos/VS/forcepush-360/vendor/xsdk \
-  --source-v4x /home/pedrohenriquequadro/Documentos/VS/forcepush-360/vendor/vulkan4xenon
+  --source-sdk <forcepush-360>/vendor/xsdk \
+  --source-v4x <forcepush-360>/vendor/vulkan4xenon
 python3 tests/reddit/boot_native.py .work/f38/native
 python3 tests/reddit/boot_link.py .work/f38/link \
-  --toolchain /home/pedrohenriquequadro/xsdk-gcc-52/bin/powerpc-xsdk-elf-
+  --toolchain ~/xsdk-gcc-52/bin/powerpc-xsdk-elf-
 ```
 
 As provas settings/boot executam o app Vulkan do PC com replay local e HOME isolado. Driver/policy/native

@@ -89,8 +89,8 @@ Executar cada caso uma vez, com pausas entre consultas públicas. Exemplo a ser
 rodado somente pelo coordenador após a liberação do console:
 
 ```bash
-cd /home/pedrohenriquequadro/Documentos/VS/tube360-frota/f42-integracao
-F42_XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
+cd <repo>
+F42_XBDM=<forcepush-360>/tools/xbdm.py
 F42_IP=192.168.1.50 # conferir o IP atual com o dono
 F42_CASE=tv137
 F42_RUN=mudo # usar som na repetição sem mudo.txt

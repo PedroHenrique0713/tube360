@@ -180,10 +180,10 @@ python3 tests/hardware/console-kit.py .work/f38/phase2/console-kit
 Usar uma pasta descartável e curta, **com o app de produção fechado**; nunca sobrescrever sua pasta,
 conta ou settings. Abaixo são comandos para o coordenador executar, não executados nesta frente.
 Substituir `$CONSOLE_IP` pelo IP conhecido, sem varredura. O cliente está em
-`/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py`.
+`<forcepush-360>/tools/xbdm.py`.
 
 ```bash
-XBDM=/home/pedrohenriquequadro/Documentos/VS/forcepush-360/tools/xbdm.py
+XBDM=<forcepush-360>/tools/xbdm.py
 KIT="$PWD/.work/f38/phase2/console-kit/00-native-baseline"
 python3 "$XBDM" "$CONSOLE_IP" mkdir 'HDD:\Games\Tube360-F38-Native'
 for asset in "$KIT"/*; do
