@@ -14,7 +14,8 @@ struct Settings {
   int sponsorBlock = sponsorblock::BUTTON;
   bool originalAudio = true, largeText = false, videoFill = false;
   bool h264FullFilter = false;
-  bool server = true, nest = false, sleepNotebook = false, captions = false;
+  bool server = false, nest = false, sleepNotebook = false, captions = false;
+  bool hideShorts = false, errorReports = true;
   std::string captionLang;
 
   void load(const std::string& dir) {
@@ -31,12 +32,14 @@ struct Settings {
         else if (key == "large_text") largeText = val == "on";
         else if (key == "video_fit") videoFill = val == "fill";
         else if (key == "h264_loop_filter") h264FullFilter = val == "full";
-        else if (key == "server") server = val != "off";
+        else if (key == "server") server = false;
+        else if (key == "shorts") hideShorts = val == "hide";
+        else if (key == "error_reports") errorReports = val != "off";
         else if (key == "video_mode") videoMode = playback::modeFromName(val.c_str());
         else if (key == "audio_preference") originalAudio = val != "interface";
         else if (key == "captions") captions = val == "on";
         else if (key == "caption_lang" && val.size() <= 32 && val.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_") == std::string::npos) captionLang = val;
-        else if (key == "sleep_what") { sleepNotebook = val == "xbox_notebook"; }
+        else if (key == "sleep_what") sleepNotebook = false;
         else if (key == "sound") { if (val == "nest" || val == "tv") nest = val == "nest"; }
         else {
           char* end = nullptr; long n = std::strtol(val.c_str(), &end, 10);
@@ -64,11 +67,12 @@ struct Settings {
   bool save(const std::string& dir) const {
     std::string tmp = dir + "settings.tmp", dest = dir + "settings.txt";
     FILE* f = std::fopen(tmp.c_str(), "w"); if (!f) return false;
-    bool ok = std::fprintf(f, "lang=%s\ncols=%d\nquality=%d\nsound=%s\nsync_ms=%d\nsleep_what=%s\ncaptions=%s\ncaption_lang=%s\nserver=%s\n", i18n::code(lang), cols, quality, nest ? "nest" : "tv", syncMs, sleepNotebook ? "xbox_notebook" : "xbox", captions ? "on" : "off", captionLang.c_str(), server ? "auto" : "off") > 0;
+    bool ok = std::fprintf(f, "lang=%s\ncols=%d\nquality=%d\nsound=%s\nsync_ms=%d\nsleep_what=xbox\ncaptions=%s\ncaption_lang=%s\nserver=off\n", i18n::code(lang), cols, quality, nest ? "nest" : "tv", syncMs, captions ? "on" : "off", captionLang.c_str()) > 0;
     ok = ok && std::fprintf(f,"video_mode=%s\noutput_height=%d\naudio_preference=%s\n",playback::modeName(videoMode),outputHeight,originalAudio ? "original" : "interface") > 0;
     ok = ok && std::fprintf(f,"large_text=%s\nvideo_fit=%s\n",largeText ? "on" : "off",videoFill ? "fill" : "fit") > 0;
     ok = ok && std::fprintf(f,"sponsorblock=%s\n",sponsorBlock == sponsorblock::OFF ? "off" : sponsorBlock == sponsorblock::AUTO ? "auto" : "button") > 0;
     ok = ok && std::fprintf(f,"h264_loop_filter=%s\n",h264FullFilter ? "full" : "auto") > 0;
+    ok = ok && std::fprintf(f,"shorts=%s\nerror_reports=%s\n",hideShorts ? "hide" : "row",errorReports ? "on" : "off") > 0;
     if (std::fclose(f) != 0) ok = false;
     if (ok) ok = std::rename(tmp.c_str(), dest.c_str()) == 0;
     if (!ok) std::remove(tmp.c_str());

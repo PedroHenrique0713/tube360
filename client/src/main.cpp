@@ -926,8 +926,7 @@ int run(int argc, char** argv) {
   if (const char* t = std::getenv("XT_SLEEP_PATH")) requestSleep(t);  // teste: ex. /api/sleep/set?what=xbox&min=0.05
 #endif
   auto applySleep = [&]() {
-    std::string target = settings.sleepNotebook ? "xbox_notebook" : "xbox";
-    requestSleep(sleepChoice == 0 ? "/api/sleep/cancel" : "/api/sleep/set?what=" + target +
+    requestSleep(sleepChoice == 0 ? "/api/sleep/cancel" : std::string("/api/sleep/set?what=xbox") +
         (sleepChoice == 7 ? "&end=1" : "&min=" + std::to_string(sleepMinutes[sleepChoice])));
   };
 
@@ -1474,15 +1473,9 @@ int run(int argc, char** argv) {
       if (in.hit(Input::A) && !sleepPending) requestSleep("/api/sleep/add?min=15");
       if (in.hit(Input::B) && !sleepPending) requestSleep("/api/sleep/cancel");
     } else if (sleepPanel) {
-      if (in.hit(Input::UP)) playerUI.sleepRow = 0;
-      if (in.hit(Input::DOWN)) playerUI.sleepRow = 1;
       int direction = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
-      if (!playerUI.sleepRow) sleepChoice = (sleepChoice + direction + 8) % 8;
-      else if (direction || in.hit(Input::A)) {
-        settings.sleepNotebook = !settings.sleepNotebook; saveSettings();
-        if (sleep.active) requestSleep(std::string("/api/sleep/set?target_only=1&what=") + (settings.sleepNotebook ? "xbox_notebook" : "xbox"));
-      }
-      if (in.hit(Input::A) && !playerUI.sleepRow && !sleepPending) { applySleep(); sleepPanel = false; }
+      sleepChoice = (sleepChoice + direction + 8) % 8;
+      if (in.hit(Input::A) && !sleepPending) { applySleep(); sleepPanel = false; }
       if (in.hit(Input::B)) sleepPanel = false;
       playerUI.touch(now);
     } else if (ratePanel && (screen != PLAYER || pl.state == player::FAILED)) {
@@ -1622,9 +1615,11 @@ int run(int argc, char** argv) {
       bool tabs = channel || p.kind == "music" || p.kind == "music_search";
       if (p.kind=="search" && in.hit(Input::LB)) searchUI.beginFilters(p.filters);
       int count = (int)p.items.size();
-      if (count) p.sel = std::clamp(p.sel, 0, count - 1);
+      if (p.musicHome()) { if (count) p.sel = std::clamp(p.sel, 0, count - 1); }
+      else p.grid(ui::columns(4),settings.hideShorts);
+      bool hasItems = p.musicHome() ? count != 0 : !p.rows.empty();
       bool left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), up = in.hit(Input::UP), down = in.hit(Input::DOWN), a = in.hit(Input::A);
-      bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.sel % ui::columns(4) == 0;
+      bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.gridPosition() == 0;
       if (left && (p.zone == 0 || (p.zone == 1 && p.tabSel == 0) || (p.zone == 2 && p.channelSel == 0) || (p.zone == 3 && firstColumn))) {
         railFocus = true; railSel = railPage();
       } else if (p.zone == 0) {
@@ -1667,13 +1662,11 @@ int run(int argc, char** argv) {
           if (down && p.shelf + 1 < (int)p.shelves.size()) p.shelf++;
           p.sel = p.shelves[p.shelf].selected;
         } else {
-          int cols=ui::columns(4);
-          if (left && p.sel % cols > 0) p.sel--;
-          if (right && p.sel % cols < cols-1 && p.sel + 1 < count) p.sel++;
-          if (up) { if (p.sel >= cols) p.sel -= cols; else p.zone = !p.channels.empty() ? 2 : tabs ? 1 : channel || playlist ? 0 : 3; }
-          if (down) { if (p.sel + cols < count) p.sel += cols; else if (count) p.sel = count - 1; }
+          p.moveGrid(right ? 1 : left ? -1 : 0,0);
+          if (up && !p.moveGrid(0,-1)) p.zone = !p.channels.empty() ? 2 : tabs ? 1 : channel || playlist ? 0 : 3;
+          if (down) p.moveGrid(0,1);
         }
-        if (a && count && !p.loading) {
+        if (a && hasItems && !p.loading) {
           const auto item = p.items[(size_t)p.sel];
           if (item.type == "video") {
             if (playlist && nav.nativePage()) {
@@ -1686,11 +1679,16 @@ int run(int argc, char** argv) {
           else if (item.type == "history" || item.type == "later") openNav(item.type, "", "", p.music);
           else openNav(item.type == "playlist" && p.music ? "music_playlist" : item.type, item.id, "", p.music);
         }
-        if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::START) && count && p.items[(size_t)p.sel].type == "video") { nav.menuItem = p.items[(size_t)p.sel]; nav.menuSel = 0; nav.menu = true; }
+        if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::START) && hasItems && p.items[(size_t)p.sel].type == "video") { nav.menuItem = p.items[(size_t)p.sel]; nav.menuSel = 0; nav.menu = true; }
       }
       if (screen == NAV && nav.page().stamp == currentPage && p.more && !p.loading) {
         bool needPage = p.sel >= count - 8 || (p.zone == 2 && p.channelSel >= (int)p.channels.size() - 4);
         if (p.musicHome()) needPage |= p.shelf + 3 >= (int)p.shelves.size();
+        else if (p.rows.empty()) needPage = true;
+        else if (p.gridRow()+2 >= (int)p.rows.size()) {
+          const auto& row = p.rows[p.gridRow()];
+          needPage |= !row.shorts || p.gridPosition()+8 >= (int)row.items.size();
+        }
         if (needPage) nav.load(navWorker, settings.lang, false, true);
       }
       if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::X)) { nav.page().sel = 0; nav.page().scroll = 0; nav.load(navWorker, settings.lang, true); }
@@ -1753,21 +1751,8 @@ int run(int argc, char** argv) {
           g.rtlText = i18n::rtl(settings.lang);
           rebuildCats(); scroll = 0; toast.clear();
         } else if (settingsRow == 6) { sleepChoice = (sleepChoice + direction + 8) % 8; applySleep(); changed = false; }
-        else if (settingsRow == 7) {
-          settings.sleepNotebook = !settings.sleepNotebook;
-          if (sleep.active) {
-            requestSleep(std::string("/api/sleep/set?what=") + (settings.sleepNotebook ? "xbox_notebook" : "xbox") + "&target_only=1");
-          }
-        }
-        else if (settingsRow == 8) {
-          settings.server = !settings.server; net::serverEnabled = net::effectiveServer(srv,settings.server);
-          consoleAccount->select(!net::serverEnabled); account = {}; accountKnown = false;
-          if (!net::serverEnabled) {
-            account = {}; accountKnown = false; nestAvailable = pl.directSpeaker.configured(); sleep = {};
-            SDL_LockMutex(remote.mu); remote.online = false; remote.cmds.clear(); remote.ended.clear(); SDL_UnlockMutex(remote.mu);
-          }
-          accountAt = nestInfoAt = 0; rebuildCats();
-        }
+        else if (settingsRow == 7) settings.hideShorts = !settings.hideShorts;
+        else if (settingsRow == 8) settings.errorReports = !settings.errorReports;
         else if (settingsRow == 9) {
           const int heights[]={480,720,1080};
           int index=settings.outputHeight==480 ? 0 : settings.outputHeight==1080 ? 2 : 1;
@@ -2242,7 +2227,7 @@ int run(int argc, char** argv) {
       gfx::textBox(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::W-ui::X0-64, ui::TEXT);
       if (!ui::large) gfx::textBox(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::W-ui::X0-64, ui::MUTED);
       else gfx::textBox(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::W-ui::X0-64,ui::MUTED);
-      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates,K::SponsorBlock,K::ClearLocalHistory,K::ClearLocalLater};
+      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::F52ShowShorts,K::F52ErrorReports,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates,K::SponsorBlock,K::ClearLocalHistory,K::ClearLocalLater};
       int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,18-visible);
       float step=ui::large ? 94 : 59, rowH=step-6;
       for (int i=first;i<std::min(18,first+visible);++i) {
@@ -2258,8 +2243,8 @@ int run(int argc, char** argv) {
         else if (i==4) value=(nestOffsetMs>0 ? "+" : "")+std::to_string(nestOffsetMs)+tr(K::Milliseconds);
         else if (i==5) value=tr(settings.lang==i18n::Lang::AR ? K::Arabic : settings.lang==i18n::Lang::ES ? K::Spanish : settings.lang==i18n::Lang::PT ? K::Portuguese : K::English);
         else if (i==6) value=sleepLabel(sleepChoice);
-        else if (i==7) value=tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox);
-        else if (i==8) value=tr(settings.server ? K::Automatic : K::SleepOff);
+        else if (i==7) value=tr(settings.hideShorts ? K::F52ShortsHide : K::F52ShortsRow);
+        else if (i==8) value=tr(settings.errorReports ? K::F52On : K::F52Off);
         else if (i==9) value=std::to_string(g.extent.width)+"×"+std::to_string(g.extent.height);
         else if (i==10) value=tr(settings.originalAudio ? K::AudioAlwaysOriginal : K::AudioInterface);
         else if (i==11) value=tr(ui::large ? K::Enabled : K::SleepOff);
@@ -2285,7 +2270,7 @@ int run(int argc, char** argv) {
 
     if (screen == SETTINGS && speakerPicker.open) { glow(); speakerPicker.draw(g,settings.lang,speakerChoice); }
 
-    if (screen == NAV) { nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus); accountPhoto(); }
+    if (screen == NAV) { nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus, settings.hideShorts); accountPhoto(); }
 
     if (screen == HOME || screen == SEARCH || screen == SETTINGS || screen == NAV) {
       // barra lateral: ícones; com foco, abre com os nomes
@@ -2722,7 +2707,7 @@ int run(int argc, char** argv) {
     if (sleepPanel || sleepWarning || shutdownAt) {
       gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.65f});
       float x = (ui::W-720)/2, y = sleepPanel && !sleepWarning && !shutdownAt ? 190 : 242, w = 720;
-      float h = sleepPanel && !sleepWarning && !shutdownAt ? 330 : 226;
+      float h = sleepPanel && !sleepWarning && !shutdownAt ? 252 : 226;
       gfx::shadow(g, x, y + 12, w, h, 24, 32, 0.6f);
       gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
       std::string title = shutdownAt ? tr(K::SleepShuttingDown) : sleepWarning ? std::string(tr(K::SleepWarning)) +
@@ -2730,18 +2715,14 @@ int run(int argc, char** argv) {
       gfx::text(g, ui::F_BIG, title, x + 36, y + 28, ui::TEXT);
       if (!shutdownAt) {
         if (!sleepWarning) {
-          bool timeFocus = playerUI.sleepRow == 0;
-          gfx::rect(g, x + 30, y + 90, w - 60, 62, timeFocus ? ui::TEXT : ui::SURFACE2, 12);
-          gfx::text(g, ui::F_KEY, sleepLabel(sleepChoice), x + 50, y + 108, timeFocus ? ui::INK : ui::A2);
-          gfx::text(g, ui::F_KEY, "<   >", x + w - 50, y + 108, timeFocus ? ui::INK : ui::MUTED, 2);
-          gfx::rect(g, x + 30, y + 174, w - 60, 62, !timeFocus ? ui::TEXT : ui::SURFACE2, 12);
-          gfx::text(g, ui::F_SMALL, tr(K::PlayerAlsoOff), x + 50, y + 184, !timeFocus ? ui::INK : ui::MUTED);
-          gfx::text(g, ui::F_BODY, tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox), x + 50, y + 206, !timeFocus ? ui::INK : ui::TEXT);
-          gfx::text(g, ui::F_BODY, "<   >", x + w - 50, y + 198, !timeFocus ? ui::INK : ui::MUTED, 2);
-        } else gfx::text(g, ui::F_KEY, tr(sleep.notebook ? K::SleepNotebook : K::SleepXbox), x + 36, y + 92, ui::A2);
+          gfx::rect(g, x + 30, y + 90, w - 60, 62, ui::TEXT, 12);
+          gfx::text(g, ui::F_KEY, sleepLabel(sleepChoice), x + 50, y + 108, ui::INK);
+          gfx::text(g, ui::F_KEY, "<   >", x + w - 50, y + 108, ui::INK, 2);
+          gfx::text(g, ui::F_SMALL, tr(K::SleepXbox), x + 36, y + 166, ui::MUTED);
+        } else gfx::text(g, ui::F_KEY, tr(K::SleepXbox), x + 36, y + 92, ui::A2);
         float hy = y + h - 48, hx = x + 36;
-        if (!sleepWarning) hx = hint(g, hx, hy, tr(K::BtnVertical), XG, tr(K::ChooseRow));
-        hx = hint(g, hx, hy, "A", XA, tr(sleepWarning ? K::SleepAdd : playerUI.sleepRow ? K::ChangeValue : K::SleepApply));
+        if (!sleepWarning) hx = hint(g, hx, hy, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
+        hx = hint(g, hx, hy, "A", XA, tr(sleepWarning ? K::SleepAdd : K::SleepApply));
         hint(g, hx, hy, "B", XB, tr(K::Back));
       }
     }

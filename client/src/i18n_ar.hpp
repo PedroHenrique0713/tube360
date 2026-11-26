@@ -380,6 +380,13 @@ inline const char* arabic(Key key) {
     case Key::LocalVideos: return "فيديوهات";
     case Key::LocalPosition: return "موضع";
     case Key::LocalPositions: return "مواضع";
+    // F52
+    case Key::F52ShowShorts: return "عرض Shorts";
+    case Key::F52ShortsRow: return "في صف";
+    case Key::F52ShortsHide: return "إخفاء";
+    case Key::F52ErrorReports: return "تقارير الأخطاء";
+    case Key::F52On: return "تشغيل";
+    case Key::F52Off: return "إيقاف";
     default: return nullptr;  // Strings novas usam inglês até receberem tradução.
   }
 }

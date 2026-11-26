@@ -399,7 +399,14 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(LocalVideo, "video", "vídeo", "video") \
   X(LocalVideos, "videos", "vídeos", "videos") \
   X(LocalPosition, "position", "posição", "posición") \
-  X(LocalPositions, "positions", "posições", "posiciones")
+  X(LocalPositions, "positions", "posições", "posiciones") \
+  /* F52 */ \
+  X(F52ShowShorts, "Show Shorts", "Mostrar Shorts", "Mostrar Shorts") \
+  X(F52ShortsRow, "In a row", "Em fileira", "En una fila") \
+  X(F52ShortsHide, "Hide", "Esconder", "Ocultar") \
+  X(F52ErrorReports, "Error reports", "Relatórios de erro", "Informes de errores") \
+  X(F52On, "On", "Ligado", "Activado") \
+  X(F52Off, "Off", "Desligado", "Desactivado")
 
 enum class Key {
 #define TEXT_KEY(k, en, pt, es) k,
