@@ -17,6 +17,14 @@ with zipfile.ZipFile(a.zip) as archive:
     files = {name.split('/', 1)[1]: archive.read(name) for name in archive.namelist()}
 manifest = json.loads(files['manifest.json'])
 assert manifest['layout'] == 'launcher+app' and manifest['test_only'] == a.test
+version = tuple(map(int, re.match(r'(\d+)\.(\d+)\.(\d+)', manifest['version']).groups()))
+if version >= (0, 3, 3):
+    assert 'server.example.txt' not in files
+    assert 'docs/PRIVACY.md' in files
+    start = files['START-HERE.txt'].decode()
+    assert 'PRIVACY:' in start and 'PRIVACIDADE:' in start
+    assert start.count('no-error-reports.txt') == 2
+    assert 'error_reports=on' in files['settings.example.txt'].decode()
 assert set(files) == set(manifest['files']) | {'manifest.json'}
 for name, expected in manifest['files'].items():
     assert hashlib.sha256(files[name]).hexdigest() == expected, name

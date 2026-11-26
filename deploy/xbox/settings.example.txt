@@ -7,9 +7,6 @@ cols=4
 quality=720
 sound=tv
 sync_ms=0
-# auto permits a configured reserve; no server.txt still means console only.
-# auto permite reserva configurada; sem server.txt continua so no console.
-server=auto
 # auto / 720p60 / 1080p30: source preference, not a guaranteed presented frame rate.
 # Preferencia de fonte, nao garantia de cadencia apresentada.
 video_mode=auto
@@ -23,8 +20,7 @@ output_height=720
 audio_preference=original
 captions=off
 caption_lang=
-# xbox / xbox_notebook. PC shutdown only applies on the optional server path.
-# Desligar o PC so vale no caminho com servidor opcional. The timer itself is not saved.
+# xbox. The timer itself is not saved / o timer em si nao e salvo.
 # The timer runs on the console, including without a PC / o timer roda no console, inclusive sem PC.
 sleep_what=xbox
 
@@ -33,3 +29,7 @@ large_text=off
 
 # fit (letterbox/faixas) / fill (crop/recorte).
 video_fit=fit
+
+# Automatic sanitized error reports / relatorios de erro limpos automaticos.
+# off disables upload; no-error-reports.txt also overrides this / o arquivo tambem desliga.
+error_reports=on
