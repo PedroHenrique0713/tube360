@@ -26,9 +26,11 @@ make -C "$V4X_DIR" -j"${JOBS:-2}" "TOOLCHAIN=${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}/b
 python3 "$V4X_DIR/tools/build_shaders.py" \
   --xost "$XSDK_DIR/xenos-toolchain" --glslang "$(command -v glslangValidator)" \
   --optimize --output x360/shaders_bundle shaders/*.vert shaders/*.frag
+ffmpeg=()
+if [[ -n ${FFMPEG_PREFIX:-} ]]; then ffmpeg+=("-DFFMPEG_PREFIX=$FFMPEG_PREFIX"); fi
 fresh=()
 if [[ -f build-x360/CMakeCache.txt ]] && ! grep -Fq "CMAKE_TOOLCHAIN_FILE:FILEPATH=$XSDK_DIR/cmake/xsdk.cmake" build-x360/CMakeCache.txt; then fresh+=(--fresh); fi
-cmake "${fresh[@]}" -S x360 -B build-x360 -DV4X_DIR="$V4X_DIR" \
+cmake "${fresh[@]}" "${ffmpeg[@]}" -S x360 -B build-x360 -DV4X_DIR="$V4X_DIR" \
   -DCMAKE_TOOLCHAIN_FILE="$XSDK_DIR/cmake/xsdk.cmake" -DXSDK_TOOLCHAIN="${XSDK_TOOLCHAIN:-$HOME/xsdk-gcc}" \
   -DSDL3_DIR="$SDL3_XENON_DIR" -DAPP_NAME="${APP_NAME:-Tube360}" -DCMAKE_BUILD_TYPE=Release -DTUBE360_BUILD_ID="${TUBE360_BUILD_ID:-1}" -DTUBE360_VERSION="${TUBE360_VERSION:-0.3.0-dev}" \
   -DTUBE360_NATIVE_BOARD="${TUBE360_NATIVE_BOARD:-unconfirmed}" \

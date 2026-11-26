@@ -1,0 +1,71 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [main, f55-ci-release]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      build: ${{ steps.inputs.outputs.build }}
+      image: ${{ steps.inputs.outputs.image }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select relevant changes and verify image pin
+        id: inputs
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+        shell: bash
+        run: |
+          build=true
+          if [[ -n "$BASE_SHA" && ! "$BASE_SHA" =~ ^0+$ ]] && git cat-file -e "$BASE_SHA^{commit}"; then
+            if ! git diff --name-only "$BASE_SHA" HEAD | grep -Eq '^(client/|tools/|tests/|bench/|deploy/|\.github/|THIRD_PARTY.md|LICENSE)'; then
+              build=false
+            fi
+          fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          if [[ "$build" == true ]]; then
+            python3 tools/ci/metadata.py
+          else
+            echo 'No build needed for these paths.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+  build:
+    needs: gate
+    if: needs.gate.outputs.build == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    container:
+      image: ${{ needs.gate.outputs.image }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: PC, fast contracts, app and launcher for Xbox
+        run: tools/ci/build.sh
+  required:
+    needs: [gate, build]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: CI result
+        env:
+          GATE: ${{ needs.gate.result }}
+          BUILD: ${{ needs.build.result }}
+          REQUESTED: ${{ needs.gate.outputs.build }}
+        run: |
+          test "$GATE" = success
+          if [ "$REQUESTED" = true ]; then test "$BUILD" = success; fi
