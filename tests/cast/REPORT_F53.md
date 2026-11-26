@@ -172,4 +172,3 @@ xenia_scan: 227 instructions Xenia skips; Xenia results through these functions 
 O scanner de compatibilidade alertou sobre instruções que o Xenia ignora; não foi executado Xenia. Isso não é falha de link nem prova de comportamento em hardware. Os `.xex` ficaram apenas na build local; não houve instalação no console.
 
 Logs completos desta execução estão em `/tmp/tube360-f53-*.log`. Os resultados relevantes foram transcritos acima para que não dependam da permanência de `/tmp`.
-
