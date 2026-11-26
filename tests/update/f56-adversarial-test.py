@@ -81,8 +81,10 @@ int main(int argc,char** argv) {
     boot_event("begin","app.loop","fixture running");
     boot_session_heartbeat();
     const char* mode=argv[2];
-    if(!strncmp(mode,"gpu-error-",10))
+    if(!strncmp(mode,"gpu-error-",10)) {
+        boot_session_failed();
         boot_event("error","gpu.vulkan","2: vkWaitForFences(g.dev,1,&g.fences[g.fi],VK_TRUE,5000000000ULL)");
+    }
     if(!strcmp(mode,"already-clean") || !strcmp(mode,"already-clean-write-fail"))boot_session_clean();
     write_fail=!strcmp(mode,"already-clean-write-fail") || !strcmp(mode,"write-fail");
     if(!strcmp(mode,"during-write")) {
@@ -349,6 +351,39 @@ class Adversarial(unittest.TestCase):
 
     def test_original_suite_detects_late_registration(self):
         self.registration_mutant('')
+
+    def heartbeat_mutant(self, replacement, extra=''):
+        mutant = Path(tempfile.mkdtemp(dir=self.base, prefix='missing-heartbeat-'))
+        source = mutant / 'client/src'
+        source.mkdir(parents=True)
+        content = (ROOT / 'client/src/main.cpp').read_text()
+        needle = '    boot_session_heartbeat();'
+        self.assertEqual(content.count(needle), 1, 'mutation setup: heartbeat anchor')
+        content = content.replace(needle, replacement)
+        if extra:
+            anchor = '  boot_environment();'
+            self.assertEqual(content.count(anchor), 1, 'mutation setup: entry anchor')
+            content = content.replace(anchor, anchor + '\n' + extra)
+        (source / 'main.cpp').write_text(content)
+        tests = mutant / 'tests/update'
+        tests.mkdir(parents=True)
+        shutil.copyfile(ROOT / 'tests/update/terminate-session-test.py', tests / 'terminate-session-test.py')
+        result = subprocess.run(['python3', str(tests / 'terminate-session-test.py')], capture_output=True, text=True)
+        print(f'EVIDENCE heartbeat mutant: exit={result.returncode}; {result.stderr.strip()}', flush=True)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('FAIL main heartbeat:', result.stderr)
+
+    def test_original_suite_detects_deleted_heartbeat(self):
+        self.heartbeat_mutant('')
+
+    def test_original_suite_detects_commented_heartbeat(self):
+        self.heartbeat_mutant('    /* boot_session_heartbeat(); */')
+
+    def test_original_suite_detects_heartbeat_outside_loop(self):
+        self.heartbeat_mutant('', '  boot_session_heartbeat();')
+
+    def test_original_suite_detects_conditional_heartbeat(self):
+        self.heartbeat_mutant('    if (shotPath) { boot_session_heartbeat(); }')
 
 
 if __name__ == '__main__':

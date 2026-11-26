@@ -83,6 +83,7 @@ inline std::string wrap(const std::string& text,size_t columns) {
   return out;
 }
 [[noreturn]] inline int fail(i18n::Key reason,const std::string& detail={},i18n::Key action=i18n::Key::StartupRetry) {
+  boot_session_failed();
   // A fonte de emergência embutida não cobre árabe; o erro precisa continuar legível sem TTF/GPU.
   auto tr=[](i18n::Key k){return i18n::get(language==i18n::Lang::AR?i18n::Lang::EN:language,k);};
   boot_event("error","startup.fail","%s detail=%s",tr(reason),detail.c_str());

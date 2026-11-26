@@ -17,6 +17,22 @@ if not re.search(r'^int\s+main\s*\([^)]*\)\s*\{\s*#ifdef\s+__XSDK__\s+'
                  r'xsdk_on_terminate\s*\(\s*boot_session_terminated\s*\)\s*;', source, re.M):
     raise SystemExit('FAIL main termination registration: expected immediately after boot_open at entry')
 print('PASS main termination registration immediately after boot_open at entry', flush=True)
+# Exige a chamada direta no corpo do laço do produto, sem aceitar comentário, string ou ramo opcional.
+tokens = re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'', '""', source)
+run = re.search(r'\bint\s+run\s*\([^)]*\)\s*\{', tokens)
+assert run, 'FAIL main heartbeat: run function not found'
+tokens = tokens[run.end():]
+loop = re.search(r'\bwhile\s*\(\s*!quit\s*\)\s*\{', tokens)
+assert loop, 'FAIL main heartbeat: render loop not found'
+depth, end = 1, loop.end()
+while depth and end < len(tokens):
+    depth += (tokens[end] == '{') - (tokens[end] == '}')
+    end += 1
+body = tokens[loop.end():end-1]
+beat = re.search(r'\bin\.tick\s*\(\s*now\s*\)\s*;\s*boot_session_heartbeat\s*\(\s*\)\s*;', body)
+if not beat or body[:beat.start()].count('{') != body[:beat.start()].count('}'):
+    raise SystemExit('FAIL main heartbeat: expected unconditional heartbeat after input tick in render loop')
+print('PASS main heartbeat executed unconditionally in render loop after input tick', flush=True)
 probe = r'''
 #include "update/launcher.hpp"
 #include <cassert>
@@ -79,6 +95,11 @@ with tempfile.TemporaryDirectory(prefix='tube360-f56-terminate-') as temporary:
              (usb, 'gpu-error', False), (usb, 'startup-error', False), (usb, 'error-no-log', False),
              (usb, 'already-clean', True), (usb, 'already-clean-write-fail', True),
              (usb, 'clean-resume', True),
+             (usb, 'retryable-network', True), (usb, 'recoverable-output', True),
+             (usb, 'startup-recent', True), (usb, 'startup-at-limit', True),
+             (usb, 'startup-over-limit', False), (usb, 'startup-progress', True),
+             (usb, 'startup-info-only', False), (usb, 'startup-worker-only', False),
+             (usb, 'running-log-only', False),
              ('game:\\', 'system', False), ('\\Device\\Mass0\\' + 'x' * 1010 + '\\', 'system', False)]
     for index, (root, mode, clean) in enumerate(cases):
         folder = base / str(index)

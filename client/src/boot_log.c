@@ -32,6 +32,8 @@ static IO_STATUS_BLOCK terminate_io;
 static HANDLE terminate_file;
 static volatile uint64_t session_heartbeat;
 static volatile uint32_t session_heartbeat_ready;
+static volatile uint32_t session_running;
+static pthread_t session_startup_thread;
 static uint64_t session_time_base(void) {
 #if defined(__PPC__) || defined(__powerpc__)
     uint32_t upper,lower,check;
@@ -51,6 +53,8 @@ static uint64_t session_time_base(void) {
 static void session_prepare_terminate(void) {
     terminate_name.length=0;
     session_heartbeat_ready=0;
+    session_running=0;
+    session_startup_thread=pthread_self();
     const char* image=ExLoadedImageName?ExLoadedImageName:"";
     const char* slash=strrchr(image,'\\');
     if(strncmp(image,"\\Device\\",8) || !slash)return;
@@ -63,7 +67,7 @@ static void session_prepare_terminate(void) {
     terminate_name.length=terminate_name.maximum_length-1;
 }
 #endif
-void boot_session_heartbeat(void) {
+static void session_touch(void) {
 #if defined(__XSDK__) && (defined(__PPC__) || defined(__powerpc__) || defined(TUBE360_BOOT_TEST_TIME_BASE))
     // Em PPC32 o callback pode congelar o título entre as duas metades da gravação de 64 bits.
     __atomic_store_n(&session_heartbeat_ready,0,__ATOMIC_RELAXED);
@@ -72,13 +76,24 @@ void boot_session_heartbeat(void) {
     __atomic_store_n(&session_heartbeat_ready,1,__ATOMIC_RELEASE);
 #endif
 }
+void boot_session_heartbeat(void) {
+#ifdef __XSDK__
+    __atomic_store_n(&session_running,1,__ATOMIC_RELEASE);
+#endif
+    session_touch();
+}
+void boot_session_failed(void) {
+    __atomic_store_n(&session_failed,1,__ATOMIC_RELEASE);
+}
 void boot_session_terminated(void) {
 #ifdef __XSDK__
     // Threads congeladas, handles fechados e game: removido: só kernel e dados preparados antes do registro.
     if(__atomic_load_n(&session_failed,__ATOMIC_ACQUIRE) || __atomic_load_n(&session_cleaned,__ATOMIC_ACQUIRE) ||
        !terminate_name.length || !__atomic_load_n(&session_heartbeat_ready,__ATOMIC_ACQUIRE))return;
-    // Mesma time base de 49,875 MHz do xsdk: 5 s toleram quadros lentos sem ocultar laço parado.
-    if(session_time_base()-session_heartbeat>UINT64_C(49875000)*5)return;
+    // Console: GPU até 3,3 s + fontes/ícones até 1,4 s; 30 s por checkpoint dão folga para armazenamento lento.
+    // Depois do primeiro batimento do laço, só ele prova saúde: logs de workers não podem ocultar travamento.
+    unsigned limit=__atomic_load_n(&session_running,__ATOMIC_ACQUIRE)?5:30;
+    if(session_time_base()-session_heartbeat>UINT64_C(49875000)*limit)return;
     NTSTATUS status=NtCreateFile(&terminate_file,GENERIC_WRITE|SYNCHRONIZE,&terminate_attributes,&terminate_io,NULL,
         FILE_ATTRIBUTE_NORMAL,0,FILE_OPEN,FILE_SYNCHRONOUS_IO_NONALERT|FILE_NON_DIRECTORY_FILE);
     if(!NT_SUCCESS(status))return;
@@ -145,10 +160,13 @@ static void sync_line(void) {
     }
 }
 void boot_event(const char* phase,const char* step,const char* format,...) {
-    // Inclui startup.fail/tela de erro, mesmo sem log ou antes de conseguir a trava.
-    if(!strcmp(phase,"error"))__atomic_store_n(&session_failed,1,__ATOMIC_RELEASE);
     int saved_errno=errno;
     pthread_mutex_lock(&lock);
+#ifdef __XSDK__
+    if(!strcmp(component,"app") && !__atomic_load_n(&session_running,__ATOMIC_ACQUIRE) &&
+       pthread_equal(pthread_self(),session_startup_thread) && (!strcmp(phase,"begin") || !strcmp(phase,"end")))
+        session_touch();
+#endif
     if(file) {
         char detail[1536];va_list args;va_start(args,format);
         vsnprintf(detail,sizeof(detail),format,args);va_end(args);
