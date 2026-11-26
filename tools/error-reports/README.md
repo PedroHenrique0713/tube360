@@ -102,4 +102,5 @@ up raw reports beyond 30 days. See [PRIVACY.md](../../docs/PRIVACY.md).
 python3 -m unittest discover -s tools/error-reports -v
 python3 tests/update/error-reports-test.py client/build
 python3 tests/update/timer-session-test.py client/build
+python3 tests/update/exit-session-test.py client/build
 ```
