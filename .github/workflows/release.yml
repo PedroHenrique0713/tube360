@@ -1,0 +1,132 @@
+name: Release draft
+on:
+  push:
+    tags: ['v*']
+    branches: [f55-ci-release]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      image: ${{ steps.metadata.outputs.image }}
+      version: ${{ steps.metadata.outputs.version }}
+      tag: ${{ steps.metadata.outputs.tag }}
+      draft: ${{ steps.metadata.outputs.draft }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate digest and release metadata
+        id: metadata
+        run: python3 tools/ci/metadata.py
+      - name: Tagged source must belong to reviewed main
+        if: steps.metadata.outputs.draft == 'true'
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor HEAD origin/main
+  build:
+    needs: inputs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: ${{ needs.inputs.outputs.image }}
+    defaults:
+      run:
+        shell: bash
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    env:
+      TUBE360_BUILD_ID: ${{ github.run_number }}
+      TUBE360_VERSION: ${{ needs.inputs.outputs.version }}
+      IMAGE: ${{ needs.inputs.outputs.image }}
+      VERSION: ${{ needs.inputs.outputs.version }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Trust the checkout inside the container
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Build and test without PR caches
+        run: tools/ci/build.sh
+      - name: Package exact app and launcher
+        run: |
+          python3 tools/package-xbox.py --version "$VERSION" --output-dir out
+          python3 tests/update/package-test.py "out/tube360-v$VERSION-xbox360.zip"
+          python3 tools/ci/source-kit.py out
+          python3 - <<'PY'
+          import json, os, pathlib
+          data = {
+              'source_commit': os.environ['GITHUB_SHA'],
+              'ci_run_url': f"https://github.com/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+              'builder': 'org-ci', 'image': os.environ['IMAGE'],
+              'version': os.environ['VERSION'], 'console_test': 'pending',
+          }
+          pathlib.Path('out/CI-BUILD.json').write_text(json.dumps(data, indent=2) + '\n')
+          PY
+          cd out
+          sha256sum *.zip *.7z *.xex *.tar.gz CI-BUILD.json > SHA256SUMS
+          sha256sum -c SHA256SUMS
+          cat SHA256SUMS >> "$GITHUB_STEP_SUMMARY"
+      - name: Attest packaged bytes
+        id: attest
+        uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a
+        with:
+          subject-path: |
+            out/*.zip
+            out/*.7z
+            out/*.xex
+            out/*.tar.gz
+            out/SHA256SUMS
+            out/CI-BUILD.json
+      - name: Keep verification bundle
+        env:
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+        run: cp "$BUNDLE" out/attestation.jsonl
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: tube360-${{ needs.inputs.outputs.version }}
+          path: out/
+          if-no-files-found: error
+          retention-days: 3
+  draft:
+    needs: [inputs, build]
+    if: needs.inputs.outputs.draft == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ needs.inputs.outputs.tag }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: tube360-${{ needs.inputs.outputs.version }}
+          path: out
+      - name: Create draft from an existing tag only
+        shell: bash
+        run: |
+          gh api "repos/$GH_REPO/git/ref/tags/$TAG" > /dev/null
+          cat > notes.md <<EOF_NOTES
+          Built by Revive360 CI: https://github.com/$GH_REPO/actions/runs/$GITHUB_RUN_ID
+
+          Draft only. The exact hashes in SHA256SUMS still need real-console acceptance and catalog review. No local binary may replace these artifacts.
+
+          Verify: gh attestation verify <downloaded-file> --repo $GH_REPO
+          EOF_NOTES
+          if gh release view "$TAG" --json isDraft --jq .isDraft > existing-draft; then
+            test "$(cat existing-draft)" = true
+          else
+            gh release create "$TAG" --verify-tag --draft --title "Tube360 $TAG" --notes-file notes.md
+          fi
+          gh release upload "$TAG" out/*
