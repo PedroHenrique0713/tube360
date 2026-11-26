@@ -44,6 +44,26 @@ class ReleaseTests(unittest.TestCase):
             subprocess.run(command, cwd=kit, check=True)
             self.assertEqual(subprocess.run([str(kit / 'app.elf')]).returncode, 0)
 
+    def test_replacement_ffmpeg_archive_changes_relinked_program(self):
+        mod = module('source-kit')
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            build, kit = root / 'build', root / 'kit'
+            build.mkdir(); kit.mkdir()
+            (build / 'main.c').write_text('int answer(void); int main(void) { return answer(); }\n')
+            (build / 'answer.c').write_text('int answer(void) { return 0; }\n')
+            subprocess.run(['cc', '-c', 'main.c', 'answer.c'], cwd=build, check=True)
+            subprocess.run(['ar', 'rcs', 'libavcodec.a', 'answer.o'], cwd=build, check=True)
+            command = mod.collect_link('cc main.o libavcodec.a -o app', build, kit)
+            shutil.rmtree(build)
+            subprocess.run(command, cwd=kit, check=True)
+            self.assertEqual(subprocess.run([str(kit / 'app.elf')]).returncode, 0)
+            (kit / 'answer.c').write_text('int answer(void) { return 7; }\n')
+            subprocess.run(['cc', '-c', 'answer.c', '-o', 'answer.o'], cwd=kit, check=True)
+            subprocess.run(['ar', 'rcs', 'ffmpeg-lib/libavcodec.a', 'answer.o'], cwd=kit, check=True)
+            subprocess.run(command, cwd=kit, check=True)
+            self.assertEqual(subprocess.run([str(kit / 'app.elf')]).returncode, 7)
+
     def test_unknown_absolute_linker_input_fails(self):
         mod = module('source-kit')
         with tempfile.TemporaryDirectory() as folder:
