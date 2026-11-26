@@ -46,7 +46,7 @@ int main(int argc,char** argv) {
         check(reports::category(item.first,"")==item.second,"launcher supplies category from known cause");
     check(reports::cause("TLS failed","DNS diagnostic","network")=="network.tls","primary error outranks incidental network log");
     string dirty="open\n";
-    string privateLog="peer 192.168.101.39 203.0.113.25 video dQw4w9WgXcQ x_y-Z012345\nNest: Sala da Maria\ncast name=Bedroom\nAuthorization: Bearer ABC.secret\nya29.secret\n{\"refresh_token\":\"private space\"}\naccess_token=secret\naccount: Example Name\nquery=private search\n";
+    string privateLog="peer 192.168.1.50 203.0.113.25 video dQw4w9WgXcQ x_y-Z012345\nNest: Sala da Maria\ncast name=Bedroom\nAuthorization: Bearer ABC.secret\nya29.secret\n{\"refresh_token\":\"private space\"}\naccess_token=secret\naccount: Example Name\nquery=private search\n";
     auto clean=reports::scrub(privateLog);
     check(reports::scrub(string("bad ")+char(0xc3)).find("bad ?")!=string::npos,"partial UTF-8 replaced before JSON");
     check(reports::screenName("Busca")=="Search","screen enum survives search-data scrubbing");
@@ -67,7 +67,7 @@ int main(int argc,char** argv) {
         check(clean.find(secret)==string::npos,"adversarial privacy canary removed");
         check(reports::scrub(clean)==clean,"adversarial scrubbing remains idempotent");
     }
-    for(auto secret:{"192.168.101.39","203.0.113.25","dQw4w9WgXcQ","x_y-Z012345","Sala da Maria","Bedroom","ABC.secret","ya29.secret","private space","access_token","Example Name","private search"})check(clean.find(secret)==string::npos,"secret absent from scrubbed text");
+    for(auto secret:{"192.168.1.50","203.0.113.25","dQw4w9WgXcQ","x_y-Z012345","Sala da Maria","Bedroom","ABC.secret","ya29.secret","private space","access_token","Example Name","private search"})check(clean.find(secret)==string::npos,"secret absent from scrubbed text");
     string actual=read(argv[2],4*1024*1024);
     check(actual.size()>1000,"real anonymizable diagnostic fixture loaded");
     clean=reports::scrub(actual+privateLog);
