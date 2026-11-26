@@ -355,11 +355,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if self.path != '/api/report':
             return self.reply(404, {'error': 'route'})
         lengths = self.headers.get_all('Content-Length', [])
-        if len(lengths) != 1 or not lengths[0].isdigit() or self.headers.get('Transfer-Encoding'):
+        if len(lengths) != 1 or not re.fullmatch(r'[0-9]+', lengths[0]) or self.headers.get('Transfer-Encoding'):
             return self.reply(400, {'error': 'length'})
-        length = int(lengths[0])
-        if length > MAX_BODY:
+        # Compara antes de int(): o cabeçalho pode exceder o limite de dígitos do Python.
+        digits = lengths[0].lstrip('0') or '0'
+        maximum = str(MAX_BODY)
+        if len(digits) > len(maximum) or (len(digits) == len(maximum) and digits > maximum):
             return self.reply(413, {'error': 'size'})
+        length = int(digits)
         try:
             ip = self.client_address[0]
             # Só o peer explicitamente autorizado pode fornecer UM endereço, sobrescrito pelo proxy.
@@ -369,7 +372,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if len(raw) != length:
                 raise ValueError('short body')
             status, result = self.server.store.accept(ip, raw)
-        except (ValueError, UnicodeError):
+        except (ValueError, UnicodeError, RecursionError):
             return self.reply(400, {'error': 'invalid report'})
         except (OSError, sqlite3.Error):
             return self.reply(503, {'error': 'storage unavailable'})
