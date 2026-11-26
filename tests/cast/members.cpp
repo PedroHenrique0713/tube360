@@ -17,7 +17,8 @@ static void check(bool ok, const char* message) {
 }
 static std::string videoBytes, failingTrack;
 static int failureStatus = 403, players = 0, videos = 0, audios = 0, playlists = 0;
-static bool liveFixture = false;
+enum class Fixture { MP4, HLS, LIVE_SEGMENTS };
+static Fixture mediaFixture = Fixture::MP4;
 
 struct Http final : yt::Transport {
     const std::atomic_bool* stopped;
@@ -34,8 +35,20 @@ struct Http final : yt::Transport {
             ++players;
             check(r.body.find("TVHTML5") != std::string::npos, "TV account player identity");
             check(std::find(r.headers.begin(), r.headers.end(), "Authorization: Bearer fake-a") != r.headers.end(), "authenticated player request");
-            return {200, std::string(R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"member00001","lengthSeconds":"30","isLive":)") + (liveFixture ? "true" : "false") + R"(},"streamingData":{"expiresInSeconds":"3600",)" +
-                (liveFixture ? R"("hlsManifestUrl":"https://fixture.googlevideo.com/live",)" : "") +
+            if (mediaFixture == Fixture::LIVE_SEGMENTS)
+                return {200, R"({
+                    "playabilityStatus":{"status":"OK"},
+                    "videoDetails":{"videoId":"member00001","lengthSeconds":"0","isLive":true},
+                    "streamingData":{"expiresInSeconds":"3600","adaptiveFormats":[
+                        {"itag":298,"width":1280,"height":720,"fps":60,
+                         "mimeType":"video/mp4; codecs=\"avc1.640020\"",
+                         "signatureCipher":"s=fixture&sp=sig&url=https%3A%2F%2Ffixture.googlevideo.com%2Fvideo%3Flive%3D1%26sq%3D42"},
+                        {"itag":140,"bitrate":128000,"mimeType":"audio/mp4; codecs=\"mp4a.40.2\"",
+                         "signatureCipher":"s=fixture&sp=sig&url=https%3A%2F%2Ffixture.googlevideo.com%2Faudio%3Flive%3D1%26sq%3D42"}
+                    ]}
+                })"};
+            return {200, std::string(R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"member00001","lengthSeconds":"30","isLive":)") + (mediaFixture == Fixture::HLS ? "true" : "false") + R"(},"streamingData":{"expiresInSeconds":"3600",)" +
+                (mediaFixture == Fixture::HLS ? R"("hlsManifestUrl":"https://fixture.googlevideo.com/live",)" : "") +
                 R"("adaptiveFormats":[{"itag":136,"width":160,"height":90,"fps":30,"mimeType":"video/mp4; codecs=\"avc1.64001f\"","url":"https://fixture.googlevideo.com/video?n=unsolved"},{"itag":140,"bitrate":128000,"mimeType":"audio/mp4; codecs=\"mp4a.40.2\"","url":"https://fixture.googlevideo.com/audio?n=unsolved"}]}})"};
         }
         if (r.url.find("/live") != std::string::npos) { ++playlists; return {failureStatus}; }
@@ -55,8 +68,9 @@ namespace yt {
 std::unique_ptr<Transport> https(const std::atomic_bool* stop) { return std::make_unique<Http>(stop); }
 }
 
-static void run(const std::string& directory, bool members, const char* track, int status, bool hls = false, int mode = playback::AUTO) {
-    failingTrack = track; failureStatus = status; liveFixture = hls;
+static void run(const std::string& directory, bool members, const char* track, int status, Fixture fixture = Fixture::MP4, int mode = playback::AUTO) {
+    failingTrack = track; failureStatus = status; mediaFixture = fixture;
+    bool hls = fixture == Fixture::HLS, noFormats = fixture == Fixture::LIVE_SEGMENTS;
     players = videos = audios = playlists = 0;
     player::Player p;
     p.videoMode = mode;
@@ -86,26 +100,36 @@ static void run(const std::string& directory, bool members, const char* track, i
         check(p.audio, "dummy audio stream");
     }
     p.decodeOriginal();
-    bool terminal = members && status == 403;
+    if (noFormats) {
+        check(p.media.status == "OK" && p.media.live && p.media.highFrameRate720, "live account response reaches real format selection");
+        check(p.media.hls.empty() && p.media.video.url.empty() && p.media.audio.url.empty(), "live segments offer no playable HLS or MP4");
+        check(players == (members ? 1 : 0) && videos + audios + playlists == 0, "no media request or player retry without a playable format");
+    }
+    bool terminal = members && (status == 403 || noFormats);
     if (terminal && (p.state != player::FAILED || p.error != "members_unsupported"))
         std::cerr << "member HTTP=" << status << " mode=" << playback::modeName(mode) << " state=" << p.state << " error=" << p.error << '\n';
     if (terminal) {
-        check(p.state == player::FAILED && p.error == "members_unsupported", "member 403 is terminal and specific");
+        check(p.state == player::FAILED && p.error == "members_unsupported", "member 403 or missing formats is terminal and specific");
         check(!p.renew && !p.retryConverted, "no URL renewal or server fallback");
         int requests = players + videos + audios + playlists;
         for (int i = 0; i < 100; ++i) check(!p.take(), "failed player has no frame");
         check(requests == players + videos + audios + playlists && players == 1, "first failure makes no repeated player/media requests");
-    } else if (hls && playback::manual(mode) && status != 403) {
-        check(p.state == player::FAILED && p.error == "manual_quality_unavailable", "non-403 fixed HLS failure keeps quality error");
-        check(!p.renew && !p.retryConverted, "non-403 fixed HLS failure does not renew");
+        check(p.state == player::FAILED && p.error == "members_unsupported" && !p.renew && !p.retryConverted, "member failure remains terminal after polling");
+    } else if ((hls || noFormats) && playback::manual(mode) && status != 403) {
+        check(p.state == player::FAILED && p.error == "manual_quality_unavailable", "non-403 fixed HLS or missing formats keeps quality error");
+        check(!p.renew && !p.retryConverted, "non-403 fixed HLS or missing formats does not renew");
     } else {
         check(p.error != "members_unsupported", "ordinary error is preserved");
         check(status == 403 ? p.renew.load() : p.retryConverted.load(), "existing renewal/fallback retained");
+        if (noFormats) {
+            check(!p.take() && p.state == player::FAILED && p.error == "console", "ordinary missing formats keeps generic console error");
+            check(!p.renew && !p.retryConverted && players + videos + audios + playlists == 0, "ordinary missing formats stops without media requests");
+        }
     }
-    check((hls ? playlists : failingTrack == "video" ? videos : audios) == 1, "one failed media request");
-    std::cout << "PASS " << (members ? "member" : "ordinary") << ' ' << (hls ? "HLS" : track)
+    if (!noFormats) check((hls ? playlists : failingTrack == "video" ? videos : audios) == 1, "one failed media request");
+    std::cout << "PASS " << (members ? "member" : "ordinary") << ' ' << (noFormats ? "live sq without HLS" : hls ? "HLS" : track)
               << " mode=" << playback::modeName(mode) << " HTTP=" << status << " players=" << players << " video=" << videos << " audio=" << audios
-              << " playlists=" << playlists << " renew=" << p.renew << " fallback=" << p.retryConverted << '\n';
+              << " playlists=" << playlists << " renew=" << p.renew << " fallback=" << p.retryConverted << " error=" << p.error << '\n';
     p.halt();
     if (p.audio) SDL_DestroyAudioStream(p.audio);
     SDL_DestroyMutex(p.mu); SDL_DestroyCondition(p.cv); SDL_DestroyMutex(p.nmu);
@@ -118,15 +142,19 @@ int main(int argc, char** argv) {
     net::serverEnabled = false;
     run(argv[1], true, "video", 403);
     run(argv[1], true, "audio", 403);
-    run(argv[1], true, "video", 403, true);
+    run(argv[1], true, "video", 403, Fixture::HLS);
     for (int mode : {playback::FIXED480, playback::FIXED360, playback::FIXED240, playback::FIXED144}) {
-        run(argv[1], true, "video", 403, true, mode);
-        run(argv[1], false, "video", 403, true, mode);
-        run(argv[1], true, "video", 404, true, mode);
+        run(argv[1], true, "video", 403, Fixture::HLS, mode);
+        run(argv[1], false, "video", 403, Fixture::HLS, mode);
+        run(argv[1], true, "video", 404, Fixture::HLS, mode);
     }
     run(argv[1], false, "video", 403);
     run(argv[1], false, "audio", 403);
     run(argv[1], true, "video", 404);
+    for (int mode : {playback::AUTO, playback::FIXED480}) {
+        run(argv[1], true, "video", 200, Fixture::LIVE_SEGMENTS, mode);
+        run(argv[1], false, "video", 200, Fixture::LIVE_SEGMENTS, mode);
+    }
     check(i18n::playerError("members_unsupported") == i18n::Key::MembersXboxUnavailable, "UI uses specific member message");
     for (auto lang : {i18n::Lang::EN, i18n::Lang::PT, i18n::Lang::ES, i18n::Lang::AR})
         check(std::strlen(i18n::get(lang, i18n::Key::MembersXboxUnavailable)) > 0, "translated message exists");
