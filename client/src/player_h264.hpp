@@ -119,7 +119,7 @@ inline void Player::decodeOriginal() {
       broadcast = std::make_unique<yt::LiveFile>(*playlistTransport, *liveTransport, endLiveReader);
       bool opened=broadcast->open(media.hls,playback::manual(videoMode)?playback::fixedHeight(videoMode):quality,videoMode==playback::FAST,media.selectedAudio.empty() ? audioSelection : media.selectedAudio,playback::manual(videoMode));
       qualityAvailable=broadcast->qualityModes;qualityModesReady=true;
-      if (!opened) {r = AVERROR_INVALIDDATA;if(playback::manual(videoMode)){error="manual_quality_unavailable";state=FAILED;return;}}
+      if (!opened) {r = AVERROR_INVALIDDATA;if(playback::manual(videoMode) && broadcast->status!=403){error="manual_quality_unavailable";state=FAILED;return;}}
       else {
         source.file = broadcast.get();
         reader = yt::worker([](void* data) {

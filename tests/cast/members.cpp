@@ -38,7 +38,7 @@ struct Http final : yt::Transport {
                 (liveFixture ? R"("hlsManifestUrl":"https://fixture.googlevideo.com/live",)" : "") +
                 R"("adaptiveFormats":[{"itag":136,"width":160,"height":90,"fps":30,"mimeType":"video/mp4; codecs=\"avc1.64001f\"","url":"https://fixture.googlevideo.com/video?n=unsolved"},{"itag":140,"bitrate":128000,"mimeType":"audio/mp4; codecs=\"mp4a.40.2\"","url":"https://fixture.googlevideo.com/audio?n=unsolved"}]}})"};
         }
-        if (r.url.find("/live") != std::string::npos) { ++playlists; return {403}; }
+        if (r.url.find("/live") != std::string::npos) { ++playlists; return {failureStatus}; }
         bool video = r.url.find("/video?") != std::string::npos;
         check(video || r.url.find("/audio?") != std::string::npos, "only fixture media requested");
         if (video) ++videos; else ++audios;
@@ -55,10 +55,11 @@ namespace yt {
 std::unique_ptr<Transport> https(const std::atomic_bool* stop) { return std::make_unique<Http>(stop); }
 }
 
-static void run(const std::string& directory, bool members, const char* track, int status, bool hls = false) {
+static void run(const std::string& directory, bool members, const char* track, int status, bool hls = false, int mode = playback::AUTO) {
     failingTrack = track; failureStatus = status; liveFixture = hls;
     players = videos = audios = playlists = 0;
     player::Player p;
+    p.videoMode = mode;
     p.mu = SDL_CreateMutex(); p.cv = SDL_CreateCondition(); p.nmu = SDL_CreateMutex();
     p.direct = p.original = true; p.memberVideo = members; p.id = "member00001";
     p.state = player::BUFFERING; p.output = player::Player::LOCAL;
@@ -76,7 +77,7 @@ static void run(const std::string& directory, bool members, const char* track, i
             .body="TVHTML5", .headers={"Authorization: Bearer fake-a"}});
         p.media = client.player(p.id, 720, nullptr, 0, "original", reply.body);
         players = 0;
-        p.cachedQuality = 720; p.cachedVideoMode = 0; p.cachedAudio = "original";
+        p.cachedQuality = 720; p.cachedVideoMode = mode; p.cachedAudio = "original";
         p.validUntil = SDL_GetTicks() + 60000;
     }
     if (failingTrack == "audio") {
@@ -86,19 +87,24 @@ static void run(const std::string& directory, bool members, const char* track, i
     }
     p.decodeOriginal();
     bool terminal = members && status == 403;
+    if (terminal && (p.state != player::FAILED || p.error != "members_unsupported"))
+        std::cerr << "member HTTP=" << status << " mode=" << playback::modeName(mode) << " state=" << p.state << " error=" << p.error << '\n';
     if (terminal) {
         check(p.state == player::FAILED && p.error == "members_unsupported", "member 403 is terminal and specific");
         check(!p.renew && !p.retryConverted, "no URL renewal or server fallback");
         int requests = players + videos + audios + playlists;
         for (int i = 0; i < 100; ++i) check(!p.take(), "failed player has no frame");
         check(requests == players + videos + audios + playlists && players == 1, "first failure makes no repeated player/media requests");
+    } else if (hls && playback::manual(mode) && status != 403) {
+        check(p.state == player::FAILED && p.error == "manual_quality_unavailable", "non-403 fixed HLS failure keeps quality error");
+        check(!p.renew && !p.retryConverted, "non-403 fixed HLS failure does not renew");
     } else {
         check(p.error != "members_unsupported", "ordinary error is preserved");
         check(status == 403 ? p.renew.load() : p.retryConverted.load(), "existing renewal/fallback retained");
     }
     check((hls ? playlists : failingTrack == "video" ? videos : audios) == 1, "one failed media request");
     std::cout << "PASS " << (members ? "member" : "ordinary") << ' ' << (hls ? "HLS" : track)
-              << " HTTP=" << status << " players=" << players << " video=" << videos << " audio=" << audios
+              << " mode=" << playback::modeName(mode) << " HTTP=" << status << " players=" << players << " video=" << videos << " audio=" << audios
               << " playlists=" << playlists << " renew=" << p.renew << " fallback=" << p.retryConverted << '\n';
     p.halt();
     if (p.audio) SDL_DestroyAudioStream(p.audio);
@@ -113,6 +119,11 @@ int main(int argc, char** argv) {
     run(argv[1], true, "video", 403);
     run(argv[1], true, "audio", 403);
     run(argv[1], true, "video", 403, true);
+    for (int mode : {playback::FIXED480, playback::FIXED360, playback::FIXED240, playback::FIXED144}) {
+        run(argv[1], true, "video", 403, true, mode);
+        run(argv[1], false, "video", 403, true, mode);
+        run(argv[1], true, "video", 404, true, mode);
+    }
     run(argv[1], false, "video", 403);
     run(argv[1], false, "audio", 403);
     run(argv[1], true, "video", 404);
