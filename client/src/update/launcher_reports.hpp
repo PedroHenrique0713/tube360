@@ -11,6 +11,38 @@
 namespace updates::reports {
 inline constexpr const char* endpoint="https://tube360.hypermind.space/api/report";
 inline string lower(string s) {for(char& c:s)c=char(std::tolower(static_cast<unsigned char>(c)));return s;}
+inline bool fenceInfo(const string& line) {
+    return (line.find("frame.fence")!=string::npos &&
+            (line.find("first-frame timeout=")!=string::npos || line.find("[video] timeout=")!=string::npos)) ||
+           (line.find("gpu fence timeout=")!=string::npos && line.find("physical screen cannot be verified by software")!=string::npos);
+}
+inline string diagnostics(const string& input) {
+    string out;
+    size_t at=0;
+    while(at<input.size()) {
+        auto end=input.find('\n',at);if(end==string::npos)end=input.size();
+        auto line=lower(input.substr(at,end-at));
+        if(!fenceInfo(line))out+=line+'\n';
+        at=end<input.size()?end+1:end;
+    }
+    return out;
+}
+inline bool gpuFailure(const string& input) {
+    size_t at=0;
+    while(at<input.size()) {
+        auto end=input.find('\n',at);if(end==string::npos)end=input.size();
+        auto line=input.substr(at,end-at);
+        if(line.find("vulkan falhou (")!=string::npos || line.rfind("gpu.vulkan ",0)==0 || line.find(" error gpu.vulkan ")!=string::npos)return true;
+        if(line.find("gpu.fence")!=string::npos || line.find("gpu fence")!=string::npos ||
+           line.find("gpu_fence")!=string::npos || line.find("gpu-fence")!=string::npos) {
+            if(line.find("failed")!=string::npos || line.find("dead")!=string::npos || line.find("timed out")!=string::npos)return true;
+            auto timeout=line.find("timeout");
+            if(timeout!=string::npos && (timeout+7==line.size() || line[timeout+7]!='='))return true;
+        }
+        at=end<input.size()?end+1:end;
+    }
+    return false;
+}
 inline bool installationValid(const string& value) {
     if(value.size()!=32)return false;
     for(char c:value)if(!(c>='0' && c<='9') && !(c>='a' && c<='f'))return false;
@@ -26,10 +58,10 @@ inline string installation(const string& dir,const std::function<bool(unsigned c
     return installationValid(id) && write(dir+"error-report-installation.txt",id+"\n")?id:string{};
 }
 inline string category(const string& error,const string& log) {
-    auto e=lower(error),all=e+'\n'+lower(log);
+    auto e=diagnostics(error),diagnosticLog=diagnostics(log),all=e+'\n'+diagnosticLog;
     auto has=[](const string& text,std::initializer_list<const char*> words){for(auto word:words)if(text.find(word)!=string::npos)return true;return false;};
     if(has(all,{"excecao: codigo","exception code","segmentation fault","sigsegv","sigabrt","fault at ","fault code","assertion failed","panic"}) ||
-       (has(all,{"gpu.fence","gpu fence"}) && has(all,{"failed","dead","timeout"})))return "crash";
+       gpuFailure(all))return "crash";
     if(has(e,{"startup timeout","handoff timeout","did not reach"}))return "startup";
     auto cause=[&](const string& text)->string {
         if(has(text,{"login_required","youtube.auth_required","unplayable"}) || (has(text,{"403"}) && has(text,{"youtube","player","media","link","googlevideo"})))return "youtube";
@@ -39,13 +71,13 @@ inline string category(const string& error,const string& log) {
     auto found=cause(e);if(!found.empty())return found;
     if(has(e,{"startup.fail","startup.incomplete","missing fonts","could not start","falha de partida"}))return "startup";
     if(has(all,{"unclean session","session: unclean","hang","travamento","watchdog expired"}))return "crash";
-    found=cause(lower(log));if(!found.empty())return found;
-    if(has(lower(log),{"startup.fail","startup.incomplete","missing fonts"}))return "startup";
+    found=cause(diagnosticLog);if(!found.empty())return found;
+    if(has(diagnosticLog,{"startup.fail","startup.incomplete","missing fonts"}))return "startup";
     return "other";
 }
 inline string cause(const string& error,const string& log,const string& kind) {
-    string evidence=lower(error);
-    if(category(error,"")!=kind)evidence=lower(log);
+    string evidence=diagnostics(error);
+    if(category(error,"")!=kind)evidence=diagnostics(log);
     if(kind=="youtube")return evidence.find("login_required")!=string::npos || evidence.find("youtube.auth_required")!=string::npos?"youtube.auth_required":evidence.find("unplayable")!=string::npos?"youtube.unplayable":"youtube.media_403";
     if(kind=="network")return evidence.find("dns")!=string::npos || evidence.find("could not resolve")!=string::npos?"network.dns":evidence.find("tls")!=string::npos || evidence.find("ssl")!=string::npos || evidence.find("certificate")!=string::npos?"network.tls":evidence.find("timeout")!=string::npos || evidence.find("timed out")!=string::npos?"network.timeout":"network.offline";
     return error;
@@ -176,7 +208,7 @@ inline string make(const string& dir,const string& id={}) {
             }
             if(line.find("detect video.board ")!=string::npos || line.find("environment.policy")!=string::npos || line.find("board.detect")!=string::npos)hardware+=line+'\n';
             auto checkpoint=line.find(" begin ");
-            if(checkpoint!=string::npos)lastCheckpoint=line.substr(checkpoint+7,line.find(' ',checkpoint+7)-(checkpoint+7));
+            if(checkpoint!=string::npos && !fenceInfo(lower(line)))lastCheckpoint=line.substr(checkpoint+7,line.find(' ',checkpoint+7)-(checkpoint+7));
             if(line.find("end app.first-frame ")!=string::npos)fields["screen"]=J(string("Home"));
             if(line.find("error ")!=string::npos)fields["error"]=J(line.substr(line.find("error ")+6,1500));
             pos=end<data.size()?end+1:end;

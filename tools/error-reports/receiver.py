@@ -40,19 +40,33 @@ def scrub(value):
     return '\n'.join(lines)
 
 
+def fence_info(line):
+    return ('frame.fence' in line and ('first-frame timeout=' in line or '[video] timeout=' in line) or
+            'gpu fence timeout=' in line and 'physical screen cannot be verified by software' in line)
+
+
+def diagnostics(value):
+    return '\n'.join(line for line in value.lower().splitlines() if not fence_info(line))
+
+
 def classify(data):
     """A dica do cliente não é autoridade; só o conteúdo confirma a categoria."""
-    error = data['error'].lower()
-    log = data['log'].lower()
+    error = diagnostics(data['error'])
+    log = diagnostics(data['log'])
     evidence = error + '\n' + log
     safe_error, safe_evidence = scrub(error), scrub(evidence)
-    if re.search(r'excecao: codigo|exception code|segmentation fault|sigsegv|sigabrt|\bfault\b(?!-handler)|assertion failed|panic|gpu[ ._-]fence.*(?:fail|dead|timeout)', evidence):
+    if re.search(r'excecao: codigo|exception code|segmentation fault|sigsegv|sigabrt|\bfault\b(?!-handler)|assertion failed|panic', evidence):
         code = re.search(r'(?:excecao: codigo|exception code|fault code)\s+([0-9a-f]{8})', safe_evidence)
-        point = 'fault.' + code[1] if code else 'gpu.fence' if re.search(r'gpu[ ._-]fence', evidence) else 'fault'
+        point = 'fault.' + code[1] if code else 'fault'
         pc = re.search(r'(?:endereco|address|pc)\s*(?:0x)?([0-9a-f]{8})', safe_evidence)
         if pc and point.startswith('fault'):
             point += '.pc.' + pc[1]
         return 'crash', point
+    for line in evidence.splitlines():
+        if re.search(r'vulkan falhou \(|^gpu\.vulkan | error gpu\.vulkan ', line):
+            return 'crash', 'gpu.fence' if 'vkwaitforfences' in line else 'gpu.vulkan'
+        if re.search(r'gpu[ ._-]fence.*(?:failed|dead|timed out|timeout(?!=))', line):
+            return 'crash', 'gpu.fence'
     # Timeouts de handoff/partida não são timeouts de rede.
     if re.search(r'startup.*(?:timeout|20 seconds|20 segundos)|handoff.*(?:timeout|did not reach)', error):
         return 'startup', 'startup.handoff'
@@ -77,12 +91,12 @@ def classify(data):
     if re.search(r'startup\.fail|startup\.incomplete|missing fonts|could not start|falha de partida', error):
         checkpoint = re.search(r'last checkpoint:\s*([a-z0-9_.-]+)', safe_error)
         if checkpoint:
-            return 'startup', 'startup.' + checkpoint[1]
+            return 'startup', 'startup.' + checkpoint[1] if checkpoint[1] not in ('gpu.fence', 'frame.fence', 'frame.complete') else 'startup.handoff'
         point = 'startup.fonts' if re.search(r'font', error) else 'startup.storage' if re.search(r'storage|writ|folder|disco', error) else 'startup.video' if re.search(r'gpu|video|display', error) else 'startup.handoff' if re.search(r'launch|handoff', error) else 'startup.fail'
         return 'startup', point
     if re.search(r'unclean session|session: unclean|\bhang\b|travamento|watchdog expired', error + '\n' + log):
         checkpoint = re.search(r'last checkpoint:\s*([a-z0-9_.-]+)', safe_error)
-        return 'crash', checkpoint[1] if checkpoint else 'session.unclean'
+        return 'crash', checkpoint[1] if checkpoint and checkpoint[1] not in ('gpu.fence', 'frame.fence', 'frame.complete') else 'session.unclean'
     found = cause(log)
     if found:
         return found

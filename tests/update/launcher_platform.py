@@ -110,7 +110,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-launcher-sdk-') as temp:
     base = Path(temp)
     include = base / 'xsdk'
     include.mkdir()
-    for name in ('display', 'gpu', 'log', 'present', 'text', 'thread', 'xam'):
+    for name in ('display', 'gpu', 'log', 'present', 'text', 'thread', 'xam', 'terminate'):
         (include / (name + '.h')).write_text('#include "sim.h"\n')
     (include / 'sim.h').write_text(header)
     (base / 'fake.cpp').write_text(fake)
