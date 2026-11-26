@@ -45,7 +45,6 @@ jobs:
       id-token: write
       attestations: write
     env:
-      TUBE360_BUILD_ID: ${{ github.run_number }}
       TUBE360_VERSION: ${{ needs.inputs.outputs.version }}
       IMAGE: ${{ needs.inputs.outputs.image }}
       VERSION: ${{ needs.inputs.outputs.version }}
@@ -55,6 +54,8 @@ jobs:
           persist-credentials: false
       - name: Trust the checkout inside the container
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - name: Number the build above every earlier release
+        run: echo "TUBE360_BUILD_ID=$((100 + GITHUB_RUN_NUMBER))" >> "$GITHUB_ENV"
       - name: Build and test without PR caches
         run: tools/ci/build.sh
       - name: Package exact app and launcher
