@@ -12,7 +12,7 @@ import unittest
 
 from e2e import ROOT, Handler, Lounge, dial, wait_for
 
-WORK = ROOT / '.work/r25/lan'
+WORK = ROOT / 'client/build/cast-lan'
 WORK.mkdir(parents=True, exist_ok=True)
 
 

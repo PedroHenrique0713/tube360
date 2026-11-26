@@ -399,7 +399,9 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(LocalVideo, "video", "vídeo", "video") \
   X(LocalVideos, "videos", "vídeos", "videos") \
   X(LocalPosition, "position", "posição", "posición") \
-  X(LocalPositions, "positions", "posições", "posiciones")
+  X(LocalPositions, "positions", "posições", "posiciones") \
+  /* F53 */ \
+  X(MembersXboxUnavailable, "Members-only videos can't play on Xbox yet.", "Vídeos de membros ainda não tocam no Xbox.", "Los videos para miembros aún no se reproducen en Xbox.")
 
 enum class Key {
 #define TEXT_KEY(k, en, pt, es) k,
@@ -430,6 +432,7 @@ inline Key quality(int q) { return q == 360 ? Key::Q360 : q == 480 ? Key::Q480 :
 
 // player.hpp mantém os diagnósticos internos; só a apresentação é traduzida.
 inline Key playerError(const std::string& error) {
+  if (error == "members_unsupported") return Key::MembersXboxUnavailable;
   if (error == "manual_quality_unavailable") return Key::ManualQualityMissing;
   if (error == "manual_quality_failed") return Key::ManualQualityFailed;
   if (error == "console") return Key::ConsoleVideoError;

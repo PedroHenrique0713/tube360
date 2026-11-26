@@ -44,6 +44,7 @@ inline bool parse(const std::string& s, J& j) {
     return !quoted && depth == 0 && picojson::parse(j,s).empty() && j.is<Object>();
 }
 enum State { UNKNOWN, LOADING, PLAYING, PAUSED, BUFFERING, IDLE, ERROR, STALLED };
+inline constexpr uint64_t startupTimeoutMs = 9000;
 struct Status {
     uint64_t generation = 0;
     State state = UNKNOWN;
@@ -148,7 +149,7 @@ private:
         bool baseMuted = false, sentMuted = false, fading = false;
         uint64_t volumeAt = 0;
         bool connected = false, receiverKnown = false, receiverPresent = false, mediaKnown = false;
-        bool possible = false, pending = false, acknowledged = false;
+        bool possible = false, pending = false, acknowledged = false, started = false;
         uint64_t generation = 0, command = 0, retryAt = 0, pollAt = 0, receiverAt = 0, pingAt = 0, heardAt = 0, actionAt = 0, stopAt = 0, began = 0;
         int requestId = 0, barrier = 0, stopBarrier = 0, lastMediaReply = 0, lastReceiverReply = 0;
         const auto sender = "sender-tube360-" + std::to_string(SDL_GetPerformanceCounter());
@@ -222,14 +223,14 @@ private:
             config = selected;
             if (changed) {
                 channel.close(); connected = false; endpoint = config; retryAt = 0;
-                if (pending && !possible) { began = now; view.state = LOADING; }
+                if (pending && !started) view.state = LOADING;
                 if (possible) journal();
             }
             view.volume = goal.volume >= 0 ? goal.volume : baseVolume;
             view.muted = goal.volume >= 0 ? goal.muted : baseMuted;
             if (goal.generation != generation) {
                 generation = goal.generation; command = goal.command;
-                pending = goal.active; acknowledged = false; actionAt = stopAt = 0;
+                pending = goal.active; acknowledged = started = false; actionAt = stopAt = 0;
                 began = now; view.released = false;
                 SDL_Log("Nest: console dono=%s gen=%llu",goal.active ? "console" : "liberando",(unsigned long long)generation);
                 stopBarrier = requestId; view.generation = generation;
@@ -245,15 +246,17 @@ private:
                 view.state = IDLE; view.quiet = view.released = true; view.connected = false;
                 publish(view); SDL_Delay(20); continue;
             }
-            if (goal.active && pending && !possible && now-began > 8000) {
-                SDL_Log("Nest: console erro aguardando conexao/LAUNCH/namespace (8000 ms)");
+            if (view.updated > 0 && view.clockReady && (view.state == PLAYING || view.state == PAUSED)) started = true;
+            // O journal exige recuperar a posse, mas não pode prolongar a abertura nem o LOAD sem relógio.
+            if (goal.active && !started && now-began >= startupTimeoutMs) {
+                SDL_Log("Nest: console erro aguardando abertura/LAUNCH/LOAD (%llu ms)", (unsigned long long)startupTimeoutMs);
                 view.state = ERROR; publish(view); SDL_Delay(20); continue;
             }
             if (!connected) {
                 view.connected = false; publish(view);
                 if (now < retryAt) { SDL_Delay(20); continue; }
                 // O IP salvo basta para tocar, inclusive sem UUID. A descoberta não autoriza o áudio.
-                int timeout = goal.active && pending && !possible ? int(std::min<uint64_t>(4000,8000-(now-began))) : 4000;
+                int timeout = goal.active && !started ? int(std::min<uint64_t>(4000,startupTimeoutMs-(now-began))) : 4000;
                 channel.close(); connected = channel.open(endpoint.host,endpoint.port,std::max(timeout,1),&quit); retryAt = SDL_GetTicks()+500;
                 if (!connected) { discovery.recover(); SDL_Log("Nest: console erro conectando Cast"); continue; }
                 receiverKnown = receiverPresent = mediaKnown = false; transport.clear(); receiverSession.clear(); mediaSession = 0;
@@ -371,7 +374,7 @@ private:
                         send(transport,cast::connection,{{"type",J(std::string("CONNECT"))},{"origin",J(Object{})}},false); pollAt = 0;
                     }
                 }
-                if (fresh && replyId > stopBarrier && apps.get<Array>().empty() && possible && (!goal.active || pending)) quiet();
+                if (fresh && replyId > stopBarrier && !receiverPresent && possible && (!goal.active || pending)) quiet();
             } else if (message.space == cast::media && message.source == transport) {
                 // A ordem vale para o estado, a sessão e a ausência de mídia, não só para currentTime.
                 if (replyId && (!fresh || replyId < lastMediaReply ||

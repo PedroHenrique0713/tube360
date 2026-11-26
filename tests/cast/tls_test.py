@@ -25,7 +25,8 @@ for source in ('tests/cast/tls_probe.cpp', 'client/src/cast/stream.cpp', 'client
         '-I'+str(next((root/'.work/src').glob('curl-xenon-*/include'))), '-c', str(root/source), '-o', str(obj)], check=True)
     objects.append(str(obj))
 args = shlex.split((root/'client/build/CMakeFiles/nest-test.dir/link.txt').read_text())
-args = [arg for arg in args if not arg.endswith('.o')]
+args = [arg for arg in args if not arg.endswith('.o') and arg != 'libtube360-cast.a'
+        and not arg.startswith('-Wl,--dependency-file=')]
 args[args.index('-o')+1] = str(folder/'check')
 args[1:1] = objects
 subprocess.run(args, cwd=root/'client/build', check=True)

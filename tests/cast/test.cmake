@@ -1,6 +1,17 @@
 # Mesmo main/player/render do produto, com os dois transportes substituídos no link por loopback.
+add_executable(nest-startup-test EXCLUDE_FROM_ALL "${CMAKE_CURRENT_LIST_DIR}/nest_startup.cpp")
+target_include_directories(nest-startup-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../client/src"
+  "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
+target_link_libraries(nest-startup-test PRIVATE tube360-cast tube360-yt tube360-ffmpeg SDL3::SDL3)
+
+add_executable(member-playback-test EXCLUDE_FROM_ALL "${CMAKE_CURRENT_LIST_DIR}/members.cpp")
+target_include_directories(member-playback-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../client/src"
+  "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
+target_link_libraries(member-playback-test PRIVATE tube360-cast tube360-yt tube360-ffmpeg SDL3::SDL3)
+
 add_executable(cast-test-app EXCLUDE_FROM_ALL
   $<TARGET_OBJECTS:tube360-main>
+  "${CMAKE_CURRENT_LIST_DIR}/../../client/src/cast/discovery.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../client/src/cast/lounge.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/../../client/src/cast/receiver.cpp"
   "${CMAKE_CURRENT_LIST_DIR}/transport.cpp")
@@ -9,7 +20,8 @@ target_compile_definitions(cast-test-app PRIVATE TUBE360_CAST_TEST=1 PICOJSON_US
 target_include_directories(cast-test-app PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
   "${CMAKE_CURRENT_LIST_DIR}/../../client/src" "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
 target_compile_options(cast-test-app PRIVATE -O2 -Wall -Wno-missing-field-initializers)
-target_link_libraries(cast-test-app PRIVATE tube360-update tube360-cast tube360-yt tube360-ffmpeg SDL3::SDL3 Vulkan::Vulkan)
+target_link_options(cast-test-app PRIVATE -Wl,--wrap=_ZN2yt5httpsEPKSt6atomicIbE)
+target_link_libraries(cast-test-app PRIVATE tube360-update tube360-yt tube360-ffmpeg CURL::libcurl SDL3::SDL3 Vulkan::Vulkan)
 add_executable(cast-protocol-test EXCLUDE_FROM_ALL
   "${CMAKE_CURRENT_LIST_DIR}/protocol.cpp" "${CMAKE_CURRENT_LIST_DIR}/../../client/src/cast/lounge.cpp")
 target_compile_features(cast-protocol-test PRIVATE cxx_std_17)
