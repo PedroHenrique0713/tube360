@@ -321,6 +321,15 @@ class GitHub:
 
 
 
+
+def proxied_client(headers, name):
+    """X-Forwarded-For: vale o último endereço, o que o proxy confiável acrescentou; o resto o cliente pode forjar."""
+    value = headers.get(name, '')
+    if name.lower() == 'x-forwarded-for':
+        value = value.split(',')[-1]
+    return str(ipaddress.ip_address(value.strip()))
+
+
 def trusted_proxy(ip, proxies):
     """Aceita IP exato ou faixa (rede overlay do Swarm, onde o IP do proxy muda ao reiniciar)."""
     try:
@@ -382,7 +391,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             ip = self.client_address[0]
             # Só o peer explicitamente autorizado pode fornecer UM endereço, sobrescrito pelo proxy.
             if trusted_proxy(ip, self.server.trusted_proxies):
-                ip = str(ipaddress.ip_address(self.headers.get('X-Real-IP', '')))
+                ip = proxied_client(self.headers, getattr(self.server, 'client_ip_header', 'X-Real-IP'))
             raw = self.rfile.read(length)
             if len(raw) != length:
                 raise ValueError('short body')
@@ -399,6 +408,7 @@ def main():
     github = configured_github()
     server = Server((os.environ.get('REPORT_BIND', '127.0.0.1'), int(os.environ.get('REPORT_PORT', '8080'))), Handler)
     server.trusted_proxies = set(filter(None, os.environ.get('REPORT_TRUSTED_PROXIES', '').split(',')))
+    server.client_ip_header = os.environ.get('REPORT_CLIENT_IP_HEADER', 'X-Real-IP')
     server.store = Store(os.environ.get('REPORT_DATA', './data'), github=github)
     threading.Thread(target=server.store.work, daemon=True).start()
     server.serve_forever()

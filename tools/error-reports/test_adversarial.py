@@ -102,3 +102,11 @@ class TrustedProxyRanges(unittest.TestCase):
         self.assertFalse(trusted_proxy('not-an-ip', {'0.0.0.0/0'}))
         self.assertFalse(trusted_proxy('10.11.3.7', {'lixo', ''}))
 
+    def test_forwarded_for_uses_last_hop(self):
+        from receiver import proxied_client
+        h = {'X-Forwarded-For': '198.51.100.7, 203.0.113.9', 'X-Real-IP': '198.51.100.7'}
+        self.assertEqual(proxied_client(h, 'X-Forwarded-For'), '203.0.113.9')
+        self.assertEqual(proxied_client({'X-Forwarded-For': '203.0.113.9'}, 'X-Forwarded-For'), '203.0.113.9')
+        with self.assertRaises(ValueError):
+            proxied_client({'X-Forwarded-For': '198.51.100.7, lixo'}, 'X-Forwarded-For')
+
