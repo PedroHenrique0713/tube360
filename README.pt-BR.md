@@ -1,3 +1,5 @@
+<p align="center"><a href="https://github.com/revive360"><img src="docs/img/revive360-strip.svg" alt="Um projeto da Revive360" width="100%"></a></p>
+
 # YouTube no Xbox 360, sem PC.
 
 <p align="center">
