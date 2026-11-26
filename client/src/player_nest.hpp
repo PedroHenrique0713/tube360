@@ -38,9 +38,11 @@ inline void Player::directNestLoop() {
     if (speakerRequested && live) LOG("Nest: live na TV; HLS sem origem comum entre imagem e relogio Cast");
     directSpeaker.release(); output = RELEASING;
     uint64_t heard = SDL_GetTicks();
+    uint64_t releasing = heard;
     while (!stop) {
       auto s = directSpeaker.sample();
       if (s.quiet) break;
+      if (SDL_GetTicks()-releasing >= nest::startupTimeoutMs) break;
       if (s.connected) heard = SDL_GetTicks();
       else if (SDL_GetTicks()-heard > speakerGoneMs) { LOG("som: Nest sem contato há %llu ms; volta para a TV", (unsigned long long)speakerGoneMs); break; }
       SDL_Delay(20);
@@ -55,32 +57,43 @@ inline void Player::directNestLoop() {
   if (stop) return;
   uint64_t generation = directSpeaker.play(audioUrl,id,startAt,media.duration,!paused);
   uint64_t requested = SDL_GetTicks(), localSince = 0, lastAttempt = requested;
-  bool starting = false, failedStart = false;
+  bool starting = false, failedStart = false, established = false;
   int last = 0, expected = 0;
   uint64_t heard = 0;
   auto release = [&]() {
     directSpeaker.release(); output = RELEASING; armed = false; heard = SDL_GetTicks();
     SDL_LockMutex(nmu); nestState = 0; SDL_UnlockMutex(nmu);
   };
+  auto local = [&]() {
+    armed = mutedForCast = false; cueMs = -1;
+    output = LOCAL; localSince = SDL_GetTicks(); last = expected = 0;
+    speakerFallback = true;
+  };
   while (!stop) {
     uint64_t now = SDL_GetTicks();
     auto sample = directSpeaker.sample();
+    if (sample.generation == generation && sample.updated > 0 && sample.clockReady &&
+        (sample.state == nest::PLAYING || sample.state == nest::PAUSED)) established = true;
+    // A TV tem o mesmo PCM pronto. Na abertura, nem um STOP sem resposta pode prender a saída.
+    if (!established && output != LOCAL && now-requested >= nest::startupTimeoutMs) {
+      failedStart = true;
+      LOG("Nest: abertura sem relogio em %llu ms; tocando na TV", (unsigned long long)nest::startupTimeoutMs);
+      release(); local();
+    }
     if (output == RELEASING) {
       if (sample.connected) heard = now;
       bool gone = !sample.quiet && !sample.connected && now-heard > speakerGoneMs;
       if (sample.quiet || gone) {
-        armed = mutedForCast = false; cueMs = -1;
-        output = LOCAL; localSince = now; last = expected = 0;
+        local();
         if (gone) LOG("som: Nest sem contato há %llu ms; volta para a TV", (unsigned long long)speakerGoneMs);
         else LOG("som: Cast confirmou silêncio");
-        speakerFallback = true;
       }
       SDL_Delay(20); continue;
     }
     if (output == LOCAL) {
       if (!failedStart && !paused && localPlaying && now-localSince > 1200 && now-lastAttempt > 5000 && speakerTargetMs >= 0) {
         cueMs = int(std::lround(std::round((speakerTargetMs+2000)*.030)*(1000.0/30)));
-        output = PRIMING; armed = mutedForCast = false; starting = false;
+        output = PRIMING; armed = mutedForCast = false; starting = established = false;
         generation = directSpeaker.play(audioUrl,id,startAt+(cueMs-wantedOffsetMs)/1000.0,media.duration,false);
         requested = lastAttempt = now;
       }
@@ -108,11 +121,10 @@ inline void Player::directNestLoop() {
         last = st;
       }
       bool expired = sample.observed > 0 && now-sample.observed > 25000;
-      bool neverStarted = !sample.updated && now-requested > 25000;
-      if (st == 3 || st == 4 || expired || neverStarted) {
-        if (!last) failedStart = true;
+      if (st == 3 || st == 4 || expired) {
+        if (!established) failedStart = true;
         LOG("Nest: console erro/status=%d; liberando para TV (%s)",st,
-            expired ? "sem noticia por 25 s" : neverStarted ? "sem relogio por 25 s" : "estado do receptor");
+            expired ? "sem noticia por 25 s" : "estado do receptor");
         release();
       }
     }

@@ -62,7 +62,11 @@ public:
 };
 }
 namespace yt {
+#ifdef TUBE360_CAST_TEST
+extern "C" std::unique_ptr<Transport> __wrap__ZN2yt5httpsEPKSt6atomicIbE(const std::atomic_bool* cancel) { return std::make_unique<Mock>(cancel); }
+#else
 std::unique_ptr<Transport> https(const std::atomic_bool* cancel) { return std::make_unique<Mock>(cancel); }
+#endif
 }
 namespace cast {
 long channel(const string& url, const std::atomic_bool& cancel, const std::function<bool(const string&)>& deliver) {
