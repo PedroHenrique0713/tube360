@@ -1,4 +1,4 @@
-"""Servidor FastAPI real + cliente real em SD, com catálogo/conta/mídia locais."""
+"""Servidor FastAPI real como sentinela: preferências antigas não o habilitam no cliente SD."""
 import asyncio
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import importlib.util
@@ -40,6 +40,11 @@ def serve():
     m = importlib.util.module_from_spec(spec)
     sys.path.insert(0,str(ROOT/'server'))
     spec.loader.exec_module(m)
+    @m.app.middleware('http')
+    async def audit_requests(request, call_next):
+        with (work/'server-requests.txt').open('a') as audit:
+            audit.write(request.url.path+'\n')
+        return await call_next(request)
     async def home(*args, **kwargs):
         return [dict(id=f'video{i:06}', duration=125, channel='Canal de prueba', views='1200 views',
                      title=f'Paisajes y viajes en tren — episodio {i}', pos=0) for i in range(1, 25)]
@@ -70,6 +75,7 @@ config.update(language='es', warm_cache=False)
 (work/'config.json').write_text(json.dumps(config))
 env = dict(os.environ, HOME=str(home), TUBE360_CONFIG=str(work/'config.json'), TUBE360_PORT='8152',
            TUBE360_ACCOUNT_URL='http://127.0.0.1:8252', TUBE360_WARM_CACHE='0')
+(work/'server-requests.txt').unlink(missing_ok=True)
 with (work/'server.log').open('w') as log:
     proc = subprocess.Popen([sys.executable, __file__, str(work), '--serve'], env=env, stdout=log, stderr=subprocess.STDOUT)
     (work/'server.pid').write_text(str(proc.pid))
@@ -87,6 +93,7 @@ with (work/'server.log').open('w') as log:
         with urllib.request.urlopen('http://127.0.0.1:8152/api/feed?kind=home&n=24&offset=0&fresh=0&lang=es') as reply:
             body=reply.read().decode()
         assert 'Recomendados' in body and '1.2 mil vistas' in body
+        requests_before = (work/'server-requests.txt').read_text()
         (work/'blocked').mkdir(exist_ok=True)
         for name, extra in [('480-server-home', {}), ('480-server-player', {'XT_PLAY':'4p_9OPKgcDE'})]:
             assets=work/name
@@ -102,9 +109,11 @@ with (work/'server.log').open('w') as log:
             subprocess.run(['magick', str(assets/'screen.ppm'), str(assets/'screen.png')], check=True)
             app_log=(assets/'app.log').read_text()
             assert 'captura: ' in app_log
+            assert '(desligado: só console)' in app_log, app_log
+            assert (work/'server-requests.txt').read_text() == requests_before, 'app contacted the legacy server'
             if extra:
-                assert 'primeiro quadro' in app_log and 'posição 0.00' not in app_log
-        print('HTTP es feed + SD home + actual server stream passed; isolated server PID', proc.pid)
+                assert 'primeiro quadro:' not in app_log and 'estado=5 erro=console' in app_log, app_log
+        print('HTTP es feed + 2 SD app cases passed; no legacy server requests; isolated server PID', proc.pid)
     finally:
         proc.terminate()
         try:
