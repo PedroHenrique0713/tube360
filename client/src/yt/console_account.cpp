@@ -180,6 +180,7 @@ struct Item {
     string type, id, title, byline, image, channelId, section;
     int duration=0, pos=0;
     Membership members=Membership::None;
+    bool shortForm=false;
 };
 struct Parsed {
     std::vector<Item> items;
@@ -203,7 +204,13 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     const auto& watch=get(ep,"watchEndpoint");
     auto type=str(v,"contentType");
     Item item; item.section=section; item.members=membership(v);
+    item.shortForm=key=="reelItemRenderer" || key=="shortsLockupViewModel" || get(ep,"reelWatchEndpoint").is<O>();
     item.id=str(v,"videoId");
+    if (item.id.empty()) item.id=str(get(ep,"reelWatchEndpoint"),"videoId");
+    if (item.id.empty() && key=="shortsLockupViewModel") {
+        const auto& tap=get(v,"onTap"); const auto& command=get(tap,"innertubeCommand");
+        item.id=str(get(command.is<O>() ? command : tap,"reelWatchEndpoint"),"videoId");
+    }
     if (item.id.empty()) item.id=str(watch,"videoId");
     if (item.id.empty()) item.id=str(browse,"browseId");
     if (item.id.empty()) item.id=str(v,"playlistId");
@@ -219,6 +226,8 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     item.title=text(title);
     if (item.title.empty()) item.title=text(get(lock,"title"));
     if (item.title.empty()) item.title=text(get(v,"title"));
+    if (item.title.empty() && key=="reelItemRenderer") item.title=text(get(v,"headline"));
+    if (item.title.empty() && key=="shortsLockupViewModel") item.title=text(get(get(v,"overlayMetadata"),"primaryText"));
     if (item.title.empty()) item.title=item.id;
     item.byline=text(get(v,"shortBylineText"));
     if (item.byline.empty()) item.byline=text(get(v,"longBylineText"));
@@ -236,13 +245,14 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     item.image=image(v);
     item.duration=seconds(text(get(v,"lengthText")));
     const auto& overlays=key=="tileRenderer" ? get(get(get(v,"header"),"tileHeaderRenderer"),"thumbnailOverlays") : get(v,"thumbnailOverlays");
-    bool hidden=flag(v,"isUpcoming") || v.contains("upcomingEventData") || get(ep,"reelWatchEndpoint").is<O>();
+    bool hidden=flag(v,"isUpcoming") || v.contains("upcomingEventData");
     const auto& playable=get(v,"isPlayable");
     hidden=hidden || (playable.is<bool>() && !playable.get<bool>() && item.members==Membership::None);
     for (auto& overlay:arr(overlays)) {
         const auto& timing=get(overlay,"thumbnailOverlayTimeStatusRenderer");
         auto style=str(timing,"style");
-        hidden=hidden || style.find("UPCOMING")!=string::npos || style.find("SHORTS")!=string::npos;
+        hidden=hidden || style.find("UPCOMING")!=string::npos;
+        item.shortForm=item.shortForm || style.find("SHORTS")!=string::npos;
         if (!item.duration) item.duration=seconds(text(get(timing,"text")));
         double progress=num(get(get(overlay,"thumbnailOverlayResumePlaybackRenderer"),"percentDurationWatched"));
         item.pos=int(item.duration*std::clamp(progress,0.0,100.0)/100.0+0.5);
@@ -250,7 +260,8 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     std::vector<const J*> badges; nodes(get(v,"badges"),"metadataBadgeRenderer",badges); nodes(get(meta,"lines"),"metadataBadgeRenderer",badges);
     for (auto* badge:badges) {
         auto style=str(*badge,"style");
-        hidden=hidden || style.find("SHORTS")!=string::npos || style.find("UPCOMING")!=string::npos;
+        hidden=hidden || style.find("UPCOMING")!=string::npos;
+        item.shortForm=item.shortForm || style.find("SHORTS")!=string::npos;
     }
     if (hidden || !id(item.id)) return;
     if (playlist) item.type="playlist";
@@ -258,7 +269,7 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     else if (type=="LOCKUP_CONTENT_TYPE_PLAYLIST" || item.id.compare(0,2,"VL")==0 || item.id.compare(0,2,"PL")==0 || item.id.compare(0,2,"RD")==0) item.type="playlist";
     else if (id(item.id,11)) item.type="video";
     else return;
-    if (item.type!="video") item.members=Membership::None;
+    if (item.type!="video") { item.members=Membership::None; item.shortForm=false; }
     if (out.seen.insert(item.type+item.id).second && out.items.size()<256) out.items.push_back(std::move(item));
 }
 void walk(const J& j, Parsed& out, const string& section="", int depth=0) {
@@ -266,7 +277,7 @@ void walk(const J& j, Parsed& out, const string& section="", int depth=0) {
     else if (j.is<O>()) for (auto& kv:j.get<O>()) {
         const auto& k=kv.first; const auto& v=kv.second;
         static const std::set<string> renderers={"tileRenderer","videoRenderer","gridVideoRenderer","playlistVideoRenderer","playlistPanelVideoRenderer",
-            "lockupViewModel","channelRenderer","gridChannelRenderer","playlistRenderer","gridPlaylistRenderer"};
+            "lockupViewModel","channelRenderer","gridChannelRenderer","playlistRenderer","gridPlaylistRenderer","reelItemRenderer","shortsLockupViewModel"};
         if (renderers.count(k)) render(v,k,section,out);
         else if (k=="tabRenderer") { if (flag(v,"selected")) walk(get(v,"content"),out,section,depth+1); }
         else if (k=="shelfRenderer") {
@@ -537,7 +548,7 @@ struct ConsoleAccount::Impl {
                 list.channelId=itemId;
                 list.subscribed=flag(first(h,"subscribeButtonRenderer"),"subscribed");
                 std::vector<const J*> shelves; nodes(j,"shelfRenderer",shelves);
-                const auto pattern=tab=="live" ? "live|vivo|transmiss" : tab=="playlists" ? "playlists" : "^videos$|^vídeos$|^uploads$";
+                const auto pattern=tab=="shorts" ? "shorts" : tab=="live" ? "live|vivo|transmiss" : tab=="playlists" ? "playlists" : "^videos$|^vídeos$|^uploads$";
                 bool matched=false;
                 for (auto* shelf:shelves) {
                     auto title=text(get(*shelf,"title"));
@@ -631,8 +642,8 @@ struct ConsoleAccount::Impl {
         for (size_t i=size_t(offset); i<end; ++i) {
             const auto& v=list.items[i];
             if (feed) {
-                if (v.type=="video") body+=v.id+"\t"+std::to_string(v.duration)+"\t"+clean(v.byline)+"\t\t"+clean(v.title)+"\t"+std::to_string(v.pos)+"\t"+membershipWire(v.members)+"\n";
-            } else if (!play || v.type=="video") body+=v.type+"\t"+v.id+"\t"+clean(v.title)+"\t"+clean(v.byline)+"\t"+std::to_string(v.duration)+"\t"+itemImage(v)+"\t"+v.channelId+"\t"+clean(v.section)+"\t"+membershipWire(v.members)+"\n";
+                if (v.type=="video") body+=v.id+"\t"+std::to_string(v.duration)+"\t"+clean(v.byline)+"\t\t"+clean(v.title)+"\t"+std::to_string(v.pos)+"\t"+membershipWire(v.members)+(v.shortForm ? "\tshort" : "")+"\n";
+            } else if (!play || v.type=="video") body+=v.type+"\t"+v.id+"\t"+clean(v.title)+"\t"+clean(v.byline)+"\t"+std::to_string(v.duration)+"\t"+itemImage(v)+"\t"+v.channelId+"\t"+clean(v.section)+"\t"+membershipWire(v.members)+(v.shortForm ? "\tshort" : "")+"\n";
         }
         return {body,{}};
     }

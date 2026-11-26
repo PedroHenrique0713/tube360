@@ -9,7 +9,7 @@ struct NavItem {
   bool shortForm = false;
   Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = duration; v.members = members; return v; }
 };
-struct NavPage {
+struct NavPage : ItemGrid {
   yt::search::Filters filters;
   std::string filterLabel;
   std::vector<std::string> filterLines;
@@ -22,59 +22,10 @@ struct NavPage {
   std::vector<Shelf> shelves;
   int shelf = 0;
   bool musicHome() const { return kind == "music"; }
-  struct GridRow { std::vector<int> items; bool shorts = false; };
-  std::vector<GridRow> rows;
-  std::vector<int> itemRows;
-  int gridSize = -1, gridCols = 0, gridColumn = 0, shortColumn = 0;
-  bool gridHide = false;
-  void grid(int cols, bool hide) {
-    hide = hide && !(kind == "channel" && tab == "shorts");
-    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide) {
-      gridSize = (int)items.size(); gridCols = cols; gridHide = hide;
-      rows.clear(); itemRows.assign(items.size(), -1);
-      int shortRow = -1;
-      for (int i = 0; i < gridSize; ++i) {
-        if (items[i].shortForm) {
-          if (hide) continue;
-          if (shortRow < 0) { shortRow = (int)rows.size(); rows.push_back({{},true}); }
-          rows[shortRow].items.push_back(i); itemRows[i] = shortRow;
-        } else {
-          if (rows.empty() || rows.back().shorts || (int)rows.back().items.size() == cols) rows.push_back({});
-          rows.back().items.push_back(i); itemRows[i] = (int)rows.size()-1;
-        }
-      }
-    }
-    if (rows.empty()) { sel = 0; return; }
-    if (sel < 0 || sel >= gridSize || itemRows[sel] < 0) {
-      int next = std::clamp(sel, 0, std::max(0, gridSize-1));
-      while (next < gridSize && itemRows[next] < 0) ++next;
-      if (next == gridSize) { next = gridSize-1; while (next >= 0 && itemRows[next] < 0) --next; }
-      sel = next;
-    }
-  }
-  int gridRow() const { return sel >= 0 && sel < (int)itemRows.size() ? itemRows[sel] : -1; }
-  int gridPosition() const {
-    int row = gridRow(); if (row < 0) return 0;
-    const auto& indices = rows[row].items;
-    return (int)(std::find(indices.begin(),indices.end(),sel)-indices.begin());
-  }
-  bool moveGrid(int horizontal, int vertical) {
-    int row = gridRow(); if (row < 0) return false;
-    int col = gridPosition();
-    if (horizontal) {
-      col = std::clamp(col+horizontal,0,(int)rows[row].items.size()-1);
-      sel = rows[row].items[col];
-      if (rows[row].shorts) shortColumn = col; else gridColumn = col;
-    }
-    if (vertical) {
-      if (!rows[row].shorts) gridColumn = col;
-      int next = row+vertical;
-      if (next < 0 || next >= (int)rows.size()) return false;
-      int column = rows[next].shorts ? shortColumn : gridColumn;
-      sel = rows[next].items[std::clamp(column,0,(int)rows[next].items.size()-1)];
-    }
-    return true;
-  }
+  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,hide && !(kind == "channel" && tab == "shorts")); }
+  int gridRow() const { return ItemGrid::gridRow(sel); }
+  int gridPosition() const { return ItemGrid::gridPosition(sel); }
+  bool moveGrid(int horizontal, int vertical) { return ItemGrid::moveGrid(sel,horizontal,vertical); }
   float scroll = 0;
   uint64_t stamp = 0;
   std::string path() const {
@@ -149,7 +100,10 @@ struct Navigation {
       p.direct = r.feed.direct;
       if (p.direct) {
         p.title = p.query; p.subtitle = i18n::get(lang, K::Console); p.more = false;
-        for (const auto& v : r.feed.items) p.items.push_back({"video",v.id,v.title,v.channel,v.id,"","",v.dur,v.members});
+        for (const auto& v : r.feed.items) {
+          NavItem item{"video",v.id,v.title,v.channel,v.id,"","",v.dur,v.members};
+          item.shortForm=v.shortForm; p.items.push_back(std::move(item));
+        }
         p.offset = (int)p.items.size();
       } else if (!parse(r.feed.title, p, !first) && p.error.empty()) p.error = i18n::get(lang, K::BadResponse);
       if (p.error=="account_music_unavailable") p.error=i18n::get(lang,K::MusicAccountUnavailable);
@@ -194,7 +148,7 @@ struct Navigation {
         }
         float width = std::floor((ui::W-200-(ui::columns(4)-1)*24)/ui::columns(4));
         if (item.shortForm) width = std::min(width*.5f,112.f);
-        item.titleLines = gfx::wrap(g, item.shortForm ? ui::F_SMALL : ui::F_KEY, item.title, width-(p.kind=="library" ? 24 : 0), 2);
+        item.titleLines = gfx::wrap(g, item.shortForm ? ui::F_SMALL : ui::F_KEY, item.title, width-(p.kind=="library" && !item.shortForm ? 24 : 0), 2);
         std::string by = item.type == "album" ? std::string(i18n::get(lang, K::Album)) + (item.channel.empty() ? "" : " · " + item.channel) :
             item.type == "artist" ? i18n::get(lang, K::Artist) : item.channel;
         item.byline = gfx::ellipsize(g, item.shortForm ? ui::F_TINY : ui::F_CHAN, by, width);
@@ -357,7 +311,7 @@ struct Navigation {
       float y=rowY, artW=row.shorts ? shortW : art, artH=row.shorts ? shortH : h;
       rowY += row.shorts ? shortRowH : rowH;
       if (y < top-2 || y >= 646) continue;
-      if (p.kind == "library" && y+h > 656) continue;
+      if (p.kind == "library" && !row.shorts && y+h > 656) continue;
       int first=0, visible=(int)row.items.size();
       if (row.shorts) {
         if (y+g.fonts[ui::F_KEY].lineH <= 646) gfx::text(g,ui::F_KEY,tr(K::ChannelShorts),136,y,ui::TEXT);
@@ -377,7 +331,7 @@ struct Navigation {
       const auto* saved=local && (!signedIn || p.kind=="local_later" || p.kind=="local_history")?local::Library::find(local->history,item.id):nullptr;
       double pos=saved?saved->position:0,duration=saved?saved->duration:item.duration;
       if(item.type=="video" && pos>0 && duration>0 && y+artH <= 646){gfx::rect(g,x+4,y+artH-6,artW-8,4,ui::SURFACE2,2);gfx::rect(g,x+4,y+artH-6,(artW-8)*float(std::clamp(pos/duration,0.0,1.0)),4,ui::A1,2);}
-      if (p.kind == "library") {
+      if (p.kind == "library" && !row.shorts) {
         gfx::vgrad(g, x, y, art, h, {0,0,0,0}, {0,0,0,0.94f}, 12);
         float labelY = y + h - 12 - 27 * item.titleLines.size();
         for (const auto& line : item.titleLines) { gfx::textBox(g, ui::F_KEY, line, x + 12, labelY, art-24, ui::TEXT); labelY += 27; }

@@ -97,15 +97,27 @@ void collect(const J& j, Page& out, std::set<string>& seen, size_t limit) {
             const J& v = kv.second;
             if (kv.first=="videoRenderer" || kv.first=="compactVideoRenderer" ||
                 kv.first=="gridVideoRenderer" || kv.first=="videoWithContextRenderer" ||
-                kv.first=="lockupViewModel" || kv.first=="endScreenVideoRenderer") {
+                kv.first=="lockupViewModel" || kv.first=="endScreenVideoRenderer" ||
+                kv.first=="reelItemRenderer" || kv.first=="shortsLockupViewModel") {
                 auto id = str(v,"videoId"), title = label(field(v,"title"));
+                bool shortForm=kv.first=="reelItemRenderer" || kv.first=="shortsLockupViewModel";
+                if (kv.first=="reelItemRenderer" && id.empty()) id=str(field(field(v,"navigationEndpoint"),"reelWatchEndpoint"),"videoId");
+                if (kv.first=="reelItemRenderer" && title.empty()) title=label(field(v,"headline"));
+                if (kv.first=="shortsLockupViewModel") {
+                    const auto& tap=field(v,"onTap");
+                    const auto& command=field(tap,"innertubeCommand");
+                    if (id.empty()) id=str(field(command.is<Object>() ? command : tap,"reelWatchEndpoint"),"videoId");
+                    if (title.empty()) title=str(field(field(v,"overlayMetadata"),"primaryText"),"content");
+                }
+                if (shortForm && (id.size()!=11 || id.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-")!=string::npos)) continue;
+                if (shortForm && title.empty()) title=id;
                 if (kv.first=="lockupViewModel") {
                     if (str(v,"contentType") != "LOCKUP_CONTENT_TYPE_VIDEO") continue;
                     id = str(v,"contentId");
                     title = str(field(field(field(v,"metadata"),"lockupMetadataViewModel"),"title"),"content");
                 }
                 if (!id.empty() && !title.empty() && seen.insert(id).second && out.cards.size()<limit)
-                    out.cards.push_back({id,title,membership(v)});
+                    out.cards.push_back({id,title,membership(v),shortForm});
             } else collect(v,out,seen,limit);
         }
     }

@@ -9,11 +9,12 @@
 void check(bool ok,const char* why){if(!ok){std::fprintf(stderr,"FAIL %s\n",why);std::exit(1);}}
 int main(){
   Settings defaults;net::Server server;
-  check(defaults.server && !net::effectiveServer(server,defaults.server),"auto preference without address is console-only");
+  check(!defaults.server && !net::effectiveServer(server,defaults.server),"server defaults off without an address");
   for(bool requested:{true,false,true})check(!net::effectiveServer(server,requested),"settings toggle never enables an unconfigured server");
   server.ip="127.0.0.1";
+  check(!net::effectiveServer(server,defaults.server),"default remains console-only even with a configured legacy address");
   check(net::effectiveServer(server,true) && !net::effectiveServer(server,false),"configured server follows explicit preference");
-  std::puts("PASS server: default auto without address, repeated toggle and configured/off modes");
+  std::puts("PASS server: default off with or without address, repeated toggle and legacy configured/off modes");
   playback::QualityPressure pressure;
   check(!pressure.sample(3800,1000,true,true,true,true) && !pressure.sample(7700,1000,true,true,true,true),"reported 3.8/7.7 second startup windows cannot trigger source drops");
   pressure.changed(0);

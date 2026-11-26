@@ -10,6 +10,7 @@ static void require(bool ok,const char* label) {
   ++f52Checks;
   if (!ok) { std::cerr<<"FAIL "<<label<<'\n'; std::exit(1); }
 }
+#include "feed_contracts.hpp"
 static NavItem card(int index,bool shortForm=false) {
   NavItem item; item.type="video"; item.id="f52vid"+std::to_string(10000+index);
   item.title="Video "+std::to_string(index); item.image=item.id; item.shortForm=shortForm;
@@ -133,11 +134,16 @@ static void drawContract() {
   require(std::all_of(g.verts.begin(),g.verts.end(),[](const auto& v){return v.y<=720;}),"partial rows never leak below logical safe area on CRT");
   std::cout<<"PASS draw: CRT/large partial thumbnails stay inside logical 720px safe area\n";
   ui::W=1280; ui::narrow=ui::large=false;
+  nav.page().kind="library"; nav.page().items={card(100,true),card(101,true)};
+  nav.format(nav.page(),g,i18n::Lang::EN);
+  g.verts.clear(); g.cmds.clear(); nav.draw(g,thumbs,worker,5,5,i18n::Lang::EN,true);
+  require(std::none_of(g.cmds.begin(),g.cmds.end(),[](const auto& cmd){return cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-252)<.01 && std::abs(cmd.params[1]-141.75)<.01;}),"library Shorts do not receive a landscape playlist overlay");
+  std::cout<<"PASS draw: library Shorts retain compact portrait artwork and labels\n";
   SDL_DestroyCondition(worker.cv); SDL_DestroyMutex(worker.mu); SDL_Quit();
 }
 int main(int argc,char** argv) {
   require(argc==2,"isolated directory required");
   std::filesystem::create_directories(argv[1]);
-  settingsContract(std::string(argv[1])+"/"); parserContract(); layoutContract(); drawContract();
+  settingsContract(std::string(argv[1])+"/"); parserContract(); layoutContract(); drawContract(); feedContract(std::string(argv[1])+"/");
   std::cout<<f52Checks<<" F52 checks passed\n";
 }

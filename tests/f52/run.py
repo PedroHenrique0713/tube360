@@ -27,6 +27,14 @@ def run(name, source, *args):
     command[command.index('-o') + 1] = str(output)
     subprocess.run(command, cwd=build, check=True)
     print('RUN', name, flush=True)
+    if name == 'h264-policy':
+        for height, size in ((1080, '1920x1080'), (720, '1280x720')):
+            media = work / f'{height}.mp4'
+            if not media.exists():
+                subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-f', 'lavfi',
+                                '-i', f'testsrc2=size={size}:rate=30', '-t', '2.1', '-an',
+                                '-c:v', 'libx264', '-threads', '2', '-preset', 'ultrafast',
+                                '-g', '30', str(media)], check=True)
     environment = dict(os.environ, SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy')
     result = subprocess.run([str(output), *map(str, args)], cwd=ROOT, env=environment)
     print('EXIT', name, result.returncode, flush=True)
@@ -50,6 +58,8 @@ cases = [
     ('reddit-contract', 'tests/reddit/contracts.cpp'),
     ('arabic-render', 'bench/arabic/render_test.cpp', ROOT / 'client/assets'),
     ('h264-policy', 'bench/1080p-app/policy_test.cpp', work / '1080.mp4', work / '720.mp4', str(work)+'/'),
+    ('standalone', 'bench/standalone/test.cpp', ROOT / 'bench/standalone/fixtures'),
+    ('player-extras', 'bench/player-extras/test.cpp'),
 ]
 passed = 0
 if not sys.argv[1:]:
