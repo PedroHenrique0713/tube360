@@ -53,6 +53,16 @@ int main(int argc,char** argv) {
     check(reports::category("Vulkan falhou (2): vkWaitForFences(g.dev,1,&fence,VK_TRUE,5000000000)",fenceInfo)=="crash","real Vulkan fence failure remains crash");
     check(reports::category("gpu.vulkan -4: vkWaitForFences(...)",fenceInfo)=="crash","boot error extracted from Vulkan failure remains crash");
     check(reports::category("unclean session",fenceInfo)=="crash","unannounced hang with only informational fences remains reportable");
+    check(reports::category("diagnostic",reports::scrub(fenceInfo))=="other","sanitized fence budget remains informational");
+    for(auto separator:{"gpu.fence", "gpu fence", "gpu_fence", "gpu-fence"})
+        check(reports::category(string(separator)+" failed",fenceInfo)=="crash","all receiver GPU fence separators are recognized by launcher");
+    J infoDoc=J(O{{"version",J(string("0.3.3"))},{"build",J(string("33"))},{"hardware",J(string("Corona"))},
+                 {"screen",J(string("Player"))},{"error",J(string("diagnostic"))},{"log",J(fenceInfo)}});
+    string infoWire=reports::sanitize(infoDoc.serialize(),installation);
+    J safeInfo;
+    check(parse(infoWire,safeInfo) && text(safeInfo,"log").find("frame.fence [video] timeout=")!=string::npos &&
+          text(safeInfo,"category")=="other","real sanitizer sends the legacy first-frame text as [video]");
+    check(reports::sanitize(infoWire,installation)==infoWire,"queued informational fences keep category on retry");
     string dirty="open\n";
     string privateLog="peer 192.168.1.50 203.0.113.25 video dQw4w9WgXcQ x_y-Z012345\nNest: Sala da Maria\ncast name=Bedroom\nAuthorization: Bearer ABC.secret\nya29.secret\n{\"refresh_token\":\"private space\"}\naccess_token=secret\naccount: Example Name\nquery=private search\n";
     auto clean=reports::scrub(privateLog);
@@ -85,6 +95,9 @@ int main(int argc,char** argv) {
     write(d+"session.txt","clean\nterminated by system\n");write(d+"boot-app.log",fenceInfo);
     check(reports::make(d).empty(),"system termination marker means no report");
     Host terminated;launchApp(d,"",terminated);check(terminated.posts==0 && terminated.launches==1 && terminated.shown.empty(),"system termination launches app without a report or receipt");
+    write(d+"session.txt","clean\nterminated by system\n"+string(200,'x')+"\napp_started=1\n");
+    check(reports::make(d).empty(),"untruncated marker tail cannot change clean prefix policy");
+    Host tail;launchApp(d,"",tail);check(tail.posts==0 && tail.launches==1,"clean prefix with old bytes does not post");
     write(d+"session.txt",dirty);write(d+"tube360.log","navegacao: Home -> Player\n");
     write(d+"boot-app.log","boot app begin app.loop running\n"+fenceInfo);
     J hang;check(parse(reports::make(d),hang) && text(hang,"category")=="crash" && text(hang,"error").find("last checkpoint: app.loop")!=string::npos,"hang report uses last useful checkpoint, not informational fence line");

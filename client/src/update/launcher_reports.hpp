@@ -12,7 +12,8 @@ namespace updates::reports {
 inline constexpr const char* endpoint="https://tube360.hypermind.space/api/report";
 inline string lower(string s) {for(char& c:s)c=char(std::tolower(static_cast<unsigned char>(c)));return s;}
 inline bool fenceInfo(const string& line) {
-    return (line.find("frame.fence")!=string::npos && line.find("first-frame timeout=")!=string::npos) ||
+    return (line.find("frame.fence")!=string::npos &&
+            (line.find("first-frame timeout=")!=string::npos || line.find("[video] timeout=")!=string::npos)) ||
            (line.find("gpu fence timeout=")!=string::npos && line.find("physical screen cannot be verified by software")!=string::npos);
 }
 inline string diagnostics(const string& input) {
@@ -32,7 +33,8 @@ inline bool gpuFailure(const string& input) {
         auto end=input.find('\n',at);if(end==string::npos)end=input.size();
         auto line=input.substr(at,end-at);
         if(line.find("vulkan falhou (")!=string::npos || line.rfind("gpu.vulkan ",0)==0 || line.find(" error gpu.vulkan ")!=string::npos)return true;
-        if(line.find("gpu.fence")!=string::npos || line.find("gpu fence")!=string::npos) {
+        if(line.find("gpu.fence")!=string::npos || line.find("gpu fence")!=string::npos ||
+           line.find("gpu_fence")!=string::npos || line.find("gpu-fence")!=string::npos) {
             if(line.find("failed")!=string::npos || line.find("dead")!=string::npos || line.find("timed out")!=string::npos)return true;
             auto timeout=line.find("timeout");
             if(timeout!=string::npos && (timeout+7==line.size() || line[timeout+7]!='='))return true;

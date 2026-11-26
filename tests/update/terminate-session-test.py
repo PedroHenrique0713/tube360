@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 """Executa o callback compilado com headers xsdk e o launcher real, só em arquivos locais."""
 from pathlib import Path
+import re
 import subprocess
 import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
 build = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else ROOT / 'client/build'
+# O callback isolado não prova que o executável o registra antes de iniciar serviços.
+source = (ROOT / 'client/src/main.cpp').read_text()
+source = re.sub(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'',
+                lambda m: ' ' if m[0].startswith(('//', '/*')) else m[0], source, flags=re.S)
+if not re.search(r'^int\s+main\s*\([^)]*\)\s*\{\s*#ifdef\s+__XSDK__\s+'
+                 r'boot_open\s*\(\s*""\s*,\s*"app"\s*\)\s*;\s*'
+                 r'xsdk_on_terminate\s*\(\s*boot_session_terminated\s*\)\s*;', source, re.M):
+    raise SystemExit('FAIL main termination registration: expected immediately after boot_open at entry')
+print('PASS main termination registration immediately after boot_open at entry', flush=True)
 probe = r'''
 #include "update/launcher.hpp"
 #include <cassert>
@@ -37,6 +47,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-f56-terminate-') as temporary:
     native = base / 'native'
     subprocess.run(['cc', '-std=c11', '-D_POSIX_C_SOURCE=200809L', '-D__XSDK__', *include,
                     str(ROOT / 'tests/update/terminate-session.c'), str(obj), '-pthread',
+                    str(ROOT / '.work/native-display/xsdk/src/terminate.c'),
                     '-Wl,--wrap=fopen', '-Wl,--wrap=malloc', '-Wl,--wrap=pthread_mutex_lock', '-Wl,--wrap=clock_gettime',
                     '-o', str(native)], check=True)
     cpp = base / 'launcher.cpp'
@@ -61,18 +72,31 @@ with tempfile.TemporaryDirectory(prefix='tube360-f56-terminate-') as temporary:
              ('\\Device\\Mass1\\' + 'x' * 230 + '\\', 'system', True),
              (hdd, 'crash', False), (usb, 'hang', False),
              (usb, 'create-fail', False), (usb, 'write-fail', False),
+             (usb, 'io-write-fail', False), (usb, 'short-write', False),
+             (usb, 'prefix-fail', False), (usb, 'flush-fail', False),
+             *[(usb, f'prefix-short-{count}', False) for count in range(1, 6)],
+             (usb, 'prefix-short-5-empty', False),
+             (usb, 'gpu-error', False), (usb, 'startup-error', False), (usb, 'error-no-log', False),
+             (usb, 'already-clean', True), (usb, 'already-clean-write-fail', True),
+             (usb, 'clean-resume', True),
              ('game:\\', 'system', False), ('\\Device\\Mass0\\' + 'x' * 1010 + '\\', 'system', False)]
     for index, (root, mode, clean) in enumerate(cases):
         folder = base / str(index)
         folder.mkdir()
         (folder / 'tube360.xex').write_bytes(b'XEX2fixture')
         original = 'open\napp_started=1\nversion=0.3.3 build=33\n'
+        if mode.endswith('-empty'):
+            original = 'open\n\napp_started=1\nversion=0.3.3 build=33\n'
         (folder / 'session.txt').write_text(original)
         result = subprocess.run([str(native), root, mode], cwd=folder, capture_output=True, text=True)
         assert result.returncode == (73 if mode in ('crash', 'hang') else 0), result.stderr
         marker = (folder / 'session.txt').read_text()
-        assert (marker == 'clean\nterminated by system\n') == clean, (mode, marker)
-        if not clean and mode != 'write-fail':
+        assert marker.startswith('clean\n') == clean, (mode, marker)
+        if mode.startswith('already-clean'):
+            assert marker == 'clean\n\n', (mode, marker)
+        elif clean:
+            assert marker.startswith('clean\nterminated by system\n'), (mode, marker)
+        if not clean and mode not in ('short-write', 'prefix-fail', 'flush-fail') and not mode.startswith('prefix-short-'):
             assert marker == original + 'app_started=1\nversion=0.3.3 build=33\n', (mode, marker)
         subprocess.run([str(launcher), 'clean' if clean else 'open'], cwd=folder, check=True)
         print(result.stdout.strip() or 'PASS no callback: ' + mode, flush=True)

@@ -15,7 +15,7 @@ class FenceTests(unittest.TestCase):
                     installation_id='1' * 32, category='crash', error=error, log=log)
 
     def test_information_is_not_crash_or_network_timeout(self):
-        for log in INFO.splitlines() + [INFO]:
+        for log in INFO.splitlines() + [INFO, r.scrub(INFO)]:
             with self.subTest(log=log):
                 self.assertEqual(r.classify(self.data('diagnostic', log)), ('other', 'other'))
                 self.assertEqual(r.classify(self.data(log, '')), ('other', 'other'))
@@ -23,6 +23,14 @@ class FenceTests(unittest.TestCase):
                          ('network', 'network.dns'))
         self.assertEqual(r.classify(self.data('diagnostic', INFO + 'DNS failed')),
                          ('network', 'network.dns'))
+
+    def test_legacy_sanitized_information(self):
+        legacy = self.data('diagnostic', r.scrub(INFO))
+        legacy.pop('category')
+        legacy.pop('installation_id')
+        self.assertIn('frame.fence [video] timeout=', legacy['log'])
+        clean, *_, point = r.normalize(legacy)
+        self.assertEqual((clean['category'], point), ('other', 'other'))
 
     def test_actual_failures_remain_crashes(self):
         for failure, point in [('Vulkan falhou (2): vkWaitForFences(g.dev, 1, &fence, VK_TRUE, 5000000000)', 'gpu.fence'),

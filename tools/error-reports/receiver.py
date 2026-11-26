@@ -41,7 +41,7 @@ def scrub(value):
 
 
 def fence_info(line):
-    return ('frame.fence' in line and 'first-frame timeout=' in line or
+    return ('frame.fence' in line and ('first-frame timeout=' in line or '[video] timeout=' in line) or
             'gpu fence timeout=' in line and 'physical screen cannot be verified by software' in line)
 
 
