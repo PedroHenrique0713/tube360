@@ -1,4 +1,9 @@
 # Mesmo main/player/render do produto, com os dois transportes substituídos no link por loopback.
+add_executable(member-playback-test EXCLUDE_FROM_ALL "${CMAKE_CURRENT_LIST_DIR}/members.cpp")
+target_include_directories(member-playback-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../../client/src"
+  "${CMAKE_CURRENT_LIST_DIR}/../../client/third_party")
+target_link_libraries(member-playback-test PRIVATE tube360-cast tube360-yt tube360-ffmpeg SDL3::SDL3)
+
 add_executable(cast-test-app EXCLUDE_FROM_ALL
   $<TARGET_OBJECTS:tube360-main>
   "${CMAKE_CURRENT_LIST_DIR}/../../client/src/cast/lounge.cpp"

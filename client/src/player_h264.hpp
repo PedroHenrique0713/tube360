@@ -560,8 +560,13 @@ inline void Player::decodeOriginal() {
     if (netErr && r >= 0) r = AVERROR(EIO);
   }
   if (stop) return;
-  if (direct && (((media.ttl || media.expiresAt) && SDL_GetTicks() >= validUntil) || (videoFile && videoFile->status == 403) || (audioFile && audioFile->status == 403) ||
-                 (broadcast && broadcast->status == 403))) { renew = true; return; }
+  bool forbidden = (videoFile && videoFile->status == 403) || (audioFile && audioFile->status == 403) ||
+                   (broadcast && broadcast->status == 403);
+  if (direct && memberVideo && forbidden) {
+    LOG("console: video de membros HTTP=403; encerrando sem renovar URL");
+    error = "members_unsupported"; renew = retryConverted = false; state = FAILED; return;
+  }
+  if (direct && (forbidden || ((media.ttl || media.expiresAt) && SDL_GetTicks() >= validUntil))) { renew = true; return; }
   if (r < 0) {
     LOG("decod: falha H.264 %d, último PTS %.3f", r, last);
     for (const auto* file : {videoFile.get(),audioFile.get()}) if (file && file->failed)
