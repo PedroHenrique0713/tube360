@@ -79,6 +79,9 @@ NTSTATUS NtFlushBuffersFile(HANDLE file,IO_STATUS_BLOCK* io) {
     io->status=fsync(raw);assert(!io->status);return 0;
 }
 NTSTATUS NtClose(HANDLE file){assert(callback && file==77);++closes;assert(!close(raw));raw=-1;return 0;}
+static void* worker_checkpoint(void* unused) {
+    (void)unused;boot_event("end","tls.first-request","worker still alive");return NULL;
+}
 int main(int argc,char** argv) {
     assert(argc==3);
     const char* mode=argv[2];
@@ -92,14 +95,24 @@ int main(int argc,char** argv) {
     int interrupted=!strcmp(mode,"interrupted-heartbeat");
     int failed=!strcmp(mode,"gpu-error") || !strcmp(mode,"startup-error") || !strcmp(mode,"error-no-log");
     if(!strcmp(mode,"error-no-log"))boot_close();
-    if(failed)boot_event("error",!strcmp(mode,"startup-error")?"startup.fail":"gpu.vulkan",
+    if(failed) {
+        boot_session_failed();
+        boot_event("error",!strcmp(mode,"startup-error")?"startup.fail":"gpu.vulkan",
                          "2: vkWaitForFences(g.dev,1,&fence,VK_TRUE,5000000000ULL)");
+    }
     int cleaned=!strncmp(mode,"already-clean",13);
     if(cleaned || !strcmp(mode,"clean-resume"))boot_session_clean();
     if(!strcmp(mode,"clean-resume"))boot_session_resume();
-    int stale=!strcmp(mode,"stale") || !strcmp(mode,"over-limit") || !strcmp(mode,"long-hang");
+    int startup=!strncmp(mode,"startup-",8) && !failed;
+    no_heartbeat|=startup;
+    int stale=!strcmp(mode,"stale") || !strcmp(mode,"over-limit") || !strcmp(mode,"long-hang") ||
+        !strcmp(mode,"no-heartbeat") || !strcmp(mode,"startup-over-limit") ||
+        !strcmp(mode,"startup-info-only") || !strcmp(mode,"startup-worker-only") || !strcmp(mode,"running-log-only");
+    if(!strcmp(mode,"retryable-network") || !strcmp(mode,"recoverable-output"))
+        boot_event("error",!strcmp(mode,"retryable-network")?"tls.first-request":"settings.output","recovered failure");
     if(!strcmp(mode,"counter-wrap"))ticks=UINT64_MAX-UINT64_C(49875000);
     if(!strcmp(mode,"counter-zero"))ticks=0;
+    unsigned setup_reads=clock_reads;
     if(interrupted)boot_session_heartbeat();
     interrupt_heartbeat=interrupted;
     if(!no_heartbeat)boot_session_heartbeat();
@@ -112,7 +125,25 @@ int main(int argc,char** argv) {
         boot_session_heartbeat();
         ticks+=UINT64_C(49875000)/2;
     } else if(!strcmp(mode,"counter-wrap"))ticks+=UINT64_C(49875000)*2;
-    else ticks+=UINT64_C(49875000)/2;
+    else if(!strcmp(mode,"no-heartbeat") || startup) {
+        if(!strcmp(mode,"startup-progress")) {
+            for(unsigned i=0;i<4;++i) {
+                ticks+=UINT64_C(49875000)*20;
+                boot_event(i%2?"end":"begin",i<2?"gpu.init":"fonts.atlas","progress");
+            }
+        } else if(!strcmp(mode,"startup-recent"))ticks+=UINT64_C(49875000)/2;
+        else {
+            ticks+=UINT64_C(49875000)*30;
+            if(strcmp(mode,"startup-at-limit"))++ticks;
+        }
+        if(!strcmp(mode,"startup-info-only"))boot_event("info","status","not progress");
+        else if(!strcmp(mode,"startup-worker-only")) {
+            pthread_t thread;assert(!pthread_create(&thread,NULL,worker_checkpoint,NULL));assert(!pthread_join(thread,NULL));
+        }
+    } else if(!strcmp(mode,"running-log-only")) {
+        ticks+=UINT64_C(49875000)*6;
+        boot_event("end","tls.first-request","not main loop progress");
+    } else ticks+=UINT64_C(49875000)/2;
     create_fail=!strcmp(mode,"create-fail");write_fail=!strcmp(mode,"write-fail");
     if(!strcmp(mode,"already-clean-write-fail"))write_fail=1;
     io_write_fail=!strcmp(mode,"io-write-fail");short_write=!strcmp(mode,"short-write");
@@ -123,14 +154,15 @@ int main(int argc,char** argv) {
     if(!interrupted){callback=1;registration->notification_routine();callback=0;}
     assert(!registration && registrations==1 && removals==1);
     int no_path=!strncmp(argv[1],"game:",5) || strlen(expected)>=1024;
-    int unavailable=no_path || no_heartbeat || interrupted || stale || failed || cleaned;
+    int unavailable=no_path || interrupted || stale || failed || cleaned;
     assert(creates==(unavailable?0:1));
     unsigned opened=!unavailable && !create_fail;
     unsigned prepared=opened && !write_fail && !io_write_fail && !short_write;
     unsigned published=prepared && !flush_fail;
     assert(closes==opened && writes==opened+published);
     assert(flushes==prepared+(published && !prefix_fail && !prefix_short));
-    assert(clock_reads==(no_heartbeat?0:interrupted?2:(no_path || failed || cleaned)?1:!strcmp(mode,"refreshed")?3:2));
+    unsigned refreshed_startup=!strcmp(mode,"startup-progress")?4:0;
+    assert(clock_reads-setup_reads==(no_heartbeat?refreshed_startup+!no_path:interrupted?2:(no_path || failed || cleaned)?1:!strcmp(mode,"refreshed")?3:2));
     printf("PASS raw termination %s mode=%s create=%u write=%u flush=%u close=%u clock=%u; no stdio/malloc/lock/POSIX clock\n",
            argv[1],mode,creates,writes,flushes,closes,clock_reads);
     return 0;
