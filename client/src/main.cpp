@@ -77,8 +77,63 @@ inline Color alpha(Color c, float a) { return {c.r, c.g, c.b, c.a * a}; }
 inline Color mix(Color a, Color b, float t) { return {a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t}; }
 }  // namespace ui
 
-struct Video { std::string id, channel, views, title; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; };
-struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; std::string errorDetail; bool more = true, loadingMore = false, direct = false; };
+struct ItemGrid {
+  struct GridRow { std::vector<int> items; bool shorts = false; };
+  std::vector<GridRow> rows;
+  std::vector<int> itemRows;
+  int gridSize = -1, gridCols = 0, gridColumn = 0, shortColumn = 0;
+  bool gridHide = false;
+  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide) {
+    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide) {
+      gridSize = (int)items.size(); gridCols = cols; gridHide = hide;
+      rows.clear(); itemRows.assign(items.size(), -1);
+      int shortRow = -1;
+      for (int i = 0; i < gridSize; ++i) {
+        if (items[i].shortForm) {
+          if (hide) continue;
+          if (shortRow < 0) { shortRow = (int)rows.size(); rows.push_back({{},true}); }
+          rows[shortRow].items.push_back(i); itemRows[i] = shortRow;
+        } else {
+          if (rows.empty() || rows.back().shorts || (int)rows.back().items.size() == cols) rows.push_back({});
+          rows.back().items.push_back(i); itemRows[i] = (int)rows.size()-1;
+        }
+      }
+    }
+    if (rows.empty()) { sel = 0; return; }
+    if (sel < 0 || sel >= gridSize || itemRows[sel] < 0) {
+      int next = std::clamp(sel, 0, std::max(0, gridSize-1));
+      while (next < gridSize && itemRows[next] < 0) ++next;
+      if (next == gridSize) { next = gridSize-1; while (next >= 0 && itemRows[next] < 0) --next; }
+      sel = next;
+    }
+  }
+  int gridRow(int sel) const { return sel >= 0 && sel < (int)itemRows.size() ? itemRows[sel] : -1; }
+  int gridPosition(int sel) const {
+    int row = gridRow(sel); if (row < 0) return 0;
+    const auto& indices = rows[row].items;
+    return (int)(std::find(indices.begin(),indices.end(),sel)-indices.begin());
+  }
+  bool moveGrid(int& sel, int horizontal, int vertical) {
+    int row = gridRow(sel); if (row < 0) return false;
+    int col = gridPosition(sel);
+    if (horizontal) {
+      col = std::clamp(col+horizontal,0,(int)rows[row].items.size()-1);
+      sel = rows[row].items[col];
+      if (rows[row].shorts) shortColumn = col; else gridColumn = col;
+    }
+    if (vertical) {
+      if (!rows[row].shorts) gridColumn = col;
+      int next = row+vertical;
+      if (next < 0 || next >= (int)rows.size()) return false;
+      int column = rows[next].shorts ? shortColumn : gridColumn;
+      sel = rows[next].items[std::clamp(column,0,(int)rows[next].items.size()-1)];
+    }
+    return true;
+  }
+};
+
+struct Video { std::string id, channel, views, title; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; bool shortForm = false; };
+struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; std::string errorDetail; bool more = true, loadingMore = false, direct = false; ItemGrid layout; };
 struct Shelf { std::string title, query; Feed feed; int sel = 0; std::string kind = "search"; uint64_t stamp = 0; };
 
 static std::string fmtTime(double s) {
@@ -110,12 +165,14 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
   auto head = lines.empty() ? std::vector<std::string>{} : net::split(lines[0], '\t');
   if (head.empty() || head[0] != "ok") { feed.error = K::BadResponse; return; }
   feed.title = head.size() > 2 ? head[2] : "";
+  feed.more = head.size() > 3 && head[3] == "1";
   for (size_t i = 1; i < lines.size(); i++) {
     auto f = net::split(lines[i], '\t');
     if (f.size() < 5 || f[0].empty()) continue;
     Video v; v.id = f[0]; v.dur = std::atoi(f[1].c_str()); v.channel = f[2]; v.views = f[3]; v.title = f[4];
     if (f.size() > 5) { double pos = std::atof(f[5].c_str()); if (std::isfinite(pos)) v.pos = std::max(0.0, pos); }
     if (f.size() > 6) v.members = yt::membershipWire(f[6]);
+    if (f.size() > 7) v.shortForm = f[7] == "short";
     feed.items.push_back(v);
   }
 }
@@ -190,8 +247,6 @@ struct Worker {
         if (reply.ok()) {
           if (feedJob) {
             std::vector<uint8_t> raw(reply.body.begin(), reply.body.end()); parseFeed(raw, r.feed);
-            auto header = net::split(reply.body.substr(0, reply.body.find('\n')), '\t');
-            r.feed.more = header.size() > 3 && header[3] == "1";
           } else r.feed.title = std::move(reply.body);
         } else if (j.kind == 6) {
           r.feed.title = std::string("erro\t") + i18n::get(j.lang,
@@ -215,7 +270,7 @@ struct Worker {
         if (page.error.empty() && (j.kind != 5 || !page.cards.empty())) {
           r.feed.direct = true;
           for (auto& card : page.cards) {
-            Video v; v.id = std::move(card.id); v.title = std::move(card.title); v.members = card.members;
+            Video v; v.id = std::move(card.id); v.title = std::move(card.title); v.members = card.members; v.shortForm = card.shortForm;
             r.feed.items.push_back(std::move(v));
           }
           r.feed.title = j.kind == 6 ? j.query : j.a;
@@ -926,8 +981,7 @@ int run(int argc, char** argv) {
   if (const char* t = std::getenv("XT_SLEEP_PATH")) requestSleep(t);  // teste: ex. /api/sleep/set?what=xbox&min=0.05
 #endif
   auto applySleep = [&]() {
-    std::string target = settings.sleepNotebook ? "xbox_notebook" : "xbox";
-    requestSleep(sleepChoice == 0 ? "/api/sleep/cancel" : "/api/sleep/set?what=" + target +
+    requestSleep(sleepChoice == 0 ? "/api/sleep/cancel" : std::string("/api/sleep/set?what=xbox") +
         (sleepChoice == 7 ? "&end=1" : "&min=" + std::to_string(sleepMinutes[sleepChoice])));
   };
 
@@ -1341,7 +1395,7 @@ int run(int argc, char** argv) {
         if (r.offset == (int)target->feed.items.size()) {
           if (r.feed.error == K::None) {
             target->feed.items.insert(target->feed.items.end(), r.feed.items.begin(), r.feed.items.end());
-            target->feed.more = r.feed.items.size() >= 24;
+            target->feed.more = r.localAccount ? r.feed.more : r.feed.items.size() >= 24;
           } else {
             target->feed.more = false; toast = tr(K::PageError); toastUntil = now + 4000;
           }
@@ -1474,15 +1528,9 @@ int run(int argc, char** argv) {
       if (in.hit(Input::A) && !sleepPending) requestSleep("/api/sleep/add?min=15");
       if (in.hit(Input::B) && !sleepPending) requestSleep("/api/sleep/cancel");
     } else if (sleepPanel) {
-      if (in.hit(Input::UP)) playerUI.sleepRow = 0;
-      if (in.hit(Input::DOWN)) playerUI.sleepRow = 1;
       int direction = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
-      if (!playerUI.sleepRow) sleepChoice = (sleepChoice + direction + 8) % 8;
-      else if (direction || in.hit(Input::A)) {
-        settings.sleepNotebook = !settings.sleepNotebook; saveSettings();
-        if (sleep.active) requestSleep(std::string("/api/sleep/set?target_only=1&what=") + (settings.sleepNotebook ? "xbox_notebook" : "xbox"));
-      }
-      if (in.hit(Input::A) && !playerUI.sleepRow && !sleepPending) { applySleep(); sleepPanel = false; }
+      sleepChoice = (sleepChoice + direction + 8) % 8;
+      if (in.hit(Input::A) && !sleepPending) { applySleep(); sleepPanel = false; }
       if (in.hit(Input::B)) sleepPanel = false;
       playerUI.touch(now);
     } else if (ratePanel && (screen != PLAYER || pl.state == player::FAILED)) {
@@ -1622,9 +1670,11 @@ int run(int argc, char** argv) {
       bool tabs = channel || p.kind == "music" || p.kind == "music_search";
       if (p.kind=="search" && in.hit(Input::LB)) searchUI.beginFilters(p.filters);
       int count = (int)p.items.size();
-      if (count) p.sel = std::clamp(p.sel, 0, count - 1);
+      if (p.musicHome()) { if (count) p.sel = std::clamp(p.sel, 0, count - 1); }
+      else p.grid(ui::columns(4),settings.hideShorts);
+      bool hasItems = p.musicHome() ? count != 0 : !p.rows.empty();
       bool left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), up = in.hit(Input::UP), down = in.hit(Input::DOWN), a = in.hit(Input::A);
-      bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.sel % ui::columns(4) == 0;
+      bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.gridPosition() == 0;
       if (left && (p.zone == 0 || (p.zone == 1 && p.tabSel == 0) || (p.zone == 2 && p.channelSel == 0) || (p.zone == 3 && firstColumn))) {
         railFocus = true; railSel = railPage();
       } else if (p.zone == 0) {
@@ -1667,13 +1717,11 @@ int run(int argc, char** argv) {
           if (down && p.shelf + 1 < (int)p.shelves.size()) p.shelf++;
           p.sel = p.shelves[p.shelf].selected;
         } else {
-          int cols=ui::columns(4);
-          if (left && p.sel % cols > 0) p.sel--;
-          if (right && p.sel % cols < cols-1 && p.sel + 1 < count) p.sel++;
-          if (up) { if (p.sel >= cols) p.sel -= cols; else p.zone = !p.channels.empty() ? 2 : tabs ? 1 : channel || playlist ? 0 : 3; }
-          if (down) { if (p.sel + cols < count) p.sel += cols; else if (count) p.sel = count - 1; }
+          p.moveGrid(right ? 1 : left ? -1 : 0,0);
+          if (up && !p.moveGrid(0,-1)) p.zone = !p.channels.empty() ? 2 : tabs ? 1 : channel || playlist ? 0 : 3;
+          if (down) p.moveGrid(0,1);
         }
-        if (a && count && !p.loading) {
+        if (a && hasItems && !p.loading) {
           const auto item = p.items[(size_t)p.sel];
           if (item.type == "video") {
             if (playlist && nav.nativePage()) {
@@ -1686,11 +1734,16 @@ int run(int argc, char** argv) {
           else if (item.type == "history" || item.type == "later") openNav(item.type, "", "", p.music);
           else openNav(item.type == "playlist" && p.music ? "music_playlist" : item.type, item.id, "", p.music);
         }
-        if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::START) && count && p.items[(size_t)p.sel].type == "video") { nav.menuItem = p.items[(size_t)p.sel]; nav.menuSel = 0; nav.menu = true; }
+        if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::START) && hasItems && p.items[(size_t)p.sel].type == "video") { nav.menuItem = p.items[(size_t)p.sel]; nav.menuSel = 0; nav.menu = true; }
       }
       if (screen == NAV && nav.page().stamp == currentPage && p.more && !p.loading) {
         bool needPage = p.sel >= count - 8 || (p.zone == 2 && p.channelSel >= (int)p.channels.size() - 4);
         if (p.musicHome()) needPage |= p.shelf + 3 >= (int)p.shelves.size();
+        else if (p.rows.empty()) needPage = true;
+        else if (p.gridRow()+2 >= (int)p.rows.size()) {
+          const auto& row = p.rows[p.gridRow()];
+          needPage |= !row.shorts || p.gridPosition()+8 >= (int)row.items.size();
+        }
         if (needPage) nav.load(navWorker, settings.lang, false, true);
       }
       if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::X)) { nav.page().sel = 0; nav.page().scroll = 0; nav.load(navWorker, settings.lang, true); }
@@ -1753,21 +1806,8 @@ int run(int argc, char** argv) {
           g.rtlText = i18n::rtl(settings.lang);
           rebuildCats(); scroll = 0; toast.clear();
         } else if (settingsRow == 6) { sleepChoice = (sleepChoice + direction + 8) % 8; applySleep(); changed = false; }
-        else if (settingsRow == 7) {
-          settings.sleepNotebook = !settings.sleepNotebook;
-          if (sleep.active) {
-            requestSleep(std::string("/api/sleep/set?what=") + (settings.sleepNotebook ? "xbox_notebook" : "xbox") + "&target_only=1");
-          }
-        }
-        else if (settingsRow == 8) {
-          settings.server = !settings.server; net::serverEnabled = net::effectiveServer(srv,settings.server);
-          consoleAccount->select(!net::serverEnabled); account = {}; accountKnown = false;
-          if (!net::serverEnabled) {
-            account = {}; accountKnown = false; nestAvailable = pl.directSpeaker.configured(); sleep = {};
-            SDL_LockMutex(remote.mu); remote.online = false; remote.cmds.clear(); remote.ended.clear(); SDL_UnlockMutex(remote.mu);
-          }
-          accountAt = nestInfoAt = 0; rebuildCats();
-        }
+        else if (settingsRow == 7) settings.hideShorts = !settings.hideShorts;
+        else if (settingsRow == 8) settings.errorReports = !settings.errorReports;
         else if (settingsRow == 9) {
           const int heights[]={480,720,1080};
           int index=settings.outputHeight==480 ? 0 : settings.outputHeight==1080 ? 2 : 1;
@@ -1812,33 +1852,39 @@ int run(int argc, char** argv) {
       }
     } else if (screen == HOME) {
       Shelf& cur = inResults ? results : cats[(size_t)cat];
-      if (!cur.feed.items.empty()) cur.sel = std::clamp(cur.sel, 0, (int)cur.feed.items.size() - 1);
+      auto& grid=cur.feed.layout;
+      grid.build(cur.feed.items,cur.sel,ui::columns(settings.cols),settings.hideShorts);
       int n = (int)cur.feed.items.size(), previousSel = cur.sel;
+      bool hasItems=!grid.rows.empty();
       if (zone == 1 && !inResults) {
         if (in.hit(Input::LEFT)) { if (cat > 0) { cat--; scroll = 0; } else { railFocus = true; railSel = 0; } }
         if (in.hit(Input::RIGHT) && cat + 1 < (int)cats.size()) { cat++; scroll = 0; }
         if (!cats[cat].stamp) requestFeed(cats[cat], cat == 0 ? 0 : 3);
         if (cur.kind == "subs" && (in.hit(Input::DOWN) || in.hit(Input::A))) openNav("subscriptions");
-        else if ((in.hit(Input::DOWN) || in.hit(Input::A)) && n) zone = 0;
+        else if ((in.hit(Input::DOWN) || in.hit(Input::A)) && hasItems) zone = 0;
       } else {
-        int cols = ui::columns(settings.cols);
-        if (in.hit(Input::LEFT)) { if (cur.sel % cols > 0) cur.sel--; else { railFocus = true; railSel = inResults ? 1 : 0; } }
-        if (in.hit(Input::RIGHT) && cur.sel % cols < cols - 1 && cur.sel + 1 < n) cur.sel++;
-        if (in.hit(Input::DOWN)) { if (cur.sel + cols < n) cur.sel += cols; else if (n > 0 && cur.sel / cols < (n - 1) / cols) cur.sel = n - 1; }
+        if (in.hit(Input::LEFT)) { if (grid.gridPosition(cur.sel)>0) grid.moveGrid(cur.sel,-1,0); else { railFocus = true; railSel = inResults ? 1 : 0; } }
+        if (in.hit(Input::RIGHT)) grid.moveGrid(cur.sel,1,0);
+        if (in.hit(Input::DOWN)) grid.moveGrid(cur.sel,0,1);
         // rolagem sem fim: perto do fim da grade, pede a próxima página
-        if (n > 0 && cur.sel >= n - 8 && cur.feed.more && !cur.feed.loadingMore && !cur.feed.loading) {
+        bool nearEnd=!hasItems || cur.sel>=n-8;
+        if (hasItems && grid.gridRow(cur.sel)+2 >= (int)grid.rows.size()) {
+          const auto& row=grid.rows[grid.gridRow(cur.sel)];
+          nearEnd |= !row.shorts || grid.gridPosition(cur.sel)+8 >= (int)row.items.size();
+        }
+        if (nearEnd && cur.feed.more && !cur.feed.loadingMore && !cur.feed.loading) {
           cur.feed.loadingMore = true;
           requestFeed(cur, inResults ? 1 : cat == 0 ? 0 : 3, false, n, true);
         }
-        if (in.hit(Input::UP)) { if (cur.sel >= cols) cur.sel -= cols; else if (!inResults) zone = 1; }
-        if (in.hit(Input::A) && n) {
+        if (in.hit(Input::UP) && !grid.moveGrid(cur.sel,0,-1) && !inResults) zone = 1;
+        if (in.hit(Input::A) && hasItems) {
           const Video& v = cur.feed.items[(size_t)cur.sel];
           // Um item já concluído recomeça; pedir o fim exato devolve HTTP 416.
           requestVideo(v, v.dur > 0 && v.pos >= v.dur ? 0 : v.pos);
         }
       }
       if (cur.sel != previousSel) LOG("home: categoria %d, foco %d/%d", cat, cur.sel + 1, n);
-      if (in.hit(Input::START) && n && zone == 0) { const auto& v = cur.feed.items[(size_t)cur.sel]; nav.menuItem = {"video",v.id,v.title,v.channel,v.id,"","",v.dur}; nav.menuSel = 0; nav.menu = true; }
+      if (in.hit(Input::START) && hasItems && zone == 0) { const auto& v = cur.feed.items[(size_t)cur.sel]; nav.menuItem = {"video",v.id,v.title,v.channel,v.id,"","",v.dur}; nav.menuSel = 0; nav.menu = true; }
       if (in.hit(Input::Y)) openSearch();
       if (in.hit(Input::X)) {
         cur.feed = Feed{}; requestFeed(cur, inResults ? 1 : cat == 0 ? 0 : 3, true, 0, true);
@@ -2116,49 +2162,65 @@ int run(int argc, char** argv) {
 
     if (screen == HOME) {
       const int cols = ui::columns(settings.cols);
-      const float gap = 24, cw = std::floor((ui::W - ui::X0 - 64 - (cols - 1) * gap) / cols), th = std::round(cw * 9 / 16), rowH = th + (ui::large ? 128 : 106), top = 150;
-      int n = (int)cur.feed.items.size(), row = cur.sel / cols;
-      float want = zone == 1 || row == 0 ? 0 : row * rowH - (ui::large ? 0 : 118);
-      scroll += (want - scroll) * 0.2f;
-      for (int i = 0; i < n; i++) {
-        float x = ui::X0 + (i % cols) * (cw + gap), y = top + (i / cols) * rowH - scroll;
-        if (y > ui::H || y + rowH < 90) continue;
-        if (ui::large && (y < 140 || y + rowH > 646)) continue;
-        const Video& v = cur.feed.items[(size_t)i];
-        bool focused = zone == 0 && !railFocus && i == cur.sel;
-        float& an = selAnim[i % 600]; an += ((focused ? 1.f : 0.f) - an) * 0.25f;
-        float s = 1 + 0.045f * an, w = cw * s, h = th * s, ix = x - (w - cw) / 2, iy = y - (h - th) / 2;
-        if (an > 0.02f) {
-          gfx::shadow(g, ix, iy + 10, w, h, 14, 22, 0.6f * an);
-          gfx::rect(g, ix - 4, iy - 4, w + 8, h + 8, ui::alpha(rgb(0xffffff), an), 16);
+      const float gap=24, cw=std::floor((ui::W-ui::X0-64-(cols-1)*gap)/cols), th=std::round(cw*9/16), rowH=th+(ui::large ? 128 : 106), top=150;
+      auto& grid=cur.feed.layout;
+      grid.build(cur.feed.items,cur.sel,cols,settings.hideShorts);
+      float shortW=std::min(cw*.5f,112.f), shortH=shortW*16/9, shortHeading=std::max(30.f,g.fonts[ui::F_KEY].lineH+8), shortRowH=shortHeading+shortH+(ui::large ? 124 : 100);
+      float want=0;
+      if (zone==0) for (int row=0;row<grid.gridRow(cur.sel);++row) want+=grid.rows[row].shorts ? shortRowH : rowH;
+      scroll+=(want-scroll)*.2f;
+      float rowY=top-scroll;
+      for (const auto& row:grid.rows) {
+        float y=rowY;
+        rowY+=row.shorts ? shortRowH : rowH;
+        if (y<140 || y>=646) continue;
+        int first=0, visible=(int)row.items.size();
+        if (row.shorts) {
+          if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::text(g,ui::F_KEY,tr(K::ChannelShorts),ui::X0,y,ui::TEXT);
+          y+=shortHeading;
+          visible=std::max(1,(int)((ui::W-ui::X0-64+gap)/(shortW+gap)));
+          int selected=grid.gridRow(cur.sel)>=0 && grid.rows[grid.gridRow(cur.sel)].shorts ? grid.gridPosition(cur.sel) : grid.shortColumn;
+          first=std::clamp(selected-visible+1,0,std::max(0,(int)row.items.size()-visible));
         }
-        const Thumbs::Slot* ts = thumbs.get(thumbsWorker, v.id, frame, cur.feed.direct);
-        if (ts) gfx::image(g, ts->tex, ix, iy, w, h, 12);
-        else gfx::rect(g, ix, iy, w, h, ui::SURFACE, 12);
+        for (int col=first;col<std::min((int)row.items.size(),first+visible);++col) {
+        int i=row.items[col];
+        const Video& v=cur.feed.items[(size_t)i];
+        float artW=row.shorts ? shortW : cw, artH=row.shorts ? shortH : th;
+        float x=ui::X0+(col-first)*(artW+gap);
+        bool focused=zone==0 && !railFocus && i==cur.sel;
+        float& an=selAnim[i%600]; an+=((focused ? 1.f : 0.f)-an)*.25f;
+        float s=row.shorts ? 1 : 1+.045f*an, w=artW*s, h=artH*s, ix=x-(w-artW)/2, iy=y-(h-artH)/2;
+        if (row.shorts && focused && iy-5<646) gfx::rect(g,ix-5,iy-5,w+10,std::min(h+10,646-iy+5),ui::TEXT,12);
+        else if (!row.shorts && an>.02f && iy-4<646) {
+          if (iy-24>=140 && iy+h+32<=646) gfx::shadow(g,ix,iy+10,w,h,14,22,.6f*an);
+          gfx::rect(g,ix-4,iy-4,w+8,std::min(h+8,646-iy+4),ui::alpha(rgb(0xffffff),an),16);
+        }
+        Navigation::artwork(g,thumbs,thumbsWorker,v.id,frame,ix,iy,w,h,false,false,cur.feed.direct,row.shorts,646);
         const auto* saved=(!account.signedIn() || cur.kind=="local_later" || cur.kind=="local_history")?local::Library::find(localUI.library.history,v.id):nullptr;
         double shownPos=saved?saved->position:v.pos, shownDuration=saved?saved->duration:v.dur;
-        if (shownPos > 0 && shownDuration > 0) {
-          gfx::rect(g, ix + 4, iy + h - 5, w - 8, 4, {0, 0, 0, 0.6f}, 2);
-          gfx::rect(g, ix + 4, iy + h - 5, std::max(4.f, (w - 8) * (float)std::clamp(shownPos / shownDuration, 0.0, 1.0)), 4, ui::A1, 2);
+        if (shownPos>0 && shownDuration>0 && iy+h<=646) {
+          gfx::rect(g,ix+4,iy+h-5,w-8,4,{0,0,0,.6f},2);
+          gfx::rect(g,ix+4,iy+h-5,std::max(4.f,(w-8)*(float)std::clamp(shownPos/shownDuration,0.0,1.0)),4,ui::A1,2);
         }
-        if (v.dur > 0) {
-          std::string d = fmtTime(v.dur); float dw = gfx::textWidth(g, ui::F_TINY, d) + 12;
-          float badgeH=ui::large ? 36 : 20, badgeY=iy+h-badgeH-7;
-          gfx::rect(g,ix+w-dw-7,badgeY,dw,badgeH,{0,0,0,0.8f},5);
-          gfx::text(g,ui::F_TINY,d,ix+w-dw/2-7,badgeY+(badgeH-g.fonts[ui::F_TINY].size)/2,ui::TEXT,1);
-        } else if (v.dur == 0) {
-          float dw=gfx::textWidth(g,ui::F_TINY,tr(K::Live))+12, badgeH=ui::large ? 36 : 20, badgeY=iy+h-badgeH-7;
-          gfx::rect(g,ix+w-dw-7,badgeY,dw,badgeH,ui::A1,5);
-          gfx::text(g,ui::F_TINY,tr(K::Live),ix+w-dw/2-7,badgeY+(badgeH-g.fonts[ui::F_TINY].size)/2,rgb(0xffffff),1);
+        if (!row.shorts && iy+h<=646 && v.dur>=0) {
+          std::string d=v.dur ? fmtTime(v.dur) : tr(K::Live);
+          float dw=gfx::textWidth(g,ui::F_TINY,d)+12, badgeH=ui::large ? 36 : 20, badgeY=iy+h-badgeH-7;
+          gfx::rect(g,ix+w-dw-7,badgeY,dw,badgeH,v.dur ? Color{0,0,0,.8f} : ui::A1,5);
+          gfx::text(g,ui::F_TINY,d,ix+w-dw/2-7,badgeY+(badgeH-g.fonts[ui::F_TINY].size)/2,rgb(0xffffff),1);
         }
-        memberBadge(g, v.members, settings.lang, ix + 7, iy + 7);
-        float ty = y + th + 14;
-        for (auto& l : gfx::wrap(g, ui::F_CARD, v.title, cw, 2)) { gfx::textBox(g, ui::F_CARD, l, x, ty, cw, focused ? ui::TEXT : rgb(0xe4e4e7)); ty += ui::large ? 31 : 23; }
-        std::string meta = v.channel + (v.views.empty() ? "" : "  \xC2\xB7  " + v.views);
-        gfx::textBox(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, meta, cw), x, ty + 3, cw, ui::MUTED);
+        if (iy+7+(ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+8) : 20)<=646) memberBadge(g,v.members,settings.lang,ix+7,iy+7);
+        int titleFont=row.shorts ? ui::F_SMALL : ui::F_CARD, metaFont=row.shorts ? ui::F_TINY : ui::F_SMALL;
+        float ty=y+artH+(row.shorts ? 16 : 14);
+        for (const auto& line:gfx::wrap(g,titleFont,v.title,artW,2)) {
+          if (ty+g.fonts[titleFont].lineH<=646) gfx::textBox(g,titleFont,line,x,ty,artW,focused ? ui::TEXT : rgb(0xe4e4e7));
+          ty+=ui::large ? (row.shorts ? 34 : 31) : row.shorts ? 27 : 23;
+        }
+        std::string meta=v.channel+(v.views.empty() ? "" : "  \xC2\xB7  "+v.views);
+        if (ty+3+g.fonts[metaFont].lineH<=646) gfx::textBox(g,metaFont,gfx::ellipsize(g,metaFont,meta,artW),x,ty+3,artW,ui::MUTED);
+        }
       }
-      if (n == 0) {
-        if (cur.feed.loading) { spinner(g, ui::X0 + (ui::W - ui::X0) / 2 - 32, 380, 22, t); gfx::text(g, ui::F_BODY, tr(K::LoadingVideos), ui::X0 + (ui::W - ui::X0) / 2 - 32, 420, ui::MUTED, 1); }
+      if (grid.rows.empty()) {
+        if (cur.feed.loading || cur.feed.loadingMore) { spinner(g, ui::X0 + (ui::W - ui::X0) / 2 - 32, 380, 22, t); gfx::text(g, ui::F_BODY, tr(K::LoadingVideos), ui::X0 + (ui::W - ui::X0) / 2 - 32, 420, ui::MUTED, 1); }
         else if (cur.feed.error != K::None) {
           float y=190;
           bool serverError=net::serverEnabled && (cur.feed.error==K::NoResponse || cur.feed.error==K::BadResponse);
@@ -2242,7 +2304,7 @@ int run(int argc, char** argv) {
       gfx::textBox(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::W-ui::X0-64, ui::TEXT);
       if (!ui::large) gfx::textBox(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::W-ui::X0-64, ui::MUTED);
       else gfx::textBox(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::W-ui::X0-64,ui::MUTED);
-      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SleepTogether,K::ServerMode,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates,K::SponsorBlock,K::ClearLocalHistory,K::ClearLocalLater};
+      const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SettingShowShorts,K::SettingErrorReports,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates,K::SponsorBlock,K::ClearLocalHistory,K::ClearLocalLater};
       int visible=ui::large ? 5 : 8, first=std::clamp(settingsRow-visible+1,0,18-visible);
       float step=ui::large ? 94 : 59, rowH=step-6;
       for (int i=first;i<std::min(18,first+visible);++i) {
@@ -2258,8 +2320,8 @@ int run(int argc, char** argv) {
         else if (i==4) value=(nestOffsetMs>0 ? "+" : "")+std::to_string(nestOffsetMs)+tr(K::Milliseconds);
         else if (i==5) value=tr(settings.lang==i18n::Lang::AR ? K::Arabic : settings.lang==i18n::Lang::ES ? K::Spanish : settings.lang==i18n::Lang::PT ? K::Portuguese : K::English);
         else if (i==6) value=sleepLabel(sleepChoice);
-        else if (i==7) value=tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox);
-        else if (i==8) value=tr(settings.server ? K::Automatic : K::SleepOff);
+        else if (i==7) value=tr(settings.hideShorts ? K::SettingShortsHide : K::SettingShortsRow);
+        else if (i==8) value=tr(settings.errorReports ? K::SettingOn : K::SettingOff);
         else if (i==9) value=std::to_string(g.extent.width)+"×"+std::to_string(g.extent.height);
         else if (i==10) value=tr(settings.originalAudio ? K::AudioAlwaysOriginal : K::AudioInterface);
         else if (i==11) value=tr(ui::large ? K::Enabled : K::SleepOff);
@@ -2285,7 +2347,7 @@ int run(int argc, char** argv) {
 
     if (screen == SETTINGS && speakerPicker.open) { glow(); speakerPicker.draw(g,settings.lang,speakerChoice); }
 
-    if (screen == NAV) { nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus); accountPhoto(); }
+    if (screen == NAV) { nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus, settings.hideShorts); accountPhoto(); }
 
     if (screen == HOME || screen == SEARCH || screen == SETTINGS || screen == NAV) {
       // barra lateral: ícones; com foco, abre com os nomes
@@ -2722,7 +2784,7 @@ int run(int argc, char** argv) {
     if (sleepPanel || sleepWarning || shutdownAt) {
       gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.65f});
       float x = (ui::W-720)/2, y = sleepPanel && !sleepWarning && !shutdownAt ? 190 : 242, w = 720;
-      float h = sleepPanel && !sleepWarning && !shutdownAt ? 330 : 226;
+      float h = sleepPanel && !sleepWarning && !shutdownAt ? 252 : 226;
       gfx::shadow(g, x, y + 12, w, h, 24, 32, 0.6f);
       gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
       std::string title = shutdownAt ? tr(K::SleepShuttingDown) : sleepWarning ? std::string(tr(K::SleepWarning)) +
@@ -2730,18 +2792,14 @@ int run(int argc, char** argv) {
       gfx::text(g, ui::F_BIG, title, x + 36, y + 28, ui::TEXT);
       if (!shutdownAt) {
         if (!sleepWarning) {
-          bool timeFocus = playerUI.sleepRow == 0;
-          gfx::rect(g, x + 30, y + 90, w - 60, 62, timeFocus ? ui::TEXT : ui::SURFACE2, 12);
-          gfx::text(g, ui::F_KEY, sleepLabel(sleepChoice), x + 50, y + 108, timeFocus ? ui::INK : ui::A2);
-          gfx::text(g, ui::F_KEY, "<   >", x + w - 50, y + 108, timeFocus ? ui::INK : ui::MUTED, 2);
-          gfx::rect(g, x + 30, y + 174, w - 60, 62, !timeFocus ? ui::TEXT : ui::SURFACE2, 12);
-          gfx::text(g, ui::F_SMALL, tr(K::PlayerAlsoOff), x + 50, y + 184, !timeFocus ? ui::INK : ui::MUTED);
-          gfx::text(g, ui::F_BODY, tr(settings.sleepNotebook ? K::SleepNotebook : K::SleepXbox), x + 50, y + 206, !timeFocus ? ui::INK : ui::TEXT);
-          gfx::text(g, ui::F_BODY, "<   >", x + w - 50, y + 198, !timeFocus ? ui::INK : ui::MUTED, 2);
-        } else gfx::text(g, ui::F_KEY, tr(sleep.notebook ? K::SleepNotebook : K::SleepXbox), x + 36, y + 92, ui::A2);
+          gfx::rect(g, x + 30, y + 90, w - 60, 62, ui::TEXT, 12);
+          gfx::text(g, ui::F_KEY, sleepLabel(sleepChoice), x + 50, y + 108, ui::INK);
+          gfx::text(g, ui::F_KEY, "<   >", x + w - 50, y + 108, ui::INK, 2);
+          gfx::text(g, ui::F_SMALL, tr(K::SleepXbox), x + 36, y + 166, ui::MUTED);
+        } else gfx::text(g, ui::F_KEY, tr(K::SleepXbox), x + 36, y + 92, ui::A2);
         float hy = y + h - 48, hx = x + 36;
-        if (!sleepWarning) hx = hint(g, hx, hy, tr(K::BtnVertical), XG, tr(K::ChooseRow));
-        hx = hint(g, hx, hy, "A", XA, tr(sleepWarning ? K::SleepAdd : playerUI.sleepRow ? K::ChangeValue : K::SleepApply));
+        if (!sleepWarning) hx = hint(g, hx, hy, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
+        hx = hint(g, hx, hy, "A", XA, tr(sleepWarning ? K::SleepAdd : K::SleepApply));
         hint(g, hx, hy, "B", XB, tr(K::Back));
       }
     }

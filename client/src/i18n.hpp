@@ -400,8 +400,13 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(LocalVideos, "videos", "vídeos", "videos") \
   X(LocalPosition, "position", "posição", "posición") \
   X(LocalPositions, "positions", "posições", "posiciones") \
-  /* F53 */ \
-  X(MembersXboxUnavailable, "Members-only videos can't play on Xbox yet.", "Vídeos de membros ainda não tocam no Xbox.", "Los videos para miembros aún no se reproducen en Xbox.")
+  X(MembersXboxUnavailable, "Members-only videos can't play on Xbox yet.", "Vídeos de membros ainda não tocam no Xbox.", "Los videos para miembros aún no se reproducen en Xbox.") \
+  X(SettingShowShorts, "Show Shorts", "Mostrar Shorts", "Mostrar Shorts") \
+  X(SettingShortsRow, "In a row", "Em fileira", "En una fila") \
+  X(SettingShortsHide, "Hide", "Esconder", "Ocultar") \
+  X(SettingErrorReports, "Error reports", "Relatórios de erro", "Informes de errores") \
+  X(SettingOn, "On", "Ligado", "Activado") \
+  X(SettingOff, "Off", "Desligado", "Desactivado")
 
 enum class Key {
 #define TEXT_KEY(k, en, pt, es) k,

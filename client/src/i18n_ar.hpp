@@ -380,8 +380,13 @@ inline const char* arabic(Key key) {
     case Key::LocalVideos: return "فيديوهات";
     case Key::LocalPosition: return "موضع";
     case Key::LocalPositions: return "مواضع";
-    // F53
     case Key::MembersXboxUnavailable: return "لا يمكن تشغيل فيديوهات الأعضاء على Xbox بعد.";
+    case Key::SettingShowShorts: return "عرض Shorts";
+    case Key::SettingShortsRow: return "في صف";
+    case Key::SettingShortsHide: return "إخفاء";
+    case Key::SettingErrorReports: return "تقارير الأخطاء";
+    case Key::SettingOn: return "تشغيل";
+    case Key::SettingOff: return "إيقاف";
     default: return nullptr;  // Strings novas usam inglês até receberem tradução.
   }
 }

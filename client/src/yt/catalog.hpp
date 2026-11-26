@@ -134,7 +134,7 @@ inline int seconds(const string& s) {
   for (char c : s) { if (c == ':') { out = (out + n) * 60; n = 0; } else n = n * 10 + c - '0'; }
   return int(std::min<int64_t>(out+n,86400*7));
 }
-struct Item { string type, id, title, channel, image, channelId, section; int duration = 0; Membership members = Membership::None; };
+struct Item { string type, id, title, channel, image, channelId, section; int duration = 0; Membership members = Membership::None; bool shortForm = false; };
 struct Page {
   string title, subtitle, image, banner, channelId, continuation, error, musicSource;
   std::vector<Item> items;
@@ -152,11 +152,13 @@ inline string channel(const J& v) {
 }
 inline Item item(const J& v, const string& key, bool music, const string& section) {
   Item out; out.section = section; out.members = membership(v);
+  out.shortForm = key == "reelItemRenderer" || key == "shortsLockupViewModel";
   const auto& cols = array(get(v,"flexColumns"));
   const auto& meta = get(get(v,"metadata"),"tileMetadataRenderer");
   const auto& lock = get(get(v,"metadata"),"lockupMetadataViewModel");
   const J& first = cols.empty() ? get(v,"title") : get(get(cols[0],"musicResponsiveListItemFlexColumnRenderer"),"text");
   out.title = text(first);
+  if (out.title.empty() && key == "reelItemRenderer") out.title = text(get(v,"headline"));
   if (out.title.empty()) out.title = text(get(meta,"title"));
   if (out.title.empty()) out.title = text(get(lock,"title"));
   out.channel = text(get(v,"subtitle"));
@@ -176,8 +178,8 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   bool list = contentType.find("PLAYLIST") != string::npos || key == "playlistRenderer" || key == "gridPlaylistRenderer";
   bool artist = contentType.find("CHANNEL") != string::npos || key == "channelRenderer" || key == "gridChannelRenderer";
   if (out.id.empty() && key=="reelItemRenderer") out.id=str(v,"videoId");
-  if (out.id.empty() && key=="shortsLockupViewModel") {
-    if(const auto* reel=find(get(v,"onTap"),"reelWatchEndpoint"))out.id=str(*reel,"videoId");
+  if (key=="shortsLockupViewModel") {
+    if(out.id.empty()) if(const auto* reel=find(get(v,"onTap"),"reelWatchEndpoint"))out.id=str(*reel,"videoId");
     if(out.title.empty())out.title=str(get(get(v,"overlayMetadata"),"primaryText"),"content");
   }
   if (out.id.empty() && !list && !artist && ep) out.id = str(*ep,"videoId");
@@ -273,7 +275,7 @@ inline Page decode(const J& data, bool music) {
 inline string wire(const Page& p) {
   if (!p.error.empty()) return "error\t" + clean(p.error) + "\n";
   string out = "ok\t" + clean(p.title) + "\t" + clean(p.subtitle) + "\t" + p.image + "\t" + (p.subscribed ? "1" : "0") + "\t" + (p.continuation.empty() ? "0" : "1") + "\t" + p.channelId + "\t" + p.banner + "\t\t\t" + p.musicSource + "\n";
-  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + "\n";
+  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + (it.shortForm ? "\tshort" : "") + "\n";
   return out;
 }
 inline std::map<string,string> query(const string& path) {
