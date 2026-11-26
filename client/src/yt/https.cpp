@@ -160,7 +160,8 @@ public:
         Trace trace{this,&r.trace,res.timing,r.media}; Headers incoming{&res,&trace};
         tlsDiagnostic={0,&trace,&certificateFlags};
         std::memset(errorBuffer,0,sizeof(errorBuffer));
-        curl_blob ca{const_cast<char*>(r.update ? updateRoots : ytRoots), r.update ? sizeof(updateRoots) : sizeof(ytRoots), CURL_BLOB_NOCOPY};
+        bool publicRoots=r.update || url=="https://tube360.hypermind.space/api/report";
+        curl_blob ca{const_cast<char*>(publicRoots ? updateRoots : ytRoots), publicRoots ? sizeof(updateRoots) : sizeof(ytRoots), CURL_BLOB_NOCOPY};
         curl_slist* headers = nullptr;
         CURLcode setup = CURLE_OK;
         auto set = [&](auto option, auto value) {
