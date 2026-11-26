@@ -1,0 +1,39 @@
+name: Feature request / Pedir recurso / Pedir función
+description: Something you want Tube360 to do / Algo que você quer no Tube360 / Algo que quieres en Tube360
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write in your own language. Check the [open issues](https://github.com/revive360/tube360/issues) first, someone may have asked already.
+        Escreva no seu idioma. Dê uma olhada nas [issues abertas](https://github.com/revive360/tube360/issues) antes, alguém pode ter pedido já.
+        Escribe en tu idioma. Revisa primero los [issues abiertos](https://github.com/revive360/tube360/issues), puede que alguien ya lo haya pedido.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where in the app? / Em que parte do app? / ¿En qué parte de la app?
+      options:
+        - "Home and feeds / Home e listas / Inicio y listas"
+        - "Search / Busca / Búsqueda"
+        - "Player"
+        - "Music / Música"
+        - "Account and library / Conta e biblioteca / Cuenta y biblioteca"
+        - "Live streams / Lives / Directos"
+        - "Phone and Cast / Celular e transmissão / Móvil y transmisión"
+        - "Google Nest"
+        - "Settings / Configurações / Ajustes"
+        - "Other / Outro / Otro"
+    validations:
+      required: true
+  - type: textarea
+    id: want
+    attributes:
+      label: What do you want? / O que você quer? / ¿Qué quieres?
+      placeholder: "A Live tab on Home with the channels that are live right now."
+    validations:
+      required: true
+  - type: textarea
+    id: original
+    attributes:
+      label: How did YouTube do it? / Como o YouTube fazia? / ¿Cómo lo hacía YouTube?
+      description: On the original 360 app, the phone or the website. A screenshot helps. / No app original do 360, no celular ou no site. Um print ajuda. / En la app original del 360, el móvil o la web. Una captura ayuda.

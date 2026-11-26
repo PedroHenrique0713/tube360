@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue / Falha de segurança / Fallo de seguridad
+    url: https://github.com/revive360/tube360/security/advisories/new
+    about: Report it privately, not in a public issue. / Relate em privado, não numa issue pública. / Repórtalo en privado, no en un issue público.
+  - name: Install guide / Guia de instalação / Guía de instalación
+    url: https://tube360.hypermind.space
+    about: Step by step to copy the app and open it on the console. / Passo a passo para copiar o app e abrir no console. / Paso a paso para copiar la app y abrirla en la consola.
