@@ -2882,6 +2882,8 @@ int run(int argc, char** argv) {
 int main(int argc,char** argv) {
 #ifdef __XSDK__
   boot_open("","app");
+  xsdk_on_terminate(boot_session_terminated);
+  boot_event("info","session.terminate","system termination callback registered; raw kernel marker");
 #else
   boot_open(std::getenv("XT_ASSETS")?std::getenv("XT_ASSETS"):"assets/","app");
 #endif

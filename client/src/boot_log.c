@@ -19,6 +19,39 @@ static unsigned sequence;
 static uint64_t began;
 static int sync_warned;
 static char session_path[1024];
+#ifdef __XSDK__
+static char terminate_path[1024];
+static ANSI_STRING terminate_name;
+static const OBJECT_ATTRIBUTES terminate_attributes={.root_directory=0,.name=&terminate_name};
+static const char terminate_marker[]="clean\nterminated by system\n";
+static IO_STATUS_BLOCK terminate_io;
+static HANDLE terminate_file;
+static void session_prepare_terminate(void) {
+    terminate_name.length=0;
+    const char* image=ExLoadedImageName?ExLoadedImageName:"";
+    const char* slash=strrchr(image,'\\');
+    if(strncmp(image,"\\Device\\",8) || !slash)return;
+    size_t directory=(size_t)(slash-image+1);
+    if(directory+sizeof("session.txt")>sizeof(terminate_path))return;
+    memcpy(terminate_path,image,directory);
+    memcpy(terminate_path+directory,"session.txt",sizeof("session.txt"));
+    terminate_name.pointer=terminate_path;
+    terminate_name.maximum_length=(uint16_t)(directory+sizeof("session.txt"));
+    terminate_name.length=terminate_name.maximum_length-1;
+}
+#endif
+void boot_session_terminated(void) {
+#ifdef __XSDK__
+    // Threads congeladas, handles fechados e game: removido: só kernel e dados preparados antes do registro.
+    if(!terminate_name.length)return;
+    NTSTATUS status=NtCreateFile(&terminate_file,GENERIC_WRITE|SYNCHRONIZE,&terminate_attributes,&terminate_io,NULL,
+        FILE_ATTRIBUTE_NORMAL,0,FILE_OVERWRITE_IF,FILE_SYNCHRONOUS_IO_NONALERT|FILE_NON_DIRECTORY_FILE);
+    if(!NT_SUCCESS(status))return;
+    NtWriteFile(terminate_file,0,NULL,NULL,&terminate_io,terminate_marker,sizeof(terminate_marker)-1,NULL);
+    NtFlushBuffersFile(terminate_file,&terminate_io);
+    NtClose(terminate_file);
+#endif
+}
 static void session_write(const char* state,const char* metadata) {
     if(!session_path[0])return;
     FILE* marker=fopen(session_path,"w");
@@ -98,6 +131,9 @@ void boot_open(const char* directory,const char* role) {
     sequence=0;began=millis();sync_warned=0;
     if(file)setvbuf(file,NULL,_IONBF,0);
     if(!strcmp(component,"app")) {
+#ifdef __XSDK__
+        session_prepare_terminate();
+#endif
         // O launcher já abriu o marcador antes do handoff; abrir o app diretamente também é coberto.
         snprintf(session_path,sizeof(session_path),"%ssession.txt",folder);
         FILE* marker=fopen(session_path,"r");char state[8]={0};

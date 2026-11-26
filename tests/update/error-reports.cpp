@@ -45,6 +45,14 @@ int main(int argc,char** argv) {
     for(auto item:std::vector<std::pair<string,string>>{{"DNS failed","network"},{"TLS certificate failed","network"},{"timeout","network"},{"sem rede","network"},{"player LOGIN_REQUIRED","youtube"},{"player UNPLAYABLE","youtube"},{"403 from video link","youtube"},{"startup.fail Missing fonts","startup"},{"unclean session","crash"},{"unrecognized diagnostic","other"}})
         check(reports::category(item.first,"")==item.second,"launcher supplies category from known cause");
     check(reports::cause("TLS failed","DNS diagnostic","network")=="network.tls","primary error outranks incidental network log");
+    string fenceInfo="boot app #0001 +1ms begin frame.fence first-frame timeout=5000ms\nboot app #0002 +2ms begin frame.complete GPU fence timeout=5000ms; physical screen cannot be verified by software\n";
+    check(reports::category("diagnostic",fenceInfo)=="other","normal fence budgets are neither GPU failures nor network timeouts");
+    check(reports::category("DNS failed",fenceInfo)=="network","normal fence line does not turn a network error into crash");
+    check(reports::category("diagnostic",fenceInfo+"DNS failed\n")=="network" && reports::cause("diagnostic",fenceInfo+"DNS failed\n","network")=="network.dns","normal fence budget does not replace real network cause");
+    check(reports::category("diagnostic","GPU fence timeout=5000ms\nDNS failed\n")=="network","GPU config and failure on different lines do not form a crash");
+    check(reports::category("Vulkan falhou (2): vkWaitForFences(g.dev,1,&fence,VK_TRUE,5000000000)",fenceInfo)=="crash","real Vulkan fence failure remains crash");
+    check(reports::category("gpu.vulkan -4: vkWaitForFences(...)",fenceInfo)=="crash","boot error extracted from Vulkan failure remains crash");
+    check(reports::category("unclean session",fenceInfo)=="crash","unannounced hang with only informational fences remains reportable");
     string dirty="open\n";
     string privateLog="peer 192.168.1.50 203.0.113.25 video dQw4w9WgXcQ x_y-Z012345\nNest: Sala da Maria\ncast name=Bedroom\nAuthorization: Bearer ABC.secret\nya29.secret\n{\"refresh_token\":\"private space\"}\naccess_token=secret\naccount: Example Name\nquery=private search\n";
     auto clean=reports::scrub(privateLog);
@@ -74,6 +82,14 @@ int main(int argc,char** argv) {
     check(clean.find("dQw4w9WgXcQ")==string::npos && clean.find("Sala da Maria")==string::npos,"real log mixed with seeded privacy canaries");
     auto d=scenario();check(reports::make(d).empty(),"no session on fresh install means no upload");
     write(d+"session.txt","clean\n");check(reports::make(d).empty(),"normal exit means no upload");
+    write(d+"session.txt","clean\nterminated by system\n");write(d+"boot-app.log",fenceInfo);
+    check(reports::make(d).empty(),"system termination marker means no report");
+    Host terminated;launchApp(d,"",terminated);check(terminated.posts==0 && terminated.launches==1 && terminated.shown.empty(),"system termination launches app without a report or receipt");
+    write(d+"session.txt",dirty);write(d+"tube360.log","navegacao: Home -> Player\n");
+    write(d+"boot-app.log","boot app begin app.loop running\n"+fenceInfo);
+    J hang;check(parse(reports::make(d),hang) && text(hang,"category")=="crash" && text(hang,"error").find("last checkpoint: app.loop")!=string::npos,"hang report uses last useful checkpoint, not informational fence line");
+    write(d+"tube360.log","Vulkan falhou (2): vkWaitForFences(...)\n");
+    check(parse(reports::make(d),hang) && text(hang,"category")=="crash","runtime-only Vulkan failure survives report assembly");
     write(d+"session.txt",dirty);write(d+"tube360.log",privateLog+"navegacao: Home -> Player\n"+string(10000,'x')+"\n");
     write(d+"boot-app.log","boot app #0001 +1ms info main C runtime reached main; build=33 version=0.3.3\nboot app #0002 +2ms detect video.board model=Corona flags=50000000\nboot app #0003 +3ms error gpu.fence status=dead\n");
     J doc;auto bytes=reports::make(d);check(parse(bytes,doc),"dirty session creates JSON");

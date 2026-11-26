@@ -1,5 +1,8 @@
 // Marcadores de abertura, sem SDL/GPU/rede e sem alocar por quadro.
 #pragma once
+#ifdef __XSDK__
+#include <xsdk/terminate.h>
+#endif
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,6 +15,7 @@ void boot_environment(void);
 void boot_network(void);
 void boot_session_begin(const char* directory,const char* metadata);
 void boot_session_clean(void);
+void boot_session_terminated(void);
 void boot_session_resume(void);
 void boot_session_version(unsigned build,const char* version);
 #ifdef __cplusplus
