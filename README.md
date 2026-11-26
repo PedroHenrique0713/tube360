@@ -50,15 +50,16 @@ Everything else is in the [CHANGELOG](CHANGELOG.md).
 
 ## Tested on, and not tested yet
 
-Everything was tested on the author's Xbox 360 E (Corona board) with BadUpdate. I don't own the other models, so:
+Everything was tested on the author's Xbox 360 E (Corona board) with BadUpdate. I don't own the other models, so this table also counts what users confirmed:
 
 | Console | Status |
 |---|---|
 | 360 E and Slim (Corona, Winchester) | Tested on a 360 E. Runs the native video mode |
 | Slim S (Trinity) | Not tested. Runs the safer video mode |
-| Fat (Xenon, Zephyr, Falcon, Jasper) | Not tested on real hardware. Runs the safer video mode |
+| Fat (Xenon, Zephyr, Falcon, Jasper) | Jasper confirmed by a user (BadUpdate, CRT at 480i). Xenon, Zephyr and Falcon not confirmed yet. Runs the safer video mode |
 | RGH, JTAG, ABadAvatar | Not tested by the author |
-| CRT TVs at 480i | Tested in simulation only |
+| CRT TVs at 480i | Confirmed by a user on a Fat Jasper. Pick Fill (crop) in Settings to drop the black frame around 4:3 videos |
+| HDMI to VGA adapter at 720p | Known crash right after the Vulkan logo, being fixed ([#7](https://github.com/revive360/tube360/issues/7)). With the dashboard at the monitor's own resolution it opens, at 640x480 |
 
 `video-driver.txt` accepts `auto`, `safe` or `native` if you want to force a mode. [Board detection and simulation](docs/BOARD-SIMULATION.md)
 
