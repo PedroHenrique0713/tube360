@@ -1,9 +1,6 @@
 """Framing hostil dentro do teto HTTP, usando sockets locais reais."""
-import json
-from pathlib import Path
 import socket
 import unittest
-from unittest.mock import patch
 
 import test_receiver as fixture
 

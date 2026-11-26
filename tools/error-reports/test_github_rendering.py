@@ -1,9 +1,5 @@
 """Regressão de Markdown hostil, com o contrato HTTP de GitHub local."""
-import json
-from pathlib import Path
-import socket
 import unittest
-from unittest.mock import patch
 
 import test_receiver as fixture
 

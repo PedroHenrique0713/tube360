@@ -58,7 +58,12 @@ struct ReportTransport:Transport {
         assert(r.timeoutMs==1500 && r.connectTimeoutMs==1000 && r.maxBytes==1024);
         const char* mode=std::getenv("SDK_REPORT");
         if(mode && !std::strcmp(mode,"dns-hang")){timespec delay{10,0};nanosleep(&delay,nullptr);return {};}
+        if(mode && !std::strcmp(mode,"slow")){timespec delay{3,0};nanosleep(&delay,nullptr);return {};}
+        if(mode && !std::strcmp(mode,"offline"))return {0,{},"no network"};
         FILE* f=std::fopen("posted.json","w");assert(f);std::fputs(r.body.c_str(),f);std::fclose(f);
+        if(mode && !std::strcmp(mode,"garbage"))return {200,"not JSON",{}};
+        if(mode && !std::strcmp(mode,"huge-code"))return {200,"{\"code\":\"T360-"+string(5000,'A')+"\"}",{}};
+        if(mode && !std::strcmp(mode,"control-code"))return {200,"{\"code\":\"T360-ABCD\\u001b\"}",{}};
         return {200,"{\"code\":\"T360-7K2Q\"}",{}};
     }
 };
@@ -148,12 +153,14 @@ with tempfile.TemporaryDirectory(prefix='tube360-launcher-sdk-') as temp:
         elif not fail:
             assert 'launch retorno=-1' in log
         print('PASS launcher Xbox main:', lang, fail or 'launch error', flush=True)
-    for mode in ('receipt','dns-hang','opt-out'):
+    report_modes = ('receipt','dns-hang','slow','offline','garbage','huge-code','control-code','opt-out','settings-opt-out')
+    for mode in report_modes:
         folder=base/('report-'+mode);folder.mkdir()
         (folder/'tube360.xex').write_bytes(b'XEX2simulated')
         (folder/'session.txt').write_text('open\n')
         (folder/'boot-app.log').write_text('boot app error gpu.fence status=dead\n')
         if mode=='opt-out':(folder/'no-error-reports.txt').touch()
+        if mode=='settings-opt-out':(folder/'settings.txt').write_text('error_reports=off\n')
         for weight in ('300','400','600','700'):(folder/f'inter-{weight}.ttf').write_bytes(b'\0\1\0\0')
         began=time.monotonic()
         result=subprocess.run([str(binary)],cwd=folder,env={**os.environ,'SDK_FAIL':'','SDK_REPORT':mode},timeout=6)
@@ -162,10 +169,14 @@ with tempfile.TemporaryDirectory(prefix='tube360-launcher-sdk-') as temp:
         if mode=='receipt':
             assert 'T360-7K2Q' in (folder/'draw.txt').read_text()
             assert not (folder/'error-report.json').exists()
-        elif mode=='dns-hang':
+        elif mode in ('dns-hang','slow'):
             assert 1.4<elapsed<3 and (folder/'error-report.json').exists(),elapsed
             assert not (folder/'posted.json').exists()
-        else:
+        elif mode in ('opt-out','settings-opt-out'):
             assert not (folder/'posted.json').exists()
+            assert not (folder/'error-report-installation.txt').exists()
+        else:
+            assert elapsed<3 and (folder/'error-report.json').exists(),elapsed
+            assert 'T360-' not in (folder/'draw.txt').read_text()
         print('PASS launcher report:',mode,f'{elapsed:.2f}s to handoff',flush=True)
-print('14 SDK simulations passed; physical drawing, timing, controller and UDP delivery remain unverified.')
+print(f'{len(cases)+len(report_modes)} SDK simulations passed; physical drawing, timing, controller and UDP delivery remain unverified.')
