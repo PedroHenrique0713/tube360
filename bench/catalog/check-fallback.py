@@ -1,4 +1,4 @@
-"""Exercita a reserva do PC com HTTP local, conta falsa e erro gravado do player nativo."""
+"""Exercita preferências antigas de servidor com HTTP local e reprodução nativa."""
 import http.server
 import json
 import os
@@ -60,16 +60,18 @@ for label, codec, fail_native in (('aac', 'aac', True), ('mp2', 'mp2', True), ('
         with log.open('w') as stream:
             subprocess.run([str(app)], env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=30, check=True)
         content = log.read_text()
+        assert not paths, paths
+        assert '(desligado: só console)' in content, content
+        assert 'musica: reserva no PC' not in content, content
         if fail_native:
-            assert any(p.startswith('/api/stream/F12audio001') for p in paths), paths
-            assert 'musica: reserva no PC' in content, content
+            assert 'estado=5 erro=console' in content, content
+            assert 'musica: primeiro audio' not in content, content
         else:
-            assert any('ended=F12audio001' in p for p in paths), 'native queue did not report EOF to the timer'
-        assert 'musica: primeiro audio' in content, content
+            assert 'musica: primeiro audio' in content, content
+            assert 'posição 0.00' not in content, content
         assert 'primeiro quadro:' not in content, content
-        assert 'posição 0.00' not in content, content
         subprocess.run(['magick', str(output / ('fallback-' + label + '.ppm')), str(output / ('fallback-' + label + '.png'))], check=True)
-        print(label + ' passed', flush=True)
+        print(label + ' passed; native playback only, no legacy server requests', flush=True)
     finally:
         server.shutdown()
         server.server_close()
