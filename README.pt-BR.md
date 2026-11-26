@@ -57,9 +57,9 @@ Tudo foi testado no Xbox 360 E do autor (placa Corona) com BadUpdate. Eu não te
 | Console | Situação |
 |---|---|
 | 360 E e Slim (Corona, Winchester) | Testado num 360 E. Usa o modo de vídeo nativo |
-| Slim S (Trinity) | Não testado. Usa o modo de vídeo mais seguro |
+| Slim S (Trinity) | Confirmado por um usuário (RGH). Usa o modo de vídeo mais seguro |
 | Fat (Xenon, Zephyr, Falcon, Jasper) | Jasper confirmado por um usuário (BadUpdate, TV de tubo em 480i). Xenon, Zephyr e Falcon ainda sem confirmação. Usa o modo de vídeo mais seguro |
-| RGH, JTAG, ABadAvatar | Não testados pelo autor |
+| RGH, JTAG, ABadAvatar | RGH confirmado por um usuário num Slim Trinity, ABadAvatar por um usuário num Corona. JTAG ainda não confirmado |
 | TV de tubo em 480i | Confirmado por um usuário num Fat Jasper. Escolha Preencher (cortar) nas Configurações para tirar a moldura preta dos vídeos 4:3 |
 | Adaptador HDMI→VGA em 720p | Trava conhecida logo depois do logo do Vulkan, em correção ([#7](https://github.com/revive360/tube360/issues/7)). Com o painel na resolução do próprio monitor ele abre, em 640x480 |
 
