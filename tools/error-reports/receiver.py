@@ -27,7 +27,11 @@ CATEGORIES = {'crash', 'startup', 'network', 'youtube', 'other'}
 def scrub(value):
     lines = []
     for line in value.splitlines():
-        if re.search(r'bearer|ya29\.|token|cookie|authorization|cast|nest|name|nome|aparelho|conta|account|login|search|busca|query|api_key|client_secret|password|senha|oauth|email|@', line, re.I):
+        private = re.search(r'bearer|ya29\.|github_pat_|sapisid|__secure-|token|cookie|authorization|cast|nest|name|nome|aparelho|conta|account|login|search|busca|query|api_key|client_secret|password|senha|oauth|email|@|ssid|wi-?fi|/home/|/users/|\\users\\', line, re.I)
+        # Mesma política conservadora do launcher para IPv6 e host:porta.
+        endpoints = re.findall(r'[A-Za-z0-9_.%:-]+', line)
+        private = private or any(token.count(':') >= 2 or re.fullmatch(r'[A-Za-z0-9_.%-]+:[0-9]+', token) for token in endpoints)
+        if private:
             lines.append('[private line removed]')
         else:
             line = re.sub(r'(?<!\d)\d{1,3}(?:\.\d{1,3}){3}(?!\d)', '[ip]', line)

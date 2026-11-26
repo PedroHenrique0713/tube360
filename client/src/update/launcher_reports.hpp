@@ -66,8 +66,19 @@ inline string scrub(const string& input) {
         string line=input.substr(at,end-at), folded=lower(line);
         bool secret=false;
         // Linhas inteiras: nomes/tokens podem conter espaços, aspas e delimitadores arbitrários.
-        for(auto label:{"bearer","ya29.","token","cookie","authorization","cast","nest","name","nome","aparelho","conta","account","login","search","busca","query","api_key","client_secret","password","senha","oauth","email","@"})
+        for(auto label:{"bearer","ya29.","github_pat_","sapisid","__secure-","token","cookie","authorization","cast","nest","name","nome","aparelho","conta","account","login","search","busca","query","api_key","client_secret","password","senha","oauth","email","@","ssid","wifi","wi-fi","/home/","/users/","\\users\\"})
             if(folded.find(label)!=string::npos){secret=true;break;}
+        // IPv6 (inclusive zone ID) e host:porta podem identificar a rede doméstica.
+        for(size_t i=0;!secret && i<line.size();) {
+            if(!word(line[i]) && line[i]!='.' && line[i]!=':' && line[i]!='%'){++i;continue;}
+            size_t start=i,colons=0,last=0;
+            while(i<line.size() && (word(line[i]) || line[i]=='.' || line[i]==':' || line[i]=='%')) {
+                if(line[i]==':'){++colons;last=i;}++i;
+            }
+            bool port=colons==1 && last>start && last+1<i;
+            for(size_t j=last+1;port && j<i;++j)port=line[j]>='0' && line[j]<='9';
+            if(colons>=2 || port)secret=true;
+        }
         if(secret)line="[private line removed]";
         else {
             string safe;

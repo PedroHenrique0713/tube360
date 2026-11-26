@@ -52,6 +52,21 @@ int main(int argc,char** argv) {
     check(reports::screenName("Busca")=="Search","screen enum survives search-data scrubbing");
     check(reports::scrub(clean)==clean,"scrubbing is idempotent across retries");
     check(reports::scrub("peerX192.168.1.1z\n").find("192.168.1.1")==string::npos,"IPv4 adjacent to letters removed");
+    for(auto [line,secret]:std::vector<std::pair<string,string>>{
+        {"peer 2001:db8:abcd::42","2001:db8:abcd::42"}, {"peer [2001:db8::43]:8443","2001:db8::43"},
+        {"peer fe80::42%eth0","fe80::42"}, {"peer livingroom.local:8009","livingroom.local"},
+        {"SSID=Casa Secreta","Casa Secreta"}, {"wifi connected Minha Rede","Minha Rede"},
+        {"SAPISID=short.private.value","short.private.value"}, {"__Secure-1PSID=short.private.value","short.private.value"},
+        {"github_pat_short.private.value","short.private.value"}, {"path /home/Alice/.config/tube360","Alice"},
+        {"path /Users/Alice/tube360","Alice"}, {"path C:\\Users\\Alice\\tube360","Alice"},
+        {"https://youtube.com/watch?v=dQw4w9WgXcQ","dQw4w9WgXcQ"}, {"https://youtu.be/dQw4w9WgXcQ","dQw4w9WgXcQ"},
+        {"https://youtube.com/shorts/dQw4w9WgXcQ","dQw4w9WgXcQ"}, {"id=dQw4w9WgXcQ","dQw4w9WgXcQ"},
+        {"{\"id\":\"dQw4w9WgXcQ\"}","dQw4w9WgXcQ"}}) {
+        clean=reports::scrub(line);
+        if(clean.find(secret)!=string::npos)std::cerr<<"CANARY leaked: "<<line<<'\n';
+        check(clean.find(secret)==string::npos,"adversarial privacy canary removed");
+        check(reports::scrub(clean)==clean,"adversarial scrubbing remains idempotent");
+    }
     for(auto secret:{"192.168.101.39","203.0.113.25","dQw4w9WgXcQ","x_y-Z012345","Sala da Maria","Bedroom","ABC.secret","ya29.secret","private space","access_token","Example Name","private search"})check(clean.find(secret)==string::npos,"secret absent from scrubbed text");
     string actual=read(argv[2],4*1024*1024);
     check(actual.size()>1000,"real anonymizable diagnostic fixture loaded");
@@ -76,7 +91,20 @@ int main(int argc,char** argv) {
     auto dir=scenario();write(dir+"session.txt",dirty);
     Host offline;offline.response={0,{},"offline"};launchApp(dir,"",offline);
     check(offline.posts==1 && offline.launches==1 && exists(dir+"error-report.json"),"offline never blocks launch; sanitized queue persists");
-    auto pending=read(dir+"error-report.json");write(dir+"session.txt","clean\n");
+    auto pending=read(dir+"error-report.json");
+    for(int i=0;i<24;++i) {
+        write(dir+"session.txt",dirty);write(dir+"boot-app.log","new failure "+std::to_string(i));
+        Host retry;retry.response={0,{},"offline"};launchApp(dir,"",retry);
+        check(retry.posts==1 && retry.launches==1 && read(dir+"error-report.json")==pending,"repeated offline starts retain one bounded pending report");
+    }
+    for(auto rejected:std::vector<yt::Response>{{200,"{\"code\":\"T360-"+string(5000,'A')+"\"}",{}},
+        {200,"{\"code\":\"T360-ABCD\\n\"}",{}},{200,"{\"code\":\"T360-ABCD\\u001b\"}",{}},
+        {200,"{\"code\":\"T360-ABCDé\"}",{}},{200,"{\"code\":\"T360-@ABCD\"}",{}},
+        {200,"{\"code\":\"T360-ABCD\"}","timeout"},{200,"garbage",{}},{503,"{\"code\":\"T360-ABCD\"}",{}}}) {
+        Host badReply;badReply.response=rejected;launchApp(dir,"",badReply);
+        check(badReply.shown.empty() && badReply.launches==1 && read(dir+"error-report.json")==pending,"hostile response never reaches display or loses offline queue");
+    }
+    write(dir+"session.txt","clean\n");
     Host online;launchApp(dir,"",online);
     check(online.posts==1 && online.body==pending && !exists(dir+"error-report.json"),"offline report survives later clean session and is removed on receipt");
     check(online.shown=="T360-7K2Q" && online.duration<=4000 && online.duration>=3500,"valid receipt shown for about four seconds");
