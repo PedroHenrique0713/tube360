@@ -106,6 +106,10 @@ inline void Player::decodeOriginal() {
     }
     LOG("console: player OK, cliente %s, %u pedidos: %s resolucao_ms=%llu",media.playerClient.c_str(),media.playerAttempts,media.playerTrace.c_str(),
         (unsigned long long)(SDL_GetTicks()-openedMs));
+    if (memberVideo && media.hls.empty() && media.video.url.empty()) {
+      LOG("console: video de membros sem HLS ou URL de video; encerrando sem renovar URL");
+      error = "members_unsupported"; renew = retryConverted = false; state = FAILED; return;
+    }
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
     if (stop) return;
     if (live) { speed=1; loop=false; tempo.reset(1); }
