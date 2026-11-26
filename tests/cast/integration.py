@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Celular lounge sobre conta, catálogo, Cast TLS, filas antigas e timer falsos."""
+"""Celular lounge sobre conta, catálogo, Cast TLS e timer nativo; rede só em loopback."""
 import contextlib
 import http.server
 import json
@@ -94,13 +94,17 @@ lounge.sleep_wire = 'ok\toff\t0\txbox\tminutos\n'
 lounge.remote_commands = []
 lounge.ended = []
 lounge.owner_claims = 0
+lounge.legacy_requests = []
 
 
 class Combined(Handler):
     def get(self):
         path = urlsplit(self.path).path
+        if path.startswith(('/api/account', '/api/sleep', '/api/nest/', '/api/feed',
+                            '/api/thumb/', '/api/remote/', '/api/stream/')):
+            lounge.legacy_requests.append(path)
         if path == '/api/account':
-            self.response('', 503)  # Seleção nativa da conta com reserva de PC habilitada.
+            self.response('', 503)
         elif path == '/api/sleep':
             self.response(lounge.sleep_wire)
         elif path == '/api/nest/owner':
@@ -149,7 +153,7 @@ for thread in threads:
 
 
 @contextlib.contextmanager
-def app(name, seconds, mode='off', race=False):
+def app(name, seconds, mode='off', race=False, timer=''):
     assets = work/name
     assets.mkdir(exist_ok=True)
     for suffix in ('.ppm', '.png'):
@@ -191,6 +195,12 @@ def app(name, seconds, mode='off', race=False):
             env['XT_MUSIC'] = '1'
     prefix = env['XT_KEYS']
     env['XT_KEYS'] = prefix+'.'*max(0, int(seconds*5)-3-len(prefix))+'U'
+    if timer == 'fade':
+        env.pop('XT_SCREEN', None)
+        env.update(XT_PLAY=IDS[0], XT_SLEEP_PATH='/api/sleep/set?what=xbox&min=0.5',
+                   XT_KEYS='.'*39+'B'+'.'*15+'U')
+    elif timer == 'end':
+        env['XT_SLEEP_PATH'] = '/api/sleep/set?what=xbox&end=1'
     with lounge.cv:
         lounge.pending.clear()
         code = lounge.code_count
@@ -204,7 +214,7 @@ def app(name, seconds, mode='off', race=False):
             yield receiver, log_path, audit, time.monotonic()
             assert process.wait(seconds+20) == 0
             if mode == 'auto':
-                assert lounge.owner_claims > owner_claims, 'native Nest ownership was never granted'
+                assert lounge.owner_claims == owner_claims, 'legacy server was asked for Nest ownership'
         finally:
             if process.poll() is None:
                 process.terminate()
@@ -214,7 +224,10 @@ def app(name, seconds, mode='off', race=False):
     assert downloads and not receiver.errors, receiver.errors
     assert receiver.commands('STOP') and not (assets/'nest-owner.json').exists()
     assert '/api/stats/' in audit.read_text(), 'account history was not updated'
-    subprocess.run(['magick', str(work/(name+'.ppm')), str(work/(name+'.png'))], check=True)
+    if timer == 'end':
+        assert 'timer: prazo do console venceu, desligando' in log_path.read_text()
+    else:
+        subprocess.run(['magick', str(work/(name+'.ppm')), str(work/(name+'.png'))], check=True)
     print('PASS', name, 'AAC downloads', len(downloads), flush=True)
 
 
@@ -254,12 +267,11 @@ try:
     assert 'F12audio002' not in text and 'F12audio003' not in text
     assert 'authorized_fixture' in (work/'phone-over-music-nest-music.tsv').read_text()
 
-    with app('phone-volume-timer', 12, mode='auto') as (nest, log, audit, _):
-        wait_for(lambda: 'musica: primeiro audio' in log.read_text(), 'Music with account and PC reserve')
+    with app('phone-volume-timer', 12, mode='auto', timer='fade') as (nest, log, audit, _):
+        wait_for(lambda: 'som: Nest' in log.read_text(), 'native video on Nest')
         pair()
         send_video()
         lounge.remote_commands.append('play\tF14race0001\t0\tFila antiga\tnavigation\n')
-        lounge.sleep_wire = 'ok\ton\t30\txbox\tminutos\n'
         wait_for(lambda: 'timer: on' in log.read_text(), 'timer fade received')
         lounge.message('setVolume', {'volume': '35', 'muted': 'false'})
         wait_for(lambda: .14 < nest.volume < .18, 'phone 35% times timer gain')
@@ -267,7 +279,7 @@ try:
         wait_for(lambda: nest.muted, 'mute during timer fade')
         lounge.message('setVolume', {'volume': '70', 'muted': 'false'})
         wait_for(lambda: .25 < nest.volume < .36 and not nest.muted, 'unmute retains timer fade')
-        lounge.sleep_wire = 'ok\toff\t0\txbox\tminutos\n'
+        wait_for(lambda: 'timer: off' in log.read_text(), 'controller cancels native timer')
         wait_for(lambda: abs(nest.volume-.7) < .001, 'timer cancellation restores phone volume')
     assert 'cast: play F14race' not in log.read_text()
     assert abs(nest.volume-.7) < .001
@@ -280,23 +292,20 @@ try:
         assert 'cast: play F14race' not in log.read_text() and 'player: encerrando F14race' not in log.read_text()
     assert not lounge.errors, lounge.errors
 
-    with app('timer-blocks-phone-next', 9, mode='auto') as (nest, log, audit, started):
+    with app('timer-blocks-phone-next', 9, mode='auto', timer='end') as (nest, log, audit, _):
         wait_for(lambda: 'musica: primeiro audio' in log.read_text(), 'initial Music before timer')
         pair()
-        lounge.sleep_wire = 'ok\ton\t60\txbox\tfim_do_video\n'
         wait_for(lambda: 'fim_do_video' in log.read_text(), 'end-of-video timer bound')
         send_video(11)
         wait_for(lambda: 'timer: fim de video, aguardando desligar' in log.read_text(), 'timer suppresses lounge auto-next')
         lounge.message('next', {})
         time.sleep(.4)
         assert 'cast: play '+IDS[1] not in log.read_text()
-        wait_for(lambda: IDS[0] in lounge.ended, 'native ended delivered to timer')
-        wait_for(lambda: time.monotonic()-started >= 7.1, 'capture shutdown grace', timeout=10)
-        lounge.remote_commands.append('desligar\n')
         lounge.message('setPlaylist', {'videoIds': IDS[1], 'videoId': IDS[1]})
-        wait_for(lambda: 'timer: desligar recebido' in log.read_text(), 'timer wins over queued phone command')
+        wait_for(lambda: 'timer: prazo do console venceu, desligando' in log.read_text(), 'native timer wins over queued phone command')
     assert 'cast: play '+IDS[1] not in log.read_text()
     assert not lounge.errors, lounge.errors
+    assert not lounge.legacy_requests, lounge.legacy_requests
     (work/'events.json').write_text(json.dumps(lounge.events, ensure_ascii=False, indent=2))
     print('PASS integrated account, Music/channel queue priority, Nest volume/mute/fade, pending navigation and timer priority', flush=True)
 finally:
