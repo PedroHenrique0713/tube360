@@ -22,6 +22,7 @@ struct LauncherHost {
     virtual int launch(const string&) = 0;
     virtual string preflight(const string&) {return {};}
     virtual yt::Response postReport(const yt::Request&) {return {};}
+    virtual bool randomBytes(unsigned char*,size_t) {return false;}
     virtual void reportCode(const string&,unsigned) {}
     virtual void fail(i18n::Key,const string& detail,i18n::Key) {log("startup failure: "+detail);}
 };

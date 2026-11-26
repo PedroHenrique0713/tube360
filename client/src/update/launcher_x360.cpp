@@ -100,6 +100,7 @@ struct Host:updates::LauncherHost {
         return true;
     }
     updates::string preflight(const updates::string& dir) override {return startup::missingFonts(dir);}
+    bool randomBytes(unsigned char* bytes,size_t size) override {XeCryptRandom(bytes,uint32_t(size));return true;}
     yt::Response postReport(const yt::Request& request) override {
         // getaddrinfo do xsdk pode bloquear 30 s; o prazo do curl sozinho não limita DNS.
         // O worker possui seus dados e pode terminar após o handoff; nunca referencia Host/pilha.

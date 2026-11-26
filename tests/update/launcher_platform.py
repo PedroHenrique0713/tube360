@@ -37,6 +37,7 @@ void xsdk_log_write(const char*,...);
 using XsdkThreadEntry=uint32_t(*)(void*);
 NTSTATUS xsdk_thread_create_on(HANDLE*,uint32_t,XsdkThreadEntry,void*,uint32_t);
 NTSTATUS xsdk_thread_sleep(uint32_t);
+void XeCryptRandom(void*,uint32_t);
 void XamLoaderTerminateTitle(); int xsdk_launch(const char*,const void*,size_t);
 '''
 fake = r'''
@@ -63,6 +64,7 @@ struct ReportTransport:Transport {
 };
 std::unique_ptr<Transport> https(const std::atomic_bool*) {return std::make_unique<ReportTransport>();}
 }
+void XeCryptRandom(void* data,uint32_t n){auto* bytes=static_cast<unsigned char*>(data);for(uint32_t i=0;i<n;++i)bytes[i]=i+1;}
 const char* ExLoadedImageName="game:\\default.xex";
 static bool gpu=false,present=false,text=false;
 static XsdkThreadEntry deadline=nullptr;

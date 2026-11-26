@@ -37,6 +37,7 @@ void boot_session_begin(const char* directory,const char* metadata) {
     session_write("open",detail);
 }
 void boot_session_clean(void) {session_write("clean","");}
+void boot_session_resume(void) {session_write("open","power down returned unexpectedly");}
 void boot_session_version(unsigned build,const char* version) {
     if(!session_path[0])return;
     FILE* marker=fopen(session_path,"a");

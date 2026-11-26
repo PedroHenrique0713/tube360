@@ -25,11 +25,12 @@ int launchApp(const string& directory,const string& key,LauncherHost& host) {
     host.log("tela pronta");
     auto reportStarted=millis();
     if(reports::enabled(directory)) {
-        string pending=reports::sanitize(read(directory+"error-report.json"));
+        string id=reports::installation(directory,[&](unsigned char* bytes,size_t size){return host.randomBytes(bytes,size);});
+        string pending=id.empty()?string{}:reports::sanitize(read(directory+"error-report.json"),id);
         if(pending.empty()) {
-            pending=reports::make(directory);
-            if(!pending.empty() && !write(directory+"error-report.json",pending))pending.clear();
+            if(!id.empty())pending=reports::sanitize(reports::make(directory,id),id);
         }
+        if(!pending.empty() && !write(directory+"error-report.json",pending))pending.clear();
         if(!pending.empty()) {
             if(read(directory+"error-report.sent")==sha256(pending)) {
                 std::remove((directory+"error-report.json").c_str());

@@ -13,12 +13,14 @@ void check(bool ok,const char* why){++checks;if(!ok){std::cerr<<"FAIL "<<why<<'\
 struct Host:LauncherHost {
     int posts=0,launches=0;unsigned duration=0;string shown,body;
     yt::Response response{200,"{\"code\":\"T360-7K2Q\"}",{}};
+    bool randomBytes(unsigned char* bytes,size_t n) override {static unsigned seed=1;for(size_t i=0;i<n;++i)bytes[i]=static_cast<unsigned char>(seed+i);++seed;return true;}
     void log(const string&) override {}
     bool screen() override {return true;}
     bool closeScreen() override {return true;}
     int launch(const string&) override {++launches;return -1;}
     yt::Response postReport(const yt::Request& r) override {
         ++posts;body=r.body;
+        J payload;check(parse(body,payload) && reports::installationValid(text(payload,"installation_id")) && !text(payload,"category").empty(),"wire report has persistent anonymous ID and category");
         check(r.url=="https://tube360.hypermind.space/api/report" && r.agent=="Tube360/1.0","exact destination and user agent");
         check(r.timeoutMs<=1500 && r.connectTimeoutMs<=1000 && r.maxBytes==1024,"bounded single attempt and response");
         check(body.size()<=65536,"wire body respects cap");return response;
@@ -31,6 +33,18 @@ int main(int argc,char** argv) {
     if(string(argv[1])=="--scrub"){std::cout<<reports::scrub(read(argv[2],4*1024*1024));return 0;}
     string base=string(argv[1])+"/";int n=0;
     auto scenario=[&](){string d=base+std::to_string(n++)+"/";check(!mkdir(d.c_str(),0700),"isolated directory");write(d+"tube360.xex","XEX2fixture");return d;};
+    auto installDir=scenario();unsigned entropyCalls=0;
+    auto entropy=[&](unsigned char* bytes,size_t size){++entropyCalls;for(size_t i=0;i<size;++i)bytes[i]=static_cast<unsigned char>(entropyCalls+i);return true;};
+    auto installation=reports::installation(installDir,entropy);
+    check(reports::installationValid(installation) && reports::installation(installDir,entropy)==installation && entropyCalls==1,"installation random ID is persisted and reused without reading hardware");
+    auto otherDir=scenario();check(reports::installation(otherDir,entropy)!=installation,"another installation receives fresh random bytes");
+    write(installDir+"blocker","file");check(reports::installation(installDir+"blocker/",entropy).empty(),"unpersisted ID is never used for upload");
+    auto raw=J(O{{"version",J(string("0.3.3"))},{"build",J(string("33"))},{"hardware",J(string("Corona"))},{"screen",J(string("Player"))},{"error",J(string("player LOGIN_REQUIRED"))},{"log",J(string("Authorization: Bearer secret"))}}).serialize();
+    J upgraded;check(parse(reports::sanitize(raw,installation),upgraded) && text(upgraded,"category")=="youtube" && text(upgraded,"error").find("youtube.auth_required")!=string::npos && text(upgraded,"installation_id")==installation,"legacy pending report gains category and ID while credentials are removed");
+    check(reports::sanitize(reports::sanitize(raw,installation),installation)==reports::sanitize(raw,installation),"enriched queued body remains idempotent");
+    for(auto item:std::vector<std::pair<string,string>>{{"DNS failed","network"},{"TLS certificate failed","network"},{"timeout","network"},{"sem rede","network"},{"player LOGIN_REQUIRED","youtube"},{"player UNPLAYABLE","youtube"},{"403 from video link","youtube"},{"startup.fail Missing fonts","startup"},{"unclean session","crash"},{"unrecognized diagnostic","other"}})
+        check(reports::category(item.first,"")==item.second,"launcher supplies category from known cause");
+    check(reports::cause("TLS failed","DNS diagnostic","network")=="network.tls","primary error outranks incidental network log");
     string dirty="open\n";
     string privateLog="peer 192.168.101.39 203.0.113.25 video dQw4w9WgXcQ x_y-Z012345\nNest: Sala da Maria\ncast name=Bedroom\nAuthorization: Bearer ABC.secret\nya29.secret\n{\"refresh_token\":\"private space\"}\naccess_token=secret\naccount: Example Name\nquery=private search\n";
     auto clean=reports::scrub(privateLog);
@@ -57,7 +71,7 @@ int main(int argc,char** argv) {
         if(i==1)write(dir+"settings.txt","lang=pt\n error_reports = off\n");
         if(i==2){write(dir+"settings.txt","error_reports=on\n");write(dir+"no-error-reports.txt","");}
         write(dir+"error-report.json",bytes);
-        Host host;launchApp(dir,"",host);check(host.posts==0 && host.launches==1,"opt-out overrides dirty and pending report");
+        Host host;launchApp(dir,"",host);check(host.posts==0 && host.launches==1 && !exists(dir+"error-report-installation.txt"),"opt-out overrides dirty and pending report without generating ID");
     }
     auto dir=scenario();write(dir+"session.txt",dirty);
     Host offline;offline.response={0,{},"offline"};launchApp(dir,"",offline);
