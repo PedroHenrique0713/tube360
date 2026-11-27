@@ -82,7 +82,7 @@ int main() {
     const auto& it = pop.items[0];
     check(it.verified && it.date=="há 3 anos" && it.views=="9 mi de visualizações" && it.description=="trecho da descrição","result card fields: verified, date, views, description");
     auto pw = wire(pop); auto row = pw.substr(pw.find('\n')+1);
-    check(row.find("\thá 3 anos\t1\t9 mi de visualizações\ttrecho da descrição\t")!=string::npos,"wire item carries date, verified, views, description");
+    check(row.find("\thá 3 anos\t1\t9 mi de visualizações\ttrecho da descrição\n")!=string::npos,"wire item carries date, verified, views, description");
     check(pw.substr(0,pw.find('\n')).find("\t1\t")!=string::npos,"wire header carries the sortable flag");
   }
   {  // sem conta: nunca inscrito, então o estado vale
@@ -98,7 +98,7 @@ int main() {
     check(l.id=="DDDDDDDDDDD" && l.channel=="Mr.Canal" && l.verified && l.views=="6.4 thousand views" && l.date=="19 hours ago" && l.duration==757,"lockupViewModel keeps channel, verified, views, date and duration");
     check(s.items[1].duration==-1,"video without a time badge has unknown duration, not 0 (no false LIVE)");
     check(s.items[2].duration==0,"video with the live mark keeps 0 (LIVE)");
-    check(s.items[3].type=="channel" && s.items[3].subscribed==1 && s.items[3].date=="@canal","channel result keeps handle and subscription state");
+    check(s.items[3].type=="channel" && s.items[3].date=="@canal","channel result keeps the handle (search is public: it carries no subscription state)");
     auto w = wire(s); check(w.find("\t1\t6.4 thousand views\t")!=string::npos,"search wire carries the lockup metadata");
   }
   {  // curso (lockup COURSE): o 1º texto é o canal, nunca a data
