@@ -463,12 +463,12 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(MusicAutoplayOff, "Autoplay off", "Reprodução automática desligada", "Reproducción automática desactivada") \
   X(MusicLyricsFailed, "Could not load the lyrics.", "Não foi possível carregar a letra.", "No se pudo cargar la letra.") \
   X(MusicAddedQueue, "Added to the queue", "Adicionado à fila", "Añadido a la cola") \
-  X(MusicNoQueueToAdd, "Play a song first to build a queue.", "Toque uma música antes para montar a fila.", "Reproduce una canción antes para armar la cola.") \
+  X(MusicMixOf, "Mix of", "Mix de", "Mix de") \
+  X(MusicLibrarySignIn, "Sign in with your account to see your Library.", "Entre com a sua conta para ver a sua Biblioteca.", "Inicia sesión con tu cuenta para ver tu Biblioteca.") \
   X(MusicSongTab, "Song", "Música", "Canción") \
   X(MusicVideoTab, "Video", "Vídeo", "Video") \
   X(MusicMoveTrack, "Move track", "Mover faixa", "Mover pista") \
   X(MusicMovingTrack, "Moving: up and down place it, A drops it", "Movendo: cima e baixo posicionam, A solta", "Moviendo: arriba y abajo la colocan, A la suelta") \
-  X(MusicPrevious, "Previous track", "Faixa anterior", "Pista anterior") \
   X(MusicShuffleOn, "Shuffle on", "Aleatório ligado", "Aleatorio activado") \
   X(MusicShuffleOff, "Shuffle off", "Aleatório desligado", "Aleatorio desactivado") \
   X(MusicRepeatOff, "Repeat off", "Repetir desligado", "Repetir desactivado") \

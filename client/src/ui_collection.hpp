@@ -59,7 +59,7 @@ inline void UiContext::navInput(uint64_t now) {
           nav.action(navWorker,"/api/nav/play?kind="+p.kind+"&id="+net::urlEncode(p.id)+"&lang="+i18n::code(settings.lang));
         } else if (p.music) {  // música avulsa: toca já e monta a fila de rádio dela (como no YouTube Music), sem a página "Iniciar rádio"
           phonePlaybackSerial = 0;
-          nav.queueStart = item.id; nav.cancelQueue = false; nav.musicSession = true; nav.musicNow = false; nav.queueTitle = std::string(tr(K::Radio)) + " · " + item.title;
+          nav.queueStart = item.id; nav.cancelQueue = false; nav.musicSession = true; nav.musicNow = false; nav.queueTitle = std::string(tr(K::MusicMixOf)) + " " + item.title;
           nav.action(navWorker,"/api/nav/play?kind=radio&id="+net::urlEncode(item.id)+"&lang="+i18n::code(settings.lang));
         }
         else requestVideo(item.video());

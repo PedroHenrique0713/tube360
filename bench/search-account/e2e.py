@@ -11,6 +11,11 @@ from pathlib import Path
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[2]
 work=Path(sys.argv[1]).resolve();wanted=set(sys.argv[2:]);results=[]
+# a rádio de continuação da reprodução automática parte da ÚLTIMA faixa da fila (F12audio003): grava a mesma resposta para ela
+_manifest=work/'replay'/'responses.json';_data=json.loads(_manifest.read_text())
+if not any(r.get('fields',{}).get('playlistId')=='RDAMVMF12audio003' for r in _data['requests']):
+    _data['requests']+=[dict(r,fields=dict(r['fields'],playlistId='RDAMVMF12audio003')) for r in _data['requests'] if r.get('fields',{}).get('playlistId')=='RDAMVMF12audio001']
+    _manifest.write_text(json.dumps(_data))
 def run(name,lang='pt',signed=True,keys='',ms=2400,settings='',**extra):
     if wanted and name not in wanted:return
     case=work/name;assets=case/'assets';assets.mkdir(parents=True,exist_ok=True)
@@ -54,6 +59,8 @@ def run(name,lang='pt',signed=True,keys='',ms=2400,settings='',**extra):
         if 'filtered' in name:assert any('params=1' in line for line in requests),audit
     if name.startswith('music'):
         assert 'music=tv' in log and 'navegação music: 12 itens' in log,log[-3000:]
+    if name=='autoplay-busy':  # a letra (pedido atrasado 15 s) segura o worker além do fim da fila: a rádio sai depois e a Música continua
+        assert log.count('musica: primeiro audio')>=4 and 'navegacao: Player -> ' not in log and 'catalogo falha' not in log.split('captura:')[0].split('/api/nav/play')[-1],log[-3500:]
     if name.startswith('warning'):
         assert 'manual 480p itag 135 sob pressao sustentada' in log and 'aviso=1' in log,log[-4000:]
         assert 'qualidade: fonte ' not in log and log.count('console: MP4')==1,log[-4000:]
@@ -83,6 +90,7 @@ for status in ('400','401','403','200'):
 run('search-server',settings='server=on\n',F47_TEST_SERVER='1',XT_NAV='search',XT_NAV_QUERY='astronomia')
 run('search-server-failure',settings='server=on\n',F47_TEST_SERVER='1',F47_FAIL_SEARCH='1',F47_WEB_STATUS='200',XT_NAV='search',XT_NAV_QUERY='astronomia')
 run('search-failure',F47_FAIL_SEARCH='1',F47_WEB_STATUS='200',XT_NAV='search',XT_NAV_QUERY='astronomia')
+run('autoplay-busy',keys='...A........RRRRRRRUR',ms=26000,XT_NAV='radio',XT_NAV_ID='F12audio001',XT_MUSIC='1',F47_SLOW_NEXT_AFTER='3',F47_SLOW_NEXT_MS='15000')
 manifest=work/'screenshots.json'
 if wanted and manifest.exists():
     previous={entry['name']:entry for entry in json.loads(manifest.read_text())};previous.update({entry['name']:entry for entry in results});results=list(previous.values())

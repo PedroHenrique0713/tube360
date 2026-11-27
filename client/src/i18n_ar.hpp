@@ -443,12 +443,12 @@ inline const char* arabic(Key key) {
     case Key::MusicAutoplayOff: return "التشغيل التلقائي متوقف";
     case Key::MusicLyricsFailed: return "تعذر تحميل الكلمات.";
     case Key::MusicAddedQueue: return "تمت الإضافة إلى القائمة";
-    case Key::MusicNoQueueToAdd: return "شغّل أغنية أولاً لإنشاء قائمة.";
+    case Key::MusicMixOf: return "مزيج من";
+    case Key::MusicLibrarySignIn: return "سجّل الدخول بحسابك لرؤية مكتبتك.";
     case Key::MusicSongTab: return "الأغنية";
     case Key::MusicVideoTab: return "الفيديو";
     case Key::MusicMoveTrack: return "نقل المقطع";
     case Key::MusicMovingTrack: return "النقل: أعلى وأسفل لوضعه، A لإفلاته";
-    case Key::MusicPrevious: return "المقطع السابق";
     case Key::MusicShuffleOn: return "التشغيل العشوائي مفعل";
     case Key::MusicShuffleOff: return "التشغيل العشوائي متوقف";
     case Key::MusicRepeatOff: return "التكرار متوقف";

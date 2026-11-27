@@ -1,6 +1,9 @@
 #pragma once
 #include "music_shortcut_art.hpp"
 
+// Lado do cartão quadrado das prateleiras da Música: o da proposta (190) em 720p, menor em texto grande e em 4:3.
+inline float musicCardSize() { return ui::narrow ? 112 : ui::large ? 160 : 190; }
+
 struct NavItem {
   std::string type, id, title, channel, image, channelId, section;
   int duration = 0;
@@ -128,7 +131,7 @@ struct Navigation {
         p.offset = (int)p.items.size();
       } else if (!parse(r.feed.title, p, !first) && p.error.empty()) p.error = i18n::get(lang, K::BadResponse);
       if (p.error=="account_music_unavailable") p.error=i18n::get(lang,K::MusicAccountUnavailable);
-      if (p.error=="signed_out") p.error=i18n::get(lang,K::AccountRequired);
+      if (p.error=="signed_out") p.error=i18n::get(lang,p.kind=="music" && p.query=="library" ? K::MusicLibrarySignIn : K::AccountRequired);
       if (p.musicHome()) p.musicLabel=p.musicSource.empty() ? "" : gfx::ellipsize(g,ui::F_TINY,
           i18n::get(lang,p.musicSource=="public" ? K::PublicMusic : K::YourMusic),ui::narrow ? ui::W-364 : 480);
       if (first && p.kind == "music" && p.query == "library" && p.error.empty() && (p.musicSource=="web" || p.musicSource=="tv")) {
@@ -173,7 +176,7 @@ struct Navigation {
             p.shelves.push_back({(int)i, (int)i, (int)i, gfx::ellipsize(g, ui::F_KEY, heading, 1056)});
           }
           p.shelves.back().end = (int)i + 1;
-          const float cardText = (ui::narrow ? 112 : 140) + 18;  // largura do cartão da prateleira (drawMusicPage)
+          const float cardText = musicCardSize() + 18;  // largura do cartão da prateleira (drawMusicPage)
           item.titleLines = {gfx::ellipsize(g, ui::F_SMALL, item.title, cardText)};
           item.byline = gfx::ellipsize(g, ui::F_TINY, item.channel, cardText);
           continue;

@@ -78,7 +78,7 @@ cases = [
     ('library', 'pt', True, 'music_library', '', {}, 'tv'),
     ('liked', 'pt', True, 'music_playlist', '', {'XT_NAV_ID': 'VLLM'}, 'tv'),
     ('shelf-audio', 'pt', True, 'music', '', {'XT_KEYS': 'DA', 'XT_KEYS_MS': '650', 'XT_SHOT_MS': '3500'}, 'tv'),
-    ('shortcut-back', 'pt', True, 'music', '', {'XT_KEYS': 'AB', 'XT_KEYS_MS': '650'}, 'tv'),
+    ('shortcut-back', 'pt', True, 'music', 'library', {'XT_KEYS': 'AB', 'XT_KEYS_MS': '650'}, 'tv'),  # aba Biblioteca: A abre o 1º atalho, B volta
 ]
 wanted = set(sys.argv[2:])
 for name, lang, signed, kind, query, config, expected_source in cases:
@@ -129,6 +129,9 @@ for name, lang, signed, kind, query, config, expected_source in cases:
     log = (proof/(name+'.log')).read_text()
     assert 'music='+expected_source in log, (name, log)
     assert 'navegação '+kind+':' in log, (name, log)
+    if name=='shortcut-back':
+        assert 'navegação music_recent:' in log, log  # o atalho "Ouvidas recentemente" abriu de fato
+        assert log.rstrip().count('captura navegação: music ') == 1 and 'pilha=1' in log, log  # e o B voltou à aba Biblioteca
     if name=='shelf-audio':
         assert 'musica: primeiro audio' in log and 'primeiro quadro:' not in log, log
         assert 'catalogo console: /api/nav/play' in log and 'navegação radio:' not in log, log  # música avulsa toca direto, sem a página da rádio

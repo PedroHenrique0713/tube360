@@ -1481,7 +1481,7 @@ int run(int argc, char** argv) {
         if (!ok) {
           if (r.key.rfind("/api/nav/play?", 0) == 0) nav.musicSession = nav.musicNow = false;
           if (r.key.rfind("/api/nav/related?", 0) == 0) { nav.relatedLoaded = true; continue; }
-          if (nav.continuing) { nav.continuing = false; stopVideo(); continue; }  // a rádio não veio: acaba como acabaria sem a reprodução automática
+          if (nav.continuing && r.key.rfind("/api/nav/play?", 0) == 0) { nav.continuing = false; stopVideo(); continue; }  // a rádio não veio: acaba como acabaria sem a reprodução automática
           if (r.key.rfind("/api/nav/lyrics?", 0) == 0) { nav.lyricsFailed = true; continue; }  // erro de rede: a aba diz que falhou, sem aviso por cima  // sem letra: a aba mostra "Letra indisponível", sem aviso
           auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
           toast = fields.size() > 1 ? fields[1] : tr(K::ActionFailed); toastUntil = now + 4500;
@@ -1716,12 +1716,14 @@ int run(int argc, char** argv) {
         nav.queueIndex = following; if (nav.nowZone != MusicNavigation::ZoneQueue) nav.queueSel = (int)following; startVideo(nav.queue[following].video(),0,false);
       } else if (nav.autoplay && !nav.queue.empty() && !(sleep.active && sleep.end)) {
         // Reprodução automática: acabou a fila, segue com a rádio da última faixa (a resposta troca a fila e continua dali)
-        if (!nav.continuing && !nav.busy) {
-          nav.continuing = true; nav.cancelQueue = false; nav.queueStart.clear();
-          nav.queueTitle = std::string(tr(K::Radio)) + " · " + playing.title;
-          nav.action(navWorker,"/api/nav/play?kind=radio&id="+net::urlEncode(playing.id)+"&lang="+i18n::code(settings.lang));
+        if (!nav.continuing) {  // liga já: o pedido sai quando o worker estiver livre (letra ou relacionados podem estar em andamento)
+          nav.continuing = true; nav.cancelQueue = false; nav.queueStart.clear(); nav.radioFor = playing.id;
+          nav.queueTitle = std::string(tr(K::MusicMixOf)) + " " + playing.title;
         }
       } else { endTimerPending = sleep.active && sleep.end; stopVideo(); }
+    }
+    if (nav.continuing && !nav.radioFor.empty() && !nav.busy) {
+      nav.action(navWorker,"/api/nav/play?kind=radio&id="+net::urlEncode(nav.radioFor)+"&lang="+i18n::code(settings.lang)); nav.radioFor.clear();
     }
     // ---- F63 Player e Shorts: fim de um Short emenda no próximo da fila (ou repete o último), sem o "a seguir em 8 s" de vídeo comum
     if (screen == PLAYER && pl.state == player::ENDED && playing.shortForm && !playerFromRemote && !shutdownAt && !nav.localQueue && !(sleep.active && sleep.end)) screens.shortsEnded();

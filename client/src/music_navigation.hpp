@@ -15,6 +15,7 @@ struct MusicNavigation : Navigation {
   int relatedSel = 0, relatedTop = 0, rowsTab = -1;
   bool lyricsFailed = false, autoplay = true, autoFocus = false, continuing = false, relatedLoaded = false;  // autoplay: ao fim da fila, segue com a rádio
   std::vector<NavItem> related; std::string relatedId;
+  std::string radioFor;                         // faixa da qual a rádio de continuação ainda tem de ser pedida (o worker pode estar ocupado)
   std::string queueTitle;                       // de onde veio a fila ("Rádio · música", nome da playlist), mostrado sobre a lista
   int repeat = musicqueue::OFF;
   bool shuffled = false, moving = false, videoMode = false;
@@ -26,7 +27,7 @@ struct MusicNavigation : Navigation {
   int rowsFor = -1; float rowsWidth = 0; uint64_t rowsRev = 0, queueRev = 1;
   float builtWidth = -1; bool builtLarge = false;  // layout para o qual título e artista foram cortados
 
-  void clearLocalQueue() { localQueue = false; ownsQueue = false; queue.clear(); queueStart.clear(); queueTitle.clear(); resetNow(); }
+  void clearLocalQueue() { localQueue = false; ownsQueue = false; queue.clear(); queueStart.clear(); queueTitle.clear(); radioFor.clear(); continuing = false; resetNow(); }
   void resetNow() {
     queueSel = queueTop = tab = relatedSel = relatedTop = 0; autoFocus = false; related.clear(); relatedId.clear(); relatedLoaded = false; lyricsFailed = false; repeat = musicqueue::OFF; shuffled = moving = videoMode = seekPending = false;
     queueSaved.clear(); nowZone = 0; nowSel = BtnPlay; ++queueRev; lyricWrap.clear(); lyricWrapSig.clear();
