@@ -416,6 +416,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(PlayerShelfNext, "Up next", "A seguir", "A continuación") \
   X(PlayerShelfChannel, "From the channel", "Do canal", "Del canal") \
   X(PlayerShelfRelated, "Related", "Relacionados", "Relacionados") \
+  X(PlayerShelfBack, "Back to video", "Voltar ao vídeo", "Volver al vídeo") \
   X(PlayerNoNext, "No next video", "Não há próximo vídeo", "No hay siguiente vídeo") \
   X(PlayerNoPrev, "No previous video", "Não há vídeo anterior", "No hay vídeo anterior") \
   X(PlayerLaterAdded, "Saved to Watch later", "Salvo em Assistir mais tarde", "Guardado en Ver más tarde") \

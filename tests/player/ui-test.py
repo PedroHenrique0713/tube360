@@ -253,4 +253,12 @@ d1, d2 = drawn('f63-channel-shelf'), drawn('f63-channel-shelf-tab2')
 assert any(x.startswith('1:') and x.split(':')[1] in chan_ids for x in d1), d1   # aba Do canal desenha vídeos do canal
 assert any(x.startswith('2:') and x.split(':')[1] not in chan_ids for x in d2), d2  # Relacionados segue com os dele
 assert not any(x.startswith('1:') and x.split(':')[1] not in chan_ids for x in d1), d1  # nunca a lista de relacionados na aba do canal
+# Fileira de baixo (proposta): ao descer somem os botões e o joinha (a linha de ícones fica escura) e sobra só a linha fina de progresso.
+from PIL import Image
+def bright(name, box):
+    im = Image.open(OUT / (name + '.ppm')).convert('L').crop(box)
+    return max(im.getdata())
+icons_box = (760, 640, 1240, 690)
+assert bright('f63-icons', icons_box) > 150, 'icons row should be visible with the controls up'
+assert bright('f63-shelf', icons_box) < 70, 'icons row must be gone while the shelf is open'
 print('PASS f63 ui: shelf, volume and Shorts')

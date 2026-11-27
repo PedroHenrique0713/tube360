@@ -361,13 +361,20 @@ inline void UiContext::playerShelfInput(uint64_t now) {
   playerUI.touch(now);
 }
 
+// Fileira de baixo (proposta aprovada): ao descer somem título, barra, botões e joinha; o vídeo segue escurecido, as abas ficam em cima
+// da fileira, o próximo cartão aparece pela borda e só uma linha fina de progresso fica colada embaixo.
 inline void UiContext::playerShelfDraw(uint64_t now) {
   (void)now;
   const bool rtl = g.rtlText;
-  const auto& items = shelfItems(shelf.tab);
-  const int count = (int)items.size(), cols = 5;
+  const auto items = shelfItems(shelf.tab);
+  const int count = (int)items.size(), cols = ui::narrow ? 4 : 5;
   const float gap = 18, left = 56, cw = std::floor((ui::W - left * 2 - gap * (cols - 1)) / cols), ch = std::floor(cw * 9 / 16);
-  gfx::vgrad(g, 0, 180, ui::W, 540, {0, 0, 0, 0}, {0.043f, 0.043f, 0.055f, 0.95f});
+  const float tabsY = 380, rowY = 432;
+  const Color ink{0.043f, 0.043f, 0.055f, 0};
+  auto shade = [&](float a) { Color c = ink; c.a = a; return c; };
+  gfx::vgrad(g, 0, 0, ui::W, ui::H * .38f, shade(.15f), shade(.55f));
+  gfx::vgrad(g, 0, ui::H * .38f, ui::W, ui::H * .24f, shade(.55f), shade(.96f));
+  gfx::rect(g, 0, ui::H * .62f, ui::W, ui::H * .38f + 1, shade(.96f));
   // abas
   const K names[3] = {K::PlayerShelfNext, K::PlayerShelfChannel, K::PlayerShelfRelated};
   float tx = rtl ? ui::W - left : left;
@@ -376,28 +383,32 @@ inline void UiContext::playerShelfDraw(uint64_t now) {
     std::string name = tr(names[t]);
     float w = gfx::textWidth(g, ui::F_H2, name), x = rtl ? tx - w : tx;
     bool on = t == shelf.tab;
-    gfx::text(g, ui::F_H2, name, x, 232, on ? ui::TEXT : ui::MUTED);
-    if (on) gfx::rect(g, x, 232 + g.fonts[ui::F_H2].lineH + 4, w, 3, ui::A1, 1);
+    gfx::text(g, ui::F_H2, name, x, tabsY, on ? ui::TEXT : ui::MUTED);
+    if (on) gfx::rect(g, x, tabsY + g.fonts[ui::F_H2].lineH + 4, w, 3, ui::A1, 1);
     tx += (rtl ? -1 : 1) * (w + 34);
   }
-  if (!count) {
-    gfx::text(g, ui::F_BODY, tr(K::Loading), rtl ? ui::W - left : left, 300, ui::MUTED, rtl ? 2 : 0);
-  }
-  {  // o que a fileira DESENHA (a lista da aba ativa): uma linha por mudança, para o teste e para o log do console
+  if (!count) gfx::text(g, ui::F_BODY, tr(K::Loading), rtl ? ui::W - left : left, rowY + 10, ui::MUTED, rtl ? 2 : 0);
+  {  // o que a fileira DESENHA (a lista da aba ativa), depois de tudo que mexe na lista: uma linha por mudança (teste e log do console)
     std::string key = std::to_string(shelf.tab) + ":" + (items.empty() ? std::string("-") : items.front().id) + ":" + std::to_string(count);
     if (key != shelf.drawnKey) { shelf.drawnKey = key; LOG("player: fileira desenhou aba=%d itens=%d primeiro=%s", shelf.tab, count, items.empty() ? "-" : items.front().id.c_str()); }
   }
+  // cols cartões inteiros + o seguinte aparecendo pela borda (rola ao passar do último inteiro)
   int first = std::clamp(shelf.sel - cols + 1, 0, std::max(0, count - cols));
-  for (int i = first; i < std::min(count, first + cols); ++i) {
+  for (int i = first; i < std::min(count, first + cols + 1); ++i) {
     float slot = (float)(i - first) * (cw + gap), x = rtl ? ui::W - left - cw - slot : left + slot;
-    homeCard(g, thumbs, thumbsWorker, frame, settings.lang, items[(size_t)i], pl.direct, items[(size_t)i].shortForm, i == shelf.sel, x, 286, cw, ch, i == shelf.sel ? 1.f : 0.f, nullptr);
+    homeCard(g, thumbs, thumbsWorker, frame, settings.lang, items[(size_t)i], pl.direct, items[(size_t)i].shortForm, i == shelf.sel, x, rowY, cw, ch, i == shelf.sel ? 1.f : 0.f, nullptr);
   }
-  float hy = 574, hx = rtl ? ui::W - left - 640 : left;
+  // linha fina de progresso colada na borda
+  double dur = pl.duration, pos = pl.position();
+  float frac = pl.live ? 1.f : dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0.f;
+  gfx::rect(g, 0, ui::H - 5, ui::W, 5, {1, 1, 1, 0.2f});
+  if (frac > 0) gfx::rect(g, 0, ui::H - 5, ui::W * frac, 5, ui::A1);
+  float hy = ui::H - 46, hx = rtl ? ui::W - 40 - 640 : 40;
   hx = hint(g, hx, hy, tr(K::BtnHorizontal), XG, tr(K::ChooseRow));
   hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::Open, settings.lang, K::WatchNow);
   hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::WatchLater, settings.lang);
   hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::PrevTab, settings.lang);
-  ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::Back, settings.lang);
+  ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::Back, settings.lang, K::PlayerShelfBack);
 }
 
 inline void UiContext::playerUpdate(uint64_t now) {
@@ -454,7 +465,7 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
     g.scale=scale; g.scaleX=scaleX; g.insetX=insetX; g.insetY=insetY;
   }
   bool panelOpen = ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt || shelf.open;
-  bool show = !shortScene && (playerUI.visible(now) || panelOpen);
+  bool show = !shortScene && !shelf.open && (playerUI.visible(now) || panelOpen);
   if (show) {
     const Color red = rgb(0xff0033), island = {0,0,0,0.63f};
     gfx::vgrad(g, 0, 420, ui::W, 300, {0,0,0,0}, {0,0,0,0.87f});
