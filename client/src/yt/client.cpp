@@ -351,7 +351,7 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
     } report{out,policy};
     // O cliente VISIONOS recebe links prontos (sem decifrar JavaScript) quando o pedido leva a sessão de visitante
     // da página do vídeo: cookies, X-Goog-Visitor-Id e o signatureTimestamp do player JS. É o mesmo pedido que o
-    // yt-dlp do servidor faz (medido em 2026-11-23: itag 136 direto deste IP, sem login nem PO token).
+    // yt-dlp faz (medido em 2026-11-23: itag 136 direto deste IP, sem login nem PO token).
     if (!accountPlayer.empty()) {
         out.playerClient="TVHTML5"; out.playerAttempts=1;
         if (!parse(accountPlayer,j)) { out.status="ERROR"; out.failure=Failure::JSON; out.reason="invalid_json"; return out; }

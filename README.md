@@ -366,7 +366,7 @@ Tube360 lives in the [Revive360](https://github.com/revive360) organization, a h
 
 ## Credits & license
 
-Tube360 is [MIT licensed](LICENSE). You can use, change and share it. Keep the copyright notice, which means giving credit. Third-party parts and their licenses are listed in [THIRD_PARTY.md](THIRD_PARTY.md). Thanks to **pl_mpeg**, **FFmpeg**, and the **xsdk / vulkan4xenon / SDL-xenon** projects, which made modern homebrew on the 360 possible.
+Tube360 is [MIT licensed](LICENSE). You can use, change and share it. Keep the copyright notice, which means giving credit. Third-party parts and their licenses are listed in [THIRD_PARTY.md](THIRD_PARTY.md). Thanks to **FFmpeg** and the **xsdk / vulkan4xenon / SDL-xenon** projects, which made modern homebrew on the 360 possible.
 
 Built by [@PedroHenrique0713](https://github.com/PedroHenrique0713).
 

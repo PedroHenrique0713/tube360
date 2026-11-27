@@ -58,8 +58,7 @@ depender de herança; o criador demux/AAC solicita +1.
 Antes, as lanes TLS herdavam HW1 e várias tarefas de fundo herdavam HW0. O alimentador
 ficou em HW1, como na F39. Não há um HW sem AVC neste perfil: a proteção é priorizar tarefas
 curtas, fazer rede/áudio esperarem em bloqueio e manter os trabalhos de fundo longe da UI.
-Os helpers MPEG-1 #1/#2/#3 seguem HW3/1/4 mas dormem durante H.264. Rede/decoder MPEG-1
-seguem HW1/2; o controle do servidor opcional fica HW5. Não há alteração no agendamento
+Não há alteração no agendamento
 interno do driver/kernel de rede, GPU ou áudio.
 
 A **F34 SponsorBlock não está nesta base**: `sponsorblock_thread.hpp` coloca HW5 e eleva

@@ -1,4 +1,4 @@
-"""Escada 720p60 -> 720p30 -> 480p30 com 2,5 Mbit/s compartilhados e servidor desligado."""
+"""Escada 720p60 -> 720p30 -> 480p30 com 2,5 Mbit/s compartilhados."""
 import argparse
 import json
 import re
@@ -52,7 +52,6 @@ capture = re.search(r"captura:.*posição ([0-9.]+)", text)
 assert capture and float(capture[1]) > 40, "playback did not keep advancing after the last transition"
 assert "itag 298 -> 136" in text and "itag 136 -> 135" in text, text[-8000:]
 assert text.count("primeiro quadro:") == 1 and text.count("audio: selecionada") == 1, "AAC/player restarted"
-assert "reserva no servidor" not in text and "H.264 -> MPEG-1" not in text, "PC fallback used"
 assert "fonte 720p60.000 -> 720p30.000" in text and "fonte 720p30.000 -> 480p30.000" in text
 assert text.count("resultado 0") >= 2 and "VOD 480p 30.000 fps" in text, "lower sources never delivered decoded frames"
 assert "som: fila PCM vazia" not in text, "audio reserve emptied during a source transition"

@@ -2,9 +2,6 @@
 // e a âncora não depende do sentinela audioBaseMs < 0.   f67-speed-test
 #include <cmath>
 #include <cstdio>
-#define PL_MPEG_IMPLEMENTATION
-#include "pl_mpeg.h"
-#undef PL_MPEG_IMPLEMENTATION
 #define LOG(...) SDL_Log(__VA_ARGS__)
 #include "player.hpp"
 #include "music_player.hpp"
@@ -43,10 +40,29 @@ int main() {
         music::Player m; m.init();
         m.liveRate = 1.05; m.liveClockOffset = 0.37; m.live = true;
         m.audioOnly = true; m.speed = 1;
-        m.start({"127.0.0.1", 1}, "musicvid001", 0, "song", 200, 720, false, true);
+        m.start("musicvid001", 0, "song", 200, 720, false);
         CHECK(m.liveRate.load() == 1.0 && m.liveClockOffset == 0.0, "a music start clears the live rate (%.2f) and anchor (%.2f)", m.liveRate.load(), m.liveClockOffset);
         CHECK(m.rate() == 1.0, "music clock runs at 1x");
         m.halt();
+    }
+    // Música com a caixa pedida e nenhum Nest configurado (sem nest.txt): toca na TV, direto, sem erro de console, e
+    // `speakerMissing` deixa a tela mostrar o mesmo aviso do vídeo (K::NoSpeaker).
+    {
+        music::Player m; m.init();
+        CHECK(!m.directSpeaker.configured(), "no nest.txt: the speaker is not configured");
+        m.audioOnly = true;
+        m.start("musicvid001", 0, "song", 200, 720, true);
+        CHECK(!m.speakerRequested && m.speakerMissing.load(), "unconfigured speaker: requested=%d missing=%d", (int)m.speakerRequested, (int)m.speakerMissing.load());
+        CHECK(m.playingAudio && m.decThread && m.error.empty() && m.state != player::FAILED, "music starts its own audio on the TV (state %d, error '%s')", (int)m.state.load(), m.error.c_str());
+        CHECK(m.output.load() == player::Player::LOCAL, "output is the TV");
+        m.halt();
+        m.start("musicvid001", 0, "song", 200, 720, false);
+        CHECK(!m.speakerMissing.load(), "no speaker asked, nothing to warn about");
+        m.halt();
+        music::Player v; v.init(); v.audioOnly = false;
+        v.start("videoid0001", 0, "clip", 100, 720, true);
+        CHECK(!v.speakerRequested && v.speakerMissing.load() && v.error.empty() && v.state != player::FAILED, "a video with the same request plays on the TV and warns the same way");
+        v.halt();
     }
     std::puts(failures ? "RESULT FAILED" : "RESULT OK");
     return failures ? 1 : 0;

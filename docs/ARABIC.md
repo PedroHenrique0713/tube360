@@ -96,8 +96,8 @@ Inclua `libtube360-text.a` no kit de relink e a licença FriBidi no pacote.
 A tradução usa árabe padrão moderno; falta revisão por falante nativo. Menor certeza terminológica:
 Charts (الأكثر رواجًا), Mixes (مزيج), PlayerTimeline (شريط التقدم), VideoFitLetterbox (ملاءمة / أشرطة),
 SpeakerSync (مزامنة السماعة) e a escolha regional de “cast” (البث). As traduções técnicas devem ser revisadas
-no contexto da tela. Dados e mensagens arbitrárias devolvidas pelo servidor opcional não são traduzidos aqui;
-seu backend ainda pode escolher metadados em inglês por não reconhecer `ar`.
+no contexto da tela. Dados e mensagens arbitrárias devolvidos pelo YouTube não são traduzidos aqui;
+o YouTube ainda pode escolher metadados em inglês por não reconhecer `ar`.
 
 ## Provas e console
 

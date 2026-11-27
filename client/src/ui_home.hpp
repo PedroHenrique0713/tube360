@@ -3,7 +3,7 @@
 #include "ui_context.hpp"
 
 // A Home da conta (TVHTML5) vem em prateleiras com título, na ordem do YouTube; cada uma vira uma fileira rolável com o título.
-// Só a categoria Início da conta e só quando o servidor mandou as seções; busca e demais categorias seguem a lista única.
+// Só a categoria Início da conta e só quando a conta trouxe as seções; busca e demais categorias seguem a lista única.
 inline int UiContext::homeShelves(const Shelf& cur) const {
   if (inResults || cur.kind!="home" || !account.signedIn()) return 0;
   for (const auto& v:cur.feed.items) if (!v.section.empty()) return 2;

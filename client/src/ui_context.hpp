@@ -43,7 +43,6 @@ struct UiContext {
   std::function<void(const Video&, double, bool, std::string)> startVideoFn;
   Worker& navWorker;
   float& railOpen;
-  net::Server& srv;
   std::shared_ptr<yt::ConsoleAccount>& consoleAccount;
   std::function<void()> stopVideo;
   std::function<void(const std::string&)> openChannelForVideo;
@@ -65,7 +64,6 @@ struct UiContext {
   std::function<void()> beginLogin;
   std::function<std::string(int)> sleepLabel;
   uint64_t& accountAt;
-  uint64_t& nestInfoAt;
   bool& phonePanel;
   uint64_t& phonePlaybackSerial;
   std::function<int()> railPage;
@@ -75,7 +73,6 @@ struct UiContext {
   cast::Status& phoneStatus;
   bool& loginPanel;
   K& loginError;
-  int& sleepPending;
   std::function<void(const char*)> requestAccount;
   std::function<void(const std::string&)> requestSleep;
   // ---- Busca

@@ -81,7 +81,7 @@ inline std::optional<int> UiContext::settingsInput(uint64_t now) {
           }
         }
       } else if (settingsRow == 3) {
-        if (nestAvailable) { nestOut = !nestOut; if (nestOut && !pl.directSpeaker.configured()) control.add({5, "/api/nest/prepare", 0}); }
+        if (nestAvailable) nestOut = !nestOut;
         else changed = false;
       } else if (settingsRow == 4) nestOffsetMs = std::clamp(nestOffsetMs + direction * 40, -2000, 2000);
       else if (settingsRow == 5) {

@@ -149,7 +149,7 @@ inline void MusicNavigation::drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker
     const int firstRow = L.stacked ? BtnLike : BtnCount;  // índices abaixo disto ficam na 1ª fileira
     auto drawButton = [&](int i, float mx, float my, float w) {
       bool sel = focus(ZoneButtons) && nowSel == i;
-      const bool dim = !localQueue && (i == BtnRepeat || i == BtnShuffle);  // fila do servidor: sem repetir nem aleatório
+      const bool dim = !localQueue && (i == BtnRepeat || i == BtnShuffle);  // fila sem dono local: sem repetir nem aleatório
       bool lit = (i == BtnLike && rating == "LIKE") || (i == BtnDislike && rating == "DISLIKE") || (i == BtnRepeat && repeat != musicqueue::OFF) || (i == BtnShuffle && shuffled);
       if (i == BtnPlay) {
         if (sel) gfx::rect(g, mx - w / 2 - 5, my - w / 2 - 5, w + 10, w + 10, ui::A1, w / 2 + 5);
@@ -277,7 +277,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
   }
   const bool rtl = g.rtlText;
   const NowLayout L = nowLayout(rtl);
-  // Sair da Música: para a fila (do console ou do servidor) e fecha a tela
+  // Sair da Música: para a fila e fecha a tela
   auto leaveMusic = [&]() {
     const bool pendingRadio = nav.continuing;  // B também cancela a rádio de continuação que ainda não chegou
     nav.continuing = false; nav.radioFor.clear(); nav.resetNow();
