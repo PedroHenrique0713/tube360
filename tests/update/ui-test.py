@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """Captura o app/renderer real com o worker HTTP de teste e catálogo gravado isolado."""
 import argparse
+import sys as _sys
+_sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 from functools import partial
 from http.server import ThreadingHTTPServer
 import importlib.util
@@ -33,14 +36,14 @@ try:
         ('home-es-sd-large', 'es', True, 480, '', '', 4000, 'good'),
         ('home-ar', 'ar', False, 720, '', '', 4000, 'good'),
         ('home-ar-sd-large', 'ar', True, 480, '', '', 4000, 'good'),
-        ('settings-pt', 'pt', False, 720, 'settings', ']'*6, 4000, 'good'),
-        ('offer-pt', 'pt', False, 720, 'settings', ']'*6+'A', 4200, 'good'),
-        ('offer-en', 'en', False, 720, 'settings', ']'*6+'A', 4200, 'good'),
-        ('offer-es-sd-large', 'es', True, 480, 'settings', ']'*6+'A', 4200, 'good'),
-        ('downloading-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'A'+' '*12+'A', 5200, 'good'),
-        ('ready-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'A'+' '*12+'A', 7500, 'good'),
-        ('cancelled-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'A'+' '*12+'A B', 5400, 'good'),
-        ('error-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'A'+' '*12+'A', 7500, 'bad-hash'),
+        ('settings-pt', 'pt', False, 720, 'settings', seq(14), 4000, 'good'),
+        ('offer-pt', 'pt', False, 720, 'settings', seq(14,'A'), 4200, 'good'),
+        ('offer-en', 'en', False, 720, 'settings', seq(14,'A'), 4200, 'good'),
+        ('offer-es-sd-large', 'es', True, 480, 'settings', seq(14,'A'), 4200, 'good'),
+        ('downloading-pt', 'pt', False, 720, 'settings', ' '*25+seq(14,'A')+' '*12+'A', 5200, 'good'),
+        ('ready-pt', 'pt', False, 720, 'settings', ' '*25+seq(14,'A')+' '*12+'A', 7500, 'good'),
+        ('cancelled-pt', 'pt', False, 720, 'settings', ' '*25+seq(14,'A')+' '*12+'A B', 5400, 'good'),
+        ('error-pt', 'pt', False, 720, 'settings', ' '*25+seq(14,'A')+' '*12+'A', 7500, 'bad-hash'),
         ('auto-file-pt', 'pt', False, 720, '', '', 6500, 'good'),
     ]:
         if a.only and name not in a.only:
