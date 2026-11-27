@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <climits>
 #include <cstring>
+#include <set>
 
 namespace updates {
 namespace {
@@ -28,8 +29,18 @@ bool decode(const J& j,Rules& r,const J& base) {
     if (!fields(j,{"schema","kind","version","strings","limits","timestampMarkers","players","tv","samsung","fallbackStatuses"}) ||
         number(get(j,"schema"),1,1)!=1 || text(j,"kind")!="tube360-rules" || (r.version=number(get(j,"version"),1,INT_MAX))<1) return false;
     const auto& strings=get(j,"strings"); const auto& limits=get(j,"limits");
-    if (!strings.is<O>() || !limits.is<O>() || strings.get<O>().size()!=get(base,"strings").get<O>().size() || limits.get<O>().size()!=get(base,"limits").get<O>().size()) return false;
+    if (!strings.is<O>() || !limits.is<O>()) return false;
+    // Chaves introduzidas por uma versão do app podem faltar em regras assinadas para versões anteriores: o padrão embutido
+    // preenche. Qualquer outra chave que falte ou sobre reprova, como antes.
+    static const std::set<string> addedStrings={"tvPlayerPath"}, addedLimits={"nsig"};
+    for (const auto& kv:strings.get<O>()) if (!get(base,"strings").get<O>().count(kv.first)) return false;
+    for (const auto& kv:limits.get<O>()) if (!get(base,"limits").get<O>().count(kv.first)) return false;
     for (const auto& kv:get(base,"strings").get<O>()) {
+        if (!strings.get<O>().count(kv.first)) {
+            if (!addedStrings.count(kv.first)) return false;
+            r.strings[kv.first]=text(get(base,"strings"),kv.first);
+            continue;
+        }
         auto s=text(strings,kv.first);
         if (!get(strings,kv.first).is<string>() || !ascii(s,1024,kv.first=="apiKey" || kv.first=="tvClientId" || kv.first=="tvClientSecret")) return false;
         if (kv.first.find("Origin")!=string::npos) {
@@ -43,8 +54,12 @@ bool decode(const J& j,Rules& r,const J& base) {
     }
     const std::map<string,std::pair<int,int>> bounds={{"responseBytes",{65536,6*1024*1024}},{"jsonBytes",{4096,3*1024*1024}},
         {"cards",{1,120}},{"retries",{1,3}},{"backoffMs",{100,2000}},{"markerBytes",{32,8192}},{"timestampMax",{10000,100000000}},
-        {"listPages",{1,40}},{"listItems",{24,1024}},{"queueItems",{1,256}},{"catalogItems",{24,240}},{"parserDepth",{4,80}},{"parserNodes",{128,160000}},{"checkHours",{1,12}},{"failures",{2,8}},{"successes",{2,8}},{"pageItems",{1,48}}};
-    for (const auto& kv:bounds) { int n=number(get(limits,kv.first),kv.second.first,kv.second.second); if(n<0) return false; r.limits[kv.first]=n; }
+        {"listPages",{1,40}},{"listItems",{24,1024}},{"queueItems",{1,256}},{"catalogItems",{24,240}},{"parserDepth",{4,80}},{"parserNodes",{128,160000}},{"checkHours",{1,12}},{"failures",{2,8}},{"successes",{2,8}},{"pageItems",{1,48}},{"nsig",{0,1}}};
+    for (const auto& kv:bounds) {
+        const bool added=addedLimits.count(kv.first) && !limits.get<O>().count(kv.first);
+        int n=number(added ? get(get(base,"limits"),kv.first) : get(limits,kv.first),kv.second.first,kv.second.second);
+        if(n<0) return false; r.limits[kv.first]=n;
+    }
     for (auto name:{"timestampMarkers","fallbackStatuses"}) {
         const auto& a=get(j,name); if(!a.is<A>() || a.get<A>().empty() || a.get<A>().size()>6) return false;
         auto& out=std::strcmp(name,"timestampMarkers")==0 ? r.timestampMarkers : r.fallbackStatuses;

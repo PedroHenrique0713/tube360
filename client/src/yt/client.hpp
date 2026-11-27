@@ -32,6 +32,8 @@ struct Response {
     int tlsCode = 0;
     string transportDetail;
     NetworkTiming timing;
+    // Cabeçalhos X-* dos segmentos de live (-1 = ausente): X-Head-Seqnum, X-Sequence-Num, X-Head-Time-Millis, X-Walltime-Ms.
+    long long headSeq = -1, segmentSeq = -1, headTimeMs = -1, wallMs = -1;
 };
 // Pedido com identidade própria: user agent, cabeçalhos extras e os cookies que o worker já recebeu.
 struct Request {
@@ -42,6 +44,7 @@ struct Request {
     long readBuffer = 64 * 1024;
     bool update = false;
     size_t maxBytes = 0;
+    bool longPoll = false;  // espera sem bytes por até timeoutMs (live: sq futuro); sem o corte de velocidade mínima
     long connectTimeoutMs = 0, timeoutMs = 0;
     NetworkTrace trace;
 };
@@ -109,6 +112,9 @@ struct Video {
     int ttl = 0, duration = 0;
     int64_t expiresAt = 0;
     bool highFrameRate720 = false, live = false;
+    // Live sem HLS (só adaptiveFormats com live=1): segmentos &sq=N (membros). Vem da conta, com o `n` já resolvido.
+    bool liveSeq = false;
+    bool nsigSolved = false;  // havia `n` nos links e o serviço o resolveu
     unsigned qualityModes = 1;
     Format video, audio, speakerAudio, fallbackVideo;
     std::vector<Format> lowerVideo, videoLadder;
@@ -138,6 +144,8 @@ public:
     Page home();
     Page search(const string& query);
     Page next(const string& id);
+    // signatureTimestamp do player TV (o mesmo programa que resolve o `n`). 0 se o serviço não carrega: o chamador cai na mensagem de membros.
+    int nsigTimestamp();
     Video player(const string& id, int height = 720, MediaOffers* offers = nullptr, int mode = 0, const string& audio = "original", const string& accountPlayer = {});
     bool captions(const Track&, std::vector<Cue>&, string& error);
 };

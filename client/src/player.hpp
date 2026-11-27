@@ -82,7 +82,12 @@ struct Player {
   net::Server srv;
   std::string id, title, error;
   double startAt = 0, duration = 0;
-  std::atomic<double> speed{1};
+  std::atomic<double> speed{1};      // velocidade ESCOLHIDA pela pessoa (painel de velocidade); a live fica em 1
+  // Alcance/folga da live (0,95x a 1,05x, WSOLA): do app, não da pessoa. Fica fora de `speed` para não acender o ícone de velocidade
+  // nem bloquear o Nest; os relógios usam rate() = speed * liveRate.
+  std::atomic<double> liveRate{1};
+  double liveClockOffset = 0;        // reancoragem do relógio do áudio na troca de liveRate (pode ser negativa; não usa audioBaseMs)
+  double rate() const { return speed.load() * liveRate.load(); }
   bool loop = false;
   audio::Tempo tempo;
   int quality = 720;
@@ -112,12 +117,18 @@ struct Player {
   std::atomic<bool> original{false}, retryConverted{false};
   std::atomic<bool> allowOriginal{true};
   bool direct = false, refreshed = false;
+  bool sameUrlRetry = false;  // vídeo de membros: o 403 foi passageiro, a renovação reaproveita a mesma URL
   std::string cacheBase, requestLanguage = "en";
   std::shared_ptr<yt::ConsoleAccount> memberAccount;
   bool memberVideo = false;
-  std::string memberResponse() {
+  // `client`: o cliente de quem chama (a Música tem o próprio e nenhum vídeo tocou antes); sem ele, o do vídeo.
+  std::string memberResponse(yt::Client* client = nullptr) {
     if (!memberVideo || !memberAccount || !memberAccount->active()) return {};
-    auto reply = memberAccount->request("/api/video/" + id + "/player?lang=" + requestLanguage);
+    // O TVHTML5 só entrega links tocáveis com o signatureTimestamp do player TV (o mesmo programa que resolve o `n`).
+    std::string path = "/api/video/" + id + "/player?lang=" + requestLanguage;
+    if (!client) client = youtube.get();
+    if (client) if (int sts = client->nsigTimestamp()) path += "&sts=" + std::to_string(sts);
+    auto reply = memberAccount->request(path);
     return reply.ok() ? std::move(reply.body) : std::string{};
   }
   std::unique_ptr<yt::Transport> transport;
@@ -228,9 +239,11 @@ struct Player {
   int previousSession = 0;
   std::atomic<bool> nestFailed{false};
   std::atomic<bool> speakerFallback{false};
+  std::atomic<bool> speakerLiveOnTv{false};   // pediu a caixa numa live: a live toca na TV (o Nest não recebe live), sem culpar a caixa
   std::atomic<int> speakerPause{0};  // mudança feita no alto-falante, aplicada pela thread da tela
   uint64_t openedMs = 0, readyMs = 0, lastLiveOpen = 0, tuneAt = 0;
   double screenSec = -1, tickMs = 0, liveDebt = 0, nextLiveFrame = 0;
+  bool liveLowLatency = false;          // opção só da TV (settings.liveLowLatency), lida por main.cpp antes de start()
   bool tracking = false, refill = false, reservePaused = false;
 
   void init() {
@@ -286,13 +299,14 @@ struct Player {
     qualityAvailable=1;qualityModesReady=false;manualQualityWarning=false;
     castMediaReady = false;
     endLiveReader = false; refreshed = renewing; renew = mediaReady = directReserveReady = false; actualHeight = actualFps = 0;
-    if (renewing) validUntil = 0;
+    if (renewing && !sameUrlRetry) validUntil = 0;
+    sameUrlRetry = false;
     SDL_SetAtomicInt(&netBytes, 0);
     original = retryConverted = false; originalWatch = 0; maxFrames = 10; startupFrames = 6; queueMin = maxFrames;
     speakerRequested = speaker; nest = false;
     srv = s; id = vid; startAt = std::max(0.0, t); title = ttl; duration = dur; quality = q; error.clear();
     ring.assign(6u << 20, 0); rhead = rcount = 0; netEof = netErr = false; decEnded = false; decDone = false;
-    SDL_SetAtomicInt(&audioBaseMs, -1); SDL_SetAtomicInt(&pushed, 0); firstPts = -1; wallStart = 0; pausedAt = 0; pausedTotal = 0; lastPos = startAt;
+    SDL_SetAtomicInt(&audioBaseMs, -1); SDL_SetAtomicInt(&pushed, 0); liveRate = 1; liveClockOffset = 0; firstPts = -1; wallStart = 0; pausedAt = 0; pausedTotal = 0; lastPos = startAt;
     droppedFrames = shownFrames = 0;
     activeH264Threads=0;activeLoopFilter=0;activeH264Spread=false;activeVideoItag=0;
     tvSample=-1;tvSampleAt=0;
@@ -305,7 +319,7 @@ struct Player {
     mutedAt = lastFrameMs = 0; tvMutedSince = 0;
     tvSound(false);
     nestFailed = false;
-    speakerFallback = false;
+    speakerFallback = false; speakerLiveOnTv = false;
     SDL_LockMutex(nmu); nestState = 0; nestClockReady = !direct; nestPos = 0; nestStampMs = nestSeenMs = 0; SDL_UnlockMutex(nmu); nestCmd = 0;
     if(playback::manual(videoMode) && !direct){error="manual_quality_failed";state=FAILED;return;}
     if (direct) {
@@ -469,11 +483,11 @@ struct Player {
       if (!SDL_PutAudioStreamData(audio,data,frames*2*sizeof(float))) return false;
       SDL_AddAtomicInt(&pushed,frames); return true;
     };
-    bool ok=speed==1 ? sink(pcm,count) : tempo.push(pcm,count,sink);
+    bool ok=rate()==1 ? sink(pcm,count) : tempo.push(pcm,count,sink);
     SDL_UnlockAudioStream(audio); return ok;
   }
   bool finishAudio() {
-    if (!audio || speed==1) return true;
+    if (!audio || rate()==1) return true;
     SDL_LockAudioStream(audio);
     bool ok=tempo.push(nullptr,0,[&](const float* pcm,int frames) {
       if (!SDL_PutAudioStreamData(audio,pcm,frames*2*sizeof(float))) return false;
@@ -738,7 +752,32 @@ struct Player {
     int base = SDL_GetAtomicInt(&audioBaseMs);
     if (!hasAudio || base < 0) return wall;
     double played = SDL_GetAtomicInt(&pushed) / 44100.0 - queued - deviceMs / 1000.0;
-    return base / 1000.0 + std::max(0.0, played) * speed;
+    return base / 1000.0 + std::max(0.0, played) * rate() + liveClockOffset;
+  }
+
+  // Live: muda o ritmo (0,95x a 1,05x) SEM reabrir, pelo WSOLA do app (tom preservado). O relógio não pode saltar: guarda o
+  // relógio do áudio no instante da troca e reancora os de parede. A âncora é própria (`liveClockOffset`): o `audioBaseMs` tem o
+  // valor -1 como "sem base" e não serve para guardar um relógio que fica negativo.
+  void setLiveSpeed(double next) {
+    const double old = rate();
+    if (!live || speed.load() != 1 || next == liveRate.load()) return;
+    SDL_LockMutex(mu);
+    if (audio) SDL_LockAudioStream(audio);
+    const int base = SDL_GetAtomicInt(&audioBaseMs);
+    if (base >= 0 && hasAudio) {
+      const double played = std::max(0.0, SDL_GetAtomicInt(&pushed) / 44100.0 - audioQueuedSec() - deviceMs / 1000.0);
+      const double clock = base / 1000.0 + played * old + liveClockOffset;
+      liveClockOffset = clock - (base / 1000.0 + played * next);
+    }
+    if (wallStart) {
+      const uint64_t ms = SDL_GetTicks();
+      const double elapsed = double(ms - wallStart - pausedTotal);
+      wallStart = ms - pausedTotal - uint64_t(std::max(0.0, elapsed * old / next));
+    }
+    liveRate = next;
+    tempo.reset(next);
+    if (audio) SDL_UnlockAudioStream(audio);
+    SDL_UnlockMutex(mu);
   }
 
   void setPaused(bool p, bool notifySpeaker = true) {
@@ -824,17 +863,17 @@ struct Player {
       }
     }
     if (firstPts >= 0 && !paused) {
-      double wall = firstPts + (ms - wallStart - pausedTotal) / 1000.0 * speed;
+      double wall = firstPts + (ms - wallStart - pausedTotal) / 1000.0 * rate();
       if (audio) SDL_LockAudioStream(audio);
       double queued = audioQueuedSec(), tv = tvClock(wall, queued);
       if (audio) SDL_UnlockAudioStream(audio);
       // SDL entrega o consumo em blocos. Entre callbacks, o mesmo bloco continua saindo no dispositivo.
       if (!speakerRequested && hasAudio && queued>0 && !refill && tv>firstPts+.0001) {
         if (tvSampleAt<=0 || std::fabs(tv-tvSample)>.000001) { tvSample=tv;tvSampleAt=now; }
-        tv+=std::min(std::max(0.0,now-tvSampleAt),clockStepMs)/1000.0 * speed;
+        tv+=std::min(std::max(0.0,now-tvSampleAt),clockStepMs)/1000.0 * rate();
       }
       double dt = std::max(0.0, (now - tickMs) / 1000.0);
-      double predicted = screenSec + dt * speed;
+      double predicted = screenSec + dt * rate();
       // O último PCM já foi entregue ao dispositivo. Apresenta também a cauda do vídeo até o último PTS.
       if (original && decEnded && queued <= 0) tv = std::max(tv, predicted);
       bool follow = speaker >= 0 && route == CAST;

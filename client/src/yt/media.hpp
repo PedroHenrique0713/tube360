@@ -207,8 +207,11 @@ struct LiveFile {
         bool ended = false;
         int64_t last() const { return first + int64_t(urls.size()) - 1; }
     };
-    struct Pair { string video, audio; };
+    struct Pair { string video, audio; double stamp = -1, duration = 0; };
     static constexpr int reserve = 3;
+    int startBack = reserve;   // quantos segmentos antes da borda a abertura começa (1 = o mais novo, atraso mínimo)
+    // Relógio UTC do PROGRAM-DATE-TIME (-1 sem ele): início do 1º segmento entregue, fim do mais novo da playlist e fim do último planejado.
+    std::atomic<double> firstStamp{-1}, edgeEnd{-1}, plannedEnd{-1}, fetchedEnd{-1}, segmentSec{0};
     std::deque<Pair> pending;
     SDL_Mutex* mu = SDL_CreateMutex();
     SDL_Condition* cv = SDL_CreateCondition();
@@ -397,13 +400,22 @@ struct LiveFile {
             }
             int64_t first = paired ? std::max(video.first,audio.first) : video.first;
             int64_t edge = paired ? std::min(video.last(),audio.last()) : video.last();
-            if (sequence < 0) sequence = std::max(first,edge - reserve + 1);
+            if (!video.stamps.empty() && video.stamps.back() >= 0 && video.durations.back() > 0) {
+                edgeEnd = video.stamps.back() + video.durations.back(); segmentSec = video.durations.back();
+            }
+            if (sequence < 0) sequence = std::max(first,edge - startBack + 1);
             if (sequence < first) return AVERROR_INVALIDDATA;
             if (sequence <= edge) {
                 SDL_LockMutex(mu);
                 while (pending.size() >= reserve && !stop && !closing && !lowerRequested) SDL_WaitConditionTimeout(cv,mu,100);
                 if (lowerRequested) { SDL_UnlockMutex(mu); continue; }
-                if (!stop && !closing) pending.push_back({video.urls[sequence-video.first],paired ? audio.urls[sequence-audio.first] : ""});
+                if (!stop && !closing) pending.push_back({video.urls[sequence-video.first],paired ? audio.urls[sequence-audio.first] : "",
+                    size_t(sequence-video.first) < video.stamps.size() ? video.stamps[size_t(sequence-video.first)] : -1,
+                    size_t(sequence-video.first) < video.durations.size() ? video.durations[size_t(sequence-video.first)] : 0});
+                if (const auto at = size_t(sequence-video.first); at < video.stamps.size() && video.stamps[at] >= 0) {
+                    if (firstStamp.load() < 0) firstStamp = video.stamps[at];
+                    if (video.durations[at] > 0) plannedEnd = video.stamps[at] + video.durations[at];
+                }
                 SDL_BroadcastCondition(cv); SDL_UnlockMutex(mu);
                 ++sequence; since = SDL_GetTicks();
             } else {
@@ -427,6 +439,7 @@ struct LiveFile {
         if (!pair.audio.empty() && (!fetch(media,pair.audio,sound) || sound.empty())) return AVERROR(EIO);
         transferMs += SDL_GetTicks() - start;
         bytes += segment.size()+sound.size(); ++segments;
+        if (pair.stamp >= 0 && pair.duration > 0) fetchedEnd = pair.stamp + pair.duration;   // fim do que já foi baixado (a reserva de verdade)
         return 0;
     }
 

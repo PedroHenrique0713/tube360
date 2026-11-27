@@ -73,6 +73,7 @@ from the final integrated commit, after addressing the findings in [the audit](P
 | `support/libmbedtls.a`, `libmbedx509.a`, `libmbedcrypto.a` | `client/build-x360/yt/tls/upstream/library/` |
 | `support/libeverest.a` | `client/build-x360/yt/tls/upstream/3rdparty/everest/libeverest.a` |
 | `support/libp256m.a` | `client/build-x360/yt/tls/upstream/3rdparty/p256-m/libp256m.a` |
+| `support/libquickjs-ng.a` | `client/build-x360/yt/libquickjs-ng.a` |
 | `ffmpeg-lib/libavformat.a`, `libavcodec.a`, `libswresample.a`, `libavutil.a` | `.work/ffmpeg-xbox/lib/` |
 | `relink.sh` | `tools/ffmpeg-x360/relink.sh` |
 

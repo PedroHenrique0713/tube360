@@ -184,11 +184,59 @@ int main(int argc, char** argv) {
     auto library = request("music"); library["q"] = "library";
     check(c.browse(library).error == "signed_out","library tab is account-only and makes no request");
   }
+  {  // F65b: respostas reais da TV e da web de música (formato do console), com dados inventados
+    h.add(music,search,read(dir,"tv-music-search.json"),{{"query",J(string("banda ficticia"))}});
+    auto found = c.browse({{"kind","music_search"},{"q","banda ficticia"},{"lang","pt"}});
+    const Item *clip = nullptr, *track = nullptr, *reel = nullptr;
+    for (const auto& i : found.items) { if (i.id == "VIDfix00001") clip = &i; if (i.id == "TRKfix00001") track = &i; if (i.id == "SHRTfix0001") reel = &i; }
+    check(clip && clip->channel == "Banda Ficticia" && clip->views.find("bi") != string::npos && clip->date == "há 15 anos" && clip->duration == 261,"TV search: plain-text channel row, views and date, duration");
+    check(track && track->channel == "Banda Ficticia" && track->views.find("370") != string::npos && track->date.empty(),"TV search: a square track keeps the artist and drops the kind label");
+    check(reel && reel->type == "video" && reel->shortForm,"TV search: a Short is a video (contentId), not the channel it taps to");
+    check(std::none_of(found.items.begin(),found.items.end(),[](const Item& i) { return i.id.compare(0,2,"UC") == 0; }),"TV search: no Short turns into an artist card");
+    const Item* blank = nullptr; for (const auto& i : found.items) if (i.id == "BLKfix00001") blank = &i;
+    check(blank && blank->section.empty(),"a shelf titled with only spaces has no section title");
+    h.add(music,browse,read(dir,"music-podcasts.json"),{{"browseId",J(string("FEmusic_non_music_audio"))}});
+    auto pods = c.browse({{"kind","chip"},{"id","FEmusic_non_music_audio||Podcasts"},{"lang","pt"}});
+    const Item *show = nullptr, *episode = nullptr;
+    for (const auto& i : pods.items) { if (i.id == "MPSPPLfixtureshow000001") show = &i; if (i.id == "EPIfix00001") episode = &i; }
+    check(show && show->type == "album" && show->title == "Programa Ficticio","podcast show opens as a page (MPSPP), not dropped");
+    check(episode && episode->type == "video" && episode->channel == "Programa Ficticio" && episode->duration == -1 && episode->date == "há 1 dia","podcast episode (multi-row item) plays, with the show as author and unknown duration");
+  }
   check(!c.setToken("invalid\r\nheader"),"token rejects header injection");
   check(c.setToken("fixture-token"),"token accepted");
   h.add(music,"",read(dir,"music-context.html"));
   h.add(music,browse+"&alt=json",read(dir,"music-home.json"),{{"browseId",J(string("FEmusic_home"))}},true);
   check(!c.browse(request("music")).items.empty(),"account change invalidates cache");
+  {  // F65b: com a conta, letra, relacionados e busca vão pela web pública: o `next` da TV não traz as abas e a busca da TV ignora os filtros
+    h.add(music,"",read(dir,"music-context.html"));
+    h.add(music,next,read(dir,"lyrics-next.json"),{{"videoId",J(string("F12audio001"))}});
+    h.add(music,browse,read(dir,"lyrics.json"),{{"browseId",J(string("MPLYfixture"))}});
+    check(c.handle("/api/nav/lyrics?id=F12audio001&lang=pt").find("Letra de teste") != string::npos,"signed in: lyrics come from the public next, without the account token");
+    string nextJson = read(dir,"lyrics-next.json"); nextJson.replace(nextJson.find("MPLYfixture"),11,"MPTRfixture");
+    h.add(music,next,nextJson,{{"videoId",J(string("F12audio001"))}});
+    h.add(music,browse,read(dir,"music-album.json"),{{"browseId",J(string("MPTRfixture"))}});
+    check(c.handle("/api/nav/related?id=F12audio001&lang=pt").find("\nvideo\t") != string::npos,"signed in: related songs come from the public next");
+    h.add(music,search,read(dir,"music-search.json"),{{"query",J(string("jazz instrumental"))},{"params",J(string("EgWKAQIYAQ%3D%3D"))}});
+    auto q = request("music_search"); q["q"] = "jazz instrumental"; q["filter"] = "2";
+    auto filtered = c.browse(q);
+    check(!filtered.items.empty() && filtered.musicSource == "public","signed in: a filtered search is sent with its params to the public search");
+  }
+  {  // F65b: biblioteca na TV: "Artistas" usa as inscrições (o id da web dá 400 lá) e nunca cai na reserva de convidado
+    Http lib; Client tv(lib);
+    check(tv.setToken("fixture-token"),"library client token");
+    lib.add(music,"",read(dir,"music-context.html"));
+    lib.add(music,browse+"&alt=json","{}",{},true,400);
+    lib.add(web,"tv",read(dir,"tv-context.html"));
+    lib.add(web,browse+"&alt=json",read(dir,"tv-library-artists.json"),{{"browseId",J(string("FEmusic_library_corpus_artists"))}},true);
+    auto artists = tv.browse({{"kind","chip"},{"id","FEmusic_library_corpus_track_artists||Artistas"},{"lang","pt"}});
+    check(artists.items.size() == 2 && artists.items[0].type == "artist" && artists.musicSource == "tv","library Artistas asks the TV for the subscribed artists and lists them");
+    lib.add(web,browse+"&alt=json",read(dir,"tv-library-albums-empty.json"),{{"browseId",J(string("FEmusic_liked_albums"))}},true);
+    auto none = tv.browse({{"kind","chip"},{"id","FEmusic_liked_albums||Albuns"},{"lang","pt"}});
+    check(none.items.empty() && none.error.find("álbuns que você adicionar") != string::npos,"an empty library list shows the message YouTube sends, not a blank page");
+    lib.add(web,browse+"&alt=json","{}",{},true,400);
+    auto albums = tv.browse({{"kind","chip"},{"id","FEmusic_liked_playlists||Playlists"},{"lang","pt"}});
+    check(albums.error == "account_music_unavailable" && lib.steps.empty(),"a library route that the TV refuses never falls back to the guest page");
+  }
   for (int refusal : {400,401,403}) {
     Http rejected; Client guest(rejected);
     check(guest.setToken("fixture-token"),"refused token is syntactically valid");
@@ -200,8 +248,7 @@ int main(int argc, char** argv) {
     rejected.add(music,browse,read(dir,"music-home.json"));
     check(!guest.browse(request("music")).items.empty(),"refused account token retries Music as guest");
     check(guest.authError.find(std::to_string(refusal))!=string::npos,"token refusal remains observable");
-    rejected.add(web,search+"&alt=json","{}",{},true,refusal);
-    rejected.add(music,search,read(dir,"music-search.json"));
+    rejected.add(music,search,read(dir,"music-search.json"));  // F65b: a busca de música é sempre pública (a TV ignora os filtros)
     check(!guest.browse({{"kind","music_search"},{"q","jazz"},{"lang","pt"}}).items.empty(),"subsequent Music requests stay signed out");
     check(rejected.steps.empty(),"refusal retry consumes exactly the expected exchanges");
   }

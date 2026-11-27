@@ -10,7 +10,7 @@ av="${FFMPEG_LIB:-ffmpeg-lib}"
   -o tube360.elf -Wl,--start-group support/libvulkan4xenon.a support/libSDL3.a \
   "$av/libavformat.a" "$av/libavcodec.a" "$av/libswresample.a" "$av/libavutil.a" \
   support/libtube360-text.a support/libtube360-update.a support/libtube360-update-core.a support/libtube360-yt.a support/libtube360-cast.a support/libcurl.a support/libmbedtls.a support/libmbedx509.a support/libmbedcrypto.a \
-  support/libeverest.a support/libp256m.a -lm -lstdc++ support/libxsdk.a -lc -lm -lgcc -Wl,--end-group
+  support/libeverest.a support/libp256m.a support/libquickjs-ng.a -lm -lstdc++ support/libxsdk.a -lc -lm -lgcc -Wl,--end-group
 python3 "$XSDK_DIR/tools/elf2xex.py" --title-id 0x58545542 --title-name "${APP_NAME:-Tube360}" \
   --version 1.0.0.0 tube360.elf tube360.xex
 

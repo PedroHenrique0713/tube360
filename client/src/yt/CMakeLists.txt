@@ -28,6 +28,21 @@ configure_file("${root}/bench/standalone/roots.hpp.in" roots.hpp @ONLY)
 add_library(tube360-yt STATIC "${root}/client/src/yt/https.cpp" "${root}/client/src/yt/client.cpp"
   "${root}/client/src/yt/console_account.cpp" "${root}/client/src/yt/account_transport.cpp" "${root}/client/src/yt/cast.cpp"
   "${root}/client/src/yt/sponsorblock.cpp")
+# Desafio `n` dos links de membros: QuickJS-ng sem modificação, mais o redutor e o serviço (nsig_service.cpp).
+set(qjs "${root}/client/third_party/quickjs-ng")
+add_library(quickjs-ng STATIC "${qjs}/quickjs.c" "${qjs}/libregexp.c" "${qjs}/libunicode.c" "${qjs}/dtoa.c")
+target_compile_definitions(quickjs-ng PRIVATE _GNU_SOURCE QUICKJS_NG_BUILD)
+target_include_directories(quickjs-ng PUBLIC "${qjs}")
+target_compile_options(quickjs-ng PRIVATE -O2 -w)
+set_target_properties(quickjs-ng PROPERTIES C_STANDARD 11)
+if(XSDK)
+  # Sem Atomics.wait/SharedArrayBuffer: o newlib do xsdk não traz pthread_condattr_setclock e o player não usa threads de JS.
+  target_compile_definitions(quickjs-ng PRIVATE __STDC_NO_ATOMICS__=1)
+else()
+  target_link_libraries(quickjs-ng PUBLIC m)
+endif()
+target_sources(tube360-yt PRIVATE "${root}/client/src/yt/nsig.cpp" "${root}/client/src/yt/nsig_service.cpp")
+target_link_libraries(tube360-yt PUBLIC quickjs-ng)
 target_compile_features(tube360-yt PUBLIC cxx_std_17)
 target_include_directories(tube360-yt PUBLIC "${root}/client/src" PRIVATE "${root}/client/third_party" "${CMAKE_CURRENT_BINARY_DIR}")
 target_compile_definitions(tube360-yt PRIVATE PICOJSON_USE_LOCALE=0)

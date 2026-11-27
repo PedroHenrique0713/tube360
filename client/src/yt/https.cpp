@@ -55,6 +55,11 @@ size_t header(char* bytes, size_t unit, size_t count, void* data) {
     size_t n = unit * count;
     if (n >= 14 && !strncasecmp(bytes, "Content-Range:", 14))
         h.response->contentRange.assign(bytes + 14, n - 14);
+    auto number=[&](const char* name,size_t len,long long& out) {
+        if (n > len && !strncasecmp(bytes, name, len)) out=std::strtoll(bytes+len,nullptr,10);
+    };
+    number("X-Head-Seqnum:",14,h.response->headSeq); number("X-Sequence-Num:",15,h.response->segmentSeq);
+    number("X-Head-Time-Millis:",19,h.response->headTimeMs); number("X-Walltime-Ms:",14,h.response->wallMs);
     if (n >= 10 && !strncasecmp(bytes, "Location:", 9)) {
         auto& loc = h.response->location;
         loc.assign(bytes+9,n-9);
@@ -190,8 +195,10 @@ public:
         if (r.media) {
             set(CURLOPT_BUFFERSIZE, r.readBuffer);
             set(CURLOPT_TIMEOUT_MS, 12000L);
-            set(CURLOPT_LOW_SPEED_LIMIT, 16L*1024);
-            set(CURLOPT_LOW_SPEED_TIME, 4L);
+            if (!r.longPoll) {
+                set(CURLOPT_LOW_SPEED_LIMIT, 16L*1024);
+                set(CURLOPT_LOW_SPEED_TIME, 4L);
+            }
             set(CURLOPT_TCP_KEEPALIVE, 1L);
             set(CURLOPT_SOCKOPTFUNCTION, socketOptions);
         }

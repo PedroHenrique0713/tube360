@@ -1,0 +1,178 @@
+{
+ "contents": {
+  "singleColumnBrowseResultsRenderer": {
+   "tabs": [
+    {
+     "tabRenderer": {
+      "content": {
+       "sectionListRenderer": {
+        "contents": [
+         {
+          "musicCarouselShelfRenderer": {
+           "header": {
+            "musicCarouselShelfBasicHeaderRenderer": {
+             "title": {
+              "runs": [
+               {
+                "text": "Programas famosos"
+               }
+              ]
+             }
+            }
+           },
+           "contents": [
+            {
+             "musicTwoRowItemRenderer": {
+              "thumbnailRenderer": {
+               "musicThumbnailRenderer": {
+                "thumbnail": {
+                 "thumbnails": [
+                  {
+                   "url": "https://yt3.googleusercontent.com/fixshow=s544",
+                   "width": 544,
+                   "height": 544
+                  }
+                 ]
+                }
+               }
+              },
+              "title": {
+               "runs": [
+                {
+                 "text": "Programa Ficticio",
+                 "navigationEndpoint": {
+                  "browseEndpoint": {
+                   "browseId": "MPSPPLfixtureshow000001",
+                   "browseEndpointContextSupportedConfigs": {
+                    "browseEndpointContextMusicConfig": {
+                     "pageType": "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE"
+                    }
+                   }
+                  }
+                 }
+                }
+               ]
+              },
+              "subtitle": {
+               "runs": [
+                {
+                 "text": "Canal Ficticio"
+                }
+               ]
+              },
+              "navigationEndpoint": {
+               "browseEndpoint": {
+                "browseId": "MPSPPLfixtureshow000001",
+                "browseEndpointContextSupportedConfigs": {
+                 "browseEndpointContextMusicConfig": {
+                  "pageType": "MUSIC_PAGE_TYPE_PODCAST_SHOW_DETAIL_PAGE"
+                 }
+                }
+               }
+              }
+             }
+            }
+           ]
+          }
+         },
+         {
+          "musicCarouselShelfRenderer": {
+           "header": {
+            "musicCarouselShelfBasicHeaderRenderer": {
+             "title": {
+              "runs": [
+               {
+                "text": "Episódios favoritos"
+               }
+              ]
+             }
+            }
+           },
+           "contents": [
+            {
+             "musicMultiRowListItemRenderer": {
+              "thumbnail": {
+               "musicThumbnailRenderer": {
+                "thumbnail": {
+                 "thumbnails": [
+                  {
+                   "url": "https://i.ytimg.com/vi/EPIfix00001/hqdefault.jpg",
+                   "width": 544,
+                   "height": 544
+                  }
+                 ]
+                }
+               }
+              },
+              "onTap": {
+               "watchEndpoint": {
+                "videoId": "EPIfix00001",
+                "watchEndpointMusicSupportedConfigs": {
+                 "watchEndpointMusicConfig": {
+                  "musicVideoType": "MUSIC_VIDEO_TYPE_PODCAST_EPISODE"
+                 }
+                }
+               }
+              },
+              "title": {
+               "runs": [
+                {
+                 "text": "Episodio Ficticio 1",
+                 "navigationEndpoint": {
+                  "browseEndpoint": {
+                   "browseId": "MPEDEPIfix00001"
+                  }
+                 }
+                }
+               ]
+              },
+              "subtitle": {
+               "runs": [
+                {
+                 "text": "285 mil visualizações"
+                },
+                {
+                 "text": " • "
+                },
+                {
+                 "text": "há 1 dia"
+                }
+               ]
+              },
+              "secondTitle": {
+               "runs": [
+                {
+                 "text": "Programa Ficticio",
+                 "navigationEndpoint": {
+                  "browseEndpoint": {
+                   "browseId": "MPSPPLfixtureshow000001"
+                  }
+                 }
+                }
+               ]
+              }
+             }
+            }
+           ]
+          }
+         }
+        ]
+       }
+      }
+     }
+    }
+   ]
+  }
+ },
+ "header": {
+  "musicHeaderRenderer": {
+   "title": {
+    "runs": [
+     {
+      "text": "Podcasts"
+     }
+    ]
+   }
+  }
+ }
+}
