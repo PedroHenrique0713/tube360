@@ -10,6 +10,7 @@ extern "C" {
 #include <SDL3/SDL.h>
 #include <algorithm>
 #include <atomic>
+#include <climits>
 #include <cstdint>
 #include <cstring>
 #include <deque>
@@ -56,15 +57,50 @@ inline bool strip(const string& in, bool keepInit, string& out, double* startSec
 }
 inline string url(const string& base, long long sq) { return base + "&sq=" + std::to_string(sq); }
 
+// Duração do segmento (s): soma das durações de amostra do trun (ou o default do tfhd). 0 se não deu para ler.
+inline double duration(const string& seg, uint32_t timescale) {
+    if (!timescale) return 0;
+    auto u32 = [&](size_t at) { return at + 4 <= seg.size() ? (uint32_t(uint8_t(seg[at])) << 24) | (uint32_t(uint8_t(seg[at+1])) << 16) | (uint32_t(uint8_t(seg[at+2])) << 8) | uint8_t(seg[at+3]) : 0u; };
+    size_t moof = seg.find("moof");
+    if (moof == string::npos) return 0;
+    uint32_t defaultDuration = 0;
+    if (size_t tfhd = seg.find("tfhd", moof); tfhd != string::npos) {
+        uint32_t flags = u32(tfhd + 4) & 0xffffff; size_t at = tfhd + 12;
+        if (flags & 1) at += 8;
+        if (flags & 2) at += 4;
+        if (flags & 8) defaultDuration = u32(at);
+    }
+    size_t trun = seg.find("trun", moof);
+    if (trun == string::npos) return 0;
+    uint32_t flags = u32(trun + 4) & 0xffffff, count = u32(trun + 8);
+    size_t at = trun + 12;
+    if (flags & 1) at += 4;
+    if (flags & 4) at += 4;
+    const size_t each = ((flags & 0x100) ? 4 : 0) + ((flags & 0x200) ? 4 : 0) + ((flags & 0x400) ? 4 : 0) + ((flags & 0x800) ? 4 : 0);
+    if (count == 0 || count > 100000) return 0;
+    uint64_t total = 0;
+    for (uint32_t i = 0; i < count; ++i) {
+        if (at + each > seg.size()) return 0;
+        total += (flags & 0x100) ? u32(at) : defaultDuration;
+        at += each;
+    }
+    return double(total) / timescale;
+}
+
 // Atraso da imagem em relação ao fim do segmento completo mais novo (borda disponível). `headStart` é o X-Head-Time do
-// segmento mais novo; `shown` o PTS absoluto em tela. O piso de um live de 5 s é um segmento.
+// segmento mais novo; `shown` o PTS absoluto em tela. O piso de um live é um segmento.
 inline double lag(double headStartSec, double segSec, double shownAbsSec) { return headStartSec + segSec - shownAbsSec; }
-// Histerese do alcance a 1,05x: liga quando o atraso passa de um segmento + 1 s e há reserva; desliga ao chegar perto do
-// piso ou quando a reserva acaba (alcançar sem reserva só trocaria atraso por travada).
-inline double catchUp(double lagSec, double aheadSec, double segSec, double current, bool lowLatency) {
-    if (!lowLatency) return 0;
-    if (current > 0) return (lagSec <= segSec + .3 || aheadSec < 1.0) ? 0 : current;
-    return (lagSec > segSec + 1.0 && aheadSec >= 2.0) ? 0.05 : 0;
+// Velocidade da live (WSOLA, tom preservado) no modo de atraso mínimo. `aheadLowSec` é o MENOR adiantamento (mídia entregue menos
+// mídia em tela) dos últimos segundos: no piso do formato ele encosta em zero a cada segmento e qualquer atraso da rede vira
+// travada, então a reserva fina estica a reprodução (0,95x) até sobrar folga; e o alcance (1,05x) só liga bem acima do piso
+// (dois segmentos + 1 s, com reserva) e só desliga perto dele (1,3 segmento + 0,5 s). Entre os limites o estado não muda.
+inline double speedFor(double latencySec, double aheadLowSec, double segSec, double current, bool lowLatency) {
+    if (!lowLatency) return 1.0;
+    if (current > 1.001) return (latencySec <= 1.3 * segSec + .5 || aheadLowSec < 1.0) ? 1.0 : current;
+    if (current < 0.999) return aheadLowSec >= 1.2 ? 1.0 : current;
+    if (latencySec > 2 * segSec + 1.0 && aheadLowSec >= 2.0) return 1.05;
+    if (aheadLowSec < 0.4) return 0.95;
+    return 1.0;
 }
 }  // namespace seq
 
@@ -93,8 +129,15 @@ public:
     std::atomic_bool closing{false};
     const std::atomic_bool* cancel = nullptr;
     long long first = 0;
-    double segSec = 5.0;
+    std::atomic<double> segSecValue{5.0};   // lido do trun do primeiro segmento (2 s ou 5 s em lives de jogo)
+    double segSec() const { return segSecValue.load(); }
     bool lowLatency = false;
+    std::atomic<uint64_t> bytes{0};
+    // Atraso real: a resposta que acaba de sair do long-poll de um segmento recém-completo marca o fim dele no relógio do servidor.
+    std::atomic<long long> wallMs{-1}, offsetMs{LLONG_MAX};
+    std::atomic<uint64_t> wallTick{0};
+    std::atomic<long long> edgeSeq{-1}, edgeTick{0};
+    uint64_t stallMs = 45000;   // sem segmento novo por tanto tempo: a transmissão parou
     string error;                     // código curto da falha de abertura
 
     ~LiveSeq() { close(); SDL_DestroyCondition(cv); SDL_DestroyMutex(mu); }
@@ -152,6 +195,15 @@ public:
         return done ? (error ? AVERROR(EIO) : AVERROR_EOF) : 0;
     }
     // Estado da borda, vindo do vídeo.
+    // Atraso real da imagem em tela (s): agora no relógio do servidor menos o instante em que aquele quadro era o "ao vivo".
+    // Sem medida ainda do fim de um segmento recém-fechado, devolve o atraso até o fim do segmento mais novo.
+    double latencySec(double shownAbsSec) const {
+        const long long off = offsetMs.load(), wall = wallMs.load();
+        if (off == LLONG_MAX || wall < 0) return lag(headStartSec(), segSec(), shownAbsSec);
+        const double now = double(wall) + double(SDL_GetTicks() - wallTick.load());
+        return (now - (shownAbsSec * 1000.0 + double(off))) / 1000.0;
+    }
+    static double lag(double headStartSec, double segSec, double shownAbsSec) { return seq::lag(headStartSec, segSec, shownAbsSec); }
     double headStartSec() const { auto ms = tracks[0].headTimeMs.load(); return ms < 0 ? -1 : ms / 1000.0; }
     long long headSeq() const { return tracks[0].headSeq.load(); }
     double pushedEndSec() const { return tracks[0].pushedEnd.load(); }
@@ -159,8 +211,9 @@ public:
     long httpStatus() const { return tracks[0].status ? tracks[0].status : tracks[1].status; }
 
 private:
-    Response fetch(Track& t, const string& url) {
-        Request req; req.url = url; req.media = true; req.timeoutMs = 20000; req.connectTimeoutMs = 8000;
+    // `poll`: pedido de sq futuro. O servidor segura a resposta até o segmento fechar (até ~7,5 s): sem corte por velocidade mínima.
+    Response fetch(Track& t, const string& url, bool poll = false) {
+        Request req; req.url = url; req.media = true; req.timeoutMs = poll ? 20000 : 12000; req.connectTimeoutMs = 8000; req.longPoll = poll;
         Response r;
         for (int hop = 0; hop < 4; ++hop) {
             r = t.net->send(req);
@@ -176,7 +229,17 @@ private:
     void note(Track& t, const Response& r) {
         if (r.headSeq >= 0) t.headSeq = r.headSeq;
         if (r.headTimeMs >= 0) t.headTimeMs = r.headTimeMs;
-        if (r.wallMs >= 0) t.wallMs = r.wallMs;
+        if (r.wallMs >= 0) {
+            t.wallMs = r.wallMs;
+            if (t.video) {
+                wallMs = r.wallMs; wallTick = SDL_GetTicks();
+                // Resposta de um segmento que acabou de fechar (o pedido esperou por ele): o relógio do servidor marca o fim do segmento.
+                if (r.headSeq >= 0 && r.segmentSeq == r.headSeq && r.seconds > .15 && r.headTimeMs >= 0) {
+                    long long candidate = r.wallMs - (r.headTimeMs + (long long)(segSec() * 1000));
+                    if (candidate < offsetMs.load()) offsetMs = candidate;
+                }
+            }
+        }
     }
     bool push(Track& t, string body, bool) {
         string out; double start = -1;
@@ -186,8 +249,9 @@ private:
         t.chunks.push_back(std::move(out)); ++t.segmentsQueued;
         SDL_BroadcastCondition(cv);
         SDL_UnlockMutex(mu);
-        t.sendInit = false; ++t.segments; t.pushed += 1;
-        if (start >= 0) t.pushedEnd = start + segSec;
+        t.sendInit = false; ++t.segments; t.pushed += 1; bytes += body.size();
+        if (t.video && t.segments == 1) if (double d = seq::duration(body, t.timescale ? t.timescale : 90000); d >= 0.5 && d <= 30) segSecValue = d;
+        if (start >= 0) t.pushedEnd = start + segSec();
         return true;
     }
     // mdhd > timescale do primeiro `trak` (versão 0 ou 1). 0 se não achou.
@@ -203,27 +267,51 @@ private:
         t.error = error; t.status = status ? status : t.status; t.eof = true;
         SDL_BroadcastCondition(cv); SDL_UnlockMutex(mu);
     }
+    // Borda para o salto depois de um 404: a primeira trilha que precisa consulta, a outra reaproveita (mesmo sq nas duas, A/V alinhados).
+    long long edgeFor(Track& t) {
+        SDL_LockMutex(mu);
+        const long long shared = edgeSeq.load();
+        const bool recent = shared >= 0 && SDL_GetTicks() - uint64_t(edgeTick.load()) < 6000 && shared > t.next;
+        SDL_UnlockMutex(mu);
+        if (recent) return shared;
+        auto edge = fetch(t, t.base);
+        if (edge.status != 200 || edge.headSeq <= t.next) return -1;
+        note(t, edge);
+        SDL_LockMutex(mu); edgeSeq = edge.headSeq; edgeTick = (long long)SDL_GetTicks(); SDL_UnlockMutex(mu);
+        return edge.headSeq;
+    }
     void run(Track& t) {
         int failures = 0;
+        uint64_t lastData = SDL_GetTicks();
         while (!stopped()) {
             SDL_LockMutex(mu);
+            const bool blocked = t.segmentsQueued >= 2;
             while (t.segmentsQueued >= 2 && !stopped()) SDL_WaitConditionTimeout(cv, mu, 100);
             SDL_UnlockMutex(mu);
             if (stopped()) break;
-            auto r = fetch(t, seq::url(t.base, t.next));
+            if (blocked) lastData = SDL_GetTicks();   // esperou a TV consumir (pausa): não conta como transmissão parada
+            // Sem segmento novo por 45 s (headSeq parado): a transmissão acabou ou parou. Fim limpo, o player mostra "terminou" em vez de congelar.
+            if (SDL_GetTicks() - lastData > stallMs) { finish(t, 0, 0); return; }
+            auto r = fetch(t, seq::url(t.base, t.next), true);
             if (stopped()) break;
             if (r.status == 200 && r.error.empty()) {
                 note(t, r);
                 if (!push(t, std::move(r.body), false)) { finish(t, -2, 200); return; }
-                ++t.next; failures = 0;
+                ++t.next; failures = 0; lastData = SDL_GetTicks();
                 continue;
             }
             if (r.status == 403) { finish(t, 403, 403); return; }   // URL vencida: o player renova
             if (r.status == 404 || r.status == 400) {
-                // Segmento fora da janela do servidor: salta para a borda (uma descontinuidade, contada).
-                auto edge = fetch(t, t.base);
-                if (edge.status == 200 && edge.headSeq > t.next && ++t.gaps <= 3) { note(t, edge); t.next = edge.headSeq; continue; }
+                // Segmento fora da janela do servidor: salta para a borda (uma descontinuidade, contada), a mesma para vídeo e áudio.
+                long long edge = ++t.gaps <= 3 ? edgeFor(t) : -1;
+                if (edge >= 0) { t.next = edge; continue; }
                 finish(t, 404, r.status); return;
+            }
+            // "Ainda não": 204, ou o long-poll que estourou o prazo com o sq acima da borda conhecida. Não é falha.
+            const bool ahead = t.headSeq.load() < 0 || t.next > t.headSeq.load();
+            if (r.status == 204 || (ahead && r.status == 0 && !r.error.empty() && r.failure != Failure::CANCELLED && r.retryable)) {
+                t.net->backoff(200);
+                continue;
             }
             if (++failures > 4 || r.failure == Failure::CANCELLED) { finish(t, -1, r.status); return; }
             t.net->backoff(250u * unsigned(failures));

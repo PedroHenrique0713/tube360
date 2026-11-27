@@ -51,22 +51,39 @@ int main(int argc, char** argv) {
     const AVCodec* codec = avcodec_find_decoder(fmt->streams[0]->codecpar->codec_id);
     AVCodecContext* ctx = avcodec_alloc_context3(codec); avcodec_parameters_to_context(ctx, fmt->streams[0]->codecpar); avcodec_open2(ctx, codec, nullptr);
     AVPacket* pkt = av_packet_alloc(); AVFrame* fr = av_frame_alloc();
-    double first = -1, last = -1, prev = -1, maxGap = 0; unsigned frames = 0; double wallFirst = 0, lagFirst = 0;
+    // Reprodução simulada em tempo real com o mesmo controlador de velocidade do player (seq::speedFor): quadro tardio = travada.
+    double first = -1, last = -1, prev = -1, maxGap = 0, latMin = 1e9, latMax = -1, nextSample = 0, speed = 1, mAnchor = 0, wAnchor = 0, wallFirst = 0, lagFirst = 0;
+    double stalled = 0, aheadMin = 1e9, history[6]; int samples = 0; double nextTick = 0; unsigned frames = 0, stalls = 0, changes = 0;
     while (av_read_frame(fmt, pkt) >= 0) {
         if (avcodec_send_packet(ctx, pkt) >= 0) while (avcodec_receive_frame(ctx, fr) >= 0) {
             double pts = fr->best_effort_timestamp * av_q2d(fmt->streams[0]->time_base);
-            if (first < 0) { first = pts; wallFirst = nowSec(); lagFirst = seq::lag(ls.headStartSec(), ls.segSec, pts); std::printf("1o quadro %.2f (%dx%d) apos %.0f ms, atraso inicial %.2f s\n", pts, fr->width, fr->height, (wallFirst - t0) * 1000, lagFirst); }
+            if (first < 0) { first = pts; wallFirst = wAnchor = nowSec(); mAnchor = 0; lagFirst = ls.latencySec(pts); std::printf("1o quadro %.2f (%dx%d) apos %.0f ms, atraso inicial %.2f s\n", pts, fr->width, fr->height, (wallFirst - t0) * 1000, lagFirst); }
+            double due = wAnchor + ((pts - first) - mAnchor) / speed, now = nowSec();
+            if (due > now) { struct timespec d{(time_t)(due - now), (long)(((due - now) - (time_t)(due - now)) * 1e9)}; nanosleep(&d, nullptr); }
+            else if (now - due > 0.15) { stalled += now - due; ++stalls; wAnchor = now; mAnchor = pts - first; }   // travou: re-ancora
             if (prev >= 0) maxGap = std::max(maxGap, pts - prev);
             prev = last = pts; ++frames;
+            double ahead = ls.pushedEndSec() - pts; if (ahead >= 0) aheadMin = std::min(aheadMin, ahead);
+            double wall = nowSec() - wallFirst;
+            if (wall >= nextTick + 1.0) {
+                nextTick = wall;
+                double l = ls.latencySec(pts); if (wall > 8 && l > 0) { latMin = std::min(latMin, l); latMax = std::max(latMax, l); }
+                if (aheadMin < 1e8) { history[samples++ % 6] = aheadMin; aheadMin = 1e9; }
+                if (low && samples >= 3) {
+                    double lo = 1e9; for (int i = 0; i < std::min(samples, 6); ++i) lo = std::min(lo, history[i]);
+                    double want = seq::speedFor(l, lo, ls.segSec(), speed, true);
+                    if (want != speed) { mAnchor = pts - first; wAnchor = nowSec(); speed = want; ++changes; std::printf("  t=%.0fs atraso %.2f reserva minima %.2f -> velocidade %.2fx\n", wall, l, lo, want); }
+                }
+            }
         }
         av_packet_unref(pkt);
         if (first >= 0 && last - first >= play) break;
-        // O ritmo de reprodução em tempo real: o decode de um segmento pode ser mais rápido que a rede.
-        if (first >= 0) { double ahead = (last - first) - (nowSec() - wallFirst); if (ahead > 0.2) { struct timespec d{0, 100000000}; nanosleep(&d, nullptr); } }
     }
-    double shownLag = seq::lag(ls.headStartSec(), ls.segSec, last);
+    double wallPlayed = nowSec() - wallFirst;
+    double shownLag = ls.latencySec(last);
+    std::printf("atraso real a cada 1 s (depois dos 8 s): min %.2f s, max %.2f s; travadas %u (%.1f s no total); mudancas de velocidade %u\n", latMin, latMax, stalls, stalled, changes);
     std::printf("RESULT quadros=%u reproduzidos=%.1f s em %.1f s, maior intervalo %.3f s, atraso final %.2f s, segmentos v%u a%u, lacunas %u, borda sq=%lld\n", frames, last - first,
-                nowSec() - wallFirst, maxGap, shownLag, ls.tracks[0].segments.load(), ls.tracks[1].segments.load(), ls.tracks[0].gaps.load(), ls.headSeq());
+                wallPlayed, maxGap, shownLag, ls.tracks[0].segments.load(), ls.tracks[1].segments.load(), ls.tracks[0].gaps.load(), ls.headSeq());
     stop = true; ls.close();
     return frames > 30 ? 0 : 1;
 }

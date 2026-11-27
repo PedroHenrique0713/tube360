@@ -9,6 +9,7 @@
 #define LOG(...) SDL_Log(__VA_ARGS__)
 #include "player.hpp"
 #include "i18n.hpp"
+#include "yt/nsig_service.hpp"
 #include <fstream>
 #include <iostream>
 
@@ -22,6 +23,14 @@ static Fixture mediaFixture = Fixture::MP4;
 // F67: com `n` nos links o app precisa do JS do player (iframe_api). O fixture nunca o serve: o `n` não resolve e o vídeo cai na mensagem de membros.
 static bool urlHasN = false;
 static int iframeRequests = 0;
+// F67: com `solveN` o fixture serve um player TV sintético (o mesmo formato de tests/f67/nsig_test.cpp) e o `n` resolve.
+static bool solveN = false, probeOk = false;
+static std::string tvScript() {
+    return "(function(g){\n\"use strict\";\nvar CFG={signatureTimestamp:20779,x:1};\nfunction U(u){this.m={};this.u=u}\n"
+        "U.prototype.set=function(k,v){this.m[k]=v};\nU.prototype.get=function(k){return this.m[k]};\nU.prototype.clone=function(){return this};\n"
+        "U.prototype.t=function(){var n=this.m.n;if(n)this.m.n=n.split(\"\").reverse().join(\"\")+\"Z\"};\n"
+        "function B(a,b,c){var x=new U(a);x.set(\"alr\",\"yes\");return x}\nvar PAD=\"" + std::string(120000, 'p') + "\";\nnoise(1);\n}).call(this);\n";
+}
 
 struct Http final : yt::Transport {
     const std::atomic_bool* stopped;
@@ -54,7 +63,14 @@ struct Http final : yt::Transport {
                 (mediaFixture == Fixture::HLS ? R"("hlsManifestUrl":"https://fixture.googlevideo.com/live",)" : "") +
                 R"("adaptiveFormats":[{"itag":136,"width":160,"height":90,"fps":30,"mimeType":"video/mp4; codecs=\"avc1.64001f\"","url":"https://fixture.googlevideo.com/video?)" + std::string(urlHasN ? "n=unsolved" : "x=1") + R"("},{"itag":140,"bitrate":128000,"mimeType":"audio/mp4; codecs=\"mp4a.40.2\"","url":"https://fixture.googlevideo.com/audio?)" + std::string(urlHasN ? "n=unsolved" : "x=1") + R"("}]}})"};
         }
-        if (r.url.find("/iframe_api") != std::string::npos) { ++iframeRequests; return {404}; }
+        if (r.url.find("/iframe_api") != std::string::npos) {
+            ++iframeRequests;
+            if (solveN) return {200, "x s\\/player\\/deadbeef\\/www"};
+            return {404};
+        }
+        if (solveN && r.url.find("tv-player-ias") != std::string::npos) return {200, tvScript()};
+        if (solveN && probeOk && r.headers.size() == 1 && r.headers[0] == "Range: bytes=0-0" && r.url.find("/video?") != std::string::npos)
+            return {206, "x", {}, "bytes 0-0/1"};
         if (r.url.find("/live") != std::string::npos) { ++playlists; return {failureStatus}; }
         bool video = r.url.find("/video?") != std::string::npos;
         check(video || r.url.find("/audio?") != std::string::npos, "only fixture media requested");
@@ -147,6 +163,36 @@ static void run(const std::string& directory, bool members, const char* track, i
     if (p.audio) SDL_DestroyAudioStream(p.audio);
     SDL_DestroyMutex(p.mu); SDL_DestroyCondition(p.cv); SDL_DestroyMutex(p.nmu);
 }
+// 403 num vídeo de membros com o `n` resolvido: espera, testa a MESMA URL com 1 byte (passageiro: repete a URL; não: renova pelo
+// /player) e só o segundo 403 vira a mensagem de membros.
+static void retry(const std::string& directory, bool transient) {
+    solveN = true; probeOk = transient; urlHasN = true; failingTrack = "video"; failureStatus = 403; mediaFixture = Fixture::MP4;
+    players = videos = audios = playlists = 0; iframeRequests = 0;
+    player::Player p;
+    p.mu = SDL_CreateMutex(); p.cv = SDL_CreateCondition(); p.nmu = SDL_CreateMutex();
+    p.direct = p.original = true; p.memberVideo = true; p.id = "member00001";
+    p.state = player::BUFFERING; p.output = player::Player::LOCAL; p.openedMs = SDL_GetTicks();
+    Http accountTransport;
+    p.memberAccount = std::make_shared<yt::ConsoleAccount>(accountTransport, directory + "/account.json");
+    p.memberAccount->select(true);
+    auto began = SDL_GetTicks();
+    p.decodeOriginal();
+    auto waited = SDL_GetTicks() - began;
+    check(p.media.nsigSolved && p.media.video.url.find("n=devlosnuZ") != std::string::npos, "the n was solved before the media request");
+    check(p.renew && p.state != player::FAILED && p.error.empty() && !p.retryConverted, "first 403 with n solved asks for one renewal, no message yet");
+    check(p.sameUrlRetry == transient, "a probe that answers repeats the URL; one that does not renews through /player");
+    check(waited >= 2400, "waits before probing (the 403 may be transient)");
+    int requestsAfterFirst = players;
+    // O que start(renewing=true) faz: marca a renovação e só zera a validade se a URL não for repetida.
+    p.refreshed = true; p.renew = false; if (!p.sameUrlRetry) p.validUntil = 0; p.sameUrlRetry = false;
+    p.state = player::BUFFERING;
+    p.decodeOriginal();
+    check(p.state == player::FAILED && p.error == "members_unsupported" && !p.renew && !p.retryConverted, "403 -> renewal -> 403 ends in the members message");
+    check(players == requestsAfterFirst + (transient ? 0 : 1), "same URL reuses the /player answer, otherwise one new /player");
+    std::cout << "PASS member 403 with n solved, " << (transient ? "transient (same URL repeated)" : "persistent (new /player)") << " players=" << players << " videos=" << videos << '\n';
+    p.halt(); SDL_DestroyMutex(p.mu); SDL_DestroyCondition(p.cv); SDL_DestroyMutex(p.nmu);
+    solveN = probeOk = urlHasN = false;
+}
 int main(int argc, char** argv) {
     check(argc == 2 && SDL_Init(SDL_INIT_AUDIO), "fixture directory and SDL audio required");
     std::ifstream input(std::string(argv[1]) + "/video.mp4", std::ios::binary);
@@ -168,6 +214,9 @@ int main(int argc, char** argv) {
         run(argv[1], true, "video", 200, Fixture::LIVE_SEGMENTS, mode);
         run(argv[1], false, "video", 200, Fixture::LIVE_SEGMENTS, mode);
     }
+    retry(argv[1], false);
+    retry(argv[1], true);
+    yt::nsig::resetForTest();   // o serviço guarda o player do caso anterior: aqui o `n` não pode resolver
     urlHasN = true;
     run(argv[1], true, "video", 403);
     run(argv[1], true, "video", 403, Fixture::HLS);

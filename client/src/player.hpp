@@ -237,7 +237,6 @@ struct Player {
   std::atomic<int> speakerPause{0};  // mudança feita no alto-falante, aplicada pela thread da tela
   uint64_t openedMs = 0, readyMs = 0, lastLiveOpen = 0, tuneAt = 0;
   double screenSec = -1, tickMs = 0, liveDebt = 0, nextLiveFrame = 0;
-  std::atomic<double> liveCatchUp{0};   // 0 ou 0,05: alcance da live por segmentos (atraso mínimo), aplicado na taxa do áudio da TV
   bool liveLowLatency = false;          // opção só da TV (settings.liveLowLatency), lida por main.cpp antes de start()
   bool tracking = false, refill = false, reservePaused = false;
 
@@ -306,7 +305,7 @@ struct Player {
     activeH264Threads=0;activeLoopFilter=0;activeH264Spread=false;activeVideoItag=0;
     tvSample=-1;tvSampleAt=0;
     stop = false; paused = false; live = false; state = CONNECTING;
-    hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = nextLiveFrame = 0; liveCatchUp = 0;
+    hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = nextLiveFrame = 0;
     openedMs = SDL_GetTicks(); masterMs = -1; tracking = refill = reservePaused = false; session = 0; speakerPause = 0; speakerTargetMs = -1;
     if (audio) { SDL_PauseAudioStreamDevice(audio); SDL_ClearAudioStream(audio); SDL_SetAudioStreamFrequencyRatio(audio, 1.0f); }
     output = speaker ? CAST : RELEASING;
@@ -750,6 +749,29 @@ struct Player {
     return base / 1000.0 + std::max(0.0, played) * speed;
   }
 
+  // Live com alcance: muda a velocidade SEM reabrir (WSOLA do app, altura preservada). Reancora os três relógios que dependem de
+  // `speed` para que a posição não salte: o do áudio (base + tocado*speed), o de parede e o do quadro em tela.
+  void setLiveSpeed(double next) {
+    const double old = speed;
+    if (next == old || !live) return;
+    SDL_LockMutex(mu);
+    if (audio) SDL_LockAudioStream(audio);
+    if (SDL_GetAtomicInt(&audioBaseMs) >= 0) {
+      const double played = std::max(0.0, SDL_GetAtomicInt(&pushed) / 44100.0 - audioQueuedSec() - deviceMs / 1000.0);
+      const double clock = SDL_GetAtomicInt(&audioBaseMs) / 1000.0 + played * old;
+      SDL_SetAtomicInt(&audioBaseMs, int(std::lround((clock - played * next) * 1000)));
+    }
+    if (wallStart) {
+      const uint64_t ms = SDL_GetTicks();
+      const double elapsed = double(ms - wallStart - pausedTotal);
+      wallStart = ms - pausedTotal - uint64_t(std::max(0.0, elapsed * old / next));
+    }
+    speed = next;
+    tempo.reset(next);
+    if (audio) SDL_UnlockAudioStream(audio);
+    SDL_UnlockMutex(mu);
+  }
+
   void setPaused(bool p, bool notifySpeaker = true) {
     if (p == paused) return;
     paused = p; ++pauseChanges;
@@ -911,7 +933,7 @@ struct Player {
         tuneAt = ms + 120;
         // O PCM mudo acompanha o Nest. Depois de um underrun na live, a TV recupera até 3% por vez.
         double ratio = speakerRequested && !on ? 1.0 + std::clamp((display - tv) * 1.2, -0.35, 0.08)
-                              : 1.0 + (live && liveDebt > 0.15 ? 0.03 : 0.0) + liveCatchUp.load();
+                              : 1.0 + (live && liveDebt > 0.15 ? 0.03 : 0.0);
         SDL_SetAudioStreamFrequencyRatio(audio, (float)ratio);
       }
       if (live) liveDebt = std::max(0.0, wall - lastPos);

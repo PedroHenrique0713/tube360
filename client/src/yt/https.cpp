@@ -195,8 +195,10 @@ public:
         if (r.media) {
             set(CURLOPT_BUFFERSIZE, r.readBuffer);
             set(CURLOPT_TIMEOUT_MS, 12000L);
-            set(CURLOPT_LOW_SPEED_LIMIT, 16L*1024);
-            set(CURLOPT_LOW_SPEED_TIME, 4L);
+            if (!r.longPoll) {
+                set(CURLOPT_LOW_SPEED_LIMIT, 16L*1024);
+                set(CURLOPT_LOW_SPEED_TIME, 4L);
+            }
             set(CURLOPT_TCP_KEEPALIVE, 1L);
             set(CURLOPT_SOCKOPTFUNCTION, socketOptions);
         }

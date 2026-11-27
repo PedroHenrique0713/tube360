@@ -65,11 +65,12 @@ int main() {
 
     // bytecode em disco: depois de esquecer a memória, nada de baixar de novo
     nsig::resetForTest();
+    CHECK(nsig::timestamp(net, *rules, base) == 20779 && nsig::counters().bytecodeLoads == 0 && net.downloads == 1, "the timestamp comes from the index: no engine loaded, no download");
     string d = "https://r1.googlevideo.com/videoplayback?n=abcdef";
     e = nsig::rewrite(net, *rules, base, {&d});
     CHECK(e.empty() && nsig::nValue(d) == "fedcbaZ", "bytecode cache solve: %s", e.c_str());
     CHECK(net.downloads == 1 && nsig::counters().bytecodeLoads == 1, "second start uses the bytecode, no download (%u downloads)", net.downloads);
-    CHECK(nsig::timestamp(net, *rules, base) == 20779, "timestamp survives through the index");
+    CHECK(nsig::counters().bytecodeLoads == 1, "engine loaded once for the solve");
 
     // versão nova do player: baixa de novo e troca o bytecode
     nsig::resetForTest(); net.id = "cafef00d"; net.player = fakePlayer("Y");

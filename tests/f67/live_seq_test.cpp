@@ -1,6 +1,7 @@
 // LiveSeq (live de membros por segmentos &sq=N): caixas, PTS absoluto, borda, 403/404, cancelamento e alcance.
 //   f67-live-seq-test <pasta do make_fixture.py>
 #include "yt/live_seq.hpp"
+#include "yt/media.hpp"
 #include <chrono>
 #include <cmath>
 #include <cstdio>
@@ -29,7 +30,7 @@ struct Fake final : Transport {
     std::atomic<int> tick{60};
     std::atomic<long long> head{4};
     std::atomic<long> failStatus{0}; std::atomic<long long> failFrom{-1}, missingBelow{-1};
-    std::atomic<unsigned> requests{0};
+    std::atomic<unsigned> requests{0}; bool stallAs204 = false;
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     long long headAt() const {
         auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
@@ -45,7 +46,7 @@ struct Fake final : Transport {
         if (sq >= 0 && sq < missingBelow) { res.status = 404; return res; }
         if (sq < 0) sq = headAt();
         for (int waited = 0; sq > headAt() && !cancelled(); waited += 5) { if (waited > 4000) { res.status = 503; return res; } std::this_thread::sleep_for(std::chrono::milliseconds(5)); }
-        if (sq >= count) { res.status = 404; return res; }
+        if (sq >= count) { for (int w = 0; w < 600 && !cancelled(); w += 5) std::this_thread::sleep_for(std::chrono::milliseconds(5)); res.status = stallAs204 ? 204 : 404; return res; }
         res.status = 200; res.body = slurp(dir + (video ? "/v_" : "/a_") + std::to_string(sq) + ".bin");
         res.headSeq = headAt(); res.segmentSeq = sq; res.headTimeMs = (base + res.headSeq * (long long)segSec) * 1000LL; res.wallMs = 1795766719878LL;
         return res;
@@ -63,6 +64,18 @@ struct Proxy final : Transport {
     bool cancelled() const override { return f.cancelled(); }
 };
 
+// HLS público: playlist de segmentos de 2 s com PROGRAM-DATE-TIME; o leitor entra N segmentos antes da borda.
+struct HlsFake final : Transport {
+    Response request(const string& url, const string&, bool) override {
+        Response r; r.status = 200;
+        if (url.ends_with("/master.m3u8")) r.body = "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=2000000,RESOLUTION=1280x720,FRAME-RATE=30,CODECS=\"avc1.4d401f,mp4a.40.2\"\nmedia.m3u8\n";
+        else if (url.ends_with("/media.m3u8")) {
+            r.body = "#EXTM3U\n#EXT-X-TARGETDURATION:2\n#EXT-X-MEDIA-SEQUENCE:100\n";
+            for (int i = 0; i < 6; ++i) { char l[160]; std::snprintf(l, sizeof l, "#EXT-X-PROGRAM-DATE-TIME:2026-11-27T10:00:%02d.000Z\n#EXTINF:2.000,\nseg%d.ts\n", 2 * i, 100 + i); r.body += l; }
+        } else r.body = "ts";
+        return r;
+    }
+};
 struct Decoded { unsigned video = 0, audio = 0; double firstV = -1, lastV = -1, firstA = -1, lastA = -1, maxGapV = 0; bool monotonic = true; int err = 0; };
 // Decodifica uma faixa pela mesma via do player: AVIO custom, formato mov, sem seek.
 static Decoded decode(LiveSeq::Track* t, bool video, unsigned maxFrames) {
@@ -109,11 +122,23 @@ static void pure() {
     CHECK(seq::url("https://x/y?a=1&n=Z", 12) == "https://x/y?a=1&n=Z&sq=12", "sq url");
     // atraso e alcance (piso = um segmento; histerese)
     CHECK(std::fabs(seq::lag(100, 5, 100) - 5) < 1e-9, "lag at the start of the newest segment is one segment");
-    CHECK(seq::catchUp(15, 6, 5, 0, true) == 0.05, "behind with buffer -> 1.05x");
-    CHECK(seq::catchUp(15, 0.5, 5, 0, true) == 0, "behind without buffer -> stay at 1x");
-    CHECK(seq::catchUp(7, 6, 5, 0.05, true) == 0.05 && seq::catchUp(5.2, 6, 5, 0.05, true) == 0 && seq::catchUp(9, .5, 5, 0.05, true) == 0, "hysteresis");
-    CHECK(seq::catchUp(20, 20, 5, 0, false) == 0, "option off never catches up");
-    CHECK(seq::catchUp(5.8, 6, 5, 0, true) == 0, "near the floor does not start catching up");
+    CHECK(seq::speedFor(15, 6, 5, 1, true) == 1.05, "behind with a buffer -> 1.05x");
+    CHECK(seq::speedFor(15, 0.5, 5, 1, true) == 0.95, "behind but no buffer -> never speed up; thin buffer stretches");
+    CHECK(seq::speedFor(9, 6, 5, 1, true) == 1.0 && seq::speedFor(11.5, 6, 5, 1, true) == 1.05, "5 s segments: catch-up above 2 segments + 1 s");
+    CHECK(seq::speedFor(5.2, 6, 2, 1, true) == 1.05 && seq::speedFor(4.9, 6, 2, 1, true) == 1.0, "2 s segments scale the threshold");
+    // histerese larga: entre 1,3 segmento + 0,5 s e 2 segmentos + 1 s o estado não muda (o serrote de um segmento não liga e desliga)
+    for (double l = 8.0; l <= 11.0; l += .25) CHECK(seq::speedFor(l, 6, 5, 1.05, true) == 1.05 && seq::speedFor(l, 6, 5, 1, true) == 1.0, "no flapping inside the window (%.2f)", l);
+    CHECK(seq::speedFor(6.9, 6, 5, 1.05, true) == 1.0 && seq::speedFor(12, .5, 5, 1.05, true) == 1.0, "catch-up off near the floor or without buffer");
+    CHECK(seq::speedFor(5, .3, 5, 1, true) == 0.95 && seq::speedFor(5, 1.0, 5, 0.95, true) == 0.95 && seq::speedFor(5, 1.2, 5, 0.95, true) == 1.0, "thin buffer: 0.95x until 1.2 s of slack, hysteresis between");
+    CHECK(seq::speedFor(20, 20, 5, 1, false) == 1.0 && seq::speedFor(5, 0.1, 5, 1, false) == 1.0, "option off never changes the speed");
+    // duração do segmento lida do trun (sem número fixo)
+    {
+        string trun = string("\0\0\1\0\0\0\0\3", 8);        // flags 0x100 (duração por amostra), 3 amostras
+        for (int d : {3000, 3000, 3000}) { for (int k = 3; k >= 0; --k) trun += char(d >> (8 * k)); }
+        string moof = box("moof", box("traf", box("trun", trun)));
+        CHECK(std::fabs(seq::duration(moof, 1500) - 6.0) < 1e-9, "segment duration from the trun (%.3f)", seq::duration(moof, 1500));
+        CHECK(seq::duration("nada", 90000) == 0, "unreadable segment gives 0");
+    }
 }
 
 int main(int argc, char** argv) {
@@ -127,7 +152,7 @@ int main(int argc, char** argv) {
     // 1. Padrão: começa 2 segmentos antes da borda; o PTS absoluto (14 milhões de s) sai intacto.
     {
         fake.head = 4; fake.t0 = std::chrono::steady_clock::now(); fake.tick = 4000;
-        LiveSeq ls; ls.segSec = fake.segSec;
+        LiveSeq ls;
         bool ok = ls.open("https://r1.googlevideo.com/videoplayback?live=1", "https://r1.googlevideo.com/videoplayback?live=1", false, &stop,
                           std::make_unique<Proxy>(fake, true), std::make_unique<Proxy>(fake, false), 2);
         CHECK(ok, "open: %s", ls.error.c_str());
@@ -145,17 +170,18 @@ int main(int argc, char** argv) {
         CHECK(std::fabs(a.firstA - v.firstV) < .1, "audio and video share the timeline (%.3f vs %.3f)", a.firstA, v.firstV);
         CHECK(v.monotonic && v.maxGapV < .06, "video PTS continuous across segments (gap %.3f)", v.maxGapV);
         CHECK(ls.tracks[0].gaps == 0, "no gaps");
+        CHECK(std::fabs(ls.segSec() - fake.segSec) < .05, "segment duration is read from the stream, not fixed (%.2f)", ls.segSec());
         stop = true; ls.close(); stop = false;
     }
     // 2. Atraso mínimo: começa na borda (o segmento completo mais novo).
     {
         fake.head = 5; fake.t0 = std::chrono::steady_clock::now(); fake.tick = 4000;
-        LiveSeq ls; ls.segSec = fake.segSec;
+        LiveSeq ls;
         bool ok = ls.open("https://r1.googlevideo.com/videoplayback?live=1", "https://r1.googlevideo.com/videoplayback?live=1", true, &stop,
                           std::make_unique<Proxy>(fake, true), std::make_unique<Proxy>(fake, false));
         CHECK(ok && ls.first == 5, "low latency starts at the edge (first=%lld)", ls.first);
         Decoded v; std::thread tv([&] { v = decode(&ls.tracks[0], true, 45); }); Decoded a; std::thread ta([&] { a = decode(&ls.tracks[1], false, 20); }); tv.join(); ta.join();
-        double lag = seq::lag(ls.headStartSec(), fake.segSec, v.firstV);
+        double lag = seq::lag(ls.headStartSec(), ls.segSec(), v.firstV);
         std::printf("low latency: first frame %.3f, lag %.2f s (floor %.1f s)\n", v.firstV, lag, fake.segSec);
         CHECK(v.video >= 45 && std::fabs(v.firstV - (fake.base + 5 * fake.segSec)) < .2, "first frame is the edge segment (%.3f)", v.firstV);
         CHECK(lag <= fake.segSec + .05, "lag at start is one segment (%.2f)", lag);
@@ -164,7 +190,7 @@ int main(int argc, char** argv) {
     // 3. 403 (URL vencida) vira erro com o status; 404 salta para a borda, uma vez.
     {
         fake.head = 3; fake.t0 = std::chrono::steady_clock::now(); fake.tick = 100000; fake.failStatus = 403; fake.failFrom = 5;
-        LiveSeq ls; ls.segSec = fake.segSec;
+        LiveSeq ls;
         ls.open("https://r1.googlevideo.com/videoplayback?live=1", "https://r1.googlevideo.com/videoplayback?live=1", false, &stop,
                 std::make_unique<Proxy>(fake, true), std::make_unique<Proxy>(fake, false), 0);
         fake.head = 5; fake.tick = 50; fake.t0 = std::chrono::steady_clock::now();
@@ -176,7 +202,7 @@ int main(int argc, char** argv) {
     }
     {
         fake.head = 6; fake.t0 = std::chrono::steady_clock::now(); fake.tick = 100000; fake.missingBelow = 4;
-        LiveSeq ls; ls.segSec = fake.segSec;
+        LiveSeq ls;
         ls.open("https://r1.googlevideo.com/videoplayback?live=1", "https://r1.googlevideo.com/videoplayback?live=1", false, &stop,
                 std::make_unique<Proxy>(fake, true), std::make_unique<Proxy>(fake, false), 3);  // sq=3 está fora da janela
         Decoded v = decode(&ls.tracks[0], true, 30);
@@ -184,10 +210,40 @@ int main(int argc, char** argv) {
         CHECK(ls.tracks[0].gaps == 1 && v.video >= 30, "one jump to the edge, playback continues");
         stop = true; ls.close(); stop = false; fake.missingBelow = -1;
     }
+    // 3b. Live parada: o servidor só responde 204 ("ainda não") depois da última; o leitor termina limpo, não congela nem acusa falha.
+    {
+        fake.head = fake.count - 2; fake.t0 = std::chrono::steady_clock::now(); fake.tick = 100000; fake.stallAs204 = true;
+        LiveSeq ls; ls.stallMs = 1500;
+        ls.open("https://r1.googlevideo.com/videoplayback?live=1", "https://r1.googlevideo.com/videoplayback?live=1", true, &stop,
+                std::make_unique<Proxy>(fake, true), std::make_unique<Proxy>(fake, false));
+        auto t = std::chrono::steady_clock::now();
+        Decoded v = decode(&ls.tracks[0], true, 100000);
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t).count();
+        std::printf("stalled live: %u frames, ended after %lld ms, failure %d, status %ld\n", v.video, (long long)ms, ls.failure(), ls.httpStatus());
+        CHECK(v.err == AVERROR_EOF && ls.failure() == 0 && v.video > 0 && ms < 15000, "204 'not yet' is not a failure; a stopped live ends cleanly (err %d)", v.err);
+        stop = true; ls.close(); stop = false; fake.stallAs204 = false;
+    }
+    // HLS: o atraso mínimo começa no segmento mais novo; o padrão três antes. UTC e duração vêm da playlist.
+    {
+        double f1, e1, d1, f3, e3, d3;
+        HlsFake lists, media; std::atomic_bool stop2{false};
+        auto begin = [&](int back, double& first, double& edge, double& dur) {
+            LiveFile live(lists, media, stop2); live.startBack = back;
+            bool ok = live.open("https://fixture.invalid/master.m3u8", 720);
+            for (int i = 0; i < 400 && live.firstStamp.load() < 0; ++i) std::this_thread::sleep_for(std::chrono::milliseconds(5));
+            first = live.firstStamp; edge = live.edgeEnd; dur = live.segmentSec;
+            return ok;
+        };
+        CHECK(begin(1, f1, e1, d1) && begin(3, f3, e3, d3), "HLS fixture opens");
+        std::printf("HLS: low latency starts at stamp +%.0f s, default at +%.0f s, edge end +%.0f s, segment %.1f s\n", f1 - 1795000000.0 * 0, f3 - f1, e1 - f1, d1);
+        CHECK(std::fabs((e1 - f1) - 2.0) < .01, "low latency starts on the newest segment: one segment to the edge (%.2f)", e1 - f1);
+        CHECK(std::fabs((e3 - f3) - 6.0) < .01, "default starts three segments back (%.2f)", e3 - f3);
+        CHECK(std::fabs(d1 - 2.0) < .01, "segment duration from the playlist (%.2f)", d1);
+    }
     // 4. Cancelar enquanto espera o long-poll destrava a leitura sem demora.
     {
         fake.head = 1; fake.t0 = std::chrono::steady_clock::now(); fake.tick = 1000000;
-        LiveSeq ls; ls.segSec = fake.segSec;
+        LiveSeq ls;
         ls.open("https://r1.googlevideo.com/videoplayback?live=1", "https://r1.googlevideo.com/videoplayback?live=1", true, &stop,
                 std::make_unique<Proxy>(fake, true), std::make_unique<Proxy>(fake, false));
         std::thread canceller([&] { std::this_thread::sleep_for(std::chrono::milliseconds(300)); stop = true; });

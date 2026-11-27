@@ -33,7 +33,7 @@ the matching build recipe with the FFmpeg source/relink materials; they are not 
 | [Mbed TLS 3.6.8](https://github.com/Mbed-TLS/mbedtls/releases/tag/mbedtls-3.6.8) | Pinned source archive, built locally for each target | Apache-2.0 OR GPL-2.0-or-later, with upstream third-party notices |
 | [curl-xenon, a6b70bd](https://github.com/xenosworks/curl-xenon/tree/a6b70bd06820e1c625f47fe0e592e08c5daaa6b4) | Static libcurl for HTTP with Mbed TLS | curl license (`COPYING` in the archive) |
 | [Google Trust Services root certificates](https://pki.goog/roots.pem) | `client/src/yt/gts.pem`, four public certificates R1–R4, embedded at build time | Retrieved 2026-11-23. SHA-256 of the PEM file: `6ba8f2f19e161f295a52b49e627796d7dbbeab3c7e60a46b07529e98e18536d7` |
-| [quickjs-ng 0.18.0](https://github.com/quickjs-ng/quickjs/releases/tag/v0.18.0) | `client/third_party/quickjs-ng/`, JS engine for the YouTube `n` throttling challenge (spike, not linked into the app yet; sources unmodified; libc, CLI and tests left out) | MIT (`client/third_party/quickjs-ng/LICENSE`) |
+| [quickjs-ng 0.18.0](https://github.com/quickjs-ng/quickjs/releases/tag/v0.18.0) | `client/third_party/quickjs-ng/`, JS engine for the YouTube `n` throttling challenge of members videos (`client/src/yt/nsig_service.cpp`, linked into the app; sources unmodified; libc, CLI and tests left out) | MIT (`client/third_party/quickjs-ng/LICENSE`) |
 
 YouTube is a trademark of Google LLC. Tube360 is an independent project, not affiliated with or endorsed by Google or Microsoft.
 

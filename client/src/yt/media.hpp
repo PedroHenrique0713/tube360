@@ -209,6 +209,9 @@ struct LiveFile {
     };
     struct Pair { string video, audio; };
     static constexpr int reserve = 3;
+    int startBack = reserve;   // quantos segmentos antes da borda a abertura começa (1 = o mais novo, atraso mínimo)
+    // Relógio UTC do PROGRAM-DATE-TIME (-1 sem ele): início do 1º segmento entregue, fim do mais novo da playlist e fim do último planejado.
+    std::atomic<double> firstStamp{-1}, edgeEnd{-1}, plannedEnd{-1}, segmentSec{0};
     std::deque<Pair> pending;
     SDL_Mutex* mu = SDL_CreateMutex();
     SDL_Condition* cv = SDL_CreateCondition();
@@ -397,13 +400,20 @@ struct LiveFile {
             }
             int64_t first = paired ? std::max(video.first,audio.first) : video.first;
             int64_t edge = paired ? std::min(video.last(),audio.last()) : video.last();
-            if (sequence < 0) sequence = std::max(first,edge - reserve + 1);
+            if (!video.stamps.empty() && video.stamps.back() >= 0 && video.durations.back() > 0) {
+                edgeEnd = video.stamps.back() + video.durations.back(); segmentSec = video.durations.back();
+            }
+            if (sequence < 0) sequence = std::max(first,edge - startBack + 1);
             if (sequence < first) return AVERROR_INVALIDDATA;
             if (sequence <= edge) {
                 SDL_LockMutex(mu);
                 while (pending.size() >= reserve && !stop && !closing && !lowerRequested) SDL_WaitConditionTimeout(cv,mu,100);
                 if (lowerRequested) { SDL_UnlockMutex(mu); continue; }
                 if (!stop && !closing) pending.push_back({video.urls[sequence-video.first],paired ? audio.urls[sequence-audio.first] : ""});
+                if (const auto at = size_t(sequence-video.first); at < video.stamps.size() && video.stamps[at] >= 0) {
+                    if (firstStamp.load() < 0) firstStamp = video.stamps[at];
+                    if (video.durations[at] > 0) plannedEnd = video.stamps[at] + video.durations[at];
+                }
                 SDL_BroadcastCondition(cv); SDL_UnlockMutex(mu);
                 ++sequence; since = SDL_GetTicks();
             } else {

@@ -44,6 +44,7 @@ struct Request {
     long readBuffer = 64 * 1024;
     bool update = false;
     size_t maxBytes = 0;
+    bool longPoll = false;  // espera sem bytes por até timeoutMs (live: sq futuro); sem o corte de velocidade mínima
     long connectTimeoutMs = 0, timeoutMs = 0;
     NetworkTrace trace;
 };
