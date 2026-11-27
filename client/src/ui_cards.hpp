@@ -20,12 +20,22 @@ static void starShape(gfx::Gfx& g, float cx, float cy, float r, Color c) {
   for (int i = 0; i < 10; i++) gfx::triangle(g, cx, cy, px[i], py[i], px[(i + 1) % 10], py[(i + 1) % 10], c);
 }
 static bool cardRtl(gfx::Gfx& g, const std::string& s, int font) { return g.rtlText || gfx::visualLine(g, s, font).rtl; }
+// Selo de verificado como o do YouTube de TV: círculo cinza claro com um check escuro. Tudo em pixels inteiros (círculo par) e o check
+// é um traço grosso feito de pontos redondos sobrepostos (a borda sai suave, sem triângulos finos e serrilhados).
+static float verifiedSize(gfx::Gfx& g, int font) { return std::max(12.f, 2 * std::round(g.fonts[(size_t)font].size * .70f / 2)); }
+// y do selo para o texto da fonte `font` que começa em `ty`: o selo fica centrado na altura das maiúsculas, na linha de base do nome.
+static float verifiedY(gfx::Gfx& g, int font, float ty, float d) { const auto& f = g.fonts[(size_t)font]; return std::round(ty + f.ascent - f.size * .36f - d / 2); }
 static void verifiedMark(gfx::Gfx& g, float x, float y, float d, Color c, Color ink) {
+  d = std::max(12.f, 2 * std::round(d / 2)); x = std::round(x); y = std::round(y);
   gfx::rect(g, x, y, d, d, c, d / 2);
-  float k = d / 14;
-  gfx::triangle(g, x + 3.2f*k, y + 7.4f*k, x + 4.6f*k, y + 6.2f*k, x + 6.2f*k, y + 9.2f*k, ink);
-  gfx::triangle(g, x + 5.6f*k, y + 9.9f*k, x + 6.8f*k, y + 8.9f*k, x + 11.2f*k, y + 4.4f*k, ink);
-  gfx::triangle(g, x + 11.2f*k, y + 4.4f*k, x + 12.2f*k, y + 5.4f*k, x + 6.8f*k, y + 8.9f*k, ink);
+  const float t = std::max(1.8f, d * .14f), r = t / 2;
+  auto stroke = [&](float u0, float v0, float u1, float v1) {
+    float x0 = x + u0 * d, y0 = y + v0 * d, dx = (u1 - u0) * d, dy = (v1 - v0) * d;
+    int n = std::max(2, int(std::hypot(dx, dy) / (t * .3f)));
+    for (int i = 0; i <= n; ++i) { float k = float(i) / n; gfx::rect(g, x0 + dx * k - r, y0 + dy * k - r, t, t, ink, r); }
+  };
+  stroke(.28f, .52f, .44f, .67f);
+  stroke(.44f, .67f, .73f, .35f);
 }
 static const Color MEMBER_GREEN = rgb(0x3ddc84);
 
@@ -289,7 +299,7 @@ static float cardText(gfx::Gfx& g, i18n::Lang lang, const CardMeta& m, float x, 
   ty += 3;
   float lh = g.fonts[metaFont].lineH;
   if (ty + lh <= 646) {
-    const float markD = std::max(14.f, lh * .72f), mark = m.verified ? markD + 6 : 0;
+    const float markD = verifiedSize(g, metaFont), mark = m.verified ? markD + 6 : 0;
     std::string tail = m.views.empty() ? "" : m.views;
     if (!m.date.empty()) tail += (tail.empty() ? "" : "  \xC2\xB7  ") + m.date;
     std::string head = m.channel;
@@ -302,7 +312,7 @@ static float cardText(gfx::Gfx& g, i18n::Lang lang, const CardMeta& m, float x, 
     gfx::textBox(g, metaFont, shown, x, ty, w, ui::MUTED);
     if (m.verified) {
       float shownW = gfx::textWidth(g, metaFont, shown), mx = cardRtl(g, shown, metaFont) ? x + w - shownW - 6 - markD : x + shownW + 6;
-      verifiedMark(g, mx, ty + (lh - markD) / 2, markD, ui::MUTED, ui::BG);
+      verifiedMark(g, mx, verifiedY(g, metaFont, ty, markD), markD, ui::MUTED, ui::BG);
     }
     ty += lh + 2;
     if (!tail.empty() && ty + lh <= 646) { gfx::textBox(g, metaFont, gfx::ellipsize(g, metaFont, tail, w), x, ty, w, ui::MUTED); ty += lh + 2; }

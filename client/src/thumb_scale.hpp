@@ -4,6 +4,17 @@
 
 // Reduz uma imagem RGBA tirando a média dos pixels de origem de cada pixel de destino (fonte maior que o destino);
 // o vizinho mais próximo serrilhava a miniatura HD reduzida para o tamanho do cartão (#15).
+// Diagnóstico: o sddefault.jpg (640x480) de um vídeo 16:9 traz 60 px de preto em cima e embaixo (média de brilho das bordas quase zero).
+// O decodificador corta essas 60 linhas sempre; vídeo vertical vem com fundo desfocado e perde só o excesso de altura, como no YouTube.
+inline bool letterboxed640x480(const unsigned char* src, int w, int h) {
+  if (w != 640 || h != 480) return false;
+  auto band = [&](int y0, int y1) {
+    unsigned long sum = 0; unsigned n = 0;
+    for (int y = y0; y < y1; ++y) for (int x = 0; x < w; x += 4) { const unsigned char* p = src + 4 * ((size_t)y * w + x); sum += p[0] + p[1] + p[2]; n += 3; }
+    return n ? double(sum) / n : 255.0;
+  };
+  return band(8, 52) < 20 && band(428, 472) < 20;
+}
 inline void boxScale(const unsigned char* src, int w, int h, int cropX, int cropY, int cropW, int cropH, unsigned char* dst, int dstStride, int dw, int dh) {
   for (int y = 0; y < dh; ++y) {
     int y0 = cropY + y * cropH / dh, y1 = std::max(y0 + 1, cropY + (y + 1) * cropH / dh);

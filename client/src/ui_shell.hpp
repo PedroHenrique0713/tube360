@@ -15,7 +15,7 @@ inline void UiContext::railInput() {
     else if (railSel == 3) openNav("library");
     else if (railSel == 4) openNav("music", "", "", true);
     else if (railSel == 5) { phonePanel = true; }
-    else if (railSel == 6) { screen = SETTINGS; railFocus = false; nestInfoAt = 0; accountAt = 0; }
+    else if (railSel == 6) { screen = SETTINGS; railFocus = false; nestInfoAt = 0; accountAt = 0; settingsInside = false; }
     else quit = true;
   }
 }

@@ -396,6 +396,7 @@ inline const char* arabic(Key key) {
     case Key::PlayerShelfNext: return "التالي";
     case Key::PlayerShelfChannel: return "من القناة";
     case Key::PlayerShelfRelated: return "مقترحات";
+    case Key::PlayerShelfBack: return "العودة إلى الفيديو";
     case Key::PlayerNoNext: return "لا يوجد فيديو تالٍ";
     case Key::PlayerNoPrev: return "لا يوجد فيديو سابق";
     case Key::PlayerLaterAdded: return "تم الحفظ في المشاهدة لاحقاً";
