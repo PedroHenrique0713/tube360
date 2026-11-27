@@ -16,6 +16,7 @@ struct Settings {
   bool h264FullFilter = false;
   bool server = false, nest = false, sleepNotebook = false, captions = false;
   bool hideShorts = false, errorReports = true;
+  int volume = 100;  // 0..100, passos de 5; aplicado por Player::setVolumePercent
   std::string captionLang;
 
   void load(const std::string& dir) {
@@ -35,6 +36,7 @@ struct Settings {
         else if (key == "server") server = false;
         else if (key == "shorts") hideShorts = val == "hide";
         else if (key == "error_reports") errorReports = val != "off";
+        else if (key == "volume") volume = (int)std::clamp(std::atol(val.c_str()), 0L, 100L);
         else if (key == "video_mode") videoMode = playback::modeFromName(val.c_str());
         else if (key == "audio_preference") originalAudio = val != "interface";
         else if (key == "captions") captions = val == "on";
@@ -73,6 +75,7 @@ struct Settings {
     ok = ok && std::fprintf(f,"sponsorblock=%s\n",sponsorBlock == sponsorblock::OFF ? "off" : sponsorBlock == sponsorblock::AUTO ? "auto" : "button") > 0;
     ok = ok && std::fprintf(f,"h264_loop_filter=%s\n",h264FullFilter ? "full" : "auto") > 0;
     ok = ok && std::fprintf(f,"shorts=%s\nerror_reports=%s\n",hideShorts ? "hide" : "row",errorReports ? "on" : "off") > 0;
+    ok = ok && std::fprintf(f,"volume=%d\n",volume) > 0;
     if (std::fclose(f) != 0) ok = false;
     if (ok) ok = std::rename(tmp.c_str(), dest.c_str()) == 0;
     if (!ok) std::remove(tmp.c_str());
