@@ -251,7 +251,7 @@ As dicas usam o estilo Xbox One / Series (Menu / View correspondem a Start / Bac
 | | Y · X | Pular/voltar no SponsorBlock ou abrir Qualidade · Som TV / caixa |
 | | LT / RT | Segure para voltar / avançar; acelera, solte para continuar |
 | | B | Fechar um nível por vez, depois sair do vídeo |
-| | View | Voltar à navegação |
+| | View | Mostrar / esconder a linha de opções (o Menu pausa, então o View assumiu o papel antigo dele) |
 | Música, Tocando agora | B | Parar e limpar fila; voltar à página de origem |
 | Configurações | Cima / Baixo · Esquerda / Direita · A / B | Escolher linha · Mudar valor · Abrir / Voltar |
 | Próximo vídeo | A / B | Assistir agora / Cancelar |

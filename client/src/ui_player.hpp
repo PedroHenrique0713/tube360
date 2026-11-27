@@ -131,15 +131,15 @@ inline void UiContext::soundPanelDraw(const SoundPanel& p, uint64_t now) {
 }
 
 inline void UiContext::playerNextInput() {
-  in.hit(Input::BACK);  // View não tem papel no cartão de próximo automático (mapa único #40)
-  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { nextAt = 0; playerUI.options = true; playerUI.touch(SDL_GetTicks()); }  // Menu = opções, não inicia o próximo
+  ctl::hit(in, ctl::Ctx::Player, ctl::Act::Pause);  // Menu (pausar) não tem o que pausar: o vídeo já acabou
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { nextAt = 0; playerUI.options = true; playerUI.touch(SDL_GetTicks()); }  // View = opções, não inicia o próximo
   else if (in.hit(Input::A)) { Video v = upNext; startVideo(v, 0, false); }
   else if (in.hit(Input::B)) { nextAt = 0; stopVideo(); }
 }
 
 inline void UiContext::playerInput(uint64_t now, int optionCount) {
   if (playing.shortForm) { shortsInput(now); return; }
-  if(seekHold.active)for(int b=0;b<Input::N;++b)if(b!=Input::B && b!=Input::BACK)in.fired[b]=false;
+  if(seekHold.active)for(int b=0;b<Input::N;++b)if(b!=Input::B)in.fired[b]=false;
   bool any = false;
   if (shelf.open) { playerShelfInput(now); return; }
   int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
@@ -200,13 +200,10 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     } else openPlayerChannel(captions.channelId, playing.id);
     any = true;
   }
-  // Durante a abertura, A não cria uma pausa invisível atrás do carregamento.
   if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { playerUI.options = !playerUI.options || !playerUI.visible(now); any = true; }
-  if ((pressA && (!open || playerUI.selected == PlayerUI::TRANSPORT)) && (!pl.waiting() || pl.paused)) {
-    if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
-    LOG("player: pause=%d pos=%.2f", pl.paused ? 1 : 0, pl.position());
-    any = true;
-  }
+  // Menu (Start) pausa e retoma de qualquer ponto (barra, linha de botões, controles escondidos); A só no botão de play ou sem opções.
+  const bool pressStart = ctl::hit(in, ctl::Ctx::Player, ctl::Act::Pause);
+  if (((pressA && (!open || playerUI.selected == PlayerUI::TRANSPORT)) || pressStart) && togglePause()) any = true;
   if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Quality)) {
     auto action=(!pl.live && pl.state!=player::FAILED && (pl.state==player::PLAYING || sponsors.canUndo(now))) ? sponsors.press(pl.position(),pl.duration,now,settings.sponsorBlock) : sponsorblock::Action{};
     if (action) sponsorSeek(action);
@@ -226,7 +223,6 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     if(commit){double to=seekHold.target;bool paused=seekHold.wasPaused;LOG("busca: soltou em %.3f",to);startVideo(playing,to,playerFromRemote);pl.setPaused(paused);any=true;}
   }
   if (any) playerUI.touch(now);
-  in.hit(Input::BACK);  // View não tem papel no player (mapa único #40); sair é B
   if (in.hit(Input::B)) {
     if(seekHold.active){bool paused=seekHold.wasPaused;seekHold.cancel(true);pl.setPaused(paused);}
     else if(!playerUI.back(now)) {
@@ -241,6 +237,15 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     toast = tr(K::SpeakerFallback); toastUntil = now + 5000;
     startVideo(playing, pl.position(), playerFromRemote);
   }
+}
+
+// Pausa e retoma: a regra é uma só para o A no botão de play, o Menu (Start), os Shorts e o Tocando agora. Durante a abertura não há
+// pausa invisível atrás do carregamento; uma live pausada volta à borda em vez de continuar do ponto antigo. Devolve false se não agiu.
+inline bool UiContext::togglePause() {
+  if (pl.waiting() && !pl.paused) return false;
+  if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
+  LOG("player: pause=%d pos=%.2f", pl.paused ? 1 : 0, pl.position());
+  return true;
 }
 
 // X no player: salva o vídeo em "Assistir mais tarde" (na conta, se logada; senão na lista local), como nas demais telas.
@@ -349,7 +354,8 @@ inline void UiContext::playerShelfInput(uint64_t now) {
   // LB/RB trocam de aba (contexto próprio da fileira)
   int tabStep = ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::PrevTab) ? -1 : ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::NextTab) ? 1 : 0;
   if (tabStep) for (int t = shelf.tab + tabStep; t >= 0 && t < 3; t += tabStep) if (shelfTabShown(t)) { shelf.tab = t; shelf.sel = 0; { auto l = shelfItems(t); LOG("player: fileira aba=%d itens=%zu primeiro=%s", t, l.size(), l.empty() ? "-" : l.front().id.c_str()); } break; }
-  if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::Options)) { shelf.open = false; playerUI.options = true; }  // Menu = opções
+  if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::Options)) { shelf.open = false; playerUI.options = true; }  // View = opções
+  else if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::Pause)) togglePause();  // Menu pausa também com a fileira aberta
   else if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::WatchLater)) {
     const auto& items = shelfItems(shelf.tab);
     if (shelf.sel < (int)items.size()) {
@@ -361,7 +367,7 @@ inline void UiContext::playerShelfInput(uint64_t now) {
     const auto& items = shelfItems(shelf.tab);
     if (shelf.sel >= 0 && shelf.sel < (int)items.size()) { Video v = items[(size_t)shelf.sel]; shelf.open = false; startVideo(v, 0, false); }
   } else if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::Back) || in.hit(Input::UP)) shelf.open = false;
-  in.hit(Input::BACK); in.hit(Input::DOWN);
+  in.hit(Input::DOWN);
   playerUI.touch(now);
 }
 
@@ -419,11 +425,15 @@ inline void UiContext::playerShelfDraw(uint64_t now) {
   float used = wChoose + wOpen + wBack;
   bool showLater = used + wLater <= avail; if (showLater) used += wLater;
   bool showTab = used + wTab <= avail; if (showTab) used += wTab;
+  const K pauseText = pl.paused ? K::Resume : K::Pause;
+  float wPause = ctlHintWidth(g, C, Act::Pause, settings.lang, pauseText);
+  bool showPause = used + wPause <= avail; if (showPause) used += wPause;
   float hx = rtl ? ui::W - 40 - used : 40;
   hx = hint(g, hx, hy, tr(K::BtnHorizontal), XG, tr(K::ChooseRow));
   hx = ctlHint(g, hx, hy, C, Act::Open, settings.lang, K::WatchNow);
   if (showLater) hx = ctlHint(g, hx, hy, C, Act::WatchLater, settings.lang);
   if (showTab) hx = ctlHint(g, hx, hy, C, Act::PrevTab, settings.lang);
+  if (showPause) hx = ctlHint(g, hx, hy, C, Act::Pause, settings.lang, pauseText);
   ctlHint(g, hx, hy, C, Act::Back, settings.lang, K::PlayerShelfBack);
 }
 
@@ -496,11 +506,20 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
     }
     overlayTitle.update(g, ui::F_VIDEO_TITLE, title.c_str(), options && !transportFocus ? ui::W-520 : ui::W-80);
     if(!panelOpen && pl.state!=player::FAILED) {
-      float hy = ui::large ? 508 : 523, hx = g.rtlText ? ui::W - 40 - 640 : 40;
-      hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::WatchLater, settings.lang);
-      hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::Quality, settings.lang);
-      if (!playerFromRemote && !phonePlaybackSerial) hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::PrevItem, settings.lang);
-      ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::Options, settings.lang);
+      // Menu (pausar/retomar) e View (opções) sempre; X, Y e LB RB (só fora do celular) enquanto couberem: a de menor prioridade que não
+      // cabe (4:3, texto grande) sai inteira, nunca cortada. Árabe: a fileira encosta na direita.
+      using ctl::Act; const auto P = ctl::Ctx::Player;
+      struct Hint { Act act; K text; int priority; };  // quanto maior, mais cedo sai
+      std::vector<Hint> row = {{Act::WatchLater, K::None, 1}, {Act::Quality, K::None, 2}, {Act::Pause, pl.paused ? K::Resume : K::Pause, 0}, {Act::Options, K::None, 0}};
+      if (!playerFromRemote && !phonePlaybackSerial) row.insert(row.begin() + 2, {Act::PrevItem, K::None, 3});
+      auto width = [&]() { float w = 0; for (const auto& h : row) w += ctlHintWidth(g, P, h.act, settings.lang, h.text); return w; };
+      while (row.size() > 2 && width() - 26 > ui::W - 80) {
+        size_t drop = 0;
+        for (size_t k = 1; k < row.size(); ++k) if (row[k].priority > row[drop].priority) drop = k;
+        row.erase(row.begin() + (long)drop);
+      }
+      float hy = ui::large ? 508 : 523, hx = g.rtlText ? ui::W - 40 - (width() - 26) : 40;
+      for (const auto& h : row) hx = ctlHint(g, hx, hy, P, h.act, settings.lang, h.text);
     }
     if (!shelf.open) {
       gfx::textBox(g, ui::F_VIDEO_TITLE, overlayTitle.text, 40, ui::large ? 548 : 563, ui::W-80, ui::TEXT);

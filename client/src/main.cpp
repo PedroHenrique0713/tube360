@@ -668,6 +668,7 @@ int run(int argc, char** argv) {
   uint64_t accountAt = 0, stamp = 0, accountBackend = consoleAccount->revision();
   auto requestFeed = [&](Shelf& shelf, int kind, bool fresh = false, int offset = 0, bool front = false) {
     if (!offset) { shelf.stamp = ++stamp; shelf.feed.loading = true; shelf.feed.loadingMore = false; shelf.feed.error = K::None; }
+    if (shelf.kind == "live" && !account.signedIn()) { shelf.stamp = ++stamp; shelf.feed = {}; shelf.feed.more = false; return; }  // F71: nada a pedir sem conta
     if(shelf.kind=="local_later" || shelf.kind=="local_history") {
       shelf.stamp=++stamp;shelf.feed={};shelf.feed.direct=true;shelf.feed.more=false;
       for(const auto& e:shelf.kind=="local_later"?localUI.library.later:localUI.library.history){Video v;v.id=e.id;v.title=e.title;v.channel=e.channel;v.dur=e.duration;v.pos=localUI.library.position(e.id);shelf.feed.items.push_back(v);}return;
@@ -680,8 +681,9 @@ int run(int argc, char** argv) {
     SDL_LockMutex(worker.mu); worker.jobs.clear(); SDL_UnlockMutex(worker.mu);
     cats.clear(); cat = 0;
     cats.push_back({tr(account.signedIn() ? K::ForYou : K::All), "", {}, 0, "home"});
+    if (account.signedIn()) cats.push_back({tr(K::Subscriptions), "", {}, 0, "subs"});
+    cats.push_back({tr(K::ChannelLive), "", {}, 0, "live"});  // F71 (#4): lives das inscrições (yt::liveMark); sem conta a aba só explica como ter
     if (account.signedIn()) {
-      cats.push_back({tr(K::Subscriptions), "", {}, 0, "subs"});
       cats.push_back({tr(K::ContinueWatching), "", {}, 0, "history"});
       cats.push_back({tr(K::WatchLater), "", {}, 0, "later"});
     }
@@ -1287,7 +1289,7 @@ int run(int argc, char** argv) {
       if (script && step >= 0 && step % 24 == 0 && step / 24 <= (int)std::strlen(script)) {
         char k = script[step / 24];
         int b = k == 'U' ? Input::UP : k == 'D' ? Input::DOWN : k == 'L' ? Input::LEFT : k == 'R' ? Input::RIGHT : k == 'A' ? Input::A
-              : k == 'B' ? Input::B : k == 'X' ? Input::X : k == 'Y' ? Input::Y : k == 'S' ? Input::START : k == '[' ? Input::LB : k == ']' ? Input::RB : k == 'l' ? Input::LT : k == 'r' ? Input::RT : -1;
+              : k == 'B' ? Input::B : k == 'X' ? Input::X : k == 'Y' ? Input::Y : k == 'S' ? Input::START : k == 'V' ? Input::BACK : k == '[' ? Input::LB : k == ']' ? Input::RB : k == 'l' ? Input::LT : k == 'r' ? Input::RT : -1;
         in.set(Input::LT,k=='l',now);in.set(Input::RT,k=='r',now);
         if (b >= 0) in.fired[b] = true;
       }
@@ -1460,6 +1462,7 @@ int run(int argc, char** argv) {
         }
       } else {
         if (!r.localAccount) r.feed.more = !r.feed.direct && r.feed.items.size() >= 24;
+        LOG("feed %s: %u itens%s", target->kind.empty() ? "busca" : target->kind.c_str(), (unsigned)r.feed.items.size(), r.feed.error != K::None ? ", com erro" : "");  // F71
         target->feed = std::move(r.feed);
       }
     }

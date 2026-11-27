@@ -52,12 +52,13 @@ inline void UiContext::shortsInput(uint64_t now) {
     if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::NextItem)) shortsStep(1);
     if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::PrevItem)) shortsStep(-1);
   }
-  // Menu (Opções) leva o foco às ações ao lado e de volta; LT/RT (sem papel no mapa dos Shorts) ajustam o volume.
+  // View (Opções) leva o foco às ações ao lado e de volta; Menu (Start) pausa e retoma de onde o foco estiver; LT/RT ajustam o volume.
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::Options)) focus = focus ? 0 : 1;
+  if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::Pause)) togglePause();
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::VolumeDown)) adjustVolume(now, -1);
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::VolumeUp)) adjustVolume(now, 1);
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::PlayPause)) {
-    if (!focus) { if (!pl.waiting() || pl.paused) pl.setPaused(!pl.paused); }
+    if (!focus) togglePause();
     else if (focus <= 2) {
       if (account.signedIn()) {
         const char* want = focus == 1 ? "LIKE" : "DISLIKE";
@@ -67,7 +68,7 @@ inline void UiContext::shortsInput(uint64_t now) {
     else openPlayerChannel(captions.channelId, playing.id);
   }
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::WatchLater)) playerWatchLater(now);
-  in.hit(Input::BACK); in.hit(Input::Y);
+  in.hit(Input::Y);
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::Back)) { if (focus) focus = 0; else stopVideo(); }
   if (focus != focusBefore) LOG("shorts: foco %d", focus);
   if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
@@ -122,11 +123,14 @@ inline void UiContext::shortsDraw(uint64_t now, double t) {
   // Dicas ao lado do vídeo, depois da coluna de ações (como na proposta A4); no árabe, espelhadas para o lado esquerdo.
   const float hy = ui::H / 2 - 110, hw0 = 290, hx = rtl ? std::max(16.f, vx - 150 - hw0) : vx + vw + 150, hw = std::min(hw0, ui::W - hx - 24);
   hint(g, hx, hy, tr(K::BtnVertical), XG, focus ? tr(K::ChooseRow) : tr(K::ShortsStep));
-  ctlHint(g, hx, hy + 40, ctl::Ctx::Shorts, ctl::Act::PlayPause, settings.lang, focus ? K::Open : pl.paused ? K::Resume : K::Pause);
-  ctlHint(g, hx, hy + 80, ctl::Ctx::Shorts, ctl::Act::WatchLater, settings.lang);
-  ctlHint(g, hx, hy + 120, ctl::Ctx::Shorts, ctl::Act::Options, settings.lang);
-  ctlHint(g, hx, hy + 160, ctl::Ctx::Shorts, ctl::Act::Back, settings.lang, focus ? K::Close : K::None);
-  ctlHint(g, hx, hy + 200, ctl::Ctx::Shorts, ctl::Act::VolumeDown, settings.lang);
+  // A só aparece com o foco nas ações (abrir); no vídeo ele pausa como o Menu, que já tem a dica de pausar/retomar.
+  float ry = hy + 40;
+  using ctl::Act; const auto C = ctl::Ctx::Shorts;
+  if (focus) { ctlHint(g, hx, ry, C, Act::PlayPause, settings.lang, K::Open); ry += 40; }
+  for (Act a : {Act::WatchLater, Act::Pause, Act::Options, Act::Back, Act::VolumeDown}) {
+    ctlHint(g, hx, ry, C, a, settings.lang, a == Act::Pause ? (pl.paused ? K::Resume : K::Pause) : a == Act::Back && focus ? K::Close : K::None);
+    ry += 40;
+  }
   volumeHud(now);
   if (pl.waiting()) {
     spinner(g, ui::W / 2, ui::H / 2, 26, t);

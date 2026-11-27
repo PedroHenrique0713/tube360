@@ -11,6 +11,9 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from settings_nav import seq
+
 ROOT = Path(__file__).resolve().parents[2]
 out = Path(sys.argv[1] if len(sys.argv) > 1 else tempfile.mkdtemp(prefix='remote-e2e-'))
 out.mkdir(parents=True, exist_ok=True)
@@ -61,7 +64,7 @@ def check(cond, what):
         fails.append(what)
 
 # 1) a linha das Configurações liga a opção e abre o painel com o código
-proc, assets = app('panel', False, ']]]]]DDDA', 4200)
+proc, assets = app('panel', False, seq(20, 'A'), 4200)  # linha 20 (celular): as Configurações abrem na coluna de seções (F64d), então entra na seção antes
 proc.wait(timeout=60)
 log = (assets / 'app.log').read_text()
 check('phone_remote=on' in (assets / 'settings.txt').read_text(), 'A na linha liga a opção e grava phone_remote=on')

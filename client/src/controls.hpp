@@ -14,7 +14,9 @@ enum class Btn { A, B, X, Y, LB, RB, LT, RT, Menu, View, Count };
 // O que o botão faz. Pares (PrevTab/NextTab...) têm uma dica só, "LB RB" ou "LT RT".
 enum class Act {
   None, Open, PlayPause, Back, WatchLater, AddQueue, Search, Quality, Options, SongVideo,
-  PrevTab, NextTab, PrevItem, NextItem, PageUp, PageDown, SeekBack, SeekForward, VolumeDown, VolumeUp, Refresh, Count
+  PrevTab, NextTab, PrevItem, NextItem, PageUp, PageDown, SeekBack, SeekForward, VolumeDown, VolumeUp, Refresh,
+  Pause,  // Menu (Start) no player, nos Shorts e no Tocando agora: pausa e retoma de qualquer ponto da tela (A só age no botão de play)
+  Count
 };
 
 struct Table { Act a[(int)Btn::Count]; };
@@ -24,15 +26,15 @@ static constexpr Table kMap[(int)Ctx::Count] = {
   /* Collection */ {{Act::Open,      Act::Back, Act::WatchLater, Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PageUp,   Act::PageDown,    Act::Options, Act::None}},
   /* Channel    */ {{Act::Open,      Act::Back, Act::WatchLater, Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PageUp,   Act::PageDown,    Act::Options, Act::None}},
   /* Search     */ {{Act::Open,      Act::Back, Act::WatchLater, Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PageUp,   Act::PageDown,    Act::Options, Act::None}},
-  /* Player     */ {{Act::PlayPause, Act::Back, Act::WatchLater, Act::Quality, Act::PrevItem, Act::NextItem, Act::SeekBack, Act::SeekForward, Act::Options, Act::None}},
-  /* Shorts     */ {{Act::PlayPause, Act::Back, Act::WatchLater, Act::None,    Act::PrevItem, Act::NextItem, Act::VolumeDown, Act::VolumeUp,   Act::Options, Act::None}},
-  /* Music      */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevItem, Act::NextItem, Act::PageUp,   Act::PageDown,    Act::Options, Act::SongVideo}},
+  /* Player     */ {{Act::PlayPause, Act::Back, Act::WatchLater, Act::Quality, Act::PrevItem, Act::NextItem, Act::SeekBack, Act::SeekForward, Act::Pause,   Act::Options}},
+  /* Shorts     */ {{Act::PlayPause, Act::Back, Act::WatchLater, Act::None,    Act::PrevItem, Act::NextItem, Act::VolumeDown, Act::VolumeUp,   Act::Pause,   Act::Options}},
+  /* Music      */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevItem, Act::NextItem, Act::PageUp,   Act::PageDown,    Act::Pause,   Act::Options}},  // View = mover faixa (só na fila local; fora dela vale a View do MusicNow)
   /* Settings   */ {{Act::Open,      Act::Back, Act::None,       Act::None,    Act::PrevTab,  Act::NextTab,  Act::None,     Act::None,        Act::None,    Act::None}},
   /* Panel      */ {{Act::Open,      Act::Back, Act::None,       Act::Search,  Act::None,     Act::None,     Act::None,     Act::None,        Act::None,    Act::None}},
   /* Update     */ {{Act::Open,      Act::Back, Act::None,       Act::None,    Act::None,     Act::None,     Act::None,     Act::None,        Act::Refresh, Act::None}},
-  /* PlayerShelf*/ {{Act::Open,      Act::Back, Act::WatchLater, Act::None,    Act::PrevTab,  Act::NextTab,  Act::None,     Act::None,        Act::Options, Act::None}},
+  /* PlayerShelf*/ {{Act::Open,      Act::Back, Act::WatchLater, Act::None,    Act::PrevTab,  Act::NextTab,  Act::None,     Act::None,        Act::Pause,   Act::Options}},
   /* MusicPage  */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PageUp,   Act::PageDown,    Act::Options, Act::None}},
-  /* MusicNow   */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PrevItem, Act::NextItem,    Act::Options, Act::SongVideo}},  // Tocando agora com o foco nos botões e na barra: LT RT = volume (nas listas vale Music, LT RT = página)
+  /* MusicNow   */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PrevItem, Act::NextItem,    Act::Pause,   Act::SongVideo}},  // Tocando agora com o foco nos botões e na barra: LT RT = volume (nas listas vale Music, LT RT = página)
 };
 
 constexpr Act act(Ctx c, Btn b) { return kMap[(int)c].a[(int)b]; }
@@ -50,7 +52,7 @@ constexpr bool pairSecond(Act a) { return a == Act::NextTab || a == Act::NextIte
 constexpr K label(Act a) {
   switch (a) {
     case Act::Open: return K::Open;
-    case Act::PlayPause: return K::CtlPlayPause;
+    case Act::PlayPause: case Act::Pause: return K::CtlPlayPause;
     case Act::Back: return K::Back;
     case Act::WatchLater: return K::WatchLater;
     case Act::AddQueue: return K::CtlAddQueue;
