@@ -96,7 +96,7 @@ inline string imageUrl(string u) {
   if (u.compare(0,8,"https://") != 0 || u.size() > 4096 || u.find_first_of("@\\ \r\n\t#") != string::npos) return {};
   const auto slash = u.find('/',8);
   const auto host = u.substr(8,slash-8);
-  if (host=="music.youtube.com" && slash!=string::npos && u.compare(slash,14,"/image/mixart?")==0) return u;
+  if (host=="music.youtube.com" && slash!=string::npos && (u.compare(slash,14,"/image/mixart?")==0 || u.compare(slash,16,"/image/radioart?")==0)) return u;
   for (const auto* domain : {"ytimg.com","ggpht.com","googleusercontent.com"}) {
     string d = domain;
     if (host == d || (host.size() > d.size() && host.compare(host.size()-d.size()-1,d.size()+1,"."+d) == 0)) return u;
@@ -135,7 +135,7 @@ inline int seconds(const string& s) {
   for (char c : s) { if (c == ':') { out = (out + n) * 60; n = 0; } else n = n * 10 + c - '0'; }
   return int(std::min<int64_t>(out+n,86400*7));
 }
-struct Item { string type, id, title, channel, image, channelId, section, date, views, description; bool verified = false; int duration = 0; Membership members = Membership::None; bool shortForm = false; };
+struct Item { string type, id, title, channel, image, channelId, section, date, views, description; bool verified = false; int duration = 0; Membership members = Membership::None; bool shortForm = false, listStyle = false; };
 struct Page {
   string title, subtitle, image, banner, channelId, continuation, error, musicSource, description;
   std::vector<Item> items;
@@ -172,6 +172,7 @@ inline void lockupMeta(const J& lock, Item& out, bool course = false) {
 inline Item item(const J& v, const string& key, bool music, const string& section) {
   Item out; out.section = section; out.members = membership(v);
   out.shortForm = key == "reelItemRenderer" || key == "shortsLockupViewModel";
+  out.listStyle = key == "musicResponsiveListItemRenderer";  // linha de lista (Escolhas rápidas), não cartão de carrossel
   const auto& cols = array(get(v,"flexColumns"));
   const auto& meta = get(get(v,"metadata"),"tileMetadataRenderer");
   const auto& lock = get(get(v,"metadata"),"lockupMetadataViewModel");
@@ -319,7 +320,7 @@ inline Page decode(const J& data, bool music) {
 inline string wire(const Page& p) {
   if (!p.error.empty()) return "error\t" + clean(p.error) + "\n";
   string out = "ok\t" + clean(p.title) + "\t" + clean(p.subtitle) + "\t" + p.image + "\t" + (p.subscribed ? "1" : "0") + "\t" + (p.continuation.empty() ? "0" : "1") + "\t" + p.channelId + "\t" + p.banner + "\t\t\t" + p.musicSource + (p.verified || p.sortable || !p.subscribedKnown || !p.description.empty() ? "\t" + string(p.verified ? "1" : "0") + "\t" + clean(p.description) + "\t" + (p.sortable ? "1" : "0") + "\t" + (p.subscribedKnown ? "1" : "0") : "") + "\n";
-  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + (it.shortForm ? "\tshort" : "") + (it.verified || !it.date.empty() || !it.views.empty() || !it.description.empty() ? string(it.shortForm ? "" : "\t") + "\t" + clean(it.date) + "\t" + (it.verified ? "1" : "0") + "\t" + clean(it.views) + "\t" + clean(it.description) : "") + "\n";
+  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + (it.shortForm ? "\tshort" : it.listStyle ? "\trow" : "") + (it.verified || !it.date.empty() || !it.views.empty() || !it.description.empty() ? string(it.shortForm || it.listStyle ? "" : "\t") + "\t" + clean(it.date) + "\t" + (it.verified ? "1" : "0") + "\t" + clean(it.views) + "\t" + clean(it.description) : "") + "\n";
   return out;
 }
 inline std::map<string,string> query(const string& path) {
@@ -735,8 +736,8 @@ public:
   static bool personalShelf(string title) {
     for (auto& c : title) if (c >= 'A' && c <= 'Z') c = char(c - 'A' + 'a');
     static const char* const marks[] = {"ouvir de novo","listen again","escuchar de nuevo","volver a escuchar","reproduzidos recentemente","recently played",
-        "reproducidos recientemente","clipes recomendados","recommended music videos","videoclips recomendados","escolhas rápidas","quick picks","selección rápida",
-        "seus mixes","mixes de","your mixes","tus mixes","mixed for you","da sua biblioteca","from your library","de tu biblioteca","feito para você","made for you",
+        "reproducidos recientemente","clipes recomendados","recommended music videos","videoclips recomendados","escolhas rápidas","quick picks","selección rápida","seleção rápida","selecao rapida",
+        "seus mixes","mixes de músicas","mixes de canciones","mixes de","your mixes","tus mixes","mixed for you","da sua biblioteca","from your library","de tu biblioteca","feito para você","made for you",
         "hecho para ti","استمع مجددًا","الاستماع مرة أخرى","اختيارات سريعة","الاختيارات السريعة","مختارات لك"};
     for (auto mark : marks) if (title.find(mark) != string::npos) return true;
     return false;

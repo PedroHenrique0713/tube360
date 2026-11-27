@@ -77,7 +77,7 @@ cases = [
     ('recent', 'pt', True, 'music_recent', '', {}, 'tv'),
     ('library', 'pt', True, 'music_library', '', {}, 'tv'),
     ('liked', 'pt', True, 'music_playlist', '', {'XT_NAV_ID': 'VLLM'}, 'tv'),
-    ('shelf-audio', 'pt', True, 'music', '', {'XT_KEYS': 'DDA', 'XT_KEYS_MS': '650', 'XT_SHOT_MS': '3500'}, 'tv'),
+    ('shelf-audio', 'pt', True, 'music', '', {'XT_KEYS': 'DA', 'XT_KEYS_MS': '650', 'XT_SHOT_MS': '3500'}, 'tv'),
     ('shortcut-back', 'pt', True, 'music', '', {'XT_KEYS': 'AB', 'XT_KEYS_MS': '650'}, 'tv'),
 ]
 wanted = set(sys.argv[2:])

@@ -285,7 +285,6 @@ inline const char* arabic(Key key) {
     case Key::NextTrack: return "المقطع التالي";
     case Key::Lyrics: return "الكلمات";
     case Key::NoLyrics: return "الكلمات غير متاحة لهذا المقطع.";
-    case Key::ShowVideo: return "عرض الفيديو";
     case Key::CardMenu: return "خيارات الفيديو";
     case Key::AddedLater: return "حُفظ للمشاهدة لاحقًا";
     case Key::AccountRequired: return "سجّل الدخول من الإعدادات للحفظ والاشتراك.";
@@ -440,6 +439,9 @@ inline const char* arabic(Key key) {
     case Key::MusicAutoplay: return "التشغيل التلقائي";
     case Key::MusicAutoplayOn: return "التشغيل التلقائي مفعل";
     case Key::MusicAutoplayOff: return "التشغيل التلقائي متوقف";
+    case Key::MusicLyricsFailed: return "تعذر تحميل الكلمات.";
+    case Key::MusicAddedQueue: return "تمت الإضافة إلى القائمة";
+    case Key::MusicNoQueueToAdd: return "شغّل أغنية أولاً لإنشاء قائمة.";
     case Key::MusicSongTab: return "الأغنية";
     case Key::MusicVideoTab: return "الفيديو";
     case Key::MusicMoveTrack: return "نقل المقطع";
@@ -453,7 +455,6 @@ inline const char* arabic(Key key) {
     case Key::MusicQueueEmpty: return "القائمة فارغة.";
     case Key::MusicQueueServer: return "الخادم يتحكم بالقائمة؛ القفز وإعادة الترتيب غير متاحان.";
     case Key::MusicVideoLoading: return "جارٍ تحميل الفيديو…";
-    case Key::MusicPlayCount: return "مقاطع";
 
     // ---- F66 controle pelo celular
 

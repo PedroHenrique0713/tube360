@@ -243,6 +243,7 @@ struct UiContext {
   void subscriptionStripInput(NavPage& p, bool left, bool right, bool up, bool down, bool a);
   void musicHomeMove(NavPage& p, bool left, bool right, bool up, bool down);
   void musicTabSelected(NavPage& p);
+  void musicPageKeys(NavPage& p, uint64_t now);
   void searchFiltersPress(NavPage& p);
 
   // ---- Player (ui_player.hpp)

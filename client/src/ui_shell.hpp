@@ -302,6 +302,8 @@ inline void Navigation::drawFooter(NavDraw& d) {
   // X = Assistir mais tarde (F61). O Menu abre as opções do vídeo em foco ou, sem vídeo (página vazia ou com erro), as da
   // página, e "Atualizar" mora nele.
   if (!p.music && !home && !channel && p.kind != "search") hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::WatchLater, d.lang);
+  if (p.music && (p.kind == "music" || p.kind == "music_search")) hx = ctlHint(d.g, hx, 676, ctl::Ctx::Collection, ctl::Act::PrevTab, d.lang);  // LB RB: abas da Música
+  if (p.music && !home) hx = ctlHint(d.g, hx, 676, ctl::Ctx::Music, ctl::Act::AddQueue, d.lang);  // X: adicionar à fila
   hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Options, d.lang, K::MoreOptions);
   ctlHint(d.g, hx, 676, ctx, ctl::Act::Search, d.lang);
 }

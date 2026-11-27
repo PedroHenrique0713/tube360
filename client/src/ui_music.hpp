@@ -8,18 +8,27 @@
 // Esquerda: seletor Música/Vídeo, capa (ou o vídeo), título, barra de tempo e os botões. Direita: abas "A seguir" e
 // "Letra" e a lista da fila. O foco anda entre cinco zonas (MusicNavigation::Zone).
 struct NowLayout {
-  float margin, leftX, leftW, rightX, rightW, coverY, titleY, artistY, barY, timeY, btnY, listY, rowH, hintY;
+  float areaX, leftX, leftW, cover, rightX, rightW, coverY, titleY, artistY, barY, timeY, btnY, tabsY, tabsH, autoY, queueTitleY, listY, rowH, hintY;
   int rows;
+  bool stacked;  // 4:3 e texto grande: a chave de reprodução automática desce para uma linha própria
 };
-static NowLayout nowLayout(bool rtl = false) {  // rtl: capa e controles à direita, fila à esquerda
+// Com o trilho lateral (96) à esquerda. rtl: capa e controles à direita, fila à esquerda (o trilho continua à esquerda).
+static NowLayout nowLayout(bool rtl = false) {
   NowLayout L{};
-  L.margin = ui::narrow ? 36 : 48; L.leftW = ui::narrow ? 300 : 360;
-  L.rightW = ui::W - L.margin * 2 - L.leftW - (ui::narrow ? 32 : 56);
-  L.leftX = rtl ? ui::W - L.margin - L.leftW : L.margin;
-  L.rightX = rtl ? L.margin : L.margin + L.leftW + (ui::narrow ? 32 : 56);
-  L.coverY = 74; L.titleY = L.coverY + L.leftW + 12; L.artistY = L.titleY + 44;
+  const float padArea = ui::narrow ? 24 : 40, padEdge = ui::narrow ? 30 : 48, gap = ui::narrow ? 28 : 40;
+  L.areaX = ui::RAIL; L.leftW = ui::narrow ? 280 : 360;
+  L.rightW = ui::W - L.areaX - padArea - L.leftW - gap - padEdge;
+  L.leftX = rtl ? ui::W - padEdge - L.leftW : L.areaX + padArea;
+  L.rightX = rtl ? L.areaX + padArea : L.leftX + L.leftW + gap;
+  L.cover = ui::large && !ui::narrow ? 250 : L.leftW;  // texto grande em 16:9: capa menor para as duas fileiras de botões caberem
+  L.coverY = 74; L.titleY = L.coverY + L.cover + 12; L.artistY = L.titleY + 44;
   L.barY = L.artistY + (ui::large ? 40 : 34) + 12; L.timeY = L.barY + 12; L.btnY = L.timeY + (ui::large ? 36 : 28) + 28;
-  L.hintY = 677; L.listY = 128; L.rowH = ui::large ? 72 : 62;
+  L.stacked = ui::narrow || ui::large;
+  L.tabsY = 72; L.tabsH = ui::large ? 48 : 40;
+  L.autoY = L.tabsY + L.tabsH + 6;
+  L.queueTitleY = L.stacked ? L.autoY + 34 : L.tabsY + L.tabsH + 6;
+  L.listY = L.queueTitleY + (ui::large ? 36 : 28);
+  L.hintY = 677; L.rowH = ui::large ? 72 : 62;
   L.rows = std::max(3, (int)((L.hintY - 12 - L.listY) / L.rowH));
   return L;
 }
@@ -29,13 +38,12 @@ inline void MusicNavigation::prepareNow(gfx::Gfx& g, Video& playing, i18n::Lang 
   bool layoutChanged = builtWidth != ui::W || builtLarge != ui::large;
   if (nowId == playing.id && !layoutChanged) return;
   if (nowId != playing.id) {
-    lyricsOpen = false; lyrics.clear(); lyricsId.clear(); lyricLines.clear(); lyricScroll = 0; seekPending = false;
-    if (localQueue) queueSel = (int)std::min(queueIndex, queue.size() ? queue.size() - 1 : 0);
+    lyrics.clear(); lyricsId.clear(); lyricLines.clear(); lyricScroll = 0; seekPending = false; lyricsFailed = false;
+    if (localQueue && nowZone != ZoneQueue) queueSel  /* quem está navegando na fila não perde o lugar a cada troca de faixa */ = (int)std::min(queueIndex, queue.size() ? queue.size() - 1 : 0);
   }
   builtWidth = ui::W; builtLarge = ui::large;
-  nowId = playing.id; size_t index = 0; const NavItem* current = nullptr;
-  for (size_t i = 0; i < queue.size(); i++) if (queue[i].id == playing.id) { current = &queue[i]; index = i; break; }
-  (void)index;
+  nowId = playing.id; const NavItem* current = nullptr;
+  for (size_t i = 0; i < queue.size(); i++) if (queue[i].id == playing.id) { current = &queue[i]; break; }
   if (current) { playing.title = current->title; playing.channel = current->channel; }
   nowImage = current && !current->image.empty() ? current->image : playing.id;
   nowTitle = gfx::ellipsize(g, ui::F_BIG, playing.title, L.leftW);
@@ -87,7 +95,7 @@ inline void MusicNavigation::drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker
 
   // Seletor Música | Vídeo
   {
-    float sw = ui::large ? 150 : 120, sh = ui::large ? 48 : 40, x = L.leftX, y = 22;
+    float sw = ui::large ? 150 : 120, sh = ui::large ? 48 : 40, x = L.leftX, y = 18;
     gfx::rect(g, x - (focus(ZoneMode) ? 4 : 0), y - (focus(ZoneMode) ? 4 : 0), 2 * sw + (focus(ZoneMode) ? 8 : 0), sh + (focus(ZoneMode) ? 8 : 0), focus(ZoneMode) ? ui::TEXT : ui::SURFACE2, sh / 2 + 4);
     gfx::rect(g, x, y, 2 * sw, sh, ui::SURFACE2, sh / 2);
     gfx::rect(g, x + (videoMode ? sw : 0) + 3, y + 3, sw - 6, sh - 6, ui::TEXT, sh / 2 - 3);
@@ -96,7 +104,7 @@ inline void MusicNavigation::drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker
   }
 
   // Capa ou vídeo
-  float cx = L.leftX, cy = L.coverY, cs = L.leftW;
+  float cx = L.leftX, cy = L.coverY, cs = L.cover;
   if (videoMode) {
     float vh = cs * 9 / 16;
     gfx::rect(g, cx, cy, cs, cs, ui::SURFACE, 14);
@@ -122,72 +130,88 @@ inline void MusicNavigation::drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker
   gfx::text(g, ui::F_DETAIL, fmtTime(duration), cx + L.leftW, L.timeY, ui::MUTED, 2);
   if (error == K::None && waiting) gfx::text(g, ui::F_DETAIL, tr(K::Loading), cx + L.leftW / 2, L.timeY, ui::A2, 1);
 
-  // Botões: anterior, -10, tocar/pausar, +30, próxima, joinhas, repetir, aleatório
+  // Botões: anterior, -10, tocar/pausar, +30, próxima, joinhas, repetir, aleatório. Em 4:3 e texto grande vão em duas fileiras
+  // (mídia em cima, avaliação e modos embaixo), porque numa só os ícones se encostam.
   {
     float big = ui::large ? 64 : 54, small = ui::large ? 44 : 36;
     const float signW = 7, signGap = 3, seekW = std::max(gfx::textWidth(g, ui::F_SMALL, "10"), gfx::textWidth(g, ui::F_SMALL, "30")) + signW + signGap + 6;
-    float widths[BtnCount], total = 0;
-    for (int tries = 0; tries < 12; tries++) {  // encolhe o play e os ícones até caber com folga (texto grande e 4:3)
-      total = 0;
-      for (int i = 0; i < BtnCount; i++) { widths[i] = i == BtnPlay ? big : (i == BtnBack10 || i == BtnForward30) ? seekW : small; total += widths[i]; }
-      if (total + (BtnCount - 1) * 4 <= L.leftW) break;
-      big *= 0.92f; small *= 0.92f;
-    }
-    float gap = (L.leftW - total) / (BtnCount - 1), x = cx;
-    for (int i = 0; i < BtnCount; i++) {
-      float w = widths[i], mx = x + w / 2, my = L.btnY;
+    const int firstRow = L.stacked ? BtnLike : BtnCount;  // índices abaixo disto ficam na 1ª fileira
+    auto drawButton = [&](int i, float mx, float my, float w) {
       bool sel = focus(ZoneButtons) && nowSel == i;
+      const bool dim = !localQueue && (i == BtnRepeat || i == BtnShuffle);  // fila do servidor: sem repetir nem aleatório
       bool lit = (i == BtnLike && rating == "LIKE") || (i == BtnDislike && rating == "DISLIKE") || (i == BtnRepeat && repeat != musicqueue::OFF) || (i == BtnShuffle && shuffled);
       if (i == BtnPlay) {
         if (sel) gfx::rect(g, mx - w / 2 - 5, my - w / 2 - 5, w + 10, w + 10, ui::A1, w / 2 + 5);
         gfx::rect(g, mx - w / 2, my - w / 2, w, w, ui::TEXT, w / 2);
       }
       else if (sel) gfx::rect(g, mx - w / 2, my - w / 2, w, w, ui::TEXT, w / 2);
-      Color c = i == BtnPlay ? ui::INK : sel ? ui::INK : lit ? ui::A2 : rgb(0xe4e4e7);
+      Color c = i == BtnPlay ? ui::INK : sel ? ui::INK : lit ? ui::A2 : dim ? ui::alpha(rgb(0xe4e4e7), .35f) : rgb(0xe4e4e7);
       if (i == BtnPrev || i == BtnNext || i == BtnShuffle) transportGlyph(g, i, mx, my, c);
       else if (i == BtnBack10 || i == BtnForward30) {  // sinal desenhado e número em texto: no árabe "-10" viraria "10-"
         const char* digits = i == BtnBack10 ? "10" : "30";
-        float tw = gfx::textWidth(g, ui::F_SMALL, digits), sign = signW, gap = signGap, left = mx - (sign + gap + tw) / 2;
-        gfx::rect(g, left, my - 1, sign, 2, c, 1);
-        if (i == BtnForward30) gfx::rect(g, left + sign / 2 - 1, my - sign / 2, 2, sign, c, 1);
-        gfx::text(g, ui::F_SMALL, digits, left + sign + gap, my - g.fonts[ui::F_SMALL].size / 2 - 2, c);
+        float tw = gfx::textWidth(g, ui::F_SMALL, digits), left = mx - (signW + signGap + tw) / 2;
+        gfx::rect(g, left, my - 1, signW, 2, c, 1);
+        if (i == BtnForward30) gfx::rect(g, left + signW / 2 - 1, my - signW / 2, 2, signW, c, 1);
+        gfx::text(g, ui::F_SMALL, digits, left + signW + signGap, my - g.fonts[ui::F_SMALL].size / 2 - 2, c);
       }
-      else if (i == BtnPlay) { if (i == BtnPlay) atlasIcon(g, paused ? icons::PLAY : icons::PAUSE, mx, my, true, ui::INK); }
+      else if (i == BtnPlay) atlasIcon(g, paused ? icons::PLAY : icons::PAUSE, mx, my, true, ui::INK);
       else if (i == BtnLike) glyph(g, rating == "LIKE" ? icons::THUMB_UP_FILL : icons::THUMB_UP, false, std::round(mx - 12), std::round(my - 12), c);
       else if (i == BtnDislike) glyph(g, rating == "DISLIKE" ? icons::THUMB_DOWN_FILL : icons::THUMB_DOWN, false, std::round(mx - 12), std::round(my - 12), c);
       else if (i == BtnRepeat) {
         atlasIcon(g, icons::REPEAT, mx, my, lit, c);
         if (repeat == musicqueue::ONE) { gfx::rect(g, mx + 4, my - 14, 14, 14, ui::A1, 7); gfx::text(g, ui::F_BADGE, "1", mx + 11, my - 14 + (14 - g.fonts[ui::F_BADGE].size) / 2 - 1, ui::TEXT, 1); }
       }
-      x += w + gap;
+    };
+    for (int rowIndex = 0; rowIndex < (L.stacked ? 2 : 1); rowIndex++) {
+      const int from = rowIndex ? firstRow : 0, to = rowIndex ? BtnCount : firstRow, n = to - from;
+      float widths[BtnCount], total = 0, bigR = big, smallR = small;
+      for (int tries = 0; tries < 12; tries++) {  // encolhe o play e os ícones até caber com folga
+        total = 0;
+        for (int i = from; i < to; i++) { widths[i] = i == BtnPlay ? bigR : (i == BtnBack10 || i == BtnForward30) ? seekW : smallR; total += widths[i]; }
+        if (total + (n - 1) * 10 <= L.leftW) break;
+        bigR *= 0.92f; smallR *= 0.92f;
+      }
+      float gap = n > 1 ? (L.leftW - total) / (n - 1) : 0, x = L.leftX, my = L.btnY + rowIndex * (big + 10);
+      if (rowIndex && n > 1) { gap = std::min(gap, 36.f); x = L.leftX + (L.leftW - total - gap * (n - 1)) / 2; }  // a 2ª fileira fica centrada
+      for (int i = from; i < to; i++) { drawButton(i, x + widths[i] / 2, my, widths[i]); x += widths[i] + gap; }
     }
   }
 
-  // Direita: abas (A seguir, Letra, Relacionados), chave de reprodução automática e o conteúdo
+  // Direita: abas (A seguir, Letra, Relacionados), chave de reprodução automática, de onde veio a fila e o conteúdo
   {
-    const float y = 72, h = ui::large ? 48 : 40, edge = L.rightX + L.rightW;
+    const float h = L.tabsH, edge = L.rightX + L.rightW;
     const K names[] = {K::Queue, K::Lyrics, K::MusicRelated};
+    // as três abas têm de caber na coluna: se a fonte normal não couber (4:3, texto grande) usa a menor
+    int tabFont = ui::F_KEY; float pad = 36, total = 0;
+    for (int pass = 0; pass < 2; pass++) {
+      total = 0; for (int i = 0; i < 3; i++) total += gfx::textWidth(g, tabFont, tr(names[i])) + pad + 8;
+      if (total <= L.rightW || tabFont != ui::F_KEY) break;
+      tabFont = ui::F_SMALL; pad = 24;
+    }
     float x = rtl ? edge : L.rightX;
     for (int i = 0; i < 3; i++) {
-      float w = gfx::textWidth(g, ui::F_KEY, tr(names[i])) + 36;
+      float w = gfx::textWidth(g, tabFont, tr(names[i])) + pad;
       float px = rtl ? x - w : x;
       bool on = tab == i, f = focus(ZoneTabs) && !autoFocus && on;
-      gfx::rect(g, px, y, w, h, f ? ui::TEXT : on ? ui::SURFACE2 : ui::alpha(ui::SURFACE2, 0.0f), h / 2);
-      gfx::text(g, ui::F_KEY, tr(names[i]), px + w / 2, y + (h - g.fonts[ui::F_KEY].size) / 2 - 2, f ? ui::INK : on ? ui::TEXT : ui::MUTED, 1);
+      gfx::rect(g, px, L.tabsY, w, h, f ? ui::TEXT : on ? ui::SURFACE2 : ui::alpha(ui::SURFACE2, 0.0f), h / 2);
+      gfx::text(g, tabFont, tr(names[i]), px + w / 2, L.tabsY + (h - g.fonts[tabFont].size) / 2 - 2, f ? ui::INK : on ? ui::TEXT : ui::MUTED, 1);
       x += rtl ? -(w + 8) : w + 8;
     }
-    if (moving) gfx::text(g, ui::F_DETAIL, tr(K::MusicMovingTrack), rtl ? L.rightX : edge, y + 12, ui::A2, rtl ? 0 : 2);
-    else {  // reprodução automática: chave com foco próprio na fileira de abas
+    // reprodução automática: chave com foco próprio (na fileira das abas ou, em 4:3 e texto grande, logo abaixo)
+    {
       const char* label = tr(K::MusicAutoplay);
-      float sw = 44, sh = 24, tw = gfx::textWidth(g, ui::F_DETAIL, label), total = tw + 12 + sw;
-      float bx = rtl ? L.rightX : edge - total;
-      bool f = focus(ZoneTabs) && autoFocus;
-      if (f) gfx::rect(g, bx - 10, y, total + 20, h, ui::TEXT, h / 2);
-      gfx::text(g, ui::F_DETAIL, label, bx, y + (h - g.fonts[ui::F_DETAIL].size) / 2 - 1, f ? ui::INK : ui::MUTED);
-      float kx = bx + tw + 12, ky = y + (h - sh) / 2;
-      gfx::rect(g, kx, ky, sw, sh, autoplay ? ui::A1 : (f ? ui::alpha(ui::INK, 0.3f) : ui::SURFACE2), sh / 2);
-      gfx::rect(g, autoplay ? kx + sw - sh + 3 : kx + 3, ky + 3, sh - 6, sh - 6, ui::TEXT, (sh - 6) / 2);
+      float sw = 44, sh = 24, tw = gfx::textWidth(g, ui::F_DETAIL, label), width = tw + 12 + sw, ay = L.stacked ? L.autoY : L.tabsY;
+      float bx = rtl ? L.rightX : edge - width, ah = L.stacked ? 30 : h;
+      bool f = focus(ZoneTabs) && autoFocus, usable = localQueue;
+      if (f) gfx::rect(g, bx - 10, ay, width + 20, ah, ui::TEXT, ah / 2);
+      gfx::text(g, ui::F_DETAIL, label, bx, ay + (ah - g.fonts[ui::F_DETAIL].size) / 2 - 1, f ? ui::INK : ui::alpha(ui::MUTED, usable ? 1.f : .45f));
+      float kx = bx + tw + 12, ky = ay + (ah - sh) / 2;
+      gfx::rect(g, kx, ky, sw, sh, autoplay && usable ? ui::A1 : (f ? ui::alpha(ui::INK, 0.3f) : ui::SURFACE2), sh / 2);
+      gfx::rect(g, autoplay && usable ? kx + sw - sh + 3 : kx + 3, ky + 3, sh - 6, sh - 6, ui::TEXT, (sh - 6) / 2);
     }
+    if (moving) gfx::text(g, ui::F_DETAIL, gfx::ellipsize(g, ui::F_DETAIL, tr(K::MusicMovingTrack), L.rightW), rtl ? edge : L.rightX, L.queueTitleY, ui::A2, rtl ? 2 : 0);
+    else if (tab == 0 && !queueTitle.empty())
+      gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, queueTitle, L.rightW), rtl ? edge : L.rightX, L.queueTitleY, ui::MUTED, rtl ? 2 : 0);
     if (tab != 1) {
       const std::vector<NavItem>& list = tab == 2 ? related : queue;
       int& sel = tab == 2 ? relatedSel : queueSel; int& top = tab == 2 ? relatedTop : queueTop;
@@ -213,15 +237,25 @@ inline void MusicNavigation::drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker
         Color tc = current ? ui::A2 : ui::TEXT;
         gfx::text(g, ui::F_KEY, rowTitle[(size_t)i], textX, ry + 4, tc, rtl ? 2 : 0);
         gfx::text(g, ui::F_CHAN, rowArtist[(size_t)i], textX, dy, ui::MUTED, rtl ? 2 : 0);
+        if (item.members != yt::Membership::None) {  // "Só para membros" ao lado do artista (a linha da fila não tem uma terceira)
+          const float aw = gfx::textWidth(g, ui::F_CHAN, rowArtist[(size_t)i]), mw = 190, my = dy + (g.fonts[ui::F_CHAN].lineH - g.fonts[ui::F_TINY].lineH) / 2;
+          if (aw + 16 + mw <= textW) memberLine(g, item.members, lang, rtl ? textX - aw - 16 - mw : textX + aw + 16, my, mw);
+        }
         if (item.duration > 0) gfx::text(g, ui::F_DETAIL, fmtTime(item.duration), rtl ? L.rightX + 12 : edge - 12, ry + (L.rowH - 8 - g.fonts[ui::F_DETAIL].size) / 2, ui::MUTED, rtl ? 0 : 2);
       }
     } else {
       float ly = L.listY + 4, lh = ui::large ? 40 : 33;
       std::string sig = std::to_string(lyrics.size()) + "/" + std::to_string((int)L.rightW);
-      if (lyricWrapSig != sig) { lyricWrapSig = sig; lyricWrap = lyrics.empty() ? std::vector<std::string>{} : gfx::wrap(g, ui::F_KEY, lyrics, L.rightW - 8, 400); }
+      if (lyricWrapSig != sig) { lyricWrapSig = sig; lyricWrap = lyrics.empty() ? std::vector<std::string>{} : gfx::wrap(g, ui::F_KEY, lyrics, L.rightW - 24, 400); }
       int visible = std::max(3, (int)((L.hintY - 12 - ly) / lh));
-      if (lyricWrap.empty()) gfx::text(g, ui::F_KEY, noLyrics, rtl ? edge : L.rightX, ly, ui::MUTED, rtl ? 2 : 0);
-      for (size_t i = (size_t)lyricScroll; i < std::min(lyricWrap.size(), (size_t)lyricScroll + (size_t)visible); i++) { gfx::text(g, ui::F_KEY, lyricWrap[i], rtl ? edge : L.rightX, ly, ui::TEXT, rtl ? 2 : 0); ly += lh; }
+      if (focus(ZoneQueue)) {  // foco da letra: moldura no painel (rola com cima e baixo)
+        gfx::rect(g, L.rightX - 6, L.listY - 6, L.rightW + 12, L.hintY - 8 - L.listY + 6, ui::TEXT, 14);
+        gfx::rect(g, L.rightX - 3, L.listY - 3, L.rightW + 6, L.hintY - 8 - L.listY, ui::BG, 12);
+      }
+      const float tx = rtl ? edge - 12 : L.rightX + 12;
+      if (lyricsFailed) gfx::text(g, ui::F_KEY, tr(K::MusicLyricsFailed), tx, ly, ui::A2, rtl ? 2 : 0);
+      else if (lyricWrap.empty()) gfx::text(g, ui::F_KEY, noLyrics, tx, ly, ui::MUTED, rtl ? 2 : 0);
+      for (size_t i = (size_t)lyricScroll; i < std::min(lyricWrap.size(), (size_t)lyricScroll + (size_t)visible); i++) { gfx::text(g, ui::F_KEY, lyricWrap[i], tx, ly, ui::TEXT, rtl ? 2 : 0); ly += lh; }
     }
   }
 }
@@ -244,9 +278,15 @@ inline void UiContext::musicNowInput(uint64_t now) {
     nav.seekPending = true; nav.seekAt = now + 650;
   };
   auto togglePlay = [&]() { if (!pl.waiting() || pl.paused) pl.setPaused(!pl.paused); };
+  auto continueWithRadio = [&]() {  // fim da fila com a reprodução automática ligada: segue com a rádio da faixa atual
+    if (nav.continuing || nav.busy) return;
+    nav.continuing = true; nav.cancelQueue = false; nav.queueStart.clear();
+    nav.queueTitle = std::string(tr(K::Radio)) + " · " + playing.title;
+    nav.action(navWorker, "/api/nav/play?kind=radio&id=" + net::urlEncode(playing.id) + "&lang=" + i18n::code(settings.lang));
+  };
   auto next = [&]() {
     size_t to = 0;
-    if (nav.localQueue) { if (nav.skipNext(to)) playQueueAt(to); else stopVideo(); }
+    if (nav.localQueue) { if (nav.skipNext(to)) playQueueAt(to); else if (nav.autoplay) continueWithRadio(); else stopVideo(); }
     else if (!nav.busy) nav.action(navWorker, "/api/nav/transport?action=next");
   };
   auto previous = [&]() {
@@ -265,7 +305,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
     control.add({5, "/api/video/" + playing.id + "/rate?r=" + (nav.rating == want ? "none" : like ? "like" : "dislike"), 0});
   };
   auto loadLyrics = [&]() {
-    if (nav.lyricsId != playing.id && !nav.busy) { nav.lyricsId = playing.id; nav.lyrics.clear(); nav.lyricLines.clear(); nav.lyricWrapSig.clear(); nav.action(navWorker, "/api/nav/lyrics?id=" + playing.id); }
+    if (nav.lyricsId != playing.id && !nav.busy) { nav.lyricsId = playing.id; nav.lyricsFailed = false; nav.lyrics.clear(); nav.lyricLines.clear(); nav.lyricWrapSig.clear(); nav.action(navWorker, "/api/nav/lyrics?id=" + playing.id); }
   };
 
   if (nav.seekPending && now >= nav.seekAt) { nav.seekPending = false; restart(nav.seekTarget); }
@@ -293,7 +333,9 @@ inline void UiContext::musicNowInput(uint64_t now) {
     case Zone::ZoneButtons:  // os botões de mídia seguem a ordem de leitura de esquerda para direita nos dois idiomas
       if (left && nav.nowSel > 0) nav.nowSel--;
       if (right && nav.nowSel + 1 < Zone::BtnCount) nav.nowSel++;
-      if (up) nav.nowZone = Zone::ZoneSeek;
+      if (L.stacked && down && nav.nowSel >= Zone::BtnBack10 && nav.nowSel < Zone::BtnLike) nav.nowSel = std::min(nav.nowSel + 4, (int)Zone::BtnCount - 1);  // 4:3 e texto grande: 2ª fileira
+      else if (L.stacked && up && nav.nowSel >= Zone::BtnLike) nav.nowSel = std::max(nav.nowSel - 4, 0);
+      else if (up) nav.nowZone = Zone::ZoneSeek;
       if (a) switch (nav.nowSel) {
         case Zone::BtnPrev: previous(); break;
         case Zone::BtnBack10: seekBy(-10); break;
@@ -303,6 +345,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
         case Zone::BtnLike: rate(true); break;
         case Zone::BtnDislike: rate(false); break;
         case Zone::BtnRepeat:
+          if (!nav.localQueue) { say(K::MusicQueueServer); break; }
           nav.repeat = (nav.repeat + 1) % 3;
           say(nav.repeat == musicqueue::OFF ? K::MusicRepeatOff : nav.repeat == musicqueue::ALL ? K::MusicRepeatAll : K::MusicRepeatOne);
           break;
@@ -321,14 +364,16 @@ inline void UiContext::musicNowInput(uint64_t now) {
       if (a) togglePlay();
       break;
     case Zone::ZoneMode:
-      if (a || fromQueue) toggleVideo();
+      if (a) toggleVideo();
+      if (left) { if (nav.videoMode) toggleVideo(); else if (rtl) { nav.nowZone = Zone::ZoneTabs; nav.autoFocus = false; } }
+      if (right) { if (!nav.videoMode) toggleVideo(); else if (!rtl) { nav.nowZone = Zone::ZoneTabs; nav.autoFocus = false; } }
       if (down) nav.nowZone = Zone::ZoneSeek;
-      if (toQueue) { nav.nowZone = Zone::ZoneTabs; nav.autoFocus = false; }
       break;
     case Zone::ZoneTabs:  // abas A seguir, Letra, Relacionados e, depois delas, a chave de reprodução automática
       if (tabPrev) { if (nav.autoFocus) nav.autoFocus = false; else if (nav.tab > 0) nav.tab--; else nav.nowZone = Zone::ZoneMode; }
       if (tabNext) { if (!nav.autoFocus && nav.tab < 2) nav.tab++; else nav.autoFocus = true; }
-      if (a && nav.autoFocus) { nav.autoplay = !nav.autoplay; say(nav.autoplay ? K::MusicAutoplayOn : K::MusicAutoplayOff); }
+      if (a && nav.autoFocus && !nav.localQueue) say(K::MusicQueueServer);
+      else if (a && nav.autoFocus) { nav.autoplay = !nav.autoplay; say(nav.autoplay ? K::MusicAutoplayOn : K::MusicAutoplayOff); }
       if (down) { nav.nowZone = Zone::ZoneQueue; nav.autoFocus = false; }
       break;
     case Zone::ZoneQueue:
@@ -357,7 +402,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
       if (fromQueue) nav.nowZone = Zone::ZoneButtons;
       if (a && count) {
         if (nav.tab == 2) {  // relacionada: toca a rádio dela e troca a fila
-          nav.queueStart = list[(size_t)sel].id; nav.cancelQueue = false; nav.musicSession = true;
+          nav.queueStart = list[(size_t)sel].id; nav.cancelQueue = false; nav.musicSession = true; nav.queueTitle = std::string(tr(K::Radio)) + " · " + list[(size_t)sel].title;
           nav.action(navWorker, "/api/nav/play?kind=radio&id=" + net::urlEncode(nav.queueStart) + "&lang=" + i18n::code(settings.lang));
         } else if (nav.localQueue) playQueueAt((size_t)sel); else say(K::MusicQueueServer);
       }
@@ -375,8 +420,9 @@ inline void UiContext::musicNowInput(uint64_t now) {
   if (in.hit(Input::B)) {
     if (nav.moving) nav.moving = false;
     else {
-      nav.resetNow();
-      if (nav.localQueue) stopVideo();
+      const bool pendingRadio = nav.continuing;  // B também cancela a rádio de continuação que ainda não chegou
+      nav.continuing = false; nav.resetNow();
+      if (nav.localQueue) { if (pendingRadio) nav.cancelQueue = true; stopVideo(); }
       else {
         nav.ownsQueue = nav.musicSession = nav.musicNow = false; nav.busy = false; nav.cancelQueue = true;
         nav.action(navWorker, "/api/nav/transport?action=stop"); stopVideo();
@@ -389,9 +435,9 @@ inline void UiContext::musicNowDraw() {
   nav.rating = likeState;
   nav.drawNow(g, thumbs, thumbsWorker, playing, pl.position(), pl.duration, pl.paused, pl.waiting(),
       pl.state == player::FAILED ? i18n::playerError(pl.error) : K::None, frame, settings.lang);
-  const NowLayout L = nowLayout();
+  const NowLayout L = nowLayout(g.rtlText);
   const auto ctx = ctl::Ctx::Music; using Act = ctl::Act;
-  float hx = L.margin, y = L.hintY;
+  float hx = ui::X0, y = L.hintY;
   hx = ctlHint(g, hx, y, ctx, Act::Open, settings.lang);
   hx = ctlHint(g, hx, y, ctx, Act::Back, settings.lang);
   if (!ui::narrow) hx = ctlHint(g, hx, y, ctx, Act::PrevItem, settings.lang);
@@ -404,13 +450,14 @@ inline void UiContext::musicSleepDraw(double sleepLeft) {
   std::string value = sleep.end ? tr(K::SleepEnd) : fmtTime(std::ceil(sleepLeft));
   if (sleep.end && sleepLeft >= 0) value += " · " + fmtTime(std::ceil(sleepLeft));
   std::string label = std::string(tr(K::SleepTimer)) + " · " + value;
-  float w = gfx::textWidth(g, ui::F_SMALL, label) + 30, x = ui::W - 64 - w;
-  float y = 24;  // canto de cima à direita, acima das abas da fila
+  float w = gfx::textWidth(g, ui::F_SMALL, label) + 30;
+  // canto de cima do lado da fila, acima das abas (no árabe o seletor Música/Vídeo fica à direita, então o timer vai à esquerda)
+  float x = g.rtlText ? nowLayout(true).rightX : ui::W - 48 - w, y = 24;
   gfx::rect(g, x, y, w, 32, ui::SURFACE2, 16);
   gfx::text(g, ui::F_SMALL, label, x + 15, y + 7, ui::MUTED);
 }
 
-// Estilo de cada prateleira do início: cartões quadrados, linhas compactas (só músicas: "Escolhas rápidas"), cartões largos
+// Estilo de cada prateleira do início: cartões quadrados, linhas compactas (músicas em linha de lista: "Escolhas rápidas"), cartões largos
 // (mixes: "Seus mixes") ou pílulas (chips de clima e botões do Explorar). Decidido pelo conteúdo, não pelo título, para valer em
 // qualquer idioma. O desenho e o controle usam esta mesma função.
 enum MusicShelfStyle { SHELF_CARDS, SHELF_ROWS, SHELF_WIDE, SHELF_PILLS };
@@ -421,7 +468,7 @@ static MusicShelfStyle musicShelfStyle(const NavPage& p, int row) {
   bool songs = true, mixes = true;
   for (int i = shelf.first; i < shelf.end; i++) {
     const auto& item = p.items[(size_t)i];
-    songs = songs && item.type == "video";
+    songs = songs && item.type == "video" && item.listStyle;  // "Escolhas rápidas": linhas de lista do YouTube Music; "Ouvir de novo" é carrossel de cartões
     mixes = mixes && item.type == "playlist" && (item.id.rfind("RD", 0) == 0 || item.id.rfind("VLRD", 0) == 0);
   }
   if (songs && shelf.end - shelf.first >= 3) return SHELF_ROWS;
@@ -436,20 +483,43 @@ inline void UiContext::musicHomeMove(NavPage& p, bool left, bool right, bool up,
   const int count = shelf.end - shelf.first, rel = shelf.selected - shelf.first, stepX = rows ? 2 : 1;
   if (left && rel - stepX >= 0) shelf.selected -= stepX;
   if (right && rel + stepX < count) shelf.selected += stepX;
-  bool leave = true;
-  if (rows && up && rel % 2 == 1) { shelf.selected--; up = leave = false; }
+  if (rows && up && rel % 2 == 1) { shelf.selected--; up = false; }
   if (rows && down && rel % 2 == 0 && rel + 1 < count) { shelf.selected++; down = false; }
-  (void)leave;
   if (up && p.shelf == 0) { if (p.kind == "music") p.zone = 1; }
   else if (up) p.shelf--;
   if (down && p.shelf + 1 < (int)p.shelves.size()) p.shelf++;
   p.sel = p.shelves[p.shelf].selected;
 }
 
-// Troca de aba da Música: Início, Explorar, Biblioteca, Paradas, Mixes (ou Tudo, Músicas, Álbuns, Artistas na busca); no início a aba vira a consulta.
+// Troca de aba da Música: Início, Explorar, Biblioteca e Buscar (Paradas e Mixes moram no Explorar e no Início) (ou Tudo, Músicas, Álbuns, Artistas na busca); no início a aba vira a consulta.
 inline void UiContext::musicTabSelected(NavPage& p) {
   p.tab = p.tabSel == 1 ? "live" : p.tabSel == 2 ? "playlists" : "videos";
-  if (p.kind == "music") p.query = p.tabSel == 1 ? "explore" : p.tabSel == 2 ? "library" : p.tabSel == 3 ? "charts" : p.tabSel == 4 ? "mixes" : "";
+  if (p.kind != "music") return;
+  if (p.tabSel == 3) {  // Buscar: abre a busca da Música e a aba continua onde estava
+    p.tabSel = p.query == "explore" || p.query == "charts" ? 1 : p.query == "library" ? 2 : 0;
+    openSearch();
+    return;
+  }
+  p.query = p.tabSel == 1 ? "explore" : p.tabSel == 2 ? "library" : "";
+}
+
+// Teclas das páginas de Música que não são do cartão: X adiciona a música em foco à fila que está tocando e LB/RB trocam de aba.
+inline void UiContext::musicPageKeys(NavPage& p, uint64_t now) {
+  const bool hasItem = p.zone == 3 && p.sel >= 0 && p.sel < (int)p.items.size() && !p.loading;
+  if (ctl::hit(in, ctl::Ctx::Music, ctl::Act::AddQueue) && hasItem && p.items[(size_t)p.sel].type == "video") {
+    if (nav.localQueue && !nav.queue.empty()) {
+      nav.queue.push_back(p.items[(size_t)p.sel]); nav.queueChanged(); toast = tr(K::MusicAddedQueue);
+    } else toast = tr(K::MusicNoQueueToAdd);
+    toastUntil = now + 2500;
+  }
+  if (p.kind == "music" || p.kind == "music_search") {
+    int step = ctl::hit(in, ctl::Ctx::Collection, ctl::Act::NextTab) ? 1 : ctl::hit(in, ctl::Ctx::Collection, ctl::Act::PrevTab) ? -1 : 0;
+    int maxTab = p.kind == "music" ? 3 : 5, to = std::clamp(p.tabSel + step, 0, maxTab);
+    if (step && to != p.tabSel) {
+      p.tabSel = to; musicTabSelected(p);
+      if (p.kind != "music" || p.tabSel == to) { p.sel = 0; p.scroll = 0; nav.load(navWorker, settings.lang); }
+    }
+  }
 }
 
 // Página de Música: fundo vermelho escuro, capa quadrada (redonda para artista), título grande, "Reproduzir tudo", abas e a
@@ -473,9 +543,9 @@ inline float Navigation::drawMusicPage(NavDraw& d) {
   bool tabs = channel || p.kind == "music" || p.kind == "music_search";
   if (tabs) {
     const K channelTabs[] = {K::Videos,K::ChannelShorts,K::ChannelLive,K::Playlists};
-    const K musicTabs[] = {K::Home,K::MusicExplore,K::Library,K::Charts,K::Mixes};
+    const K musicTabs[] = {K::Home,K::MusicExplore,K::Library,K::Search};
     const K songTabs[] = {K::AllResults,K::Songs,K::Albums,K::Artists,K::Videos,K::MusicFeatured};
-    int count = p.kind == "music_search" ? 6 : p.kind == "music" ? 5 : channel ? 4 : 3; float x = home && !ui::narrow ? 650 : 136;
+    int count = p.kind == "music_search" ? 6 : p.kind == "music" ? 4 : channel ? 4 : 3; float x = home && !ui::narrow ? 650 : 136;
     float tabY = home ? (ui::narrow ? 88 : 32) : 166;
     navTabs(d, channel ? channelTabs : p.kind == "music" ? musicTabs : songTabs, count, x, tabY);
   }
@@ -484,7 +554,7 @@ inline float Navigation::drawMusicPage(NavDraw& d) {
   if (home) {
     auto chipShelf = [&](int row) { return !p.items.empty() && p.items[(size_t)p.shelves[(size_t)row].first].pill(); };
     const bool topChips = !p.shelves.empty() && chipShelf(0) && p.items[(size_t)p.shelves[0].first].section == "chips";
-    const float card = ui::narrow ? 112 : 140, gapX = 24, titleH = ui::large ? 36 : 22, bylineH = ui::large ? 34 : 20, pillH = ui::large ? 46 : 38;
+    const float card = ui::narrow ? 112 : ui::large ? 160 : 190, gapX = 24, titleH = ui::large ? 36 : 22, bylineH = ui::large ? 34 : 20, pillH = ui::large ? 46 : 38;
     const float cardRow = 30 + card + 4 + titleH + bylineH + 14, pillRow = 30 + pillH + 18, bottom = 646, availW = ui::W - 136 - 48;
     // fileira de pílulas (chips de clima, botões do Explorar): rola para manter a escolhida à vista
     auto drawPills = [&](int row, float y) {
@@ -508,7 +578,8 @@ inline float Navigation::drawMusicPage(NavDraw& d) {
     float top0 = ui::narrow ? 150 : 96;
     if (topChips) { drawPills(0, top0 - 4); top0 += pillH + 18; }
     const int base = topChips ? 1 : 0, count = (int)p.shelves.size();
-    const float rowsRow = 30 + 2 * 60 + 14, wideRow = 30 + 76 + 18;
+    const float rowPitch = std::max(60.f, 10 + g.fonts[ui::F_SMALL].lineH + 2 * g.fonts[ui::F_TINY].lineH), wideH = std::max(76.f, 20 + g.fonts[ui::F_SMALL].lineH + 2 * g.fonts[ui::F_TINY].lineH);
+    const float rowsRow = 30 + 2 * rowPitch + 14, wideRow = 30 + wideH + 18;
     auto heightOf = [&](int row) { auto st = musicShelfStyle(p, row); return st == SHELF_PILLS ? pillRow : st == SHELF_ROWS ? rowsRow : st == SHELF_WIDE ? wideRow : cardRow; };
     int firstShelf = std::clamp(p.shelf, base, std::max(base, count - 1));
     float used = count > base ? heightOf(firstShelf) : 0;
@@ -520,31 +591,38 @@ inline float Navigation::drawMusicPage(NavDraw& d) {
       gfx::text(g, ui::F_KEY, shelf.title, 136, y, ui::TEXT);
       const MusicShelfStyle style = musicShelfStyle(p, row);
       if (style == SHELF_PILLS) { drawPills(row, y + 30); y += pillRow; continue; }
-      if (style == SHELF_ROWS) {  // 2 linhas × 3 colunas (2 no 4:3): miniatura 52, título e artista
+      if (style == SHELF_ROWS) {  // 2 linhas × 3 colunas (2 no 4:3): miniatura 52, título, artista e a linha de membros
         const int cols = ui::narrow ? 2 : 3; const float colW = availW / cols, thumb = 52;
         int rel = shelf.selected - shelf.first, firstCol = std::max(0, rel / 2 - cols + 1);
         for (int c = 0; c < cols; c++) for (int r = 0; r < 2; r++) {
           int i = shelf.first + (firstCol + c) * 2 + r; if (i >= shelf.end) continue;
-          const auto& item = p.items[(size_t)i]; float x = 136 + c * colW, yy = y + 30 + r * 60;
+          const auto& item = p.items[(size_t)i]; float x = 136 + c * colW, yy = y + 30 + r * rowPitch, tx = x + thumb + 12, tw = colW - thumb - 28;
           bool f = d.contentFocus && p.zone == 3 && i == p.sel;
-          if (f) gfx::rect(g, x - 4, yy - 4, colW - 12, thumb + 8, ui::TEXT, 12);
+          if (f) {  // moldura branca com fundo escuro por dentro: o texto continua legível em foco
+            gfx::rect(g, x - 5, yy - 5, colW - 10, rowPitch - 2, ui::TEXT, 14);
+            gfx::rect(g, x - 2, yy - 2, colW - 16, rowPitch - 8, ui::SURFACE2, 12);
+          }
           artwork(g, d.thumbs, d.worker, item.image, d.frame, x, yy, thumb, thumb, true);
-          gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, item.title, colW - thumb - 28), x + thumb + 12, yy + 4, ui::TEXT);
-          gfx::text(g, ui::F_TINY, gfx::ellipsize(g, ui::F_TINY, item.channel, colW - thumb - 28), x + thumb + 12, yy + 4 + (ui::large ? 30 : 22), ui::MUTED);
+          float ty = yy + 2;
+          gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, item.title, tw), tx, ty, ui::TEXT); ty += g.fonts[ui::F_SMALL].lineH;
+          gfx::text(g, ui::F_TINY, gfx::ellipsize(g, ui::F_TINY, item.channel, tw), tx, ty, ui::MUTED); ty += g.fonts[ui::F_TINY].lineH;
+          memberLine(g, item.members, d.lang, tx, ty, tw);
         }
         y += rowsRow; continue;
       }
-      if (style == SHELF_WIDE) {  // cartões largos: miniatura 56, título e subtítulo
-        const float w = ui::narrow ? 200 : 250, h = 76; const int cols = std::max(1, (int)((availW + 18) / (w + 18)));
+      if (style == SHELF_WIDE) {  // cartões largos: miniatura 56, título, subtítulo e a linha de membros
+        const float w = ui::narrow ? 200 : 250; const int cols = std::max(1, (int)((availW + 18) / (w + 18)));
         int first = std::max(shelf.first, shelf.selected - cols + 1);
         for (int i = first; i < std::min(shelf.end, first + cols); i++) {
-          const auto& item = p.items[(size_t)i]; float x = 136 + (i - first) * (w + 18), yy = y + 30;
+          const auto& item = p.items[(size_t)i]; float x = 136 + (i - first) * (w + 18), yy = y + 30, tx = x + 78, tw = w - 56 - 34;
           bool f = d.contentFocus && p.zone == 3 && i == p.sel;
-          if (f) gfx::rect(g, x - 4, yy - 4, w + 8, h + 8, ui::TEXT, 16);
-          gfx::rect(g, x, yy, w, h, ui::SURFACE, 12);
+          if (f) gfx::rect(g, x - 4, yy - 4, w + 8, wideH + 8, ui::TEXT, 16);
+          gfx::rect(g, x, yy, w, wideH, ui::SURFACE, 12);
           artwork(g, d.thumbs, d.worker, item.image, d.frame, x + 10, yy + 10, 56, 56, true);
-          gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, item.title, w - 56 - 34), x + 78, yy + 12, ui::TEXT);
-          gfx::text(g, ui::F_TINY, gfx::ellipsize(g, ui::F_TINY, item.channel, w - 56 - 34), x + 78, yy + 12 + (ui::large ? 30 : 22), ui::MUTED);
+          float ty = yy + 8;
+          gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, item.title, tw), tx, ty, ui::TEXT); ty += g.fonts[ui::F_SMALL].lineH;
+          gfx::text(g, ui::F_TINY, gfx::ellipsize(g, ui::F_TINY, item.channel, tw), tx, ty, ui::MUTED); ty += g.fonts[ui::F_TINY].lineH;
+          memberLine(g, item.members, d.lang, tx, ty, tw);
         }
         y += wideRow; continue;
       }

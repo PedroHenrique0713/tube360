@@ -57,6 +57,7 @@ int main(int argc, char** argv) {
   }
   check(imageUrl("https://yt3.googleusercontent.com/image").size() > 0,"public artwork domain");
   check(!imageUrl("https://music.youtube.com/image/mixart?r=FIXTURE&k=FALLBACK_16X9_MIX").empty(),"recorded TV mix artwork endpoint");
+  check(!imageUrl("https://music.youtube.com/image/radioart?r=FIXTURE").empty(),"radio artwork (top result of a Music search) is allowed like mix artwork");
   check(imageUrl("https://music.youtube.com/watch?v=fixture").empty() && imageUrl("https://music.youtube.com.evil/image/mixart?r=FIXTURE").empty(),"Music artwork allowlist is restricted to mixart on the exact host");
   for (auto u : {"https://googleusercontent.com.evil/image","http://i.ytimg.com/image","https://localhost/image","https://i.ytimg.com@evil/image","https://i.ytimg.com:443/image"}) check(imageUrl(u).empty(),"artwork rejects another host");
   J bad; check(!parse(string(81,'{')+string(81,'}'),bad),"depth bound");
@@ -70,6 +71,12 @@ int main(int argc, char** argv) {
   h.add(music,browse,read(dir,"music-home.json"),{{"browseId",J(string("FEmusic_home"))}});
   auto mixes = request("music"); mixes["q"] = "mixes";
   p = c.browse(mixes); check(!p.items.empty() && std::all_of(p.items.begin(),p.items.end(),[](const Item& i) { return i.type == "playlist"; }),"mixes contain playlists");
+  {  // F65: quais prateleiras são pessoais, com os títulos reais de cada idioma (nada renomeado para escapar)
+    for (const char* title : {"Mixes de músicas","Mixes de canciones","Seus mixes","Ouvir de novo","Escolhas rápidas","Seleção rápida","Selección rápida","Quick picks","Listen again","Clipes recomendados","Reproduzidos recentemente"})
+      check(Client::personalShelf(title),"personal Music shelf title is recognized");
+    for (const char* title : {"Hits de hoje","Novos álbuns e singles","Demo música 11","Em alta","Today's biggest hits"})
+      check(!Client::personalShelf(title),"generic Music shelf title is not personal");
+  }
   {  // F65: chips de clima viram itens "chip" no topo e o pessoal (Ouvir de novo) passa na frente do genérico
     string home = read(dir,"music-home.json");
     auto rename = [&](const string& from, const string& to) { auto at = home.find(from); check(at != string::npos,"fixture shelf title"); home.replace(at,from.size(),to); };
@@ -80,6 +87,9 @@ int main(int argc, char** argv) {
     size_t chips = 0; while (chips < shaped.items.size() && shaped.items[chips].type == "chip") ++chips;
     check(chips >= 6 && shaped.items.front().section == "chips" && !shaped.items.front().id.empty(),"mood chips come first with their params");
     check(chips < shaped.items.size() && shaped.items[chips].section == "Ouvir de novo","personal shelf before generic shelf");
+    check(std::any_of(shaped.items.begin(),shaped.items.end(),[](const Item& i) { return i.type == "video" && i.listStyle; }),"list rows (quick picks) are flagged as list style");
+    check(std::none_of(shaped.items.begin()+chips,shaped.items.end(),[](const Item& i) { return i.section == "Ouvir de novo" && i.listStyle; }),"carousel items are not list style");
+    check(wire(shaped).find("\trow\n") != string::npos,"list style travels in the wire as the optional field 9");
     check(std::any_of(shaped.items.begin()+chips,shaped.items.end(),[](const Item& i) { return i.section == "Generico A"; }),"generic shelf is kept");
     const string id = shaped.items.front().id; auto one = id.find('|'), two = id.find('|',one+1);
     check(one != string::npos && two != string::npos && id.substr(0,one) == "FEmusic_home" && id.substr(two+1) == shaped.items.front().title,"chip id carries browseId, params and label");

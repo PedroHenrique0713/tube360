@@ -6,7 +6,7 @@ struct NavItem {
   int duration = 0;
   yt::Membership members = yt::Membership::None;
   std::vector<std::string> titleLines; std::string byline;
-  bool shortForm = false, verified = false;
+  bool shortForm = false, verified = false, listStyle = false;  // listStyle: linha de lista da Música (Escolhas rápidas)
   std::string date, views, description;
   // Convenção de duração (CONTRATO): 0 = ao vivo, -1 = desconhecida, > 0 = segundos.
   Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = std::max(0,duration); v.live = duration == 0; v.members = members; v.shortForm = shortForm; return v; }
@@ -80,7 +80,7 @@ struct Navigation {
     // As telas guardam seleção e rolagem; B não refaz a consulta de onde o usuário veio.
     if (pages.size() >= 12) pages.erase(pages.begin() + 1);
     NavPage p; p.kind = kind; p.id = id; if (kind == "channel") p.tab = "home"; p.query = query; p.music = music; p.filters=filters;
-    if (kind == "music") p.tabSel = query == "explore" ? 1 : query == "library" ? 2 : query == "charts" ? 3 : query == "mixes" ? 4 : 0;
+    if (kind == "music") p.tabSel = query == "explore" || query == "charts" ? 1 : query == "library" ? 2 : 0;
     pages.push_back(std::move(p)); load(worker, lang);
   }
   void channelFromVideo(Worker& worker, i18n::Lang lang, const std::string& id) {
@@ -100,7 +100,7 @@ struct Navigation {
       auto f = net::split(lines[i], '\t'); if (f.size() < 8 || f[1].empty()) continue;
       NavItem item{f[0], f[1], f[2], f[3], f[5], f[6], f[7], std::atoi(f[4].c_str())};
       if (f.size() > 8) item.members = yt::membershipWire(f[8]);
-      if (f.size() > 9) item.shortForm = f[9] == "short";
+      if (f.size() > 9) { item.shortForm = f[9] == "short"; item.listStyle = f[9] == "row"; }
       if (f.size() > 10) item.date = f[10];
       if (f.size() > 11) item.verified = f[11] == "1";
       if (f.size() > 12) item.views = f[12];
@@ -131,7 +131,7 @@ struct Navigation {
       if (p.error=="signed_out") p.error=i18n::get(lang,K::AccountRequired);
       if (p.musicHome()) p.musicLabel=p.musicSource.empty() ? "" : gfx::ellipsize(g,ui::F_TINY,
           i18n::get(lang,p.musicSource=="public" ? K::PublicMusic : K::YourMusic),ui::narrow ? ui::W-364 : 480);
-      if (first && p.kind == "music" && (p.query.empty() || p.query == "library") && p.error.empty() && (p.musicSource=="web" || p.musicSource=="tv")) {
+      if (first && p.kind == "music" && p.query == "library" && p.error.empty() && (p.musicSource=="web" || p.musicSource=="tv")) {
         std::vector<NavItem> shortcuts;
         for (auto entry : {std::pair<const char*,K>{"music_recent",K::MusicRecent},{"music_library",K::Playlists},{"music_playlist",K::MusicLiked},
                            {"music_songs",K::Songs},{"music_albums",K::Albums},{"music_artists",K::Artists}}) {

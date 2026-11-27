@@ -327,7 +327,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(NextTrack, "Next track", "Próxima faixa", "Siguiente pista") \
   X(Lyrics, "Lyrics", "Letra", "Letra") \
   X(NoLyrics, "Lyrics are not available for this track.", "Letra indisponível para esta faixa.", "La letra de esta canción no está disponible.") \
-  X(ShowVideo, "Show video", "Mostrar vídeo", "Mostrar video") \
   X(CardMenu, "Video options", "Opções do vídeo", "Opciones del video") \
   X(AddedLater, "Saved to Watch later", "Salvo em Assistir mais tarde", "Guardado en Ver más tarde") \
   X(AccountRequired, "Sign in to YouTube in Settings to save and subscribe.", "Conecte sua conta em Configurações para salvar e se inscrever.", "Inicia sesión en Configuración para guardar y suscribirte.") \
@@ -460,6 +459,9 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(MusicAutoplay, "Autoplay", "Reprodução automática", "Reproducción automática") \
   X(MusicAutoplayOn, "Autoplay on", "Reprodução automática ligada", "Reproducción automática activada") \
   X(MusicAutoplayOff, "Autoplay off", "Reprodução automática desligada", "Reproducción automática desactivada") \
+  X(MusicLyricsFailed, "Could not load the lyrics.", "Não foi possível carregar a letra.", "No se pudo cargar la letra.") \
+  X(MusicAddedQueue, "Added to the queue", "Adicionado à fila", "Añadido a la cola") \
+  X(MusicNoQueueToAdd, "Play a song first to build a queue.", "Toque uma música antes para montar a fila.", "Reproduce una canción antes para armar la cola.") \
   X(MusicSongTab, "Song", "Música", "Canción") \
   X(MusicVideoTab, "Video", "Vídeo", "Video") \
   X(MusicMoveTrack, "Move track", "Mover faixa", "Mover pista") \
@@ -473,7 +475,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(MusicQueueEmpty, "The queue is empty.", "A fila está vazia.", "La cola está vacía.") \
   X(MusicQueueServer, "The queue is controlled by the server; jump and reorder are not available.", "A fila é controlada pelo servidor; pular e reordenar não estão disponíveis.", "El servidor controla la cola; saltar y reordenar no están disponibles.") \
   X(MusicVideoLoading, "Loading the video…", "Carregando o vídeo…", "Cargando el vídeo…") \
-  X(MusicPlayCount, "tracks", "faixas", "pistas") \
   /* */ \
   /* ---- F66 controle pelo celular */ \
   /* */ \
