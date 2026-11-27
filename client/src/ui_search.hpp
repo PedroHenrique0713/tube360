@@ -19,7 +19,7 @@ inline void UiContext::searchDraw(const char* const* keys, double t) {
 // Nos resultados, LB/RB trocam o chip de tipo (Tudo, Vídeos, Canais, Playlists, Ao vivo); a pílula "Filtros" na fileira de
 // chips (A) abre o painel. O chip marcado acompanha o tipo do filtro, também quando ele muda pelo painel.
 inline void UiContext::searchFiltersPress(NavPage& p) {
-  if (!(p.zone == 1 && p.tabSel == 5)) p.tabSel = p.filters.type;
+  if (p.zone != 1) p.tabSel = p.filters.type;  // andar pelos chips só move o foco; buscar é com A (ou LB/RB)
   if (p.loading || nav.busy) return;
   int step = ctl::hit(in, ctl::Ctx::Search, ctl::Act::NextTab) ? 1 : ctl::hit(in, ctl::Ctx::Search, ctl::Act::PrevTab) ? 4 : 0;
   if (!step) return;
@@ -54,9 +54,9 @@ static float chipRow(NavDraw& d, const std::vector<std::string>& labels, int act
   for (size_t i = 0; i < labels.size(); i++) {
     float w = gfx::textWidth(g, ui::F_SMALL, labels[i]) + 32;
     bool on = int(i) == active, f = int(i) == focus;
-    gfx::rect(g, x, y, w, 36, f ? ui::TEXT : on ? ui::SURFACE2 : ui::SURFACE, 18);
-    if (on && !f) gfx::hgrad(g, x + 16, y + 34, w - 32, 2, ui::A1, ui::A2, 1);
-    gfx::text(g, ui::F_SMALL, labels[i], x + w / 2, y + (36 - g.fonts[ui::F_SMALL].size) / 2, f ? ui::INK : ui::TEXT, 1);
+    if (f) gfx::rect(g, x - 3, y - 3, w + 6, 42, ui::A1, 21);  // anel de foco
+    gfx::rect(g, x, y, w, 36, on ? ui::TEXT : ui::SURFACE2, 18);  // chip ativo em branco, como na proposta
+    gfx::text(g, ui::F_SMALL, labels[i], x + w / 2, y + (36 - g.fonts[ui::F_SMALL].size) / 2, on ? ui::INK : ui::TEXT, 1);
     x += w + 10;
   }
   return x;
@@ -70,16 +70,12 @@ static void featuredChannel(NavDraw& d, const NavItem& it, bool focused, float y
   if (focused) gfx::rect(g, x - 4, y - 4, w + 8, h + 8, ui::TEXT, 20);
   gfx::rect(g, x, y, w, h, ui::SURFACE, 16);
   artwork(g, d.thumbs, d.worker, it.image, d.frame, x + 22, y + 14, 76, 76, true, true, p.direct, false, 646);
-  const float tx = x + 122, btnW = 190, tw = w - 122 - btnW - 44;
+  const float tx = x + 122, tw = w - 122 - 44;
   float ty = nameWithBadge(g, ui::F_KEY, it.title, it.verified, tx, y + 12, tw, ui::TEXT) + 4;
   std::string meta = it.date;
   if (!it.views.empty()) meta += (meta.empty() ? "" : "  \xC2\xB7  ") + it.views;
   if (!meta.empty()) { gfx::textBox(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, meta, tw), tx, ty, tw, ui::MUTED); ty += g.fonts[ui::F_CHAN].lineH + 2; }
   if (!it.description.empty()) gfx::textBox(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, it.description, tw), tx, ty, tw, rgb(0xa1a1aa));
-  if (it.subscribed >= 0) {
-    gfx::rect(g, x + w - btnW - 22, y + (h - 46) / 2, btnW, 46, ui::SURFACE2, 23);
-    gfx::text(g, ui::F_KEY, d.tr(it.subscribed ? K::Subscribed : K::Subscribe), x + w - btnW / 2 - 22, y + (h - 46) / 2 + 9, ui::TEXT, 1);
-  }
 }
 
 // Cartão da grade de busca: vídeo e playlist com o cartão da F61 (canal + verificado, visualizações · data, "Só para membros");
@@ -91,9 +87,8 @@ static void searchCard(NavDraw& d, const NavMetrics& m, const NavItem& it, bool 
   videoCard(d.g, d.thumbs, d.worker, d.frame, d.lang, it.image, meta, d.p.direct, false, focused, x, y, artW, artH, focused ? 1.f : 0.f);
 }
 
-// Página de resultados da busca (proposta A2): título, chips de tipo + "Filtros", resultado de canal em destaque, grade de
-// cartões ricos e os Shorts numa faixa própria.
-inline float Navigation::drawSearchPage(NavDraw& d) {
+// Cabeçalho da busca: título, chips de tipo e a pílula "Filtros" (o resumo dos filtros ativos vai ao lado).
+static void drawSearchHeader(NavDraw& d) {
   auto& g = d.g; auto& p = d.p;
   float tx = 136;
   if (!p.image.empty()) { artwork(g, d.thumbs, d.worker, p.image, d.frame, tx, 28, 72, 72, true, false); tx += 96; }
@@ -102,16 +97,25 @@ inline float Navigation::drawSearchPage(NavDraw& d) {
   const std::vector<std::string> types = {d.tr(K::All), d.tr(K::Videos), d.tr(K::SearchTypeChannels), d.tr(K::Playlists), d.tr(K::ChannelLive)};
   bool onRow = d.contentFocus && p.zone == 1;
   float cx = chipRow(d, types, p.filters.type, onRow && p.tabSel < 5 ? p.tabSel : -1, 136, chipsY);
-  std::vector<std::string> filtersPill = {d.tr(K::SearchFilters)};
-  float endX = chipRow(d, filtersPill, -1, onRow && p.tabSel == 5 ? 0 : -1, cx + 10, chipsY);
+  float endX = chipRow(d, {d.tr(K::SearchFilters)}, -1, onRow && p.tabSel == 5 ? 0 : -1, cx + 10, chipsY);
   for (size_t row = 0; row < p.filterLines.size(); ++row) gfx::textBox(g, ui::F_CHAN, p.filterLines[row], endX + 16, chipsY + 6 + row * 26, ui::W - endX - 80, ui::A2);
+}
+
+// Página de resultados da busca (proposta A2): resultado de canal em destaque, grade de cartões ricos e os Shorts numa faixa
+// própria. O cartão em destaque faz parte do conteúdo que rola; o cabeçalho (título e chips) é desenhado por cima, sobre uma
+// máscara, para o cartão nunca cobri-lo.
+inline float Navigation::drawSearchPage(NavDraw& d) {
+  auto& g = d.g; auto& p = d.p;
   const float top = 140;
-  auto m = navMetrics(d);
   const bool feat = !p.channels.empty();
-  const float cardH = 104 + 16;
-  const float f = std::min(1.f, p.scroll / std::max(1.f, m.rowH));
-  if (feat && f < 1) featuredChannel(d, p.channels[(size_t)std::min(p.channelSel, (int)p.channels.size()-1)], d.contentFocus && p.zone == 2, top - f * cardH);
-  float rowY = top + (feat ? cardH * (1 - f) : 0) - p.scroll;
+  const float cardH = feat ? 104 + 16 : 0;
+  const float before = p.scroll;
+  auto m = navMetrics(d);  // monta as fileiras e dá o passo de rolagem sem o cartão em destaque; refaço o passo com ele
+  float want = 0;
+  if (p.zone == 3 && p.gridRow() > 0) { want = cardH; for (int row = 0; row < p.gridRow(); ++row) want += navRowHeight(m, p.rows[row]); }
+  p.scroll = before + (want - before) * 0.24f;
+  float rowY = top + cardH - p.scroll;
+  if (feat && cardH - p.scroll > 0) featuredChannel(d, p.channels[(size_t)std::min(p.channelSel, (int)p.channels.size()-1)], d.contentFocus && p.zone == 2, top - p.scroll);
   for (const auto& row : p.rows) {
     float y = rowY, artW = row.shorts ? m.shortW : m.art, artH = row.shorts ? m.shortH : m.h;
     rowY += navRowHeight(m, row);
@@ -132,5 +136,7 @@ inline float Navigation::drawSearchPage(NavDraw& d) {
       searchCard(d, m, p.items[i], row.shorts, d.contentFocus && p.zone == 3 && i == p.sel, x, y, artW, artH);
     }
   }
+  gfx::rect(g, 96, 0, ui::W - 96, top, ui::BG);
+  drawSearchHeader(d);
   return top;
 }

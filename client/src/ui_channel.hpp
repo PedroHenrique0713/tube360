@@ -6,6 +6,7 @@
 
 // A no botão do cabeçalho: inscrever (pede conta) ou, já inscrito, pedir a confirmação para cancelar.
 inline void UiContext::channelHeaderPress(NavPage& p, uint64_t now) {
+  if (!p.subscribedKnown) return;  // sem o estado real da inscrição (página pública) não se assina nem cancela
   if (!account.signedIn()) { toast = tr(K::AccountRequired); toastUntil = now + 4000; }
   else if (p.subscribed) nav.unsubscribe = true;
   else nav.action(navWorker, "/api/nav/action?action=subscribe&id=" + p.channelId + "&value=1&lang=" + i18n::code(settings.lang));
@@ -43,8 +44,10 @@ inline float Navigation::drawChannelPage(NavDraw& d) {
   gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, p.displaySub, tw), tx, 78, ui::MUTED);
   if (!p.description.empty()) gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, p.description, tw), tx, 78 + g.fonts[ui::F_CHAN].lineH + 4, rgb(0xa1a1aa));
   bool f = d.contentFocus && p.zone == 0;
-  gfx::rect(g, ui::W-316, 32, 252, 54, f ? ui::TEXT : ui::SURFACE2, 27);
-  gfx::text(g, ui::F_KEY, d.tr(p.subscribed ? K::Subscribed : K::Subscribe), ui::W-190, 48, f ? ui::INK : ui::TEXT, 1);
+  if (p.subscribedKnown) {
+    gfx::rect(g, ui::W-316, 32, 252, 54, f ? ui::TEXT : ui::SURFACE2, 27);
+    gfx::text(g, ui::F_KEY, d.tr(p.subscribed ? K::Subscribed : K::Subscribe), ui::W-190, 48, f ? ui::INK : ui::TEXT, 1);
+  }
   const K tabs[] = {K::ChannelHome,K::Videos,K::ChannelShorts,K::ChannelLive,K::Playlists};
   const float tabY = 148;
   navTabs(d, tabs, 5, 136, tabY);

@@ -135,11 +135,12 @@ inline int seconds(const string& s) {
   for (char c : s) { if (c == ':') { out = (out + n) * 60; n = 0; } else n = n * 10 + c - '0'; }
   return int(std::min<int64_t>(out+n,86400*7));
 }
-struct Item { string type, id, title, channel, image, channelId, section, date, views, description; bool verified = false; int subscribed = -1; int duration = 0; Membership members = Membership::None; bool shortForm = false; };
+struct Item { string type, id, title, channel, image, channelId, section, date, views, description; bool verified = false; int duration = 0; Membership members = Membership::None; bool shortForm = false; };
 struct Page {
   string title, subtitle, image, banner, channelId, continuation, error, musicSource, description;
   std::vector<Item> items;
   bool subscribed = false, verified = false, sortable = false;
+  bool subscribedKnown = true, flagSeen = false; // estado de inscrição só vale quando veio da conta (ou sem conta: nunca inscrito)
   int continuationDepth = 999;
 };
 inline string channel(const J& v) {
@@ -243,10 +244,6 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   } else if (out.type == "channel") {
     out.date = text(get(v,"subscriberCountText")); out.views = text(get(v,"videoCountText"));
   }
-  if (out.type == "channel") {
-    const auto& sb = get(v,"subscriptionButton");
-    if (sb.is<Object>() && get(sb,"subscribed").is<bool>()) out.subscribed = flag(sb,"subscribed") ? 1 : 0;
-  }
   out.description = text(get(v,"descriptionSnippet"));
   if (out.description.empty()) for (const auto& sn : array(get(v,"detailedMetadataSnippets"))) { out.description = text(get(sn,"snippetText")); break; }
   for (const auto& badge : array(get(v,"ownerBadges"))) {
@@ -305,7 +302,7 @@ inline Page decode(const J& data, bool music) {
     if (const auto* d = find(*header,"descriptionPreviewViewModel")) p.description = text(get(*d,"description"));
     p.banner = thumbnail(get(*header,"banner"));
     if (p.banner.empty()) if (const auto* banner = find(*header,"imageBannerViewModel")) p.banner = thumbnail(*banner);
-    if (const auto* sub = find(*header,"subscribeButtonRenderer")) p.subscribed = flag(*sub,"subscribed");
+    if (const auto* sub = find(*header,"subscribeButtonRenderer")) { p.subscribed = flag(*sub,"subscribed"); p.flagSeen = true; }
     if (p.subtitle.empty()) {
       if (const auto* meta = find(*header,"contentMetadataViewModel")) {
         for (const auto& row : array(get(*meta,"metadataRows"))) for (const auto& part : array(get(row,"metadataParts"))) {
@@ -321,8 +318,8 @@ inline Page decode(const J& data, bool music) {
 }
 inline string wire(const Page& p) {
   if (!p.error.empty()) return "error\t" + clean(p.error) + "\n";
-  string out = "ok\t" + clean(p.title) + "\t" + clean(p.subtitle) + "\t" + p.image + "\t" + (p.subscribed ? "1" : "0") + "\t" + (p.continuation.empty() ? "0" : "1") + "\t" + p.channelId + "\t" + p.banner + "\t\t\t" + p.musicSource + (p.verified || p.sortable || !p.description.empty() ? "\t" + string(p.verified ? "1" : "0") + "\t" + clean(p.description) + "\t" + (p.sortable ? "1" : "0") : "") + "\n";
-  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + (it.shortForm ? "\tshort" : "") + (it.verified || it.subscribed >= 0 || !it.date.empty() || !it.views.empty() || !it.description.empty() ? string(it.shortForm ? "" : "\t") + "\t" + clean(it.date) + "\t" + (it.verified ? "1" : "0") + "\t" + clean(it.views) + "\t" + clean(it.description) + "\t" + (it.subscribed < 0 ? "" : it.subscribed ? "1" : "0") : "") + "\n";
+  string out = "ok\t" + clean(p.title) + "\t" + clean(p.subtitle) + "\t" + p.image + "\t" + (p.subscribed ? "1" : "0") + "\t" + (p.continuation.empty() ? "0" : "1") + "\t" + p.channelId + "\t" + p.banner + "\t\t\t" + p.musicSource + (p.verified || p.sortable || !p.subscribedKnown || !p.description.empty() ? "\t" + string(p.verified ? "1" : "0") + "\t" + clean(p.description) + "\t" + (p.sortable ? "1" : "0") + "\t" + (p.subscribedKnown ? "1" : "0") : "") + "\n";
+  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + (it.shortForm ? "\tshort" : "") + (it.verified || !it.date.empty() || !it.views.empty() || !it.description.empty() ? string(it.shortForm ? "" : "\t") + "\t" + clean(it.date) + "\t" + (it.verified ? "1" : "0") + "\t" + clean(it.views) + "\t" + clean(it.description) : "") + "\n";
   return out;
 }
 inline std::map<string,string> query(const string& path) {
@@ -356,6 +353,7 @@ class Client {
   enum class MusicSource { Auto, Web, TV, Public };
   string token, language = "en";
   bool tokenRejected = false, musicTokenRejected = false;
+  bool lastBearer = false; // o último POST WEB foi aceito com o Bearer
   bool bearerRefused = false; // o WEB devolveu 400 ao Bearer: o resto da sessão vai sem token (conteúdo público)
   bool publicOnly = false; // aba de canal: conteúdo público, sem Bearer (o WEB devolvia HTTP 400 com o token da TV)
   std::function<void(const string&)> logger = [](const string& line) { std::fprintf(stderr,"%s\n",line.c_str()); };
@@ -517,13 +515,14 @@ private:
     bool authorized=!isMusic && route!="search" && !token.empty() && !tokenRejected && !bearerRefused && !publicOnly;
     if (authorized) r.headers.push_back("Authorization: Bearer "+token);
     auto res = net.send(r);
+    lastBearer = authorized;
     auto result=error(res,out,string(isMusic ? "WEB_REMIX/" : "WEB/")+route);
     if (authorized && (res.status==401 || res.status==403 || res.status==400)) {
       // 400 também: o WEB recusa o Bearer da TV com HTTP 400 em browse (log do console de 2026-11-26). O conteúdo é público:
       // refaz sem o token e deixa de mandá-lo nesta sessão, sem marcar a conta como rejeitada.
       if (res.status==400) bearerRefused=true; else tokenRejected=true;
       authError=route+" HTTP "+std::to_string(res.status);
-      r.headers.pop_back(); res=net.send(r);
+      r.headers.pop_back(); res=net.send(r); lastBearer = false;
       result=error(res,out,"WEB/"+route);
     }
     if (isMusic && result.empty()) { source=MusicSource::Public; musicSource="public"; }
@@ -627,6 +626,7 @@ public:
       args["browseId"] = J(browseId);
     }
     J data; failed.error = post(isMusic,route,args,data,&list.source);
+    const bool rootBearer = lastBearer;
     if (!failed.error.empty()) return failed;
     sortableSeen = false;
     if (!offset && kind == "channel") failed.error = channelTab(data,tab,isMusic,sort);
@@ -644,9 +644,9 @@ public:
     if (kind=="search") p.title=search;
     if (isMusic) p.musicSource=list.source==MusicSource::TV ? "tv" : list.source==MusicSource::Web ? "web" : "public";
     if (!p.error.empty()) { fail((isMusic ? "music/" : "WEB/")+route,200,p.error); return p; }
-    if (kind == "channel") { p.channelId = id; p.sortable = sortableSeen; }
+    if (kind == "channel") { p.channelId = id; p.sortable = sortableSeen; p.subscribedKnown = token.empty() || (rootBearer && p.flagSeen); if (!p.subscribedKnown) p.subscribed = false; }
     if (!offset) { list.header = p; list.header.items.clear(); list.created = std::time(nullptr); }
-    else { p.title = list.header.title; p.subtitle = list.header.subtitle; p.image = list.header.image; p.banner = list.header.banner; p.channelId = list.header.channelId; p.subscribed = list.header.subscribed; p.verified = list.header.verified; p.description = list.header.description; p.sortable = list.header.sortable; }
+    else { p.title = list.header.title; p.subtitle = list.header.subtitle; p.image = list.header.image; p.banner = list.header.banner; p.channelId = list.header.channelId; p.subscribed = list.header.subscribed; p.verified = list.header.verified; p.description = list.header.description; p.sortable = list.header.sortable; p.subscribedKnown = list.header.subscribedKnown; }
     if (kind == "music" && search == "mixes") p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[](const Item& i) { return i.type != "playlist"; }),p.items.end());
     p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[&](const Item& i) { return !list.seen.insert(i.type+i.id).second; }),p.items.end());
     if (++list.count >= policy->n("listPages") || list.seen.size() >= size_t(policy->n("listItems")) || p.items.empty() || !list.tokens.insert(p.continuation).second) p.continuation.clear();
