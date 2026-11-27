@@ -186,7 +186,9 @@ inline void UiContext::settingsDraw() {
     }
     K help=(settingsRow==16 || settingsRow==17)?K::LocalLimit:settingsRow==2?K::ManualQualityHelp:settingsRow==9 ? (gfx::fixedOutput()?K::SafeOutputHelp:g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==19 ? K::LiveLowLatencyHelp : settingsRow==20 ? K::PhoneRemoteHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
     float hy=ui::large ? 608 : 610;
-    for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::textBox(g,ui::F_SMALL,line,ui::X0,hy,ui::W-ui::X0-64,ui::MUTED); hy+=ui::large ? 26 : 22; }
+    // Com texto grande o "salvas automaticamente" já está no topo, no lugar do subtítulo; o rodapé só mostra ajuda própria da linha.
+    if (!(ui::large && help==K::SavedAutomatically))
+      for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::textBox(g,ui::F_SMALL,line,ui::X0,hy,ui::W-ui::X0-64,ui::MUTED); hy+=ui::large ? 26 : 22; }
     float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
     if (settings_ui::changesWithArrows(settingsRow)) hx=hint(g,hx,678,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
     hx=ctlHint(g,hx,678,ctl::Ctx::Settings,ctl::Act::PrevTab,settings.lang,K::CtlSection);
