@@ -30,6 +30,7 @@ int main() {
   CHECK(button(Ctx::Update, Act::Refresh) == Btn::Menu && !has(Ctx::Panel, Act::Refresh) && act(Ctx::Settings, Btn::LB) == Act::PrevTab);
   CHECK(act(Ctx::Shorts, Btn::LT) == Act::VolumeDown && act(Ctx::Shorts, Btn::RT) == Act::VolumeUp && pairSecond(Act::VolumeUp));  // volume nos Shorts
   CHECK(act(Ctx::PlayerShelf, Btn::LB) == Act::PrevTab && act(Ctx::PlayerShelf, Btn::X) == Act::WatchLater);  // abas da fileira do player
+  CHECK(act(Ctx::MusicPage, Btn::X) == Act::AddQueue && act(Ctx::MusicPage, Btn::LB) == Act::PrevTab && act(Ctx::Music, Btn::LB) == Act::PrevItem);  // páginas de Música x Tocando agora
   FakeInput in; in.fired[FakeInput::START] = true;
   CHECK(!hit(in, Ctx::Home, Act::SongVideo));
   CHECK(hit(in, Ctx::Home, Act::Options) && !hit(in, Ctx::Home, Act::Options));

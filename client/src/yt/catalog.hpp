@@ -165,6 +165,7 @@ inline void lockupMeta(const J& lock, Item& out, bool course = false) {
     auto t = text(get(part,"text")); if (t.empty()) continue;
     auto label = str(part,"accessibilityLabel");
     if (course && out.channel.empty() && !get(part,"leadingIcon").is<Object>()) { out.channel = t; continue; }  // curso: o 1º texto é o canal, nunca a data
+    if (course) continue;  // o resto da linha de um curso ("Curso", "N vídeos") não é data nem visualização
     if (get(part,"leadingIcon").is<Object>()) { if (out.views.empty()) out.views = label.empty() ? t : label; }
     else if (out.date.empty()) out.date = label.empty() ? t : label;
   }

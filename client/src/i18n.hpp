@@ -443,6 +443,8 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SecPrivacy, "Privacy", "Privacidade", "Privacidad") \
   X(SecSystem, "System", "Sistema", "Sistema") \
   X(CtlVolume, "Volume", "Volume", "Volumen") \
+  X(SettingLiveLowLatency, "Live: lowest delay", "Live com atraso mínimo", "Directo con el menor retraso") \
+  X(LiveLowLatencyHelp, "Starts near live and catches up at 1.05x; TV only.", "Começa perto do ao vivo e alcança a 1,05x; só na TV.", "Empieza cerca del directo y alcanza a 1,05x; solo en la TV.") \
   X(PageMenu, "Page options", "Opções da página", "Opciones de la página") \
   X(CtlCheckAgain, "Check again", "Verificar de novo", "Comprobar de nuevo") \
   X(UpdateToastHead, "Update ", "Atualização ", "Actualización ") \

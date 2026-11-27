@@ -16,6 +16,8 @@ struct Settings {
   bool h264FullFilter = false;
   bool server = false, nest = false, sleepNotebook = false, captions = false;
   bool hideShorts = false, errorReports = true;
+  bool phoneRemote = false;     // celular como controle (F66); desligado por padrão
+  bool liveLowLatency = false;  // live com atraso mínimo (só TV): começa perto do ao vivo e alcança a 1,05x
   int volume = 100;  // 0..100, passos de 5; aplicado por Player::setVolumePercent
   std::string captionLang;
 
@@ -35,6 +37,7 @@ struct Settings {
         else if (key == "h264_loop_filter") h264FullFilter = val == "full";
         else if (key == "server") server = false;
         else if (key == "shorts") hideShorts = val == "hide";
+        else if (key == "phone_remote") phoneRemote = val == "on";
         else if (key == "error_reports") errorReports = val != "off";
         else if (key == "video_mode") videoMode = playback::modeFromName(val.c_str());
         else if (key == "audio_preference") originalAudio = val != "interface";
@@ -50,6 +53,7 @@ struct Settings {
           if (key == "sync_ms") syncMs = (int)std::clamp(n, -2000L, 2000L);
           if (key == "output_height" && (n == 480 || n == 720 || n == 1080)) outputHeight = (int)n;
           // Vazio ou inválido mantém o padrão (100): zero deixaria o app e a caixa mudos. Passos de 5.
+          if (key == "live_low_latency") liveLowLatency = n == 1;
           if (key == "volume") volume = (int)((std::clamp(n, 0L, 100L) + 2) / 5 * 5);
         }
       }
@@ -76,7 +80,7 @@ struct Settings {
     ok = ok && std::fprintf(f,"sponsorblock=%s\n",sponsorBlock == sponsorblock::OFF ? "off" : sponsorBlock == sponsorblock::AUTO ? "auto" : "button") > 0;
     ok = ok && std::fprintf(f,"h264_loop_filter=%s\n",h264FullFilter ? "full" : "auto") > 0;
     ok = ok && std::fprintf(f,"shorts=%s\nerror_reports=%s\n",hideShorts ? "hide" : "row",errorReports ? "on" : "off") > 0;
-    ok = ok && std::fprintf(f,"volume=%d\n",volume) > 0;
+    ok = ok && std::fprintf(f,"volume=%d\nlive_low_latency=%d\nphone_remote=%s\n",volume,liveLowLatency ? 1 : 0,phoneRemote ? "on" : "off") > 0;
     if (std::fclose(f) != 0) ok = false;
     if (ok) ok = std::rename(tmp.c_str(), dest.c_str()) == 0;
     if (!ok) std::remove(tmp.c_str());
