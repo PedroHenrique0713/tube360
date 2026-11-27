@@ -34,6 +34,7 @@
 #include "player.hpp"
 #include "music_player.hpp"
 #include "player_ui.hpp"
+#include "player_watch.hpp"
 #include "player_extras.hpp"
 #include "sponsorblock_worker.hpp"
 #include "player_text.hpp"
@@ -1012,6 +1013,8 @@ int run(int argc, char** argv) {
   // ---- F62 Busca e canal: estado novo do run() só aqui
 
   // ---- F63 Player e Shorts: estado novo do run() só aqui
+  pl.setVolumePercent(settings.volume, settings.volume != 100);  // 100 não sobrescreve o volume que o Nest já tem
+  PlayerWatch playerWatch;
 
   // ---- F64 Configurações e controle: estado novo do run() só aqui
 
@@ -1580,6 +1583,18 @@ int run(int argc, char** argv) {
       screens.playerInput(now,optionCount);
     }
     screens.playerUpdate(now);
+    // ---- F63 Player e Shorts: vigia do player (marca a sessão para o relatório de erro)
+    {
+      using Phase = PlayerWatch::Phase;
+      PlayerWatch::Sample w; w.now = now; w.inPlayer = screen == PLAYER && !nav.musicNow;
+      w.phase = pl.state == player::CONNECTING ? Phase::Connecting : pl.state == player::BUFFERING ? Phase::Buffering :
+                pl.state == player::PLAYING ? Phase::Playing : Phase::Idle;
+      w.paused = pl.paused; w.live = pl.live; w.nest = pl.nest || pl.speakerRequested; w.seeking = seekHold.active; w.position = pl.position();
+      if (playerWatch.update(w)) {
+        boot_session_player_stuck(playerWatch.stuck);
+        LOG("vigia: player %s (estado=%d pos=%.1f)", playerWatch.stuck ? "parado" : "voltou", (int)pl.state, w.position);
+      }
+    }
     // Live retomada pelo próprio Nest (toque em cima, Google Home) também volta para o ao vivo.
     if (screen == PLAYER && pl.live) { if (pl.paused) livePaused = true; else if (livePaused) resumeLive(); }
     else livePaused = false;

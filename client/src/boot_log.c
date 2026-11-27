@@ -19,7 +19,7 @@ static unsigned sequence;
 static uint64_t began;
 static int sync_warned;
 static char session_path[1024];
-static volatile uint32_t session_failed,session_cleaned;
+static volatile uint32_t session_failed,session_cleaned,session_player_stuck;
 #ifdef __XSDK__
 static char terminate_path[1024];
 static ANSI_STRING terminate_name;
@@ -85,10 +85,14 @@ void boot_session_heartbeat(void) {
 void boot_session_failed(void) {
     __atomic_store_n(&session_failed,1,__ATOMIC_RELEASE);
 }
+void boot_session_player_stuck(int stuck) {
+    __atomic_store_n(&session_player_stuck,stuck?1:0,__ATOMIC_RELEASE);
+}
 void boot_session_terminated(void) {
 #ifdef __XSDK__
     // Threads congeladas, handles fechados e game: removido: só kernel e dados preparados antes do registro.
-    if(__atomic_load_n(&session_failed,__ATOMIC_ACQUIRE) || __atomic_load_n(&session_cleaned,__ATOMIC_ACQUIRE) ||
+    // Player parado com a interface viva (vigia do player): sair pelo botão Xbox não vira sessão limpa.
+    if(__atomic_load_n(&session_failed,__ATOMIC_ACQUIRE) || __atomic_load_n(&session_player_stuck,__ATOMIC_ACQUIRE) || __atomic_load_n(&session_cleaned,__ATOMIC_ACQUIRE) ||
        !terminate_name.length || !__atomic_load_n(&session_heartbeat_ready,__ATOMIC_ACQUIRE))return;
     // Console: GPU até 3,3 s + fontes/ícones até 1,4 s; 30 s por checkpoint dão folga para armazenamento lento.
     // Depois do primeiro batimento do laço, só ele prova saúde: logs de workers não podem ocultar travamento.
@@ -122,6 +126,7 @@ static int session_write(const char* state,const char* metadata) {
 }
 void boot_session_begin(const char* directory,const char* metadata) {
     __atomic_store_n(&session_failed,0,__ATOMIC_RELEASE);
+    __atomic_store_n(&session_player_stuck,0,__ATOMIC_RELEASE);
     __atomic_store_n(&session_cleaned,0,__ATOMIC_RELEASE);
     snprintf(session_path,sizeof(session_path),"%ssession.txt",directory?directory:"");
     char detail[2048];int used=snprintf(detail,sizeof(detail),"%s\n",metadata?metadata:"");

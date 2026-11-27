@@ -17,6 +17,7 @@ void boot_session_begin(const char* directory,const char* metadata);
 void boot_session_clean(void);
 void boot_session_failed(void);
 void boot_session_heartbeat(void);
+void boot_session_player_stuck(int stuck);
 void boot_session_terminated(void);
 void boot_session_resume(void);
 void boot_session_version(unsigned build,const char* version);
