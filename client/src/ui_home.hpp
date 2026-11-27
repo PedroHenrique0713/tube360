@@ -11,6 +11,9 @@ inline int UiContext::homeShelves(const Shelf& cur) const {
 }
 
 inline void UiContext::homeInput(uint64_t now) {
+  // Voltar ao Início depois de um tempo fora (player, busca, coleção) atualiza o feed sozinho, o que o X fazia antes.
+  if (!inResults && homeSeenAt && now > homeSeenAt + 30000 && cats[(size_t)cat].stamp) refreshPage(now);
+  homeSeenAt = now;
   Shelf& cur = inResults ? results : cats[(size_t)cat];
   auto& grid=cur.feed.layout;
   grid.build(cur.feed.items,cur.sel,ui::columns(settings.cols),settings.hideShorts,homeShelves(cur));
@@ -46,9 +49,10 @@ inline void UiContext::homeInput(uint64_t now) {
   if (cur.sel != previousSel) LOG("home: categoria %d, foco %d/%d", cat, cur.sel + 1, n);
   if (in.hit(Input::START) && hasItems && zone == 0) { const auto& v = cur.feed.items[(size_t)cur.sel]; nav.menuItem = {"video",v.id,v.title,v.channel,v.id,"","",v.dur}; nav.menuSel = 0; nav.menu = true; }
   if (in.hit(Input::Y)) openSearch();
-  if (in.hit(Input::X)) {
-    cur.feed = Feed{}; requestFeed(cur, inResults ? 1 : cat == 0 ? 0 : 3, true, 0, true);
-    cur.sel = 0; scroll = 0; zone = 0; toast = tr(K::Refreshing); toastUntil = now + 2500;
+  // X = Assistir mais tarde no vídeo em foco; atualizar vive no Menu e acontece sozinho ao voltar para o Início
+  if (ctl::hit(in, ctl::Ctx::Home, ctl::Act::WatchLater) && hasItems && zone == 0 && !railFocus) {
+    const Video& v = cur.feed.items[(size_t)cur.sel];
+    saveForLater(NavItem{"video",v.id,v.title,v.channel,v.id,"","",v.live ? 0 : v.dur > 0 ? v.dur : -1,v.members}, now);
   }
   if (in.hit(Input::B)) { if (inResults) goHome(); else if (zone == 0) zone = 1; }
 }
@@ -113,7 +117,7 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
       const auto& errorDetail=serverError?serverAddress:cur.feed.errorDetail;
       if(!errorDetail.empty()){gfx::textBox(g,ui::F_BODY,errorDetail,ui::X0,y+16,ui::W-ui::X0-64,ui::MUTED);y+=48;}
       if(serverError)gfx::text(g,ui::F_BODY,tr(errorHelp),ui::X0,y+16,ui::MUTED);
-      else hint(g,ui::X0,y+24,"X",XX,tr(errorHelp));
+      else ctlHint(g,ui::X0,y+24,ctl::Ctx::Home,ctl::Act::Options,settings.lang,K::Refresh);
     } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
   }
   if (ui::large || ui::narrow) gfx::rect(g,96,648,ui::W-96,72,ui::BG);
@@ -122,7 +126,7 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
   gfx::vgrad(g, 0, 118, ui::W, 36, ui::BG, ui::alpha(ui::BG, 0));
   wordmark(g, ui::X0, 22, 1, ui::BG);
   {
-    float hw = 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Refresh)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Search)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::MoreOptions));
+    float hw = 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::WatchLater)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Search)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::MoreOptions));
     float lx = ui::W - 88 - hw, pillRight = lx - 18;
     if (ui::narrow || ui::large) lx=ui::X0;
     float hintY=(ui::narrow || ui::large) ? 680 : 32;
@@ -142,9 +146,9 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
     }
     if (!castWho.empty() && !ui::narrow && !ui::large) pill(tr(K::PhonePrefix) + castWho, rgb(0x34c759));
     accountPhoto();
-    float hx3 = hint(g, lx, hintY, "X", XX, tr(K::Refresh));
-    float hx4 = hint(g, hx3, hintY, "Y", XY, tr(K::Search));
-    hint(g, hx4, hintY, "Menu", XG, tr(K::MoreOptions));
+    float hx3 = ctlHint(g, lx, hintY, ctl::Ctx::Home, ctl::Act::WatchLater, settings.lang);
+    float hx4 = ctlHint(g, hx3, hintY, ctl::Ctx::Home, ctl::Act::Search, settings.lang);
+    ctlHint(g, hx4, hintY, ctl::Ctx::Home, ctl::Act::Options, settings.lang, K::MoreOptions);
   }
   if (inResults) {
     gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, cur.feed.title, ui::W-ui::X0-220), ui::X0, 78, ui::TEXT);

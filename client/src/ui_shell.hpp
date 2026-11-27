@@ -299,8 +299,9 @@ inline void Navigation::drawFooter(NavDraw& d) {
   const ctl::Ctx ctx = p.music || home ? ctl::Ctx::Music : channel ? ctl::Ctx::Channel : p.kind == "search" ? ctl::Ctx::Search : ctl::Ctx::Collection;
   float hx = ctlHint(d.g, 136, 676, ctx, ctl::Act::Open, d.lang, p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open);
   hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Back, d.lang);
-  // O X ainda não tem a dica: a F61 troca o X de atualizar por "Assistir mais tarde" e põe a dica de volta. O Menu abre as
-  // opções do vídeo em foco ou, sem vídeo (página vazia ou com erro), as da página, e "Atualizar" mora nele.
+  // X = Assistir mais tarde (F61). O Menu abre as opções do vídeo em foco ou, sem vídeo (página vazia ou com erro), as da
+  // página, e "Atualizar" mora nele.
+  if (!p.music && !home && !channel && p.kind != "search") hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::WatchLater, d.lang);
   hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Options, d.lang, K::MoreOptions);
   ctlHint(d.g, hx, 676, ctx, ctl::Act::Search, d.lang);
 }

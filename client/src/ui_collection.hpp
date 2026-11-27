@@ -75,12 +75,21 @@ inline void UiContext::navInput(uint64_t now) {
     }
     if (needPage) nav.load(navWorker, settings.lang, false, true);
   }
-  if (screen == NAV && nav.page().stamp == currentPage && in.hit(Input::X)) { nav.page().sel = 0; nav.page().scroll = 0; nav.load(navWorker, settings.lang, true); }
+  // X = Assistir mais tarde no vídeo em foco (atualizar a página agora vive no Menu)
+  if (screen == NAV && nav.page().stamp == currentPage && !p.music && ctl::hit(in, ctl::Ctx::Collection, ctl::Act::WatchLater) && hasItems && p.zone == 3 && !p.loading &&
+      p.sel >= 0 && p.sel < (int)p.items.size() && p.items[(size_t)p.sel].type == "video") saveForLater(p.items[(size_t)p.sel], now);
   if (in.hit(Input::Y)) openSearch();
   if (in.hit(Input::B)) {
     if (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0) nav.cancelQueue = true;
     navBack();
   }
+}
+
+// Salvar para depois, o mesmo que a entrada do Menu: com conta vai para o "Assistir mais tarde" do YouTube, sem conta para a lista local.
+inline void UiContext::saveForLater(const NavItem& item, uint64_t now) {
+  if (nav.busy) return;
+  if (nav.signedIn) nav.action(navWorker, "/api/nav/action?action=later&id=" + item.id + "&lang=" + i18n::code(settings.lang));
+  else { localUI.library.toggle(LocalLibraryUI::entry(item.video())); toast = tr(K::LocalSaving); toastUntil = now + 2500; }
 }
 
 // Botão "Reproduzir tudo" no cabeçalho de uma playlist (ou lista de Música): começa a fila do servidor desde o primeiro item.
