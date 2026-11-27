@@ -7,6 +7,7 @@
 #undef PL_MPEG_IMPLEMENTATION
 #define LOG(...) SDL_Log(__VA_ARGS__)
 #include "player.hpp"
+#include "music_player.hpp"
 static int failures = 0;
 #define CHECK(c, ...) do { if (!(c)) { ++failures; std::printf("FAIL %s:%d %s  ", __FILE__, __LINE__, #c); std::printf(__VA_ARGS__); std::puts(""); } } while (0)
 int main() {
@@ -37,6 +38,16 @@ int main() {
     // Velocidade escolhida pela pessoa: a live recusa o alcance (speed != 1).
     p.setLiveSpeed(1.0); p.speed = 1.5; p.setLiveSpeed(1.05);
     CHECK(p.liveRate.load() == 1.0, "the app does not stack its rate on a speed chosen by the person");
+    // Sair de uma live no meio do alcance e tocar uma música (só áudio): o relógio da música não herda o ritmo nem a âncora da live.
+    {
+        music::Player m; m.init();
+        m.liveRate = 1.05; m.liveClockOffset = 0.37; m.live = true;
+        m.audioOnly = true; m.speed = 1;
+        m.start({"127.0.0.1", 1}, "musicvid001", 0, "song", 200, 720, false, true);
+        CHECK(m.liveRate.load() == 1.0 && m.liveClockOffset == 0.0, "a music start clears the live rate (%.2f) and anchor (%.2f)", m.liveRate.load(), m.liveClockOffset);
+        CHECK(m.rate() == 1.0, "music clock runs at 1x");
+        m.halt();
+    }
     std::puts(failures ? "RESULT FAILED" : "RESULT OK");
     return failures ? 1 : 0;
 }

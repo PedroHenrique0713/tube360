@@ -64,6 +64,7 @@ struct Player : player::Player {
     speakerPause = nestCmd = 0;
     SDL_LockMutex(nmu); nestState = 0; nestPos = nestStampMs = 0; SDL_UnlockMutex(nmu);
     SDL_SetAtomicInt(&audioBaseMs,-1); SDL_SetAtomicInt(&pushed,0); SDL_SetAtomicInt(&netBytes,0);
+    liveRate = 1; liveClockOffset = 0;   // o alcance de uma live anterior não pode acelerar a posição e a letra da música
     if (audio) { SDL_PauseAudioStreamDevice(audio); SDL_ClearAudioStream(audio); SDL_SetAudioStreamFrequencyRatio(audio,1); }
     tvSound(false);
     if (serverAudio) {
