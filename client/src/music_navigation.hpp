@@ -11,7 +11,10 @@ struct MusicNavigation : Navigation {
   // Tocando agora. Zonas do foco: botões, barra de tempo, lista da fila, abas da direita, seletor Música/Vídeo.
   enum Zone { ZoneButtons, ZoneSeek, ZoneQueue, ZoneTabs, ZoneMode };
   enum Button { BtnPrev, BtnBack10, BtnPlay, BtnForward30, BtnNext, BtnLike, BtnDislike, BtnRepeat, BtnShuffle, BtnCount };
-  int queueSel = 0, queueTop = 0, tab = 0;      // tab: 0 = A seguir, 1 = Letra
+  int queueSel = 0, queueTop = 0, tab = 0;      // tab: 0 = A seguir, 1 = Letra, 2 = Relacionados
+  int relatedSel = 0, relatedTop = 0, rowsTab = -1;
+  bool autoplay = true, autoFocus = false, continuing = false, relatedLoaded = false;  // autoplay: ao fim da fila, segue com a rádio
+  std::vector<NavItem> related; std::string relatedId;
   int repeat = musicqueue::OFF;
   bool shuffled = false, moving = false, videoMode = false;
   bool seekPending = false; double seekTarget = 0; uint64_t seekAt = 0;
@@ -24,7 +27,7 @@ struct MusicNavigation : Navigation {
 
   void clearLocalQueue() { localQueue = false; ownsQueue = false; queue.clear(); queueStart.clear(); resetNow(); }
   void resetNow() {
-    queueSel = queueTop = tab = 0; repeat = musicqueue::OFF; shuffled = moving = videoMode = seekPending = false;
+    queueSel = queueTop = tab = relatedSel = relatedTop = 0; autoFocus = false; related.clear(); relatedId.clear(); relatedLoaded = false; repeat = musicqueue::OFF; shuffled = moving = videoMode = seekPending = false;
     queueSaved.clear(); nowZone = 0; nowSel = BtnPlay; ++queueRev; lyricWrap.clear(); lyricWrapSig.clear();
   }
   void queueChanged() { ++queueRev; }

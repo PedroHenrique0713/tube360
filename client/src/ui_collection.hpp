@@ -26,7 +26,7 @@ inline void UiContext::navInput(uint64_t now) {
       else if (playlist) playlistHeaderPress(p);
     }
   } else if (p.zone == 1) {
-    int maxTab = p.kind == "music_search" ? 5 : channel || p.kind == "music" ? 3 : 2, before = p.tabSel;
+    int maxTab = p.kind == "music_search" ? 5 : channel ? 3 : p.kind == "music" ? 4 : 2, before = p.tabSel;
     if (left && p.tabSel > 0) p.tabSel--;
     if (right && p.tabSel < maxTab) p.tabSel++;
     if (up && (channel || playlist)) p.zone = 0;
@@ -52,7 +52,11 @@ inline void UiContext::navInput(uint64_t now) {
           phonePlaybackSerial = 0;
           nav.queueStart = item.id; nav.cancelQueue = false; nav.musicSession = p.music; nav.musicNow = false;
           nav.action(navWorker,"/api/nav/play?kind="+p.kind+"&id="+net::urlEncode(p.id)+"&lang="+i18n::code(settings.lang));
-        } else if (p.music) { openNav("radio", item.id, "", true); nav.page().zone = 0; }
+        } else if (p.music) {  // música avulsa: toca já e monta a fila de rádio dela (como no YouTube Music), sem a página "Iniciar rádio"
+          phonePlaybackSerial = 0;
+          nav.queueStart = item.id; nav.cancelQueue = false; nav.musicSession = true; nav.musicNow = false;
+          nav.action(navWorker,"/api/nav/play?kind=radio&id="+net::urlEncode(item.id)+"&lang="+i18n::code(settings.lang));
+        }
         else requestVideo(item.video());
       } else if (item.type == "mixes") openNav("music", "", "mixes", true);
       else if (item.type == "history" || item.type == "later") openNav(item.type, "", "", p.music);

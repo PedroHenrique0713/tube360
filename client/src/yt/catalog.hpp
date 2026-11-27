@@ -309,7 +309,7 @@ inline std::map<string,string> query(const string& path) {
   return out;
 }
 inline bool supported(const string& path) {
-  if (path.compare(0,17,"/api/nav/channel?") == 0 || path.compare(0,16,"/api/nav/lyrics?") == 0) return true;
+  if (path.compare(0,17,"/api/nav/channel?") == 0 || path.compare(0,16,"/api/nav/lyrics?") == 0 || path.compare(0,17,"/api/nav/related?") == 0) return true;
   if (path.compare(0,9,"/api/nav?") != 0 && path.compare(0,14,"/api/nav/play?") != 0) return false;
   auto q = query(path); auto kind = q["kind"];
   return kind == "search" || kind == "channel" || kind == "playlist" || kind == "music" || kind == "music_search" || kind == "album" || kind == "artist" || kind == "radio" || kind == "music_playlist" || kind == "music_recent" || kind == "music_library" || kind == "chip";
@@ -531,6 +531,7 @@ public:
     bool isMusic = kind != "channel" && kind != "playlist" && kind != "search";
     Page failed;
     if (token.empty() && (kind=="music_recent" || kind=="music_library")) { failed.error="signed_out"; return failed; }
+    if (kind == "music" && search == "library") { if (token.empty()) { failed.error="signed_out"; return failed; } Page library; library.musicSource = "web"; return library; }  // só os atalhos do cliente
     if ((kind == "channel" || kind == "artist") ? !channelId(id) : kind == "radio" ? !videoId(id) : (kind == "playlist" || kind == "music_playlist" || kind == "album") ? !identifier(id) : false) { failed.error = "invalid_navigation"; return failed; }
     string key = kind + "|" + id + "|" + search + "|" + tab + "|" + filter + "|" + value("params") + "|" + language;
     int offset = std::max(0,std::atoi(value("offset").c_str()));
@@ -631,6 +632,7 @@ private:
       const auto* lyrics = find(data,"musicDescriptionShelfRenderer");
       return "ok\t" + clean(lyrics ? text(get(*lyrics,"description")) : "") + "\n";
     }
+    if (path.compare(0,17,"/api/nav/related?") == 0) return musicRelated(q);
     if (path.compare(0,14,"/api/nav/play?") == 0) {
       q["offset"] = "0"; Page queue = browse(q);
       if (!queue.error.empty()) return wire(queue);
@@ -692,6 +694,29 @@ public:
     if (top.id.empty() || top.type.empty()) return;
     p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[&](const Item& i) { return i.type == top.type && i.id == top.id; }),p.items.end());
     p.items.insert(p.items.begin(),std::move(top));
+  }
+  // Aba "Relacionados" do Tocando agora: a aba MPTR do `next` da música (o YouTube Music a chama de Related).
+  string musicRelated(std::map<string,string>& q) {
+    if (!videoId(q["id"])) return "error\tinvalid_video\n";
+    language = localeLanguage(q["lang"]);
+    J data; Object args; args["videoId"] = J(q["id"]);
+    MusicSource source = MusicSource::Auto;
+    auto e = post(true,"next",args,data,&source);
+    if (!e.empty()) return "error\t"+e+"\n";
+    string id;
+    if (const auto* tabs = find(data,"tabs")) for (const auto& t : array(*tabs)) {
+      const auto* ep = find(get(t,"tabRenderer"),"browseEndpoint");
+      if (ep && str(*ep,"browseId").compare(0,4,"MPTR") == 0) { id = str(*ep,"browseId"); break; }
+    }
+    Page empty; empty.musicSource = source == MusicSource::TV ? "tv" : source == MusicSource::Web ? "web" : "public";
+    if (id.empty()) return wire(empty);
+    args.clear(); args["browseId"] = J(id);
+    e = post(true,"browse",args,data,&source);
+    if (!e.empty()) return "error\t"+e+"\n";
+    Page p = decode(data,true); p.musicSource = empty.musicSource;
+    if (!p.error.empty()) return wire(p);
+    p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[](const Item& i) { return i.type != "video"; }),p.items.end());
+    p.continuation.clear(); return wire(p);
   }
   // Id de um chip/botão de clima: "browseId|params|rótulo" (o rótulo vai junto para a página aberta ter título).
   static string chipId(const string& browseId, const string& params, const string& label) { return browseId + "|" + params + "|" + label; }

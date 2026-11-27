@@ -424,6 +424,11 @@ inline const char* arabic(Key key) {
     case Key::MusicExplore: return "استكشاف";
     case Key::MusicTopResult: return "أفضل نتيجة";
     case Key::MusicFeatured: return "قوائم تشغيل مميزة";
+    case Key::MusicRelated: return "ذات صلة";
+    case Key::MusicRelatedEmpty: return "لا يوجد شيء ذو صلة بهذا المقطع.";
+    case Key::MusicAutoplay: return "التشغيل التلقائي";
+    case Key::MusicAutoplayOn: return "التشغيل التلقائي مفعل";
+    case Key::MusicAutoplayOff: return "التشغيل التلقائي متوقف";
     case Key::MusicSongTab: return "الأغنية";
     case Key::MusicVideoTab: return "الفيديو";
     case Key::MusicMoveTrack: return "نقل المقطع";

@@ -157,6 +157,23 @@ int main(int argc, char** argv) {
   h.add(music,next,read(dir,"lyrics-next.json"),{{"videoId",J(string("F12audio001"))}});
   h.add(music,browse,read(dir,"lyrics.json"),{{"browseId",J(string("MPLYfixture"))}});
   check(c.handle("/api/nav/lyrics?id=F12audio001&lang=pt").find("Letra de teste") != string::npos,"lyrics endpoint discovery");
+  {  // F65: aba Relacionados do Tocando agora (tab MPTR do `next`), só músicas; sem a aba volta lista vazia
+    string nextJson = read(dir,"lyrics-next.json"); auto at = nextJson.find("MPLYfixture"); check(at != string::npos,"fixture lyrics tab");
+    nextJson.replace(at,11,"MPTRfixture");
+    h.add(music,next,nextJson,{{"videoId",J(string("F12audio001"))}});
+    h.add(music,browse,read(dir,"music-album.json"),{{"browseId",J(string("MPTRfixture"))}});
+    auto related = c.handle("/api/nav/related?id=F12audio001&lang=pt");
+    check(related.rfind("ok\t",0) == 0 && related.find("\nvideo\t") != string::npos,"related tab lists the songs of its page");
+    check(related.find("\nalbum\t") == string::npos && related.find("\nartist\t") == string::npos,"related keeps only songs");
+    h.add(music,next,read(dir,"lyrics-next.json"),{{"videoId",J(string("F12audio001"))}});
+    auto none = c.handle("/api/nav/related?id=F12audio001&lang=pt");
+    check(none.rfind("ok\t",0) == 0 && none.find("\nvideo\t") == string::npos,"no related tab gives an empty list");
+    check(c.handle("/api/nav/related?id=bad&lang=pt").rfind("error\t",0) == 0,"related refuses a bad video id");
+  }
+  {  // F65: aba Biblioteca não faz pedido (os atalhos são do cliente); sem conta pede login
+    auto library = request("music"); library["q"] = "library";
+    check(c.browse(library).error == "signed_out","library tab is account-only and makes no request");
+  }
   check(!c.setToken("invalid\r\nheader"),"token rejects header injection");
   check(c.setToken("fixture-token"),"token accepted");
   h.add(music,"",read(dir,"music-context.html"));

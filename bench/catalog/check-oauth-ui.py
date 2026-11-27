@@ -77,7 +77,7 @@ cases = [
     ('recent', 'pt', True, 'music_recent', '', {}, 'tv'),
     ('library', 'pt', True, 'music_library', '', {}, 'tv'),
     ('liked', 'pt', True, 'music_playlist', '', {'XT_NAV_ID': 'VLLM'}, 'tv'),
-    ('shelf-audio', 'pt', True, 'music', '', {'XT_KEYS': 'DDAA', 'XT_KEYS_MS': '650', 'XT_SHOT_MS': '3500'}, 'tv'),
+    ('shelf-audio', 'pt', True, 'music', '', {'XT_KEYS': 'DDA', 'XT_KEYS_MS': '650', 'XT_SHOT_MS': '3500'}, 'tv'),
     ('shortcut-back', 'pt', True, 'music', '', {'XT_KEYS': 'AB', 'XT_KEYS_MS': '650'}, 'tv'),
 ]
 wanted = set(sys.argv[2:])
@@ -131,6 +131,7 @@ for name, lang, signed, kind, query, config, expected_source in cases:
     assert 'navegação '+kind+':' in log, (name, log)
     if name=='shelf-audio':
         assert 'musica: primeiro audio' in log and 'primeiro quadro:' not in log, log
+        assert 'catalogo console: /api/nav/play' in log and 'navegação radio:' not in log, log  # música avulsa toca direto, sem a página da rádio
         audio_requests = audit.read_text()
         assert 'googlevideo.com/audio-F12audio001.m4a' in audio_requests and 'googlevideo.com/dubbed-' not in audio_requests, audio_requests
     if signed:

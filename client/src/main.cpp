@@ -1446,10 +1446,14 @@ int run(int argc, char** argv) {
             nav.localQueue = r.catalog || r.localAccount; nav.queueIndex = 0;
             if (nav.localQueue && !nav.queue.empty()) {
               for (size_t i = 0; i < nav.queue.size(); ++i) if (nav.queue[i].id == nav.queueStart) nav.queueIndex = i;
+              if (nav.continuing && nav.queue.size() > 1 && nav.queue[0].id == playing.id) nav.queueIndex = 1;  // a rádio começa na faixa que acabou
               startVideo(nav.queue[nav.queueIndex].video(),0,false);
             }
           }
-          nav.resetNow(); nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
+          nav.continuing = false; nav.resetNow(); nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
+        } else if (r.key.rfind("/api/nav/related?", 0) == 0) {
+          NavPage page; Navigation::parse(r.feed.title, page);
+          if (r.key == "/api/nav/related?id=" + playing.id + "&lang=" + i18n::code(settings.lang)) { nav.related = std::move(page.items); nav.relatedLoaded = true; nav.relatedSel = nav.relatedTop = 0; nav.queueChanged(); }
         } else if (r.key.rfind("/api/nav/lyrics?", 0) == 0) {
           if (screen == PLAYER && r.key == "/api/nav/lyrics?id=" + playing.id) {
             auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
@@ -1462,6 +1466,8 @@ int run(int argc, char** argv) {
         if (r.key == "/api/nav/transport?action=stop") { nav.cancelQueue = false; nav.ownsQueue = false; }
         if (!ok) {
           if (r.key.rfind("/api/nav/play?", 0) == 0) nav.musicSession = nav.musicNow = false;
+          if (r.key.rfind("/api/nav/related?", 0) == 0) { nav.relatedLoaded = true; continue; }
+          if (nav.continuing) { nav.continuing = false; stopVideo(); continue; }  // a rádio não veio: acaba como acabaria sem a reprodução automática
           if (r.key.rfind("/api/nav/lyrics?", 0) == 0) continue;  // sem letra: a aba mostra "Letra indisponível", sem aviso
           auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
           toast = fields.size() > 1 ? fields[1] : tr(K::ActionFailed); toastUntil = now + 4500;
@@ -1689,6 +1695,12 @@ int run(int argc, char** argv) {
       size_t following = 0;
       if (nav.advance(following) && !(sleep.active && sleep.end)) {
         nav.queueIndex = following; nav.queueSel = (int)following; startVideo(nav.queue[following].video(),0,false);
+      } else if (nav.autoplay && !nav.queue.empty() && !(sleep.active && sleep.end)) {
+        // Reprodução automática: acabou a fila, segue com a rádio da última faixa (a resposta troca a fila e continua dali)
+        if (!nav.continuing && !nav.busy) {
+          nav.continuing = true; nav.cancelQueue = false; nav.queueStart.clear();
+          nav.action(navWorker,"/api/nav/play?kind=radio&id="+net::urlEncode(playing.id)+"&lang="+i18n::code(settings.lang));
+        }
       } else { endTimerPending = sleep.active && sleep.end; stopVideo(); }
     }
     // ---- F63 Player e Shorts: fim de um Short emenda no próximo da fila (ou repete o último), sem o "a seguir em 8 s" de vídeo comum

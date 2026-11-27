@@ -444,6 +444,11 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(MusicExplore, "Explore", "Explorar", "Explorar") \
   X(MusicTopResult, "Top result", "Melhor resultado", "Mejor resultado") \
   X(MusicFeatured, "Featured playlists", "Playlists em destaque", "Listas destacadas") \
+  X(MusicRelated, "Related", "Relacionados", "Relacionados") \
+  X(MusicRelatedEmpty, "Nothing related to this track.", "Nada relacionado a esta faixa.", "Nada relacionado con esta pista.") \
+  X(MusicAutoplay, "Autoplay", "Reprodução automática", "Reproducción automática") \
+  X(MusicAutoplayOn, "Autoplay on", "Reprodução automática ligada", "Reproducción automática activada") \
+  X(MusicAutoplayOff, "Autoplay off", "Reprodução automática desligada", "Reproducción automática desactivada") \
   X(MusicSongTab, "Song", "Música", "Canción") \
   X(MusicVideoTab, "Video", "Vídeo", "Video") \
   X(MusicMoveTrack, "Move track", "Mover faixa", "Mover pista") \

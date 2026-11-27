@@ -72,7 +72,7 @@ struct Navigation {
     // As telas guardam seleção e rolagem; B não refaz a consulta de onde o usuário veio.
     if (pages.size() >= 12) pages.erase(pages.begin() + 1);
     NavPage p; p.kind = kind; p.id = id; p.query = query; p.music = music; p.filters=filters;
-    if (kind == "music") p.tabSel = query == "explore" ? 1 : query == "charts" ? 2 : query == "mixes" ? 3 : 0;
+    if (kind == "music") p.tabSel = query == "explore" ? 1 : query == "library" ? 2 : query == "charts" ? 3 : query == "mixes" ? 4 : 0;
     pages.push_back(std::move(p)); load(worker, lang);
   }
   void channelFromVideo(Worker& worker, i18n::Lang lang, const std::string& id) {
@@ -119,7 +119,7 @@ struct Navigation {
       if (p.error=="signed_out") p.error=i18n::get(lang,K::AccountRequired);
       if (p.musicHome()) p.musicLabel=p.musicSource.empty() ? "" : gfx::ellipsize(g,ui::F_TINY,
           i18n::get(lang,p.musicSource=="public" ? K::PublicMusic : K::YourMusic),ui::narrow ? ui::W-364 : 480);
-      if (first && p.kind == "music" && p.query.empty() && p.error.empty() && (p.musicSource=="web" || p.musicSource=="tv")) {
+      if (first && p.kind == "music" && (p.query.empty() || p.query == "library") && p.error.empty() && (p.musicSource=="web" || p.musicSource=="tv")) {
         std::vector<NavItem> shortcuts;
         for (auto entry : {std::pair<const char*,K>{"music_recent",K::MusicRecent},{"music_library",K::Playlists},{"music_playlist",K::MusicLiked},
                            {"music_songs",K::Songs},{"music_albums",K::Albums},{"music_artists",K::Artists}}) {
