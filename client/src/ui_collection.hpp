@@ -15,6 +15,7 @@ inline void UiContext::navInput(uint64_t now) {
   if (p.musicHome()) { if (count) p.sel = std::clamp(p.sel, 0, count - 1); }
   else p.grid(ui::columns(4),settings.hideShorts);
   bool hasItems = p.musicHome() ? count != 0 : !p.rows.empty();
+  if (channel) channelSortInput(p);
   bool left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), up = in.hit(Input::UP), down = in.hit(Input::DOWN), a = in.hit(Input::A);
   bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.gridPosition() == 0;
   if (left && (p.zone == 0 || (p.zone == 1 && p.tabSel == 0) || (p.zone == 2 && p.channelSel == 0) || (p.zone == 3 && firstColumn))) {
@@ -26,7 +27,7 @@ inline void UiContext::navInput(uint64_t now) {
       else if (playlist) playlistHeaderPress(p);
     }
   } else if (p.zone == 1) {
-    int maxTab = channel || p.kind == "music_search" ? 3 : 2, before = p.tabSel;
+    int maxTab = channel ? 4 : p.kind == "music_search" ? 3 : 2, before = p.tabSel;
     if (left && p.tabSel > 0) p.tabSel--;
     if (right && p.tabSel < maxTab) p.tabSel++;
     if (up && (channel || playlist)) p.zone = 0;

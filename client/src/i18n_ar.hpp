@@ -390,6 +390,12 @@ inline const char* arabic(Key key) {
     // ---- F61 Início e coleção
 
     // ---- F62 Busca e canal
+    case Key::ChannelHome: return "الرئيسية";
+    case Key::SortRecent: return "الأحدث";
+    case Key::SortPopular: return "الأكثر رواجاً";
+    case Key::SortOldest: return "الأقدم";
+    case Key::VerifiedChannel: return "موثّق";
+    case Key::VideosCount: return "فيديو";
 
     // ---- F63 Player e Shorts
 

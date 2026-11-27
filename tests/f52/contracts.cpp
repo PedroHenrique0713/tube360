@@ -105,13 +105,13 @@ static void drawContract() {
   nav.pages.push_back(p); nav.format(nav.page(),g,i18n::Lang::EN);
   auto artRows=[&]() {
     std::vector<float> ys;
-    for (const auto& cmd:g.cmds) if (cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-252)<.01 && std::abs(cmd.params[1]-141.75)<.01)
+    for (const auto& cmd:g.cmds) if (cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-256)<.01 && std::abs(cmd.params[1]-144)<.01)
       for (unsigned i=0;i<cmd.count;i+=6) { float y=g.verts[cmd.first+i].y; if(std::find(ys.begin(),ys.end(),y)==ys.end()) ys.push_back(y); }
     return ys;
   };
   nav.draw(g,thumbs,worker,1,1,i18n::Lang::EN,true);
-  auto rows=artRows(); require(rows==std::vector<float>({210,451.75}),"actual renderer draws second thumbnail row even when its text crosses footer");
-  std::cout<<"PASS draw: thumbnail rows at y="<<rows[0]<<", "<<rows[1]<<"; old whole-card cull suppressed row 2\n";
+  auto rows=artRows(); require(rows==std::vector<float>({210,378}),"actual renderer draws one rich search row per result, 256x144 thumbnails, the third clipped by the footer");
+  std::cout<<"PASS draw: rich search rows at y="<<rows[0]<<", "<<rows[1]<<"\n";
   nav.page().items={card(100,true),card(101,true)}; nav.page().gridSize=-1;
   nav.page().sel=0; nav.page().scroll=0; nav.format(nav.page(),g,i18n::Lang::EN);
   g.verts.clear(); g.cmds.clear(); nav.draw(g,thumbs,worker,2,2,i18n::Lang::EN,true);
@@ -137,7 +137,7 @@ static void drawContract() {
   nav.page().kind="library"; nav.page().items={card(100,true),card(101,true)};
   nav.format(nav.page(),g,i18n::Lang::EN);
   g.verts.clear(); g.cmds.clear(); nav.draw(g,thumbs,worker,5,5,i18n::Lang::EN,true);
-  require(std::none_of(g.cmds.begin(),g.cmds.end(),[](const auto& cmd){return cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-252)<.01 && std::abs(cmd.params[1]-141.75)<.01;}),"library Shorts do not receive a landscape playlist overlay");
+  require(std::none_of(g.cmds.begin(),g.cmds.end(),[](const auto& cmd){return cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-256)<.01 && std::abs(cmd.params[1]-144)<.01;}),"library Shorts do not receive a landscape playlist overlay");
   std::cout<<"PASS draw: library Shorts retain compact portrait artwork and labels\n";
   SDL_DestroyCondition(worker.cv); SDL_DestroyMutex(worker.mu); SDL_Quit();
 }
