@@ -7,7 +7,7 @@ struct NavItem {
   yt::Membership members = yt::Membership::None;
   std::vector<std::string> titleLines; std::string byline;
   bool shortForm = false;
-  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = duration; v.members = members; return v; }
+  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = std::max(0,duration); v.live = duration == 0; v.members = members; return v; }
 };
 struct NavPage : ItemGrid {
   yt::search::Filters filters;
@@ -22,7 +22,7 @@ struct NavPage : ItemGrid {
   std::vector<Shelf> shelves;
   int shelf = 0;
   bool musicHome() const { return kind == "music"; }
-  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,hide && !(kind == "channel" && tab == "shorts")); }
+  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,hide && !(kind == "channel" && tab == "shorts"),kind == "history" ? 1 : 0); }
   int gridRow() const { return ItemGrid::gridRow(sel); }
   int gridPosition() const { return ItemGrid::gridPosition(sel); }
   bool moveGrid(int horizontal, int vertical) { return ItemGrid::moveGrid(sel,horizontal,vertical); }
@@ -40,6 +40,7 @@ struct NavDraw {
   const char* tr(K key) const { return i18n::get(lang, key); }
 };
 struct Navigation {
+  int columnsSetting = 4;  // Configurações > colunas; a grade das páginas de navegação segue o mesmo ajuste da Home
   local::Library* local = nullptr;
   bool signedIn = false;
   uint64_t localRevision = 0;
@@ -108,7 +109,7 @@ struct Navigation {
       if (p.direct) {
         p.title = p.query; p.subtitle = i18n::get(lang, K::Console); p.more = false;
         for (const auto& v : r.feed.items) {
-          NavItem item{"video",v.id,v.title,v.channel,v.id,"","",v.dur,v.members};
+          NavItem item{"video",v.id,v.title,v.channel,v.id,"","",v.live ? 0 : v.dur > 0 ? v.dur : -1,v.members};
           item.shortForm=v.shortForm; p.items.push_back(std::move(item));
         }
         p.offset = (int)p.items.size();
@@ -153,7 +154,7 @@ struct Navigation {
           item.byline = gfx::ellipsize(g, ui::F_TINY, item.channel, 140);
           continue;
         }
-        float width = std::floor((ui::W-200-(ui::columns(4)-1)*24)/ui::columns(4));
+        float width = std::floor((ui::W-200-(ui::columns(columnsSetting)-1)*24)/ui::columns(columnsSetting));
         if (item.shortForm) width = std::min(width*.5f,112.f);
         item.titleLines = gfx::wrap(g, item.shortForm ? ui::F_SMALL : ui::F_KEY, item.title, width-(p.kind=="library" && !item.shortForm ? 24 : 0), 2);
         std::string by = item.type == "album" ? std::string(i18n::get(lang, K::Album)) + (item.channel.empty() ? "" : " · " + item.channel) :
@@ -179,7 +180,7 @@ struct Navigation {
     if (list) {
       p.items.clear(); p.loading=p.more=false; p.direct=true; p.image.clear();
       p.subtitle=i18n::get(lang,K::LocalOnly);
-      for (const auto& e:p.kind=="local_later"?local->later:local->history) p.items.push_back({"video",e.id,e.title,e.channel,e.id,"","",e.duration});
+      for (const auto& e:p.kind=="local_later"?local->later:local->history) p.items.push_back({"video",e.id,e.title,e.channel,e.id,"","",e.duration > 0 ? e.duration : -1});
     } else {
       p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[](const NavItem& i){return i.type=="local_later" || i.type=="local_history";}),p.items.end());
       NavItem later,history; later.type="local_later";later.id="LOCAL_LATER";later.title=i18n::get(lang,K::LocalLater);

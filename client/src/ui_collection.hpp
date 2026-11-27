@@ -13,7 +13,7 @@ inline void UiContext::navInput(uint64_t now) {
   if (p.kind=="search") searchFiltersPress(p);
   int count = (int)p.items.size();
   if (p.musicHome()) { if (count) p.sel = std::clamp(p.sel, 0, count - 1); }
-  else p.grid(ui::columns(4),settings.hideShorts);
+  else { nav.columnsSetting = settings.cols; p.grid(ui::columns(settings.cols),settings.hideShorts); }
   bool hasItems = p.musicHome() ? count != 0 : !p.rows.empty();
   bool left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), up = in.hit(Input::UP), down = in.hit(Input::DOWN), a = in.hit(Input::A);
   bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.gridPosition() == 0;
@@ -109,16 +109,18 @@ inline float Navigation::drawCollectionPage(NavDraw& d) {
   }
   float top = p.kind == "library" ? 120 : 178;
   if (p.kind == "subscriptions" && !p.channels.empty()) {
+    // logo abaixo do cabeçalho: com subtítulo vazio (Inscrições) a faixa sobe até o fim do título (#27)
+    const float stripY = p.displaySub.empty() ? 28 + g.fonts[ui::F_BIG].lineH + 18 : 126;
     int channelCount=ui::narrow ? 4 : ui::large ? 5 : 7;
     int first = std::max(0, p.channelSel-channelCount+1);
     for (int c = first; c < std::min(first+channelCount, (int)p.channels.size()); c++) {
-      float x = 136 + (c - first) * 154; const auto& item = p.channels[(size_t)c];
+      float x = 136 + (c - first) * 154; const auto& item = p.channels[(size_t)c];  // faixa logo abaixo do cabeçalho (#27)
       bool f = d.contentFocus && p.zone == 2 && c == p.channelSel;
-      if (f) gfx::rect(g, x - 5, 166 - 5, 106, 106, ui::TEXT, 53);
-      artwork(g, d.thumbs, d.worker, item.image, d.frame, x, 166, 96, 96, true, true);
-      gfx::text(g, ui::F_CHAN, item.byline, x, 276, f ? ui::TEXT : ui::MUTED);
+      if (f) gfx::rect(g, x - 5, stripY - 5, 106, 106, ui::TEXT, 53);
+      artwork(g, d.thumbs, d.worker, item.image, d.frame, x, stripY, 96, 96, true, true);
+      gfx::text(g, ui::F_CHAN, item.byline, x, stripY + 110, f ? ui::TEXT : ui::MUTED);
     }
-    top = 342;
+    top = stripY + 176;
   }
   navGrid(d, top, navMetrics(d));
   return top;

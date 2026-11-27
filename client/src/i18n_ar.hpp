@@ -388,6 +388,7 @@ inline const char* arabic(Key key) {
     case Key::SettingOn: return "تشغيل";
     case Key::SettingOff: return "إيقاف";
     // ---- F61 Início e coleção
+    case Key::MembersOnly: return "للأعضاء فقط";
 
     // ---- F62 Busca e canal
 

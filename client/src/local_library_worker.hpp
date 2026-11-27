@@ -21,8 +21,14 @@ class Writer {
   }
 public:
   explicit Writer(std::string p):path(std::move(p)){if(mu && cv)thread=yt::worker(run,"local-library",this);}
-  ~Writer(){if(thread){SDL_LockMutex(mu);quit=true;SDL_SignalCondition(cv);SDL_UnlockMutex(mu);SDL_WaitThread(thread,nullptr);}if(cv)SDL_DestroyCondition(cv);if(mu)SDL_DestroyMutex(mu);}
-  void submit(const Library& library){if(!thread)return;SDL_LockMutex(mu);pending=library;dirty=true;SDL_SignalCondition(cv);SDL_UnlockMutex(mu);}
+  // Sinaliza o fim, espera a thread terminar (ela grava a última vaga antes) e só então o mutex e a condição podem morrer.
+  // Idempotente: o main chama antes de SDL_Quit; o destrutor chama de novo sem efeito.
+  void stop(){
+    if(thread){SDL_LockMutex(mu);quit=true;SDL_BroadcastCondition(cv);SDL_UnlockMutex(mu);SDL_WaitThread(thread,nullptr);thread=nullptr;}
+  }
+  ~Writer(){stop();if(cv){SDL_DestroyCondition(cv);cv=nullptr;}if(mu){SDL_DestroyMutex(mu);mu=nullptr;}}
+  Writer(const Writer&)=delete; Writer& operator=(const Writer&)=delete;
+  void submit(const Library& library){if(!thread || quit)return;SDL_LockMutex(mu);pending=library;dirty=true;SDL_SignalCondition(cv);SDL_UnlockMutex(mu);}
   bool poll(uint64_t& revision,bool& ok){if(!thread){if(revision)return false;revision=1;ok=false;return true;}SDL_LockMutex(mu);bool changed=done && revision!=done;if(changed){revision=done;ok=success;}SDL_UnlockMutex(mu);return changed;}
 };
 }

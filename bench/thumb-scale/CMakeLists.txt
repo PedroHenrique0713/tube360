@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.20)
+project(tube360_thumb_scale CXX)
+set(CMAKE_CXX_STANDARD 20)
+enable_testing()
+add_executable(thumb-scale-test test.cpp)
+target_include_directories(thumb-scale-test PRIVATE ../../client/src)
+add_test(NAME thumb-scale COMMAND thumb-scale-test)
