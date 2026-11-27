@@ -172,6 +172,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
 }
 
 struct Worker {
+  SDL_Mutex* decodeMu = SDL_CreateMutex();  // uma decodificação grande por vez: as 3 threads de miniatura dividem o mesmo núcleo, e assim o pico de memória é de uma imagem HD só
   net::Server srv; std::shared_ptr<yt::ConsoleAccount> consoleAccount; SDL_Mutex* mu = SDL_CreateMutex(); SDL_Condition* cv = SDL_CreateCondition();
   std::deque<Job> jobs; std::deque<Result> results; bool quit = false, finishJobs = false; int hw = 5;
   std::string musicToken;
@@ -307,7 +308,14 @@ struct Worker {
         bool banner = markedBanner || (j.w == 1184 && j.h == 160);
         std::string address = markedBanner ? j.a.substr(1) : j.a;
         bool artwork = !yt::catalog::imageUrl(address).empty(), jpegTried=false;
-        if (artwork) {
+        if (artwork && !banner) {  // #15: capa HD do mesmo vídeo (hq720.jpg) antes da URL do feed, que vem em 320x180 ou WebP
+          auto hd = yt::catalog::hdThumbnail(address);
+          if (!hd.empty()) {
+            auto img = https->request(hd);
+            if (img.status == 200 && img.error.empty()) { native = true; resp.body.assign(img.body.begin(), img.body.end()); }
+          }
+        }
+        if (artwork && !native) {
           auto img = https->request(yt::catalog::imageUrl(address));
           native = img.status == 200 && img.error.empty();
           if (native) resp.body.assign(img.body.begin(),img.body.end());
@@ -320,14 +328,9 @@ struct Worker {
           }
         }
         if (!native && (j.native || !net::serverEnabled || (consoleAccount && consoleAccount->active())) && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
-          // #15: a capa HD (1280x720) reduzida ao cartão; sem ela, a de 320x180 de sempre. No console o JPEG HD só vale para a
-          // capa grande (640x360, uma imagem): decodificar 1280x720 por cartão custa ~19x de CPU e ~11 MB de pico no Xenon, inclusive
-          // com 3 colunas (384x216), texto grande e 480p; lá os cartões seguem em 320x180.
-#ifdef __XSDK__
-          const bool wantHd = j.w >= 640;
-#else
+          // #15: a capa HD (1280x720) reduzida ao cartão; sem ela, a de 320x180 de sempre. Vale também no console: a decodificação
+          // grande é serializada (decodeMu) e o slot da GPU segue com o tamanho do cartão, então o orçamento de vagas não muda.
           const bool wantHd = true;
-#endif
           yt::Response img;
           if (wantHd) { img = https->request("https://i.ytimg.com/vi/" + j.a + "/hq720.jpg"); }
           if (!(img.status == 200 && img.error.empty())) img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg");
@@ -349,6 +352,8 @@ struct Worker {
               }
             }
           }
+          const bool bigImage = int64_t(w) * h > 400000;
+          if (bigImage) SDL_LockMutex(decodeMu);
           unsigned char* px = w ? stbi_load_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n, 4) : nullptr;
           if (px) {
             r.w = j.w; r.h = j.h;
@@ -370,6 +375,7 @@ struct Worker {
             }
             stbi_image_free(px);
           }
+          if (bigImage) SDL_UnlockMutex(decodeMu);
         }
       }
       bool safeFallback = feedJob || accountPath == "/api/account" || accountPath == "/api/account/login" ||

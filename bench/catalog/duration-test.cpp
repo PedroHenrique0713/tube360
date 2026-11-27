@@ -31,5 +31,14 @@ int main() {
   if (!parse(history, page)) { std::cerr << "FAIL parse history\n"; return 1; }
   auto decoded = decode(page, false);
   if (decoded.items.size() != 2 || decoded.items[0].section != "Hoje" || decoded.items[1].section != "Ontem") { std::cerr << "FAIL history day headings\n"; return 1; }
-  std::cout << "3 duration layouts, 4 live-mark cases and 2 history day headings parsed\n";
+  // #15: a URL do feed (hqdefault.jpg?sqp=..., vi_webp/...webp, //i.ytimg.com/...) vira a capa HD hq720.jpg do mesmo vídeo; o que não é capa de vídeo do ytimg não vira nada.
+  struct Hd { const char* in; const char* out; } hds[] = {
+    {"https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg?sqp=-oaymw&rs=AOn4", "https://i.ytimg.com/vi/abcdefghijk/hq720.jpg"},
+    {"https://i.ytimg.com/vi_webp/abcdefghijk/hq720.webp", "https://i.ytimg.com/vi/abcdefghijk/hq720.jpg"},
+    {"//i.ytimg.com/vi/abcdefghijk/oar2.jpg?x=1", "https://i.ytimg.com/vi/abcdefghijk/hq720.jpg"},
+    {"https://yt3.ggpht.com/avatar=s88", ""},
+    {"https://example.com/vi/abcdefghijk/hqdefault.jpg", ""},
+  };
+  for (const auto& c : hds) if (hdThumbnail(c.in) != c.out) { std::cerr << "FAIL hdThumbnail " << c.in << " -> " << hdThumbnail(c.in) << '\n'; return 1; }
+  std::cout << "3 duration layouts, 4 live-mark cases and 2 history day headings and 5 HD thumbnail URLs parsed\n";
 }

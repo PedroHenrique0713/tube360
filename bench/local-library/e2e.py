@@ -182,7 +182,7 @@ for rule in manifest['requests']:
     if rule['file']=='channel-videos.json':rule['file']='channel-webp.json'
 manifest_path.write_text(json.dumps(manifest))
 try:
-    r=run('channel-webp',XT_NAV='channel',XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw',seconds=5)
+    r=run('channel-webp',XT_NAV='channel',XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw',keys='URD',seconds=6)
     if r:assert 'JPEG fallback ok=1' in r[1],r[1][-2500:]
 finally:manifest_path.write_text(original)
 print('UI checks:',len(results))

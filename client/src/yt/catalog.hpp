@@ -129,6 +129,12 @@ inline string jpegThumbnail(const string& address) {
   if(host!="i.ytimg.com" && host!="i1.ytimg.com" && host!="i2.ytimg.com" && host!="i3.ytimg.com" && host!="i4.ytimg.com")return {};
   return "https://i.ytimg.com/vi/"+id+"/mqdefault.jpg";
 }
+// Capa HD (1280x720 JPEG) do mesmo vídeo. As URLs que o feed manda (hqdefault.jpg?sqp=..., vi_webp/...webp) são de 320x180 ou WebP;
+// para o cartão em 384x216 ou 640x360 a fonte boa é a hq720.jpg. Vazia quando não é capa de vídeo do ytimg.
+inline string hdThumbnail(const string& address) {
+  auto jpg=jpegThumbnail(address); if(jpg.empty())return {};
+  return jpg.substr(0,jpg.size()-string("mqdefault.jpg").size())+"hq720.jpg";
+}
 inline int seconds(const string& s) {
   if (s.empty() || s.size() > 11 || s.find(':') == string::npos || s.find_first_not_of("0123456789:") != string::npos) return 0;
   int64_t out = 0, n = 0;
