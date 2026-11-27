@@ -90,16 +90,18 @@ inline double duration(const string& seg, uint32_t timescale) {
 // Atraso da imagem em relação ao fim do segmento completo mais novo (borda disponível). `headStart` é o X-Head-Time do
 // segmento mais novo; `shown` o PTS absoluto em tela. O piso de um live é um segmento.
 inline double lag(double headStartSec, double segSec, double shownAbsSec) { return headStartSec + segSec - shownAbsSec; }
-// Velocidade da live (WSOLA, tom preservado) no modo de atraso mínimo. `aheadLowSec` é o MENOR adiantamento (mídia entregue menos
-// mídia em tela) dos últimos segundos: no piso do formato ele encosta em zero a cada segmento e qualquer atraso da rede vira
-// travada, então a reserva fina estica a reprodução (0,95x) até sobrar folga; e o alcance (1,05x) só liga bem acima do piso
-// (dois segmentos + 1 s, com reserva) e só desliga perto dele (1,3 segmento + 0,5 s). Entre os limites o estado não muda.
+// Velocidade da live (WSOLA, tom preservado) no modo de atraso mínimo. O atraso de um live em segmentos é o do segmento (piso) mais a
+// reserva de mídia que a TV mantém à frente: o piso não se mexe, a reserva sim. `aheadLowSec` é o MENOR adiantamento (mídia entregue
+// menos mídia em tela) dos últimos segundos e é o que decide:
+//  - acima de 2,5 s sobra reserva: 1,05x até ela cair para ~1,2 s (o atraso cai junto), desde que o atraso ainda esteja acima do piso;
+//  - abaixo de 0,5 s qualquer atraso da rede vira travada: 0,95x até a reserva voltar a 1,5 s;
+//  - entre os limites o estado não muda (histerese larga; o serrote de um segmento do atraso não liga e desliga nada).
 inline double speedFor(double latencySec, double aheadLowSec, double segSec, double current, bool lowLatency) {
     if (!lowLatency) return 1.0;
-    if (current > 1.001) return (latencySec <= 1.3 * segSec + .5 || aheadLowSec < 1.0) ? 1.0 : current;
-    if (current < 0.999) return aheadLowSec >= 1.2 ? 1.0 : current;
-    if (latencySec > 2 * segSec + 1.0 && aheadLowSec >= 2.0) return 1.05;
-    if (aheadLowSec < 0.4) return 0.95;
+    if (current > 1.001) return (aheadLowSec <= 1.2 || latencySec <= 1.3 * segSec + .5) ? 1.0 : current;
+    if (current < 0.999) return aheadLowSec >= 1.5 ? 1.0 : current;
+    if (aheadLowSec > 2.5 && latencySec > 1.3 * segSec + .5) return 1.05;
+    if (aheadLowSec < 0.5) return 0.95;
     return 1.0;
 }
 }  // namespace seq
@@ -232,7 +234,7 @@ private:
         }
         return r;
     }
-    void note(Track& t, const Response& r) {
+    void note(Track& t, const Response& r, bool waited = false) {
         if (r.headSeq >= 0) t.headSeq = r.headSeq;
         if (r.headTimeMs >= 0) t.headTimeMs = r.headTimeMs;
         if (r.wallMs >= 0) {
@@ -240,7 +242,7 @@ private:
             if (t.video) {
                 wallMs = r.wallMs; wallTick = SDL_GetTicks();
                 // Resposta de um segmento que acabou de fechar (o pedido esperou por ele): o relógio do servidor marca o fim do segmento.
-                if (r.headSeq >= 0 && r.segmentSeq == r.headSeq && r.seconds > .15 && r.headTimeMs >= 0) {
+                if (waited && r.headSeq >= 0 && r.segmentSeq == r.headSeq && r.headTimeMs >= 0) {
                     long long candidate = r.wallMs - (r.headTimeMs + (long long)(segSec() * 1000));
                     if (candidate < offsetMs.load()) offsetMs = candidate;
                 }
@@ -298,10 +300,12 @@ private:
             if (blocked) lastData = SDL_GetTicks();   // esperou a TV consumir (pausa): não conta como transmissão parada
             // Sem segmento novo por 45 s (headSeq parado): a transmissão acabou ou parou. Fim limpo, o player mostra "terminou" em vez de congelar.
             if (SDL_GetTicks() - lastData > stallMs) { finish(t, 0, 0); return; }
+            // Pedido de segmento acima da borda conhecida: a resposta só sai quando ele fecha, então o relógio do servidor marca o fim dele.
+            const bool future = t.headSeq.load() >= 0 && t.next > t.headSeq.load();
             auto r = fetch(t, seq::url(t.base, t.next), true);
             if (stopped()) break;
             if (r.status == 200 && r.error.empty()) {
-                note(t, r);
+                note(t, r, future);
                 if (!push(t, std::move(r.body), false)) { finish(t, -2, 200); return; }
                 ++t.next; failures = 0; lastData = SDL_GetTicks();
                 continue;

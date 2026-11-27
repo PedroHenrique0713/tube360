@@ -123,15 +123,16 @@ static void pure() {
     CHECK(seq::url("https://x/y?a=1&n=Z", 12) == "https://x/y?a=1&n=Z&sq=12", "sq url");
     // atraso e alcance (piso = um segmento; histerese)
     CHECK(std::fabs(seq::lag(100, 5, 100) - 5) < 1e-9, "lag at the start of the newest segment is one segment");
-    CHECK(seq::speedFor(15, 6, 5, 1, true) == 1.05, "behind with a buffer -> 1.05x");
-    CHECK(seq::speedFor(15, 0.5, 5, 1, true) == 1.0 && seq::speedFor(15, 0.3, 5, 1, true) == 0.95, "behind but no buffer -> never speeds up; a thin buffer stretches");
-    CHECK(seq::speedFor(9, 6, 5, 1, true) == 1.0 && seq::speedFor(11.5, 6, 5, 1, true) == 1.05, "5 s segments: catch-up above 2 segments + 1 s");
-    CHECK(seq::speedFor(5.2, 6, 2, 1, true) == 1.05 && seq::speedFor(4.9, 6, 2, 1, true) == 1.0, "2 s segments scale the threshold");
-    // histerese larga: entre 1,3 segmento + 0,5 s e 2 segmentos + 1 s o estado não muda (o serrote de um segmento não liga e desliga)
-    for (double l = 8.0; l <= 11.0; l += .25) CHECK(seq::speedFor(l, 6, 5, 1.05, true) == 1.05 && seq::speedFor(l, 6, 5, 1, true) == 1.0, "no flapping inside the window (%.2f)", l);
-    CHECK(seq::speedFor(6.9, 6, 5, 1.05, true) == 1.0 && seq::speedFor(12, .5, 5, 1.05, true) == 1.0, "catch-up off near the floor or without buffer");
-    CHECK(seq::speedFor(5, .3, 5, 1, true) == 0.95 && seq::speedFor(5, 1.0, 5, 0.95, true) == 0.95 && seq::speedFor(5, 1.2, 5, 0.95, true) == 1.0, "thin buffer: 0.95x until 1.2 s of slack, hysteresis between");
-    CHECK(seq::speedFor(20, 20, 5, 1, false) == 1.0 && seq::speedFor(5, 0.1, 5, 1, false) == 1.0, "option off never changes the speed");
+    CHECK(seq::speedFor(12, 3.0, 5, 1, true) == 1.05, "spare buffer above the floor -> 1.05x");
+    CHECK(seq::speedFor(6.5, 3.0, 5, 1, true) == 1.0, "already at the floor (latency <= 1.3 segments + 0.5 s): no catch-up even with buffer");
+    CHECK(seq::speedFor(12, 1.8, 5, 1, true) == 1.0, "1.8 s of buffer is inside the window: nothing changes");
+    CHECK(seq::speedFor(12, 0.3, 5, 1, true) == 0.95, "thin buffer -> 0.95x (stalls are what costs latency)");
+    // histerese: o estado só muda fora da janela 1,2 s a 2,5 s (catch-up) e 0,5 s a 1,5 s (folga)
+    for (double a = 1.3; a <= 2.5; a += .1) CHECK(seq::speedFor(12, a, 5, 1.05, true) == 1.05 && seq::speedFor(12, a, 5, 1, true) == 1.0, "no flapping inside the window (%.1f)", a);
+    CHECK(seq::speedFor(12, 1.2, 5, 1.05, true) == 1.0 && seq::speedFor(6.5, 9, 5, 1.05, true) == 1.0, "catch-up off at 1.2 s of buffer or at the floor");
+    CHECK(seq::speedFor(12, 1.0, 5, 0.95, true) == 0.95 && seq::speedFor(12, 1.5, 5, 0.95, true) == 1.0, "slow-down holds until 1.5 s of buffer");
+    CHECK(seq::speedFor(30, 30, 5, 1, false) == 1.0 && seq::speedFor(5, 0.1, 5, 1, false) == 1.0, "option off never changes the speed");
+    CHECK(seq::speedFor(6.9, 4, 2, 1, true) == 1.05, "2 s segments: the floor is 3.1 s, so 6.9 s still has room to catch up");
     // duração do segmento lida do trun (sem número fixo)
     {
         string trun = string("\0\0\1\0\0\0\0\3", 8);        // flags 0x100 (duração por amostra), 3 amostras

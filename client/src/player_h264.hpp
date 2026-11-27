@@ -141,13 +141,14 @@ inline void Player::decodeOriginal() {
         return result;
       };
       r = openSeq(media.video);
-      // Fonte escolhida não abriu (e não foi URL vencida): desce um degrau, como no VOD. Troca de degrau com a live em curso não existe.
+      // Fonte escolhida não abriu (inclusive 403: há lives em que o degrau mais alto responde 403 e os outros não): desce um degrau, como no VOD.
+      // Se todos derem 403 sobra o caminho do 403 de membros. Troca de degrau com a live em curso não existe.
       if (r < 0 && !stop && liveSeq->error == "waiting") {
         // Live que não começou ou parou: descer degrau não resolve. Mensagem própria, sem renovar nem cair no servidor.
         LOG("live-seq: borda sem segmento novo (204 ou tempo esgotado); live nao comecou ou esta parada");
         error = "live_waiting"; renew = retryConverted = false; state = FAILED; return;
       }
-      while (r < 0 && !stop && !playback::manual(videoMode) && liveSeq->httpStatus() != 403 && liveSeq->error != "waiting" && !media.lowerVideo.empty()) {
+      while (r < 0 && !stop && !playback::manual(videoMode) && liveSeq->error != "waiting" && !media.lowerVideo.empty()) {
         auto next = media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
         LOG("qualidade: live por segmentos %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
         s.reset(); separate.reset(); s.wrap33 = separate.wrap33 = false;
@@ -283,7 +284,7 @@ inline void Player::decodeOriginal() {
     const int c = masterMs.load();
     if (c < 0 || !std::isfinite(origin)) return -1;
     if (liveSeq) { const double end = liveSeq->pushedEndSec(); return end >= 0 ? end - (origin + c / 1000.0) : -1; }
-    if (broadcast && broadcast->firstStamp.load() >= 0 && broadcast->plannedEnd.load() >= 0) return broadcast->plannedEnd.load() - (broadcast->firstStamp.load() + c / 1000.0);
+    if (broadcast && broadcast->firstStamp.load() >= 0 && broadcast->fetchedEnd.load() >= 0) return broadcast->fetchedEnd.load() - (broadcast->firstStamp.load() + c / 1000.0);
     return -1;
   };
   auto decode = [&](h264::Stream& input, AVCodecContext* codec, AVPacket* packet) -> int {
@@ -356,7 +357,7 @@ inline void Player::decodeOriginal() {
         enqueuePlanes(f->width, f->height, pts, f->data, f->linesize, bt709,
                       f->color_range == AVCOL_RANGE_JPEG || f->format == AV_PIX_FMT_YUVJ420P, (int)std::lround(sourceRate),std::move(surface));
         copyNs += SDL_GetTicksNS() - begin; last = pts; count++;
-        if (live && liveLowLatency) { const double a = liveAhead(); if (a >= 0) aheadMin = std::min(aheadMin, a); }
+        if (live) { const double a = liveAhead(); if (a >= 0) aheadMin = std::min(aheadMin, a); }
         if (videoMetrics) {
           SDL_LockMutex(mu); int queued = (int)frames.size(); SDL_UnlockMutex(mu);
           LOG("decode-quadro: pts %.6f, %dx%d, fonte %.3f fps, fila %d, copia %.3f ms",pts,f->width,f->height,sourceRate,queued,(SDL_GetTicksNS()-begin) / 1e6);
@@ -492,7 +493,7 @@ inline void Player::decodeOriginal() {
           if (head >= 0) { latency = liveSeq->latencySec(shown); ahead = end >= 0 ? end - shown : 0; segment = liveSeq->segSec(); }
         } else if (broadcast->firstStamp.load() >= 0 && broadcast->edgeEnd.load() >= 0 && broadcast->segmentSec.load() > 0) {
           const double shown = broadcast->firstStamp.load() + clock / 1000.0;
-          latency = broadcast->edgeEnd.load() - shown; ahead = broadcast->plannedEnd.load() - shown; segment = broadcast->segmentSec.load();
+          latency = broadcast->edgeEnd.load() - shown; ahead = broadcast->fetchedEnd.load() - shown; segment = broadcast->segmentSec.load();
         }
         if (aheadMin < 1e8) { aheadHistory[size_t(aheadSamples++ % 6)] = aheadMin; aheadMin = 1e9; }
         if (latency >= 0 && segment > 0 && aheadSamples >= 3) {
