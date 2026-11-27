@@ -32,7 +32,7 @@ static constexpr Table kMap[(int)Ctx::Count] = {
   /* Update     */ {{Act::Open,      Act::Back, Act::None,       Act::None,    Act::None,     Act::None,     Act::None,     Act::None,        Act::Refresh, Act::None}},
   /* PlayerShelf*/ {{Act::Open,      Act::Back, Act::WatchLater, Act::None,    Act::PrevTab,  Act::NextTab,  Act::None,     Act::None,        Act::Options, Act::None}},
   /* MusicPage  */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PageUp,   Act::PageDown,    Act::Options, Act::None}},
-  /* MusicNow   */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevItem, Act::NextItem, Act::VolumeDown, Act::VolumeUp,   Act::Options, Act::SongVideo}},  // Tocando agora com o foco nos botões e na barra: LT RT = volume (nas listas vale Music, LT RT = página)
+  /* MusicNow   */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PrevItem, Act::NextItem,    Act::Options, Act::SongVideo}},  // Tocando agora com o foco nos botões e na barra: LT RT = volume (nas listas vale Music, LT RT = página)
 };
 
 constexpr Act act(Ctx c, Btn b) { return kMap[(int)c].a[(int)b]; }

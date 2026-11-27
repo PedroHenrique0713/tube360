@@ -1,6 +1,7 @@
 #pragma once
 #include "navigation.hpp"
 #include "music_queue.hpp"
+#include "player_ui.hpp"
 
 struct MusicNavigation : Navigation {
   bool localQueue = false;
@@ -10,7 +11,8 @@ struct MusicNavigation : Navigation {
 
   // Tocando agora. Zonas do foco: botões, barra de tempo, lista da fila, abas da direita, seletor Música/Vídeo.
   enum Zone { ZoneButtons, ZoneSeek, ZoneQueue, ZoneTabs, ZoneMode };
-  enum Button { BtnPrev, BtnBack10, BtnPlay, BtnForward30, BtnNext, BtnLike, BtnDislike, BtnRepeat, BtnShuffle, BtnCount };
+  enum Button { BtnPrev, BtnBack10, BtnPlay, BtnForward30, BtnNext, BtnLike, BtnDislike, BtnRepeat, BtnShuffle, BtnSound, BtnCount };
+  SoundPanel sound;                             // painel do botão de som (TV ou caixa e volume), o mesmo do player
   int queueSel = 0, queueTop = 0, tab = 0;      // tab: 0 = A seguir, 1 = Letra, 2 = Relacionados
   int relatedSel = 0, relatedTop = 0, rowsTab = -1;
   bool railHasFocus = false;                    // o foco está no trilho lateral: a moldura da lista não aparece

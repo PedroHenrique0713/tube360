@@ -30,8 +30,9 @@ int main() {
   CHECK(button(Ctx::Update, Act::Refresh) == Btn::Menu && !has(Ctx::Panel, Act::Refresh) && act(Ctx::Settings, Btn::LB) == Act::PrevTab);
   CHECK(act(Ctx::Shorts, Btn::LT) == Act::VolumeDown && act(Ctx::Shorts, Btn::RT) == Act::VolumeUp && pairSecond(Act::VolumeUp));  // volume nos Shorts
   CHECK(act(Ctx::PlayerShelf, Btn::LB) == Act::PrevTab && act(Ctx::PlayerShelf, Btn::X) == Act::WatchLater);  // abas da fileira do player
-  CHECK(act(Ctx::MusicNow, Btn::LT) == Act::VolumeDown && act(Ctx::MusicNow, Btn::RT) == Act::VolumeUp && act(Ctx::Music, Btn::LT) == Act::PageUp);  // Tocando agora: volume nos botões, página nas listas
-  CHECK(act(Ctx::MusicNow, Btn::LB) == act(Ctx::Music, Btn::LB) && act(Ctx::MusicNow, Btn::View) == Act::SongVideo);  // o resto igual ao Music
+  CHECK(act(Ctx::MusicNow, Btn::LB) == Act::PrevTab && act(Ctx::MusicNow, Btn::RB) == Act::NextTab);  // Tocando agora: LB/RB trocam A seguir, Letra e Relacionados
+  CHECK(act(Ctx::MusicNow, Btn::LT) == Act::PrevItem && act(Ctx::MusicNow, Btn::RT) == Act::NextItem);  // LT/RT: faixa anterior e próxima
+  CHECK(!has(Ctx::MusicNow, Act::VolumeDown) && !has(Ctx::MusicNow, Act::VolumeUp) && act(Ctx::MusicNow, Btn::View) == Act::SongVideo);  // o volume sai dos gatilhos
   CHECK(act(Ctx::MusicPage, Btn::X) == Act::AddQueue && act(Ctx::MusicPage, Btn::LB) == Act::PrevTab && act(Ctx::Music, Btn::LB) == Act::PrevItem);  // páginas de Música x Tocando agora
   FakeInput in; in.fired[FakeInput::START] = true;
   CHECK(!hit(in, Ctx::Home, Act::SongVideo));
