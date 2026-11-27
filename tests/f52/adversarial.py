@@ -180,10 +180,10 @@ for screen in ('search', 'home'):
     run(screen+'-player-back', mixed, prefix+'DRRA........B', 6, screen, player=18)
 
 run('search-left-end', shorts, 'S.....'+'R'*20+'L'*13, 0, rail=True)
-toggle = '......DRRLLL'+'D'*6+'A'+seq(7,'RBR')
+toggle = '......DRRLLL'+'D'*6+'A'+seq(7,'RBBR')
 run('home-toggle-focused-short', mixed, toggle+'R', 18, screen='home',
     persisted=['shorts=hide'])
-run('home-toggle-row-again', mixed, toggle+'L'+'D'*6+'ARBRUR', 5, screen='home',
+run('home-toggle-row-again', mixed, toggle+'L'+'D'*6+'A'+seq(7,'RBB',start=2)+'RUR', 5, screen='home',
     persisted=['shorts=row'])
 
 for lang, cols, large, height in [('en', 4, False, 720), ('pt', 3, False, 720),

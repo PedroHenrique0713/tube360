@@ -14,8 +14,10 @@ def _where(row):
     raise ValueError(row)
 
 
-def seq(*steps, start=0):
-    """Cada passo é um id de linha (vai até ela) ou um texto de teclas cru (ex.: 'RRR'). Começa na linha `start`."""
+def seq(*steps, start=0, inside=False):
+    """Cada passo é um id de linha (vai até ela) ou um texto de teclas cru (ex.: 'RRR'). Começa na linha `start`, com o foco
+    na coluna de seções (inside=False): para chegar a uma linha, LB/RB trocam a seção, A entra nela (uma vez) e cima/baixo
+    andam dentro. Depois de entrar, LB/RB seguem trocando de seção sem sair de dentro."""
     keys, here = '', start
     for step in steps:
         if isinstance(step, str):
@@ -26,12 +28,17 @@ def seq(*steps, start=0):
         if s1 != s0:
             keys += (']' if s1 > s0 else '[') * abs(s1 - s0)
             i0 = 0
+        if not inside:
+            keys += 'A'
+            inside = True
         keys += ('D' if i1 > i0 else 'U') * abs(i1 - i0)
         here = step
     return keys
 
 
 if __name__ == '__main__':
-    assert seq(5) == ']]]' and seq(2) == ']' and seq(8) == ']]]]]' and seq(7) == ']DDDDD'
-    assert seq(7, 'R', 8, 'R') == ']DDDDDR]]]]R' and seq(14) == ']]]]]]' and seq(18) == ']]D' * 0 + ']]DDD'
+    assert seq(5) == ']]]A' and seq(8) == ']]]]]A'
+    assert seq(2) == ']A' and seq(7) == ']ADDDDD' and seq(0) == 'A'
+    assert seq(7, 'R', 8, 'R') == ']ADDDDDR]]]]R' and seq(14) == ']]]]]]A' and seq(18) == ']]ADDD'
+    assert seq(2, 'RR', 9, 'R') == ']ARRDR'
     print('settings_nav: ok')
