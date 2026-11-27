@@ -3,6 +3,7 @@
 // Worker e das páginas (navigation.hpp), que os cartões desenham.
 #pragma once
 #include "music_shortcut_art.hpp"
+#include "controls.hpp"
 
 static std::string fmtTime(double s) {
   if (s < 0) s = 0;
@@ -65,6 +66,23 @@ static float buttonGlyph(gfx::Gfx& g, float x, float y, const char* label, Color
 static float hint(gfx::Gfx& g, float x, float y, const char* btn, Color bc, const char* label) {
   float w = buttonGlyph(g, x, y, btn, bc);
   return x + w + 8 + gfx::text(g, ui::F_SMALL, label, x + w + 8, y + 2, ui::MUTED) + 26;
+}
+// Dica do mapa único (controls.hpp): botão e rótulo vêm da tabela do contexto; `text` troca o rótulo (ex.: "Tocar tudo").
+// A ação sem botão no contexto não desenha nada e devolve o x. A 2ª metade de um par (RB, RT) não tem dica própria.
+static float ctlHint(gfx::Gfx& g, float x, float y, ctl::Ctx c, ctl::Act a, i18n::Lang lang, K text = K::None) {
+  ctl::Btn b = ctl::button(c, a);
+  if (b == ctl::Btn::Count || ctl::pairSecond(a)) return x;
+  const bool pairLB = b == ctl::Btn::LB, pairLT = b == ctl::Btn::LT;
+  const char* glyph = pairLB ? i18n::get(i18n::Lang::EN, K::BtnShoulders) : pairLT ? i18n::get(i18n::Lang::EN, K::BtnTriggers) :
+      b == ctl::Btn::A ? "A" : b == ctl::Btn::B ? "B" : b == ctl::Btn::X ? "X" : b == ctl::Btn::Y ? "Y" : b == ctl::Btn::Menu ? "Menu" :
+      b == ctl::Btn::View ? "View" : b == ctl::Btn::RB ? "RB" : "RT";
+  Color color = b == ctl::Btn::A ? XA : b == ctl::Btn::B ? XB : b == ctl::Btn::X ? XX : b == ctl::Btn::Y ? XY : XG;
+  return hint(g, x, y, glyph, color, i18n::get(lang, text != K::None ? text : ctl::label(a)));
+}
+// Uma fileira de dicas, na ordem dada.
+static float ctlFooter(gfx::Gfx& g, float x, float y, ctl::Ctx c, i18n::Lang lang, std::initializer_list<ctl::Act> acts) {
+  for (ctl::Act a : acts) x = ctlHint(g, x, y, c, a, lang);
+  return x;
 }
 
 // Marca: o logo "Órbita" (anel fino em degradê em volta do play) com o nome ao lado; o "360" no fim sai em peso leve.

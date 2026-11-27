@@ -414,6 +414,22 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   /* ---- F63 Player e Shorts */ \
   /* */ \
   /* ---- F64 Configurações e controle */ \
+  X(CtlPlayPause, "Play / pause", "Tocar / pausar", "Reproducir / pausar") \
+  X(CtlAddQueue, "Add to queue", "Adicionar à fila", "Añadir a la cola") \
+  X(CtlSongVideo, "Song / Video", "Música / Vídeo", "Canción / Video") \
+  X(CtlSwitchTab, "Switch tab", "Trocar de aba", "Cambiar pestaña") \
+  X(CtlPrevNext, "Previous / next", "Anterior / próximo", "Anterior / siguiente") \
+  X(CtlPage, "Jump a page", "Pular uma página", "Saltar una página") \
+  X(CtlSeek, "Seek (hold)", "Avançar (segurar)", "Avanzar (mantener)") \
+  X(CtlSection, "Section", "Seção", "Sección") \
+  X(SecAccount, "Account", "Conta", "Cuenta") \
+  X(SecVideo, "Video", "Vídeo", "Video") \
+  X(SecSound, "Sound", "Som", "Sonido") \
+  X(SecScreen, "Screen and language", "Tela e idioma", "Pantalla e idioma") \
+  X(SecTimer, "Timer", "Timer", "Temporizador") \
+  X(SecPrivacy, "Privacy", "Privacidade", "Privacidad") \
+  X(SecSystem, "System", "Sistema", "Sistema") \
+  X(SettingVolume, "Volume", "Volume", "Volumen") \
   /* */ \
   /* ---- F65 Música */ \
   /* */ \
