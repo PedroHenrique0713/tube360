@@ -143,6 +143,8 @@ struct Player {
   // áudio
   SDL_AudioStream* audio = nullptr; std::atomic<bool> hasAudio{false};
   float normalGain = 1, fadeGain = 1;
+  // Volume escolhido na interface (0..1), por cima do fade do sono e do volume do celular. Gravado em settings.txt (`volume`, 0 a 100).
+  float userVolume = 1;
   std::atomic<bool> audible{true};
   uint64_t tvMutedSince = 0;
 #ifdef __XSDK__
@@ -164,11 +166,27 @@ struct Player {
   void sleepGain(float gain) {
     if (gain == fadeGain) return;
     fadeGain = gain;
-    if (audio && audible) SDL_SetAudioStreamGain(audio, normalGain * gain);
+    if (audio && audible) SDL_SetAudioStreamGain(audio, normalGain * gain * userVolume);
+  }
+  // Volume do app em passos de 5 (0 a 100). Vale na TV (ganho do stream) e no Nest (SET_VOLUME absoluto no receptor).
+  // Devolve o valor efetivo para a interface mostrar/gravar. Chamar de novo com o mesmo valor é inofensivo.
+  static constexpr int volumeStep = 5;
+  int volumePercent() const { return (int)std::lround(userVolume * 100); }
+  int setVolumePercent(int percent, bool toNest = true) {
+    percent = std::clamp(percent, 0, 100);
+    userVolume = percent / 100.f;
+    if (audio && audible) SDL_SetAudioStreamGain(audio, normalGain * fadeGain * userVolume);
+    if (toNest && directSpeaker.configured()) directSpeaker.volume(userVolume, percent == 0);
+    return percent;
+  }
+  int stepVolume(int direction) {
+    int now = volumePercent();
+    int next = direction > 0 ? (now / volumeStep + 1) * volumeStep : ((now + volumeStep - 1) / volumeStep - 1) * volumeStep;
+    return setVolumePercent(next);
   }
   void tvSound(bool on) {
     if (audible == on) return;
-    if (audio && !SDL_SetAudioStreamGain(audio, on ? normalGain * fadeGain : 0.0f)) return;
+    if (audio && !SDL_SetAudioStreamGain(audio, on ? normalGain * fadeGain * userVolume : 0.0f)) return;
 #ifdef __XSDK__
     if (!on && audio && firstPts >= 0) {
       XsdkAudioStats stats{};
