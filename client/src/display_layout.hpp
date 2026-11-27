@@ -33,12 +33,20 @@ inline CommentsPanel commentsPanel(float width, float authorLine, float metaLine
   p.lines = std::max(1,std::min(10,int((p.h-70-p.bodyY)/p.lineH)));
   return p;
 }
-inline VideoRect videoRect(float w, float h, float sourceW, float sourceH, bool fill) {
+// Afastamento, em texels da fonte, das quatro leituras bilineares da luma ao reduzir `ratio` (fonte/saída) vezes.
+// 1:1 fica em bilinear puro; em 1,5 (1080p→720p) são 0,45 (eram 0,375 fixos); acima disso cresce 0,3 por vez, até 0,9.
+inline float downscaleTap(float ratio) {
+  return ratio <= 1.5f ? std::max(0.f, .9f * (ratio - 1)) : std::min(.9f, .3f * ratio);
+}
+// `pixelAspect` é largura/altura física de cada pixel do framebuffer (1 = quadrado): o vídeo conserva a proporção na tela, não no framebuffer.
+inline VideoRect videoRect(float w, float h, float sourceW, float sourceH, bool fill, float pixelAspect = 1) {
   if (sourceW <= 0 || sourceH <= 0) return {0, 0, w, h};
-  float scale = std::min(w / sourceW, h / sourceH);
-  if (!fill) return {(w-sourceW*scale)/2, (h-sourceH*scale)/2, sourceW*scale, sourceH*scale};
-  scale = std::max(w / sourceW, h / sourceH);
-  float u = w / (sourceW*scale), v = h / (sourceH*scale);
+  if (!(pixelAspect > 0)) pixelAspect = 1;
+  float boxW = w * pixelAspect;
+  float scale = std::min(boxW / sourceW, h / sourceH);
+  if (!fill) return {(boxW-sourceW*scale)/2/pixelAspect, (h-sourceH*scale)/2, sourceW*scale/pixelAspect, sourceH*scale};
+  scale = std::max(boxW / sourceW, h / sourceH);
+  float u = boxW / (sourceW*scale), v = h / (sourceH*scale);
   return {0, 0, w, h, (1-u)/2, (1-v)/2, (1+u)/2, (1+v)/2};
 }
 }

@@ -126,7 +126,7 @@ const char* tube360_board_sim_name(void){return profile?profile->name:"none";}
 int tube360_board_sim_extent(int requested,int native,int* width,int* height) {
     if(!active)return 0;
     if(tube360_board_sim_sd()) {
-        *width=mode==4?848:640;*height=mode==6?576:480;
+        *width=mode==4?864:640;*height=mode==6?576:480;
     } else if(!native) { *width=1280;*height=720; }
     else if(requested==480) { *width=640;*height=480; }
     else { *height=requested==1080 && mode==1?1080:720;*width=*height*16/9; }

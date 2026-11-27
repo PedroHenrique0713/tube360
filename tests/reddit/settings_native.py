@@ -44,6 +44,7 @@ struct Gfx {
 VkSurfaceKHR displaySurface(Gfx&){assert(idle && reset);return 1;}
 void makeSwapchain(Gfx& g,int w,int h){assert(idle && reset);g.extent={(uint32_t)w,(uint32_t)h};}
 VkPipeline makePipeline(Gfx&,Pipe){assert(idle && reset);return 1;}
+int pixelUpdates;void updatePixelAspect(Gfx&){assert(idle && reset);++pixelUpdates;}
 '''
 macro=next(line for line in source.splitlines() if line.startswith('#define VK('))
 body=function('inline void quiesce(')+'\n'+function('inline bool fixedOutput(')+'\n'+function('inline bool output(')+'\n}\n'
@@ -60,7 +61,7 @@ int main(){
  try{gfx::output(g,1080);assert(false);}catch(const std::runtime_error&){}
  assert(!mutations && !setter && g.retained[0]);
  failReset=false;
- assert(gfx::output(g,1080) && mutations && setter==1 && !g.retained[0] && g.extent.height==1080 && g.bootFrame);
+ assert(gfx::output(g,1080) && mutations && setter==1 && !g.retained[0] && g.extent.height==1080 && g.bootFrame && gfx::pixelUpdates==1);
  puts("PASS native settings: safe is a complete no-op; idle/reset failures retire nothing; native change after GPU stopped");
 }
 '''

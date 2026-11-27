@@ -117,7 +117,7 @@ Arquivo limitado a 1024 bytes, com whitespace e comentários em linha própria i
 NUL, chave desconhecida, repetida, número fora do intervalo, perfil ou combinação inválidos fazem
 o arquivo inteiro falhar seguro: driver safe, nenhuma falha/espera injetada. Não há reload por frame.
 
-Modos: saída pedida 480 usa 640×480; contratos SD usam 640×480, 848×480 (wide) ou 640×576 (PAL), em native e safe. 1080 requer contrato 1080p e, no console, autorização do modo real. Safe mantém o framebuffer existente: HD usa 1280×720; SD/entrelaçado conserva o viewport do painel. Alterar a preferência de saída em safe ou SD não recria o display. A integração F32 substitui a rejeição antiga de 480i+safe; a validação física de CRT ainda é necessária.
+Modos: saída pedida 480 usa 640×480; contratos SD usam 640×480, 864×480 (wide) ou 640×576 (PAL), em native e safe. 1080 requer contrato 1080p e, no console, autorização do modo real. Safe mantém o framebuffer existente: HD usa 1280×720; SD/entrelaçado conserva o viewport do painel. Alterar a preferência de saída em safe ou SD não recria o display. A integração F32 substitui a rejeição antiga de 480i+safe; a validação física de CRT ainda é necessária.
 
 Pontos de injeção: `output` rejeita antes do teardown; `fonts` antes de destruir o atlas; `mapped-alloc`
 antes de criar nova superfície. No Xbox, `display-open` retorna timeout simulado antes de
