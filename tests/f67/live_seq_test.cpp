@@ -123,7 +123,7 @@ static void pure() {
     // atraso e alcance (piso = um segmento; histerese)
     CHECK(std::fabs(seq::lag(100, 5, 100) - 5) < 1e-9, "lag at the start of the newest segment is one segment");
     CHECK(seq::speedFor(15, 6, 5, 1, true) == 1.05, "behind with a buffer -> 1.05x");
-    CHECK(seq::speedFor(15, 0.5, 5, 1, true) == 0.95, "behind but no buffer -> never speed up; thin buffer stretches");
+    CHECK(seq::speedFor(15, 0.5, 5, 1, true) == 1.0 && seq::speedFor(15, 0.3, 5, 1, true) == 0.95, "behind but no buffer -> never speeds up; a thin buffer stretches");
     CHECK(seq::speedFor(9, 6, 5, 1, true) == 1.0 && seq::speedFor(11.5, 6, 5, 1, true) == 1.05, "5 s segments: catch-up above 2 segments + 1 s");
     CHECK(seq::speedFor(5.2, 6, 2, 1, true) == 1.05 && seq::speedFor(4.9, 6, 2, 1, true) == 1.0, "2 s segments scale the threshold");
     // histerese larga: entre 1,3 segmento + 0,5 s e 2 segmentos + 1 s o estado não muda (o serrote de um segmento não liga e desliga)
