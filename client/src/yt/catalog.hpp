@@ -155,7 +155,33 @@ inline string channel(const J& v) {
 // Metadados do lockupViewModel (busca real): linha 1 = canal (+ verificado), depois visualizações (ícone de play) e data.
 inline void lockupMeta(const J& lock, Item& out, bool course = false) {
   const auto& rows = array(get(get(get(lock,"metadata"),"contentMetadataViewModel"),"metadataRows"));
-  for (const auto& row : rows) for (const auto& part : array(get(row,"metadataParts"))) {
+  int rowNo = -1;
+  for (const auto& row : rows) {
+    ++rowNo;
+    const auto& parts = array(get(row,"metadataParts"));
+    // Busca TV de música: a linha 0 é só o texto do canal (sem avatarStack) e a linha seguinte traz, sem ícone, [tipo,] visualizações [, data].
+    bool plain = !course && rowNo > 0;
+    int digits = 0;
+    for (const auto& part : parts) {
+      if (get(part,"leadingIcon").is<Object>() || find(part,"avatarStackViewModel")) plain = false;
+      auto t = text(get(part,"text")); if (t.find_first_of("0123456789") != string::npos) ++digits;
+    }
+    if (!course && rowNo == 0 && out.channel.empty() && parts.size() == 1 && !find(parts[0],"avatarStackViewModel") && !get(parts[0],"leadingIcon").is<Object>()) { out.channel = text(get(parts[0],"text")); continue; }
+    if (plain && digits >= 2) {
+      int seen = 0;
+      for (const auto& part : parts) {
+        auto t = text(get(part,"text")); if (t.find_first_of("0123456789") == string::npos) continue;
+        auto label = str(part,"accessibilityLabel");
+        if (seen == 0 && out.views.empty()) out.views = t; else if (seen == 1 && out.date.empty()) out.date = label.empty() ? t : label;
+        ++seen;
+      }
+      continue;
+    }
+    if (plain && digits == 1 && !parts.empty()) {  // faixa de música: "Música • 370 mi de visualizações"
+      for (const auto& part : parts) { auto t = text(get(part,"text")); if (t.find_first_of("0123456789") != string::npos && out.views.empty()) out.views = t; }
+      continue;
+    }
+    for (const auto& part : parts) {
     if (const auto* stack = find(part,"avatarStackViewModel")) {
       if (out.channel.empty()) out.channel = text(get(*stack,"text"));
       auto label = str(get(part,"icon"),"accessibilityLabel");
@@ -168,10 +194,12 @@ inline void lockupMeta(const J& lock, Item& out, bool course = false) {
     if (course) continue;  // o resto da linha de um curso ("Curso", "N vídeos") não é data nem visualização
     if (get(part,"leadingIcon").is<Object>()) { if (out.views.empty()) out.views = label.empty() ? t : label; }
     else if (out.date.empty()) out.date = label.empty() ? t : label;
+    }
   }
 }
 inline Item item(const J& v, const string& key, bool music, const string& section) {
-  Item out; out.section = section; out.members = membership(v);
+  auto blank = section.find_first_not_of(" \t\r\n");
+  Item out; out.section = blank == string::npos ? string{} : section; out.members = membership(v);
   out.shortForm = key == "reelItemRenderer" || key == "shortsLockupViewModel";
   out.listStyle = key == "musicResponsiveListItemRenderer";  // linha de lista (Escolhas rápidas), não cartão de carrossel
   const auto& cols = array(get(v,"flexColumns"));
@@ -185,12 +213,16 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   out.channel = text(get(v,"subtitle"));
   if (cols.size() > 1) out.channel = text(get(get(cols[1],"musicResponsiveListItemFlexColumnRenderer"),"text"));
   for (auto k : {"shortBylineText","longBylineText","ownerText"}) if (out.channel.empty()) out.channel = text(get(v,k));
+  if (key == "musicMultiRowListItemRenderer") {  // episódio de podcast: subtítulo = "visualizações • data", o programa vem em secondTitle
+    out.channel = text(get(v,"secondTitle"));
+  }
   if (out.channel.empty()) if (const auto* line = find(get(meta,"lines"),"lineItemRenderer")) out.channel = text(get(*line,"text"));
   out.id = str(v,"videoId");
   const J* ep = find(get(v,"navigationEndpoint"),"watchEndpoint");
   if (!ep) ep = find(first,"watchEndpoint");
   if (!ep) ep = find(get(v,"onSelectCommand"),"watchEndpoint");
   if (!ep) ep = find(get(v,"rendererContext"),"watchEndpoint");
+  if (!ep) ep = find(get(v,"onTap"),"watchEndpoint");
   const J* browse = find(get(v,"navigationEndpoint"),"browseEndpoint");
   if (!browse) browse = find(first,"browseEndpoint");
   if (!browse) browse = find(get(v,"onSelectCommand"),"browseEndpoint");
@@ -199,6 +231,11 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   bool list = contentType.find("PLAYLIST") != string::npos || key == "playlistRenderer" || key == "gridPlaylistRenderer";
   bool artist = contentType.find("CHANNEL") != string::npos || key == "channelRenderer" || key == "gridChannelRenderer";
   if (out.id.empty() && key=="reelItemRenderer") out.id=str(v,"videoId");
+  if (contentType.find("SHORT") != string::npos && key == "lockupViewModel") {  // busca TV: o toque aponta o canal; o vídeo é o contentId
+    out.shortForm = true;
+    if (const auto* reel = find(get(v,"rendererContext"),"reelWatchEndpoint")) out.id = str(*reel,"videoId");
+    if (out.id.empty()) out.id = str(v,"contentId");
+  }
   if (key=="shortsLockupViewModel") {
     if(out.id.empty()) if(const auto* reel=find(get(v,"onTap"),"reelWatchEndpoint"))out.id=str(*reel,"videoId");
     if(out.title.empty())out.title=str(get(get(v,"overlayMetadata"),"primaryText"),"content");
@@ -213,7 +250,7 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   if (list) out.type = "playlist";
   else if (artist) out.type = music ? "artist" : "channel";
   else if (videoId(out.id)) out.type = "video";
-  else if (pageType.find("ALBUM") != string::npos || out.id.compare(0,4,"MPRE") == 0) out.type = "album";
+  else if (pageType.find("ALBUM") != string::npos || pageType.find("PODCAST_SHOW") != string::npos || out.id.compare(0,4,"MPRE") == 0) out.type = "album";
   else if (channelId(out.id)) out.type = music ? "artist" : "channel";
   else if (pageType.find("PLAYLIST") != string::npos || out.id.compare(0,2,"VL") == 0 || out.id.compare(0,2,"PL") == 0 || out.id.compare(0,2,"RD") == 0 || out.id.compare(0,4,"OLAK") == 0) out.type = "playlist";
   if (out.type != "video") out.members = Membership::None;
@@ -239,10 +276,14 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
       if (n) out.duration = n;
     }
   }
-  if (out.type == "video" && !music && !out.shortForm && !out.duration && !yt::liveMark(v)) out.duration = -1; // 0 = ao vivo; sem selo de tempo = desconhecida
+  if (out.type == "video" && !out.shortForm && !out.duration && !yt::liveMark(v)) out.duration = -1; // 0 = ao vivo; sem selo de tempo = desconhecida
   if (out.type == "video" || out.type == "playlist") {
     out.date = text(get(v,"publishedTimeText")); out.views = text(get(v,"viewCountText"));
     lockupMeta(lock,out,str(v,"contentType").find("COURSE") != string::npos);
+    if (key == "musicMultiRowListItemRenderer") {
+      const auto& runs = array(get(get(v,"subtitle"),"runs"));
+      if (!runs.empty()) { out.views = str(runs.front(),"text"); if (runs.size() > 2) out.date = str(runs.back(),"text"); }
+    }
   } else if (out.type == "channel") {
     out.date = text(get(v,"subscriberCountText")); out.views = text(get(v,"videoCountText"));
   }
@@ -280,7 +321,7 @@ inline void walk(const J& v, Page& p, bool music, std::set<string>& seen, string
       string token = str(x,key == "continuationCommand" ? "token" : "continuation");
       // A TV também pagina cada carrossel. A continuação externa pertence à página.
       if (!token.empty() && token.size() <= 16384 && depth < p.continuationDepth) { p.continuation=token; p.continuationDepth=depth; }
-    } else if (key == "shortsLockupViewModel" || key == "reelItemRenderer" || key == "videoRenderer" || key == "gridVideoRenderer" || key == "playlistVideoRenderer" || key == "playlistPanelVideoRenderer" || key == "musicTwoRowItemRenderer" || key == "musicResponsiveListItemRenderer" || key == "lockupViewModel" || key == "tileRenderer" || key == "channelRenderer" || key == "gridChannelRenderer" || key == "playlistRenderer" || key == "gridPlaylistRenderer") {
+    } else if (key == "shortsLockupViewModel" || key == "reelItemRenderer" || key == "videoRenderer" || key == "gridVideoRenderer" || key == "playlistVideoRenderer" || key == "playlistPanelVideoRenderer" || key == "musicTwoRowItemRenderer" || key == "musicMultiRowListItemRenderer" || key == "musicResponsiveListItemRenderer" || key == "lockupViewModel" || key == "tileRenderer" || key == "channelRenderer" || key == "gridChannelRenderer" || key == "playlistRenderer" || key == "gridPlaylistRenderer") {
       Item it = item(x,key,music,section);
       if (!it.id.empty() && p.items.size() < size_t(updates::rules()->n("catalogItems")) && seen.insert(it.type+it.id).second) p.items.push_back(std::move(it));
     } else if (key != "header" && key != "menu" && key != "navigationEndpoint" && key != "onSelectCommand" && key != "onLongPressCommand" && key != "frameworkUpdates" && key != "playerOverlays" && key != "currentVideoEndpoint") walk(x,p,music,seen,section,depth+1);
@@ -474,6 +515,7 @@ private:
         if (bid==policy->s("musicHomeId")) payload["browseId"]=J(string("FEtopics_music"));
         else if (bid=="FEmusic_history") payload["browseId"]=J(string("FEmusic_last_played"));
         else if (bid=="FEmusic_liked_playlists") payload["browseId"]=J(policy->s("libraryId"));
+        else if (bid=="FEmusic_library_corpus_track_artists") payload["browseId"]=J(string("FEmusic_library_corpus_artists"));  // a TV só tem "Inscrições"; o id da web dá 400 lá
       }
       Request r; r.url = policy->api(route,!tv)+"&alt=json";
       r.body = J(payload).serialize(); r.agent = tv ? policy->tv.agent : policy->s("catalogAgent");
@@ -498,7 +540,10 @@ private:
       // Cursor e segunda etapa pertencem ao cliente que os emitiu. Nunca os enviar à reserva.
       if (source!=MusicSource::Auto || args.count("continuation")) return "account_music_unavailable";
       if (!tv) { musicTokenRejected=true; return post(true,route,args,out,&source); }
-      if (str(J(args),"browseId")=="FEmusic_history" || str(J(args),"browseId")=="FEmusic_liked_playlists" || str(J(args),"browseId")=="VLLM") return "account_music_unavailable";
+      {  // a reserva pública é de convidado: numa rota da biblioteca devolveria "Faça login" e a tela mostraria biblioteca vazia
+        auto bid=str(J(args),"browseId");
+        if (bid=="FEmusic_history" || bid=="FEmusic_liked_playlists" || bid=="VLLM" || bid.compare(0,14,"FEmusic_liked_")==0 || bid.compare(0,15,"FEmusic_library")==0 || bid=="FEmusic_last_played" || bid=="FEplaylist_aggregation") return "account_music_unavailable";
+      }
       source=MusicSource::Public;
       // A reserva pública precisa reconstruir URL, contexto e cabeçalhos, além de retirar o token.
     }
@@ -630,6 +675,7 @@ public:
       if ((kind == "playlist" || kind == "music_playlist") && id.compare(0,2,"VL") != 0) browseId = "VL"+id;
       args["browseId"] = J(browseId);
     }
+    if (kind == "music_search") list.source = MusicSource::Public;  // filtros e cartão do topo só existem na busca WEB_REMIX; a TV ignora `params`
     J data; failed.error = post(isMusic,route,args,data,&list.source);
     const bool rootBearer = lastBearer;
     if (!failed.error.empty()) return failed;
@@ -646,6 +692,10 @@ public:
     }
     if (!failed.error.empty()) return failed;
     Page p = decode(data,isMusic);
+    if (isMusic && p.items.empty() && p.error.empty()) if (const auto* promo = find(data,"genericPromoRenderer")) {  // lista vazia da conta: mostra o texto do YouTube em vez de tela em branco
+      auto note = clean(text(get(*promo,"bodyText")));
+      if (!note.empty()) { p.error = note; p.musicSource = list.source==MusicSource::TV ? "tv" : list.source==MusicSource::Web ? "web" : "public"; return p; }
+    }
     if (kind=="search") p.title=search;
     if (!offset && kind == "music_search" && (filter.empty() || filter == "0")) musicTopResult(data,p);
     if (!offset && ((kind == "music" && (search.empty() || search == "explore")) || kind == "chip")) musicHomeShape(data,p,kind == "chip" ? id : string{});
@@ -678,7 +728,7 @@ private:
       if (!videoId(q["id"])) return "error\tinvalid_video\n";
       language = localeLanguage(q["lang"]);
       J data; Object args; args["videoId"] = J(q["id"]);
-      MusicSource source=MusicSource::Auto;
+      MusicSource source=MusicSource::Public;  // o `next` da TV é o de vídeo do YouTube, sem as abas Letra e Relacionados
       auto e = post(true,"next",args,data,&source);
       if (!e.empty()) return "error\t"+e+"\n";
       const auto* tabs = find(data,"tabs"); string id;
@@ -761,7 +811,7 @@ public:
     if (!videoId(q["id"])) return "error\tinvalid_video\n";
     language = localeLanguage(q["lang"]);
     J data; Object args; args["videoId"] = J(q["id"]);
-    MusicSource source = MusicSource::Auto;
+    MusicSource source = MusicSource::Public;  // a TV não manda as abas MPTR/MPLY
     auto e = post(true,"next",args,data,&source);
     if (!e.empty()) return "error\t"+e+"\n";
     string id;

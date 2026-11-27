@@ -1,0 +1,39 @@
+{
+ "contents": {
+  "tvBrowseRenderer": {
+   "content": {
+    "tvSecondaryNavRenderer": {
+     "sections": [
+      {
+       "tvSecondaryNavSectionRenderer": {
+        "tabs": [
+         {
+          "tabRenderer": {
+           "title": "Álbuns",
+           "selected": true,
+           "content": {
+            "tvSurfaceContentRenderer": {
+             "content": {
+              "genericPromoRenderer": {
+               "bodyText": {
+                "runs": [
+                 {
+                  "text": "Os álbuns que você adicionar à sua biblioteca aparecerão aqui"
+                 }
+                ]
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        ]
+       }
+      }
+     ]
+    }
+   }
+  }
+ }
+}
