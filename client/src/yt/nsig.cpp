@@ -78,6 +78,7 @@ std::string Solver::finish() {
 std::string Solver::load(const Reduced& r, unsigned timeoutMs) {
     if (auto e = start(timeoutMs); !e.empty()) return e;
     const std::string text = script(r);
+    if (const char* dump = std::getenv("NSIG_DUMP")) if (FILE* f = std::fopen(dump, "wb")) { std::fwrite(text.data(), 1, text.size(), f); std::fclose(f); }
     JSValue v = JS_Eval(impl->ctx, text.data(), text.size(), "player", JS_EVAL_TYPE_GLOBAL);
     if (JS_IsException(v)) return describe(impl->ctx, "eval_failed");
     JS_FreeValue(impl->ctx, v);
