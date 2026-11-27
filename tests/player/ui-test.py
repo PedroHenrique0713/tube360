@@ -148,8 +148,10 @@ case_b('f63-base', keys='....', ms=3800, **KEEP)
 case_b('f63-icons', keys='....D', ms=3800, **KEEP)
 case_b('f63-shelf', keys='....DD', ms=3800, **KEEP)
 case_b('f63-shelf-right', keys='....DDRRR', ms=4000, **KEEP)
-case_b('f63-volume-down', keys='.' * 40 + 'DD', ms=8800, **KEEP)
-case_b('f63-volume-up-at-max', keys='.' * 40 + 'U', ms=8800, **KEEP)
+case_b('f63-volume-down', keys='....DLADDLL', ms=9000, **KEEP)
+case_b('f63-volume-up-at-max', keys='....DLADDR', ms=7000, **KEEP)
+case_b('f63-volume-hidden-keys', keys='.' * 40 + 'UDUD', ms=8800, **KEEP)
+case_b('f63-sound-panel', keys='....DLA', ms=5200, **KEEP)
 case_b('f63-short', keys='....', ms=3800, XT_PLAY_SHORT='1', **KEEP)
 case_b('f63-short-actions', keys='....RDD', ms=3800, XT_PLAY_SHORT='1', **KEEP)
 case_b('f63-short-b-twice', keys='....RB', ms=3800, XT_PLAY_SHORT='1', **KEEP)
@@ -181,7 +183,7 @@ def nest_volume(name, keys, volume_line='', ms=9000, sound='nest', external=None
     (assets / 'nest-owner.json').unlink(missing_ok=True)
     timer = None
     if external is not None:  # a caixa muda por fora 3 s depois de abrir (o app lê no próximo status, a cada 2 s)
-        timer = __import__('threading').Timer(3, lambda: setattr(rx, 'volume', external)); timer.start()
+        timer = __import__('threading').Timer(1.5, lambda: setattr(rx, 'volume', external)); timer.start()
     try:
         case_b(name, signed=True, keys=keys, ms=ms, XT_PLAY='R6MlUcmOul8',
                settings=f'lang=pt\ncols=4\nsound={sound}\nvideo_mode=auto\n{volume_line}')
@@ -190,6 +192,18 @@ def nest_volume(name, keys, volume_line='', ms=9000, sound='nest', external=None
     finally:
         rx.close()
 
+# Replay com o canal do vídeo conhecido (videoDetails.channelId) para a aba "Do canal" da fileira.
+CH = 'UC_x5XG1OV2P6uZZ5FSM9Ttw'
+chan_replay = OUT / '_B3' / 'replay'
+if not chan_replay.exists():
+    shutil.copytree(B / 'replay', chan_replay, symlinks=True)
+    player = json.loads((chan_replay / 'wide-player.json').read_text())
+    player['videoDetails'].update(channelId=CH, author='Canal do video')
+    (chan_replay / 'wide-player.json').write_text(json.dumps(player))
+case_b('f63-channel-shelf', keys='....DD]', ms=5200, signed=True, XT_PLAY='R6MlUcmOul8', F47_REPLAY=str(chan_replay))
+case_b('f63-channel-shelf-tab2', keys='....DD]]', ms=5800, signed=True, XT_PLAY='R6MlUcmOul8', F47_REPLAY=str(chan_replay))
+case_b('f63-channel-shelf-tab0', keys='....DD', ms=5200, signed=True, XT_PLAY='R6MlUcmOul8', F47_REPLAY=str(chan_replay))
+
 # A fileira abre com ↓ na linha de ícones e só então: a tela muda, e muda de novo ao andar para a direita.
 assert shot_of('f63-icons') != shot_of('f63-base'), 'icons row did not open'
 assert shot_of('f63-shelf') != shot_of('f63-icons'), 'shelf did not open'
@@ -197,6 +211,9 @@ assert shot_of('f63-shelf-right') != shot_of('f63-shelf'), 'shelf selection did 
 # Volume com os controles escondidos: dois passos para baixo gravam 90, e o máximo não passa de 100.
 assert 'player: volume 95' in log_of('f63-volume-down') and 'player: volume 90' in log_of('f63-volume-down'), log_of('f63-volume-down')[-600:]
 assert 'player: volume 100' in log_of('f63-volume-up-at-max')
+# O atalho ↑/↓ com a barra escondida saiu: nada mexe no volume, só o painel do botão de som.
+assert 'player: volume' not in log_of('f63-volume-hidden-keys'), log_of('f63-volume-hidden-keys')[-300:]
+assert shot_of('f63-sound-panel') != shot_of('f63-icons')
 assert (OUT / '_work/f63-volume-down/settings.txt').read_text().count('volume=90') == 1
 # Shorts: tela própria (vertical, ações ao lado); focar a ação muda a tela e B volta o foco ao vídeo sem sair.
 assert shot_of('f63-short') != shot_of('f63-base'), 'Short opened in the regular player'
@@ -219,12 +236,29 @@ assert len(qc) == len(qb) + 1 and qc[-1] == qa[-1], (qa, qb, qc)
 # Volume: o salvo é só da TV; no Nest a tecla mexe na caixa a partir do nível real (0,42 -> 0,45) e a abertura nunca manda SET_VOLUME.
 vol, sets = nest_volume('f63-n-open', '', volume_line='volume=95\n')
 assert not sets and abs(vol - .42) < .001, (vol, sets)
-vol, sets = nest_volume('f63-n-up', '.' * 30 + 'U', ms=8000)
+vol, sets = nest_volume('f63-n-up', '.' * 30 + 'DDLADR', ms=11000)
 assert len(sets) == 1 and abs(vol - .45) < .001, (vol, sets)
 assert 'volume=' not in (OUT / '_work/f63-n-up/settings.txt').read_text() or 'volume=100' in (OUT / '_work/f63-n-up/settings.txt').read_text()
 # O volume da caixa pode mudar por fora (Google Home, voz, botões): o passo parte do que ela informou (0,80 -> 0,85), não do último pedido.
-vol, sets = nest_volume('f63-n-ext', '.' * 40 + 'U', ms=11000, external=.8)
+vol, sets = nest_volume('f63-n-ext', '.' * 30 + 'DDLADR', ms=11000, external=.8)
 assert len(sets) == 1 and abs(vol - .85) < .001, (vol, sets)
-vol, sets = nest_volume('f63-n-tv', '.' * 30 + 'D', ms=8000, sound='tv')
+vol, sets = nest_volume('f63-n-tv', '....DLADDL', ms=9000, sound='tv')
 assert not sets and 'volume=95' in (OUT / '_work/f63-n-tv/settings.txt').read_text()
+# "Do canal" traz os vídeos do canal do vídeo aberto (channel-videos.json do replay), e a aba Relacionados continua com os relacionados.
+chan_ids = set(__import__('re').findall(r'"videoId": ?"([^"]+)"', (chan_replay / 'channel-videos.json').read_text()))
+related_ids = set(__import__('re').findall(r'"videoId": ?"([^"]+)"', (chan_replay / 'f63-next.json').read_text())) if (chan_replay / 'f63-next.json').exists() else set()
+def drawn(name):
+    return [l.split('aba=')[1].split()[0] + ':' + l.split('primeiro=')[1].split()[0] for l in log_of(name).splitlines() if 'fileira desenhou' in l]
+d1, d2 = drawn('f63-channel-shelf'), drawn('f63-channel-shelf-tab2')
+assert any(x.startswith('1:') and x.split(':')[1] in chan_ids for x in d1), d1   # aba Do canal desenha vídeos do canal
+assert any(x.startswith('2:') and x.split(':')[1] not in chan_ids for x in d2), d2  # Relacionados segue com os dele
+assert not any(x.startswith('1:') and x.split(':')[1] not in chan_ids for x in d1), d1  # nunca a lista de relacionados na aba do canal
+# Fileira de baixo (proposta): ao descer somem os botões e o joinha (a linha de ícones fica escura) e sobra só a linha fina de progresso.
+from PIL import Image
+def bright(name, box):
+    im = Image.open(OUT / (name + '.ppm')).convert('L').crop(box)
+    return max(im.getdata())
+icons_box = (1100, 640, 1240, 690)
+assert bright('f63-icons', icons_box) > 150, 'icons row should be visible with the controls up'
+assert bright('f63-shelf', icons_box) < 70, 'icons row must be gone while the shelf is open'
 print('PASS f63 ui: shelf, volume and Shorts')

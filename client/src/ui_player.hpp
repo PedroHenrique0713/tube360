@@ -46,6 +46,11 @@ inline void UiContext::playerPanelInput(uint64_t now, const display::CommentsPan
       captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang, nullptr, pl.direct);
       captions.cues.clear(); captionIndex = -1; captionLines.clear();
     }
+  } else if (playerUI.panel == PlayerUI::SOUND) {
+    SoundPanel sound{true, playerUI.panelSel};
+    soundPanelInput(sound, now);
+    playerUI.panelSel = sound.sel;
+    if (!sound.open) { playerUI.options = true; playerUI.panel = PlayerUI::NONE; }
   } else {
     int count = playerUI.panel == PlayerUI::QUALITY ? offeredQualities.count : playerUI.panel==PlayerUI::TRACKS ? (int)audioTracks.size() : 2;
     if (in.hit(Input::UP) || in.hit(Input::LEFT)) playerUI.panelSel = (playerUI.panelSel + count - 1) % count;
@@ -74,6 +79,57 @@ inline void UiContext::playerPanelInput(uint64_t now, const display::CommentsPan
   playerUI.touch(now);
 }
 
+// Painel de som, compartilhado com o Tocando agora da Música: linhas TV / caixa (Nest) / volume. ↑↓ escolhem a linha, ←→ na linha de
+// volume ajustam (TV: grava o salvo; Nest: a caixa ao vivo, sem gravar) e nas outras alternam TV/caixa, A aplica a saída, B fecha.
+inline void UiContext::soundPanelInput(SoundPanel& p, uint64_t now) {
+  int vertical = in.hit(Input::DOWN) ? 1 : in.hit(Input::UP) ? -1 : 0;
+  int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
+  if (g.rtlText) horizontal = -horizontal;
+  if (vertical) p.sel = std::clamp(p.sel + vertical, 0, 2);
+  if (horizontal) { if (p.sel == 2) adjustVolume(now, horizontal); else p.sel = 1 - p.sel; }
+  if (in.hit(Input::B)) { p.open = false; return; }
+  if (in.hit(Input::A) && p.sel < 2) {
+    bool change = false;
+    if (p.sel && pl.speed != 1) { toast = tr(K::SpeedNest); toastUntil = now + 3500; }
+    else if (!p.sel || nestAvailable) { bool speaker = p.sel == 1; change = speaker != pl.nest; nestOut = speaker; nestSkip = false; }
+    else { toast = tr(K::NoSpeaker); toastUntil = now + 3000; }
+    if (change) { bool paused = pl.paused; startVideo(playing, pl.live ? 0 : pl.position(), playerFromRemote); pl.setPaused(paused); saveSettings(); }
+    p.open = false;
+  }
+}
+
+inline void UiContext::soundPanelDraw(const SoundPanel& p, uint64_t now) {
+  (void)now;
+  const float w = 720, h = 330, x = (ui::W - w) / 2, y = 190;
+  gfx::rect(g, 0, 0, ui::W, ui::H, {0, 0, 0, 0.55f});
+  gfx::shadow(g, x, y + 10, w, h, 24, 32, 0.6f);
+  gfx::rect(g, x, y, w, h, ui::SURFACE, 24);
+  gfx::text(g, ui::F_BIG, tr(K::Sound), x + 36, y + 28, ui::TEXT);
+  for (int i = 0; i < 3; ++i) {
+    float ry = y + 90 + (float)i * 58;
+    bool focused = p.sel == i, disabled = i == 1 && !nestAvailable;
+    gfx::rect(g, x + 30, ry, w - 60, 50, focused ? ui::TEXT : ui::SURFACE2, 10);
+    Color ink = disabled ? ui::FAINT : focused ? ui::INK : ui::TEXT;
+    if (i < 2) {
+      gfx::text(g, ui::F_BODY, gfx::ellipsize(g, ui::F_BODY, i ? nestName : std::string(tr(K::TV)), w - 132), x + 50, ry + 14, ink);
+      // a saída em uso fica marcada
+      if ((i == 1) == pl.nest) gfx::rect(g, x + w - 62, ry + 19, 12, 12, rgb(0x22c55e), 6);
+    } else {
+      const bool speaker = (pl.nest || pl.speakerRequested || nestOut) && pl.directSpeaker.configured();
+      int value = speaker ? std::max(0, (int)std::lround((pl.directSpeaker.sample().actual >= 0 ? pl.directSpeaker.sample().actual : pl.directSpeaker.sample().volume) * 100)) : settings.volume;
+      gfx::text(g, ui::F_BODY, speaker ? gfx::ellipsize(g, ui::F_BODY, nestName, 190) : std::string(tr(K::SettingVolume)), x + 50, ry + 14, ink);
+      const float bx = x + 230, bw = w - 60 - 200 - 90;
+      gfx::rect(g, bx, ry + 22, bw, 6, focused ? Color{0, 0, 0, 0.25f} : Color{1, 1, 1, 0.25f}, 3);
+      if (value > 0) gfx::rect(g, bx, ry + 22, bw * (float)value / 100.f, 6, focused ? ui::INK : ui::TEXT, 3);
+      gfx::text(g, ui::F_BODY, std::to_string(value), x + w - 50, ry + 14, ink, 2);
+    }
+  }
+  float hy = y + h - 42, hx = hint(g, x + 36, hy, tr(K::BtnVertical), XG, tr(K::ChooseRow));
+  hx = hint(g, hx, hy, tr(K::BtnHorizontal), XG, tr(K::ChangeValue));
+  hx = hint(g, hx, hy, "A", XA, tr(K::SleepApply));
+  hint(g, hx, hy, "B", XB, tr(K::Back));
+}
+
 inline void UiContext::playerNextInput() {
   in.hit(Input::BACK);  // View não tem papel no cartão de próximo automático (mapa único #40)
   if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { nextAt = 0; playerUI.options = true; playerUI.touch(SDL_GetTicks()); }  // Menu = opções, não inicia o próximo
@@ -90,11 +146,6 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
   // Na opção 1 aprovada os ícones ficam ABAIXO da barra: ↓ leva aos ícones, ↑ volta para a trilha.
   int vertical = in.hit(Input::DOWN) ? 1 : in.hit(Input::UP) ? -1 : 0;
   double jump = 0;
-  // Com os controles escondidos (ou logo depois de mexer no volume) cima/baixo ajustam o volume sem acordar a barra: na TV é o
-  // ganho do app (gravado em settings.volume); no Nest é a caixa ao vivo, a partir do nível real dela (nada é gravado).
-  if (vertical && !horizontal && (!playerUI.visible(now) || now < shelf.volumeUntil)) {
-    adjustVolume(now, -vertical); vertical = 0;
-  }
   // ↓ na linha de ícones abre "a seguir e relacionados" sem parar o vídeo; sem lista, nada acontece.
   if (vertical > 0 && !horizontal && playerUI.visible(now) && playerUI.options && shelfFirstTab() >= 0 && !seekHold.active) {
     shelf.open = true; shelf.tab = shelfFirstTab(); shelf.sel = 0; vertical = 0; any = true; shelfAskChannel();
@@ -251,13 +302,18 @@ inline void UiContext::adjustVolume(uint64_t now, int direction) {
 }
 
 // Abas da fileira (proposta A3): 0 A seguir, 1 Do canal, 2 Relacionados. Só aparecem as que têm (ou vão ter) conteúdo.
-inline const std::vector<Video>& UiContext::shelfItems(int tab) {
-  shelfScratch.clear();
+inline std::vector<Video> UiContext::shelfItems(int tab) {
+  // Devolvida por valor: o desenho chama shelfTabShown() de outras abas no meio, e uma referência ao mesmo vetor viraria a lista errada.
+  std::vector<Video> shelfScratch;
   if (tab == 0) {
     if (!upNext.id.empty()) shelfScratch.push_back(upNext);
-    if (nav.localQueue) for (size_t i = nav.queueIndex + 1; i < nav.queue.size() && shelfScratch.size() < 24; ++i) shelfScratch.push_back(nav.queue[i].video());
+    if (nav.localQueue) for (size_t i = nav.queueIndex + 1; i < nav.queue.size() && shelfScratch.size() < 24; ++i) {
+      Video v = nav.queue[i].video(); v.views = nav.queue[i].views; v.date = nav.queue[i].date; shelfScratch.push_back(std::move(v));
+    }
   } else if (tab == 1) {
-    for (const auto& it : shelfChannel.items) if (it.type == "video" && it.id != playing.id && shelfScratch.size() < 24) shelfScratch.push_back(it.video());
+    for (const auto& it : shelfChannel.items) if (it.type == "video" && it.id != playing.id && shelfScratch.size() < 24) {
+      Video v = it.video(); v.views = it.views; v.date = it.date; shelfScratch.push_back(std::move(v));
+    }
   } else {
     for (const auto& v : related) if (v.id != upNext.id && v.id != playing.id) shelfScratch.push_back(v);
   }
@@ -292,7 +348,7 @@ inline void UiContext::playerShelfInput(uint64_t now) {
   if (horizontal) shelf.sel = std::clamp(shelf.sel + horizontal, 0, std::max(0, count - 1));
   // LB/RB trocam de aba (contexto próprio da fileira)
   int tabStep = ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::PrevTab) ? -1 : ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::NextTab) ? 1 : 0;
-  if (tabStep) for (int t = shelf.tab + tabStep; t >= 0 && t < 3; t += tabStep) if (shelfTabShown(t)) { shelf.tab = t; shelf.sel = 0; break; }
+  if (tabStep) for (int t = shelf.tab + tabStep; t >= 0 && t < 3; t += tabStep) if (shelfTabShown(t)) { shelf.tab = t; shelf.sel = 0; { auto l = shelfItems(t); LOG("player: fileira aba=%d itens=%zu primeiro=%s", t, l.size(), l.empty() ? "-" : l.front().id.c_str()); } break; }
   if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::Options)) { shelf.open = false; playerUI.options = true; }  // Menu = opções
   else if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::WatchLater)) {
     const auto& items = shelfItems(shelf.tab);
@@ -309,40 +365,66 @@ inline void UiContext::playerShelfInput(uint64_t now) {
   playerUI.touch(now);
 }
 
+// Fileira de baixo (proposta aprovada): ao descer somem título, barra, botões e joinha; o vídeo segue escurecido, as abas ficam em cima
+// da fileira, o próximo cartão aparece pela borda e só uma linha fina de progresso fica colada embaixo.
 inline void UiContext::playerShelfDraw(uint64_t now) {
   (void)now;
   const bool rtl = g.rtlText;
-  const auto& items = shelfItems(shelf.tab);
-  const int count = (int)items.size(), cols = 5;
-  const float gap = 18, left = 56, cw = std::floor((ui::W - left * 2 - gap * (cols - 1)) / cols), ch = std::floor(cw * 9 / 16);
-  gfx::vgrad(g, 0, 180, ui::W, 540, {0, 0, 0, 0}, {0.043f, 0.043f, 0.055f, 0.95f});
+  const auto items = shelfItems(shelf.tab);
+  // Mesmas medidas do cartão da Home (4 colunas em 16:9, 3 em 4:3): a fileira mostra cols cartões e o seguinte pela borda.
+  const int count = (int)items.size(), cols = ui::narrow ? 3 : 4;
+  const float gap = 24, left = 56, cw = std::floor((ui::W - 200 - (float)(cols - 1) * gap) / (float)cols), ch = std::floor(cw * 9 / 16);
+  const float tabsY = 364, rowY = 424;
+  const Color ink{0.043f, 0.043f, 0.055f, 0};
+  auto shade = [&](float a) { Color c = ink; c.a = a; return c; };
+  // Escurecimento em dois degraus com cortes em pixel inteiro (corte fracionário deixava uma linha fina atravessando a tela).
+  const float y1 = std::round(ui::H * .38f), y2 = std::round(ui::H * .62f);
+  gfx::vgrad(g, 0, 0, ui::W, y1, shade(.15f), shade(.55f));
+  gfx::vgrad(g, 0, y1, ui::W, y2 - y1, shade(.55f), shade(.96f));
+  gfx::rect(g, 0, y2, ui::W, ui::H - y2, shade(.96f));
   // abas
   const K names[3] = {K::PlayerShelfNext, K::PlayerShelfChannel, K::PlayerShelfRelated};
   float tx = rtl ? ui::W - left : left;
   for (int t = 0; t < 3; ++t) {
     if (!shelfTabShown(t)) continue;
     std::string name = tr(names[t]);
-    float w = gfx::textWidth(g, ui::F_H2, name), x = rtl ? tx - w : tx;
+    float w = gfx::textWidth(g, ui::F_BIG, name), x = rtl ? tx - w : tx;
     bool on = t == shelf.tab;
-    gfx::text(g, ui::F_H2, name, x, 232, on ? ui::TEXT : ui::MUTED);
-    if (on) gfx::rect(g, x, 232 + g.fonts[ui::F_H2].lineH + 4, w, 3, ui::A1, 1);
-    tx += (rtl ? -1 : 1) * (w + 34);
+    gfx::text(g, ui::F_BIG, name, x, tabsY, on ? ui::TEXT : ui::MUTED);
+    if (on) gfx::rect(g, x, tabsY + g.fonts[ui::F_BIG].lineH + 4, w, 4, ui::A1, 2);
+    tx += (rtl ? -1 : 1) * (w + 38);
   }
-  if (!count) {
-    gfx::text(g, ui::F_BODY, tr(K::Loading), rtl ? ui::W - left : left, 300, ui::MUTED, rtl ? 2 : 0);
+  if (!count) gfx::text(g, ui::F_BODY, tr(K::Loading), rtl ? ui::W - left : left, rowY + 10, ui::MUTED, rtl ? 2 : 0);
+  {  // o que a fileira DESENHA (a lista da aba ativa), depois de tudo que mexe na lista: uma linha por mudança (teste e log do console)
+    std::string key = std::to_string(shelf.tab) + ":" + (items.empty() ? std::string("-") : items.front().id) + ":" + std::to_string(count);
+    if (key != shelf.drawnKey) { shelf.drawnKey = key; LOG("player: fileira desenhou aba=%d itens=%d primeiro=%s", shelf.tab, count, items.empty() ? "-" : items.front().id.c_str()); }
   }
+  // cols cartões inteiros + o seguinte aparecendo pela borda (rola ao passar do último inteiro)
   int first = std::clamp(shelf.sel - cols + 1, 0, std::max(0, count - cols));
-  for (int i = first; i < std::min(count, first + cols); ++i) {
+  for (int i = first; i < std::min(count, first + cols + 1); ++i) {
     float slot = (float)(i - first) * (cw + gap), x = rtl ? ui::W - left - cw - slot : left + slot;
-    homeCard(g, thumbs, thumbsWorker, frame, settings.lang, items[(size_t)i], pl.direct, items[(size_t)i].shortForm, i == shelf.sel, x, 286, cw, ch, i == shelf.sel ? 1.f : 0.f, nullptr);
+    homeCard(g, thumbs, thumbsWorker, frame, settings.lang, items[(size_t)i], pl.direct, items[(size_t)i].shortForm, i == shelf.sel, x, rowY, cw, ch, i == shelf.sel ? 1.f : 0.f, nullptr);
   }
-  float hy = 574, hx = rtl ? ui::W - left - 640 : left;
-  gfx::rect(g, hx - 12, hy - 8, 700, 40, {0, 0, 0, 0.55f}, 12);
+  // linha fina de progresso colada na borda
+  double dur = pl.duration, pos = pl.position();
+  float frac = pl.live ? 1.f : dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0.f;
+  gfx::rect(g, 0, ui::H - 5, ui::W, 5, {1, 1, 1, 0.2f});
+  if (frac > 0) gfx::rect(g, 0, ui::H - 5, ui::W * frac, 5, ui::A1);
+  // Dicas: Escolher, A e B sempre; X e LB RB só se couberem (4:3 e texto grande): cada uma sai inteira, nunca cortada.
+  using ctl::Act; const auto C = ctl::Ctx::PlayerShelf;
+  const float avail = ui::W - 80, hy = ui::H - 46;
+  float wChoose = 44 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::ChooseRow)) + 26;
+  float wOpen = ctlHintWidth(g, C, Act::Open, settings.lang, K::WatchNow), wBack = ctlHintWidth(g, C, Act::Back, settings.lang, K::PlayerShelfBack);
+  float wLater = ctlHintWidth(g, C, Act::WatchLater, settings.lang), wTab = ctlHintWidth(g, C, Act::PrevTab, settings.lang);
+  float used = wChoose + wOpen + wBack;
+  bool showLater = used + wLater <= avail; if (showLater) used += wLater;
+  bool showTab = used + wTab <= avail; if (showTab) used += wTab;
+  float hx = rtl ? ui::W - 40 - used : 40;
   hx = hint(g, hx, hy, tr(K::BtnHorizontal), XG, tr(K::ChooseRow));
-  hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::Open, settings.lang, K::WatchNow);
-  hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::WatchLater, settings.lang);
-  hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::PrevTab, settings.lang);
-  ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::Back, settings.lang);
+  hx = ctlHint(g, hx, hy, C, Act::Open, settings.lang, K::WatchNow);
+  if (showLater) hx = ctlHint(g, hx, hy, C, Act::WatchLater, settings.lang);
+  if (showTab) hx = ctlHint(g, hx, hy, C, Act::PrevTab, settings.lang);
+  ctlHint(g, hx, hy, C, Act::Back, settings.lang, K::PlayerShelfBack);
 }
 
 inline void UiContext::playerUpdate(uint64_t now) {
@@ -399,7 +481,7 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
     g.scale=scale; g.scaleX=scaleX; g.insetX=insetX; g.insetY=insetY;
   }
   bool panelOpen = ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt || shelf.open;
-  bool show = !shortScene && (playerUI.visible(now) || panelOpen);
+  bool show = !shortScene && !shelf.open && (playerUI.visible(now) || panelOpen);
   if (show) {
     const Color red = rgb(0xff0033), island = {0,0,0,0.63f};
     gfx::vgrad(g, 0, 420, ui::W, 300, {0,0,0,0}, {0,0,0,0.87f});
@@ -419,7 +501,6 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
     overlayTitle.update(g, ui::F_VIDEO_TITLE, title.c_str(), options && !transportFocus ? ui::W-520 : ui::W-80);
     if(!panelOpen && pl.state!=player::FAILED) {
       float hy = ui::large ? 508 : 523, hx = g.rtlText ? ui::W - 40 - 640 : 40;
-      gfx::rect(g, hx - 12, hy - 8, !playerFromRemote && !phonePlaybackSerial ? 700.f : 540.f, 40, {0, 0, 0, 0.55f}, 12);
       hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::WatchLater, settings.lang);
       hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::Quality, settings.lang);
       if (!playerFromRemote && !phonePlaybackSerial) hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::PrevItem, settings.lang);
@@ -618,6 +699,8 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
     if (nestOut) gfx::text(g,ui::F_SMALL,tr(K::SpeedTV),x+36,y+254,ui::MUTED);
     float hx=hint(g,x+36,y+h-44,tr(K::BtnHorizontal),XG,tr(K::ChooseRow));
     hx=hint(g,hx,y+h-44,"A",XA,tr(K::SleepApply)); hint(g,hx,y+h-44,"B",XB,tr(K::Back));
+  } else if (playerUI.panel == PlayerUI::SOUND) {
+    soundPanelDraw(SoundPanel{true, playerUI.panelSel}, now);
   } else if (playerUI.panel != PlayerUI::NONE) {
     bool list=playerUI.panel==PlayerUI::TRACKS || playerUI.panel==PlayerUI::QUALITY;
     float w = 720, h = playerUI.panel==PlayerUI::QUALITY?490:list?430:330, x = (ui::W - w) / 2, y = playerUI.panel==PlayerUI::QUALITY?100:list?140:190;
