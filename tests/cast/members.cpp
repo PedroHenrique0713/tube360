@@ -19,6 +19,9 @@ static std::string videoBytes, failingTrack;
 static int failureStatus = 403, players = 0, videos = 0, audios = 0, playlists = 0;
 enum class Fixture { MP4, HLS, LIVE_SEGMENTS };
 static Fixture mediaFixture = Fixture::MP4;
+// F67: com `n` nos links o app precisa do JS do player (iframe_api). O fixture nunca o serve: o `n` não resolve e o vídeo cai na mensagem de membros.
+static bool urlHasN = false;
+static int iframeRequests = 0;
 
 struct Http final : yt::Transport {
     const std::atomic_bool* stopped;
@@ -49,8 +52,9 @@ struct Http final : yt::Transport {
                 })"};
             return {200, std::string(R"({"playabilityStatus":{"status":"OK"},"videoDetails":{"videoId":"member00001","lengthSeconds":"30","isLive":)") + (mediaFixture == Fixture::HLS ? "true" : "false") + R"(},"streamingData":{"expiresInSeconds":"3600",)" +
                 (mediaFixture == Fixture::HLS ? R"("hlsManifestUrl":"https://fixture.googlevideo.com/live",)" : "") +
-                R"("adaptiveFormats":[{"itag":136,"width":160,"height":90,"fps":30,"mimeType":"video/mp4; codecs=\"avc1.64001f\"","url":"https://fixture.googlevideo.com/video?n=unsolved"},{"itag":140,"bitrate":128000,"mimeType":"audio/mp4; codecs=\"mp4a.40.2\"","url":"https://fixture.googlevideo.com/audio?n=unsolved"}]}})"};
+                R"("adaptiveFormats":[{"itag":136,"width":160,"height":90,"fps":30,"mimeType":"video/mp4; codecs=\"avc1.64001f\"","url":"https://fixture.googlevideo.com/video?)" + std::string(urlHasN ? "n=unsolved" : "x=1") + R"("},{"itag":140,"bitrate":128000,"mimeType":"audio/mp4; codecs=\"mp4a.40.2\"","url":"https://fixture.googlevideo.com/audio?)" + std::string(urlHasN ? "n=unsolved" : "x=1") + R"("}]}})"};
         }
+        if (r.url.find("/iframe_api") != std::string::npos) { ++iframeRequests; return {404}; }
         if (r.url.find("/live") != std::string::npos) { ++playlists; return {failureStatus}; }
         bool video = r.url.find("/video?") != std::string::npos;
         check(video || r.url.find("/audio?") != std::string::npos, "only fixture media requested");
@@ -100,6 +104,15 @@ static void run(const std::string& directory, bool members, const char* track, i
         check(p.audio, "dummy audio stream");
     }
     p.decodeOriginal();
+    if (urlHasN) {
+        // Sem como resolver o `n`, nenhum link sai do cliente: a mensagem de membros, sem pedir mídia nem renovar.
+        check(p.state == player::FAILED && p.error == "members_unsupported" && !p.renew && !p.retryConverted, "unsolved n ends in the members message");
+        check(players == 1 && videos + audios + playlists == 0 && iframeRequests >= 1, "unsolved n makes no media request");
+        check(p.media.reason.compare(0, 5, "nsig:") == 0 && p.media.video.url.empty() && !p.media.nsigSolved, "unsolved n leaves the media without URLs");
+        std::cout << "PASS member n unsolved HTTP=" << status << " reason=" << p.media.reason << " error=" << p.error << '\n';
+        p.halt(); SDL_DestroyMutex(p.mu); SDL_DestroyCondition(p.cv); SDL_DestroyMutex(p.nmu);
+        return;
+    }
     if (noFormats) {
         check(p.media.status == "OK" && p.media.live && p.media.highFrameRate720, "live account response reaches real format selection");
         check(p.media.hls.empty() && p.media.video.url.empty() && p.media.audio.url.empty(), "live segments offer no playable HLS or MP4");
@@ -155,6 +168,10 @@ int main(int argc, char** argv) {
         run(argv[1], true, "video", 200, Fixture::LIVE_SEGMENTS, mode);
         run(argv[1], false, "video", 200, Fixture::LIVE_SEGMENTS, mode);
     }
+    urlHasN = true;
+    run(argv[1], true, "video", 403);
+    run(argv[1], true, "video", 403, Fixture::HLS);
+    urlHasN = false;
     check(i18n::playerError("members_unsupported") == i18n::Key::MembersXboxUnavailable, "UI uses specific member message");
     for (auto lang : {i18n::Lang::EN, i18n::Lang::PT, i18n::Lang::ES, i18n::Lang::AR})
         check(std::strlen(i18n::get(lang, i18n::Key::MembersXboxUnavailable)) > 0, "translated message exists");

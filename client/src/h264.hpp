@@ -75,6 +75,7 @@ struct Stream {
   int sourceHeight = 0;
   double sourceRate = 0;
   bool fullLoopFilter = false;
+  bool wrap33 = true;  // MPEG-TS: PTS de 33 bits; fMP4 de live traz PTS absoluto grande, sem módulo
   bool enable1080Profile = false;
   playback::H264Policy policy{4,false,false};
   void source(int height,double fps,bool full) { sourceHeight=height;sourceRate=fps;fullLoopFilter=full;enable1080Profile=true; }
@@ -137,7 +138,7 @@ struct Stream {
   }
 
   int open(void* user, int (*read)(void*, uint8_t*, int), int threads, bool wantAudio, bool wantVideo = true,
-           int64_t (*seek)(void*,int64_t,int) = nullptr) {
+           int64_t (*seek)(void*,int64_t,int) = nullptr, const char* container = nullptr) {
     if (!fmt || !pkt || !frame) return AVERROR(ENOMEM);
     auto* buffer = (uint8_t*)av_malloc(32768);
     if (!buffer) return AVERROR(ENOMEM);
@@ -146,7 +147,7 @@ struct Stream {
     fmt->pb = io;
     fmt->flags |= AVFMT_FLAG_CUSTOM_IO;
     // PAT/PMT identificam os codecs. find_stream_info abriria outro H.264 só para sondagem.
-    int r = avformat_open_input(&fmt, nullptr, av_find_input_format(seek ? "mov" : "mpegts"), nullptr);
+    int r = avformat_open_input(&fmt, nullptr, av_find_input_format(container ? container : seek ? "mov" : "mpegts"), nullptr);
     if (r < 0) return r;
     for (unsigned i = 0; i < fmt->nb_streams; i++) {
       auto id = fmt->streams[i]->codecpar->codec_id;
@@ -177,7 +178,7 @@ struct Stream {
     int64_t ts = frame->best_effort_timestamp;
     // Na borda do seek os PTS negativos do pré-roll podem vir módulo 2^33 no TS.
     if (ts == AV_NOPTS_VALUE) return NAN;
-    if ((!io || !io->seekable) && ts > (1LL << 32)) ts -= 1LL << 33;
+    if (wrap33 && (!io || !io->seekable) && ts > (1LL << 32)) ts -= 1LL << 33;
     return ts * av_q2d(fmt->streams[stream]->time_base);
   }
 

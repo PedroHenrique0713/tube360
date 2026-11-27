@@ -790,7 +790,12 @@ AccountReply ConsoleAccount::request(const string& path,int64_t wall,int64_t mon
         if (!id(videoId,11)) return {{}, "invalid_video"};
         if (route.substr(22)=="/player") {
             if (s.tokens.refresh.empty()) return {{}, "signed_out"};
-            J j; auto e=s.call("player","\"videoId\":"+J(videoId).serialize()+",\"contentCheckOk\":true,\"racyCheckOk\":true",j,true);
+            // O TVHTML5 só devolve links tocáveis (sem UNPLAYABLE) com o signatureTimestamp do player TV (membros).
+            string playback;
+            const string sts=p["sts"];
+            if (!sts.empty() && sts.size()<=9 && sts.find_first_not_of("0123456789")==string::npos)
+                playback=",\"playbackContext\":{\"contentPlaybackContext\":{\"html5Preference\":\"HTML5_PREF_WANTS\",\"signatureTimestamp\":"+sts+"}}";
+            J j; auto e=s.call("player","\"videoId\":"+J(videoId).serialize()+playback+",\"contentCheckOk\":true,\"racyCheckOk\":true",j,true);
             return e.empty() ? AccountReply{j.serialize(),{}} : AccountReply{{},e};
         }
         if (route.substr(22)=="/next") return s.next(videoId);

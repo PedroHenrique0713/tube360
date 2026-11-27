@@ -3,6 +3,7 @@
 #include "live.hpp"
 #include "locale.hpp"
 #include "../playback_mode.hpp"
+#include "nsig_service.hpp"
 #include "update/rules.hpp"
 #include "picojson.h"
 #include <algorithm>
@@ -324,6 +325,11 @@ bool Client::session(const string& id, string& error, bool fresh) {
     return true;
 }
 
+int Client::nsigTimestamp() {
+    bindRules();
+    return nsig::timestamp(net,*policy,cacheBase);
+}
+
 Video Client::player(const string& id, int height, MediaOffers* offers, int mode, const string& wantedAudio, const string& accountPlayer) {
     bindRules();
     if (offers) *offers = {};
@@ -525,7 +531,25 @@ Video Client::player(const string& id, int height, MediaOffers* offers, int mode
     }
     out.speakerAudio = out.audio;
     if (out.muxed) out.audio={};
-    if (out.hls.empty()) {
+    if (!accountPlayer.empty()) {
+        // Links do TVHTML5: o `n` precisa passar pelo JS do player, senão a googlevideo responde 403.
+        out.liveSeq = out.live && out.hls.empty() && out.video.url.find("live=1")!=string::npos && out.audio.url.find("live=1")!=string::npos;
+        std::vector<string*> urls{&out.video.url,&out.audio.url,&out.fallbackVideo.url,&out.speakerAudio.url};
+        for (auto& f : out.lowerVideo) urls.push_back(&f.url);
+        for (auto& f : out.videoLadder) urls.push_back(&f.url);
+        for (auto& t : out.audioTracks) urls.push_back(&t.format.url);
+        const bool hadN=std::any_of(urls.begin(),urls.end(),[](const string* u){ return !nsig::nValue(*u).empty(); });
+        auto failed=nsig::rewrite(net,*policy,cacheBase,urls);
+        if (out.liveSeq) out.speakerAudio={};  // o Nest não lê segmentos &sq: sem URL de áudio direto para ele
+        out.nsigSolved=hadN && failed.empty();
+        if (!failed.empty()) {
+            // Sem `n` resolvido o vídeo não toca: o player mostra a mensagem de membros.
+            out.reason="nsig:"+failed; out.liveSeq=false;
+            out.video={}; out.audio={}; out.fallbackVideo={}; out.speakerAudio={}; out.lowerVideo.clear(); out.videoLadder.clear(); out.audioTracks.clear();
+            out.hls.clear(); out.qualityModes=1; out.muxed=false;
+        }
+    }
+    if (out.hls.empty() && out.reason.compare(0,5,"nsig:")!=0) {
         if (out.video.url.empty()) out.reason=playback::manual(mode)?"manual_quality_unavailable":"no_direct_avc";
         else if (!out.muxed && out.audio.url.empty()) out.reason=playback::manual(mode)?"manual_quality_unavailable":"no_direct_aac";
     }

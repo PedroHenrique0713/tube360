@@ -1,6 +1,7 @@
 // Implementação de Player para o stream negociado com codec=h264.
 #pragma once
 #include "quality_recovery.hpp"
+#include "yt/live_seq.hpp"
 namespace player {
 
 inline bool Player::directFailed(bool fatal) {
@@ -56,6 +57,8 @@ inline void Player::decodeOriginal() {
   std::vector<yt::Format> qualityLadder;
   std::unique_ptr<yt::Transport> liveTransport, playlistTransport;
   std::unique_ptr<yt::LiveFile> broadcast;
+  std::unique_ptr<yt::LiveSeq> liveSeq;
+  bool seqLive = false;
   struct LiveInput { Player* player; yt::LiveFile* file; std::deque<std::string> audio; } source{this,nullptr,{}};
   yt::PackedAudio packed;
   SDL_Thread* reader = nullptr;
@@ -111,13 +114,29 @@ inline void Player::decodeOriginal() {
       error = "members_unsupported"; renew = retryConverted = false; state = FAILED; return;
     }
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
+    // Live de membros sem HLS: segmentos &sq=N, uma faixa de vídeo e uma de áudio, `n` já resolvido pelo cliente.
+    seqLive = media.liveSeq && media.hls.empty() && !media.video.url.empty() && !media.audio.url.empty();
+    if (seqLive) { live = true; media.lowerVideo.clear(); media.videoLadder.clear(); media.fallbackVideo = {}; }
     if (stop) return;
     if (live) { speed=1; loop=false; tempo.reset(1); }
     castMediaReady = true;
     state = BUFFERING;
     mediaReady = true;
     if(playback::manual(videoMode) && (media.video.url.empty() || !(media.qualityModes&(1u<<videoMode))) && !live){error="manual_quality_unavailable";state=FAILED;return;}
-    if (live) {
+    if (seqLive) {
+      qualityAvailable=1;qualityModesReady=true;
+      liveSeq = std::make_unique<yt::LiveSeq>();
+      s.wrap33 = separate.wrap33 = false;
+      s.source(media.video.height,media.video.fps,fullFilter);
+      bool opened = liveSeq->open(media.video.url,media.audio.url,liveLowLatency,&stop,yt::https(&stop),yt::https(&stop));
+      LOG("live-seq: abertura %s, borda %lld, inicio %lld, atraso minimo %d, erro=%s HTTP=%ld",opened?"ok":"falhou",
+          liveSeq->headSeq(),liveSeq->first,int(liveLowLatency),liveSeq->error.c_str(),liveSeq->httpStatus());
+      r = opened ? 0 : AVERROR_INVALIDDATA;
+      if (r >= 0) r = s.open(&liveSeq->tracks[0],yt::LiveSeq::pull,requestedThreads,false,true,nullptr,"mov");
+      if (r >= 0 && audio) r = separate.open(&liveSeq->tracks[1],yt::LiveSeq::pull,1,true,false,nullptr,"mov");
+      actualHeight = media.video.height;
+      origin = NAN;
+    } else if (live) {
       liveTransport = yt::https(&endLiveReader);
       playlistTransport = yt::https(&endLiveReader);
       broadcast = std::make_unique<yt::LiveFile>(*playlistTransport, *liveTransport, endLiveReader);
@@ -237,7 +256,7 @@ inline void Player::decodeOriginal() {
   bool reserveChecked = false;
   unsigned liveSwitches = 0;
   // A troca pode precisar de índice + seek pela rede. 6 s de PCM estéreo custam cerca de 2 MiB.
-  const double audioReserve=direct && !broadcast && !speakerRequested && !media.muxed ? 6.0 : 0.65;
+  const double audioReserve=direct && !broadcast && !seqLive && !speakerRequested && !media.muxed ? 6.0 : 0.65;
   auto decode = [&](h264::Stream& input, AVCodecContext* codec, AVPacket* packet) -> int {
     if (!codec) return 0;
     bool video = codec == s.video;
@@ -433,6 +452,19 @@ inline void Player::decodeOriginal() {
       if (workFrames) LOG("decod-workers: %u quadros, soma parede %.2f ms, %.2f ms/quadro (paralelos, inclui dependencia)",
                           workFrames,workUs/1000.0,workUs/1000.0/workFrames);
       int clock = masterMs.load();
+      if (liveSeq && clock >= 0 && std::isfinite(origin)) {
+        // Atraso = fim do segmento completo mais novo menos o PTS em tela. O piso de um live de segmentos de 5 s é um segmento.
+        const double head = liveSeq->headStartSec(), end = liveSeq->pushedEndSec(), shown = origin + clock / 1000.0;
+        if (head >= 0) {
+          const double lagSec = yt::seq::lag(head,liveSeq->segSec,shown), ahead = end >= 0 ? end - shown : 0;
+          const double want = yt::seq::catchUp(lagSec,ahead,liveSeq->segSec,liveCatchUp.load(),liveLowLatency);
+          if (want != liveCatchUp.load()) LOG("live-seq: alcance %s, atraso %.2f s, reserva %.2f s",want > 0 ? "ligado 1,05x" : "desligado",lagSec,ahead);
+          liveCatchUp = want;
+          LOG("live-seq: atraso %.2f s (piso %.1f), reserva %.2f s, alcance %.2f, segmentos v%u a%u, lacunas %u/%u, borda sq=%lld",
+              lagSec,liveSeq->segSec,ahead,want,liveSeq->tracks[0].segments.load(),liveSeq->tracks[1].segments.load(),
+              liveSeq->tracks[0].gaps.load(),liveSeq->tracks[1].gaps.load(),liveSeq->headSeq());
+        }
+      }
       unsigned epoch = pauseChanges.load();
       bool behind = clock >= 0 && last < clock / 1000.0 - .25;
       bool insufficient = intervalPts >= 0 && last - intervalPts < (now - since) * .00090;
@@ -565,8 +597,9 @@ inline void Player::decodeOriginal() {
   }
   if (stop) return;
   bool forbidden = (videoFile && videoFile->status == 403) || (audioFile && audioFile->status == 403) ||
-                   (broadcast && broadcast->status == 403);
-  if (direct && memberVideo && forbidden) {
+                   (broadcast && broadcast->status == 403) || (liveSeq && liveSeq->httpStatus() == 403);
+  // Com o `n` resolvido, um 403 pode ser só URL vencida: uma renovação. Sem `n` (ou na segunda vez) a mensagem de membros.
+  if (direct && memberVideo && forbidden && (refreshed || !media.nsigSolved)) {
     LOG("console: video de membros HTTP=403; encerrando sem renovar URL");
     error = "members_unsupported"; renew = retryConverted = false; state = FAILED; return;
   }

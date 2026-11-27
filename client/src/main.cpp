@@ -927,6 +927,7 @@ int run(int argc, char** argv) {
     pl.audioOnly = nav.musicSession && nav.musicNow;
     if (pl.audioOnly) { pl.speed=1; pl.loop=false; }
     if (pl.requestLanguage != i18n::code(settings.lang)) { pl.halt(); pl.requestLanguage=i18n::code(settings.lang); }
+    pl.liveLowLatency = settings.liveLowLatency;  // F67: só a TV (live de membros por segmentos)
     pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track,v.members != yt::Membership::None);
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     seekHold.cancel();

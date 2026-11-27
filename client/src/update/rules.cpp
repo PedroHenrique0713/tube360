@@ -43,7 +43,7 @@ bool decode(const J& j,Rules& r,const J& base) {
     }
     const std::map<string,std::pair<int,int>> bounds={{"responseBytes",{65536,6*1024*1024}},{"jsonBytes",{4096,3*1024*1024}},
         {"cards",{1,120}},{"retries",{1,3}},{"backoffMs",{100,2000}},{"markerBytes",{32,8192}},{"timestampMax",{10000,100000000}},
-        {"listPages",{1,40}},{"listItems",{24,1024}},{"queueItems",{1,256}},{"catalogItems",{24,240}},{"parserDepth",{4,80}},{"parserNodes",{128,160000}},{"checkHours",{1,12}},{"failures",{2,8}},{"successes",{2,8}},{"pageItems",{1,48}}};
+        {"listPages",{1,40}},{"listItems",{24,1024}},{"queueItems",{1,256}},{"catalogItems",{24,240}},{"parserDepth",{4,80}},{"parserNodes",{128,160000}},{"checkHours",{1,12}},{"failures",{2,8}},{"successes",{2,8}},{"pageItems",{1,48}},{"nsig",{0,1}}};
     for (const auto& kv:bounds) { int n=number(get(limits,kv.first),kv.second.first,kv.second.second); if(n<0) return false; r.limits[kv.first]=n; }
     for (auto name:{"timestampMarkers","fallbackStatuses"}) {
         const auto& a=get(j,name); if(!a.is<A>() || a.get<A>().empty() || a.get<A>().size()>6) return false;

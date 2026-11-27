@@ -117,7 +117,10 @@ struct Player {
   bool memberVideo = false;
   std::string memberResponse() {
     if (!memberVideo || !memberAccount || !memberAccount->active()) return {};
-    auto reply = memberAccount->request("/api/video/" + id + "/player?lang=" + requestLanguage);
+    // O TVHTML5 só entrega links tocáveis com o signatureTimestamp do player TV (o mesmo programa que resolve o `n`).
+    std::string path = "/api/video/" + id + "/player?lang=" + requestLanguage;
+    if (youtube) if (int sts = youtube->nsigTimestamp()) path += "&sts=" + std::to_string(sts);
+    auto reply = memberAccount->request(path);
     return reply.ok() ? std::move(reply.body) : std::string{};
   }
   std::unique_ptr<yt::Transport> transport;
@@ -231,6 +234,8 @@ struct Player {
   std::atomic<int> speakerPause{0};  // mudança feita no alto-falante, aplicada pela thread da tela
   uint64_t openedMs = 0, readyMs = 0, lastLiveOpen = 0, tuneAt = 0;
   double screenSec = -1, tickMs = 0, liveDebt = 0, nextLiveFrame = 0;
+  std::atomic<double> liveCatchUp{0};   // 0 ou 0,05: alcance da live por segmentos (atraso mínimo), aplicado na taxa do áudio da TV
+  bool liveLowLatency = false;          // opção só da TV (settings.liveLowLatency), lida por main.cpp antes de start()
   bool tracking = false, refill = false, reservePaused = false;
 
   void init() {
@@ -297,7 +302,7 @@ struct Player {
     activeH264Threads=0;activeLoopFilter=0;activeH264Spread=false;activeVideoItag=0;
     tvSample=-1;tvSampleAt=0;
     stop = false; paused = false; live = false; state = CONNECTING;
-    hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = nextLiveFrame = 0;
+    hasAudio = false; readyMs = tuneAt = 0; screenSec = -1; liveDebt = 0; tickMs = nextLiveFrame = 0; liveCatchUp = 0;
     openedMs = SDL_GetTicks(); masterMs = -1; tracking = refill = reservePaused = false; session = 0; speakerPause = 0; speakerTargetMs = -1;
     if (audio) { SDL_PauseAudioStreamDevice(audio); SDL_ClearAudioStream(audio); SDL_SetAudioStreamFrequencyRatio(audio, 1.0f); }
     output = speaker ? CAST : RELEASING;
@@ -902,7 +907,7 @@ struct Player {
         tuneAt = ms + 120;
         // O PCM mudo acompanha o Nest. Depois de um underrun na live, a TV recupera até 3% por vez.
         double ratio = speakerRequested && !on ? 1.0 + std::clamp((display - tv) * 1.2, -0.35, 0.08)
-                              : 1.0 + (live && liveDebt > 0.15 ? 0.03 : 0.0);
+                              : 1.0 + (live && liveDebt > 0.15 ? 0.03 : 0.0) + liveCatchUp.load();
         SDL_SetAudioStreamFrequencyRatio(audio, (float)ratio);
       }
       if (live) liveDebt = std::max(0.0, wall - lastPos);
