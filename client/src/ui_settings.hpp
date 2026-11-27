@@ -41,14 +41,21 @@ inline std::optional<int> UiContext::settingsInput(uint64_t now) {
       int section = settings_ui::sectionOf(settingsRow);
       const auto& rows = all[(size_t)section].rows;
       int index = (int)(std::find(rows.begin(), rows.end(), settingsRow) - rows.begin());
-      if (in.hit(Input::UP) && index > 0) settingsRow = rows[(size_t)index-1];
-      if (in.hit(Input::DOWN) && index + 1 < (int)rows.size()) settingsRow = rows[(size_t)index+1];
+      if (settingsInside) {
+        if (in.hit(Input::UP) && index > 0) settingsRow = rows[(size_t)index-1];
+        if (in.hit(Input::DOWN) && index + 1 < (int)rows.size()) settingsRow = rows[(size_t)index+1];
+      } else {
+        // Coluna de seções: cima/baixo trocam a seção focada; A entra nela, com o foco na primeira linha.
+        if (in.hit(Input::UP) && section > 0) settingsRow = all[(size_t)section-1].rows.front();
+        if (in.hit(Input::DOWN) && section + 1 < (int)all.size()) settingsRow = all[(size_t)section+1].rows.front();
+        if (ctl::hit(in, ctl::Ctx::Settings, ctl::Act::Open)) settingsInside = true;
+      }
       int jump = ctl::hit(in, ctl::Ctx::Settings, ctl::Act::PrevTab) ? -1 : ctl::hit(in, ctl::Ctx::Settings, ctl::Act::NextTab) ? 1 : 0;
       if (jump) settingsRow = all[(size_t)std::clamp(section + jump, 0, (int)all.size()-1)].rows.front();
     }
     int direction = 0;
-    if (in.hit(Input::LEFT)) direction = -1;
-    if (in.hit(Input::RIGHT)) direction = 1;
+    if (settingsInside && in.hit(Input::LEFT)) direction = -1;
+    if (settingsInside && in.hit(Input::RIGHT)) direction = 1;
     if (settingsRow == 0 && !accountBusy && in.hit(Input::A)) {
       if (account.signedIn()) logoutPanel = true;
       else beginLogin();
@@ -117,7 +124,11 @@ inline std::optional<int> UiContext::settingsInput(uint64_t now) {
       else if (settingsRow == 12) {settings.videoFill=!settings.videoFill;boot_event("info","settings.fit","fill=%d; geometry/UV only, no display or atlas recreation",settings.videoFill);}
       if (changed) saveSettings();
     }
-    if (in.hit(Input::B)) { screen = HOME; railFocus = true; railSel = 6; }
+    if (in.hit(Input::B)) {
+      // Dentro da seção o B volta para a coluna (na mesma seção); na coluna, sai das Configurações.
+      if (settingsInside) { settingsInside = false; settingsRow = settings_ui::sections()[(size_t)settings_ui::sectionOf(settingsRow)].rows.front(); }
+      else { screen = HOME; railFocus = true; railSel = 6; }
+    }
   }
   return std::nullopt;
 }
@@ -143,9 +154,12 @@ inline void UiContext::settingsDraw() {
     for (size_t i=0;i<all.size();++i) {
       float y=122+i*(ui::large ? 56 : 62);
       bool current=(int)i==section;
-      if (current) gfx::rect(g,listX,y,listW,ui::large ? 50 : 54,ui::TEXT,14);
+      // Foco na coluna: a seção atual em branco com aro; dentro da seção: só em cinza, o foco está nas linhas.
+      if (current && !settingsInside) gfx::rect(g,listX-3,y-3,listW+6,(ui::large ? 50 : 54)+6,ui::A1,17);
+      if (current) gfx::rect(g,listX,y,listW,ui::large ? 50 : 54,settingsInside ? ui::SURFACE2 : ui::TEXT,14);
       std::string name=gfx::ellipsize(g,ui::F_CHAN,tr(all[i].title),listW-36);
-      gfx::text(g,ui::F_CHAN,name,rtl ? listX+listW-18 : listX+18,y+(ui::large ? 10 : 13),current ? ui::INK : ui::MUTED,rtl ? 2 : 0);
+      Color ink=current ? (settingsInside ? ui::TEXT : ui::INK) : ui::MUTED;
+      gfx::text(g,ui::F_CHAN,name,rtl ? listX+listW-18 : listX+18,y+(ui::large ? 10 : 13),ink,rtl ? 2 : 0);
     }
     const auto& rows=all[(size_t)section].rows;
     int visible=ui::large ? 5 : 8, selectedIndex=(int)(std::find(rows.begin(),rows.end(),settingsRow)-rows.begin());
@@ -154,7 +168,7 @@ inline void UiContext::settingsDraw() {
     for (int k=first;k<std::min(count,first+visible);++k) {
       int i=rows[(size_t)k];
       float x=optX, y=122+(k-first)*step, w=optW;
-      bool selected=i==settingsRow, disabled=i==3 && !nestAvailable;
+      bool selected=settingsInside && i==settingsRow, disabled=i==3 && !nestAvailable;
       if (selected) gfx::rect(g,x-3,y-3,w+6,rowH+6,ui::A1,20);
       gfx::rect(g,x,y,w,rowH,selected ? ui::SURFACE2 : ui::SURFACE,18);
       std::string value;
@@ -184,15 +198,16 @@ inline void UiContext::settingsDraw() {
       gfx::text(g,ui::F_KEY,shown,ui::large && !g.rtlText ? x+28 : right,y+(ui::large ? 47 : 15),disabled ? ui::MUTED : selected ? ui::A2 : ui::TEXT,ui::large && !g.rtlText ? 0 : 2);
       if (selected && settings_ui::changesWithArrows(i) && !disabled) gfx::text(g,ui::F_KEY,"< >",x+w-20,y+(ui::large ? 47 : 15),ui::MUTED,2);
     }
-    K help=(settingsRow==16 || settingsRow==17)?K::LocalLimit:settingsRow==2?K::ManualQualityHelp:settingsRow==9 ? (gfx::fixedOutput()?K::SafeOutputHelp:g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==19 ? K::LiveLowLatencyHelp : settingsRow==20 ? K::PhoneRemoteHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
+    K help=!settingsInside?K::SavedAutomatically:(settingsRow==16 || settingsRow==17)?K::LocalLimit:settingsRow==2?K::ManualQualityHelp:settingsRow==9 ? (gfx::fixedOutput()?K::SafeOutputHelp:g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==19 ? K::LiveLowLatencyHelp : settingsRow==20 ? K::PhoneRemoteHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
     float hy=ui::large ? 608 : 610;
     // Com texto grande o "salvas automaticamente" já está no topo, no lugar do subtítulo; o rodapé só mostra ajuda própria da linha.
     if (!(ui::large && help==K::SavedAutomatically))
       for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::textBox(g,ui::F_SMALL,line,ui::X0,hy,ui::W-ui::X0-64,ui::MUTED); hy+=ui::large ? 26 : 22; }
     float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
-    if (settings_ui::changesWithArrows(settingsRow)) hx=hint(g,hx,678,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
+    if (!settingsInside) hx=ctlHint(g,hx,678,ctl::Ctx::Settings,ctl::Act::Open,settings.lang);   // A entra na seção
+    else if (settings_ui::changesWithArrows(settingsRow)) hx=hint(g,hx,678,tr(K::BtnHorizontal),XG,tr(K::ChangeValue));
     hx=ctlHint(g,hx,678,ctl::Ctx::Settings,ctl::Act::PrevTab,settings.lang,K::CtlSection);
-    if (!settings_ui::changesWithArrows(settingsRow)) hx=ctlHint(g,hx,678,ctl::Ctx::Settings,ctl::Act::Open,settings.lang);
+    if (settingsInside && !settings_ui::changesWithArrows(settingsRow)) hx=ctlHint(g,hx,678,ctl::Ctx::Settings,ctl::Act::Open,settings.lang);
     ctlHint(g,hx,678,ctl::Ctx::Settings,ctl::Act::Back,settings.lang);
   }
 }

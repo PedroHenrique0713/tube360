@@ -1,6 +1,10 @@
 """Home e conta reais com transportes fechados; confere geometria dos prints."""
 import copy
 import json
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import os
 from pathlib import Path
 import re
@@ -167,5 +171,5 @@ assert results[-1]['widths'] == [252.0] * 4, ('Inscrições (cols=4) mantém 4 c
 run('account-library-row', signed=True, nav=True, nav_kind='library', nav_focus=9, keys='....SA...DDD', sample=240)
 run('hidden-first-page', signed=True, hide=True, keys='', expected='landscape', continuation=True)
 run('all-hidden', signed=True, hide=True, only=True, keys='....A', expected='empty')
-run('toggle-loaded-feed', signed=True, keys='....L'+'D'*6+'A'+']'+'D'*5+'RBR', expected='landscape', toggle=True)
+run('toggle-loaded-feed', signed=True, keys='....L'+'D'*6+'A'+seq(7,'RBBR'), expected='landscape', toggle=True)
 (work/'manifest.json').write_text(json.dumps(results, indent=2))

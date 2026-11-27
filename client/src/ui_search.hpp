@@ -42,13 +42,13 @@ inline void UiContext::searchChipSelected(NavPage& p) {
 // Nome + marca de verificado na mesma linha, numa linha só (a marca segue o fim do texto, no lado certo em árabe).
 // Devolve o y logo abaixo.
 static float nameWithBadge(gfx::Gfx& g, int font, const std::string& name, bool verified, float x, float y, float w, Color c) {
-  float mark = verified ? 14.f + 8 : 0;
+  const float md = verifiedSize(g, font), mark = verified ? md + 8 : 0;
   std::string shown = gfx::ellipsize(g, font, name, w - mark);
   gfx::textBox(g, font, shown, x, y, w, c);
   if (verified) {
     float tw = gfx::textWidth(g, font, shown);
     bool rtl = g.rtlText || gfx::visualLine(g, shown, font).rtl;
-    verifiedMark(g, rtl ? x + w - tw - 8 - 14 : x + tw + 8, y + (g.fonts[font].lineH - 14) / 2, 14, ui::MUTED, ui::BG);
+    verifiedMark(g, rtl ? x + w - tw - 8 - md : x + tw + 8, verifiedY(g, font, y, md), md, ui::MUTED, ui::BG);
   }
   return y + g.fonts[font].lineH;
 }

@@ -33,13 +33,13 @@ inline float Navigation::drawChannelPage(NavDraw& d) {
   if (!p.image.empty()) { artwork(g, d.thumbs, d.worker, p.image, d.frame, tx, 28, 72, 72, true, true); tx += 96; }
   const float tw = ui::W-tx-364;
   std::string name = p.displayTitle.empty() ? d.tr(titleKey(p)) : p.displayTitle;
-  float markW = p.verified ? 34.f : 0;
+  const float markD = verifiedSize(g, ui::F_BIG), markW = p.verified ? markD + 12 : 0;
   std::string shown = gfx::ellipsize(g, ui::F_BIG, name, tw - markW);
   gfx::textBox(g, ui::F_BIG, shown, tx, 24, tw, ui::TEXT);
   if (p.verified) {
     float nameW = gfx::textWidth(g, ui::F_BIG, shown);
     bool rtl = g.rtlText || gfx::visualLine(g, shown, ui::F_BIG).rtl;
-    verifiedMark(g, rtl ? tx + tw - nameW - 12 - 22 : tx + nameW + 12, 24 + (g.fonts[ui::F_BIG].lineH - 22) / 2, 22, ui::MUTED, ui::BG);
+    verifiedMark(g, rtl ? tx + tw - nameW - 12 - markD : tx + nameW + 12, verifiedY(g, ui::F_BIG, 24, markD), markD, ui::MUTED, ui::BG);
   }
   gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, p.displaySub, tw), tx, 78, ui::MUTED);
   if (!p.description.empty()) gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, p.description, tw), tx, 78 + g.fonts[ui::F_CHAN].lineH + 4, rgb(0xa1a1aa));

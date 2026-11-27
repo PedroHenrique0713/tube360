@@ -192,6 +192,7 @@ struct UiContext {
   std::vector<std::string>& shortLines;
 
   // ---- F64 Configurações e controle: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  bool settingsInside = false;      // Configurações: o foco está dentro da seção (true) ou na coluna de seções (false)
   void refreshPage(uint64_t now);   // ui_shell.hpp: o "Atualizar" do Menu (Início e páginas de navegação)
   void openPageMenu();              // Menu sem vídeo em foco: só as opções da página
   void pageMenuIntercept();         // chamado ANTES da cadeia de entrada: o Menu sem vídeo em foco abre o menu da página
