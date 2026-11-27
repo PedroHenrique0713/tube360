@@ -35,7 +35,7 @@ inline void UiContext::playerPanelInput(uint64_t now, const display::CommentsPan
     if (in.hit(Input::DOWN)) playerUI.panelSel = 1;
     int direction = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
     if (captions.failed && in.hit(Input::A) && !captionLoader.loading)
-      captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang, nullptr, pl.direct);
+      captionLoader.request(i18n::code(settings.lang), settings.captionLang);
     else if (!playerUI.panelSel && !captions.cues.empty() && (direction || in.hit(Input::A))) {
       settings.captions = !settings.captions; saveSettings();
     } else if (playerUI.panelSel && !captions.tracks.empty() && !captionLoader.loading && (direction || in.hit(Input::A))) {
@@ -43,7 +43,7 @@ inline void UiContext::playerPanelInput(uint64_t now, const display::CommentsPan
       for (size_t i = 0; i < captions.tracks.size(); i++) if (captions.tracks[i].code == captions.selected) index = (int)i;
       index = (index + (direction ? direction : 1) + (int)captions.tracks.size()) % (int)captions.tracks.size();
       settings.captionLang = captions.tracks[(size_t)index].code; settings.captions = true; saveSettings();
-      captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang, nullptr, pl.direct);
+      captionLoader.request(i18n::code(settings.lang), settings.captionLang);
       captions.cues.clear(); captionIndex = -1; captionLines.clear();
     }
   } else if (playerUI.panel == PlayerUI::SOUND) {
@@ -409,7 +409,7 @@ inline void UiContext::playerShelfDraw(uint64_t now) {
   int first = std::clamp(shelf.sel - cols + 1, 0, std::max(0, count - cols));
   for (int i = first; i < std::min(count, first + cols + 1); ++i) {
     float slot = (float)(i - first) * (cw + gap), x = rtl ? ui::W - left - cw - slot : left + slot;
-    homeCard(g, thumbs, thumbsWorker, frame, settings.lang, items[(size_t)i], pl.direct, items[(size_t)i].shortForm, i == shelf.sel, x, rowY, cw, ch, i == shelf.sel ? 1.f : 0.f, nullptr);
+    homeCard(g, thumbs, thumbsWorker, frame, settings.lang, items[(size_t)i], true, items[(size_t)i].shortForm, i == shelf.sel, x, rowY, cw, ch, i == shelf.sel ? 1.f : 0.f, nullptr);
   }
   // linha fina de progresso colada na borda
   double dur = pl.duration, pos = pl.position();
@@ -456,18 +456,14 @@ inline void UiContext::playerUpdate(uint64_t now) {
       trackLabels.clear(); selectedTrackLabel.clear(); trackLang=settings.lang;
       for (const auto& track : audioTracks) { trackLabels.push_back(audioTrackLabel(track,settings.lang)); if (track.code==selectedAudio) selectedTrackLabel=trackLabels.back(); }
     }
-    if (pl.direct && pl.mediaReady.exchange(false)) {
+    if (pl.mediaReady.exchange(false)) {
       if (pl.title.empty()) pl.title = pl.media.title;
       pl.duration = pl.media.duration;
       if (!pl.playingAudio && (captionVideo != playing.id || captionInterface != i18n::code(settings.lang) || !captionLoader.native)) {
         captionVideo = playing.id; captionInterface = i18n::code(settings.lang);
         captions = {}; captionIndex = -1; captionLines.clear();
-        captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang, &pl.media);
+        captionLoader.request(i18n::code(settings.lang), settings.captionLang, &pl.media);
       }
-    } else if (!pl.playingAudio && !pl.direct && (captionVideo != playing.id || captionInterface != i18n::code(settings.lang) || captionLoader.native)) {
-      captionVideo = playing.id; captionInterface = i18n::code(settings.lang);
-      captions = {}; captionIndex = -1; captionLines.clear();
-      captionLoader.request(srv, playing.id, i18n::code(settings.lang), settings.captionLang);
     }
     if (captionLoader.pop(captions)) {
       captionIndex = -1; captionLines.clear();
@@ -610,7 +606,7 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
         case PlayerUI::VIDEO: {
           int resolution = playback::labelHeight(videoTex.w,pl.actualHeight.load()), sourceFps = pl.actualFps.load();
           int targetFps = std::min(sourceFps, pl.presentFps.load());
-          const char* mode = pl.waiting() ? nullptr : tr(pl.direct ? K::Console : pl.original ? K::ServerOriginal : K::ServerConverted);
+          const char* mode = pl.waiting() ? nullptr : tr(K::Console);
           if (resolution != lastQuality || sourceFps != lastSourceFps || targetFps != lastTargetFps || lastOutput != (int)g.extent.height || mode != lastMode) {
             resolutionLabel = resolution ? std::to_string(resolution) + "p" : tr(K::Loading);
             if (sourceFps) resolutionLabel += std::to_string(sourceFps);
@@ -796,7 +792,7 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
     gfx::hgrad(g, x + 32, y + 52, std::max(4.f, (w - 64) * (float)(1 - left / 8.0)), 4, ui::A1, ui::A2, 2);
     float tw = 256, th = 144, tx = x + 32, ty = y + 74;
     gfx::rect(g, tx, ty, tw, th, ui::SURFACE2, 12);
-    if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, upNext.id, frame, pl.direct)) gfx::image(g, s->tex, tx, ty, tw, th, 12);
+    if (const Thumbs::Slot* s = thumbs.get(thumbsWorker, upNext.id, frame, true)) gfx::image(g, s->tex, tx, ty, tw, th, 12);
     float cx = tx + tw + 28, cw = x + w - 32 - cx, cy = ty + 2;
     for (auto& line : gfx::wrap(g, ui::F_H2, upNext.title, cw, 2)) { gfx::textBox(g, ui::F_H2, line, cx, cy, cw, ui::TEXT); cy += 30; }
     if (!upNext.channel.empty()) gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, upNext.channel, cw), cx, cy + 8, ui::MUTED);
@@ -805,7 +801,7 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
   }
   if (pl.waiting() && !panelOpen) {
     spinner(g, ui::W / 2, ui::H / 2, 26, t);
-    gfx::text(g, ui::F_BODY, pl.state == player::CONNECTING ? tr(pl.direct ? K::Loading : K::RequestingVideo) : tr(K::Loading), ui::W / 2, ui::H / 2 + 46, ui::TEXT, 1);
+    gfx::text(g, ui::F_BODY, tr(K::Loading), ui::W / 2, ui::H / 2 + 46, ui::TEXT, 1);
   }
   if (pl.state == player::FAILED && !panelOpen) {
     float w=std::min(900.f,ui::W-100), y=ui::H/2-95;

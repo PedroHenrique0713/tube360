@@ -2,9 +2,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#define PL_MPEG_IMPLEMENTATION
-#include "pl_mpeg.h"
-#undef PL_MPEG_IMPLEMENTATION
 #define LOG(...) SDL_Log(__VA_ARGS__)
 #include "player.hpp"
 #include "yt/media.hpp"
@@ -46,7 +43,6 @@ std::unique_ptr<Transport> https(const std::atomic_bool* stop) {
 static void fallbackDoesNotPunishNextVideo() {
     player::Player p;
     p.mu=SDL_CreateMutex();p.cv=SDL_CreateCondition();p.nmu=SDL_CreateMutex();
-    net::serverEnabled=false;
     auto play=[&](const char* id,bool broken) {
         p.halt();
         p.media={};p.media.id=id;p.media.status="OK";p.media.duration=10800;p.media.ttl=3600;
@@ -55,7 +51,7 @@ static void fallbackDoesNotPunishNextVideo() {
         p.media.videoLadder={p.media.video};
         p.media.videoLadder.insert(p.media.videoLadder.end(),p.media.lowerVideo.begin(),p.media.lowerVideo.end());
         p.cachedQuality=720;p.cachedVideoMode=playback::DETAIL;p.cachedAudio="original";p.validUntil=SDL_GetTicks()+60000;
-        p.start({"127.0.0.1",1},id,120,"fixture",10800,720,false,true,false,playback::DETAIL);
+        p.start(id,120,"fixture",10800,720,false,false,playback::DETAIL);
         uint64_t deadline=SDL_GetTicks()+5000;
         while(SDL_GetTicks()<deadline && p.state!=player::PLAYING && p.state!=player::FAILED) {
             if(auto* frame=p.take())p.recycle(frame);

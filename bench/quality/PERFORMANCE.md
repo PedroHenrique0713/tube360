@@ -3,7 +3,6 @@
 O H.264 usa `get_buffer2` para escrever em três imagens R8 lineares mapeadas. O pool conserva a posse do DPB,
 da fila do player e dos dois quadros em voo na GPU. Uma superfície só volta ao decoder quando todos soltarem
 as referências. Os descritores são criados uma vez por superfície; o desenho troca o set, sem copiar pixels.
-O MPEG-1 continua usando staging.
 
 No Xbox, `build-xbox.sh` prepara a extensão **na cópia privada** do vulkan4xenon: tipo de memória 2 fisicamente
 contíguo, cacheado e não coerente, amostragem linear R8 e flush explícito de linhas de 128 bytes. O decoder faz

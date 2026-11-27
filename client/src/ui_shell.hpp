@@ -15,7 +15,7 @@ inline void UiContext::railInput() {
     else if (railSel == 3) openNav("library");
     else if (railSel == 4) openNav("music", "", "", true);
     else if (railSel == 5) { phonePanel = true; }
-    else if (railSel == 6) { screen = SETTINGS; railFocus = false; nestInfoAt = 0; accountAt = 0; settingsInside = false; }
+    else if (railSel == 6) { screen = SETTINGS; railFocus = false; accountAt = 0; settingsInside = false; }
     else quit = true;
   }
 }
@@ -152,14 +152,14 @@ inline void UiContext::overlaysDraw(uint64_t now, double t, bool sleepWarning, d
 
 // ---- entrada dos painéis por cima das telas (cada um captura o controle enquanto aberto)
 inline void UiContext::sleepWarningInput() {
-  if (in.hit(Input::A) && !sleepPending) requestSleep("/api/sleep/add?min=15");
-  if (in.hit(Input::B) && !sleepPending) requestSleep("/api/sleep/cancel");
+  if (in.hit(Input::A)) requestSleep("/api/sleep/add?min=15");
+  if (in.hit(Input::B)) requestSleep("/api/sleep/cancel");
 }
 
 inline void UiContext::sleepPanelInput(uint64_t now) {
   int direction = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
   sleepChoice = (sleepChoice + direction + 8) % 8;
-  if (in.hit(Input::A) && !sleepPending) { applySleep(); sleepPanel = false; }
+  if (in.hit(Input::A)) { applySleep(); sleepPanel = false; }
   if (in.hit(Input::B)) sleepPanel = false;
   playerUI.touch(now);
 }

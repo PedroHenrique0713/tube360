@@ -96,7 +96,7 @@
     "Display1080Help": "For native 1080p, select 1080p (progressive) in Xbox Display Settings and use HDMI.",
     "LargeTextHelp": "Larger text and fewer columns. Always enabled on SD TVs.",
     "SyncHelp": "Adjust in steps of 40 ms. Positive values advance the picture.",
-    "NoSpeaker": "No speaker configured on the server",
+    "NoSpeaker": "No speaker configured",
     "Enabled": "Enabled",
     "YourMusic": "Music from your account",
     "MusicRecent": "Recently played",

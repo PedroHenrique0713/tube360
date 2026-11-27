@@ -32,26 +32,27 @@ public:
 };
 
 struct Player : player::Player {
-  bool audioOnly = false, playingAudio = false, serverAudio = false;
+  bool audioOnly = false, playingAudio = false;
   uint64_t drainAt = 0;
   std::atomic<bool> audioDone{false};
   std::atomic<int> audioFailure{0};
   std::atomic<double> audioTail{0};
 
-  void start(const net::Server& server, const std::string& video, double at, const std::string& name, double length,
-             int height, bool speaker, bool tryDirect = true, bool renewing = false, int mode = -1, const std::string& track = {}, bool members = false) {
+  void start(const std::string& video, double at, const std::string& name, double length,
+             int height, bool speaker, bool renewing = false, int mode = -1, const std::string& track = {}, bool members = false) {
+    const bool requested = speaker;
+    speaker = resolveSpeaker(requested);   // sem Nest configurado a música toca na TV (speakerMissing avisa quem chamou)
     halt(!speaker);
     memberVideo = members || (video == id && memberVideo);
     playingAudio = audioOnly;
-    serverAudio = !tryDirect || (speaker && !directSpeaker.configured());
-    if (!playingAudio) { player::Player::start(server,video,at,name,length,height,speaker,tryDirect,renewing,mode,track,members); return; }
+    if (!playingAudio) { player::Player::start(video,at,name,length,height,requested,renewing,mode,track,members); return; }
     if (mode >= 0) videoMode = mode;
     if (!track.empty()) audioSelection = track; else if (video != id) audioSelection = "original";
     audioTracks.clear(); selectedAudio.clear(); tracksReady = false; adapted = false;
     presentFps = playback::rate(videoMode); actualFps = 0;
-    srv = server; id = video; startAt = std::max(0.0,at); lastPos = startAt; title = name; duration = length; quality = height;
-    stop = false; paused = false; live = false; direct = !serverAudio; original = !serverAudio; state = player::CONNECTING;
-    speakerRequested = speaker; nest = false; nestFailed = false; renew = retryConverted = mediaReady = false;
+    id = video; startAt = std::max(0.0,at); lastPos = startAt; title = name; duration = length; quality = height;
+    stop = false; paused = false; live = false; state = player::CONNECTING;
+    speakerRequested = speaker; nest = false; nestFailed = false; renew = consoleFailure = mediaReady = false;
     castMediaReady = false; decEnded = false;
     validUntil = 0; cachedQuality = 0;
     actualHeight = 0; error.clear(); audioDone = false; audioFailure = 0; audioTail = 0; hasAudio = false; drainAt = 0;
@@ -67,14 +68,8 @@ struct Player : player::Player {
     liveRate = 1; liveClockOffset = 0;   // o alcance de uma live anterior não pode acelerar a posição e a letra da música
     if (audio) { SDL_PauseAudioStreamDevice(audio); SDL_ClearAudioStream(audio); SDL_SetAudioStreamFrequencyRatio(audio,1); }
     tvSound(false);
-    if (serverAudio) {
-      allowOriginal = true; endLiveReader = false; netEof = netErr = false; rhead = rcount = 0;
-      ring.assign(6u << 20,0);
-      netThread = SDL_CreateThread(netMain,"music-server",this);
-    }
     decThread = yt::worker([](void* p) {
-      auto& player = *static_cast<Player*>(p);
-      if (player.serverAudio) player.decodeServerAudio(); else player.decodeAudio();
+      static_cast<Player*>(p)->decodeAudio();
       return 0;
     },"music-aac",this);
     if (!decThread) { error = "console"; state = player::FAILED; }
@@ -156,95 +151,8 @@ struct Player : player::Player {
     if (result < 0) audioFailure = result;
     else audioDone = true;
   }
-  void decodeServerAudio() {
-    player::moveToHardwareThread(2);
-    SDL_LockMutex(mu);
-    while (!rcount && !netEof && !netErr && !stop) SDL_WaitCondition(cv,mu);
-    SDL_UnlockMutex(mu);
-    if (stop) return;
-    int result = 0;
-    if (original) {
-      h264::Stream stream;
-      result = stream.open(this,readOriginal,1,true,false);
-      hasAudio = result >= 0;
-      double origin = NAN;
-      auto receive = [&](AVPacket* packet) {
-        int r = avcodec_send_packet(stream.audio,packet);
-        if (r < 0) return r;
-        while (!stop) {
-          r = avcodec_receive_frame(stream.audio,stream.frame);
-          if (r == AVERROR(EAGAIN) || r == AVERROR_EOF) return 0;
-          if (r < 0) return r;
-          double pts = stream.pts(stream.ai);
-          if (!std::isfinite(pts)) return AVERROR_INVALIDDATA;
-          if (!std::isfinite(origin)) origin = pts;
-          pts -= origin;
-          int count = stream.convert(stream.frame);
-          if (count < 0 || !putOriginalAudio(stream,count,pts)) return AVERROR_INVALIDDATA;
-          audioTail = pts + count/44100.0;
-          while (!stop && audioQueuedSec() > 2) SDL_Delay(8);
-        }
-        return AVERROR_EXIT;
-      };
-      while (result >= 0 && !stop) {
-        result = av_read_frame(stream.fmt,stream.pkt);
-        if (result == AVERROR_EOF && (!stream.io->error || stream.io->error == AVERROR_EOF)) {
-          result = receive(nullptr);
-          if (result >= 0) {
-            double pts = audioTail.load(); int count = stream.convert(nullptr);
-            if (count < 0 || !putOriginalAudio(stream,count,pts)) result = AVERROR_INVALIDDATA;
-            else audioTail = pts+count/44100.0;
-          }
-          break;
-        }
-        if (result < 0) break;
-        if (stream.pkt->stream_index == stream.ai) result = receive(stream.pkt);
-        av_packet_unref(stream.pkt);
-      }
-    } else {
-      auto* buffer = plm_buffer_create_with_capacity(512 << 10);
-      plm_buffer_set_load_callback(buffer,loadCb,this);
-      auto* decoder = plm_create_with_buffer(buffer,1);
-      // A reserva MPEG-PS do PC também descarta a imagem antes de decodificar.
-      plm_set_video_enabled(decoder,0);
-      while (!stop && !plm_has_headers(decoder)) {
-        SDL_LockMutex(mu); bool ended = (netEof || netErr) && !rcount; SDL_UnlockMutex(mu);
-        if (ended) break;
-        SDL_Delay(5);
-      }
-      hasAudio = audio && plm_get_num_audio_streams(decoder) > 0;
-      result = hasAudio ? 0 : AVERROR_STREAM_NOT_FOUND;
-      while (result >= 0 && !stop) {
-        auto* samples = plm_decode_audio(decoder);
-        if (!samples) {
-          if (plm_has_ended(decoder)) break;
-          SDL_Delay(2); continue;
-        }
-        SDL_LockAudioStream(audio);
-        bool ok = SDL_PutAudioStreamData(audio,samples->interleaved,int(samples->count*2*sizeof(float)));
-        if (SDL_GetAtomicInt(&audioBaseMs) < 0) SDL_SetAtomicInt(&audioBaseMs,int(std::lround(samples->time*1000)));
-        SDL_AddAtomicInt(&pushed,int(samples->count)); SDL_UnlockAudioStream(audio);
-        if (!ok) { result = AVERROR(EIO); break; }
-        audioTail = samples->time + samples->count/44100.0;
-        while (!stop && audioQueuedSec() > 2) SDL_Delay(8);
-      }
-      plm_destroy(decoder);
-    }
-    if (stop) return;
-    if (result >= 0 && (audioTail <= 0 || (!live && duration > 0 && startAt+audioTail.load()+1.25 < duration))) result = AVERROR_INVALIDDATA;
-    LOG("musica: reserva PC %s, video 0 quadros, PCM %.3f s, resultado %d",original ? "AAC" : "MP2",audioTail.load(),result);
-    SDL_LockMutex(mu); bool failed = netErr; SDL_UnlockMutex(mu);
-    if (result < 0 || failed) audioFailure = result < 0 ? result : AVERROR(EIO);
-    else audioDone = true;
-  }
   player::Frame* take() {
     if (!playingAudio) return player::Player::take();
-    if (audioFailure && !serverAudio && net::serverEnabled && error.empty()) {
-      auto server = srv; auto video = id, name = title;
-      double at = position(), length = duration; int height = quality; bool hold = paused;
-      LOG("musica: reserva no PC em %.3f s",at);
-      start(server,video,at,name,length,height,false,false); setPaused(hold); return nullptr;
-    }
     if (audioFailure) { if (error.empty()) error = "console"; state = player::FAILED; if (audio) SDL_PauseAudioStreamDevice(audio); return nullptr; }
     int external = speakerPause.exchange(0);
     if (external) setPaused(external == 1,false);
@@ -256,7 +164,7 @@ struct Player : player::Player {
     auto route = output.load();
     if (speakerRequested && route == CAST) {
       SDL_LockMutex(nmu);
-      if (nestState == 1 && now-nestStampMs < (direct ? 8000 : 650)) speaker = nestPos+(now-nestStampMs)/1000;
+      if (nestState == 1 && now-nestStampMs < 8000) speaker = nestPos+(now-nestStampMs)/1000;
       SDL_UnlockMutex(nmu);
     }
     if (firstPts < 0 && (queued >= .12 || (audioDone && queued > 0))) {

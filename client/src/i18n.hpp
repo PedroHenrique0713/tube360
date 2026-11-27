@@ -26,7 +26,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   return date;
 }
 
-// Texto do app. Títulos, nomes e metadados do servidor continuam sendo dados.
+// Texto do app. Títulos, nomes e metadados vindos do YouTube continuam sendo dados.
 #define TUBE360_TEXT(X) \
   X(None, "", "", "") \
   X(LauncherOpening, "Tube360 – opening…", "Tube360 – abrindo…", "Tube360 – abriendo…") \
@@ -42,11 +42,8 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(UpdateReady, "Update ready · reopen Tube360", "Atualização pronta · reabra o Tube360", "Actualización lista · vuelve a abrir Tube360") \
   X(UpdateFailed, "Could not verify or save the update. Try again.", "Não foi possível conferir ou salvar. Tente novamente.", "No se pudo verificar o guardar la actualización. Inténtalo de nuevo.") \
   X(UpdateSetup, "Install the complete app package once to enable automatic updates.", "Instale o pacote completo uma vez para ativar as atualizações.", "Instala el paquete completo una vez para activar las actualizaciones.") \
-  X(ServerOriginal, "Server · original", "Servidor · original", "Servidor · original") \
-  X(ServerConverted, "Server · converted", "Servidor · convertido", "Servidor · convertido") \
   X(ConsoleVideoError, "Could not open the YouTube stream on this console.", "O console não conseguiu abrir o fluxo do YouTube.", "No se pudo abrir el video de YouTube en esta consola.") \
   X(Console, "Console", "Console", "Consola") \
-  X(ServerMode, "Server", "Servidor", "Servidor") \
   X(Automatic, "Automatic", "Automático", "Automático") \
   X(Video720Fast, "720p · 60 fps", "720p · 60 fps", "720p · 60 fps") \
   X(Video1080Detail, "1080p · 30 fps", "1080p · 30 fps", "1080p · 30 fps") \
@@ -105,7 +102,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(Refresh, "Refresh", "Atualizar", "Actualizar") \
   X(Refreshing, "Finding new videos…", "Buscando vídeos novos…", "Buscando videos nuevos…") \
   X(LoadingVideos, "Loading videos…", "Carregando vídeos…", "Cargando videos…") \
-  X(NoResponse, "No response from the server", "Sem resposta do servidor", "El servidor no responde") \
+  X(NoResponse, "No response from YouTube", "Sem resposta do YouTube", "YouTube no responde") \
   X(ClockWrong, "Set the console date and time", "Acerte a data e a hora do console", "Ajusta la fecha y la hora de la consola") \
   X(ConsoleClock, "Console clock: ", "Relógio do console: ", "Reloj de la consola: ") \
   X(TLSFailed, "Secure connection failed. Check for app updates.", "Falha na conexão segura. Confira as atualizações do app.", "Falló la conexión segura. Busca actualizaciones de la app.") \
@@ -162,7 +159,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(TenSeconds, "10 s", "10 s", "10 s") \
   X(OneMinute, "1 min", "1 min", "1 min") \
   X(SpeakerFallback, "Speaker did not respond: using TV sound (X to retry)", "A caixa não respondeu: som na TV (X tenta de novo)", "El altavoz no responde: sonido en la TV (X para reintentar)") \
-  X(RequestingVideo, "Requesting video from the server…", "Pedindo o vídeo ao servidor…", "Solicitando el video al servidor…") \
   X(Loading, "Loading…", "Carregando…", "Cargando…") \
   X(VideoFailed, "Could not play this video", "Não deu para tocar este vídeo", "No se pudo reproducir este video") \
   X(VideoOpenError, "Couldn't open this video.", "Não deu para abrir este vídeo.", "No se pudo abrir este video.") \
@@ -226,7 +222,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(Sound, "Sound", "Som", "Sonido") \
   X(SpeakerSync, "Speaker sync", "Sincronia da caixa", "Sincronización del altavoz") \
   X(SleepTimer, "Sleep timer", "Timer de desligar", "Temporizador de apagado") \
-  X(SleepTogether, "Also turn off", "Desligar junto", "Apagar también") \
   X(SleepOff, "Off", "Desligado", "Desactivado") \
   X(SleepEnd, "At end of video", "No fim do vídeo", "Al terminar el video") \
   X(SleepXbox, "Xbox only", "Só o Xbox", "Solo Xbox") \
@@ -280,7 +275,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(Pending, "Waiting for sign-in", "Aguardando login", "Esperando el inicio de sesión") \
   X(SavedAutomatically, "Changes are saved automatically.", "As mudanças são salvas automaticamente.", "Los cambios se guardan automáticamente.") \
   X(SaveFailed, "Could not save settings on this device", "Não deu para salvar as configurações neste dispositivo", "No se pudo guardar la configuración en este dispositivo") \
-  X(NoSpeaker, "No speaker configured on the server", "Nenhuma caixa configurada no servidor", "No hay un altavoz configurado en el servidor") \
+  X(NoSpeaker, "No speaker configured", "Nenhuma caixa configurada", "No hay un altavoz configurado") \
   X(SpeakerChecking, "Checking for a speaker…", "Procurando uma caixa…", "Buscando un altavoz…") \
   X(SyncHelp, "Adjust in steps of 40 ms. Positive values advance the picture.", "Ajuste em passos de 40 ms. Valores positivos adiantam a imagem.", "Ajusta en pasos de 40 ms. Los valores positivos adelantan la imagen.") \
   X(ChooseRow, "Select", "Escolher", "Seleccionar") \
@@ -472,7 +467,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(MusicRepeatAll, "Repeat the queue", "Repetir a fila", "Repetir la cola") \
   X(MusicRepeatOne, "Repeat this track", "Repetir esta faixa", "Repetir esta pista") \
   X(MusicQueueEmpty, "The queue is empty.", "A fila está vazia.", "La cola está vacía.") \
-  X(MusicQueueServer, "The queue is controlled by the server; jump and reorder are not available.", "A fila é controlada pelo servidor; pular e reordenar não estão disponíveis.", "El servidor controla la cola; saltar y reordenar no están disponibles.") \
+  X(MusicQueueServer, "Jump and reorder are not available for this queue.", "Pular e reordenar não estão disponíveis nesta fila.", "Saltar y reordenar no están disponibles en esta cola.") \
   X(MusicVideoLoading, "Loading the video…", "Carregando o vídeo…", "Cargando el vídeo…") \
   /* */ \
   /* ---- F66 controle pelo celular */ \
