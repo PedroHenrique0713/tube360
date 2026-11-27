@@ -308,11 +308,15 @@ struct Worker {
         bool banner = markedBanner || (j.w == 1184 && j.h == 160);
         std::string address = markedBanner ? j.a.substr(1) : j.a;
         bool artwork = !yt::catalog::imageUrl(address).empty(), jpegTried=false;
-        if (artwork && !banner) {  // #15: capa HD do mesmo vídeo (hq720.jpg) antes da URL do feed, que vem em 320x180 ou WebP
-          auto hd = yt::catalog::hdThumbnail(address);
+        // #15: fonte da miniatura. Cartão de até 640 px: sddefault.jpg (640x480, a faixa preta é cortada na decodificação); só acima
+        // de 640 px o hq720.jpg (1280x720). Sem elas, a URL do feed e por último o JPEG de 320x180. Cada miniatura loga a fonte.
+        const bool wide = j.w > 640;
+        const char* source = "feed";
+        if (artwork && !banner) {
+          auto hd = wide ? yt::catalog::hdThumbnail(address) : yt::catalog::sdThumbnail(address);
           if (!hd.empty()) {
             auto img = https->request(hd);
-            if (img.status == 200 && img.error.empty()) { native = true; resp.body.assign(img.body.begin(), img.body.end()); }
+            if (img.status == 200 && img.error.empty()) { native = true; source = wide ? "hq720" : "sd"; resp.body.assign(img.body.begin(), img.body.end()); }
           }
         }
         if (artwork && !native) {
@@ -323,24 +327,23 @@ struct Worker {
             auto fallback=yt::catalog::jpegThumbnail(address);
             if(!fallback.empty() && fallback!=yt::catalog::imageUrl(address)){
               jpegTried=true;auto jpg=https->request(fallback);native=jpg.status==200 && jpg.error.empty();
-              if(native)resp.body.assign(jpg.body.begin(),jpg.body.end());
+              if(native){source="fallback";resp.body.assign(jpg.body.begin(),jpg.body.end());}
             }
           }
         }
         if (!native && (j.native || !net::serverEnabled || (consoleAccount && consoleAccount->active())) && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
-          // #15: a capa HD (1280x720) reduzida ao cartão; sem ela, a de 320x180 de sempre. Vale também no console: a decodificação
-          // grande é serializada (decodeMu) e o slot da GPU segue com o tamanho do cartão, então o orçamento de vagas não muda.
-          const bool wantHd = true;
+          // #15 (por id): sddefault.jpg até 640 px de largura, hq720.jpg acima disso; sem elas a de 320x180 de sempre.
+          // A decodificação grande é serializada (decodeMu) e o slot da GPU segue com o tamanho do cartão.
           yt::Response img;
-          if (wantHd) { img = https->request("https://i.ytimg.com/vi/" + j.a + "/hq720.jpg"); }
-          if (!(img.status == 200 && img.error.empty())) img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg");
+          img = https->request("https://i.ytimg.com/vi/" + j.a + (wide ? "/hq720.jpg" : "/sddefault.jpg")); source = wide ? "hq720" : "sd";
+          if (!(img.status == 200 && img.error.empty())) { img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg"); source = "fallback"; }
           native = img.status == 200 && img.error.empty();
           if (native) resp.body.assign(img.body.begin(), img.body.end());
         }
         if (native || (!artwork && net::get(srv, "/api/thumb/" + (j.a[0] == '~' ? "nav/" + j.a.substr(1) : j.a) + size, resp, 10000))) {
           int w, h, n;
           // Não decodifica dimensões arbitrárias recebidas pela rede.
-          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (artwork || (native && j.a.rfind("~yt",0) == 0) ? (w < 1 || h < 1 || w > 2048 || h > 2048 || int64_t(w)*h > 2097152) : native ? !((w == 320 && h == 180) || (w == 1280 && h == 720)) : (w != j.w || h != j.h))) { w = h = 0; }
+          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (artwork || (native && j.a.rfind("~yt",0) == 0) ? (w < 1 || h < 1 || w > 2048 || h > 2048 || int64_t(w)*h > 2097152) : native ? !((w == 320 && h == 180) || (w == 640 && h == 480) || (w == 1280 && h == 720)) : (w != j.w || h != j.h))) { w = h = 0; }
           if (!w && artwork && !jpegTried) {
             auto fallback=yt::catalog::jpegThumbnail(address);
             if(!fallback.empty() && fallback!=address){
@@ -349,31 +352,38 @@ struct Worker {
                 resp.body.assign(jpg.body.begin(),jpg.body.end());
                 if(!stbi_info_from_memory(resp.body.data(),int(resp.body.size()),&w,&h,&n) || w<1 || h<1 || w>2048 || h>2048 || int64_t(w)*h>2097152)w=h=0;
                 LOG("miniatura: JPEG fallback ok=%d",w>0);
+                source = "fallback";
               }
             }
           }
           const bool bigImage = int64_t(w) * h > 400000;
           if (bigImage) SDL_LockMutex(decodeMu);
+          const uint32_t decodeStart = SDL_GetTicks();
           unsigned char* px = w ? stbi_load_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n, 4) : nullptr;
+          const uint32_t decodeMs = SDL_GetTicks() - decodeStart;
+          const int decodedW = w, decodedH = h;
+          int cropY = 0, cropH = h;  // sddefault (640x480): corta 60 px de cima e de baixo, ficando 640x360 (16:9 vem com faixa preta; vertical vem com fundo desfocado)
+          if (px && !std::strcmp(source, "sd") && w == 640 && h == 480) { cropY = 60; cropH = 360; }
           if (px) {
             r.w = j.w; r.h = j.h;
             if (artwork || (native && j.a.rfind("~yt",0) == 0)) {
               r.rgba.assign((size_t)j.w*j.h*4,0);
-              double scale = std::min(double(j.w)/w,double(j.h)/h);
-              int dw = std::max(1,int(w*scale)), dh = std::max(1,int(h*scale));
+              double scale = std::min(double(j.w)/w,double(j.h)/cropH);
+              int dw = std::max(1,int(w*scale)), dh = std::max(1,int(cropH*scale));
               if (banner) { dw = j.w; dh = j.h; }
               int dx = (j.w-dw)/2, dy = (j.h-dh)/2;
-              if (w > dw || h > dh) boxScale(px, w, h, 0, 0, w, h, r.rgba.data() + 4 * ((size_t)dy * j.w + dx), 4 * j.w, dw, dh);
+              if (w > dw || cropH > dh) boxScale(px, w, h, 0, cropY, w, cropH, r.rgba.data() + 4 * ((size_t)dy * j.w + dx), 4 * j.w, dw, dh);
               else for (int y = 0; y < dh; ++y) for (int x = 0; x < dw; ++x)
-                std::memcpy(r.rgba.data()+4*((y+dy)*j.w+x+dx),px+4*((y*h/dh)*w+x*w/dw),4);
+                std::memcpy(r.rgba.data()+4*((y+dy)*j.w+x+dx),px+4*(((cropY+y*cropH/dh))*w+x*w/dw),4);
             } else if (w == j.w && h == j.h) r.rgba.assign(px, px + (size_t)w*h*4);
             else {
               r.rgba.resize((size_t)j.w*j.h*4);
-              if (w > j.w || h > j.h) boxScale(px, w, h, 0, 0, w, h, r.rgba.data(), 4 * j.w, j.w, j.h);
+              if (w > j.w || cropH > j.h) boxScale(px, w, h, 0, cropY, w, cropH, r.rgba.data(), 4 * j.w, j.w, j.h);
               else for (int y=0; y<j.h; ++y) for (int x=0; x<j.w; ++x)
-                std::memcpy(r.rgba.data() + 4*(y*j.w+x), px + 4*((y*h/j.h)*w + x*w/j.w), 4);
+                std::memcpy(r.rgba.data() + 4*(y*j.w+x), px + 4*(((cropY+y*cropH/j.h))*w + x*w/j.w), 4);
             }
             stbi_image_free(px);
+            LOG("miniatura: fonte=%s %dx%d%s -> %dx%d decod=%ums", source, decodedW, decodedH, cropH != decodedH ? " (corte 640x360)" : "", j.w, j.h, (unsigned)decodeMs);
           }
           if (bigImage) SDL_UnlockMutex(decodeMu);
         }

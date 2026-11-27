@@ -35,10 +35,16 @@ int main() {
   struct Hd { const char* in; const char* out; } hds[] = {
     {"https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg?sqp=-oaymw&rs=AOn4", "https://i.ytimg.com/vi/abcdefghijk/hq720.jpg"},
     {"https://i.ytimg.com/vi_webp/abcdefghijk/hq720.webp", "https://i.ytimg.com/vi/abcdefghijk/hq720.jpg"},
-    {"//i.ytimg.com/vi/abcdefghijk/oar2.jpg?x=1", "https://i.ytimg.com/vi/abcdefghijk/hq720.jpg"},
+    {"//i.ytimg.com/vi/abcdefghijk/maxresdefault.jpg?x=1", "https://i.ytimg.com/vi/abcdefghijk/hq720.jpg"},
+    {"https://i.ytimg.com/vi/abcdefghijk/oar2.jpg?x=1", ""},          // aspecto original (Shorts, vertical): fica com a URL do feed
+    {"https://i.ytimg.com/vi/abcdefghijk/frame0.jpg", ""},
     {"https://yt3.ggpht.com/avatar=s88", ""},
     {"https://example.com/vi/abcdefghijk/hqdefault.jpg", ""},
   };
   for (const auto& c : hds) if (hdThumbnail(c.in) != c.out) { std::cerr << "FAIL hdThumbnail " << c.in << " -> " << hdThumbnail(c.in) << '\n'; return 1; }
-  std::cout << "3 duration layouts, 4 live-mark cases and 2 history day headings and 5 HD thumbnail URLs parsed\n";
+  // cartão de até 640 px: sddefault.jpg (640x480, a faixa preta é cortada na decodificação)
+  if (sdThumbnail("https://i.ytimg.com/vi/abcdefghijk/hqdefault.jpg?sqp=-oaymw&rs=AOn4") != "https://i.ytimg.com/vi/abcdefghijk/sddefault.jpg" ||
+      sdThumbnail("https://i.ytimg.com/vi_webp/abcdefghijk/hq720.webp") != "https://i.ytimg.com/vi/abcdefghijk/sddefault.jpg" ||
+      !sdThumbnail("https://i.ytimg.com/vi/abcdefghijk/oar2.jpg").empty() || !sdThumbnail("https://yt3.ggpht.com/avatar=s88").empty()) { std::cerr << "FAIL sdThumbnail\n"; return 1; }
+  std::cout << "3 duration layouts, 4 live-mark cases and 2 history day headings and the HD/SD thumbnail URL rules parsed\n";
 }

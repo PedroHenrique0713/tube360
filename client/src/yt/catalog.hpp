@@ -131,9 +131,23 @@ inline string jpegThumbnail(const string& address) {
 }
 // Capa HD (1280x720 JPEG) do mesmo vídeo. As URLs que o feed manda (hqdefault.jpg?sqp=..., vi_webp/...webp) são de 320x180 ou WebP;
 // para o cartão em 384x216 ou 640x360 a fonte boa é a hq720.jpg. Vazia quando não é capa de vídeo do ytimg.
+// As miniaturas de aspecto original ("oar...", "frame...": Shorts e vídeos verticais) ficam com a URL do feed, que já é grande e respeita o recorte.
+inline bool originalAspect(const string& address) {
+  auto u=imageUrl(address); auto start=u.find("/vi_webp/"); size_t skip=9;
+  if(start==string::npos){start=u.find("/vi/");skip=4;}
+  if(start==string::npos)return false;
+  auto file=u.substr(start+skip+12);
+  return file.compare(0,3,"oar")==0 || file.compare(0,5,"frame")==0;
+}
 inline string hdThumbnail(const string& address) {
-  auto jpg=jpegThumbnail(address); if(jpg.empty())return {};
+  auto jpg=jpegThumbnail(address); if(jpg.empty() || originalAspect(address))return {};
   return jpg.substr(0,jpg.size()-string("mqdefault.jpg").size())+"hq720.jpg";
+}
+// Capa de 640x480 (sddefault.jpg): para cartões de até 640 px de largura. Vem com faixa preta em cima e embaixo (16:9 dentro de 4:3);
+// o decodificador corta a faixa e fica com 640x360. Custa ~1/3 dos pixels do hq720.
+inline string sdThumbnail(const string& address) {
+  auto jpg=jpegThumbnail(address); if(jpg.empty() || originalAspect(address))return {};
+  return jpg.substr(0,jpg.size()-string("mqdefault.jpg").size())+"sddefault.jpg";
 }
 inline int seconds(const string& s) {
   if (s.empty() || s.size() > 11 || s.find(':') == string::npos || s.find_first_not_of("0123456789:") != string::npos) return 0;
