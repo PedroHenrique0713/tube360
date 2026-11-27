@@ -1,0 +1,364 @@
+{
+ "contents": {
+  "sectionListRenderer": {
+   "contents": [
+    {
+     "shelfRenderer": {
+      "shelfHeaderRenderer": {
+       "avatarLockup": {
+        "avatarLockupRenderer": {
+         "title": {
+          "simpleText": "Resultados da pesquisa para \"banda ficticia\""
+         }
+        }
+       }
+      },
+      "content": {
+       "horizontalListRenderer": {
+        "items": [
+         {
+          "lockupViewModel": {
+           "contentImage": {
+            "thumbnailViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://i.ytimg.com/vi/VIDfix00001/hqdefault.jpg",
+                "width": 480,
+                "height": 360
+               }
+              ]
+             },
+             "overlays": [
+              {
+               "thumbnailBottomOverlayViewModel": {
+                "badges": [
+                 {
+                  "thumbnailBadgeViewModel": {
+                   "text": "4:21",
+                   "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT"
+                  }
+                 }
+                ]
+               }
+              }
+             ]
+            }
+           },
+           "metadata": {
+            "lockupMetadataViewModel": {
+             "title": {
+              "content": "Banda Ficticia - Cancao Um (Official Video)"
+             },
+             "metadata": {
+              "contentMetadataViewModel": {
+               "metadataRows": [
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "Banda Ficticia"
+                   }
+                  }
+                 ]
+                },
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "2,1 bi de visualizações"
+                   }
+                  },
+                  {
+                   "text": {
+                    "content": "há 15 anos"
+                   }
+                  }
+                 ]
+                }
+               ],
+               "delimiter": " • "
+              }
+             }
+            }
+           },
+           "contentId": "VIDfix00001",
+           "contentType": "LOCKUP_CONTENT_TYPE_MUSIC",
+           "styling": {
+            "contentImageAspectRatio": "LOCKUP_CONTENT_IMAGE_ASPECT_RATIO_WIDESCREEN"
+           },
+           "rendererContext": {
+            "commandContext": {
+             "onTap": {
+              "innertubeCommand": {
+               "watchEndpoint": {
+                "videoId": "VIDfix00001",
+                "playlistId": "RDVIDfix00001"
+               }
+              }
+             }
+            }
+           }
+          }
+         },
+         {
+          "lockupViewModel": {
+           "contentImage": {
+            "thumbnailViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://i.ytimg.com/vi/TRKfix00001/hqdefault.jpg",
+                "width": 480,
+                "height": 360
+               }
+              ]
+             },
+             "overlays": []
+            }
+           },
+           "metadata": {
+            "lockupMetadataViewModel": {
+             "title": {
+              "content": "Cancao Dois"
+             },
+             "metadata": {
+              "contentMetadataViewModel": {
+               "metadataRows": [
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "Banda Ficticia"
+                   }
+                  }
+                 ]
+                },
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "Música"
+                   }
+                  },
+                  {
+                   "text": {
+                    "content": "370 mi de visualizações"
+                   }
+                  }
+                 ]
+                }
+               ],
+               "delimiter": " • "
+              }
+             }
+            }
+           },
+           "contentId": "TRKfix00001",
+           "contentType": "LOCKUP_CONTENT_TYPE_MUSIC",
+           "styling": {
+            "contentImageAspectRatio": "LOCKUP_CONTENT_IMAGE_ASPECT_RATIO_SQUARE"
+           },
+           "rendererContext": {
+            "commandContext": {
+             "onTap": {
+              "innertubeCommand": {
+               "watchEndpoint": {
+                "videoId": "TRKfix00001",
+                "playlistId": "RDTRKfix00001"
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        ]
+       }
+      }
+     }
+    },
+    {
+     "shelfRenderer": {
+      "shelfHeaderRenderer": {
+       "avatarLockup": {
+        "avatarLockupRenderer": {
+         "title": {
+          "simpleText": "Shorts"
+         }
+        }
+       }
+      },
+      "content": {
+       "horizontalListRenderer": {
+        "items": [
+         {
+          "lockupViewModel": {
+           "contentImage": {
+            "thumbnailViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://i.ytimg.com/vi/SHRTfix0001/hqdefault.jpg",
+                "width": 480,
+                "height": 360
+               }
+              ]
+             },
+             "overlays": []
+            }
+           },
+           "metadata": {
+            "lockupMetadataViewModel": {
+             "title": {
+              "content": "Banda Ficticia ao vivo #shorts"
+             },
+             "metadata": {
+              "contentMetadataViewModel": {
+               "metadataRows": [],
+               "delimiter": " • "
+              }
+             }
+            }
+           },
+           "contentId": "SHRTfix0001",
+           "contentType": "LOCKUP_CONTENT_TYPE_SHORT",
+           "styling": {
+            "contentImageAspectRatio": "LOCKUP_CONTENT_IMAGE_ASPECT_RATIO_SHORT"
+           },
+           "rendererContext": {
+            "commandContext": {
+             "onTap": {
+              "innertubeCommand": {
+               "reelWatchEndpoint": {
+                "videoId": "SHRTfix0001"
+               },
+               "browseEndpoint": {
+                "browseId": "UCfixturechannel0000000a"
+               }
+              }
+             },
+             "onLongPress": {
+              "innertubeCommand": {
+               "browseEndpoint": {
+                "browseId": "UCfixturechannel0000000a"
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        ]
+       }
+      }
+     }
+    },
+    {
+     "shelfRenderer": {
+      "shelfHeaderRenderer": {
+       "avatarLockup": {
+        "avatarLockupRenderer": {
+         "title": {
+          "simpleText": " "
+         }
+        }
+       }
+      },
+      "content": {
+       "horizontalListRenderer": {
+        "items": [
+         {
+          "lockupViewModel": {
+           "contentImage": {
+            "thumbnailViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://i.ytimg.com/vi/VIDfix00001/hqdefault.jpg",
+                "width": 480,
+                "height": 360
+               }
+              ]
+             },
+             "overlays": [
+              {
+               "thumbnailBottomOverlayViewModel": {
+                "badges": [
+                 {
+                  "thumbnailBadgeViewModel": {
+                   "text": "4:21",
+                   "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT"
+                  }
+                 }
+                ]
+               }
+              }
+             ]
+            }
+           },
+           "metadata": {
+            "lockupMetadataViewModel": {
+             "title": {
+              "content": "Banda Ficticia - Cancao Um (Official Video)"
+             },
+             "metadata": {
+              "contentMetadataViewModel": {
+               "metadataRows": [
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "Banda Ficticia"
+                   }
+                  }
+                 ]
+                },
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "2,1 bi de visualizações"
+                   }
+                  },
+                  {
+                   "text": {
+                    "content": "há 15 anos"
+                   }
+                  }
+                 ]
+                }
+               ],
+               "delimiter": " • "
+              }
+             }
+            }
+           },
+           "contentId": "BLKfix00001",
+           "contentType": "LOCKUP_CONTENT_TYPE_MUSIC",
+           "styling": {
+            "contentImageAspectRatio": "LOCKUP_CONTENT_IMAGE_ASPECT_RATIO_WIDESCREEN"
+           },
+           "rendererContext": {
+            "commandContext": {
+             "onTap": {
+              "innertubeCommand": {
+               "watchEndpoint": {
+                "videoId": "BLKfix00001",
+                "playlistId": "RDVIDfix00001"
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        ]
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}
