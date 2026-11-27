@@ -164,6 +164,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
     if (f.size() > 6) v.members = yt::membershipWire(f[6]);
     if (f.size() > 7) v.shortForm = f[7] == "short";
     if (f.size() > 8) v.section = f[8];
+    if (f.size() > 9) v.date = f[9];
     feed.items.push_back(v);
   }
 }

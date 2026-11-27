@@ -178,7 +178,7 @@ public:
 };
 
 struct Item {
-    string type, id, title, byline, image, channelId, section;
+    string type, id, title, byline, image, channelId, section, views, date;
     int duration=0, pos=0;
     Membership members=Membership::None;
     bool shortForm=false;
@@ -235,13 +235,19 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     if (item.byline.empty()) item.byline=text(get(v,"subtitle"));
     item.channelId=channelId(get(v,"shortBylineText"));
     if (item.channelId.empty()) item.channelId=channelId(get(meta,"lines"));
+    // Cartão de TV: linha 0 = canal [• data], linha 1 = visualizações • data (itens vazios são ícones e selos); "Séries recomendadas" só traz título e canal.
+    std::vector<std::vector<string>> lines;
     for (auto& line:arr(get(meta,"lines"))) {
-        string words;
+        lines.emplace_back();
         for (auto& part:arr(get(get(line,"lineRenderer"),"items"))) {
             auto s=text(get(get(part,"lineItemRenderer"),"text"));
-            if (!s.empty()) words+=(words.empty()?"":" ")+s;
+            if (!s.empty() && s!="\xE2\x80\xA2") lines.back().push_back(s);
         }
-        if (!words.empty() && item.byline.empty()) item.byline=words;
+    }
+    if (item.byline.empty() && !lines.empty() && !lines[0].empty()) {
+        item.byline=lines[0][0];
+        if (lines[0].size()>1) item.date=lines[0].back();
+        for (size_t l=1;l<lines.size();++l) if (lines[l].size()>=2) { item.views=lines[l][0]; if (item.date.empty()) item.date=lines[l][1]; }
     }
     item.image=image(v);
     item.duration=seconds(text(get(v,"lengthText")));
@@ -655,7 +661,7 @@ struct ConsoleAccount::Impl {
         for (size_t i=size_t(offset); i<end; ++i) {
             const auto& v=list.items[i];
             if (feed) {
-                if (v.type=="video") body+=v.id+"\t"+std::to_string(v.duration)+"\t"+clean(v.byline)+"\t\t"+clean(v.title)+"\t"+std::to_string(v.pos)+"\t"+membershipWire(v.members)+"\t"+(v.shortForm ? "short" : "")+"\t"+clean(v.section)+"\n";
+                if (v.type=="video") body+=v.id+"\t"+std::to_string(v.duration)+"\t"+clean(v.byline)+"\t"+clean(v.views)+"\t"+clean(v.title)+"\t"+std::to_string(v.pos)+"\t"+membershipWire(v.members)+"\t"+(v.shortForm ? "short" : "")+"\t"+clean(v.section)+"\t"+clean(v.date)+"\n";
             } else if (!play || v.type=="video") body+=v.type+"\t"+v.id+"\t"+clean(v.title)+"\t"+clean(v.byline)+"\t"+std::to_string(v.duration)+"\t"+itemImage(v)+"\t"+v.channelId+"\t"+clean(v.section)+"\t"+membershipWire(v.members)+(v.shortForm ? "\tshort" : "")+"\n";
         }
         return {body,{}};

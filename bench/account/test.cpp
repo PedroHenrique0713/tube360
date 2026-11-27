@@ -101,6 +101,30 @@ void refresh(const string& path) {
 string tile(const string& id,const string& title) {
     return R"({"tileRenderer":{"contentType":"TILE_CONTENT_TYPE_VIDEO","contentId":")"+id+R"(","onSelectCommand":{"watchEndpoint":{"videoId":")"+id+R"("}},"metadata":{"tileMetadataRenderer":{"title":{"simpleText":")"+title+R"("},"lines":[]}},"header":{"tileHeaderRenderer":{"thumbnailOverlays":[{"thumbnailOverlayTimeStatusRenderer":{"text":{"simpleText":"10:00"},"style":"DEFAULT"}},{"thumbnailOverlayResumePlaybackRenderer":{"percentDurationWatched":50}}]}}}})";
 }
+// Linhas do cartão de TV como a Início da conta manda: "canal" + "visualizações • data", "canal • data", ícone vazio antes das visualizações e série (título + canal).
+string linedTile(const string& id,const string& lines) {
+    return R"({"tileRenderer":{"contentType":"TILE_CONTENT_TYPE_VIDEO","contentId":")"+id+R"(","onSelectCommand":{"watchEndpoint":{"videoId":")"+id+R"("}},"metadata":{"tileMetadataRenderer":{"title":{"simpleText":"Título"},"lines":[)"+lines+R"(]}}}})";
+}
+string line(std::initializer_list<const char*> items) {
+    string out=R"({"lineRenderer":{"items":[)";
+    bool first=true;
+    for (auto* t:items) { out+=string(first ? "" : ",")+R"({"lineItemRenderer":{"text":{"simpleText":")"+t+R"("}}})"; first=false; }
+    return out+"]}}";
+}
+void cardLines(const string& path) {
+    seed(path); Fake f; yt::ConsoleAccount a(f,path);
+    const string dot="\xE2\x80\xA2";
+    string cards=linedTile("lin00000001",line({"Canal Um"})+","+line({"12 mil visualizações",dot.c_str(),"há 4 horas"}))+","+
+                 linedTile("lin00000002",line({"Canal Dois",dot.c_str(),"há 4 meses"}))+","+
+                 linedTile("lin00000003",line({"Canal Três"})+","+line({"","868 mil visualizações",dot.c_str(),"há 3 dias"}))+","+
+                 linedTile("lin00000004",line({"Episódio da série"})+","+line({"Canal Quatro"}));
+    f.add("/browse",R"("browseId":"FEwhat_to_watch")",R"({"contents":[)"+cards+"]}",200,"fake-a");
+    auto r=a.request("/api/feed?kind=home",1000,10);
+    check(r.body.find("lin00000001\t-1\tCanal Um\t12 mil visualizações\t")!=string::npos && r.body.find("\thá 4 horas\n")!=string::npos,"tile views and date from the second line");
+    check(r.body.find("lin00000002\t-1\tCanal Dois\t\t")!=string::npos && r.body.find("\thá 4 meses\n")!=string::npos,"tile date after the channel on the first line");
+    check(r.body.find("lin00000003\t-1\tCanal Três\t868 mil visualizações\t")!=string::npos && r.body.find("\thá 3 dias\n")!=string::npos,"empty icon item skipped");
+    check(r.body.find("lin00000004\t-1\tEpisódio da série\t\t")!=string::npos,"series tile keeps its first line, no invented views");
+}
 void feeds(const string& path) {
     seed(path); Fake f; yt::ConsoleAccount a(f,path);
     string cards;
@@ -110,7 +134,7 @@ void feeds(const string& path) {
     auto r=a.request("/api/feed?kind=home",1000,10);
     check(r.ok() && r.body.find("vid00000023")!=string::npos && r.body.find("vid00000024")==string::npos,"first 24 feed items");
     check(r.body.find("OCULTO")==string::npos && r.body.find("MENU")==string::npos,"menus and unselected tabs excluded");
-    check(r.body.find("\t600\t")!=string::npos && r.body.find("\t300\t\t\t\n")!=string::npos,"duration and resume position");
+    check(r.body.find("\t600\t")!=string::npos && r.body.find("\t300\t\t\t\t\n")!=string::npos,"duration and resume position");
     f.add("/browse",R"("continuation":"PAGE2")",R"({"onResponseReceivedActions":[{"appendContinuationItemsAction":{"continuationItems":[)"+tile("vid00000024","Duplicado")+","+tile("vid00000026","Novo")+R"(]}}]})",200,"fake-a");
     r=a.request("/api/feed?kind=home&offset=24",1001,11);
     check(r.ok() && r.body.find("vid00000024")!=string::npos && r.body.find("Duplicado")==string::npos && r.body.find("Novo")!=string::npos,"continuation preserves offset and deduplicates");
@@ -227,7 +251,7 @@ int main(int argc,char** argv) {
     if (argc!=2) return 1;
     string path=string(argv[1])+"/test-token.json";
     unlink(path.c_str());
-    login(path); refresh(path); feeds(path); libraryExpiry(path); concurrency(path); actions(path); history(path); music(path);
+    login(path); refresh(path); feeds(path); cardLines(path); libraryExpiry(path); concurrency(path); actions(path); history(path); music(path);
     unlink(path.c_str());
     std::cout<<checks<<" checks passed\n";
 }
