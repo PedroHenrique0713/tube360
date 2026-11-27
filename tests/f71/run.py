@@ -171,12 +171,15 @@ if case('strip'):
     for mode in ('720', '43'):
         for lang in ('pt', 'ar'):
             for n, keys in (('top', ''), ('d1', '.D'), ('d2', '.DD'), ('d3', '.DDD')):
-                # sem nenhuma miniatura (as que não chegam a tempo no console): nenhuma fileira cortada pela borda de baixo (y=646 da tela de
-                # 720) pode virar tira lisa; um cartão inteiro ainda sem imagem tem fundo cinza, mas termina antes da borda
+                # sem nenhuma miniatura (as que não chegam a tempo no console): nenhuma fileira cortada pela borda de baixo pode virar tira lisa.
+                # Em 720 a Início vai até a borda da tela (as dicas ficam no topo) e esmaece; em 4:3 as dicas descem e o corte fica em y=646.
                 log, im = snap(f'strip-{mode}-{lang}-{n}', lang=lang, mode=mode, keys=keys, ms=3600, fixture='shelves', thumbnails=False)
                 w, h = im.size
-                edge = round(646 * h / 720)
+                edge = h if mode == '720' else round(646 * h / 720)
                 cut = [sum(1 for x in range(int(w * 0.1), w) if im.getpixel((x, y)) == GRAY) for y in (edge - 3, edge - 2, edge - 1)]
                 check(max(cut) < 24, f'Início {mode} {lang} {n}: nenhuma tira cinza cortada na borda de baixo ({cut}px na última linha)')
+                if mode == '720' and n == 'top':  # a fileira de baixo ocupa o pé: nada de faixa vazia entre y=646 e a borda
+                    used = sum(1 for x in range(int(w * 0.1), w, 2) if im.getpixel((x, 670)) != (0x0b, 0x0b, 0x0e))
+                    check(used > w * 0.15, f'Início {mode} {lang}: a fileira de baixo desce até a borda da tela ({used} pontos com conteúdo em y=670)')
 print(f'\n{len(fails)} falha(s)' if fails else '\nf71: tudo certo')
 sys.exit(1 if fails else 0)

@@ -71,14 +71,16 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
   scroll+=(want-scroll)*.2f;
   float rowY=top-scroll;
   int cardsDrawn=0, noImage=0, noImageClipped=0;  // para o log abaixo
+  const float bottom=(ui::large || ui::narrow) ? 646.f : ui::H;  // as dicas de botão só descem para o pé com texto grande ou tela estreita
+  ui::bottom=bottom;
   for (const auto& row:grid.rows) {
     float y=rowY;
     rowY+=rowHeight(row);
     // Fileira que só aparece como uma tira na borda de baixo (cartões ou Shorts) some até a rolagem trazê-la: a tira, sem imagem, era a faixa cinza.
     const float artTop=y+(row.heading.empty() ? 0.f : groupH)+(row.shorts ? shortHeading : 0.f), artHeight=row.shorts ? shortH : th;
-    if (y<140 || 646-artTop<std::min(artHeight*.45f,64.f)) continue;
+    if (y<140 || bottom-artTop<std::min(artHeight*.45f,64.f)) continue;
     if (!row.heading.empty()) {  // título da prateleira do YouTube (conta)
-      if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::textBox(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-ui::X0-64),ui::X0,y,ui::W-ui::X0-64,ui::TEXT);
+      if (y+g.fonts[ui::F_KEY].lineH<=bottom) gfx::textBox(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-ui::X0-64),ui::X0,y,ui::W-ui::X0-64,ui::TEXT);
       y+=groupH;
     }
     int first=0, visible=(int)row.items.size();
@@ -88,7 +90,7 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
       first=std::clamp(selected-visible+1,0,std::max(0,(int)row.items.size()-visible));
     }
     if (row.shorts) {
-      if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::text(g,ui::F_KEY,tr(K::ChannelShorts),ui::X0,y,ui::TEXT);
+      if (y+g.fonts[ui::F_KEY].lineH<=bottom) gfx::text(g,ui::F_KEY,tr(K::ChannelShorts),ui::X0,y,ui::TEXT);
       y+=shortHeading;
       visible=std::max(1,(int)((ui::W-ui::X0-64+gap)/(shortW+gap)));
       int selected=grid.gridRow(cur.sel)>=0 && grid.rows[grid.gridRow(cur.sel)].shorts ? grid.gridPosition(cur.sel) : grid.shortColumn;
@@ -104,9 +106,11 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
       const auto* saved=(!account.signedIn() || cur.kind=="local_later" || cur.kind=="local_history")?local::Library::find(localUI.library.history,v.id):nullptr;
       homeCard(g,thumbs,thumbsWorker,frame,settings.lang,v,cur.feed.direct,row.shorts,focused,x,y,artW,artH,an,saved);
       ++cardsDrawn;
-      if (!thumbs.byId.count(v.id)) { ++noImage; if (y+artH>646) ++noImageClipped; }
+      if (!thumbs.byId.count(v.id)) { ++noImage; if (y+artH>bottom) ++noImageClipped; }
     }
   }
+  ui::bottom=646;
+  if (bottom>646) gfx::vgrad(g,ui::RAIL,ui::H-56,ui::W-ui::RAIL,56,ui::alpha(ui::BG,0),ui::BG);  // a fileira que passa da borda some no fundo, sem corte reto
   // O que a tela mostra de miniatura e de aviso, no log só quando muda (separa "miniatura que não chegou" de "aviso de atualização" na faixa do pé).
   {
     static int lastShown=-1, lastClipped=-1, lastNotice=-1;

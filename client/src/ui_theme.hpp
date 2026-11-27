@@ -9,6 +9,7 @@ enum { F_BODY, F_SMALL, F_CARD, F_H2, F_LOGO, F_BIG, F_KEY, F_TINY, F_HERO, F_CH
 inline float W = 1280;
 constexpr float H = 720, RAIL = 96, X0 = 136;
 inline bool large = false, narrow = false;
+inline float bottom = 646;  // onde o cartão de vídeo é cortado: acima da barra de dicas; a Início, com as dicas no topo, usa a borda da tela
 inline int columns(int preferred) { return narrow ? 2 : large ? std::min(3,preferred) : preferred; }
 inline Color alpha(Color c, float a) { return {c.r, c.g, c.b, c.a * a}; }
 inline Color mix(Color a, Color b, float t) { return {a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t}; }
