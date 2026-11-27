@@ -8,7 +8,7 @@ bench/console-decode/media/
 __pycache__/
 .venv/
 # personal / machine-specific (never published)
-.work/
+.work
 design/
 **/server.txt
 **/net_log.txt

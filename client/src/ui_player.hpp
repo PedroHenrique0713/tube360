@@ -354,6 +354,7 @@ inline void UiContext::playerUpdate(uint64_t now) {
   }
   if (screen == PLAYER) {
     if(pl.manualQualityWarning.exchange(false)){manualNoticeUntil=now+10000;manualNoticeLines.clear();}
+    if (pl.speakerLiveOnTv.exchange(false)) { toast = tr(K::LiveOnTv); toastUntil = now + 5000; }
     if (pl.speakerFallback.exchange(false)) {
       toast = tr(nav.musicNow ? K::MusicSpeakerFallback : K::SpeakerFallback); toastUntil = now + 5000;
     }

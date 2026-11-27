@@ -1,6 +1,8 @@
 // Implementação de Player para o stream negociado com codec=h264.
 #pragma once
 #include "quality_recovery.hpp"
+#include <array>
+#include "yt/live_seq.hpp"
 namespace player {
 
 inline bool Player::directFailed(bool fatal) {
@@ -56,6 +58,10 @@ inline void Player::decodeOriginal() {
   std::vector<yt::Format> qualityLadder;
   std::unique_ptr<yt::Transport> liveTransport, playlistTransport;
   std::unique_ptr<yt::LiveFile> broadcast;
+  std::unique_ptr<yt::LiveSeq> liveSeq;
+  bool seqLive = false;
+  uint64_t seqBytesSeen = 0;
+  double aheadMin = 1e9; std::array<double,6> aheadHistory; int aheadSamples = 0;   // menor reserva (s) por segundo, últimos 6 s
   struct LiveInput { Player* player; yt::LiveFile* file; std::deque<std::string> audio; } source{this,nullptr,{}};
   yt::PackedAudio packed;
   SDL_Thread* reader = nullptr;
@@ -111,16 +117,51 @@ inline void Player::decodeOriginal() {
       error = "members_unsupported"; renew = retryConverted = false; state = FAILED; return;
     }
     live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
+    // Live de membros sem HLS: segmentos &sq=N, uma faixa de vídeo e uma de áudio, `n` já resolvido pelo cliente.
+    seqLive = media.liveSeq && media.hls.empty() && !media.video.url.empty() && !media.audio.url.empty();
+    if (seqLive) live = true;   // os degraus (lowerVideo) ficam: servem de reserva se a abertura da fonte escolhida falhar
     if (stop) return;
     if (live) { speed=1; loop=false; tempo.reset(1); }
     castMediaReady = true;
     state = BUFFERING;
     mediaReady = true;
     if(playback::manual(videoMode) && (media.video.url.empty() || !(media.qualityModes&(1u<<videoMode))) && !live){error="manual_quality_unavailable";state=FAILED;return;}
-    if (live) {
+    if (seqLive) {
+      qualityAvailable=1;qualityModesReady=true;
+      s.wrap33 = separate.wrap33 = false;
+      auto openSeq=[&](const yt::Format& format) {
+        liveSeq = std::make_unique<yt::LiveSeq>();
+        s.source(format.height,format.fps,fullFilter);
+        bool opened = liveSeq->open(format.url,media.audio.url,liveLowLatency,&stop,yt::https(&stop),yt::https(&stop));
+        LOG("live-seq: abertura %s %dp, borda sq=%lld, inicio sq=%lld, segmento %.1f s, atraso minimo %d, erro=%s HTTP=%ld",opened?"ok":"falhou",
+            format.height,liveSeq->headSeq(),liveSeq->first,liveSeq->segSec(),int(liveLowLatency),liveSeq->error.c_str(),liveSeq->httpStatus());
+        int result = opened ? 0 : AVERROR_INVALIDDATA;
+        if (result >= 0) result = s.open(&liveSeq->tracks[0],yt::LiveSeq::pull,requestedThreads,false,true,nullptr,"mov");
+        if (result >= 0 && audio) result = separate.open(&liveSeq->tracks[1],yt::LiveSeq::pull,1,true,false,nullptr,"mov");
+        return result;
+      };
+      r = openSeq(media.video);
+      // Fonte escolhida não abriu (inclusive 403: há lives em que o degrau mais alto responde 403 e os outros não): desce um degrau, como no VOD.
+      // Se todos derem 403 sobra o caminho do 403 de membros. Troca de degrau com a live em curso não existe.
+      if (r < 0 && !stop && liveSeq->error == "waiting") {
+        // Live que não começou ou parou: descer degrau não resolve. Mensagem própria, sem renovar nem cair no servidor.
+        LOG("live-seq: borda sem segmento novo (204 ou tempo esgotado); live nao comecou ou esta parada");
+        error = "live_waiting"; renew = retryConverted = false; state = FAILED; return;
+      }
+      while (r < 0 && !stop && !playback::manual(videoMode) && liveSeq->error != "waiting" && !media.lowerVideo.empty()) {
+        auto next = media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
+        LOG("qualidade: live por segmentos %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
+        s.reset(); separate.reset(); s.wrap33 = separate.wrap33 = false;
+        media.video = next; media.fallbackVideo = {};
+        r = openSeq(next);
+      }
+      actualHeight = media.video.height;
+      origin = NAN;
+    } else if (live) {
       liveTransport = yt::https(&endLiveReader);
       playlistTransport = yt::https(&endLiveReader);
       broadcast = std::make_unique<yt::LiveFile>(*playlistTransport, *liveTransport, endLiveReader);
+      broadcast->startBack = liveLowLatency ? 1 : yt::LiveFile::reserve;
       bool opened=broadcast->open(media.hls,playback::manual(videoMode)?playback::fixedHeight(videoMode):quality,videoMode==playback::FAST,media.selectedAudio.empty() ? audioSelection : media.selectedAudio,playback::manual(videoMode));
       qualityAvailable=broadcast->qualityModes;qualityModesReady=true;
       if (!opened) {r = AVERROR_INVALIDDATA;if(playback::manual(videoMode) && broadcast->status!=403){error="manual_quality_unavailable";state=FAILED;return;}}
@@ -189,7 +230,7 @@ inline void Player::decodeOriginal() {
       if (quality >= 720 && media.highFrameRate720 && media.video.height < 720)
         LOG("console: %s tem 720p60, selecionado %dp %.2f fps", id.c_str(), media.video.height, media.video.fps);
     }
-    LOG("console: %s %dp, itags %d/%d, início %.3f abertura_ms=%llu", live ? "HLS" : "MP4", actualHeight.load(), media.video.itag, media.audio.itag, startAt,
+    LOG("console: %s %dp, itags %d/%d, início %.3f abertura_ms=%llu", live ? (seqLive ? "SEG" : "HLS") : "MP4", actualHeight.load(), media.video.itag, media.audio.itag, startAt,
         (unsigned long long)(SDL_GetTicks()-openedMs));
     LOG("qualidade: selecao %s fixa=%d fonte=%dp itag=%d disponiveis=%x",playback::modeName(videoMode),playback::manual(videoMode),actualHeight.load(),media.video.itag,qualityAvailable.load());
     audioTracks=broadcast ? broadcast->audioTracks : media.audioTracks;
@@ -237,7 +278,15 @@ inline void Player::decodeOriginal() {
   bool reserveChecked = false;
   unsigned liveSwitches = 0;
   // A troca pode precisar de índice + seek pela rede. 6 s de PCM estéreo custam cerca de 2 MiB.
-  const double audioReserve=direct && !broadcast && !speakerRequested && !media.muxed ? 6.0 : 0.65;
+  const double audioReserve=direct && !broadcast && !seqLive && !speakerRequested && !media.muxed ? 6.0 : 0.65;
+  // Reserva da live: mídia já entregue ao demuxer menos a mídia em tela (segmentos: fim do último entregue; HLS: UTC planejado).
+  auto liveAhead = [&]() -> double {
+    const int c = masterMs.load();
+    if (c < 0 || !std::isfinite(origin)) return -1;
+    if (liveSeq) { const double end = liveSeq->pushedEndSec(); return end >= 0 ? end - (origin + c / 1000.0) : -1; }
+    if (broadcast && broadcast->firstStamp.load() >= 0 && broadcast->fetchedEnd.load() >= 0) return broadcast->fetchedEnd.load() - (broadcast->firstStamp.load() + c / 1000.0);
+    return -1;
+  };
   auto decode = [&](h264::Stream& input, AVCodecContext* codec, AVPacket* packet) -> int {
     if (!codec) return 0;
     bool video = codec == s.video;
@@ -308,6 +357,7 @@ inline void Player::decodeOriginal() {
         enqueuePlanes(f->width, f->height, pts, f->data, f->linesize, bt709,
                       f->color_range == AVCOL_RANGE_JPEG || f->format == AV_PIX_FMT_YUVJ420P, (int)std::lround(sourceRate),std::move(surface));
         copyNs += SDL_GetTicksNS() - begin; last = pts; count++;
+        if (live) { const double a = liveAhead(); if (a >= 0) aheadMin = std::min(aheadMin, a); }
         if (videoMetrics) {
           SDL_LockMutex(mu); int queued = (int)frames.size(); SDL_UnlockMutex(mu);
           LOG("decode-quadro: pts %.6f, %dx%d, fonte %.3f fps, fila %d, copia %.3f ms",pts,f->width,f->height,sourceRate,queued,(SDL_GetTicksNS()-begin) / 1e6);
@@ -357,7 +407,7 @@ inline void Player::decodeOriginal() {
     return true;
   };
   auto lowerVideo = [&](const char* reason) {
-    if (playback::manual(videoMode) || !direct || broadcast || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
+    if (playback::manual(videoMode) || !direct || broadcast || liveSeq || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
     return switchVideo(ladderIndex()+1,reason,false);
   };
   bool videoEnd = false, audioEnd = !separate.audio;
@@ -414,11 +464,12 @@ inline void Player::decodeOriginal() {
       int minimum = queueMin; queueMin = (int)frames.size(); long long lost = droppedFrames, shown = shownFrames;
       SDL_UnlockMutex(mu);
       double avg = count ? ns / 1e6 / count : 0.0;
+      if (liveSeq) { const uint64_t total = liveSeq->bytes.load(); SDL_AddAtomicInt(&netBytes, int(total - seqBytesSeen)); seqBytesSeen = total; }
       LOG("decod: H.264 %dt, %d quadros, %.2f ms/quadro, fila mín %d, perdidos %lld, PCM %.0f ms, rede %.2f Mbit/s",
           threads, count, avg, minimum, lost, audioQueuedSec() * 1000, SDL_SetAtomicInt(&netBytes, 0) * 0.008 / (now - since));
       double displayRate = (shown - previousShown) * 1000.0 / (now - since);
       LOG("qualidade: %s %dp %.3f fps, alvo %d, %.1f fps na TV, pacotes %d, decodificados %d, filtrados %d, decode %.1f ms/s de video, copia %.2f ms/quadro, perdidos +%lld",
-          broadcast ? "live" : "VOD", actualHeight.load(), sourceRate, presentFps.load(), displayRate, packets, decoded, filtered,
+          broadcast || liveSeq ? "live" : "VOD", actualHeight.load(), sourceRate, presentFps.load(), displayRate, packets, decoded, filtered,
           videoSeconds > 0 ? ns / 1e6 / videoSeconds : 0, count ? copyNs / 1e6 / count : 0, lost - previousLost);
       LOG("decod-memoria: direto %d/%d, flush %.3f ms/quadro, loop ALL %d/%d pacotes, tipo %d, workers %d",
           directFrames,count,count ? flushNs/1e6/count : 0,skippedLoopPackets,packets,s.video ? s.video->active_thread_type : 0,threads);
@@ -433,6 +484,29 @@ inline void Player::decodeOriginal() {
       if (workFrames) LOG("decod-workers: %u quadros, soma parede %.2f ms, %.2f ms/quadro (paralelos, inclui dependencia)",
                           workFrames,workUs/1000.0,workUs/1000.0/workFrames);
       int clock = masterMs.load();
+      if ((liveSeq || broadcast) && clock >= 0 && std::isfinite(origin)) {
+        // Atraso da imagem em tela. Segmentos: relógio do servidor (idade do segmento incluída); HLS: fim do segmento mais novo pelo UTC da
+        // playlist. O alcance a 1,05x (WSOLA, sem mudar o tom) liga bem acima do piso e só desliga perto dele.
+        double latency = -1, ahead = 0, segment = 0;
+        if (liveSeq) {
+          const double head = liveSeq->headStartSec(), end = liveSeq->pushedEndSec(), shown = origin + clock / 1000.0;
+          if (head >= 0) { latency = liveSeq->latencySec(shown); ahead = end >= 0 ? end - shown : 0; segment = liveSeq->segSec(); }
+        } else if (broadcast->firstStamp.load() >= 0 && broadcast->edgeEnd.load() >= 0 && broadcast->segmentSec.load() > 0) {
+          const double shown = broadcast->firstStamp.load() + clock / 1000.0;
+          latency = broadcast->edgeEnd.load() - shown; ahead = broadcast->fetchedEnd.load() - shown; segment = broadcast->segmentSec.load();
+        }
+        if (aheadMin < 1e8) { aheadHistory[size_t(aheadSamples++ % 6)] = aheadMin; aheadMin = 1e9; }
+        if (latency >= 0 && segment > 0 && aheadSamples >= 3) {
+          double low = 1e9; for (int i = 0; i < std::min(aheadSamples, 6); ++i) low = std::min(low, aheadHistory[size_t(i)]);
+          const double now = liveRate.load();
+          const double want = yt::seq::speedFor(latency,low,segment,now,liveLowLatency);
+          if (want != now) { LOG("live: velocidade %.2fx -> %.2fx (WSOLA), atraso %.2f s, reserva minima %.2f s, segmento %.1f s",now,want,latency,low,segment); setLiveSpeed(want); }
+          if (liveSeq) LOG("live-seq: atraso %.2f s (segmento %.1f s), reserva minima %.2f s, velocidade %.2fx, segmentos v%u a%u, lacunas %u/%u, borda sq=%lld",
+              latency,segment,low,liveRate.load(),liveSeq->tracks[0].segments.load(),liveSeq->tracks[1].segments.load(),
+              liveSeq->tracks[0].gaps.load(),liveSeq->tracks[1].gaps.load(),liveSeq->headSeq());
+          else LOG("live-hls: atraso %.2f s (segmento %.1f s), reserva minima %.2f s, velocidade %.2fx, inicio %d segmentos antes da borda",latency,segment,low,liveRate.load(),broadcast->startBack);
+        }
+      }
       unsigned epoch = pauseChanges.load();
       bool behind = clock >= 0 && last < clock / 1000.0 - .25;
       bool insufficient = intervalPts >= 0 && last - intervalPts < (now - since) * .00090;
@@ -565,7 +639,19 @@ inline void Player::decodeOriginal() {
   }
   if (stop) return;
   bool forbidden = (videoFile && videoFile->status == 403) || (audioFile && audioFile->status == 403) ||
-                   (broadcast && broadcast->status == 403);
+                   (broadcast && broadcast->status == 403) || (liveSeq && liveSeq->httpStatus() == 403);
+  if (direct && memberVideo && forbidden && media.nsigSolved && !refreshed) {
+    // Com o `n` resolvido o 403 pode ser passageiro (rede, borda do CDN) ou URL vencida. Espera 2,5 s e testa a MESMA URL com 1 byte:
+    // se responde, repete a URL; se não, renova pelo /player. Um segundo 403 depois disso vira a mensagem de membros.
+    for (int waited = 0; waited < 2500 && !stop; waited += 50) SDL_Delay(50);
+    if (stop) return;
+    auto probeNet = yt::https(&stop);
+    yt::Request probe; probe.url = media.video.url; probe.headers = {"Range: bytes=0-0"}; probe.media = true; probe.timeoutMs = 8000;
+    auto answer = probeNet->send(probe);
+    sameUrlRetry = answer.error.empty() && (answer.status == 200 || answer.status == 206);
+    LOG("console: video de membros HTTP=403 com n resolvido; sonda da mesma URL HTTP=%ld, %s", answer.status, sameUrlRetry ? "repete a URL" : "renova pelo /player");
+    renew = true; return;
+  }
   if (direct && memberVideo && forbidden) {
     LOG("console: video de membros HTTP=403; encerrando sem renovar URL");
     error = "members_unsupported"; renew = retryConverted = false; state = FAILED; return;

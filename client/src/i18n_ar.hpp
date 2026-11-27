@@ -467,6 +467,8 @@ inline const char* arabic(Key key) {
     case Key::RemoteConnected: return "تم اتصال الهاتف";
 
     // ---- F67 membros tocando
+    case Key::LiveWaiting: return "البث المباشر لم يبدأ بعد أو متوقف";
+    case Key::LiveOnTv: return "البث المباشر يعمل على التلفاز: السماعة لا تستقبل البث المباشر";
 
     default: return nullptr;  // Strings novas usam inglês até receberem tradução.
   }

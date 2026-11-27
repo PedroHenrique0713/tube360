@@ -487,6 +487,8 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(RemoteConnected, "Phone connected", "Celular conectado", "Móvil conectado") \
   /* */ \
   /* ---- F67 membros tocando */ \
+  X(LiveWaiting, "The live has not started yet or is paused", "A live ainda não começou ou está parada", "El directo aún no empezó o está detenido") \
+  X(LiveOnTv, "Live plays on the TV: the speaker does not receive live streams", "Live toca na TV: a caixa ainda não recebe transmissão ao vivo", "El directo suena en la TV: el altavoz aún no recibe transmisiones en vivo") \
   /* */ \
   /* ---- fim da lista */
 
@@ -520,6 +522,7 @@ inline Key quality(int q) { return q == 360 ? Key::Q360 : q == 480 ? Key::Q480 :
 // player.hpp mantém os diagnósticos internos; só a apresentação é traduzida.
 inline Key playerError(const std::string& error) {
   if (error == "members_unsupported") return Key::MembersXboxUnavailable;
+  if (error == "live_waiting") return Key::LiveWaiting;
   if (error == "manual_quality_unavailable") return Key::ManualQualityMissing;
   if (error == "manual_quality_failed") return Key::ManualQualityFailed;
   if (error == "console") return Key::ConsoleVideoError;
