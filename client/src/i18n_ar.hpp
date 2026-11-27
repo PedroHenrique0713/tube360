@@ -393,10 +393,14 @@ inline const char* arabic(Key key) {
     // ---- F62 Busca e canal
 
     // ---- F63 Player e Shorts
-    case Key::PlayerShelfTitle: return "التالي والمقترحات";
+    case Key::PlayerShelfNext: return "التالي";
+    case Key::PlayerShelfChannel: return "من القناة";
+    case Key::PlayerShelfRelated: return "مقترحات";
+    case Key::PlayerNoNext: return "لا يوجد فيديو تالٍ";
+    case Key::PlayerNoPrev: return "لا يوجد فيديو سابق";
     case Key::PlayerLaterAdded: return "تم الحفظ في المشاهدة لاحقاً";
     case Key::PlayerLaterRemoved: return "تمت الإزالة من المشاهدة لاحقاً";
-    case Key::ShortsStep: return "المقطع السابق / التالي";
+    case Key::ShortsStep: return "السابق / التالي";
 
     // ---- F64 Configurações e controle
     case Key::CtlPlayPause: return "تشغيل / إيقاف مؤقت";

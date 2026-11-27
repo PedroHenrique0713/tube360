@@ -1,6 +1,8 @@
 // Vigia do player para o relatório de erro: a interface viva com o player parado (decodificação travada, abertura que
 // nunca termina) não gera relatório sozinha. Parte pura, sem SDL: o main.cpp amostra o player a cada quadro.
-// Conservador de propósito: pausa, live, Nest, busca em andamento e fora do player nunca contam como travado.
+// Conservador de propósito: pausa, live, Nest, busca em andamento, fim de stream e fora do player nunca contam como travado.
+// Posição parada com o pipeline ocioso (sem bytes, sem quadros) e o stream sem terminar CONTA como travamento, inclusive
+// áudio acabando antes do vídeo: a imagem fica congelada em PLAYING.
 #pragma once
 #include <cmath>
 #include <cstdint>
@@ -39,8 +41,8 @@ struct PlayerWatch {
     if (!armed_ || s.phase != phase_) { armed_ = true; reset(s); return false; }
     // Qualquer sinal de vida do lado do usuário ou do som no alto-falante zera a contagem.
     if (s.paused || s.seeking || s.nest || s.streamEnded || (s.live && s.phase == Phase::Playing)) { reset(s); return false; }
-    // Só conta como parado sem posição nova E sem pacote lido nem quadro decodificado: fim de stream, áudio mais curto
-    // que o vídeo ou fila cheia esperando o relógio não são travamento.
+    // Só conta como parado sem posição nova E sem pacote lido nem quadro decodificado, com o stream sem ter terminado.
+    // Isso inclui a fila cheia esperando um relógio que parou (ex.: o áudio acabou antes do vídeo): a imagem congelou.
     if (std::fabs(s.position - lastPosition_) > 0.001) { lastPosition_ = s.position; progressAt_ = s.now; }
     if (s.bytes != lastBytes_ || s.frames != lastFrames_) { lastBytes_ = s.bytes; lastFrames_ = s.frames; progressAt_ = s.now; }
     switch (s.phase) {

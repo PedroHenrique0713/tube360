@@ -52,6 +52,9 @@ struct Status {
     bool quiet = true, connected = false, released = true, clockReady = false;
     double volume = -1;
     bool muted = false;
+    // Último volume que a CAIXA informou (qualquer origem: celular, Google Home, voz, botões), -1 se ainda não informou.
+    double actual = -1;
+    bool actualMuted = false;
 };
 // O worker sobrevive ao vídeo. Uma saída durante queda de rede continua tentando STOP na navegação.
 class Speaker {
@@ -145,7 +148,8 @@ private:
         ClockFilter clockFilter;
         std::string token, ownedUrl, ownedKey, transport, receiverSession;
         double mediaSession = 0, advanced = 0, previousPosition = -1;
-        double baseVolume = -1, sentVolume = -1;
+        double baseVolume = -1, sentVolume = -1, actualVolume = -1;
+        bool actualMuted = false;
         bool baseMuted = false, sentMuted = false, fading = false;
         uint64_t volumeAt = 0;
         bool connected = false, receiverKnown = false, receiverPresent = false, mediaKnown = false;
@@ -208,7 +212,7 @@ private:
             std::remove(ownerPath.c_str());
             if (endpoint.host != config.host || endpoint.port != config.port) {
                 channel.close(); connected = false; endpoint = config; retryAt = 0;
-                baseVolume = sentVolume = -1;
+                baseVolume = sentVolume = actualVolume = -1;
             }
         };
         auto mediaCommand = [&](const char* type) {
@@ -228,6 +232,7 @@ private:
             }
             view.volume = goal.volume >= 0 ? goal.volume : baseVolume;
             view.muted = goal.volume >= 0 ? goal.muted : baseMuted;
+            view.actual = actualVolume; view.actualMuted = actualMuted;
             if (goal.generation != generation) {
                 generation = goal.generation; command = goal.command;
                 pending = goal.active; acknowledged = started = false; actionAt = stopAt = 0;
@@ -351,6 +356,10 @@ private:
                 if (fresh) lastReceiverReply = replyId;
                 const auto& volume = field(field(json,"status"),"volume");
                 double level = number(volume,"level",-1);
+                if (level >= 0 && level <= 1) {
+                    actualVolume = level;
+                    const auto& reported = field(volume,"muted"); actualMuted = reported.is<bool>() && reported.get<bool>();
+                }
                 if (baseVolume < 0 && level >= 0 && level <= 1) {
                     baseVolume = level;
                     const auto& muted = field(volume,"muted"); baseMuted = muted.is<bool>() && muted.get<bool>();

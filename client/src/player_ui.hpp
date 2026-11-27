@@ -39,10 +39,11 @@ struct PlayerUI {
 // "A seguir" e relacionados: fileira que abre com ↓ na linha de ícones, sem parar o vídeo. volumeUntil: mostra o volume do app.
 struct PlayerShelf {
   bool open = false;
-  int sel = 0;
+  int sel = 0, tab = 0;  // tab: 0 A seguir, 1 Do canal, 2 Relacionados
   std::string video;  // vídeo ao qual a fileira pertence; ao trocar, fecha
   uint64_t volumeUntil = 0;
   int volumeShown = 100;
   bool volumeSpeaker = false;  // o indicador mostra a caixa (Nest), não o volume da TV
+  uint64_t shortOpenedAt = 0;  // Shorts: quando o atual foi aberto (fim antes de 1 s espera, para não virar laço)
   int shortsFocus = 0;  // Shorts: 0 vídeo, 1 curtir, 2 não gostei, 3 comentários, 4 canal
 };

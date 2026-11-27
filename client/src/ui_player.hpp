@@ -75,8 +75,9 @@ inline void UiContext::playerPanelInput(uint64_t now, const display::CommentsPan
 }
 
 inline void UiContext::playerNextInput() {
-  in.hit(Input::BACK); in.hit(Input::START);  // View e Menu não têm papel no cartão de próximo automático (mapa único #40)
-  if (in.hit(Input::A)) { Video v = upNext; startVideo(v, 0, false); }
+  in.hit(Input::BACK);  // View não tem papel no cartão de próximo automático (mapa único #40)
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { nextAt = 0; playerUI.options = true; playerUI.touch(SDL_GetTicks()); }  // Menu = opções, não inicia o próximo
+  else if (in.hit(Input::A)) { Video v = upNext; startVideo(v, 0, false); }
   else if (in.hit(Input::B)) { nextAt = 0; stopVideo(); }
 }
 
@@ -95,8 +96,8 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     adjustVolume(now, -vertical); vertical = 0;
   }
   // ↓ na linha de ícones abre "a seguir e relacionados" sem parar o vídeo; sem lista, nada acontece.
-  if (vertical > 0 && !horizontal && playerUI.visible(now) && playerUI.options && !related.empty() && !seekHold.active) {
-    shelf.open = true; shelf.sel = 0; vertical = 0; any = true;
+  if (vertical > 0 && !horizontal && playerUI.visible(now) && playerUI.options && shelfFirstTab() >= 0 && !seekHold.active) {
+    shelf.open = true; shelf.tab = shelfFirstTab(); shelf.sel = 0; vertical = 0; any = true; shelfAskChannel();
   }
   if (horizontal || vertical) { jump = playerUI.direction(now, horizontal, vertical, optionCount) * 10; any = true; }
   // Mapa único (#40): LB/RB = vídeo anterior/seguinte; avançar/voltar no tempo é LT/RT segurado.
@@ -209,17 +210,17 @@ inline bool UiContext::playerStep(int direction) {
     size_t at = nav.queueIndex, count = nav.queue.size();
     if (direction > 0 && at + 1 < count) ++nav.queueIndex;
     else if (direction < 0 && at > 0) --nav.queueIndex;
-    else return true;
+    else { toast = tr(direction > 0 ? K::PlayerNoNext : K::PlayerNoPrev); toastUntil = SDL_GetTicks() + 2000; return true; }
     Video v = nav.queue[nav.queueIndex].video(); startVideo(v, 0, false);
     return true;
   }
   if (direction > 0) {
     const Video* next = !upNext.id.empty() ? &upNext : !related.empty() ? &related.front() : nullptr;
-    if (!next) return false;
+    if (!next) { toast = tr(K::PlayerNoNext); toastUntil = SDL_GetTicks() + 2000; return true; }
     Video v = *next; startVideo(v, 0, false);
     return true;
   }
-  if (playedBefore.empty()) return false;
+  if (playedBefore.empty()) { toast = tr(K::PlayerNoPrev); toastUntil = SDL_GetTicks() + 2000; return true; }
   Video v = playedBefore.back(); playedBefore.pop_back();
   historyBack = true; startVideo(v, 0, false); historyBack = false;
   return true;
@@ -237,7 +238,8 @@ inline void UiContext::volumeHud(uint64_t now) {
 }
 
 inline void UiContext::adjustVolume(uint64_t now, int direction) {
-  if (pl.nest && pl.directSpeaker.configured()) {
+  if ((pl.nest || pl.speakerRequested || nestOut) && pl.directSpeaker.configured()) {
+    // O som vai (ou vai) para a caixa: o passo é nela, a partir do que ela informou; sem status ainda, não mexe na TV por engano.
     int percent = pl.stepSpeaker(direction);
     if (percent >= 0) { shelf.volumeShown = percent; shelf.volumeSpeaker = true; shelf.volumeUntil = now + 2500; LOG("player: volume da caixa %d", percent); }
     return;
@@ -248,13 +250,60 @@ inline void UiContext::adjustVolume(uint64_t now, int direction) {
   LOG("player: volume %d", percent);
 }
 
+// Abas da fileira (proposta A3): 0 A seguir, 1 Do canal, 2 Relacionados. Só aparecem as que têm (ou vão ter) conteúdo.
+inline const std::vector<Video>& UiContext::shelfItems(int tab) {
+  shelfScratch.clear();
+  if (tab == 0) {
+    if (!upNext.id.empty()) shelfScratch.push_back(upNext);
+    if (nav.localQueue) for (size_t i = nav.queueIndex + 1; i < nav.queue.size() && shelfScratch.size() < 24; ++i) shelfScratch.push_back(nav.queue[i].video());
+  } else if (tab == 1) {
+    for (const auto& it : shelfChannel.items) if (it.type == "video" && it.id != playing.id && shelfScratch.size() < 24) shelfScratch.push_back(it.video());
+  } else {
+    for (const auto& v : related) if (v.id != upNext.id && v.id != playing.id) shelfScratch.push_back(v);
+  }
+  return shelfScratch;
+}
+
+inline bool UiContext::shelfTabShown(int tab) {
+  if (tab == 1) return !captions.channelId.empty() && shelfChannel.id == captions.channelId && (shelfChannel.loading || !shelfChannel.items.empty());
+  return !shelfItems(tab).empty();
+}
+
+inline int UiContext::shelfFirstTab() {
+  for (int t = 0; t < 3; ++t) if (shelfTabShown(t)) return t;
+  return -1;
+}
+
+// "Do canal": a aba Vídeos do canal do vídeo, pelo mesmo caminho da página de canal; uma vez por vídeo.
+inline void UiContext::shelfAskChannel() {
+  const std::string& channel = captions.channelId;
+  if (channel.empty() || shelfChannel.id == channel) return;
+  shelfChannel = NavPage{}; shelfChannel.kind = "channel"; shelfChannel.id = channel; shelfChannel.tab = "videos"; shelfChannel.loading = true;
+  shelfChannel.stamp = ++nav.serial;
+  Job job{6, shelfChannel.path() + "&lang=" + i18n::code(settings.lang) + "&offset=0&fresh=0", shelfChannel.stamp};
+  job.lang = settings.lang; navWorker.add(job, true);
+}
+
 inline void UiContext::playerShelfInput(uint64_t now) {
-  int count = (int)related.size();
-  if (in.hit(Input::LEFT)) shelf.sel = std::max(0, shelf.sel - 1);
-  if (in.hit(Input::RIGHT)) shelf.sel = std::min(count - 1, shelf.sel + 1);
+  const bool rtl = g.rtlText;
+  int count = (int)shelfItems(shelf.tab).size();
+  int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
+  if (rtl) horizontal = -horizontal;  // espelhado: o que está à direita vem antes
+  if (horizontal) shelf.sel = std::clamp(shelf.sel + horizontal, 0, std::max(0, count - 1));
+  // LB/RB trocam de aba (contexto próprio da fileira)
+  int tabStep = in.hit(Input::LB) ? -1 : in.hit(Input::RB) ? 1 : 0;
+  if (tabStep) for (int t = shelf.tab + tabStep; t >= 0 && t < 3; t += tabStep) if (shelfTabShown(t)) { shelf.tab = t; shelf.sel = 0; break; }
   if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { shelf.open = false; playerUI.options = true; }  // Menu = opções
-  else if (in.hit(Input::A)) {
-    if (shelf.sel >= 0 && shelf.sel < count) { Video v = related[(size_t)shelf.sel]; shelf.open = false; startVideo(v, 0, false); }
+  else if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::WatchLater)) {
+    const auto& items = shelfItems(shelf.tab);
+    if (shelf.sel < (int)items.size()) {
+      const Video& v = items[(size_t)shelf.sel];
+      if (account.signedIn()) nav.action(navWorker, "/api/nav/action?action=later&id=" + v.id + "&lang=" + i18n::code(settings.lang));
+      else { bool had = localUI.library.contains(v.id); localUI.library.toggle(LocalLibraryUI::entry(v)); toast = tr(had ? K::PlayerLaterRemoved : K::PlayerLaterAdded); toastUntil = now + 2500; }
+    }
+  } else if (in.hit(Input::A)) {
+    const auto& items = shelfItems(shelf.tab);
+    if (shelf.sel >= 0 && shelf.sel < (int)items.size()) { Video v = items[(size_t)shelf.sel]; shelf.open = false; startVideo(v, 0, false); }
   } else if (in.hit(Input::B) || in.hit(Input::UP)) shelf.open = false;
   in.hit(Input::BACK); in.hit(Input::DOWN);
   playerUI.touch(now);
@@ -262,22 +311,42 @@ inline void UiContext::playerShelfInput(uint64_t now) {
 
 inline void UiContext::playerShelfDraw(uint64_t now) {
   (void)now;
-  const int count = (int)related.size(), cols = 5;
+  const bool rtl = g.rtlText;
+  const auto& items = shelfItems(shelf.tab);
+  const int count = (int)items.size(), cols = 5;
   const float gap = 18, left = 56, cw = std::floor((ui::W - left * 2 - gap * (cols - 1)) / cols), ch = std::floor(cw * 9 / 16);
   gfx::vgrad(g, 0, 180, ui::W, 540, {0, 0, 0, 0}, {0.043f, 0.043f, 0.055f, 0.95f});
-  gfx::text(g, ui::F_H2, tr(K::PlayerShelfTitle), left, 238, ui::TEXT);
+  // abas
+  const K names[3] = {K::PlayerShelfNext, K::PlayerShelfChannel, K::PlayerShelfRelated};
+  float tx = rtl ? ui::W - left : left;
+  for (int t = 0; t < 3; ++t) {
+    if (!shelfTabShown(t)) continue;
+    std::string name = tr(names[t]);
+    float w = gfx::textWidth(g, ui::F_H2, name), x = rtl ? tx - w : tx;
+    bool on = t == shelf.tab;
+    gfx::text(g, ui::F_H2, name, x, 232, on ? ui::TEXT : ui::MUTED);
+    if (on) gfx::rect(g, x, 232 + g.fonts[ui::F_H2].lineH + 4, w, 3, ui::A1, 1);
+    tx += (rtl ? -1 : 1) * (w + 34);
+  }
+  if (!count) {
+    gfx::text(g, ui::F_BODY, tr(K::Loading), rtl ? ui::W - left : left, 300, ui::MUTED, rtl ? 2 : 0);
+  }
   int first = std::clamp(shelf.sel - cols + 1, 0, std::max(0, count - cols));
   for (int i = first; i < std::min(count, first + cols); ++i) {
-    float x = left + (float)(i - first) * (cw + gap);
-    homeCard(g, thumbs, thumbsWorker, frame, settings.lang, related[(size_t)i], pl.direct, related[(size_t)i].shortForm, i == shelf.sel, x, 286, cw, ch, i == shelf.sel ? 1.f : 0.f, nullptr);
+    float slot = (float)(i - first) * (cw + gap), x = rtl ? ui::W - left - cw - slot : left + slot;
+    homeCard(g, thumbs, thumbsWorker, frame, settings.lang, items[(size_t)i], pl.direct, items[(size_t)i].shortForm, i == shelf.sel, x, 286, cw, ch, i == shelf.sel ? 1.f : 0.f, nullptr);
   }
-  float hx = hint(g, left, 574, tr(K::BtnHorizontal), XG, tr(K::ChooseRow));
-  hx = hint(g, hx, 574, "A", XA, tr(K::WatchNow));
-  hint(g, hx, 574, "B", XB, tr(K::Back));
+  float hy = 574, hx = rtl ? ui::W - left - 640 : left;
+  gfx::rect(g, hx - 12, hy - 8, 700, 40, {0, 0, 0, 0.55f}, 12);
+  hx = hint(g, hx, hy, tr(K::BtnHorizontal), XG, tr(K::ChooseRow));
+  hx = hint(g, hx, hy, "A", XA, tr(K::WatchNow));
+  hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::WatchLater, settings.lang);
+  if (shelfFirstTab() >= 0) hx = hint(g, hx, hy, i18n::get(i18n::Lang::EN, K::BtnShoulders), XG, tr(K::CtlSwitchTab));
+  hint(g, hx, hy, "B", XB, tr(K::Back));
 }
 
 inline void UiContext::playerUpdate(uint64_t now) {
-  if (shelf.video != playing.id || screen != PLAYER) { shelf.video = playing.id; shelf.open = false; shelf.sel = 0; shelf.shortsFocus = 0; }
+  if (shelf.video != playing.id || screen != PLAYER) { shelf.video = playing.id; shelf.open = false; shelf.sel = 0; shelf.shortsFocus = 0; shelf.tab = 0; shelf.shortOpenedAt = SDL_GetTicks(); if (shelfChannel.id != captions.channelId) shelfChannel = NavPage{}; }
   if(pl.qualityModesReady.exchange(false)) {
       qualityKnown=true;
       offeredQualities.assign(pl.qualityAvailable.load());
@@ -348,7 +417,8 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
     }
     overlayTitle.update(g, ui::F_VIDEO_TITLE, title.c_str(), options && !transportFocus ? ui::W-520 : ui::W-80);
     if(!panelOpen && pl.state!=player::FAILED) {
-      float hx = 40, hy = ui::large ? 508 : 523;
+      float hy = ui::large ? 508 : 523, hx = g.rtlText ? ui::W - 40 - 640 : 40;
+      gfx::rect(g, hx - 12, hy - 8, !playerFromRemote && !phonePlaybackSerial ? 700.f : 540.f, 40, {0, 0, 0, 0.55f}, 12);
       hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::WatchLater, settings.lang);
       hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::Quality, settings.lang);
       if (!playerFromRemote && !phonePlaybackSerial) hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::PrevItem, settings.lang);
