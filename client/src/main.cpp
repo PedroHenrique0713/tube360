@@ -750,6 +750,7 @@ int run(int argc, char** argv) {
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false; uint64_t nextDeadline = 0; bool nextPending = false;
+  std::vector<Video> related; PlayerShelf shelf;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
   bool livePaused = false;
   int& quality = settings.quality;
   quality=720;
@@ -859,7 +860,7 @@ int run(int argc, char** argv) {
       extras.select(v.id,i18n::code(settings.lang)); commentLines.clear(); commentIndex=-1;
     }
     if (v.id != playing.id) {
-      nestSkip = false; likeState.clear(); upNext = Video{};
+      nestSkip = false; likeState.clear(); upNext = Video{}; related.clear();
       if (!nav.localQueue) {
         Job next{5, "/api/video/" + v.id + "/next", 0}; next.lang=settings.lang;
         next.native = !fromRemote && !account.signedIn(); control.add(next, true); nextPending = true;
@@ -1190,6 +1191,8 @@ int run(int argc, char** argv) {
     // ---- F62 Busca e canal
 
     // ---- F63 Player e Shorts
+    .related=related,
+    .shelf=shelf,
 
     // ---- F64 Configurações e controle
 
@@ -1325,11 +1328,24 @@ int run(int argc, char** argv) {
           toastUntil = now + 3000;
         } else if (!nav.localQueue && r.feed.direct && id == playing.id && !r.feed.items.empty()) {
           upNext = r.feed.items.front();
+          related.clear();
+          for (const auto& it : r.feed.items) if (it.id != playing.id && related.size() < 24) related.push_back(it);
         } else if (ok && id == playing.id && f.size() >= 5) {
           if (nav.localQueue) { likeState = f[1]; continue; }
           likeState = f[1];
           upNext = Video{};
-          if (f[2].size() == 11) { upNext.id = f[2]; upNext.channel = f[3]; upNext.title = f[4]; }
+          if (f[2].size() == 11) { upNext.id = f[2]; upNext.channel = f[3]; upNext.title = f[4]; related.assign(1, upNext); }
+          size_t nl = r.feed.title.find('\n');
+          while (nl != std::string::npos && related.size() < 24) {
+            size_t end = r.feed.title.find('\n', nl + 1);
+            auto row = net::split(r.feed.title.substr(nl + 1, end == std::string::npos ? std::string::npos : end - nl - 1), '\t');
+            nl = end;
+            if (row.size() < 5 || row[0] != "rel" || row[1].size() != 11 || row[1] == playing.id || row[1] == upNext.id) continue;
+            Video v; v.id = row[1]; v.title = row[2]; v.channel = row[3]; v.dur = std::atoi(row[4].c_str());
+            if (row.size() > 5) v.members = yt::membershipWire(row[5]);
+            v.shortForm = row.size() > 6 && row[6] == "short";
+            related.push_back(std::move(v));
+          }
         }
       } else if (r.key.rfind("/api/account", 0) == 0) {
         accountBusy = false;

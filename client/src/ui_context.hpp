@@ -175,6 +175,8 @@ struct UiContext {
   // ---- F62 Busca e canal: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
   // ---- F63 Player e Shorts: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  std::vector<Video>& related;
+  PlayerShelf& shelf;
 
   // ---- F64 Configurações e controle: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
@@ -231,6 +233,8 @@ struct UiContext {
   void ratePanelInput(uint64_t now);
   void playerNoticeDraw(uint64_t now);
   void playerInput(uint64_t now, int optionCount);
+  void playerShelfInput(uint64_t now);
+  void playerShelfDraw(uint64_t now);
   void playerUpdate(uint64_t now);
   void playerDraw(uint64_t now, double t, int optionCount, bool behindLive, const display::CommentsPanel& commentPanel,
                   bool sleepWarning, double sleepLeft);
