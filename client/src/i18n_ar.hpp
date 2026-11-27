@@ -433,6 +433,14 @@ inline const char* arabic(Key key) {
     // ---- F65 Música
 
     // ---- F66 controle pelo celular
+    case Key::SettingPhoneRemote: return "الهاتف كريموت";
+    case Key::PhoneRemoteHelp: return "تحكم بالتطبيق من متصفح الهاتف على نفس شبكة الواي فاي. اضغط A لعرض العنوان والرمز.";
+    case Key::RemoteTitle: return "الهاتف كريموت";
+    case Key::RemoteSteps: return "على هاتفك المتصل بنفس شبكة الواي فاي، افتح هذا العنوان في المتصفح واكتب الرمز.";
+    case Key::RemoteCode: return "رمز الاقتران";
+    case Key::RemoteSafe: return "يمكن فقط للأجهزة في شبكة منزلك الاتصال. يتغير الرمز بعد كل اقتران.";
+    case Key::RemoteNoNetwork: return "لا توجد شبكة. وصّل الجهاز بالواي فاي أو بالكابل.";
+    case Key::RemoteConnected: return "تم اتصال الهاتف";
 
     // ---- F67 membros tocando
 

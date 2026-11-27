@@ -453,6 +453,14 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   /* ---- F65 Música */ \
   /* */ \
   /* ---- F66 controle pelo celular */ \
+  X(SettingPhoneRemote, "Phone as remote", "Celular como controle", "Móvil como control") \
+  X(PhoneRemoteHelp, "Control the app from a phone browser on the same Wi-Fi. Press A to see the address and the code.", "Controle o app pelo navegador do celular no mesmo Wi-Fi. Aperte A para ver o endereço e o código.", "Controla la app desde el navegador del móvil en el mismo Wi-Fi. Pulsa A para ver la dirección y el código.") \
+  X(RemoteTitle, "Phone as remote", "Celular como controle", "Móvil como control") \
+  X(RemoteSteps, "On your phone, connected to the same Wi-Fi, open this address in the browser and type the code.", "No celular, ligado no mesmo Wi-Fi, abra este endereço no navegador e digite o código.", "En el móvil, conectado al mismo Wi-Fi, abre esta dirección en el navegador y escribe el código.") \
+  X(RemoteCode, "Pairing code", "Código de pareamento", "Código de emparejamiento") \
+  X(RemoteSafe, "Only devices on your home network can connect. The code changes after each pairing.", "Só aparelhos da sua rede de casa conseguem conectar. O código muda a cada pareamento.", "Solo los dispositivos de tu red doméstica pueden conectarse. El código cambia en cada emparejamiento.") \
+  X(RemoteNoNetwork, "No network. Connect the console to the Wi-Fi or cable.", "Sem rede. Conecte o console ao Wi-Fi ou ao cabo.", "Sin red. Conecta la consola al Wi-Fi o al cable.") \
+  X(RemoteConnected, "Phone connected", "Celular conectado", "Móvil conectado") \
   /* */ \
   /* ---- F67 membros tocando */ \
   /* */ \

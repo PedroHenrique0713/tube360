@@ -4,7 +4,7 @@ Os ids são os índices históricos das linhas (0 conta, 1 vídeos por linha, 2 
 6 timer, 7 Shorts, 8 relatórios, 9 saída, 10 áudio, 11 texto grande, 12 encaixe, 13 caixas de som, 14 atualizações,
 15 SponsorBlock, 16 apagar histórico, 17 apagar lista, 18 volume). Mantenha em sincronia com `settings_ui::sections()`
 em client/src/ui_settings.hpp."""
-SECTIONS = [[0], [2, 9, 12, 10, 15, 7], [3, 4, 13, 18], [5, 1, 11], [6], [8, 16, 17], [14]]
+SECTIONS = [[0], [2, 9, 12, 10, 15, 7], [3, 4, 13, 18], [5, 1, 11], [6], [8, 16, 17, 20], [14]]
 
 
 def _where(row):
