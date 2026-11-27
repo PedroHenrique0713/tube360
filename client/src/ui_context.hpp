@@ -3,6 +3,8 @@
 #pragma once
 #include <functional>
 #include <optional>
+#include "remote_control.hpp"
+#include "remote_net.hpp"
 
 enum Screen { HOME, SEARCH, PLAYER, SETTINGS, NAV };
 
@@ -201,6 +203,12 @@ struct UiContext {
   // ---- F65 Música: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
   // ---- F66 controle pelo celular: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  phonectl::Core& remoteCore;       // pareamento, sessões e fila de ações (remote_control.hpp)
+  phonectl::Net& remoteNet;         // a thread do servidor: porta em uso (remote_net.hpp)
+  bool remotePanelOpen = false;     // painel com endereço e código; a linha das Configurações abre, A/B fecham
+  std::string remoteAddress; uint64_t remoteAddressAt = 0, remoteNoticeUntil = 0;
+  uint64_t volumeSaveAt = 0;        // o volume grava o settings.txt 1 s depois do último ajuste (e na saída), não a cada passo
+  void remoteDraw(uint64_t now);    // ui_remote.hpp
 
   // ---- F67 membros tocando: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
@@ -243,6 +251,7 @@ struct UiContext {
   void subscriptionStripInput(NavPage& p, bool left, bool right, bool up, bool down, bool a);
   void musicHomeMove(NavPage& p, bool left, bool right, bool up, bool down);
   void musicTabSelected(NavPage& p);
+  void musicPageKeys(NavPage& p, uint64_t now);
   void searchFiltersPress(NavPage& p);
 
   // ---- Player (ui_player.hpp)

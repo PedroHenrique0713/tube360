@@ -245,7 +245,7 @@ inline void UiContext::adjustVolume(uint64_t now, int direction) {
     return;
   }
   int percent = pl.stepVolume(direction);
-  if (percent != settings.volume) { settings.volume = percent; saveSettings(); }
+  if (percent != settings.volume) { settings.volume = percent; volumeSaveAt = now + 1000; }
   shelf.volumeShown = percent; shelf.volumeSpeaker = false; shelf.volumeUntil = now + 2500;
   LOG("player: volume %d", percent);
 }

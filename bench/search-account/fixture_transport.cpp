@@ -26,6 +26,12 @@ public:
       int status=std::getenv("F47_WEB_STATUS") ? std::atoi(std::getenv("F47_WEB_STATUS")) : 400;
       return {status,R"({"error":{"code":400,"status":"INVALID_ARGUMENT","message":"PRIVATE_TOKEN private@example.test"}})",{}};
     }
+    // Teste: atrasa o pedido `next` de número F47_SLOW_NEXT_AFTER+1 por F47_SLOW_NEXT_MS (ex.: a letra), para a fila acabar com o worker ocupado
+    if(const char* after=std::getenv("F47_SLOW_NEXT_AFTER"))if(r.url.find("/next?")!=yt::string::npos) {
+      static std::atomic_int nexts{0};
+      int index=nexts.fetch_add(1);std::fprintf(stderr,"fixture: next #%d%s\n",index,index==std::atoi(after) ? " atrasado" : "");
+      if(index==std::atoi(after))SDL_Delay(std::getenv("F47_SLOW_NEXT_MS") ? std::atoi(std::getenv("F47_SLOW_NEXT_MS")) : 15000);
+    }
     if(std::getenv("F47_SLOW_DECODE") && r.url.find("/player?")!=yt::string::npos) {
       auto file=r;file.url="https://fixture.googlevideo.com/pressure-player";return replay.send(file);
     }

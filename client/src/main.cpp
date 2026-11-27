@@ -57,6 +57,7 @@
 
 #ifdef __XSDK__
 #include "xsdk/net.h"
+#include "xsdk/kernel.h"
 extern "C" void install_player_fault_handler();
 // XAM começa com recepção de 16 KB por socket; 63 KB segura o fluxo de vídeo com folga (xsdk/net.h).
 extern "C" const XsdkNetworkLimits xsdk_network_limits = {32, 8, 63, 16};
@@ -217,7 +218,8 @@ struct Worker {
           r.catalog=true;
         }
         bool accountFallback = !r.catalog && consoleAccount && consoleAccount->active() && yt::ConsoleAccount::supports(j.a);
-        if (!r.catalog && !net::serverEnabled && !accountFallback) { r.feed.error = K::NoResponse; r.feed.title.clear(); }
+        // "signed_out" (Biblioteca sem conta) chega ao cliente como pedido de login, não como falta de resposta
+        if (!r.catalog && !net::serverEnabled && !accountFallback && r.feed.title != "error\tsigned_out\n") { r.feed.error = K::NoResponse; r.feed.title.clear(); }
         if (r.catalog || (!net::serverEnabled && !accountFallback)) {
           LOG("catalogo console: %s, %u bytes, music=%s%s%s",j.a.substr(0,j.a.find('?')).c_str(),(unsigned)r.feed.title.size(),catalog.musicSource.c_str(),
               catalog.authError.empty() ? "" : ", conta recusada: ",catalog.authError.c_str());
@@ -542,6 +544,8 @@ struct Input {
 #include "ui_channel.hpp"
 #include "ui_player.hpp"
 #include "ui_shorts.hpp"
+#include "ui_remote_panel.hpp"
+#include "remote_page.hpp"
 #include "ui_music.hpp"
 #ifndef __XSDK__
 #include "../../bench/search/frame_probe.hpp"
@@ -792,6 +796,7 @@ int run(int argc, char** argv) {
   quality=720;
   bool& nestOut = settings.nest; int& nestOffsetMs = settings.syncMs;
   auto saveSettings = [&]() {
+    LOG("settings: gravando settings.txt");
     if (!settings.save(assets)) { toast = tr(K::SaveFailed); toastUntil = SDL_GetTicks() + 4000; }
   };
   std::string nestName = pl.directSpeaker.configured() ? pl.directSpeaker.settings().name : tr(K::Nest);
@@ -914,7 +919,12 @@ int run(int argc, char** argv) {
       if (!nav.localQueue) {
         Job next{5, "/api/video/" + v.id + "/next", 0}; next.lang=settings.lang;
         next.native = !fromRemote && !account.signedIn(); control.add(next, true); nextPending = true;
-      } else nextPending = false;
+      } else {
+        nextPending = false;
+        if (account.signedIn()) {  // fila local: só o estado do joinha (a resposta atualiza `likeState`)
+          Job rating{5, "/api/video/" + v.id + "/next", 0}; rating.lang=settings.lang; control.add(rating, true);
+        }
+      }
     }
     if (v.id != playing.id) { captions = {}; captionIndex = -1; captionLines.clear(); captionVideo.clear(); captionLoader.cancel(); }
     if (v.id != playing.id) { audioTracks.clear(); trackLabels.clear(); selectedTrackLabel.clear(); playerUI.tracks=false; }
@@ -922,10 +932,11 @@ int run(int argc, char** argv) {
     playing = v; playerFromRemote = fromRemote;
     if(localOpening)localRecording=!account.signedIn();
     videoTex.ready = false;
-    phonePanel = loginPanel = logoutPanel = false;
+    loginPanel = logoutPanel = false;
+    if (!(nav.musicNow && screen == PLAYER)) phonePanel = false;  // a troca automática de faixa da Música não fecha o painel do celular aberto sobre o Tocando agora
     pl.nestOffset = nestOffsetMs / 1000.0;
     if (screen != PLAYER) nav.musicNow = nav.musicSession;
-    pl.audioOnly = nav.musicSession && nav.musicNow;
+    pl.audioOnly = nav.musicSession && nav.musicNow && !nav.videoMode;
     if (pl.audioOnly) { pl.speed=1; pl.loop=false; }
     if (pl.requestLanguage != i18n::code(settings.lang)) { pl.halt(); pl.requestLanguage=i18n::code(settings.lang); }
     pl.liveLowLatency = settings.liveLowLatency;  // F67: só a TV (live de membros por segmentos)
@@ -974,6 +985,7 @@ int run(int argc, char** argv) {
       const auto& root = nav.pages.front();
       return root.music ? 4 : root.kind == "subscriptions" ? 2 : root.kind == "library" ? 3 : root.kind == "search" ? 1 : 0;
     }
+    if (screen == PLAYER && nav.musicNow) return 4;  // o trilho aparece no Tocando agora, com a Música marcada
     return screen == SETTINGS ? 6 : screen == SEARCH || inResults ? 1 : 0;
   };
   auto openNav = [&](const std::string& kind, const std::string& id = "", const std::string& q = "", bool music = false, yt::search::Filters filters = {}) {
@@ -1073,6 +1085,26 @@ int run(int argc, char** argv) {
   // ---- F65 Música: estado novo do run() só aqui
 
   // ---- F66 controle pelo celular: estado novo do run() só aqui
+  phonectl::Core phoneCore(
+      [](unsigned char* bytes, size_t size) {
+#ifdef __XSDK__
+        XeCryptRandom(bytes, (uint32_t)size);
+#else
+        FILE* f = std::fopen("/dev/urandom", "rb");
+        if (!f || std::fread(bytes, 1, size, f) != size) { for (size_t i = 0; i < size; ++i) bytes[i] = (unsigned char)SDL_rand_bits(); }
+        if (f) std::fclose(f);
+#endif
+      },
+      [] { return (uint64_t)SDL_GetTicks(); },
+      [&settings] { return phonectl::page(settings.lang); });
+  phonectl::Net phoneNet;
+#ifndef __XSDK__
+  if (const char* fixed = std::getenv("XT_REMOTE_CODE")) phoneCore.setCodeForTest(fixed);  // teste de bancada; no console o código é sempre aleatório
+#endif
+  SDL_Thread* phoneThread = nullptr;
+  size_t phonePaired = 0; uint64_t phoneRemoteStateAt = 0; unsigned phoneNoticeSeen = 0, phoneTooManySeen = 0; uint64_t phoneAddressAt = 0;
+  bool phoneWasOn = false, phonePanelPrev = false;
+  std::deque<phonectl::Event> phoneBacklog;
 
   // ---- F67 membros tocando: estado novo do run() só aqui
 
@@ -1258,9 +1290,14 @@ int run(int argc, char** argv) {
     // ---- F65 Música
 
     // ---- F66 controle pelo celular
+    .remoteCore=phoneCore,
+    .remoteNet=phoneNet,
 
     // ---- F67 membros tocando
   };
+  struct PhoneRun { phonectl::Net* net; phonectl::Core* core; } phoneRun{&phoneNet, &phoneCore};
+  phoneThread = yt::worker([](void* p) { auto* r = static_cast<PhoneRun*>(p); r->net->run(*r->core); return 0; }, "remote", &phoneRun);
+  struct PhoneThreadGuard { phonectl::Net& net; SDL_Thread*& thread; ~PhoneThreadGuard() { net.quit = true; if (thread) SDL_WaitThread(thread, nullptr); thread = nullptr; } } phoneGuard{phoneNet, phoneThread};  // a thread sai mesmo se uma exceção atravessar o run()
   boot_event("begin","app.first-frame","enter render loop; no disk logging each frame after ready");
   while (!quit) {
 #ifndef __XSDK__
@@ -1446,14 +1483,22 @@ int run(int argc, char** argv) {
             else nav.action(navWorker, "/api/nav/transport?action=stop");
           }
           else {
+            // Fila nova zera o estado da tela ANTES de abrir a faixa (senão o modo Vídeo velho decodificaria vídeo na tela Música); a
+            // continuação da reprodução automática segue no modo em que a pessoa estava.
+            const bool continued = nav.continuing, keepVideo = continued && nav.videoMode;
+            nav.continuing = false; nav.resetNow(); nav.videoMode = keepVideo;
             nav.queue = std::move(queue.items); nav.nowId.clear(); nav.ownsQueue = true;
             nav.localQueue = r.catalog || r.localAccount; nav.queueIndex = 0;
             if (nav.localQueue && !nav.queue.empty()) {
               for (size_t i = 0; i < nav.queue.size(); ++i) if (nav.queue[i].id == nav.queueStart) nav.queueIndex = i;
+              if (continued && nav.queue.size() > 1 && nav.queue[0].id == playing.id) nav.queueIndex = 1;  // a rádio começa na faixa que acabou
               startVideo(nav.queue[nav.queueIndex].video(),0,false);
             }
           }
-          nav.nowSel = 0; nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
+          nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
+        } else if (r.key.rfind("/api/nav/related?", 0) == 0) {
+          NavPage page; Navigation::parse(r.feed.title, page);
+          if (r.key == "/api/nav/related?id=" + playing.id + "&lang=" + i18n::code(settings.lang)) { nav.related = std::move(page.items); nav.relatedLoaded = true; nav.relatedSel = nav.relatedTop = 0; nav.queueChanged(); }
         } else if (r.key.rfind("/api/nav/lyrics?", 0) == 0) {
           if (screen == PLAYER && r.key == "/api/nav/lyrics?id=" + playing.id) {
             auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
@@ -1466,6 +1511,9 @@ int run(int argc, char** argv) {
         if (r.key == "/api/nav/transport?action=stop") { nav.cancelQueue = false; nav.ownsQueue = false; }
         if (!ok) {
           if (r.key.rfind("/api/nav/play?", 0) == 0) nav.musicSession = nav.musicNow = false;
+          if (r.key.rfind("/api/nav/related?", 0) == 0) { nav.relatedLoaded = true; continue; }
+          if (nav.continuing && r.key.rfind("/api/nav/play?", 0) == 0) { nav.continuing = false; stopVideo(); continue; }  // a rádio não veio: acaba como acabaria sem a reprodução automática
+          if (r.key.rfind("/api/nav/lyrics?", 0) == 0) { nav.lyricsFailed = true; continue; }  // erro de rede: a aba diz que falhou, sem aviso por cima  // sem letra: a aba mostra "Letra indisponível", sem aviso
           auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
           toast = fields.size() > 1 ? fields[1] : tr(K::ActionFailed); toastUntil = now + 4500;
         }
@@ -1516,6 +1564,13 @@ int run(int argc, char** argv) {
       }
       castCode = phoneStatus.code; castWho = phoneStatus.who;
     }
+#ifndef __XSDK__
+    // Teste: XT_PHONE_VOLUME=<ms>:<percentual> injeta o comando de volume do celular (o mesmo que o Lounge entrega) uma vez
+    if (const char* injected = std::getenv("XT_PHONE_VOLUME")) {
+      static bool sent = false; int at = 0, percent = 0;
+      if (!sent && std::sscanf(injected, "%d:%d", &at, &percent) == 2 && now - runStart >= (uint64_t)at) { sent = true; cmds.push_back({"volume", std::to_string(percent), "0"}); }
+    }
+#endif
     bool shutdownCommand = std::any_of(cmds.begin(),cmds.end(),[](const auto& c) { return !c.empty() && c[0] == "desligar"; });
     bool phonePlay = std::any_of(cmds.begin(),cmds.end(),[](const auto& c) { return c.size() >= 2 && c[0] == "play" && !(c.size() > 4 && c[4] == "navigation"); });
     if (shutdownCommand && !shutdownAt) {
@@ -1549,6 +1604,7 @@ int run(int argc, char** argv) {
         pl.directSpeaker.volume(level,muted);
         if (nestOut && net::serverEnabled && !pl.directSpeaker.configured())
           control.add({5,"/api/nest/volume?v="+std::to_string(muted ? 0 : level*100),0});
+        shelf.volumeShown = (int)std::lround(muted ? 0 : level*100); shelf.volumeSpeaker = false; shelf.volumeUntil = now + 2500;  // o indicador aparece também quando o celular muda o volume (player, Shorts e Tocando agora)
         LOG("cast: volume %.0f, mudo %s", std::atof(c[1].c_str()), c[2].c_str());
         continue;
       }
@@ -1617,6 +1673,69 @@ int run(int argc, char** argv) {
     // ---- F64 Configurações e controle
     screens.sleepWarning = sleepWarning;
     screens.pageMenuIntercept();
+    // ---- F66 controle pelo celular
+#ifndef __XSDK__
+    if (frame == 2 && settings.phoneRemote && std::getenv("XT_REMOTE_PANEL")) screens.remotePanelOpen = true;  // bancada: abre o painel de pareamento sem teclas
+#endif
+    phoneNet.enabled = settings.phoneRemote;
+    if (settings.phoneRemote && now >= phoneAddressAt) {  // o endereço que o painel mostra também vale como Host; lido aqui, a thread da rede só vê a cópia
+      phoneAddressAt = now + 2000;
+      in_addr a{}; phoneNet.advertisedIp = ::inet_pton(AF_INET, phonectl::localAddress().c_str(), &a) == 1 ? a.s_addr : 0;
+    }
+    if (!settings.phoneRemote) {
+      if (phoneWasOn) { phoneCore.reset(); phoneBacklog.clear(); phonePaired = 0; phoneNoticeSeen = 0; phoneTooManySeen = 0; phonePanelPrev = false; }  // desligar derruba todas as sessões
+      phoneWasOn = false; screens.remotePanelOpen = false;
+    } else {
+      phoneWasOn = true;
+      if (screens.remotePanelOpen != phonePanelPrev) {  // o pareamento só vale com o painel aberto na TV
+        if (screens.remotePanelOpen) phoneCore.openPairing(); else phoneCore.closePairing();
+        phonePanelPrev = screens.remotePanelOpen;
+      }
+      if (screens.remotePanelOpen && !phoneCore.pairingOpen()) screens.remotePanelOpen = false;  // a janela fecha sozinha em 5 min
+      if (now >= phoneRemoteStateAt) { phoneRemoteStateAt = now + 500; phoneCore.setNowPlaying(playing.title, screen == PLAYER, pl.paused); }
+      size_t paired = phoneCore.sessions();
+      if (paired != phonePaired) LOG("celular: %u sessao(oes) pareada(s), porta %d", (unsigned)paired, phoneNet.port.load());
+      if (paired > phonePaired) { toast = tr(K::RemoteConnected); toastUntil = now + 4000; screens.remotePanelOpen = false; }
+      phonePaired = paired;
+      if (unsigned many = phoneCore.tooManyNotices(); many != phoneTooManySeen) {  // 10 erros: a janela fechou, o dono abre de novo
+        phoneTooManySeen = many; toast = tr(K::RemoteTooMany); toastUntil = now + 8000; LOG("celular: 10 codigos errados, pareamento fechado");
+      }
+      if (unsigned notices = phoneCore.wrongCodeNotices(); notices != phoneNoticeSeen) { phoneNoticeSeen = notices; screens.remoteNoticeUntil = now + 10000; LOG("celular: codigo errado 5 vezes, codigo novo na TV"); }
+      for (auto& e : phoneCore.drain()) if (phoneBacklog.size() < phonectl::kMaxQueue) phoneBacklog.push_back(std::move(e));  // o excedente some
+      if (screens.remotePanelOpen) {
+        // painel de pareamento: o celular já pareado fecha com Voltar (ou OK); o resto do que chegou é descartado
+        for (const auto& e : phoneBacklog) if (e.action == phonectl::Action::Back || e.action == phonectl::Action::Ok) screens.remotePanelOpen = false;
+        phoneBacklog.clear();
+        if (ctl::hit(in, ctl::Ctx::Panel, ctl::Act::Open) || ctl::hit(in, ctl::Ctx::Panel, ctl::Act::Back)) screens.remotePanelOpen = false;
+        in.clear();
+      } else if (!phoneBacklog.empty()) {
+        // um evento por quadro: o que veio em rajada anda na ordem, cada passo com a tela já atualizada
+        const phonectl::Event e = phoneBacklog.front(); phoneBacklog.pop_front();
+        const bool modal = phonePanel || loginPanel || logoutPanel || nav.menu || nav.unsubscribe || searchUI.filterOpen || localUI.resume || localUI.clear >= 0 ||
+                           speakerPicker.open || sleepPanel || ratePanel || sleepWarning || shutdownAt || updateUI.open || sponsorUI.open ||
+                           (screen == PLAYER && playerUI.panel != PlayerUI::NONE) || (screen == PLAYER && nextAt);
+        const ctl::Ctx ctx = screen == PLAYER ? (nav.musicNow ? ctl::Ctx::Music : playing.shortForm ? ctl::Ctx::Shorts : ctl::Ctx::Player)
+                           : screen == SETTINGS ? ctl::Ctx::Settings : screen == SEARCH ? ctl::Ctx::Search : ctl::Ctx::Home;
+        phonectl::Ports ports;
+        // mesma condição do A do controle: sem pausa invisível durante a abertura; live pausada volta à borda
+        ports.playPause = [&] {
+          if (screen != PLAYER || (pl.waiting() && !pl.paused)) return;
+          if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
+        };
+        ports.volume = [&](int step) { if (screen == PLAYER) screens.adjustVolume(now, step); };  // só onde o controle também muda o volume
+        ports.search = [&](const std::string& q) {
+          if (modal) return;
+          if (screen == PLAYER) stopVideo();
+          if (screen != SEARCH) { searchBack = screen; searchMusic = screen == NAV && !nav.pages.empty() && nav.page().music; }
+          doSearch(q);
+        };
+        LOG("celular: acao %d%s ctx %d", (int)e.action, modal ? " (painel aberto)" : "", (int)ctx);
+        const bool movesOrCloses = e.action == phonectl::Action::Back || e.action == phonectl::Action::Ok || e.action == phonectl::Action::Up ||
+                                   e.action == phonectl::Action::Down || e.action == phonectl::Action::Left || e.action == phonectl::Action::Right;
+        if (!modal || movesOrCloses) phonectl::inject(e, in, ctx, ports);
+      }
+    }
+    if (screens.volumeSaveAt && now >= screens.volumeSaveAt) { screens.volumeSaveAt = 0; saveSettings(); }
     if (shutdownAt) {
       if (now >= shutdownAt) {
         if (powerDownXbox()) quit = true;
@@ -1668,11 +1787,11 @@ int run(int argc, char** argv) {
     // ---- F63 Player e Shorts: vigia do player (marca a sessão para o relatório de erro)
     {
       using Phase = PlayerWatch::Phase;
-      PlayerWatch::Sample w; w.now = now; w.inPlayer = screen == PLAYER && !nav.musicNow;
+      PlayerWatch::Sample w; w.now = now; w.inPlayer = screen == PLAYER;  // inclui o Tocando agora: música travada também gera relatório
       w.phase = pl.state == player::CONNECTING ? Phase::Connecting : pl.state == player::BUFFERING ? Phase::Buffering :
                 pl.state == player::PLAYING ? Phase::Playing : Phase::Idle;
       w.paused = pl.paused; w.live = pl.live; w.nest = pl.nest || pl.speakerRequested; w.seeking = seekHold.active; w.position = pl.position();
-      w.bytes = (uint64_t)SDL_GetAtomicInt(&pl.netBytes); w.frames = pl.framesIn; w.streamEnded = pl.decDone;
+      w.bytes = (uint64_t)SDL_GetAtomicInt(&pl.netBytes); w.frames = pl.framesIn; w.streamEnded = pl.decDone || (pl.playingAudio && pl.audioDone);  // música só com áudio termina por `audioDone`
       if (playerWatch.update(w)) {
         boot_session_player_stuck(playerWatch.stuck);
         LOG("vigia: player %s (estado=%d pos=%.1f bytes=%llu quadros=%llu fim=%d)", playerWatch.stuck ? "parado" : w.inPlayer ? "voltou" : "saiu da tela", (int)pl.state, w.position, (unsigned long long)w.bytes, (unsigned long long)w.frames, (int)w.streamEnded);
@@ -1694,14 +1813,24 @@ int run(int argc, char** argv) {
     // Fim natural continua sendo informado mesmo com um cartão aberto.
     if (screen == PLAYER && nav.localQueue && pl.state == player::ENDED) {
       SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
-      if (nav.queueIndex+1 < nav.queue.size() && !(sleep.active && sleep.end)) {
-        ++nav.queueIndex; startVideo(nav.queue[nav.queueIndex].video(),0,false);
+      size_t following = 0;
+      if (nav.advance(following) && !(sleep.active && sleep.end)) {
+        nav.queueIndex = following; if (nav.nowZone != MusicNavigation::ZoneQueue) nav.queueSel = (int)following; startVideo(nav.queue[following].video(),0,false);
+      } else if (nav.autoplay && !nav.queue.empty() && !(sleep.active && sleep.end)) {
+        // Reprodução automática: acabou a fila, segue com a rádio da última faixa (a resposta troca a fila e continua dali)
+        if (!nav.continuing) {  // liga já: o pedido sai quando o worker estiver livre (letra ou relacionados podem estar em andamento)
+          nav.continuing = true; nav.cancelQueue = false; nav.queueStart.clear(); nav.radioFor = playing.id;
+          nav.queueTitle = std::string(tr(K::MusicMixOf)) + " " + playing.title;
+        }
       } else { endTimerPending = sleep.active && sleep.end; stopVideo(); }
+    }
+    if (nav.continuing && !nav.radioFor.empty() && !nav.busy) {
+      nav.action(navWorker,"/api/nav/play?kind=radio&id="+net::urlEncode(nav.radioFor)+"&lang="+i18n::code(settings.lang)); nav.radioFor.clear();
     }
     // ---- F63 Player e Shorts: fim de um Short emenda no próximo da fila (ou repete o último), sem o "a seguir em 8 s" de vídeo comum
     if (screen == PLAYER && pl.state == player::ENDED && playing.shortForm && !playerFromRemote && !shutdownAt && !nav.localQueue && !(sleep.active && sleep.end)) screens.shortsEnded();
     if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;
-    if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && (playerFromRemote || !nextPending || now >= nextDeadline)) {
+    if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && !nav.continuing && (playerFromRemote || !nextPending || now >= nextDeadline)) {
       if (!endedSent) {
         SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
         endTimerPending = sleep.active && sleep.end;
@@ -1774,13 +1903,14 @@ int run(int argc, char** argv) {
       screens.railDraw(remoteOnline);
     }
 
-    if (screen == PLAYER && nav.musicNow) screens.musicNowDraw();
+    if (screen == PLAYER && nav.musicNow) { screens.musicNowDraw(); screens.railDraw(remoteOnline); }  // o trilho por cima do degradê do fundo
     else if (screen == PLAYER) screens.playerDraw(now,t,optionCount,behindLive,commentPanel,sleepWarning,sleepLeft);
 
     if (sleep.active && screen == PLAYER && nav.musicNow) {
       screens.musicSleepDraw(sleepLeft);
     }
     screens.overlaysDraw(now,t,sleepWarning,sleepLeft);
+    if (screens.remotePanelOpen) screens.remoteDraw(now);  // ---- F66 controle pelo celular
     bool shoot = shotPath && (int)frame == shotFrame;
 #ifndef __XSDK__
     if (shotPath && std::getenv("XT_SHOT_MS")) shoot = now - runStart >= (uint64_t)std::atoi(std::getenv("XT_SHOT_MS"));
@@ -1816,9 +1946,11 @@ int run(int argc, char** argv) {
 #endif
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
+  if (screens.volumeSaveAt) { screens.volumeSaveAt = 0; saveSettings(); }
   recordHistory();
   if(localUI.submitted!=localUI.library.revision)localUI.writer.submit(localUI.library);
   phone.stop();
+  phoneNet.quit = true; SDL_WaitThread(phoneThread, nullptr); phoneThread = nullptr;  // join explícito antes do SDL_Quit/boot_close; o PhoneThreadGuard fica de reserva
   captionLoader.stop();
   extras.close();
   pl.halt();

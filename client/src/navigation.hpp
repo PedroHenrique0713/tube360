@@ -1,15 +1,19 @@
 #pragma once
 #include "music_shortcut_art.hpp"
 
+// Lado do cartão quadrado das prateleiras da Música: o da proposta (190) em 720p, menor em texto grande e em 4:3.
+inline float musicCardSize() { return ui::narrow ? 112 : ui::large ? 160 : 190; }
+
 struct NavItem {
   std::string type, id, title, channel, image, channelId, section;
   int duration = 0;
   yt::Membership members = yt::Membership::None;
   std::vector<std::string> titleLines; std::string byline;
-  bool shortForm = false, verified = false;
+  bool shortForm = false, verified = false, listStyle = false;  // listStyle: linha de lista da Música (Escolhas rápidas)
   std::string date, views, description;
   // Convenção de duração (CONTRATO): 0 = ao vivo, -1 = desconhecida, > 0 = segundos.
   Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = std::max(0,duration); v.live = duration == 0; v.members = members; v.shortForm = shortForm; return v; }
+  bool pill() const { return type == "chip" && image.empty(); }  // chip de clima ou botão do Explorar (os atalhos da Biblioteca são "chip" com capa)
 };
 struct NavPage : ItemGrid {
   yt::search::Filters filters;
@@ -26,7 +30,7 @@ struct NavPage : ItemGrid {
   struct Shelf { int first, end, selected; std::string title; };
   std::vector<Shelf> shelves;
   int shelf = 0;
-  bool musicHome() const { return kind == "music"; }
+  bool musicHome() const { return kind == "music" || kind == "chip"; }
   bool onlyShorts = false;  // chip "Shorts" da busca: filtro no cliente, mostra só os resultados que são Short
   // Chip da busca em destaque: 0 Tudo, 1 Vídeos, 2 Shorts, 3 Canais, 4 Ao vivo; -1 quando o tipo vem só do painel (playlists).
   int searchChip() const { if (onlyShorts) return 2; switch (filters.type) { case 0: return 0; case 1: return 1; case 2: return 3; case 4: return 4; default: return -1; } }
@@ -79,7 +83,7 @@ struct Navigation {
     // As telas guardam seleção e rolagem; B não refaz a consulta de onde o usuário veio.
     if (pages.size() >= 12) pages.erase(pages.begin() + 1);
     NavPage p; p.kind = kind; p.id = id; if (kind == "channel") p.tab = "home"; p.query = query; p.music = music; p.filters=filters;
-    if (kind == "music") p.tabSel = query == "charts" ? 1 : query == "mixes" ? 2 : 0;
+    if (kind == "music") p.tabSel = query == "explore" || query == "charts" ? 1 : query == "library" ? 2 : 0;
     pages.push_back(std::move(p)); load(worker, lang);
   }
   void channelFromVideo(Worker& worker, i18n::Lang lang, const std::string& id) {
@@ -99,7 +103,7 @@ struct Navigation {
       auto f = net::split(lines[i], '\t'); if (f.size() < 8 || f[1].empty()) continue;
       NavItem item{f[0], f[1], f[2], f[3], f[5], f[6], f[7], std::atoi(f[4].c_str())};
       if (f.size() > 8) item.members = yt::membershipWire(f[8]);
-      if (f.size() > 9) item.shortForm = f[9] == "short";
+      if (f.size() > 9) { item.shortForm = f[9] == "short"; item.listStyle = f[9] == "row"; }
       if (f.size() > 10) item.date = f[10];
       if (f.size() > 11) item.verified = f[11] == "1";
       if (f.size() > 12) item.views = f[12];
@@ -127,18 +131,26 @@ struct Navigation {
         p.offset = (int)p.items.size();
       } else if (!parse(r.feed.title, p, !first) && p.error.empty()) p.error = i18n::get(lang, K::BadResponse);
       if (p.error=="account_music_unavailable") p.error=i18n::get(lang,K::MusicAccountUnavailable);
-      if (p.error=="signed_out") p.error=i18n::get(lang,K::AccountRequired);
+      if (p.error=="signed_out") p.error=i18n::get(lang,p.kind=="music" && p.query=="library" ? K::MusicLibrarySignIn : K::AccountRequired);
       if (p.musicHome()) p.musicLabel=p.musicSource.empty() ? "" : gfx::ellipsize(g,ui::F_TINY,
           i18n::get(lang,p.musicSource=="public" ? K::PublicMusic : K::YourMusic),ui::narrow ? ui::W-364 : 480);
-      if (first && p.musicHome() && p.query.empty() && p.error.empty() && (p.musicSource=="web" || p.musicSource=="tv")) {
+      if (first && p.kind == "music" && p.query == "library" && p.error.empty() && (p.musicSource=="web" || p.musicSource=="tv")) {
         std::vector<NavItem> shortcuts;
-        for (auto entry : {std::pair<const char*,K>{"music_recent",K::MusicRecent},{"music_library",K::Playlists},{"music_playlist",K::MusicLiked}}) {
+        for (auto entry : {std::pair<const char*,K>{"music_recent",K::MusicRecent},{"music_library",K::Playlists},{"music_playlist",K::MusicLiked},
+                           {"music_songs",K::Songs},{"music_albums",K::Albums},{"music_artists",K::Artists}}) {
           NavItem item; item.type=entry.first; item.id=item.type=="music_playlist" ? "VLLM" : "ACCOUNT";
-          item.image="local:"+item.type;
-          item.title=i18n::get(lang,entry.second); item.section=i18n::get(lang,K::YourMusic);
+          // Biblioteca (músicas, álbuns, artistas): páginas do tipo chip, com o browseId da conta e o rótulo no id
+          const std::string label=i18n::get(lang,entry.second);
+          if (item.type=="music_songs") { item.type="chip"; item.id="FEmusic_liked_videos||"+label; }
+          else if (item.type=="music_albums") { item.type="chip"; item.id="FEmusic_liked_albums||"+label; }
+          else if (item.type=="music_artists") { item.type="chip"; item.id="FEmusic_library_corpus_track_artists||"+label; }
+          item.image="local:"+std::string(entry.first);
+          item.title=label; item.section=i18n::get(lang,K::YourMusic);
           shortcuts.push_back(std::move(item));
         }
-        p.items.insert(p.items.begin(),shortcuts.begin(),shortcuts.end());
+        auto after = p.items.begin();
+        while (after != p.items.end() && after->pill()) ++after;
+        p.items.insert(after,shortcuts.begin(),shortcuts.end());
       }
       if (p.kind=="library") localRevision=0;
       if (first && p.kind == "library" && p.error.empty()) {
@@ -150,6 +162,8 @@ struct Navigation {
         p.items.insert(p.items.begin(), {history, later, mixes});
       }
       format(p,g,lang,start);
+      // A Home da Música abre no conteúdo, não nos chips do topo
+      if (first && p.musicHome() && p.shelves.size() > 1 && p.items[(size_t)p.shelves[0].first].pill()) { p.shelf = 1; p.sel = p.shelves[1].selected; }
       return;
     }
   }
@@ -162,8 +176,9 @@ struct Navigation {
             p.shelves.push_back({(int)i, (int)i, (int)i, gfx::ellipsize(g, ui::F_KEY, heading, 1056)});
           }
           p.shelves.back().end = (int)i + 1;
-          item.titleLines = {gfx::ellipsize(g, ui::F_SMALL, item.title, 140)};
-          item.byline = gfx::ellipsize(g, ui::F_TINY, item.channel, 140);
+          const float cardText = musicCardSize() + 18;  // largura do cartão da prateleira (drawMusicPage)
+          item.titleLines = {gfx::ellipsize(g, ui::F_SMALL, item.title, cardText)};
+          item.byline = gfx::ellipsize(g, ui::F_TINY, item.channel, cardText);
           continue;
         }
         float width = std::floor((ui::W-200-(ui::columns(columnsSetting)-1)*24)/ui::columns(columnsSetting));
@@ -171,6 +186,7 @@ struct Navigation {
         item.titleLines = gfx::wrap(g, item.shortForm ? ui::F_SMALL : ui::F_KEY, item.title, width-(p.kind=="library" && !item.shortForm ? 24 : 0), 2);
         std::string by = item.type == "album" ? std::string(i18n::get(lang, K::Album)) + (item.channel.empty() ? "" : " · " + item.channel) :
             item.type == "artist" ? i18n::get(lang, K::Artist) : item.channel;
+        if (item.section == "top" && p.kind == "music_search") by = std::string(i18n::get(lang, K::MusicTopResult)) + (by.empty() ? "" : " · " + by);
         item.byline = gfx::ellipsize(g, item.shortForm ? ui::F_TINY : ui::F_CHAN, by, width);
       }
       for (auto& item : p.channels) item.byline = gfx::ellipsize(g, ui::F_CHAN, item.title, 142);
@@ -218,7 +234,7 @@ struct Navigation {
     if (p.kind == "subscriptions") return K::Subscriptions;
     if (p.kind == "history") return K::History;
     if (p.kind == "later") return K::WatchLater;
-    if (p.kind == "music") return K::Music;
+    if (p.kind == "music" || p.kind == "chip") return K::Music;
     if (p.kind == "music_recent") return K::MusicRecent;
     if (p.kind == "music_library") return K::Playlists;
     if (p.kind == "radio") return K::Radio;
@@ -247,8 +263,6 @@ struct Navigation {
   void drawEmpty(NavDraw& d, float top);
   void drawFooter(NavDraw& d);
   void drawMenu(gfx::Gfx& g, i18n::Lang lang);
-  void prepareNow(gfx::Gfx& g, Video& playing, i18n::Lang lang);
-  void drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const Video& playing, double pos, double duration, bool paused, bool waiting, K error, uint64_t frame, i18n::Lang lang);
   // ---- F61 Início e coleção: funções novas desta frente só aqui
 
   // ---- F62 Busca e canal: funções novas desta frente só aqui

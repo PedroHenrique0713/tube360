@@ -96,7 +96,7 @@ inline string imageUrl(string u) {
   if (u.compare(0,8,"https://") != 0 || u.size() > 4096 || u.find_first_of("@\\ \r\n\t#") != string::npos) return {};
   const auto slash = u.find('/',8);
   const auto host = u.substr(8,slash-8);
-  if (host=="music.youtube.com" && slash!=string::npos && u.compare(slash,14,"/image/mixart?")==0) return u;
+  if (host=="music.youtube.com" && slash!=string::npos && (u.compare(slash,14,"/image/mixart?")==0 || u.compare(slash,16,"/image/radioart?")==0)) return u;
   for (const auto* domain : {"ytimg.com","ggpht.com","googleusercontent.com"}) {
     string d = domain;
     if (host == d || (host.size() > d.size() && host.compare(host.size()-d.size()-1,d.size()+1,"."+d) == 0)) return u;
@@ -135,7 +135,7 @@ inline int seconds(const string& s) {
   for (char c : s) { if (c == ':') { out = (out + n) * 60; n = 0; } else n = n * 10 + c - '0'; }
   return int(std::min<int64_t>(out+n,86400*7));
 }
-struct Item { string type, id, title, channel, image, channelId, section, date, views, description; bool verified = false; int duration = 0; Membership members = Membership::None; bool shortForm = false; };
+struct Item { string type, id, title, channel, image, channelId, section, date, views, description; bool verified = false; int duration = 0; Membership members = Membership::None; bool shortForm = false, listStyle = false; };
 struct Page {
   string title, subtitle, image, banner, channelId, continuation, error, musicSource, description;
   std::vector<Item> items;
@@ -173,6 +173,7 @@ inline void lockupMeta(const J& lock, Item& out, bool course = false) {
 inline Item item(const J& v, const string& key, bool music, const string& section) {
   Item out; out.section = section; out.members = membership(v);
   out.shortForm = key == "reelItemRenderer" || key == "shortsLockupViewModel";
+  out.listStyle = key == "musicResponsiveListItemRenderer";  // linha de lista (Escolhas rápidas), não cartão de carrossel
   const auto& cols = array(get(v,"flexColumns"));
   const auto& meta = get(get(v,"metadata"),"tileMetadataRenderer");
   const auto& lock = get(get(v,"metadata"),"lockupMetadataViewModel");
@@ -320,7 +321,7 @@ inline Page decode(const J& data, bool music) {
 inline string wire(const Page& p) {
   if (!p.error.empty()) return "error\t" + clean(p.error) + "\n";
   string out = "ok\t" + clean(p.title) + "\t" + clean(p.subtitle) + "\t" + p.image + "\t" + (p.subscribed ? "1" : "0") + "\t" + (p.continuation.empty() ? "0" : "1") + "\t" + p.channelId + "\t" + p.banner + "\t\t\t" + p.musicSource + (p.verified || p.sortable || !p.subscribedKnown || !p.description.empty() ? "\t" + string(p.verified ? "1" : "0") + "\t" + clean(p.description) + "\t" + (p.sortable ? "1" : "0") + "\t" + (p.subscribedKnown ? "1" : "0") : "") + "\n";
-  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + (it.shortForm ? "\tshort" : "") + (it.verified || !it.date.empty() || !it.views.empty() || !it.description.empty() ? string(it.shortForm ? "" : "\t") + "\t" + clean(it.date) + "\t" + (it.verified ? "1" : "0") + "\t" + clean(it.views) + "\t" + clean(it.description) : "") + "\n";
+  for (const auto& it : p.items) out += it.type + "\t" + it.id + "\t" + clean(it.title) + "\t" + clean(it.channel) + "\t" + std::to_string(it.duration) + "\t" + it.image + "\t" + it.channelId + "\t" + clean(it.section) + "\t" + membershipWire(it.members) + (it.shortForm ? "\tshort" : it.listStyle ? "\trow" : "") + (it.verified || !it.date.empty() || !it.views.empty() || !it.description.empty() ? string(it.shortForm || it.listStyle ? "" : "\t") + "\t" + clean(it.date) + "\t" + (it.verified ? "1" : "0") + "\t" + clean(it.views) + "\t" + clean(it.description) : "") + "\n";
   return out;
 }
 inline std::map<string,string> query(const string& path) {
@@ -343,10 +344,10 @@ inline std::map<string,string> query(const string& path) {
   return out;
 }
 inline bool supported(const string& path) {
-  if (path.compare(0,17,"/api/nav/channel?") == 0 || path.compare(0,16,"/api/nav/lyrics?") == 0) return true;
+  if (path.compare(0,17,"/api/nav/channel?") == 0 || path.compare(0,16,"/api/nav/lyrics?") == 0 || path.compare(0,17,"/api/nav/related?") == 0) return true;
   if (path.compare(0,9,"/api/nav?") != 0 && path.compare(0,14,"/api/nav/play?") != 0) return false;
   auto q = query(path); auto kind = q["kind"];
-  return kind == "search" || kind == "channel" || kind == "playlist" || kind == "music" || kind == "music_search" || kind == "album" || kind == "artist" || kind == "radio" || kind == "music_playlist" || kind == "music_recent" || kind == "music_library";
+  return kind == "search" || kind == "channel" || kind == "playlist" || kind == "music" || kind == "music_search" || kind == "album" || kind == "artist" || kind == "radio" || kind == "music_playlist" || kind == "music_recent" || kind == "music_library" || kind == "chip";
 }
 class Client {
   Transport& net;
@@ -588,6 +589,7 @@ public:
     bool isMusic = kind != "channel" && kind != "playlist" && kind != "search";
     Page failed;
     if (token.empty() && (kind=="music_recent" || kind=="music_library")) { failed.error="signed_out"; return failed; }
+    if (kind == "music" && search == "library") { if (token.empty()) { failed.error="signed_out"; return failed; } Page library; library.musicSource = "web"; return library; }  // só os atalhos do cliente
     if ((kind == "channel" || kind == "artist") ? !channelId(id) : kind == "radio" ? !videoId(id) : (kind == "playlist" || kind == "music_playlist" || kind == "album") ? !identifier(id) : false) { failed.error = "invalid_navigation"; return failed; }
     int sort = std::max(0,std::min(2,std::atoi(value("sort").c_str())));
     string key = kind + "|" + id + "|" + search + "|" + tab + "|" + filter + "|" + value("params") + "|" + language + "|" + std::to_string(sort);
@@ -611,18 +613,20 @@ public:
       route = "search";
       if (!offset) {
         args["query"] = J(search);
-        const string params[]={"",policy->s("musicSearchSongs"),policy->s("musicSearchAlbums"),policy->s("musicSearchArtists")};
+        const string params[]={"",policy->s("musicSearchSongs"),policy->s("musicSearchAlbums"),policy->s("musicSearchArtists"),musicSearchParams("musicSearchVideos","EgWKAQIQAQ%3D%3D"),
+                               musicSearchParams("musicSearchFeatured","EgeKAQQoADgBagwQDhAKEAMQBBAJEAU%3D")};
         int n = std::atoi(filter.c_str());
-        if (n > 0 && n < 4) args["params"] = J(string(params[n]));
+        if (n > 0 && n < 6) args["params"] = J(string(params[n]));
       }
     } else if (kind == "radio") {
       route = "next";
       if (!offset) { args["videoId"] = J(id); args["playlistId"] = J("RDAMVM"+id); }
     } else if (!offset) {
       string browseId = id;
-      if (kind == "music") browseId = search == "charts" ? policy->s("musicExploreId") : policy->s("musicHomeId");
+      if (kind == "music") browseId = search == "charts" || search == "explore" ? policy->s("musicExploreId") : policy->s("musicHomeId");
       if (kind == "music_recent") browseId="FEmusic_history";
       if (kind == "music_library") browseId="FEmusic_liked_playlists";
+      if (kind == "chip") { string params; if (!chipTarget(id,browseId,params)) { failed.error = "invalid_navigation"; return failed; } if (!params.empty()) args["params"] = J(params); }
       if ((kind == "playlist" || kind == "music_playlist") && id.compare(0,2,"VL") != 0) browseId = "VL"+id;
       args["browseId"] = J(browseId);
     }
@@ -643,6 +647,9 @@ public:
     if (!failed.error.empty()) return failed;
     Page p = decode(data,isMusic);
     if (kind=="search") p.title=search;
+    if (!offset && kind == "music_search" && (filter.empty() || filter == "0")) musicTopResult(data,p);
+    if (!offset && ((kind == "music" && (search.empty() || search == "explore")) || kind == "chip")) musicHomeShape(data,p,kind == "chip" ? id : string{});
+    if (kind == "chip") { auto bar = id.rfind('|'); p.title = bar == string::npos ? string{} : id.substr(bar+1); }
     if (isMusic) p.musicSource=list.source==MusicSource::TV ? "tv" : list.source==MusicSource::Web ? "web" : "public";
     if (!p.error.empty()) { fail((isMusic ? "music/" : "WEB/")+route,200,p.error); return p; }
     if (kind == "channel") { p.channelId = id; p.sortable = sortableSeen; p.subscribedKnown = token.empty() || (rootBearer && p.flagSeen); if (!p.subscribedKnown) p.subscribed = false; }
@@ -686,6 +693,7 @@ private:
       const auto* lyrics = find(data,"musicDescriptionShelfRenderer");
       return "ok\t" + clean(lyrics ? text(get(*lyrics,"description")) : "") + "\n";
     }
+    if (path.compare(0,17,"/api/nav/related?") == 0) return musicRelated(q);
     if (path.compare(0,14,"/api/nav/play?") == 0) {
       q["offset"] = "0"; Page queue = browse(q);
       if (!queue.error.empty()) return wire(queue);
@@ -724,6 +732,110 @@ public:
   // ---- F64 Configurações e controle: funções novas desta frente só aqui
 
   // ---- F65 Música: funções novas desta frente só aqui
+  // Início da Música: o pessoal vem antes do genérico (Ouvir de novo, Escolhas rápidas, Clipes recomendados, mixes) e os chips de
+  // clima do topo viram itens "chip" (id = params do chip) numa prateleira de seção "chips", antes de tudo.
+  static bool personalShelf(string title) {
+    for (auto& c : title) if (c >= 'A' && c <= 'Z') c = char(c - 'A' + 'a');
+    static const char* const marks[] = {"ouvir de novo","listen again","escuchar de nuevo","volver a escuchar","reproduzidos recentemente","recently played",
+        "reproducidos recientemente","clipes recomendados","recommended music videos","videoclips recomendados","escolhas rápidas","quick picks","selección rápida","seleção rápida","selecao rapida",
+        "seus mixes","mixes de músicas","mixes de canciones","mixes de","your mixes","tus mixes","mixed for you","da sua biblioteca","from your library","de tu biblioteca","feito para você","made for you",
+        "hecho para ti","استمع مجددًا","الاستماع مرة أخرى","اختيارات سريعة","الاختيارات السريعة","مختارات لك"};
+    for (auto mark : marks) if (title.find(mark) != string::npos) return true;
+    return false;
+  }
+  // Busca da Música: o filtro vem da regra assinada (rules) e, se a regra ainda não o conhece, de um valor de reserva do YouTube Music.
+  string musicSearchParams(const char* key, const char* fallback) { return policy->strings.count(key) && !policy->s(key).empty() ? policy->s(key) : string(fallback); }
+  // "Melhor resultado": o cartão do topo da busca (artista, álbum, música ou rádio) vira o primeiro item, com section = "top".
+  static void musicTopResult(const J& data, Page& p) {
+    const J* card = find(data,"musicCardShelfRenderer");
+    if (!card) return;
+    Object shaped; shaped["title"] = get(*card,"title"); shaped["subtitle"] = get(*card,"subtitle"); shaped["thumbnail"] = get(*card,"thumbnail");
+    shaped["navigationEndpoint"] = get(*card,"onTap");
+    Item top = item(J(shaped),"musicTwoRowItemRenderer",true,"top");
+    if (top.id.empty() || top.type.empty()) return;
+    p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[&](const Item& i) { return i.type == top.type && i.id == top.id; }),p.items.end());
+    p.items.insert(p.items.begin(),std::move(top));
+  }
+  // Aba "Relacionados" do Tocando agora: a aba MPTR do `next` da música (o YouTube Music a chama de Related).
+  string musicRelated(std::map<string,string>& q) {
+    if (!videoId(q["id"])) return "error\tinvalid_video\n";
+    language = localeLanguage(q["lang"]);
+    J data; Object args; args["videoId"] = J(q["id"]);
+    MusicSource source = MusicSource::Auto;
+    auto e = post(true,"next",args,data,&source);
+    if (!e.empty()) return "error\t"+e+"\n";
+    string id;
+    if (const auto* tabs = find(data,"tabs")) for (const auto& t : array(*tabs)) {
+      const auto* ep = find(get(t,"tabRenderer"),"browseEndpoint");
+      if (ep && str(*ep,"browseId").compare(0,4,"MPTR") == 0) { id = str(*ep,"browseId"); break; }
+    }
+    Page empty; empty.musicSource = source == MusicSource::TV ? "tv" : source == MusicSource::Web ? "web" : "public";
+    if (id.empty()) return wire(empty);
+    args.clear(); args["browseId"] = J(id);
+    e = post(true,"browse",args,data,&source);
+    if (!e.empty()) return "error\t"+e+"\n";
+    Page p = decode(data,true); p.musicSource = empty.musicSource;
+    if (!p.error.empty()) return wire(p);
+    p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[](const Item& i) { return i.type != "video"; }),p.items.end());
+    p.continuation.clear(); return wire(p);
+  }
+  // Id de um chip/botão de clima: "browseId|params|rótulo" (o rótulo vai junto para a página aberta ter título).
+  static string chipId(const string& browseId, const string& params, const string& label) { return browseId + "|" + params + "|" + label; }
+  static bool chipTarget(const string& id, string& browseId, string& params) {
+    auto one = id.find('|'); if (one == string::npos) return false;
+    auto two = id.find('|',one+1); if (two == string::npos) return false;
+    browseId = id.substr(0,one); params = id.substr(one+1,two-one-1);
+    if (browseId.size() < 4 || browseId.size() > 64 || params.size() > 512) return false;
+    for (char c : browseId) if (!(std::isalnum((unsigned char)c) || c == '_' || c == '-')) return false;
+    return browseId.compare(0,2,"FE") == 0;
+  }
+  // Chips de clima do topo da Home e botões de navegação do Explorar (Lançamentos, Paradas, Momentos e gêneros e cada clima/gênero).
+  static void musicChips(const J& v, Page& p, std::set<string>& seen, const string& shelf = {}, int depth = 0) {
+    if (depth > 40 || p.items.size() >= 64) return;
+    if (v.is<Array>()) { for (const auto& x : array(v)) musicChips(x,p,seen,shelf,depth+1); return; }
+    if (!v.is<Object>()) return;
+    for (const auto& kv : v.get<Object>()) {
+      const bool chip = kv.first == "chipCloudChipRenderer", button = kv.first == "musicNavigationButtonRenderer";
+      if (!chip && !button) {
+        string heading = shelf;
+        if (kv.first == "musicCarouselShelfRenderer") if (const auto* t = find(get(kv.second,"header"),"title")) heading = text(*t);
+        musicChips(kv.second,p,seen,heading,depth+1); continue;
+      }
+      string label = text(get(kv.second,chip ? "text" : "buttonText"));
+      const J* endpoint = find(get(kv.second,chip ? "navigationEndpoint" : "clickCommand"),"browseEndpoint");
+      if (!endpoint) continue;
+      string params = str(*endpoint,"params"), browseId = str(*endpoint,"browseId"), key = browseId + "|" + params;
+      if (label.empty() || label.find('|') != string::npos || params.size() > 512 || browseId.empty() || !seen.insert(key).second) continue;
+      Item item; item.type = "chip"; item.id = chipId(browseId,params,label); item.title = label;
+      item.section = chip || shelf.empty() ? "chips" : shelf;
+      if (!chipTarget(item.id,browseId,params)) continue;
+      p.items.push_back(std::move(item));
+    }
+  }
+  // Monta a página: chips no topo; o pessoal na frente do genérico (só na Home); botões de clima/gênero depois da 1ª prateleira.
+  static void musicHomeShape(const J& data, Page& p, const string& chipPage) {
+    std::vector<std::vector<Item>> shelves;
+    for (auto& item : p.items) {
+      if (shelves.empty() || shelves.back().front().section != item.section) shelves.emplace_back();
+      shelves.back().push_back(std::move(item));
+    }
+    if (chipPage.empty()) std::stable_partition(shelves.begin(),shelves.end(),[](const std::vector<Item>& s) { return personalShelf(s.front().section); });
+    p.items.clear();
+    Page found; std::set<string> seen; musicChips(data,found,seen);
+    std::vector<std::vector<Item>> top, moods;
+    for (auto& item : found.items) {
+      auto& list = item.section == "chips" ? top : moods;
+      if (list.empty() || list.back().front().section != item.section) list.emplace_back();
+      list.back().push_back(std::move(item));
+    }
+    for (auto& group : top) for (auto& item : group) p.items.push_back(std::move(item));
+    size_t at = 0;
+    for (auto& shelf : shelves) {
+      for (auto& item : shelf) p.items.push_back(std::move(item));
+      if (++at == 1) for (auto& group : moods) for (auto& item : group) p.items.push_back(std::move(item));
+    }
+    if (shelves.empty()) for (auto& group : moods) for (auto& item : group) p.items.push_back(std::move(item));
+  }
 
   // ---- F66 controle pelo celular: funções novas desta frente só aqui
 
