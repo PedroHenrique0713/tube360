@@ -57,6 +57,7 @@
 
 #ifdef __XSDK__
 #include "xsdk/net.h"
+#include "xsdk/kernel.h"
 extern "C" void install_player_fault_handler();
 // XAM começa com recepção de 16 KB por socket; 63 KB segura o fluxo de vídeo com folga (xsdk/net.h).
 extern "C" const XsdkNetworkLimits xsdk_network_limits = {32, 8, 63, 16};
@@ -543,6 +544,8 @@ struct Input {
 #include "ui_channel.hpp"
 #include "ui_player.hpp"
 #include "ui_shorts.hpp"
+#include "ui_remote_panel.hpp"
+#include "remote_page.hpp"
 #include "ui_music.hpp"
 #ifndef __XSDK__
 #include "../../bench/search/frame_probe.hpp"
@@ -793,6 +796,7 @@ int run(int argc, char** argv) {
   quality=720;
   bool& nestOut = settings.nest; int& nestOffsetMs = settings.syncMs;
   auto saveSettings = [&]() {
+    LOG("settings: gravando settings.txt");
     if (!settings.save(assets)) { toast = tr(K::SaveFailed); toastUntil = SDL_GetTicks() + 4000; }
   };
   std::string nestName = pl.directSpeaker.configured() ? pl.directSpeaker.settings().name : tr(K::Nest);
@@ -1080,6 +1084,26 @@ int run(int argc, char** argv) {
   // ---- F65 Música: estado novo do run() só aqui
 
   // ---- F66 controle pelo celular: estado novo do run() só aqui
+  phonectl::Core phoneCore(
+      [](unsigned char* bytes, size_t size) {
+#ifdef __XSDK__
+        XeCryptRandom(bytes, (uint32_t)size);
+#else
+        FILE* f = std::fopen("/dev/urandom", "rb");
+        if (!f || std::fread(bytes, 1, size, f) != size) { for (size_t i = 0; i < size; ++i) bytes[i] = (unsigned char)SDL_rand_bits(); }
+        if (f) std::fclose(f);
+#endif
+      },
+      [] { return (uint64_t)SDL_GetTicks(); },
+      [&settings] { return phonectl::page(settings.lang); });
+  phonectl::Net phoneNet;
+#ifndef __XSDK__
+  if (const char* fixed = std::getenv("XT_REMOTE_CODE")) phoneCore.setCodeForTest(fixed);  // teste de bancada; no console o código é sempre aleatório
+#endif
+  SDL_Thread* phoneThread = nullptr;
+  size_t phonePaired = 0; uint64_t phoneRemoteStateAt = 0; unsigned phoneNoticeSeen = 0, phoneTooManySeen = 0; uint64_t phoneAddressAt = 0;
+  bool phoneWasOn = false, phonePanelPrev = false;
+  std::deque<phonectl::Event> phoneBacklog;
 
   // ---- F67 membros tocando: estado novo do run() só aqui
 
@@ -1265,9 +1289,14 @@ int run(int argc, char** argv) {
     // ---- F65 Música
 
     // ---- F66 controle pelo celular
+    .remoteCore=phoneCore,
+    .remoteNet=phoneNet,
 
     // ---- F67 membros tocando
   };
+  struct PhoneRun { phonectl::Net* net; phonectl::Core* core; } phoneRun{&phoneNet, &phoneCore};
+  phoneThread = yt::worker([](void* p) { auto* r = static_cast<PhoneRun*>(p); r->net->run(*r->core); return 0; }, "remote", &phoneRun);
+  struct PhoneThreadGuard { phonectl::Net& net; SDL_Thread*& thread; ~PhoneThreadGuard() { net.quit = true; if (thread) SDL_WaitThread(thread, nullptr); thread = nullptr; } } phoneGuard{phoneNet, phoneThread};  // a thread sai mesmo se uma exceção atravessar o run()
   boot_event("begin","app.first-frame","enter render loop; no disk logging each frame after ready");
   while (!quit) {
 #ifndef __XSDK__
@@ -1643,6 +1672,69 @@ int run(int argc, char** argv) {
     // ---- F64 Configurações e controle
     screens.sleepWarning = sleepWarning;
     screens.pageMenuIntercept();
+    // ---- F66 controle pelo celular
+#ifndef __XSDK__
+    if (frame == 2 && settings.phoneRemote && std::getenv("XT_REMOTE_PANEL")) screens.remotePanelOpen = true;  // bancada: abre o painel de pareamento sem teclas
+#endif
+    phoneNet.enabled = settings.phoneRemote;
+    if (settings.phoneRemote && now >= phoneAddressAt) {  // o endereço que o painel mostra também vale como Host; lido aqui, a thread da rede só vê a cópia
+      phoneAddressAt = now + 2000;
+      in_addr a{}; phoneNet.advertisedIp = ::inet_pton(AF_INET, phonectl::localAddress().c_str(), &a) == 1 ? a.s_addr : 0;
+    }
+    if (!settings.phoneRemote) {
+      if (phoneWasOn) { phoneCore.reset(); phoneBacklog.clear(); phonePaired = 0; phoneNoticeSeen = 0; phoneTooManySeen = 0; phonePanelPrev = false; }  // desligar derruba todas as sessões
+      phoneWasOn = false; screens.remotePanelOpen = false;
+    } else {
+      phoneWasOn = true;
+      if (screens.remotePanelOpen != phonePanelPrev) {  // o pareamento só vale com o painel aberto na TV
+        if (screens.remotePanelOpen) phoneCore.openPairing(); else phoneCore.closePairing();
+        phonePanelPrev = screens.remotePanelOpen;
+      }
+      if (screens.remotePanelOpen && !phoneCore.pairingOpen()) screens.remotePanelOpen = false;  // a janela fecha sozinha em 5 min
+      if (now >= phoneRemoteStateAt) { phoneRemoteStateAt = now + 500; phoneCore.setNowPlaying(playing.title, screen == PLAYER, pl.paused); }
+      size_t paired = phoneCore.sessions();
+      if (paired != phonePaired) LOG("celular: %u sessao(oes) pareada(s), porta %d", (unsigned)paired, phoneNet.port.load());
+      if (paired > phonePaired) { toast = tr(K::RemoteConnected); toastUntil = now + 4000; screens.remotePanelOpen = false; }
+      phonePaired = paired;
+      if (unsigned many = phoneCore.tooManyNotices(); many != phoneTooManySeen) {  // 10 erros: a janela fechou, o dono abre de novo
+        phoneTooManySeen = many; toast = tr(K::RemoteTooMany); toastUntil = now + 8000; LOG("celular: 10 codigos errados, pareamento fechado");
+      }
+      if (unsigned notices = phoneCore.wrongCodeNotices(); notices != phoneNoticeSeen) { phoneNoticeSeen = notices; screens.remoteNoticeUntil = now + 10000; LOG("celular: codigo errado 5 vezes, codigo novo na TV"); }
+      for (auto& e : phoneCore.drain()) if (phoneBacklog.size() < phonectl::kMaxQueue) phoneBacklog.push_back(std::move(e));  // o excedente some
+      if (screens.remotePanelOpen) {
+        // painel de pareamento: o celular já pareado fecha com Voltar (ou OK); o resto do que chegou é descartado
+        for (const auto& e : phoneBacklog) if (e.action == phonectl::Action::Back || e.action == phonectl::Action::Ok) screens.remotePanelOpen = false;
+        phoneBacklog.clear();
+        if (ctl::hit(in, ctl::Ctx::Panel, ctl::Act::Open) || ctl::hit(in, ctl::Ctx::Panel, ctl::Act::Back)) screens.remotePanelOpen = false;
+        in.clear();
+      } else if (!phoneBacklog.empty()) {
+        // um evento por quadro: o que veio em rajada anda na ordem, cada passo com a tela já atualizada
+        const phonectl::Event e = phoneBacklog.front(); phoneBacklog.pop_front();
+        const bool modal = phonePanel || loginPanel || logoutPanel || nav.menu || nav.unsubscribe || searchUI.filterOpen || localUI.resume || localUI.clear >= 0 ||
+                           speakerPicker.open || sleepPanel || ratePanel || sleepWarning || shutdownAt || updateUI.open || sponsorUI.open ||
+                           (screen == PLAYER && playerUI.panel != PlayerUI::NONE) || (screen == PLAYER && nextAt);
+        const ctl::Ctx ctx = screen == PLAYER ? (nav.musicNow ? ctl::Ctx::Music : playing.shortForm ? ctl::Ctx::Shorts : ctl::Ctx::Player)
+                           : screen == SETTINGS ? ctl::Ctx::Settings : screen == SEARCH ? ctl::Ctx::Search : ctl::Ctx::Home;
+        phonectl::Ports ports;
+        // mesma condição do A do controle: sem pausa invisível durante a abertura; live pausada volta à borda
+        ports.playPause = [&] {
+          if (screen != PLAYER || (pl.waiting() && !pl.paused)) return;
+          if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
+        };
+        ports.volume = [&](int step) { if (screen == PLAYER) screens.adjustVolume(now, step); };  // só onde o controle também muda o volume
+        ports.search = [&](const std::string& q) {
+          if (modal) return;
+          if (screen == PLAYER) stopVideo();
+          if (screen != SEARCH) { searchBack = screen; searchMusic = screen == NAV && !nav.pages.empty() && nav.page().music; }
+          doSearch(q);
+        };
+        LOG("celular: acao %d%s ctx %d", (int)e.action, modal ? " (painel aberto)" : "", (int)ctx);
+        const bool movesOrCloses = e.action == phonectl::Action::Back || e.action == phonectl::Action::Ok || e.action == phonectl::Action::Up ||
+                                   e.action == phonectl::Action::Down || e.action == phonectl::Action::Left || e.action == phonectl::Action::Right;
+        if (!modal || movesOrCloses) phonectl::inject(e, in, ctx, ports);
+      }
+    }
+    if (screens.volumeSaveAt && now >= screens.volumeSaveAt) { screens.volumeSaveAt = 0; saveSettings(); }
     if (shutdownAt) {
       if (now >= shutdownAt) {
         if (powerDownXbox()) quit = true;
@@ -1817,6 +1909,7 @@ int run(int argc, char** argv) {
       screens.musicSleepDraw(sleepLeft);
     }
     screens.overlaysDraw(now,t,sleepWarning,sleepLeft);
+    if (screens.remotePanelOpen) screens.remoteDraw(now);  // ---- F66 controle pelo celular
     bool shoot = shotPath && (int)frame == shotFrame;
 #ifndef __XSDK__
     if (shotPath && std::getenv("XT_SHOT_MS")) shoot = now - runStart >= (uint64_t)std::atoi(std::getenv("XT_SHOT_MS"));
@@ -1852,9 +1945,11 @@ int run(int argc, char** argv) {
 #endif
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
+  if (screens.volumeSaveAt) { screens.volumeSaveAt = 0; saveSettings(); }
   recordHistory();
   if(localUI.submitted!=localUI.library.revision)localUI.writer.submit(localUI.library);
   phone.stop();
+  phoneNet.quit = true; SDL_WaitThread(phoneThread, nullptr); phoneThread = nullptr;  // join explícito antes do SDL_Quit/boot_close; o PhoneThreadGuard fica de reserva
   captionLoader.stop();
   extras.close();
   pl.halt();
