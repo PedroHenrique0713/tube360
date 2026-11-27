@@ -44,7 +44,8 @@ void xsdk_splash_end(void){}
 void xsdk_splash_free(void){}
 bool xsdk_splash_hand_over(uint32_t* w,uint32_t* h){(void)w;(void)h;assert(0 && "SD must not take a 720p splash");return false;}
 void VdSetGraphicsInterruptCallback(VdGraphicsInterruptCallback cb,void* ctx){(void)cb;(void)ctx;assert(trace_done);++interrupts;}
-uint32_t xsdk_gpu_resolve_bytes(uint32_t w,uint32_t h){return w*h*4;}
+// Regra real do xsdk (gpu_resolve.c): linhas em múltiplos de 32 e, pelo GUIDE, largura múltipla de 32; fora disso o banco quebra como o console.
+uint32_t xsdk_gpu_resolve_bytes(uint32_t w,uint32_t h){assert(w%32==0 && "resolve width must be a multiple of 32");return w*((h+31)&~31u)*4;}
 volatile uint32_t* xsdk_gpu_alloc(uint32_t size){assert(allocs<3);return buffers[allocs++]=calloc(1,size);}
 void xsdk_gpu_free(volatile uint32_t* p){free((void*)p);}
 uint32_t xsdk_gpu_address(const volatile uint32_t* p){for(int i=0;i<allocs;++i)if(p==buffers[i])return (i+1)*0x100000;abort();}
@@ -52,7 +53,7 @@ volatile uint32_t* xsdk_present_pixels(uint32_t address){return buffers[address/
 uint32_t xsdk_present_buffer_address(uint32_t i){assert(i<(uint32_t)allocs);return (i+1)*0x100000;}
 void xsdk_present_close(void){abort();} // Só ocorreria com dimensões divergentes na criação.
 NTSTATUS xsdk_texture_init(XsdkTexture* t,uint32_t f,uint32_t w,uint32_t h,uint32_t levels,bool tiled){
-    (void)f;(void)levels;(void)tiled;assert(w==width && h==height);t->size_bytes=w*h*4;return 0;
+    (void)f;(void)levels;(void)tiled;assert(w==width && h==height);t->size_bytes=xsdk_gpu_resolve_bytes(w,h);return 0;
 }
 void xsdk_texture_attach(XsdkTexture* t,volatile uint32_t* p){(void)t;(void)p;}
 void* v4x_host_alloc(const VkAllocationCallbacks* a,size_t n,VkSystemAllocationScope s){(void)a;(void)s;return calloc(1,n);}
@@ -76,20 +77,25 @@ int main(int argc,char** argv){
     width=640;height=480;
     if(strstr(argv[1],"576")){video.display_height=576;video.refresh_rate=50;height=576;}
     if(strstr(argv[1],"480p"))video.is_interlaced=0;
+    int forced=0; // viewport do kernel fora de múltiplo de 32 (720, 852): SD próprio 864x480 com scaler
+    if(strstr(argv[1],"vp720")||strstr(argv[1],"vp852")){video.display_width=720;video.is_widescreen=1;forced=1;}
+    unsigned viewport_width=640; if(strstr(argv[1],"vp720"))viewport_width=720; if(strstr(argv[1],"vp852"))viewport_width=852;
     if(strstr(argv[1],"wide")){width=768;video.display_width=720;video.is_widescreen=1;} // viewport múltiplo de 32; 720 e 852 caem em SD próprio (bench/display/native-output-test.py)
     void* mmio=mmap((void*)0x7fc80000,0x20000,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS|MAP_FIXED_NOREPLACE,-1,0);
-    assert(mmio==(void*)0x7fc80000);gpu_registers[0x1961]=width<<16|height;
+    assert(mmio==(void*)0x7fc80000);gpu_registers[0x1961]=forced?viewport_width<<16|480:width<<16|height;
     if(strstr(argv[1],"invalid")) {
         gpu_registers[0x1961]=0;
         assert(tube360_set_output(1080)==0 && !tube360_display_width && !tube360_display_height && !allocs && !interrupts);
         munmap(mmio,0x20000);puts("PASS SD pipeline invalid viewport rejected before any allocation/interrupt; no 720p assumption");return 0;
     }
+    gpu_registers[0x194c]=2000; // contador de linhas já além da altura: o scaler próprio não espera pelo fixture
     gpu_registers[0x1844]=0x100000;gpu_registers[0x1848]=width;gpu_registers[0x184d]=width;gpu_registers[0x184e]=height;
     const unsigned registers[]={0x1964,0x1965,0x1961,0x197a,0x196c,0x196d,0x196e,0x1970,0x1971,0x1972};
     uint32_t scaler[10];for(unsigned i=0;i<10;++i)scaler[i]=gpu_registers[registers[i]];
-    assert(tube360_set_output(1080)==(int)height && tube360_output_fixed());
+    if(forced){width=864;height=480;}
+    assert(tube360_set_output(1080)==(int)height && tube360_display_width==width && (forced&&native?!tube360_output_fixed():tube360_output_fixed()));
 #ifdef BOARD_SIM_POLICY
-    assert(tube360_output_aspect()==4.f/3);
+    assert(tube360_output_aspect()==(forced?16.f/9:4.f/3));
 #else
     assert(tube360_output_aspect()==(video.is_widescreen?16.f/9:4.f/3));
 #endif
@@ -104,9 +110,9 @@ int main(int argc,char** argv){
     assert(caps.currentExtent.width==width && caps.currentExtent.height==height);
     VkSwapchainCreateInfoKHR info={.surface=surface,.minImageCount=2,.imageFormat=VK_FORMAT_B8G8R8A8_UNORM,.imageColorSpace=VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,.imageExtent={width,height},.imageArrayLayers=1,.imageUsage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,.preTransform=VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,.compositeAlpha=VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,.presentMode=VK_PRESENT_MODE_FIFO_KHR};
     VkSwapchainKHR chain;assert(vkCreateSwapchainKHR(0,&info,0,&chain)==VK_SUCCESS);
-    assert(allocs==2 && interrupts==1 && !scaler_writes);
-    assert(gpu_registers[0x1961]==(width<<16|height));
-    for(unsigned i=0;i<10;++i)assert(gpu_registers[registers[i]]==scaler[i]);
+    assert(allocs==2 && interrupts==1 && (forced?scaler_writes>0:!scaler_writes));
+    if(forced)assert(gpu_registers[0x1961]==(width<<16|height)); // scaler próprio programado em 864x480
+    else {assert(gpu_registers[0x1961]==(width<<16|height));for(unsigned i=0;i<10;++i)assert(gpu_registers[registers[i]]==scaler[i]);}
     Swapchain* result=v4x_object(chain);assert(result->image_count==2);
     for(int i=0;i<2;++i)assert(result->images[i].width==width && result->images[i].height==height);
     for(int i=0;i<allocs;++i)free((void*)buffers[i]);
