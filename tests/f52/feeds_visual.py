@@ -166,5 +166,5 @@ run('subscriptions-hide', signed=True, hide=True, nav=True, keys='', expected='l
 run('account-library-row', signed=True, nav=True, nav_kind='library', nav_focus=9, keys='....X...DDD', sample=240)
 run('hidden-first-page', signed=True, hide=True, keys='', expected='landscape', continuation=True)
 run('all-hidden', signed=True, hide=True, only=True, keys='....A', expected='empty')
-run('toggle-loaded-feed', signed=True, keys='....L'+'D'*6+'A'+'D'*7+'RBR', expected='landscape', toggle=True)
+run('toggle-loaded-feed', signed=True, keys='....L'+'D'*6+'A'+']'+'D'*5+'RBR', expected='landscape', toggle=True)
 (work/'manifest.json').write_text(json.dumps(results, indent=2))

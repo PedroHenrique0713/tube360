@@ -223,7 +223,7 @@ Abra **Celular** no Tube360. No app oficial do YouTube, use **Configurações �
 
 ### Atualizações assinadas
 
-**Configurações → Atualizações do app** mostra versão instalada, candidata e tamanho. **A Atualizar** baixa e confere Ed25519/SHA-256; **B** volta ou cancela. A Home também avisa quando há uma versão nova (**LB** abre os detalhes). Reabra **default.xex** para instalar; se o início não for confirmado, a próxima abertura restaura o anterior.
+**Configurações → Atualizações do app** mostra versão instalada, candidata e tamanho. **A Atualizar** baixa e confere Ed25519/SHA-256; **B** volta ou cancela. A Home também avisa quando há uma versão nova com um aviso que aponta para **Configurações → Sistema** (sem botão próprio); **Menu** verifica de novo dentro do painel. Reabra **default.xex** para instalar; se o início não for confirmado, a próxima abertura restaura o anterior.
 
 **Vindo da v0.3.0/v0.3.1:** feche o app, guarde a pasta antiga como reserva e copie a pasta nova completa uma última vez. Mantenha os dois XEX e as oito fontes juntos; preserve configurações/conta se desejar, mas não traga journals/candidatos de atualização antigos. Depois disso, as atualizações do app chegam pela própria interface. Reserve espaço para o app instalado, o candidato e a reserva. [Detalhes e recuperação](docs/UPDATES.md).
 

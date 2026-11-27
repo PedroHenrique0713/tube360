@@ -80,7 +80,7 @@ static float ctlHint(gfx::Gfx& g, float x, float y, ctl::Ctx c, ctl::Act a, i18n
   return hint(g, x, y, glyph, color, i18n::get(lang, text != K::None ? text : ctl::label(a)));
 }
 // Uma fileira de dicas, na ordem dada.
-static float ctlFooter(gfx::Gfx& g, float x, float y, ctl::Ctx c, i18n::Lang lang, std::initializer_list<ctl::Act> acts) {
+[[maybe_unused]] static float ctlFooter(gfx::Gfx& g, float x, float y, ctl::Ctx c, i18n::Lang lang, std::initializer_list<ctl::Act> acts) {
   for (ctl::Act a : acts) x = ctlHint(g, x, y, c, a, lang);
   return x;
 }

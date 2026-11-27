@@ -1619,6 +1619,8 @@ int run(int argc, char** argv) {
     } else if (screen == PLAYER) {
       screens.playerInput(now,optionCount);
     }
+    // ---- F64 Configurações e controle
+    screens.pageMenuFallback();
     screens.playerUpdate(now);
     // ---- F63 Player e Shorts: vigia do player (marca a sessão para o relatório de erro)
     {
