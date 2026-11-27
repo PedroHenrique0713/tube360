@@ -76,7 +76,7 @@ int main(int argc,char** argv){
     width=640;height=480;
     if(strstr(argv[1],"576")){video.display_height=576;video.refresh_rate=50;height=576;}
     if(strstr(argv[1],"480p"))video.is_interlaced=0;
-    if(strstr(argv[1],"wide")){width=720;video.display_width=720;video.is_widescreen=1;}
+    if(strstr(argv[1],"wide")){width=768;video.display_width=720;video.is_widescreen=1;} // viewport múltiplo de 32; 720 e 852 caem em SD próprio (bench/display/native-output-test.py)
     void* mmio=mmap((void*)0x7fc80000,0x20000,PROT_READ|PROT_WRITE,MAP_PRIVATE|MAP_ANONYMOUS|MAP_FIXED_NOREPLACE,-1,0);
     assert(mmio==(void*)0x7fc80000);gpu_registers[0x1961]=width<<16|height;
     if(strstr(argv[1],"invalid")) {
