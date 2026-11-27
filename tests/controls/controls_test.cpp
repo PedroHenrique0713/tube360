@@ -19,7 +19,7 @@ int main() {
       Act a = act(cx, Btn(b)); CHECK(a == Act::None || label(a) != i18n::Key::None);
     }
     CHECK(act(cx, Btn::X) != Act::Search && act(cx, Btn::Y) != Act::WatchLater);  // X nunca é busca, Y nunca é salvar
-    CHECK(act(cx, Btn::View) == Act::None || cx == Ctx::Music);                    // View só faz algo na Música
+    CHECK(act(cx, Btn::View) == Act::None || cx == Ctx::Music || cx == Ctx::MusicNow);                    // View só faz algo na Música
   }
   CHECK(act(Ctx::Home, Btn::X) == Act::WatchLater && act(Ctx::Music, Btn::X) == Act::AddQueue);
   CHECK(act(Ctx::Player, Btn::Y) == Act::Quality && act(Ctx::Home, Btn::Y) == Act::Search);
@@ -30,6 +30,8 @@ int main() {
   CHECK(button(Ctx::Update, Act::Refresh) == Btn::Menu && !has(Ctx::Panel, Act::Refresh) && act(Ctx::Settings, Btn::LB) == Act::PrevTab);
   CHECK(act(Ctx::Shorts, Btn::LT) == Act::VolumeDown && act(Ctx::Shorts, Btn::RT) == Act::VolumeUp && pairSecond(Act::VolumeUp));  // volume nos Shorts
   CHECK(act(Ctx::PlayerShelf, Btn::LB) == Act::PrevTab && act(Ctx::PlayerShelf, Btn::X) == Act::WatchLater);  // abas da fileira do player
+  CHECK(act(Ctx::MusicNow, Btn::LT) == Act::VolumeDown && act(Ctx::MusicNow, Btn::RT) == Act::VolumeUp && act(Ctx::Music, Btn::LT) == Act::PageUp);  // Tocando agora: volume nos botões, página nas listas
+  CHECK(act(Ctx::MusicNow, Btn::LB) == act(Ctx::Music, Btn::LB) && act(Ctx::MusicNow, Btn::View) == Act::SongVideo);  // o resto igual ao Music
   CHECK(act(Ctx::MusicPage, Btn::X) == Act::AddQueue && act(Ctx::MusicPage, Btn::LB) == Act::PrevTab && act(Ctx::Music, Btn::LB) == Act::PrevItem);  // páginas de Música x Tocando agora
   FakeInput in; in.fired[FakeInput::START] = true;
   CHECK(!hit(in, Ctx::Home, Act::SongVideo));

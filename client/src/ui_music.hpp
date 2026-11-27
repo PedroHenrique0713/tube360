@@ -287,7 +287,12 @@ inline void UiContext::musicNowInput(uint64_t now) {
     }
   };
   // O trilho lateral (A6/A7) recebe o foco: A em um item sai da Música (para a fila) e abre a página escolhida
-  if (railFocus) { if (in.fired[Input::A]) leaveMusic(); railInput(); return; }
+  // "Celular" abre o painel por cima do Tocando agora, com a música seguindo; B fecha o painel e o foco volta ao trilho
+  if (railFocus) {
+    if (in.fired[Input::A] && railSel == 5) { in.hit(Input::A); phonePanel = true; return; }
+    if (in.fired[Input::A]) leaveMusic();
+    railInput(); return;
+  }
   auto enterRail = [&]() { railFocus = true; railSel = 4; };
   using Zone = MusicNavigation; using Act = ctl::Act; const auto ctx = ctl::Ctx::Music;
   auto say = [&](K k) { toast = tr(k); toastUntil = now + 2500; };
@@ -342,9 +347,13 @@ inline void UiContext::musicNowInput(uint64_t now) {
   if (ctl::hit(in, ctx, Act::SongVideo)) toggleVideo();
 
   bool up = in.hit(Input::UP), down = in.hit(Input::DOWN), left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), a = in.hit(Input::A);
-  bool pageUp = ctl::hit(in, ctx, Act::PageUp), pageDown = ctl::hit(in, ctx, Act::PageDown);
-  // LT/RT: nas listas (fila, relacionadas, letra) pulam página; nas outras zonas ajustam o volume, como nos Shorts
-  if (nav.nowZone != Zone::ZoneQueue) { if (pageUp) { adjustVolume(now, -1); pageUp = false; } if (pageDown) { adjustVolume(now, +1); pageDown = false; } }
+  bool pageUp = false, pageDown = false;
+  // LT/RT: nas listas (fila, relacionadas, letra) pulam página (mapa Music); nos botões e na barra ajustam o volume (mapa MusicNow)
+  if (nav.nowZone == Zone::ZoneQueue) { pageUp = ctl::hit(in, ctx, Act::PageUp); pageDown = ctl::hit(in, ctx, Act::PageDown); }
+  else {
+    if (ctl::hit(in, ctl::Ctx::MusicNow, Act::VolumeDown)) adjustVolume(now, -1);
+    if (ctl::hit(in, ctl::Ctx::MusicNow, Act::VolumeUp)) adjustVolume(now, +1);
+  }
   bool menu = ctl::hit(in, ctx, Act::Options);
   std::vector<NavItem>& list = nav.tab == 2 ? nav.related : nav.queue;
   int& sel = nav.tab == 2 ? nav.relatedSel : nav.queueSel;
@@ -467,6 +476,7 @@ inline void UiContext::musicNowDraw() {
   if (!ui::narrow) hx = ctlHint(g, hx, y, ctx, Act::PrevItem, settings.lang);
   hx = ctlHint(g, hx, y, ctx, Act::SongVideo, settings.lang);
   if (nav.nowZone == MusicNavigation::ZoneQueue && nav.tab == 0 && nav.localQueue) hx = ctlHint(g, hx, y, ctx, Act::Options, settings.lang, K::MusicMoveTrack);
+  if (nav.nowZone == MusicNavigation::ZoneButtons || nav.nowZone == MusicNavigation::ZoneSeek) hx = ctlHint(g, hx, y, ctl::Ctx::MusicNow, Act::VolumeDown, settings.lang);  // LT RT: volume
   if (nav.nowZone == MusicNavigation::ZoneQueue && nav.tab == 2 && nav.localQueue) hx = ctlHint(g, hx, y, ctx, Act::AddQueue, settings.lang);
   if (nav.nowZone == MusicNavigation::ZoneSeek) hx = hint(g, hx, y, i18n::get(i18n::Lang::EN, K::BtnHorizontal), XG, tr(K::MusicSeekBar));
   volumeHud(SDL_GetTicks());  // o volume (do controle ou do celular) aparece aqui como no player e nos Shorts

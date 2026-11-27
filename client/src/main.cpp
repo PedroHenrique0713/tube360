@@ -928,7 +928,8 @@ int run(int argc, char** argv) {
     playing = v; playerFromRemote = fromRemote;
     if(localOpening)localRecording=!account.signedIn();
     videoTex.ready = false;
-    phonePanel = loginPanel = logoutPanel = false;
+    loginPanel = logoutPanel = false;
+    if (!(nav.musicNow && screen == PLAYER)) phonePanel = false;  // a troca automática de faixa da Música não fecha o painel do celular aberto sobre o Tocando agora
     pl.nestOffset = nestOffsetMs / 1000.0;
     if (screen != PLAYER) nav.musicNow = nav.musicSession;
     pl.audioOnly = nav.musicSession && nav.musicNow && !nav.videoMode;
@@ -1533,6 +1534,13 @@ int run(int argc, char** argv) {
       }
       castCode = phoneStatus.code; castWho = phoneStatus.who;
     }
+#ifndef __XSDK__
+    // Teste: XT_PHONE_VOLUME=<ms>:<percentual> injeta o comando de volume do celular (o mesmo que o Lounge entrega) uma vez
+    if (const char* injected = std::getenv("XT_PHONE_VOLUME")) {
+      static bool sent = false; int at = 0, percent = 0;
+      if (!sent && std::sscanf(injected, "%d:%d", &at, &percent) == 2 && now - runStart >= (uint64_t)at) { sent = true; cmds.push_back({"volume", std::to_string(percent), "0"}); }
+    }
+#endif
     bool shutdownCommand = std::any_of(cmds.begin(),cmds.end(),[](const auto& c) { return !c.empty() && c[0] == "desligar"; });
     bool phonePlay = std::any_of(cmds.begin(),cmds.end(),[](const auto& c) { return c.size() >= 2 && c[0] == "play" && !(c.size() > 4 && c[4] == "navigation"); });
     if (shutdownCommand && !shutdownAt) {
@@ -1566,6 +1574,7 @@ int run(int argc, char** argv) {
         pl.directSpeaker.volume(level,muted);
         if (nestOut && net::serverEnabled && !pl.directSpeaker.configured())
           control.add({5,"/api/nest/volume?v="+std::to_string(muted ? 0 : level*100),0});
+        shelf.volumeShown = (int)std::lround(muted ? 0 : level*100); shelf.volumeSpeaker = false; shelf.volumeUntil = now + 2500;  // o indicador aparece também quando o celular muda o volume (player, Shorts e Tocando agora)
         LOG("cast: volume %.0f, mudo %s", std::atof(c[1].c_str()), c[2].c_str());
         continue;
       }
