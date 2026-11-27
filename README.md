@@ -221,7 +221,7 @@ Open Tube360's **Phone** panel. In the official YouTube phone app, use **Setting
 
 ### Signed updates
 
-**Settings → App updates** shows the installed version, candidate and download size. **A Update** downloads and verifies Ed25519/SHA-256; **B** goes back or cancels. Home also announces new versions (**LB** opens details). Reopen **default.xex** to install; the next launch restores the previous app if startup is not confirmed.
+**Settings → App updates** shows the installed version, candidate and download size. **A Update** downloads and verifies Ed25519/SHA-256; **B** goes back or cancels. Home also announces new versions with a note pointing to **Settings → System** (it has no button of its own); **Menu** checks again inside the panel. Reopen **default.xex** to install; the next launch restores the previous app if startup is not confirmed.
 
 **Upgrading from v0.3.0/v0.3.1:** close the app, keep the old folder as a backup, then copy the new complete folder one last time. Keep both XEX files and all eight fonts together; preserve your settings/account files if desired, but leave old update journals/candidates behind. Later app updates arrive from inside the app. Allow free space for the installed app, candidate and backup. [Details and recovery](docs/UPDATES.md).
 

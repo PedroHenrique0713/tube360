@@ -33,9 +33,9 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(UpdateAvailable, "Update · ", "Atualização · ", "Actualización · ") \
   X(Updates, "App updates", "Atualizações do app", "Actualizaciones de la app") \
   X(UpdateInstalled, "Installed · ", "Instalada · ", "Instalada · ") \
-  X(UpdateCurrent, "No newer signed version found. X checks again.", "Nenhuma versão assinada mais recente encontrada. X verifica de novo.", "No se encontró una versión firmada más reciente. X vuelve a comprobar.") \
+  X(UpdateCurrent, "No newer signed version found. Menu checks again.", "Nenhuma versão assinada mais recente encontrada. Menu verifica de novo.", "No se encontró una versión firmada más reciente. Menu vuelve a comprobar.") \
   X(UpdateChecking, "Checking for signed updates…", "Verificando atualizações assinadas…", "Buscando actualizaciones firmadas…") \
-  X(UpdateCheckFailed, "Could not verify updates. X tries again.", "Não foi possível verificar atualizações. X tenta de novo.", "No se pudieron verificar las actualizaciones. X reintenta.") \
+  X(UpdateCheckFailed, "Could not verify updates. Menu tries again.", "Não foi possível verificar atualizações. Menu tenta de novo.", "No se pudieron verificar las actualizaciones. Menu reintenta.") \
   X(UpdateDownload, "Update", "Atualizar", "Actualizar") \
   X(UpdateDownloading, "Downloading and checking…", "Baixando e conferindo…", "Descargando y verificando…") \
   X(UpdateNextStart, "The update will be installed the next time you open Tube360.", "A atualização será instalada na próxima abertura do Tube360.", "La actualización se instalará la próxima vez que abras Tube360.") \
@@ -433,9 +433,10 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SecTimer, "Timer", "Timer", "Temporizador") \
   X(SecPrivacy, "Privacy", "Privacidade", "Privacidad") \
   X(SecSystem, "System", "Sistema", "Sistema") \
+  X(CtlCheckAgain, "Check again", "Verificar de novo", "Comprobar de nuevo") \
   X(UpdateToastHead, "Update ", "Atualização ", "Actualización ") \
-  X(UpdateToastTail, " available · Settings > System", " disponível · Configurações > Sistema", " disponible · Ajustes > Sistema") \
-  X(SettingVolume, "Volume", "Volume", "Volumen") \
+  X(UpdateToastTail, " available · Settings > System", " disponível · Configurações > Sistema", " disponible · Configuración > Sistema") \
+  X(SettingVolume, "TV volume", "Volume na TV", "Volumen en la TV") \
   /* */ \
   /* ---- F65 Música */ \
   /* */ \

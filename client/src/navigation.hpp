@@ -243,6 +243,22 @@ struct Navigation {
   // ---- F63 Player e Shorts: funções novas desta frente só aqui
 
   // ---- F64 Configurações e controle: funções novas desta frente só aqui
+  // Linhas do Menu: as do vídeo em foco (se houver) e, sempre por último, "Atualizar" a página.
+  enum class MenuKind { Channel, Later, Radio, Local, Refresh };
+  struct MenuEntry { MenuKind kind; K label; };
+  bool pageMenu() const { return menuItem.id.empty(); }
+  std::vector<MenuEntry> menuEntries() const {
+    std::vector<MenuEntry> list;
+    if (!pageMenu()) {
+      const bool saved = local && local->contains(menuItem.id);
+      const K localLabel = saved ? K::RemoveLocalLater : K::LocalLater;
+      list.push_back({MenuKind::Channel, K::GoChannel});
+      if (signedIn) { list.push_back({MenuKind::Later, K::WatchLater}); list.push_back({MenuKind::Radio, K::Radio}); list.push_back({MenuKind::Local, localLabel}); }
+      else { list.push_back({MenuKind::Local, localLabel}); list.push_back({MenuKind::Radio, K::Radio}); }
+    }
+    list.push_back({MenuKind::Refresh, K::Refresh});
+    return list;
+  }
 
   // ---- F65 Música: funções novas desta frente só aqui
 

@@ -108,7 +108,7 @@ inline std::optional<int> UiContext::settingsInput(uint64_t now) {
         metaChannel.clear(); clockSecond=-1; scroll=0; nav.nowId.clear();
       }
       else if (settingsRow == 18) {
-        settings.volume = std::clamp(settings.volume + direction * 5, 0, 100);
+        settings.volume = std::clamp(settings.volume + direction * 5, 0, 100);  // só o volume da TV; a caixa (Nest) é ajustada ao vivo no player
         pl.setVolumePercent(settings.volume);
       }
       else if (settingsRow == 12) {settings.videoFill=!settings.videoFill;boot_event("info","settings.fit","fill=%d; geometry/UV only, no display or atlas recreation",settings.videoFill);}
@@ -131,12 +131,18 @@ inline void UiContext::settingsDraw() {
     const auto& all=settings_ui::sections();
     int section=settings_ui::sectionOf(settingsRow);
     // Seções à esquerda, opções da seção atual à direita.
-    float listW=ui::large ? 220 : 250, listX=ui::X0, optX=listX+listW+28, optW=ui::W-optX-64;
+    // A coluna de seções se ajusta ao maior nome (com teto) e espelha em árabe: seções à direita, opções à esquerda.
+    float titleW=0;
+    for (const auto& sec:all) titleW=std::max(titleW,gfx::textWidth(g,ui::F_CHAN,tr(sec.title)));
+    const bool rtl=g.rtlText;
+    float listW=std::clamp(titleW+40,170.f,ui::W*(ui::large ? .34f : .30f)), gap=28, edge=64;
+    float listX=rtl ? ui::W-edge-listW : ui::X0, optX=rtl ? ui::X0 : listX+listW+gap, optW=rtl ? listX-gap-ui::X0 : ui::W-optX-edge;
     for (size_t i=0;i<all.size();++i) {
       float y=122+i*(ui::large ? 56 : 62);
       bool current=(int)i==section;
       if (current) gfx::rect(g,listX,y,listW,ui::large ? 50 : 54,ui::TEXT,14);
-      gfx::text(g,ui::F_CHAN,gfx::ellipsize(g,ui::F_CHAN,tr(all[i].title),listW-36),listX+18,y+(ui::large ? 10 : 13),current ? ui::INK : ui::MUTED);
+      std::string name=gfx::ellipsize(g,ui::F_CHAN,tr(all[i].title),listW-36);
+      gfx::text(g,ui::F_CHAN,name,rtl ? listX+listW-18 : listX+18,y+(ui::large ? 10 : 13),current ? ui::INK : ui::MUTED,rtl ? 2 : 0);
     }
     const auto& rows=all[(size_t)section].rows;
     int visible=ui::large ? 5 : 8, selectedIndex=(int)(std::find(rows.begin(),rows.end(),settingsRow)-rows.begin());

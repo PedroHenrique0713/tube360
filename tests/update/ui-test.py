@@ -29,14 +29,18 @@ thread.start()
 try:
     for name, lang, large, height, screen, keys, shot_ms, scenario in [
         ('home-pt', 'pt', False, 720, '', '', 4000, 'good'),
+        ('home-en-large', 'en', True, 720, '', '', 4000, 'good'),
+        ('home-es-sd-large', 'es', True, 480, '', '', 4000, 'good'),
+        ('home-ar', 'ar', False, 720, '', '', 4000, 'good'),
+        ('home-ar-sd-large', 'ar', True, 480, '', '', 4000, 'good'),
         ('settings-pt', 'pt', False, 720, 'settings', ']'*6, 4000, 'good'),
         ('offer-pt', 'pt', False, 720, 'settings', ']'*6+'A', 4200, 'good'),
         ('offer-en', 'en', False, 720, 'settings', ']'*6+'A', 4200, 'good'),
         ('offer-es-sd-large', 'es', True, 480, 'settings', ']'*6+'A', 4200, 'good'),
-        ('downloading-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'AA', 4000, 'good'),
-        ('ready-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'AA', 6500, 'good'),
-        ('cancelled-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'AA B', 4300, 'good'),
-        ('error-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'AA', 6500, 'bad-hash'),
+        ('downloading-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'A'+' '*12+'A', 5200, 'good'),
+        ('ready-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'A'+' '*12+'A', 7500, 'good'),
+        ('cancelled-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'A'+' '*12+'A B', 5400, 'good'),
+        ('error-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'A'+' '*12+'A', 7500, 'bad-hash'),
         ('auto-file-pt', 'pt', False, 720, '', '', 6500, 'good'),
     ]:
         if a.only and name not in a.only:
@@ -60,6 +64,13 @@ try:
                'XT_SHOT_FRAME': '100000000', 'XT_KEYS': keys, 'XT_KEYS_MS': '100'}
         with (folder / (name + '.log')).open('w') as log:
             subprocess.run([str(folder / 'tube360-ui')], env=env, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=25)
+        # O 2º A só baixa se o painel já estiver em "disponível": confere no log do serviço, não só na imagem.
+        expected = {'downloading-pt': ['download inicio'], 'ready-pt': ['download inicio', 'staged build='],
+                    'cancelled-pt': ['download inicio'], 'error-pt': ['download inicio', 'download fim erro=']}
+        if name in expected:
+            service_log = (assets / 'update.log').read_text()
+            for needle in expected[name]:
+                assert needle in service_log, (name, needle, service_log[-1500:])
         if name == 'auto-file-pt':
             import json
             assert json.loads((assets / 'update-app-state.json').read_text())['phase'] == 'staged'

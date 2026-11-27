@@ -102,7 +102,7 @@ pt/en. A assinatura Ed25519 autentica também o hash do payload.
 **Configurações → Atualizações do app → A** mostra versão instalada/ID, versão
 oferecida, tamanho em MiB e notas. **A Atualizar** baixa e verifica; **B** cancela
 ou volta, inclusive durante uma requisição. **X** verifica novamente quando não
-há download ativo. A Home mostra um aviso discreto; **LB** também abre essa tela.
+há download ativo. A Home mostra um aviso discreto que só informa e aponta para Configurações > Sistema; **Menu** verifica de novo dentro do painel.
 O desenho não espera por rede, disco nem hash: o worker publica apenas o estado.
 Um candidato já preparado permanece pronto após reiniciar o app.
 

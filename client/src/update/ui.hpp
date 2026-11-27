@@ -6,7 +6,8 @@ struct UI {
     Status status;
     unsigned revision=0;
     bool open=false,large=false;
-    string title,banner,installed,size;
+    string title,installed,size;
+    std::vector<string> bannerLines;
     float width=0;
     std::vector<string> messages;
     std::vector<string> notes;
@@ -23,7 +24,7 @@ struct UI {
             title=gfx::ellipsize(g,ui::F_H2,full,content);
             auto notice=status.state==State::READY?string(i18n::get(lang,K::UpdateReady)):full;
             if(status.state!=State::READY)notice=string(i18n::get(lang,K::UpdateToastHead))+status.app.version+i18n::get(lang,K::UpdateToastTail);
-            banner=gfx::ellipsize(g,ui::F_SMALL,notice,std::min(476.f,ui::W-160)-32);
+            bannerLines=gfx::wrap(g,ui::F_SMALL,notice,std::min(476.f,ui::W-160)-40,2);
             notes=gfx::wrap(g,ui::F_BODY,lang==i18n::Lang::PT?status.app.notesPt:status.app.notesEn,content,2);
             K key=status.state==State::IDLE?K::UpdateCurrent:status.state==State::CHECK_FAILED?K::UpdateCheckFailed:status.state==State::CHECKING?K::UpdateChecking:status.state==State::READY?K::UpdateReady:status.state==State::ERROR?(status.error=="setup"?K::UpdateSetup:K::UpdateFailed):status.state==State::DOWNLOADING?K::UpdateDownloading:K::UpdateNextStart;
             messages=gfx::wrap(g,ui::F_SMALL,i18n::get(lang,key),content,3);
@@ -39,17 +40,20 @@ struct UI {
         if(ctl::hit(in,ctl::Ctx::Panel,ctl::Act::Back)){service.cancelDownload();open=false;}
         else if(ctl::hit(in,ctl::Ctx::Panel,ctl::Act::Open)){
             if(status.state==State::AVAILABLE || status.state==State::ERROR)service.requestDownload();
-            else if(status.state==State::IDLE || status.state==State::CHECK_FAILED)service.requestCheck();
+        }
+        else if(ctl::hit(in,ctl::Ctx::Panel,ctl::Act::Refresh)){
+            if(status.state!=State::DOWNLOADING && status.state!=State::CHECKING)service.requestCheck();
         }
         return true;
     }
     void draw(gfx::Gfx& g,i18n::Lang lang) {
-        auto tr=[&](K k){return i18n::get(lang,k);};
         if(!open) {
             if(!status.app.build)return;
-            float w=std::min(476.f,ui::W-160);
-            gfx::rect(g,ui::W-w-40,588,w,56,ui::SURFACE2,16);
-            gfx::text(g,ui::F_SMALL,banner,ui::W-w-24,607,ui::MUTED);
+            // Só informa (sem botão): o painel abre por Configurações > Sistema. Quebra em até 2 linhas para caber em qualquer tela.
+            float w=std::min(476.f,ui::W-160),line=std::max(22.f,g.fonts[ui::F_SMALL].lineH),h=24+line*bannerLines.size();
+            gfx::rect(g,ui::W-w-40,644-h,w,h,ui::SURFACE2,16);
+            float y=644-h+12;
+            for(const auto& text:bannerLines){gfx::textBox(g,ui::F_SMALL,text,ui::W-w-20,y,w-40,ui::MUTED);y+=line;}
             return;
         }
         gfx::rect(g,0,0,ui::W,720,{0,0,0,0.78f});
@@ -68,7 +72,7 @@ struct UI {
         if(status.state==State::DOWNLOADING){gfx::rect(g,left+40,526,content,4,ui::SURFACE2,2);gfx::rect(g,left+40,526,content*status.progress/100.f,4,ui::A1,2);}
         float x=left+40;
         if(status.state==State::AVAILABLE || status.state==State::ERROR)x=ctlHint(g,x,564,ctl::Ctx::Panel,ctl::Act::Open,lang,K::UpdateDownload);
-        else if(status.state==State::IDLE || status.state==State::CHECK_FAILED)x=ctlHint(g,x,564,ctl::Ctx::Panel,ctl::Act::Open,lang,K::Refresh);
+        if(status.state!=State::DOWNLOADING && status.state!=State::CHECKING)x=ctlHint(g,x,564,ctl::Ctx::Panel,ctl::Act::Refresh,lang);
         ctlHint(g,x,564,ctl::Ctx::Panel,ctl::Act::Back,lang,status.state==State::DOWNLOADING?K::Cancel:K::Back);
     }
 };
