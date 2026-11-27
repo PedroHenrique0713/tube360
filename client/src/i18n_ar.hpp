@@ -424,6 +424,8 @@ inline const char* arabic(Key key) {
     case Key::SecPrivacy: return "الخصوصية";
     case Key::SecSystem: return "النظام";
     case Key::CtlVolume: return "مستوى الصوت";
+    case Key::SettingLiveLowLatency: return "بث مباشر بأقل تأخير";
+    case Key::LiveLowLatencyHelp: return "يبدأ قرب البث المباشر ويلحق بسرعة 1.05x؛ على التلفاز فقط.";
     case Key::PageMenu: return "خيارات الصفحة";
     case Key::CtlCheckAgain: return "افحص مجددًا";
     case Key::UpdateToastHead: return "تحديث ";

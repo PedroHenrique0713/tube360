@@ -46,7 +46,7 @@ int main(int argc,char** argv) {
   check(sd.narrow && sd.sd && sd.large && sd.columns(4)==2,"CRT readability without manual configuration");
   check(near(sd.width,960) && near(sd.scale,.6f) && near(sd.insetX,32) && near(sd.insetY,24),"5 percent safe area on all CRT edges");
   check(near(sd.insetX+sd.width*sd.scale,608) && near(sd.insetY+720*sd.scale,456),"safe content fits inside 640x480");
-  auto wide=display::layout(848,480); check(wide.sd && !wide.narrow && wide.columns(4)==3,"widescreen SD uses fewer columns too");
+  auto wide=display::layout(864,480); check(wide.sd && !wide.narrow && wide.columns(4)==3,"widescreen SD uses fewer columns too");
   auto pal=display::layout(640,576,false,4.f/3);
   check(near(pal.width,960) && pal.narrow && pal.large && pal.columns(4)==2,"PAL kernel viewport keeps a physical 4:3 layout");
   check(near(pal.insetX+pal.width*pal.scaleX,608) && near(pal.insetY+720*pal.scale,547.2f),"non-square PAL pixels preserve safe margins on both axes");
@@ -61,6 +61,13 @@ int main(int argc,char** argv) {
   check(near(fit.x,0) && near(fit.y,60) && near(fit.w,640) && near(fit.h,360),"16:9 video has 60-pixel bars on 4:3");
   auto fill=display::videoRect(640,480,1280,720,true);
   check(near(fill.w,640) && near(fill.h,480) && near(fill.u0,.125f) && near(fill.u1,.875f),"fill crops 12.5 percent from each side without stretching");
+  // Pixel largo (16:9 anamórfico em 640x480): o vídeo 16:9 ocupa o framebuffer inteiro; pixel estreito (5:4 em 640x480): barras maiores.
+  auto wideFit=display::videoRect(640,480,1280,720,false,4.f/3); check(near(wideFit.x,0) && near(wideFit.y,0) && near(wideFit.w,640) && near(wideFit.h,480),"anamorphic 16:9 on 640x480 fills the buffer");
+  auto narrowFit=display::videoRect(640,480,1280,720,false,1.25f/(640.f/480)); check(near(narrowFit.w,640) && narrowFit.h<360 && narrowFit.y>60,"5:4 on 640x480 needs deeper bars than 4:3");
+  check(near(narrowFit.w*(1.25f/(640.f/480))/narrowFit.h,16.f/9),"5:4 video keeps 16:9 on the physical screen");
+  auto wideFill=display::videoRect(640,480,1280,720,true,4.f/3); check(near(wideFill.u0,0) && near(wideFill.u1,1) && near(wideFill.v0,0) && near(wideFill.v1,1),"fill with an anamorphic pixel needs no crop");
+  check(display::downscaleTap(1.f)==0 && near(display::downscaleTap(1.5f),.45f) && near(display::downscaleTap(2.25f),.675f) && near(display::downscaleTap(5.f),.9f),"downscale tap grows with the source/output ratio, 1:1 stays plain bilinear");
+  check(display::downscaleTap(1.25f)>display::downscaleTap(1.1f) && display::downscaleTap(1.5f)<=display::downscaleTap(1.51f),"downscale tap is continuous around 1.5");
   auto portrait=display::videoRect(1280,720,1080,1920,false); check(near(portrait.h,720) && near(portrait.w,405),"portrait preserves aspect too");
   check(i18n::language("es")==i18n::Lang::ES && i18n::cycle(i18n::Lang::PT,1)==i18n::Lang::ES && i18n::cycle(i18n::Lang::EN,-1)==i18n::Lang::AR,"four-way language selection in either direction");
   for (size_t i=1;i<size_t(i18n::Key::Count);++i) check(i18n::get(i18n::Lang::ES,i18n::Key(i))[0]!=0,"every Spanish key has text");

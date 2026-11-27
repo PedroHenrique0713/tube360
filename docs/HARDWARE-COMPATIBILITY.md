@@ -154,7 +154,7 @@ de ambiente, local à F38, com caminhos conhecidos de toolchain/SDL. Ordem audit
 `prepare-native-display.py` acrescenta enums SD/1080 sem renumerar o ABI usado pelo SDL, guarda
 largura/altura, ajusta o scaler e sincroniza o extent divulgado pelo V4X. `tube360_set_output` só admite
 1080 nativo se o dashboard já informa **1920×1080 progressivo**; não programa um novo sinal HDMI.
-SD escolhe 640×480 ou 848×480; o patch permite altura 480 com saída entrelaçada, caso antes delegado
+SD escolhe 640×480 ou 864×480 (864 só com painel HD widescreen e saída 480 pedida, ou viewport do kernel SD wide fora de múltiplo de 32; 848 e 852 não são múltiplos de 32, que o resolve do Xenos exige: derrubavam o app, issue #7); o patch permite altura 480 com saída entrelaçada, caso antes delegado
 ao viewport do kernel. Código local: [patch](../tools/prepare-native-display.py),
 [política final](../tools/prepare-video-policy.py).
 

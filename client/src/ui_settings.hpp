@@ -7,7 +7,7 @@ namespace settings_ui {
 struct Section { K title; std::vector<int> rows; };
 inline const std::vector<Section>& sections() {
   static const std::vector<Section> all = {
-    {K::SecAccount, {0}}, {K::SecVideo, {2,9,12,10,15,7}}, {K::SecSound, {3,4,13,18}}, {K::SecScreen, {5,1,11}},
+    {K::SecAccount, {0}}, {K::SecVideo, {2,9,12,10,15,7,19}}, {K::SecSound, {3,4,13,18}}, {K::SecScreen, {5,1,11}},
     {K::SecTimer, {6}}, {K::SecPrivacy, {8,16,17,20}}, {K::SecSystem, {14}}};
   return all;
 }
@@ -16,7 +16,7 @@ inline int sectionOf(int row) {
   for (size_t i = 0; i < all.size(); ++i) for (int id : all[i].rows) if (id == row) return (int)i;
   return 0;
 }
-inline bool changesWithArrows(int row) { return (row > 0 && row < 13) || row == 18 || row == 20; }
+inline bool changesWithArrows(int row) { return (row > 0 && row < 13) || row == 18 || row == 19 || row == 20; }
 }  // namespace settings_ui
 
 inline std::optional<int> UiContext::settingsInput(uint64_t now) {
@@ -113,6 +113,7 @@ inline std::optional<int> UiContext::settingsInput(uint64_t now) {
         pl.setVolumePercent(settings.volume);
       }
       else if (settingsRow == 20) { settings.phoneRemote = !settings.phoneRemote; if (!settings.phoneRemote) remotePanelOpen = false; }
+      else if (settingsRow == 19) settings.liveLowLatency = !settings.liveLowLatency;
       else if (settingsRow == 12) {settings.videoFill=!settings.videoFill;boot_event("info","settings.fit","fill=%d; geometry/UV only, no display or atlas recreation",settings.videoFill);}
       if (changed) saveSettings();
     }
@@ -129,7 +130,7 @@ inline void UiContext::settingsDraw() {
     gfx::textBox(g, ui::F_BIG, tr(K::Settings), ui::X0, 32, ui::W-ui::X0-64, ui::TEXT);
     if (!ui::large) gfx::textBox(g, ui::F_BODY, tr(K::SettingsIntro), ui::X0, 89, ui::W-ui::X0-64, ui::MUTED);
     else gfx::textBox(g,ui::F_SMALL,gfx::ellipsize(g,ui::F_SMALL,tr(K::SavedAutomatically),ui::W-ui::X0-64),ui::X0,82,ui::W-ui::X0-64,ui::MUTED);
-    const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SettingShowShorts,K::SettingErrorReports,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates,K::SponsorBlock,K::ClearLocalHistory,K::ClearLocalLater,K::SettingVolume,K::None,K::SettingPhoneRemote};
+    const K labels[] = {K::YouTubeAccount,K::VideosPerRow,K::DefaultQuality,K::Sound,K::SpeakerSync,K::Language,K::SleepTimer,K::SettingShowShorts,K::SettingErrorReports,K::DisplayOutput,K::AudioPreference,K::LargeText,K::VideoFit,K::SearchSpeakers,K::Updates,K::SponsorBlock,K::ClearLocalHistory,K::ClearLocalLater,K::SettingVolume,K::SettingLiveLowLatency,K::SettingPhoneRemote};
     const auto& all=settings_ui::sections();
     int section=settings_ui::sectionOf(settingsRow);
     // Seções à esquerda, opções da seção atual à direita.
@@ -171,6 +172,7 @@ inline void UiContext::settingsDraw() {
       else if (i==11) value=tr(ui::large ? K::Enabled : K::SleepOff);
       else if (i==13) value=tr(K::Open);
       else if (i==14) value=updateUI.settingsValue(settings.lang);
+      else if (i==19) value=tr(settings.liveLowLatency ? K::SettingOn : K::SettingOff);
       else if (i==18) value=std::to_string(settings.volume)+"%";
       else if (i==20) value=tr(settings.phoneRemote ? K::SettingOn : K::SettingOff);
       else if(i>=16)value=i18n::localCount(settings.lang,i==16?localUI.library.history.size():localUI.library.later.size(),i==16);
@@ -182,7 +184,7 @@ inline void UiContext::settingsDraw() {
       gfx::text(g,ui::F_KEY,shown,ui::large && !g.rtlText ? x+28 : right,y+(ui::large ? 47 : 15),disabled ? ui::MUTED : selected ? ui::A2 : ui::TEXT,ui::large && !g.rtlText ? 0 : 2);
       if (selected && settings_ui::changesWithArrows(i) && !disabled) gfx::text(g,ui::F_KEY,"< >",x+w-20,y+(ui::large ? 47 : 15),ui::MUTED,2);
     }
-    K help=(settingsRow==16 || settingsRow==17)?K::LocalLimit:settingsRow==2?K::ManualQualityHelp:settingsRow==9 ? (gfx::fixedOutput()?K::SafeOutputHelp:g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==20 ? K::PhoneRemoteHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
+    K help=(settingsRow==16 || settingsRow==17)?K::LocalLimit:settingsRow==2?K::ManualQualityHelp:settingsRow==9 ? (gfx::fixedOutput()?K::SafeOutputHelp:g.extent.height<=576 ? K::DisplaySDHelp : K::Display1080Help) : settingsRow==11 || settingsRow==1 ? K::LargeTextHelp : settingsRow==4 ? K::SyncHelp : settingsRow==19 ? K::LiveLowLatencyHelp : settingsRow==20 ? K::PhoneRemoteHelp : settingsRow==3 && !nestAvailable ? (nestChecked ? K::NoSpeaker : K::SpeakerChecking) : K::SavedAutomatically;
     float hy=ui::large ? 608 : 610;
     for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(help),ui::W-ui::X0-64,2)) { gfx::textBox(g,ui::F_SMALL,line,ui::X0,hy,ui::W-ui::X0-64,ui::MUTED); hy+=ui::large ? 26 : 22; }
     float hx=hint(g,ui::X0,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
