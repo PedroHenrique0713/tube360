@@ -114,6 +114,7 @@ inline void UiContext::shortsDraw(uint64_t now, double t) {
   }
   // Dicas à esquerda, fora do vídeo, pelo mapa único.
   float hy = ui::H / 2 - 110, hx = 40;
+  gfx::rect(g, hx - 12, hy - 10, 330, 206, {0, 0, 0, 0.55f}, 14);
   hint(g, hx, hy, tr(K::BtnVertical), XG, focus ? tr(K::ChooseRow) : tr(K::ShortsStep));
   ctlHint(g, hx, hy + 40, ctl::Ctx::Shorts, ctl::Act::PlayPause, settings.lang, focus ? K::Open : pl.paused ? K::Resume : K::Pause);
   ctlHint(g, hx, hy + 80, ctl::Ctx::Shorts, ctl::Act::WatchLater, settings.lang);
