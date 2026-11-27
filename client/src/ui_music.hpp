@@ -166,6 +166,7 @@ inline void MusicNavigation::drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker
         gfx::text(g, ui::F_SMALL, digits, left + signW + signGap, my - g.fonts[ui::F_SMALL].size / 2 - 2, c);
       }
       else if (i == BtnPlay) atlasIcon(g, paused ? icons::PLAY : icons::PAUSE, mx, my, true, ui::INK);
+      else if (i == BtnSound) atlasIcon(g, icons::SPEAKER_HIGH, mx, my, false, c);
       else if (i == BtnLike) glyph(g, rating == "LIKE" ? icons::THUMB_UP_FILL : icons::THUMB_UP, false, std::round(mx - 12), std::round(my - 12), c);
       else if (i == BtnDislike) glyph(g, rating == "DISLIKE" ? icons::THUMB_DOWN_FILL : icons::THUMB_DOWN, false, std::round(mx - 12), std::round(my - 12), c);
       else if (i == BtnRepeat) {
@@ -293,6 +294,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
     if (in.fired[Input::A]) leaveMusic();
     railInput(); return;
   }
+  if (nav.sound.open) { soundPanelInput(nav.sound, now); return; }  // painel de som aberto: ↑↓ linhas, ←→ volume, A troca a saída, B fecha
   auto enterRail = [&]() { railFocus = true; railSel = 4; };
   using Zone = MusicNavigation; using Act = ctl::Act; const auto ctx = ctl::Ctx::Music;
   auto say = [&](K k) { toast = tr(k); toastUntil = now + 2500; };
@@ -382,6 +384,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
           nav.repeat = (nav.repeat + 1) % 3;
           say(nav.repeat == musicqueue::OFF ? K::MusicRepeatOff : nav.repeat == musicqueue::ALL ? K::MusicRepeatAll : K::MusicRepeatOne);
           break;
+        case Zone::BtnSound: nav.sound.open = true; nav.sound.sel = pl.nest ? 1 : 0; break;
         case Zone::BtnShuffle:
           if (!nav.localQueue) { say(K::MusicQueueServer); break; }
           nav.toggleShuffle((uint32_t)(SDL_GetTicks() * 2654435761u));
@@ -478,6 +481,7 @@ inline void UiContext::musicNowDraw() {
   if (nav.nowZone == MusicNavigation::ZoneQueue && nav.tab == 0 && nav.localQueue) hx = ctlHint(g, hx, y, ctx, Act::Options, settings.lang, K::MusicMoveTrack);
     if (nav.nowZone == MusicNavigation::ZoneQueue && nav.tab == 2 && nav.localQueue) hx = ctlHint(g, hx, y, ctx, Act::AddQueue, settings.lang);
   if (nav.nowZone == MusicNavigation::ZoneSeek) hx = hint(g, hx, y, i18n::get(i18n::Lang::EN, K::BtnHorizontal), XG, tr(K::MusicSeekBar));
+  if (nav.sound.open) soundPanelDraw(nav.sound, SDL_GetTicks());
   volumeHud(SDL_GetTicks());  // o volume (do controle ou do celular) aparece aqui como no player e nos Shorts
 }
 
