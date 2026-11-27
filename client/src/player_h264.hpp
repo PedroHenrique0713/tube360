@@ -142,7 +142,12 @@ inline void Player::decodeOriginal() {
       };
       r = openSeq(media.video);
       // Fonte escolhida não abriu (e não foi URL vencida): desce um degrau, como no VOD. Troca de degrau com a live em curso não existe.
-      while (r < 0 && !stop && !playback::manual(videoMode) && liveSeq->httpStatus() != 403 && !media.lowerVideo.empty()) {
+      if (r < 0 && !stop && liveSeq->error == "waiting") {
+        // Live que não começou ou parou: descer degrau não resolve. Mensagem própria, sem renovar nem cair no servidor.
+        LOG("live-seq: borda sem segmento novo (204 ou tempo esgotado); live nao comecou ou esta parada");
+        error = "live_waiting"; renew = retryConverted = false; state = FAILED; return;
+      }
+      while (r < 0 && !stop && !playback::manual(videoMode) && liveSeq->httpStatus() != 403 && liveSeq->error != "waiting" && !media.lowerVideo.empty()) {
         auto next = media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
         LOG("qualidade: live por segmentos %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
         s.reset(); separate.reset(); s.wrap33 = separate.wrap33 = false;
@@ -492,13 +497,13 @@ inline void Player::decodeOriginal() {
         if (aheadMin < 1e8) { aheadHistory[size_t(aheadSamples++ % 6)] = aheadMin; aheadMin = 1e9; }
         if (latency >= 0 && segment > 0 && aheadSamples >= 3) {
           double low = 1e9; for (int i = 0; i < std::min(aheadSamples, 6); ++i) low = std::min(low, aheadHistory[size_t(i)]);
-          const double now = speed.load();
+          const double now = liveRate.load();
           const double want = yt::seq::speedFor(latency,low,segment,now,liveLowLatency);
           if (want != now) { LOG("live: velocidade %.2fx -> %.2fx (WSOLA), atraso %.2f s, reserva minima %.2f s, segmento %.1f s",now,want,latency,low,segment); setLiveSpeed(want); }
           if (liveSeq) LOG("live-seq: atraso %.2f s (segmento %.1f s), reserva minima %.2f s, velocidade %.2fx, segmentos v%u a%u, lacunas %u/%u, borda sq=%lld",
-              latency,segment,low,speed.load(),liveSeq->tracks[0].segments.load(),liveSeq->tracks[1].segments.load(),
+              latency,segment,low,liveRate.load(),liveSeq->tracks[0].segments.load(),liveSeq->tracks[1].segments.load(),
               liveSeq->tracks[0].gaps.load(),liveSeq->tracks[1].gaps.load(),liveSeq->headSeq());
-          else LOG("live-hls: atraso %.2f s (segmento %.1f s), reserva minima %.2f s, velocidade %.2fx, inicio %d segmentos antes da borda",latency,segment,low,speed.load(),broadcast->startBack);
+          else LOG("live-hls: atraso %.2f s (segmento %.1f s), reserva minima %.2f s, velocidade %.2fx, inicio %d segmentos antes da borda",latency,segment,low,liveRate.load(),broadcast->startBack);
         }
       }
       unsigned epoch = pauseChanges.load();

@@ -49,7 +49,7 @@ inline void Player::directNestLoop() {
     }
     if (!stop) {
       output = LOCAL;
-      if (speakerRequested) speakerFallback = true;
+      if (speakerRequested) { if (live) speakerLiveOnTv = true; else speakerFallback = true; }
     }
     return;
   }

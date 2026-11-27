@@ -119,6 +119,15 @@ int main() {
               "failure leaves no URL, so the player shows the members message (%s)", w.reason.c_str());
     }
 
+    // Cache que não grava (somente leitura ou disco cheio): o bytecode fica na memória da sessão; nada de baixar a cada vídeo.
+    {
+        Fake ro; ro.player = fakePlayer("Z"); nsig::resetForTest();
+        const string readOnly = "/proc/f67-nao-grava/cache";
+        string v1 = "https://r1.googlevideo.com/videoplayback?n=abcdef", v2 = "https://r1.googlevideo.com/videoplayback?n=ghijkl", v3 = v1;
+        CHECK(nsig::rewrite(ro, *rules, readOnly, {&v1}).empty() && nsig::rewrite(ro, *rules, readOnly, {&v2}).empty(), "rewrite with a cache that cannot be written");
+        CHECK(ro.downloads == 1 && nsig::counters().bytecodeLoads == 1 && nsig::nValue(v2) == "lkjihgZ", "second video reloads the engine from memory, no new download (%u downloads, %u loads)", ro.downloads, nsig::counters().bytecodeLoads);
+        CHECK(nsig::rewrite(ro, *rules, readOnly, {&v3}).empty() && nsig::counters().bytecodeLoads == 1 && nsig::nValue(v3) == "fedcbaZ", "a value solved in this session needs no engine at all");
+    }
     std::filesystem::remove_all(dir);
     std::puts(failures ? "RESULT FAILED" : "RESULT OK");
     return failures ? 1 : 0;

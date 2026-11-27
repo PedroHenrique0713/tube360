@@ -23,6 +23,7 @@ struct State {
     std::chrono::steady_clock::time_point checked{};
     bool haveChecked = false;
     std::map<string,string> memo;
+    string code;   // bytecode do player atual, só quando o disco não deixou gravar (cache somente leitura ou cheio)
     Counters counters;
 };
 State& state() { static State s; return s; }
@@ -102,7 +103,8 @@ string ensure(State& st, Transport& net, const updates::Rules& rules, const stri
         st.checked = now; st.haveChecked = true; return {};
     }
     if (known || onDisk) {
-        auto code = file(codePath(base, id));
+        auto code = onDisk ? file(codePath(base, id)) : string{};
+        if (code.empty() && known) code = st.code;
         auto next = std::make_unique<Solver>();
         if (!code.empty() && next->loadBytecode(code).empty()) {
             ++st.counters.bytecodeLoads;
@@ -132,7 +134,9 @@ string ensure(State& st, Transport& net, const updates::Rules& rules, const stri
     const double reduced = ms(began);
     string code;
     if (Solver compiler; compiler.compile(red, code).empty() && !net.cancelled() && next->loadBytecode(code).empty()) {
-        if (!base.empty() && store(codePath(base, id), code)) {
+        st.code.clear();
+        if (base.empty() || !store(codePath(base, id), code)) st.code = code;   // sem disco: o programa fica na memória da sessão
+        else {
             const string tmp = indexPath(base) + ".tmp";
             if (FILE* idx = std::fopen(tmp.c_str(), "wb")) {
                 bool ok = std::fprintf(idx, "%s\n%d\n", id.c_str(), sts) > 0;
@@ -187,7 +191,10 @@ string rewrite(Transport& net, const updates::Rules& rules, const string& base, 
     bool needed = false;
     for (auto* u : urls) if (u && !nValue(*u).empty()) { needed = true; break; }
     if (!needed) return {};
-    if (auto e = ensure(st, net, rules, base, true); !e.empty()) return e;
+    // Todos os valores já resolvidos nesta sessão (renovação da mesma URL): nem o player nem o motor são necessários.
+    bool allKnown = rules.n("nsig") != 0 && st.haveChecked && st.cacheBase == base;
+    for (auto* u : urls) if (allKnown && u) { auto n = nValue(*u); if (!n.empty() && !st.memo.count(n)) allKnown = false; }
+    if (!allKnown) if (auto e = ensure(st, net, rules, base, true); !e.empty()) return e;
     std::map<string,string> solved;
     for (auto* u : urls) {
         if (!u) continue;
@@ -205,7 +212,7 @@ string rewrite(Transport& net, const updates::Rules& rules, const string& base, 
     }
     for (auto* u : urls) if (u) { auto n = nValue(*u); if (!n.empty()) *u = withN(*u, solved[n]); }
     // O motor ocupa ~5 MB e só serve nestas chamadas: libera. Voltar custa o bytecode do cache (~100 ms no Xbox).
-    if (!st.cacheBase.empty()) st.solver.reset();
+    if (st.solver && (!st.cacheBase.empty() || !st.code.empty())) st.solver.reset();
     return {};
 }
 int timestamp(Transport& net, const updates::Rules& rules, const string& base) {
@@ -213,6 +220,6 @@ int timestamp(Transport& net, const updates::Rules& rules, const string& base) {
     std::lock_guard<std::mutex> lock(st.mu);
     return ensure(st, net, rules, base, false).empty() ? st.sts : 0;
 }
-void resetForTest() { auto& st = state(); std::lock_guard<std::mutex> lock(st.mu); st.solver.reset(); st.id.clear(); st.memo.clear(); st.haveChecked = false; st.counters = {}; st.sts = 0; }
+void resetForTest() { auto& st = state(); std::lock_guard<std::mutex> lock(st.mu); st.solver.reset(); st.id.clear(); st.code.clear(); st.memo.clear(); st.haveChecked = false; st.counters = {}; st.sts = 0; }
 Counters counters() { auto& st = state(); std::lock_guard<std::mutex> lock(st.mu); return st.counters; }
 }

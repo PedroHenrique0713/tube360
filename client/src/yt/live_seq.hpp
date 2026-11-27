@@ -152,8 +152,14 @@ public:
         tracks[0].net = std::move(videoNet); tracks[1].net = std::move(audioNet);
         for (int i = 0; i < 2; ++i) { tracks[i].owner = this; tracks[i].video = i == 0; }
         string seed;
-        auto head = fetch(tracks[0], videoUrl);          // sem sq: o segmento completo mais novo
-        if (head.status != 200 || head.headSeq < 0) { error = head.error.empty() ? "http_" + std::to_string(head.status) : head.error; tracks[0].status = head.status; return false; }
+        // Sem sq: o segmento completo mais novo. Mesmo pedido de espera dos segmentos (a live pode estar começando): 204, tempo esgotado ou
+        // 404 sem corpo são "ainda não / parada", não falha de formato, e não justificam descer degrau.
+        auto head = fetch(tracks[0], videoUrl, true);
+        if (head.status != 200 || head.headSeq < 0) {
+            const bool waiting = head.status == 204 || (head.status == 0 && head.retryable) || (head.status == 200 && head.headSeq < 0);
+            error = waiting ? "waiting" : head.error.empty() ? "http_" + std::to_string(head.status) : head.error;
+            tracks[0].status = head.status; return false;
+        }
         note(tracks[0], head);
         const long long start = std::max(0LL, head.headSeq - (lowLatency ? 0 : std::max(0, back)));
         first = start;
