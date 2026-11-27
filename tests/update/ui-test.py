@@ -29,14 +29,14 @@ thread.start()
 try:
     for name, lang, large, height, screen, keys, shot_ms, scenario in [
         ('home-pt', 'pt', False, 720, '', '', 4000, 'good'),
-        ('settings-pt', 'pt', False, 720, 'settings', 'D'*14, 4000, 'good'),
-        ('offer-pt', 'pt', False, 720, 'settings', 'D'*14+'A', 4200, 'good'),
-        ('offer-en', 'en', False, 720, 'settings', 'D'*14+'A', 4200, 'good'),
-        ('offer-es-sd-large', 'es', True, 480, 'settings', 'D'*14+'A', 4200, 'good'),
-        ('downloading-pt', 'pt', False, 720, '', ' '*31+'[A', 4000, 'good'),
-        ('ready-pt', 'pt', False, 720, '', ' '*31+'[A', 6500, 'good'),
-        ('cancelled-pt', 'pt', False, 720, '', ' '*31+'[A B', 4300, 'good'),
-        ('error-pt', 'pt', False, 720, '', ' '*31+'[A', 6500, 'bad-hash'),
+        ('settings-pt', 'pt', False, 720, 'settings', ']'*6, 4000, 'good'),
+        ('offer-pt', 'pt', False, 720, 'settings', ']'*6+'A', 4200, 'good'),
+        ('offer-en', 'en', False, 720, 'settings', ']'*6+'A', 4200, 'good'),
+        ('offer-es-sd-large', 'es', True, 480, 'settings', ']'*6+'A', 4200, 'good'),
+        ('downloading-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'AA', 4000, 'good'),
+        ('ready-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'AA', 6500, 'good'),
+        ('cancelled-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'AA B', 4300, 'good'),
+        ('error-pt', 'pt', False, 720, 'settings', ' '*25+']'*6+'AA', 6500, 'bad-hash'),
         ('auto-file-pt', 'pt', False, 720, '', '', 6500, 'good'),
     ]:
         if a.only and name not in a.only:

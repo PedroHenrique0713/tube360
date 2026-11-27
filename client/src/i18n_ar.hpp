@@ -413,6 +413,8 @@ inline const char* arabic(Key key) {
     case Key::SecTimer: return "المؤقت";
     case Key::SecPrivacy: return "الخصوصية";
     case Key::SecSystem: return "النظام";
+    case Key::UpdateToastHead: return "تحديث ";
+    case Key::UpdateToastTail: return " متاح · الإعدادات > النظام";
     case Key::SettingVolume: return "مستوى الصوت";
 
     // ---- F65 Música

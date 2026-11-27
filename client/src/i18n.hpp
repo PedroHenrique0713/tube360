@@ -433,6 +433,8 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SecTimer, "Timer", "Timer", "Temporizador") \
   X(SecPrivacy, "Privacy", "Privacidade", "Privacidad") \
   X(SecSystem, "System", "Sistema", "Sistema") \
+  X(UpdateToastHead, "Update ", "Atualização ", "Actualización ") \
+  X(UpdateToastTail, " available · Settings > System", " disponível · Configurações > Sistema", " disponible · Ajustes > Sistema") \
   X(SettingVolume, "Volume", "Volume", "Volumen") \
   /* */ \
   /* ---- F65 Música */ \
