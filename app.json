@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "kind": "tube360-app",
-  "build": 7,
-  "version": "0.3.2",
-  "url": "https://github.com/revive360/tube360/releases/download/v0.3.2/tube360.xex",
-  "size": 11583488,
-  "sha256": "7ca9fa0e387392494453a75d94869afd0513d1e4126f7274d8e314d4bb2694c7",
+  "build": 107,
+  "version": "0.3.3",
+  "url": "https://github.com/revive360/tube360/releases/download/v0.3.3/tube360.xex",
+  "size": 11603968,
+  "sha256": "b390a439002a0ba3f1935efe1f977373b205ca76129c1a706e04a0fa04694213",
   "notes": {
-    "en": "Real 1080p30, SponsorBlock, your YouTube Music, search suggestions and filters, watch later without an account.",
-    "pt": "1080p30 de verdade, SponsorBlock, sua Música do YouTube, busca com sugestões e filtros, assistir mais tarde sem conta."
+    "en": "Search fixes, Shorts row, Nest no longer hangs, members message, error reports.",
+    "pt": "Busca corrigida, Shorts em fileira, Nest não trava mais, aviso de membros, relatórios de erro."
   }
 }
