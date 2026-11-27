@@ -574,7 +574,8 @@ inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 
   // Os dois coeficientes do verde usam a cor constante dos vértices. A matriz já chega pronta ao Xenos.
   // Quatro amostras bilineares só na luma ao reduzir; a crominância 4:2:0 já tem resolução menor que a saída.
   // O afastamento acompanha a razão fonte/saída de cada eixo (display::downscaleTap): 1080p em 720p serrilhava.
-  float ratioX = g.video->w / std::max(1.f, w * g.scaleX), ratioY = g.video->h / std::max(1.f, h * g.scale);
+  // No modo preencher só a parte visível da fonte (u0..u1, v0..v1) entra na razão.
+  float ratioX = g.video->w * (r.u1 - r.u0) / std::max(1.f, w * g.scaleX), ratioY = g.video->h * (r.v1 - r.v0) / std::max(1.f, h * g.scale);
   g.videoFilter[0] = g.video->w > w * g.scaleX + 1 ? display::downscaleTap(ratioX) / g.video->w : 0;
   g.videoFilter[1] = g.video->h > h * g.scale + 1 ? display::downscaleTap(ratioY) / g.video->h : 0;
   quad(g, VIDEO, g.video->set, p, x, y, w, h, {(hd ? .187324f : .344136f) * c, (hd ? .468124f : .714136f) * c, 0, alpha},r.u0,r.v0,r.u1,r.v1);

@@ -38,33 +38,40 @@ void VdQueryVideoMode(VIDEO_MODE* out) { *out=panel; }
 void xsdk_log_write(const char* format,...) { (void)format; }
 '''
 tests='''
-static void verify(const char* name,VIDEO_MODE mode,int wanted,unsigned w,unsigned h,float aspect) {
-    panel=mode; registers[AVIVO_D1MODE_VIEWPORT_SIZE]=640u<<16|480;
+static void verifyvp(const char* name,VIDEO_MODE mode,unsigned viewport_width,int wanted,unsigned w,unsigned h,float aspect) {
+    panel=mode; registers[AVIVO_D1MODE_VIEWPORT_SIZE]=viewport_width<<16|480;
     int got=tube360_set_output(wanted);
     float a=tube360_output_aspect();
     if(got!=(int)h || tube360_display_width!=w || tube360_display_height!=h || fabsf(a-aspect)>.001f) {
         printf("FAIL %s: got %ux%u aspect %.3f, wanted %ux%u aspect %.3f\\n",name,tube360_display_width,tube360_display_height,a,w,h,aspect);
         failed=1;
     }
-    assert(tube360_display_width%32==0 || tube360_display_kernel);
+    // O resolve do Xenos exige largura múltipla de 32 em qualquer caminho, inclusive o do kernel.
+    if(tube360_display_width%32) { printf("FAIL %s: width %u is not a multiple of 32\\n",name,tube360_display_width); failed=1; }
 }
+static void verify(const char* name,VIDEO_MODE mode,int wanted,unsigned w,unsigned h,float aspect) { verifyvp(name,mode,640,wanted,w,h,aspect); }
 int main(void) {
     // (largura, altura, entrelaçado, wide, hi_def, ...)
     verify("CRT 480i 4:3 (issue 43): viewport do kernel",(VIDEO_MODE){640,480,1,0},720,640,480,4.f/3);
     verify("480p 4:3",(VIDEO_MODE){640,480,0,0},720,640,480,4.f/3);
     verify("480p wide: viewport do kernel",(VIDEO_MODE){720,480,1,1},720,640,480,16.f/9);
-    verify("raster 1280x720 sem flag wide: pixel largo",(VIDEO_MODE){1280,720,0,0},1080,640,480,16.f/9);
+    verifyvp("480i wide com viewport 852 (issue 7): SD proprio",(VIDEO_MODE){720,480,1,1},852,720,864,480,16.f/9);
+    verifyvp("480p wide com viewport 852",(VIDEO_MODE){720,480,0,1},852,720,864,480,16.f/9);
+    verifyvp("1080i wide com viewport 852",(VIDEO_MODE){1920,1080,1,1},852,1080,864,480,16.f/9);
+    verifyvp("1080i wide com viewport 640: kernel",(VIDEO_MODE){1920,1080,1,1},640,1080,640,480,16.f/9);
+    verify("720p com Xbox em 4:3 (sem wide): tela 4:3",(VIDEO_MODE){1280,720,0,0},1080,640,480,4.f/3);
     verify("TV 720p, saida 720",(VIDEO_MODE){1280,720,0,1},720,1280,720,0);
     verify("TV 1080p, saida 1080",(VIDEO_MODE){1920,1080,0,1},1080,1920,1080,0);
-    verify("1080i: viewport do kernel (caminho SD/entrelacado ja existente)",(VIDEO_MODE){1920,1080,1,1},1080,640,480,16.f/9);
     verify("TV 720p, saida 480 pedida (issue 7: era 848, nao multiplo de 32)",(VIDEO_MODE){1280,720,0,1},480,864,480,16.f/9);
     verify("TV 1080p, saida 480 pedida",(VIDEO_MODE){1920,1080,0,1},480,864,480,16.f/9);
-    verify("monitor 1280x1024 5:4, saida 720 (issue 7)",(VIDEO_MODE){1280,1024,0,0},720,1280,720,0);
-    verify("monitor 1280x1024 5:4, saida 1080 pedida",(VIDEO_MODE){1280,1024,0,0},1080,1280,720,0);
-    verify("monitor 1280x1024 5:4, saida 480 pedida: pixel nao quadrado",(VIDEO_MODE){1280,1024,0,0},480,640,480,1280.f/1024);
+    verify("monitor 1280x1024 5:4, saida 720: 640x480 com pixel 5:4 (issue 7)",(VIDEO_MODE){1280,1024,0,0},720,640,480,1280.f/1024);
+    verify("monitor 1280x1024 5:4, saida 1080 pedida",(VIDEO_MODE){1280,1024,0,0},1080,640,480,1280.f/1024);
+    verify("monitor 1280x1024 5:4, saida 480 pedida",(VIDEO_MODE){1280,1024,0,0},480,640,480,1280.f/1024);
     verify("monitor 1024x768 4:3",(VIDEO_MODE){1024,768,0,0},720,640,480,4.f/3);
     native_path=false;
-    verify("safe sempre 720",(VIDEO_MODE){1280,1024,0,0},480,1280,720,0);
+    verify("safe 720p wide",(VIDEO_MODE){1280,720,0,1},480,1280,720,0);
+    verifyvp("safe com viewport 852 wide: SD proprio, nao 1280x720 sobre 852",(VIDEO_MODE){720,480,1,1},852,720,864,480,16.f/9);
+    verify("safe 5:4 segue 1280x720 original (letterbox do xsdk)",(VIDEO_MODE){1280,1024,0,0},720,1280,720,0);
     puts(failed?"FAILED":"all dashboard/output combinations passed (no physical display test)");
     return failed;
 }

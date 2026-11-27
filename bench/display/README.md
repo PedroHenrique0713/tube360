@@ -17,7 +17,7 @@ server=off
 
 `large_text=off` mantém o tamanho normal em HD; SD sempre amplia o texto. `video_fit=fill`
 ativa o recorte. Saídas: 480, 720 e 1080. O Xbox consulta `VdQueryVideoMode`: painel SD ou
-4:3 seleciona framebuffer 640×480 (864×480 se o painel informa SD widescreen; largura múltipla de 32). Monitor 5:4 de 1280×1024 usa 720p com barras, e 480 só se pedido (pixel não quadrado: o app compensa); 1080 nativo
+4:3 seleciona framebuffer 640×480 (864×480 só com painel HD widescreen e saída 480 pedida, ou quando o viewport do kernel em SD wide não é múltiplo de 32, como o 852×480; a largura precisa ser múltipla de 32). Monitor 5:4 de 1280×1024 usa 640×480 e o app compensa o pixel 5:4; 1080 nativo
 exige HDMI e 1080p progressivo. 480i/480p segue o sinal escolhido no painel do Xbox.
 O app conserva os timings e o entrelaçamento do painel, alterando framebuffer e scaler.
 O PC usa janela 640×480 ao selecionar 480.
