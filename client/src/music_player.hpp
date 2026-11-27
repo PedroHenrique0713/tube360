@@ -87,7 +87,7 @@ struct Player : player::Player {
     int result = 0;
     for (int attempt = 0; attempt < 2 && !stop; ++attempt) {
       client.setLanguage(requestLanguage);
-      media = client.player(id,quality,nullptr,videoMode,audioSelection,AudioTransport::audioResponse(memberResponse()));
+      media = client.player(id,quality,nullptr,videoMode,audioSelection,AudioTransport::audioResponse(memberResponse(&client)));
       if (stop) return;
       if (media.status != "OK" || media.audio.url.empty()) {
         if (media.reason == "members") error = "Vídeo só para membros do canal";

@@ -598,8 +598,19 @@ inline void Player::decodeOriginal() {
   if (stop) return;
   bool forbidden = (videoFile && videoFile->status == 403) || (audioFile && audioFile->status == 403) ||
                    (broadcast && broadcast->status == 403) || (liveSeq && liveSeq->httpStatus() == 403);
-  // Com o `n` resolvido, um 403 pode ser só URL vencida: uma renovação. Sem `n` (ou na segunda vez) a mensagem de membros.
-  if (direct && memberVideo && forbidden && (refreshed || !media.nsigSolved)) {
+  if (direct && memberVideo && forbidden && media.nsigSolved && !refreshed) {
+    // Com o `n` resolvido o 403 pode ser passageiro (rede, borda do CDN) ou URL vencida. Espera 2,5 s e testa a MESMA URL com 1 byte:
+    // se responde, repete a URL; se não, renova pelo /player. Um segundo 403 depois disso vira a mensagem de membros.
+    for (int waited = 0; waited < 2500 && !stop; waited += 50) SDL_Delay(50);
+    if (stop) return;
+    auto probeNet = yt::https(&stop);
+    yt::Request probe; probe.url = media.video.url; probe.headers = {"Range: bytes=0-0"}; probe.media = true; probe.timeoutMs = 8000;
+    auto answer = probeNet->send(probe);
+    sameUrlRetry = answer.error.empty() && (answer.status == 200 || answer.status == 206);
+    LOG("console: video de membros HTTP=403 com n resolvido; sonda da mesma URL HTTP=%ld, %s", answer.status, sameUrlRetry ? "repete a URL" : "renova pelo /player");
+    renew = true; return;
+  }
+  if (direct && memberVideo && forbidden) {
     LOG("console: video de membros HTTP=403; encerrando sem renovar URL");
     error = "members_unsupported"; renew = retryConverted = false; state = FAILED; return;
   }

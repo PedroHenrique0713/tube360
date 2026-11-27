@@ -58,8 +58,10 @@ std::string Solver::start(unsigned timeoutMs) {
     auto& m = *impl;
     m.rt = JS_NewRuntime();
     if (!m.rt) return "no_runtime";
-    JS_SetMemoryLimit(m.rt, size_t(96) << 20);
-    JS_SetMaxStackSize(m.rt, size_t(512) << 10);
+    // O player real usa cerca de 5 MB. As threads do app no Xbox têm 512 KiB de pilha: 192 KiB para o JS deixa margem ao resto.
+    JS_SetMemoryLimit(m.rt, size_t(16) << 20);
+    JS_SetMaxStackSize(m.rt, size_t(192) << 10);
+    JS_UpdateStackTop(m.rt);
     JS_SetInterruptHandler(m.rt, interrupt, &m.deadline);
     m.ctx = JS_NewContext(m.rt);
     if (!m.ctx) return "no_context";
@@ -113,6 +115,7 @@ std::string Solver::solve(const std::string& n, std::string& out, unsigned timeo
     auto& m = *impl;
     out.clear();
     if (!m.ctx) return "not_loaded";
+    JS_UpdateStackTop(m.rt);  // o motor nasceu em outra thread: o topo da pilha gravado na criação não vale aqui
     m.deadline.at = Clock::now() + std::chrono::milliseconds(timeoutMs);
     JSValue arg = JS_NewStringLen(m.ctx, n.data(), n.size());
     JSValue res = JS_Call(m.ctx, m.fn, JS_UNDEFINED, 1, &arg);

@@ -29,6 +29,15 @@ with tempfile.TemporaryDirectory(prefix='tube360-update-') as temp:
         rule['players'][0]['agent']='RemoteFixture/7.8'
         rule['timestampMarkers']=['remoteTimestamp:']
         sign('rules'+str(version)+'.json',rule)
+    # F67: regras assinadas para versões anteriores não trazem as chaves novas (tvPlayerPath, nsig): o app 0.4 aceita e preenche.
+    older=json.loads(json.dumps(defaults));older['version']=7
+    del older['strings']['tvPlayerPath'];del older['limits']['nsig']
+    sign('rules-older.json',older)
+    (base/'published.json').write_text((ROOT/'tests/update/fixtures/rules-published-v2.json').read_text())
+    missing=json.loads(json.dumps(defaults));del missing['strings']['apiPath']
+    (base/'missing.json').write_text(json.dumps(missing))
+    extra=json.loads(json.dumps(defaults));extra['strings']['unknownKey']='x'
+    (base/'extra.json').write_text(json.dumps(extra))
     invalid=json.loads(json.dumps(defaults));invalid['version']=5;invalid['limits']['retries']=100
     sign('limit.json',invalid)
     invalid['limits']['retries']=2;invalid['strings']['webOrigin']='https://www.youtube.com@evil.example'

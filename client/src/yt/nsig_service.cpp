@@ -41,8 +41,10 @@ bool store(const string& path, const string& data) {
     auto* f = std::fopen(tmp.c_str(), "wb");
     if (!f) return false;
     bool ok = std::fwrite(data.data(), 1, data.size(), f) == data.size();
-    if (std::fclose(f) != 0 || !ok) return false;
-    return std::rename(tmp.c_str(), path.c_str()) == 0;
+    if (std::fclose(f) != 0) ok = false;
+    if (ok && std::rename(tmp.c_str(), path.c_str()) == 0) return true;
+    std::remove(tmp.c_str());
+    return false;
 }
 string indexPath(const string& base) { return base + ".nsig." + programTag + ".idx"; }
 string codePath(const string& base, const string& id) { return base + ".nsig." + programTag + "." + id + ".bc"; }
@@ -76,55 +78,77 @@ string fetchId(Transport& net, const updates::Rules& rules) {
     auto r = net.send(api);
     return r.error.empty() && r.status == 200 ? playerIdFrom(r.body) : string{};
 }
-// Garante um programa carregado para a versão atual do player. Chamar com o mutex tomado.
-string ensure(State& st, Transport& net, const updates::Rules& rules, const string& base) {
+double ms(std::chrono::steady_clock::time_point t) { return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t).count(); }
+// Garante a versão do player (id + signatureTimestamp) e, se `needSolver`, um motor carregado. Chamar com o mutex tomado.
+// O motor só sobe quando um `n` precisa ser resolvido; o timestamp sai do índice em disco, sem carregar nada.
+string ensure(State& st, Transport& net, const updates::Rules& rules, const string& base, bool needSolver) {
     using Clock = std::chrono::steady_clock;
     if (rules.n("nsig") == 0) return "disabled";
-    const auto now = Clock::now();
-    if (st.solver && st.cacheBase == base && st.haveChecked && now - st.checked < std::chrono::hours(6)) return {};
-    string id = fetchId(net, rules);
+    const auto began = Clock::now();
+    const auto now = began;
+    const bool fresh = st.haveChecked && st.cacheBase == base && now - st.checked < std::chrono::hours(6);
+    if (fresh && st.sts && (!needSolver || st.solver)) return {};
+    string id = fresh ? st.id : fetchId(net, rules);
     string cachedId; int cachedSts = 0;
     readIndex(base, cachedId, cachedSts);
-    if (id.empty()) id = st.solver ? st.id : cachedId;
+    if (id.empty()) id = !st.id.empty() ? st.id : cachedId;
     if (!validId(id)) return "player_id";
-    if (st.solver && st.id == id) { st.checked = now; st.haveChecked = true; st.cacheBase = base; return {}; }
-    auto next = std::make_unique<Solver>();
-    int sts = 0;
-    string loaded;
-    if (cachedId == id && cachedSts > 0 && !base.empty()) {
-        auto code = file(codePath(base, id));
-        if (!code.empty() && next->loadBytecode(code).empty()) { sts = cachedSts; loaded = "bytecode"; ++st.counters.bytecodeLoads; }
-        else next = std::make_unique<Solver>();
+    if (net.cancelled()) return "cancelled";
+    // Mesma versão do que já sabemos: nada a baixar. Só o motor pode faltar (liberado depois do uso).
+    const bool known = st.sts && st.id == id && st.cacheBase == base;
+    const bool onDisk = cachedId == id && cachedSts > 0 && !base.empty();
+    if ((known || onDisk) && !needSolver) {
+        if (!known) { st.id = id; st.sts = cachedSts; st.cacheBase = base; st.memo.clear(); }
+        st.checked = now; st.haveChecked = true; return {};
     }
-    if (loaded.empty()) {
-        Request req; req.url = rules.s("webOrigin") + replaceId(rules.s("tvPlayerPath"), id); req.agent = rules.s("browserAgent");
-        req.maxBytes = size_t(6) << 20;
-        auto js = net.send(req);
-        if (!js.error.empty() || js.status != 200) return js.error.empty() ? "download_" + std::to_string(js.status) : "download_" + js.error.substr(0, 40);
-        if (js.body.size() < 100000) return "download_short";
-        ++st.counters.downloads;
-        for (const auto& marker : rules.timestampMarkers) { sts = digitsAfter(js.body, marker.c_str()); if (sts) break; }
-        if (!sts) return "reduce_timestamp";
-        Reduced red;
-        if (auto e = reduce(js.body, red); !e.empty()) return "reduce_" + e.substr(0, 40);
-        js.body.clear(); js.body.shrink_to_fit();
-        string code;
-        if (Solver compiler; compiler.compile(red, code).empty() && next->loadBytecode(code).empty()) {
-            if (!base.empty() && store(codePath(base, id), code)) {
-                FILE* idx = std::fopen((indexPath(base) + ".tmp").c_str(), "wb");
-                if (idx) {
-                    bool ok = std::fprintf(idx, "%s\n%d\n", id.c_str(), sts) > 0;
-                    if (std::fclose(idx) == 0 && ok) std::rename((indexPath(base) + ".tmp").c_str(), indexPath(base).c_str());
-                }
-                if (!cachedId.empty() && cachedId != id) std::remove(codePath(base, cachedId).c_str());
-            }
-        } else {
-            next = std::make_unique<Solver>();
-            if (auto e = next->load(red); !e.empty()) return "load_" + e.substr(0, 60);
+    if (known || onDisk) {
+        auto code = file(codePath(base, id));
+        auto next = std::make_unique<Solver>();
+        if (!code.empty() && next->loadBytecode(code).empty()) {
+            ++st.counters.bytecodeLoads;
+            if (!known) { st.memo.clear(); }
+            st.solver = std::move(next); st.id = id; st.sts = known ? st.sts : cachedSts; st.cacheBase = base; st.checked = now; st.haveChecked = true;
+            std::fprintf(stderr, "yt: nsig bytecode %s carregado em %.0f ms\n", id.c_str(), ms(began));
+            return {};
         }
+    }
+    // Versão nova (ou cache ilegível): baixa, reduz, compila e grava. Cada fase olha o cancelamento.
+    auto next = std::make_unique<Solver>();
+    Request req; req.url = rules.s("webOrigin") + replaceId(rules.s("tvPlayerPath"), id); req.agent = rules.s("browserAgent");
+    req.maxBytes = size_t(6) << 20;
+    auto js = net.send(req);
+    if (!js.error.empty() || js.status != 200) return js.error.empty() ? "download_" + std::to_string(js.status) : "download_" + js.error.substr(0, 40);
+    if (js.body.size() < 100000) return "download_short";
+    if (net.cancelled()) return "cancelled";
+    ++st.counters.downloads;
+    const double downloaded = ms(began);
+    int sts = 0;
+    for (const auto& marker : rules.timestampMarkers) { sts = digitsAfter(js.body, marker.c_str()); if (sts) break; }
+    if (!sts) return "reduce_timestamp";
+    Reduced red;
+    if (auto e = reduce(js.body, red); !e.empty()) return "reduce_" + e.substr(0, 40);
+    js.body.clear(); js.body.shrink_to_fit();
+    if (net.cancelled()) return "cancelled";
+    const double reduced = ms(began);
+    string code;
+    if (Solver compiler; compiler.compile(red, code).empty() && !net.cancelled() && next->loadBytecode(code).empty()) {
+        if (!base.empty() && store(codePath(base, id), code)) {
+            const string tmp = indexPath(base) + ".tmp";
+            if (FILE* idx = std::fopen(tmp.c_str(), "wb")) {
+                bool ok = std::fprintf(idx, "%s\n%d\n", id.c_str(), sts) > 0;
+                if (std::fclose(idx) == 0 && ok && std::rename(tmp.c_str(), indexPath(base).c_str()) == 0) {
+                    if (!cachedId.empty() && cachedId != id) std::remove(codePath(base, cachedId).c_str());
+                } else std::remove(tmp.c_str());
+            }
+        }
+    } else {
+        if (net.cancelled()) return "cancelled";
+        next = std::make_unique<Solver>();
+        if (auto e = next->load(red); !e.empty()) return "load_" + e.substr(0, 60);
     }
     st.solver = std::move(next); st.id = id; st.sts = sts; st.cacheBase = base; st.checked = now; st.haveChecked = true;
     st.memo.clear();
+    std::fprintf(stderr, "yt: nsig player %s novo: baixar %.0f ms, reduzir %.0f ms, total %.0f ms, bytecode %zu bytes, timestamp %d\n", id.c_str(), downloaded, reduced - downloaded, ms(began), code.size(), sts);
     return {};
 }
 }
@@ -163,7 +187,7 @@ string rewrite(Transport& net, const updates::Rules& rules, const string& base, 
     bool needed = false;
     for (auto* u : urls) if (u && !nValue(*u).empty()) { needed = true; break; }
     if (!needed) return {};
-    if (auto e = ensure(st, net, rules, base); !e.empty()) return e;
+    if (auto e = ensure(st, net, rules, base, true); !e.empty()) return e;
     std::map<string,string> solved;
     for (auto* u : urls) {
         if (!u) continue;
@@ -172,18 +196,22 @@ string rewrite(Transport& net, const updates::Rules& rules, const string& base, 
         auto memo = st.memo.find(n);
         if (memo != st.memo.end()) { solved[n] = memo->second; ++st.counters.memoHits; continue; }
         string out;
-        if (auto e = st.solver->solve(n, out); !e.empty()) return "solve_" + e.substr(0, 60);
+        const auto t = std::chrono::steady_clock::now();
+        if (auto e = st.solver->solve(n, out); !e.empty()) { st.solver.reset(); return "solve_" + e.substr(0, 60); }
+        std::fprintf(stderr, "yt: nsig n %s -> %s em %.1f ms\n", n.c_str(), out.c_str(), ms(t));
         ++st.counters.solves;
         if (st.memo.size() >= 64) st.memo.clear();
         st.memo[n] = solved[n] = out;
     }
     for (auto* u : urls) if (u) { auto n = nValue(*u); if (!n.empty()) *u = withN(*u, solved[n]); }
+    // O motor ocupa ~5 MB e só serve nestas chamadas: libera. Voltar custa o bytecode do cache (~100 ms no Xbox).
+    if (!st.cacheBase.empty()) st.solver.reset();
     return {};
 }
 int timestamp(Transport& net, const updates::Rules& rules, const string& base) {
     auto& st = state();
     std::lock_guard<std::mutex> lock(st.mu);
-    return ensure(st, net, rules, base).empty() ? st.sts : 0;
+    return ensure(st, net, rules, base, false).empty() ? st.sts : 0;
 }
 void resetForTest() { auto& st = state(); std::lock_guard<std::mutex> lock(st.mu); st.solver.reset(); st.id.clear(); st.memo.clear(); st.haveChecked = false; st.counters = {}; st.sts = 0; }
 Counters counters() { auto& st = state(); std::lock_guard<std::mutex> lock(st.mu); return st.counters; }

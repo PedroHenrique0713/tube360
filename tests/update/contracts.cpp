@@ -131,6 +131,18 @@ int main(int argc,char** argv) {
     Net refusedNet;refusedNet.refused=true;yt::Client refusedClient(refusedNet);
     for(int i=0;i<3;i++)refusedClient.player("4p_9OPKgcDE");
     check(refused->snapshot()->version==1 && refused->highWater()==2,"valid JSON with all clients refused also triggers rollback");
+    {   // F67: chaves introduzidas por esta versão podem faltar nas regras assinadas para versões anteriores
+        Rules r;
+        check(decodeRules(read(dir+"published.json"),r) && r.version==2 && r.n("nsig")==1 && r.s("tvPlayerPath").find("{id}")!=string::npos,
+              "the published rules.json (without the new keys) decodes and gets the embedded defaults");
+        check(decodeRules(read(dir+"rules-older.json"),r) && r.n("nsig")==1,"signed rules without the new keys decode");
+        check(!decodeRules(read(dir+"missing.json"),r),"a missing key that is not new still fails");
+        check(!decodeRules(read(dir+"extra.json"),r),"an unknown key still fails");
+        p=dir+"older-rules/";::mkdir(p.c_str(),0700);
+        { RuleStore old(p,key);check(old.accept(read(dir+"rules-older.json"),read(dir+"rules-older.json.sig"),error) && old.snapshot()->version==7,"signed rules without the new keys activate"); }
+        RuleStore reopened(p,key);
+        check(reopened.snapshot()->version==7 && reopened.highWater()==7 && reopened.snapshot()->n("nsig")==1,"saved state with the old key set survives the restart (high-water mark kept)");
+    }
     setRuleStore(nullptr);
     std::cout<<checks<<" signed update checks passed\n";
 }

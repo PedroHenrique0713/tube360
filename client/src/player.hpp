@@ -112,14 +112,17 @@ struct Player {
   std::atomic<bool> original{false}, retryConverted{false};
   std::atomic<bool> allowOriginal{true};
   bool direct = false, refreshed = false;
+  bool sameUrlRetry = false;  // vídeo de membros: o 403 foi passageiro, a renovação reaproveita a mesma URL
   std::string cacheBase, requestLanguage = "en";
   std::shared_ptr<yt::ConsoleAccount> memberAccount;
   bool memberVideo = false;
-  std::string memberResponse() {
+  // `client`: o cliente de quem chama (a Música tem o próprio e nenhum vídeo tocou antes); sem ele, o do vídeo.
+  std::string memberResponse(yt::Client* client = nullptr) {
     if (!memberVideo || !memberAccount || !memberAccount->active()) return {};
     // O TVHTML5 só entrega links tocáveis com o signatureTimestamp do player TV (o mesmo programa que resolve o `n`).
     std::string path = "/api/video/" + id + "/player?lang=" + requestLanguage;
-    if (youtube) if (int sts = youtube->nsigTimestamp()) path += "&sts=" + std::to_string(sts);
+    if (!client) client = youtube.get();
+    if (client) if (int sts = client->nsigTimestamp()) path += "&sts=" + std::to_string(sts);
     auto reply = memberAccount->request(path);
     return reply.ok() ? std::move(reply.body) : std::string{};
   }
@@ -291,7 +294,8 @@ struct Player {
     qualityAvailable=1;qualityModesReady=false;manualQualityWarning=false;
     castMediaReady = false;
     endLiveReader = false; refreshed = renewing; renew = mediaReady = directReserveReady = false; actualHeight = actualFps = 0;
-    if (renewing) validUntil = 0;
+    if (renewing && !sameUrlRetry) validUntil = 0;
+    sameUrlRetry = false;
     SDL_SetAtomicInt(&netBytes, 0);
     original = retryConverted = false; originalWatch = 0; maxFrames = 10; startupFrames = 6; queueMin = maxFrames;
     speakerRequested = speaker; nest = false;
