@@ -173,6 +173,8 @@ struct UiContext {
   float& manualNoticeWidth;
 
   // ---- F61 Início e coleção: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  void saveForLater(const NavItem& item, uint64_t now);  // ui_collection.hpp: X = Assistir mais tarde (conta) ou lista local (sem conta)
+  uint64_t homeSeenAt = 0;  // ui_home.hpp: última vez que o Início esteve na tela; voltar depois de um tempo atualiza sozinho
   int homeShelves(const Shelf& cur) const;  // ui_home.hpp: 2 = prateleiras do YouTube da conta (Início), 0 = lista única
 
   // ---- F62 Busca e canal: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
