@@ -296,7 +296,7 @@ inline void Navigation::drawFooter(NavDraw& d) {
   bool home = p.musicHome(), channel = p.kind == "channel", playlist = playlistKind(p);
   gfx::rect(g, 96, 646, ui::W-96, 74, ui::BG);
   if (p.loading) { spinner(g, ui::W-64, 146, 12, d.now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), ui::W-324, 130, ui::MUTED); }
-  const ctl::Ctx ctx = p.music || home ? ctl::Ctx::Music : channel ? ctl::Ctx::Channel : p.kind == "search" ? ctl::Ctx::Search : ctl::Ctx::Collection;
+  const ctl::Ctx ctx = p.music || home ? ctl::Ctx::MusicPage : channel ? ctl::Ctx::Channel : p.kind == "search" ? ctl::Ctx::Search : ctl::Ctx::Collection;
   float hx = ctlHint(d.g, 136, 676, ctx, ctl::Act::Open, d.lang, p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open);
   hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Back, d.lang);
   // X = Assistir mais tarde (F61). O Menu abre as opções do vídeo em foco ou, sem vídeo (página vazia ou com erro), as da
