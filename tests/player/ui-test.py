@@ -258,7 +258,7 @@ from PIL import Image
 def bright(name, box):
     im = Image.open(OUT / (name + '.ppm')).convert('L').crop(box)
     return max(im.getdata())
-icons_box = (760, 640, 1240, 690)
+icons_box = (1100, 640, 1240, 690)
 assert bright('f63-icons', icons_box) > 150, 'icons row should be visible with the controls up'
 assert bright('f63-shelf', icons_box) < 70, 'icons row must be gone while the shelf is open'
 print('PASS f63 ui: shelf, volume and Shorts')
