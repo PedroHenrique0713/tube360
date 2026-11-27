@@ -54,8 +54,8 @@ inline void UiContext::shortsInput(uint64_t now) {
   }
   // Menu (Opções) leva o foco às ações ao lado e de volta; LT/RT (sem papel no mapa dos Shorts) ajustam o volume.
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::Options)) focus = focus ? 0 : 1;
-  if (in.hit(Input::LT)) adjustVolume(now, -1);
-  if (in.hit(Input::RT)) adjustVolume(now, 1);
+  if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::VolumeDown)) adjustVolume(now, -1);
+  if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::VolumeUp)) adjustVolume(now, 1);
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::PlayPause)) {
     if (!focus) { if (!pl.waiting() || pl.paused) pl.setPaused(!pl.paused); }
     else if (focus <= 2) {
@@ -120,14 +120,14 @@ inline void UiContext::shortsDraw(uint64_t now, double t) {
     gfx::text(g, ui::F_TINY, actions[i].label, cx, cy + 34, focus == i + 1 ? ui::TEXT : ui::MUTED, 1);
   }
   // Dicas ao lado do vídeo, depois da coluna de ações (como na proposta A4); no árabe, espelhadas para o lado esquerdo.
-  const float hw = 290, hy = ui::H / 2 - 110, hx = rtl ? std::max(16.f, vx - 150 - hw) : vx + vw + 150;
+  const float hy = ui::H / 2 - 110, hw0 = 290, hx = rtl ? std::max(16.f, vx - 150 - hw0) : vx + vw + 150, hw = std::min(hw0, ui::W - hx - 24);
   gfx::rect(g, hx - 12, hy - 10, hw + 12, 246, {0, 0, 0, 0.55f}, 14);
   hint(g, hx, hy, tr(K::BtnVertical), XG, focus ? tr(K::ChooseRow) : tr(K::ShortsStep));
   ctlHint(g, hx, hy + 40, ctl::Ctx::Shorts, ctl::Act::PlayPause, settings.lang, focus ? K::Open : pl.paused ? K::Resume : K::Pause);
   ctlHint(g, hx, hy + 80, ctl::Ctx::Shorts, ctl::Act::WatchLater, settings.lang);
   ctlHint(g, hx, hy + 120, ctl::Ctx::Shorts, ctl::Act::Options, settings.lang);
   ctlHint(g, hx, hy + 160, ctl::Ctx::Shorts, ctl::Act::Back, settings.lang, focus ? K::Close : K::None);
-  hint(g, hx, hy + 200, i18n::get(i18n::Lang::EN, K::BtnTriggers), XG, tr(K::SettingVolume));  // LT/RT: volume (sem papel no mapa dos Shorts)
+  ctlHint(g, hx, hy + 200, ctl::Ctx::Shorts, ctl::Act::VolumeDown, settings.lang);
   volumeHud(now);
   if (pl.waiting()) {
     spinner(g, ui::W / 2, ui::H / 2, 26, t);

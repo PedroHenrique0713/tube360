@@ -291,20 +291,20 @@ inline void UiContext::playerShelfInput(uint64_t now) {
   if (rtl) horizontal = -horizontal;  // espelhado: o que está à direita vem antes
   if (horizontal) shelf.sel = std::clamp(shelf.sel + horizontal, 0, std::max(0, count - 1));
   // LB/RB trocam de aba (contexto próprio da fileira)
-  int tabStep = in.hit(Input::LB) ? -1 : in.hit(Input::RB) ? 1 : 0;
+  int tabStep = ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::PrevTab) ? -1 : ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::NextTab) ? 1 : 0;
   if (tabStep) for (int t = shelf.tab + tabStep; t >= 0 && t < 3; t += tabStep) if (shelfTabShown(t)) { shelf.tab = t; shelf.sel = 0; break; }
-  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { shelf.open = false; playerUI.options = true; }  // Menu = opções
-  else if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::WatchLater)) {
+  if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::Options)) { shelf.open = false; playerUI.options = true; }  // Menu = opções
+  else if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::WatchLater)) {
     const auto& items = shelfItems(shelf.tab);
     if (shelf.sel < (int)items.size()) {
       const Video& v = items[(size_t)shelf.sel];
       if (account.signedIn()) nav.action(navWorker, "/api/nav/action?action=later&id=" + v.id + "&lang=" + i18n::code(settings.lang));
       else { bool had = localUI.library.contains(v.id); localUI.library.toggle(LocalLibraryUI::entry(v)); toast = tr(had ? K::PlayerLaterRemoved : K::PlayerLaterAdded); toastUntil = now + 2500; }
     }
-  } else if (in.hit(Input::A)) {
+  } else if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::Open)) {
     const auto& items = shelfItems(shelf.tab);
     if (shelf.sel >= 0 && shelf.sel < (int)items.size()) { Video v = items[(size_t)shelf.sel]; shelf.open = false; startVideo(v, 0, false); }
-  } else if (in.hit(Input::B) || in.hit(Input::UP)) shelf.open = false;
+  } else if (ctl::hit(in, ctl::Ctx::PlayerShelf, ctl::Act::Back) || in.hit(Input::UP)) shelf.open = false;
   in.hit(Input::BACK); in.hit(Input::DOWN);
   playerUI.touch(now);
 }
@@ -339,10 +339,10 @@ inline void UiContext::playerShelfDraw(uint64_t now) {
   float hy = 574, hx = rtl ? ui::W - left - 640 : left;
   gfx::rect(g, hx - 12, hy - 8, 700, 40, {0, 0, 0, 0.55f}, 12);
   hx = hint(g, hx, hy, tr(K::BtnHorizontal), XG, tr(K::ChooseRow));
-  hx = hint(g, hx, hy, "A", XA, tr(K::WatchNow));
-  hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::WatchLater, settings.lang);
-  if (shelfFirstTab() >= 0) hx = hint(g, hx, hy, i18n::get(i18n::Lang::EN, K::BtnShoulders), XG, tr(K::CtlSwitchTab));
-  hint(g, hx, hy, "B", XB, tr(K::Back));
+  hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::Open, settings.lang, K::WatchNow);
+  hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::WatchLater, settings.lang);
+  hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::PrevTab, settings.lang);
+  ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::Back, settings.lang);
 }
 
 inline void UiContext::playerUpdate(uint64_t now) {
