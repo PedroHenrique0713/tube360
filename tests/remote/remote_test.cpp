@@ -8,6 +8,7 @@
 #include <chrono>
 #include <cstdio>
 #include <thread>
+#include <vector>
 #include "ui_remote.hpp"
 #include "remote_page.hpp"
 
@@ -101,19 +102,21 @@ int main() {
     fakeNow += kPairingOpenMs + 1; CHECK(!c.pairingOpen() && c.handle(post("/pair", "code=" + c.code()), OWN).status == 423);  // fecha sozinho
     c.openPairing(); std::string code = c.code(); unsigned notices = c.wrongCodeNotices();
     int last = 0; for (int i = 0; i < kMaxFailures; ++i) last = c.handle(post("/pair", "code=999999"), ATT).status;
-    CHECK(last == 429 && c.code() != code && c.wrongCodeNotices() == notices + 1);              // 5 erros: código novo e aviso
-    CHECK(c.handle(post("/pair", "code=" + c.code()), ATT).status == 429);                        // o atacante espera, mesmo com o código certo
-    CHECK(c.handle(post("/pair", "code=" + c.code()), OWN).status == 200 && c.sessions() == 1);   // o dono pareia no meio do ataque
-    fakeNow += kIpBlockMs + 1;
-    c.openPairing(); CHECK(c.handle(post("/pair", "code=" + c.code()), ATT).status == 200);        // passado o minuto o atacante volta a poder tentar
-    // erros de IPs diferentes também chegam a 5 e mudam o código
-    c.openPairing(); std::string before = c.code();
-    for (uint32_t k = 0; k < (uint32_t)kMaxFailures; ++k) c.handle(post("/pair", "code=111111"), (10u << 24) | (k + 1));
-    CHECK(c.code() != before);
+    CHECK(last == 403 && c.code() != code && c.wrongCodeNotices() == notices + 1);              // 5 erros: código novo e aviso, ninguém trancado
+    CHECK(c.handle(post("/pair", "code=" + c.code()), OWN).status == 200 && c.sessions() == 1);   // o dono pareia mesmo atrás do ataque
+    c.openPairing();
+    CHECK(c.handle(post("/pair", "code=" + c.code()), ATT).status == 200);                         // o mesmo IP que errou também pode parear (sem bloqueio por IP)
+    // teto de 10 erros por abertura, somando todos os aparelhos (rodízio de IPs não ajuda)
+    c.openPairing(); unsigned many = c.tooManyNotices(); int guesses = 0, closed = 0;
+    for (uint32_t k = 0; k < 200; ++k) { int st = c.handle(post("/pair", "code=111111"), (10u << 24) | (k + 1)).status; guesses += st == 403 || st == 429; closed += st == 423; }
+    CHECK(guesses == kMaxErrorsPerOpening && closed == 200 - kMaxErrorsPerOpening && !c.pairingOpen() && c.tooManyNotices() == many + 1);
+    CHECK(c.handle(post("/pair", "code=" + c.code()), OWN).status == 423);                         // fechou: nem o código certo vale
+    c.openPairing(); CHECK(c.handle(post("/pair", "code=" + c.code()), OWN).status == 200);        // abrir de novo dá outro código e outro orçamento
   }
   // ---- Host
   CHECK(hostAllowed("192.168.0.5", "192.168.0.5", 8135) && hostAllowed("192.168.0.5:8135", "192.168.0.5", 8135));
   CHECK(!hostAllowed("evil.example:8135", "192.168.0.5", 8135) && !hostAllowed("192.168.0.5:9999", "192.168.0.5", 8135) && !hostAllowed("", "192.168.0.5", 8135) && !hostAllowed("192.168.0.5", "", 8135));
+  { Request r; CHECK(!parseRequest("GET / HTTP/1.1\r\nHost: a\r\nHost: b\r\n\r\n", r)); }  // dois Host
   { Core c = make(2); Request r{"GET", "/", "", "", false}; r.hostOk = false; CHECK(c.handle(r, LAN).status == 400); }
   CHECK(sanitizeText("a\xe2\x80\x8b" "b\xe2\x80\xae" "c\xe2\x81\xa6" "d\xef\xbb\xbf" "e") == "abcde");   // ZWSP, override RTL, isolate, BOM
   CHECK(sanitizeText("\xe2\x82\xac") == "\xe2\x82\xac");
@@ -186,6 +189,16 @@ int main() {
     auto waited = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t1).count();
     CHECK(waited < 3500);
     ::close(slow);
+    // teto de conexões: 4 no total e 2 por IP; o excedente é fechado na hora e o servidor segue atendendo
+    { std::vector<int> held; sockaddr_in a2{}; a2.sin_family = AF_INET; a2.sin_port = htons((uint16_t)port); a2.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+      for (int i = 0; i < 12; ++i) { int s2 = ::socket(AF_INET, SOCK_STREAM, 0); ::connect(s2, (sockaddr*)&a2, sizeof(a2)); held.push_back(s2); }
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+      int open = 0;
+      for (int s2 : held) { timeval t2{0, 200000}; ::setsockopt(s2, SOL_SOCKET, SO_RCVTIMEO, &t2, sizeof(t2)); char b; ssize_t n = ::recv(s2, &b, 1, 0); open += n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK); }
+      CHECK(open <= 2);                                                                       // 12 conexões do mesmo IP: só 2 ficam abertas
+      for (int s2 : held) ::close(s2);
+      std::this_thread::sleep_for(std::chrono::milliseconds(300));
+      CHECK(http(port, rq("GET", "/")).find("200 OK") != std::string::npos); }
     // inundação: 300 comandos, a fila segura no teto e a TV só vê o que cabe
     int ok200 = 0, busy = 0;
     for (int i = 0; i < 300; ++i) { auto x = http(port, rq("POST", "/cmd", "a=down", tok.c_str())); ok200 += x.find("200 OK") != std::string::npos; busy += x.find("429") != std::string::npos; }

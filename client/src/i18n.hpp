@@ -463,6 +463,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(RemoteSafe, "Only devices on your home network can connect. The code changes after each pairing.", "Só aparelhos da sua rede de casa conseguem conectar. O código muda a cada pareamento.", "Solo los dispositivos de tu red doméstica pueden conectarse. El código cambia en cada emparejamiento.") \
   X(RemoteNoNetwork, "No network. Connect the console to the Wi-Fi or cable.", "Sem rede. Conecte o console ao Wi-Fi ou ao cabo.", "Sin red. Conecta la consola al Wi-Fi o al cable.") \
   X(RemoteWrongCode, "Someone typed the wrong code. Read the new code above.", "Alguém errou o código. Leia o código novo acima.", "Alguien se equivocó con el código. Lee el código nuevo de arriba.") \
+  X(RemoteTooMany, "Too many wrong codes. Open it again to generate another code.", "Muitas tentativas erradas. Abra de novo para gerar outro código.", "Demasiados intentos incorrectos. Ábrelo de nuevo para generar otro código.") \
   X(RemoteConnected, "Phone connected", "Celular conectado", "Móvil conectado") \
   /* */ \
   /* ---- F67 membros tocando */ \

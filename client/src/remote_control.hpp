@@ -24,10 +24,9 @@ inline constexpr size_t kMaxSessions = 4;     // celulares pareados ao mesmo tem
 inline constexpr size_t kMaxText = 100;       // bytes da busca
 inline constexpr size_t kMaxRequest = 4096;   // cabeçalho + corpo
 inline constexpr uint64_t kSessionIdleMs = 30 * 60 * 1000;
-inline constexpr int kMaxFailures = 5;        // códigos errados antes de o código da TV mudar (e de o IP que errou ser contido)
-inline constexpr uint64_t kIpBlockMs = 60 * 1000;  // quem errou 5 vezes fica 60 s sem poder tentar; os outros aparelhos não sentem
+inline constexpr int kMaxFailures = 5;        // códigos errados seguidos antes de o código da TV mudar
+inline constexpr int kMaxErrorsPerOpening = 10;  // teto de códigos errados por abertura do painel, somando todos os aparelhos
 inline constexpr uint64_t kPairingOpenMs = 5 * 60 * 1000;  // o painel de pareamento da TV fecha sozinho
-inline constexpr size_t kMaxTrackedIps = 64;
 
 struct Request { std::string method, path, body, token; bool custom = false; std::string host; bool hostOk = true; };
 struct Reply { int status = 200; std::string type = "application/json", body; };
@@ -125,7 +124,7 @@ inline bool parseRequest(const std::string& raw, Request& r) {
     while (!value.empty() && value.front() == ' ') value.erase(0, 1);
     for (char& ch : name) ch = (char)std::tolower((unsigned char)ch);
     if (name == "content-length") { contentLength = (size_t)std::strtoul(value.c_str(), nullptr, 10); if (contentLength > 512) return false; }
-    else if (name == "host") r.host = value;
+    else if (name == "host") { if (!r.host.empty()) return false; r.host = value; }  // dois Host no mesmo pedido: recusa
     else if (name == "x-t360") { r.custom = true; r.token = value.substr(0, 64); }
   }
   r.body = raw.substr(headEnd + 4);
@@ -162,15 +161,17 @@ class Core {
     std::lock_guard<std::mutex> l(m_); title_ = sanitizeText(title); playing_ = playing; paused_ = paused;
   }
   // O pareamento só vale com o painel aberto na TV: cada abertura gera um código novo e a janela fecha sozinha em 5 min.
-  void openPairing() { std::lock_guard<std::mutex> l(m_); newCode(); failures_ = 0; openUntil_ = clock_() + kPairingOpenMs; }
+  void openPairing() { std::lock_guard<std::mutex> l(m_); newCode(); failures_ = 0; errors_ = 0; openUntil_ = clock_() + kPairingOpenMs; }
   void closePairing() { std::lock_guard<std::mutex> l(m_); openUntil_ = 0; }
   bool pairingOpen() { std::lock_guard<std::mutex> l(m_); return clock_() < openUntil_; }
+  // Quantas vezes a janela fechou por excesso de erros (a TV avisa "muitas tentativas erradas").
+  unsigned tooManyNotices() { std::lock_guard<std::mutex> l(m_); return tooMany_; }
   // Quantas vezes o código mudou por erros seguidos (a TV avisa "alguém errou o código" quando sobe).
   unsigned wrongCodeNotices() { std::lock_guard<std::mutex> l(m_); return notices_; }
   // Desligar a opção: ninguém continua pareado, a fila esvazia e o pareamento fecha.
   void reset() {
     std::lock_guard<std::mutex> l(m_);
-    sessions_.clear(); queue_.clear(); failures_ = 0; ips_.clear(); openUntil_ = 0; newCode();
+    sessions_.clear(); queue_.clear(); failures_ = 0; errors_ = 0; notices_ = 0; tooMany_ = 0; openUntil_ = 0; newCode();
   }
   std::vector<Event> drain() {
     std::lock_guard<std::mutex> l(m_);
@@ -186,7 +187,7 @@ class Core {
     std::lock_guard<std::mutex> l(m_);
     uint64_t now = clock_();
     expire();
-    if (r.method == "POST" && r.path == "/pair") return pair(r, now, peerHostOrderIp);
+    if (r.method == "POST" && r.path == "/pair") return pair(r, now);
     Session* s = find(r.token);
     if (!s) return error(401, "not paired");
     s->last = now;
@@ -200,15 +201,13 @@ class Core {
 
  private:
   struct Session { std::string token; uint64_t last = 0; };
-  struct IpFails { uint32_t ip = 0; int n = 0; uint64_t first = 0, blockedUntil = 0; };
   std::mutex m_;
   Random random_; Clock clock_; Page page_;
   std::string code_, title_;
   bool playing_ = false, paused_ = false, fixed_ = false;
   std::vector<Session> sessions_;
   std::deque<Event> queue_;
-  std::vector<IpFails> ips_;
-  int failures_ = 0; uint64_t openUntil_ = 0; unsigned notices_ = 0;
+  int failures_ = 0, errors_ = 0; uint64_t openUntil_ = 0; unsigned notices_ = 0, tooMany_ = 0;
 
   static Reply error(int status, const char* why) { return {status, "application/json", std::string("{\"error\":\"") + why + "\"}"}; }
   void newCode() {
@@ -220,7 +219,6 @@ class Core {
   void expire() {
     uint64_t now = clock_();
     sessions_.erase(std::remove_if(sessions_.begin(), sessions_.end(), [&](const Session& s) { return now - s.last > kSessionIdleMs; }), sessions_.end());
-    ips_.erase(std::remove_if(ips_.begin(), ips_.end(), [&](const IpFails& f) { return now > f.blockedUntil && now - f.first > kIpBlockMs; }), ips_.end());
   }
   static bool same(const std::string& a, const std::string& b) {  // tempo constante para o mesmo tamanho
     if (a.size() != b.size()) return false;
@@ -233,28 +231,20 @@ class Core {
     for (auto& s : sessions_) if (same(s.token, token)) hit = &s;
     return hit;
   }
-  IpFails& track(uint32_t ip, uint64_t now) {
-    for (auto& f : ips_) if (f.ip == ip) { if (now > f.blockedUntil && now - f.first > kIpBlockMs) { f.n = 0; f.first = now; } return f; }
-    if (ips_.size() >= kMaxTrackedIps) ips_.erase(ips_.begin());
-    ips_.push_back({ip, 0, now, 0});
-    return ips_.back();
-  }
-  Reply pair(const Request& r, uint64_t now, uint32_t ip) {
+  Reply pair(const Request& r, uint64_t now) {
     if (now >= openUntil_) return error(423, "pairing closed");  // sem o painel aberto na TV ninguém pareia
-    IpFails& f = track(ip, now);
-    if (now < f.blockedUntil) return error(429, "locked");     // só este aparelho espera; não conta nem confere o código
     std::string given = formValue(r.body, "code");
     if (!same(given, code_)) {
-      if (++f.n >= kMaxFailures) f.blockedUntil = now + kIpBlockMs;
       if (++failures_ >= kMaxFailures) { failures_ = 0; newCode(); ++notices_; }   // o dono só lê o código novo na TV
-      return error(f.n >= kMaxFailures ? 429 : 403, f.n >= kMaxFailures ? "locked" : "wrong code");
+      if (++errors_ >= kMaxErrorsPerOpening) { openUntil_ = 0; ++tooMany_; return error(429, "too many wrong codes"); }  // acabou o orçamento desta abertura
+      return error(403, "wrong code");
     }
     unsigned char b[16]; random_(b, sizeof(b));
     std::string token; char h[3];
     for (unsigned char c : b) { std::snprintf(h, sizeof(h), "%02x", c); token += h; }
     if (sessions_.size() >= kMaxSessions) sessions_.erase(sessions_.begin());
     sessions_.push_back({token, now});
-    failures_ = 0; f.n = 0; openUntil_ = 0; newCode();  // um pareamento por abertura do painel
+    failures_ = 0; errors_ = 0; openUntil_ = 0; newCode();  // um pareamento por abertura do painel
     return {200, "application/json", "{\"token\":\"" + token + "\"}"};
   }
   Reply command(const Request& r) {

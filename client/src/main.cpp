@@ -1089,11 +1089,12 @@ int run(int argc, char** argv) {
       [] { return (uint64_t)SDL_GetTicks(); },
       [&settings] { return phonectl::page(settings.lang); });
   phonectl::Net phoneNet;
+  phoneNet.advertised = [] { return phonectl::localAddress(); };  // o endereço que o painel mostra também vale como Host
 #ifndef __XSDK__
   if (const char* fixed = std::getenv("XT_REMOTE_CODE")) phoneCore.setCodeForTest(fixed);  // teste de bancada; no console o código é sempre aleatório
 #endif
   SDL_Thread* phoneThread = nullptr;
-  size_t phonePaired = 0; uint64_t phoneRemoteStateAt = 0; unsigned phoneNoticeSeen = 0;
+  size_t phonePaired = 0; uint64_t phoneRemoteStateAt = 0; unsigned phoneNoticeSeen = 0, phoneTooManySeen = 0;
   bool phoneWasOn = false, phonePanelPrev = false;
   std::deque<phonectl::Event> phoneBacklog;
 
@@ -1651,7 +1652,7 @@ int run(int argc, char** argv) {
 #endif
     phoneNet.enabled = settings.phoneRemote;
     if (!settings.phoneRemote) {
-      if (phoneWasOn) { phoneCore.reset(); phoneBacklog.clear(); phonePaired = 0; phoneNoticeSeen = 0; phonePanelPrev = false; }  // desligar derruba todas as sessões
+      if (phoneWasOn) { phoneCore.reset(); phoneBacklog.clear(); phonePaired = 0; phoneNoticeSeen = 0; phoneTooManySeen = 0; phonePanelPrev = false; }  // desligar derruba todas as sessões
       phoneWasOn = false; screens.remotePanelOpen = false;
     } else {
       phoneWasOn = true;
@@ -1665,6 +1666,9 @@ int run(int argc, char** argv) {
       if (paired != phonePaired) LOG("celular: %u sessao(oes) pareada(s), porta %d", (unsigned)paired, phoneNet.port.load());
       if (paired > phonePaired) { toast = tr(K::RemoteConnected); toastUntil = now + 4000; screens.remotePanelOpen = false; }
       phonePaired = paired;
+      if (unsigned many = phoneCore.tooManyNotices(); many != phoneTooManySeen) {  // 10 erros: a janela fechou, o dono abre de novo
+        phoneTooManySeen = many; toast = tr(K::RemoteTooMany); toastUntil = now + 8000; LOG("celular: 10 codigos errados, pareamento fechado");
+      }
       if (unsigned notices = phoneCore.wrongCodeNotices(); notices != phoneNoticeSeen) { phoneNoticeSeen = notices; screens.remoteNoticeUntil = now + 10000; LOG("celular: codigo errado 5 vezes, codigo novo na TV"); }
       for (auto& e : phoneCore.drain()) if (phoneBacklog.size() < phonectl::kMaxQueue) phoneBacklog.push_back(std::move(e));  // o excedente some
       if (screens.remotePanelOpen) {
@@ -1905,6 +1909,7 @@ int run(int argc, char** argv) {
   recordHistory();
   if(localUI.submitted!=localUI.library.revision)localUI.writer.submit(localUI.library);
   phone.stop();
+  phoneNet.quit = true; SDL_WaitThread(phoneThread, nullptr); phoneThread = nullptr;  // join explícito antes do SDL_Quit/boot_close; o PhoneThreadGuard fica de reserva
   captionLoader.stop();
   extras.close();
   pl.halt();

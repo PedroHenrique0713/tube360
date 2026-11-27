@@ -4,13 +4,14 @@
 #pragma once
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <sys/select.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <algorithm>
 #include <atomic>
 #include <cerrno>
+#include <functional>
 #include <vector>
 #include <SDL3/SDL.h>
 #include "remote_control.hpp"
@@ -24,6 +25,7 @@ struct Net {
   std::atomic_bool quit{false}, enabled{false};
   std::atomic<int> port{0};      // 0 = não está ouvindo
   int firstPort = kFirstPort;    // testes usam outra
+  std::function<std::string()> advertised;  // endereço que o painel da TV mostra (main.cpp); vazio = só o da conexão
 
   static bool sendAll(int fd, const std::string& s) {
     size_t off = 0;
@@ -42,17 +44,20 @@ struct Net {
   static const char* reason(int s) { return s == 200 ? "OK" : s == 423 ? "Locked" : s == 400 ? "Bad Request" : s == 401 ? "Unauthorized" : s == 403 ? "Forbidden" : s == 404 ? "Not Found" : s == 429 ? "Too Many Requests" : "Error"; }
 
   struct Conn { int fd; uint32_t peer; std::string raw; uint64_t deadline; };
-  static constexpr size_t kMaxConns = 16;      // conexões abertas ao mesmo tempo; as que passam disso são fechadas na hora
+  static constexpr size_t kMaxConns = 4;       // conexões abertas ao mesmo tempo (o app já usa até 15 dos 32 TCP do XAM); as que passam disso são fechadas na hora
+  static constexpr size_t kMaxPerIp = 2;       // e no máximo 2 por aparelho
   static constexpr uint64_t kReadMs = 2000;    // tempo total para o pedido chegar inteiro (cliente que goteja é cortado)
 
-  static Reply process(int fd, const std::string& raw, Core& core, uint32_t peer, int port) {
+  static Reply process(int fd, const std::string& raw, Core& core, uint32_t peer, int port, const std::string& advertised) {
     Reply reply{400, "application/json", "{\"error\":\"bad request\"}"};
     Request r;
     if (!parseRequest(raw, r)) return reply;
     std::string localIp;
     sockaddr_in me{}; socklen_t size = sizeof(me); char ip[INET_ADDRSTRLEN]{};
     if (::getsockname(fd, (sockaddr*)&me, &size) == 0 && ::inet_ntop(AF_INET, &me.sin_addr, ip, sizeof(ip))) localIp = ip;
-    r.hostOk = hostAllowed(r.host, localIp, port);
+    // vale o endereço por onde a conexão chegou ou o que o painel da TV mostra (o XAM nem sempre informa o endereço local certo)
+    if (localIp == "0.0.0.0") localIp.clear();
+    r.hostOk = hostAllowed(r.host, localIp, port) || hostAllowed(r.host, advertised, port);
     return core.handle(r, peer);
   }
   static void respond(int fd, const Reply& reply) {
@@ -85,27 +90,35 @@ struct Net {
       port = chosen;
       std::vector<Conn> conns;
       while (!quit && enabled) {
-        fd_set rs; FD_ZERO(&rs); FD_SET(fd, &rs); int top = fd;
-        for (const auto& c : conns) { FD_SET(c.fd, &rs); top = std::max(top, c.fd); }
-        timeval tv{0, 100000};
-        if (::select(top + 1, &rs, nullptr, nullptr, &tv) < 0) continue;
+        // poll (não select): o fd_set do newlib tem 64 bits e os sockets do console começam em 35, então um FD_SET acima de 63 escreveria fora dele
+        std::vector<pollfd> fds; fds.push_back({fd, POLLIN, 0});
+        for (const auto& c : conns) fds.push_back({c.fd, POLLIN, 0});
+        int ready = ::poll(fds.data(), (nfds_t)fds.size(), 100);
+        if (ready < 0) { if (errno != EINTR) SDL_Delay(100); continue; }  // falha de verdade: espera, sem laço quente
         uint64_t now = SDL_GetTicks();
-        if (FD_ISSET(fd, &rs)) {
+        if (fds[0].revents & POLLIN) {
           sockaddr_in peer{}; socklen_t size = sizeof(peer);
           int c = ::accept(fd, (sockaddr*)&peer, &size);
-          if (c >= 0) { if (conns.size() >= kMaxConns) ::close(c); else conns.push_back({c, ntohl(peer.sin_addr.s_addr), {}, now + kReadMs}); }
+          if (c >= 0) {
+            uint32_t ip = ntohl(peer.sin_addr.s_addr);
+            size_t same = (size_t)std::count_if(conns.begin(), conns.end(), [&](const Conn& o) { return o.peer == ip; });
+            if (conns.size() >= kMaxConns || same >= kMaxPerIp) ::close(c);
+            else conns.push_back({c, ip, {}, now + kReadMs});
+          } else if (errno != EINTR && errno != EAGAIN && errno != ECONNABORTED) SDL_Delay(100);
         }
         for (size_t i = 0; i < conns.size();) {
           Conn& c = conns[i];
           bool done = false;
-          if (FD_ISSET(c.fd, &rs)) {
+          short rev = 0;
+          for (const auto& f : fds) if (f.fd == c.fd) rev = f.revents;  // o vetor pode ter encolhido por remoções: busca pelo fd
+          if (rev & (POLLIN | POLLHUP | POLLERR)) {
             char buf[1024]; ssize_t n = ::recv(c.fd, buf, sizeof(buf), 0);
             if (n <= 0) done = true;  // fechou sem terminar o pedido
             else {
               c.raw.append(buf, (size_t)n);
               long missing = missingBytes(c.raw);
               if (missing < 0) { respond(c.fd, {400, "application/json", "{\"error\":\"bad request\"}"}); done = true; }
-              else if (missing == 0) { respond(c.fd, process(c.fd, c.raw, core, c.peer, chosen)); done = true; }
+              else if (missing == 0) { respond(c.fd, process(c.fd, c.raw, core, c.peer, chosen, advertised ? advertised() : std::string())); done = true; }
             }
           }
           if (!done && now >= c.deadline) done = true;

@@ -443,6 +443,7 @@ inline const char* arabic(Key key) {
     case Key::RemoteSafe: return "يمكن فقط للأجهزة في شبكة منزلك الاتصال. يتغير الرمز بعد كل اقتران.";
     case Key::RemoteNoNetwork: return "لا توجد شبكة. وصّل الجهاز بالواي فاي أو بالكابل.";
     case Key::RemoteWrongCode: return "أخطأ أحدهم في الرمز. اقرأ الرمز الجديد أعلاه.";
+    case Key::RemoteTooMany: return "محاولات خاطئة كثيرة. افتحها مجددًا لإنشاء رمز آخر.";
     case Key::RemoteConnected: return "تم اتصال الهاتف";
 
     // ---- F67 membros tocando
