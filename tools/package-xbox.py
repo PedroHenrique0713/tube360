@@ -132,7 +132,7 @@ def main():
         raise ValueError("Cannot locate matching SDL source license")
     files["licenses/SDL-LICENSE.txt"] = read_file(Path(match[1]) / "LICENSE.txt")
     # As licenças dos headers ficam nos próprios headers; preserve seus textos completos.
-    for name in ("pl_mpeg.h", "stb_image.h", "stb_truetype.h", "picojson.h"):
+    for name in ("stb_image.h", "stb_truetype.h", "picojson.h"):
         files["licenses/" + name + ".txt"] = read_file(ROOT / "client/third_party" / name)
 
     executable, original, replacements = clean_xex(args.build_dir, args.xex_converter, app_name)
