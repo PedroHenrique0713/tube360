@@ -664,7 +664,15 @@ struct ConsoleAccount::Impl {
         const auto& next=first(get(j,"playerOverlays"),"playerOverlayAutoplayRenderer");
         auto nextId=str(next,"videoId");
         if (!id(nextId,11) || nextId==videoId) nextId.clear();
-        return {"ok\t"+like+"\t"+nextId+"\t"+clean(text(get(next,"byline")))+"\t"+clean(text(get(next,"videoTitle")))+"\n",{}};
+        // Linhas "rel" depois da primeira: relacionados do vídeo (a fileira de baixo do player); quem lê só a primeira linha ignora.
+        Parsed related; walk(get(j,"contents"),related);
+        string extra; int count=0;
+        for (const auto& it:related.items) {
+            if (it.type!="video" || it.id==videoId || !id(it.id,11) || count>=24) continue;
+            extra+="rel\t"+it.id+"\t"+clean(it.title)+"\t"+clean(it.byline)+"\t"+std::to_string(it.duration)+"\t"+membershipWire(it.members)+(it.shortForm ? "\tshort" : "")+"\n";
+            ++count;
+        }
+        return {"ok\t"+like+"\t"+nextId+"\t"+clean(text(get(next,"byline")))+"\t"+clean(text(get(next,"videoTitle")))+"\n"+extra,{}};
     }
     AccountReply watched(const string& videoId, double pos, bool progress) {
         if (tokens.refresh.empty()) return {{}, "signed_out"};

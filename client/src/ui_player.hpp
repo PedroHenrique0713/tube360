@@ -80,15 +80,27 @@ inline void UiContext::playerNextInput() {
 }
 
 inline void UiContext::playerInput(uint64_t now, int optionCount) {
+  if (playing.shortForm) { shortsInput(now); return; }
   if(seekHold.active)for(int b=0;b<Input::N;++b)if(b!=Input::B && b!=Input::BACK)in.fired[b]=false;
   bool any = false;
+  if (shelf.open) { playerShelfInput(now); return; }
   int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
   // Na opção 1 aprovada os ícones ficam ABAIXO da barra: ↓ leva aos ícones, ↑ volta para a trilha.
   int vertical = in.hit(Input::DOWN) ? 1 : in.hit(Input::UP) ? -1 : 0;
   double jump = 0;
+  // Com os controles escondidos (ou logo depois de mexer no volume) cima/baixo ajustam o volume sem acordar a barra: na TV é o
+  // ganho do app (gravado em settings.volume); no Nest é a caixa ao vivo, a partir do nível real dela (nada é gravado).
+  if (vertical && !horizontal && (!playerUI.visible(now) || now < shelf.volumeUntil)) {
+    adjustVolume(now, -vertical); vertical = 0;
+  }
+  // ↓ na linha de ícones abre "a seguir e relacionados" sem parar o vídeo; sem lista, nada acontece.
+  if (vertical > 0 && !horizontal && playerUI.visible(now) && playerUI.options && !related.empty() && !seekHold.active) {
+    shelf.open = true; shelf.sel = 0; vertical = 0; any = true;
+  }
   if (horizontal || vertical) { jump = playerUI.direction(now, horizontal, vertical, optionCount) * 10; any = true; }
-  if (in.hit(Input::LB)) jump = -60;
-  if (in.hit(Input::RB)) jump = 60;
+  // Mapa único (#40): LB/RB = vídeo anterior/seguinte; avançar/voltar no tempo é LT/RT segurado.
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::PrevItem) && playerStep(-1)) return;
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::NextItem) && playerStep(1)) return;
   if (jump != 0) {
     if (pl.state == player::CONNECTING) {
       LOG("player: seek ignored: live status unknown (CONNECTING)");
@@ -136,30 +148,19 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     any = true;
   }
   // Durante a abertura, A não cria uma pausa invisível atrás do carregamento.
-  if (((pressA && (!open || playerUI.selected == PlayerUI::TRANSPORT)) || in.hit(Input::START)) && (!pl.waiting() || pl.paused)) {
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { playerUI.options = !playerUI.options || !playerUI.visible(now); any = true; }
+  if ((pressA && (!open || playerUI.selected == PlayerUI::TRANSPORT)) && (!pl.waiting() || pl.paused)) {
     if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
     LOG("player: pause=%d pos=%.2f", pl.paused ? 1 : 0, pl.position());
     any = true;
   }
-  if (in.hit(Input::Y)) {
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Quality)) {
     auto action=(!pl.live && pl.state!=player::FAILED && (pl.state==player::PLAYING || sponsors.canUndo(now))) ? sponsors.press(pl.position(),pl.duration,now,settings.sponsorBlock) : sponsorblock::Action{};
     if (action) sponsorSeek(action);
     else { LOG("player: Y qualidade pos=%.3f modo=%d menu=1 SponsorBlock_ativo=0",pl.position(),settings.videoMode); openQuality(); }
     any=true;
   }
-  if (in.hit(Input::X)) {
-    if (pl.speed!=1) toast=tr(K::SpeedNest);
-    else if (!nestAvailable) toast = tr(K::NoSpeaker);
-    else {
-      bool row = playerUI.options;
-      if (nestOut && (nestSkip || (pl.speakerRequested && !pl.nest))) nestSkip = false;
-      else nestOut = !nestOut;
-      startVideo(playing, pl.position(), playerFromRemote); playerUI.options = row;
-      toast = tr(K::SoundPrefix) + (nestOut ? nestName : std::string(tr(K::TV)));
-      saveSettings();
-    }
-    toastUntil = now + 3000; any = true;
-  }
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::WatchLater)) { playerWatchLater(now); any = true; }
   in.hit(Input::LT);in.hit(Input::RT);
   int trigger=in.held[Input::RT]==in.held[Input::LT]?0:in.held[Input::RT]?1:-1;
   if(trigger && (pl.live || pl.state==player::CONNECTING || pl.state==player::FAILED)) {
@@ -172,8 +173,8 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     if(commit){double to=seekHold.target;bool paused=seekHold.wasPaused;LOG("busca: soltou em %.3f",to);startVideo(playing,to,playerFromRemote);pl.setPaused(paused);any=true;}
   }
   if (any) playerUI.touch(now);
-  if (in.hit(Input::BACK)) stopVideo();
-  else if (in.hit(Input::B)) {
+  in.hit(Input::BACK);  // View não tem papel no player (mapa único #40); sair é B
+  if (in.hit(Input::B)) {
     if(seekHold.active){bool paused=seekHold.wasPaused;seekHold.cancel(true);pl.setPaused(paused);}
     else if(!playerUI.back(now)) {
     if (nav.musicSession) {
@@ -189,7 +190,92 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
   }
 }
 
+// X no player: salva o vídeo em "Assistir mais tarde" (na conta, se logada; senão na lista local), como nas demais telas.
+inline void UiContext::playerWatchLater(uint64_t now) {
+  if (playing.id.empty()) return;
+  if (account.signedIn()) { nav.action(navWorker, "/api/nav/action?action=later&id=" + playing.id + "&lang=" + i18n::code(settings.lang)); return; }
+  bool had = localUI.library.contains(playing.id);
+  localUI.library.toggle(LocalLibraryUI::entry(playing));
+  toast = tr(had ? K::PlayerLaterRemoved : K::PlayerLaterAdded); toastUntil = now + 2500;
+}
+
+// LB/RB: vídeo anterior/seguinte. Com fila local (playlist, Mais tarde, Biblioteca, Música em vídeo) andam na fila; sem fila, o
+// "a seguir" e o histórico desta sessão. Sessão do celular: quem escolhe o próximo é o app do celular, então nada acontece.
+// Devolve true se tratou o botão (mesmo sem trocar de vídeo, para não cair em outra ação).
+inline bool UiContext::playerStep(int direction) {
+  if (playerFromRemote || phonePlaybackSerial) return false;
+  if (nav.localQueue) {
+    size_t at = nav.queueIndex, count = nav.queue.size();
+    if (direction > 0 && at + 1 < count) ++nav.queueIndex;
+    else if (direction < 0 && at > 0) --nav.queueIndex;
+    else return true;
+    Video v = nav.queue[nav.queueIndex].video(); startVideo(v, 0, false);
+    return true;
+  }
+  if (direction > 0) {
+    const Video* next = !upNext.id.empty() ? &upNext : !related.empty() ? &related.front() : nullptr;
+    if (!next) return false;
+    Video v = *next; startVideo(v, 0, false);
+    return true;
+  }
+  if (playedBefore.empty()) return false;
+  Video v = playedBefore.back(); playedBefore.pop_back();
+  historyBack = true; startVideo(v, 0, false); historyBack = false;
+  return true;
+}
+
+inline void UiContext::volumeHud(uint64_t now) {
+  if (now < shelf.volumeUntil) {
+    const float w = 300, h = 64, x = ui::W - w - 40, y = 36, frac = shelf.volumeShown / 100.f;
+    gfx::rect(g, x, y, w, h, {0, 0, 0, 0.78f}, 14);
+    gfx::text(g, ui::F_SMALL, shelf.volumeSpeaker ? gfx::ellipsize(g, ui::F_SMALL, nestName, 180) : std::string(tr(K::SettingVolume)), x + 20, y + 10, ui::MUTED);
+    gfx::text(g, ui::F_SMALL, std::to_string(shelf.volumeShown), x + w - 20, y + 10, ui::TEXT, 2);
+    gfx::rect(g, x + 20, y + 40, w - 40, 6, {1, 1, 1, 0.25f}, 3);
+    if (frac > 0) gfx::rect(g, x + 20, y + 40, (w - 40) * frac, 6, ui::TEXT, 3);
+  }
+}
+
+inline void UiContext::adjustVolume(uint64_t now, int direction) {
+  if (pl.nest && pl.directSpeaker.configured()) {
+    int percent = pl.stepSpeaker(direction);
+    if (percent >= 0) { shelf.volumeShown = percent; shelf.volumeSpeaker = true; shelf.volumeUntil = now + 2500; LOG("player: volume da caixa %d", percent); }
+    return;
+  }
+  int percent = pl.stepVolume(direction);
+  if (percent != settings.volume) { settings.volume = percent; saveSettings(); }
+  shelf.volumeShown = percent; shelf.volumeSpeaker = false; shelf.volumeUntil = now + 2500;
+  LOG("player: volume %d", percent);
+}
+
+inline void UiContext::playerShelfInput(uint64_t now) {
+  int count = (int)related.size();
+  if (in.hit(Input::LEFT)) shelf.sel = std::max(0, shelf.sel - 1);
+  if (in.hit(Input::RIGHT)) shelf.sel = std::min(count - 1, shelf.sel + 1);
+  if (in.hit(Input::A) || in.hit(Input::START)) {
+    if (shelf.sel >= 0 && shelf.sel < count) { Video v = related[(size_t)shelf.sel]; shelf.open = false; startVideo(v, 0, false); }
+  } else if (in.hit(Input::B) || in.hit(Input::UP)) shelf.open = false;
+  in.hit(Input::BACK); in.hit(Input::DOWN);
+  playerUI.touch(now);
+}
+
+inline void UiContext::playerShelfDraw(uint64_t now) {
+  (void)now;
+  const int count = (int)related.size(), cols = 5;
+  const float gap = 18, left = 56, cw = std::floor((ui::W - left * 2 - gap * (cols - 1)) / cols), ch = std::floor(cw * 9 / 16);
+  gfx::vgrad(g, 0, 180, ui::W, 540, {0, 0, 0, 0}, {0.043f, 0.043f, 0.055f, 0.95f});
+  gfx::text(g, ui::F_H2, tr(K::PlayerShelfTitle), left, 238, ui::TEXT);
+  int first = std::clamp(shelf.sel - cols + 1, 0, std::max(0, count - cols));
+  for (int i = first; i < std::min(count, first + cols); ++i) {
+    float x = left + (float)(i - first) * (cw + gap);
+    homeCard(g, thumbs, thumbsWorker, frame, settings.lang, related[(size_t)i], pl.direct, related[(size_t)i].shortForm, i == shelf.sel, x, 286, cw, ch, i == shelf.sel ? 1.f : 0.f, nullptr);
+  }
+  float hx = hint(g, left, 574, tr(K::BtnHorizontal), XG, tr(K::ChooseRow));
+  hx = hint(g, hx, 574, "A", XA, tr(K::WatchNow));
+  hint(g, hx, 574, "B", XB, tr(K::Back));
+}
+
 inline void UiContext::playerUpdate(uint64_t now) {
+  if (shelf.video != playing.id || screen != PLAYER) { shelf.video = playing.id; shelf.open = false; shelf.sel = 0; shelf.shortsFocus = 0; }
   if(pl.qualityModesReady.exchange(false)) {
       qualityKnown=true;
       offeredQualities.assign(pl.qualityAvailable.load());
@@ -229,14 +315,19 @@ inline void UiContext::playerUpdate(uint64_t now) {
 
 inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool behindLive, const display::CommentsPanel& commentPanel,
                                   bool sleepWarning, double sleepLeft) {
-  gfx::rect(g, 0, 0, ui::W, ui::H, rgb(0x000000), 0);
-  float scale=g.scale, scaleX=g.scaleX, insetX=g.insetX, insetY=g.insetY;
-  g.scaleX=g.scale=1; g.insetX=g.insetY=0;
-  gfx::rect(g,0,0,g.extent.width,g.extent.height,rgb(0x000000));
-  gfx::videoQuad(g,0,0,g.extent.width,g.extent.height,1,settings.videoFill);
-  g.scale=scale; g.scaleX=scaleX; g.insetX=insetX; g.insetY=insetY;
-  bool panelOpen = ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt;
-  bool show = playerUI.visible(now) || panelOpen;
+  // Short: tela vertical própria; o painel de comentários (ou outro) desenha por cima dela, sem trocar para o player horizontal.
+  const bool shortScene = playing.shortForm && !(ratePanel || sleepPanel || sleepWarning || shutdownAt || nextAt);
+  if (shortScene) { shortsDraw(now, t); if (playerUI.panel == PlayerUI::NONE) return; }
+  else {
+    gfx::rect(g, 0, 0, ui::W, ui::H, rgb(0x000000), 0);
+    float scale=g.scale, scaleX=g.scaleX, insetX=g.insetX, insetY=g.insetY;
+    g.scaleX=g.scale=1; g.insetX=g.insetY=0;
+    gfx::rect(g,0,0,g.extent.width,g.extent.height,rgb(0x000000));
+    gfx::videoQuad(g,0,0,g.extent.width,g.extent.height,1,settings.videoFill);
+    g.scale=scale; g.scaleX=scaleX; g.insetX=insetX; g.insetY=insetY;
+  }
+  bool panelOpen = ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt || shelf.open;
+  bool show = !shortScene && (playerUI.visible(now) || panelOpen);
   if (show) {
     const Color red = rgb(0xff0033), island = {0,0,0,0.63f};
     gfx::vgrad(g, 0, 420, ui::W, 300, {0,0,0,0}, {0,0,0,0.87f});
@@ -254,9 +345,17 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
       overlayMeta.update(g, ui::F_META, meta.c_str(), ui::W-80);
     }
     overlayTitle.update(g, ui::F_VIDEO_TITLE, title.c_str(), options && !transportFocus ? ui::W-520 : ui::W-80);
-    if(!panelOpen && pl.state!=player::FAILED)hint(g,40,ui::large?508:523,"Y",XY,tr(K::PlayerQuality));
-    gfx::textBox(g, ui::F_VIDEO_TITLE, overlayTitle.text, 40, ui::large ? 548 : 563, ui::W-80, ui::TEXT);
-    gfx::textBox(g, ui::F_META, overlayMeta.text, 40, 591, ui::W-80, rgb(0xd4d4d8));
+    if(!panelOpen && pl.state!=player::FAILED) {
+      float hx = 40, hy = ui::large ? 508 : 523;
+      hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::WatchLater, settings.lang);
+      hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::Quality, settings.lang);
+      if (!playerFromRemote && !phonePlaybackSerial) hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::PrevItem, settings.lang);
+      ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::Options, settings.lang);
+    }
+    if (!shelf.open) {
+      gfx::textBox(g, ui::F_VIDEO_TITLE, overlayTitle.text, 40, ui::large ? 548 : 563, ui::W-80, ui::TEXT);
+      gfx::textBox(g, ui::F_META, overlayMeta.text, 40, 591, ui::W-80, rgb(0xd4d4d8));
+    }
 
     const bool live = pl.live;
     double pos = seekHold.active?seekHold.target:pl.position(), dur = pl.duration;
@@ -377,6 +476,8 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
         gfx::text(g,ui::F_DETAIL,tr(K::DislikeEstimate),40,533,ui::MUTED);
     }
   }
+  if (shelf.open) playerShelfDraw(now);
+  volumeHud(now);
   if (!panelOpen && !pl.live && pl.state==player::PLAYING)
     sponsorUI.hud(g,sponsors,settings.sponsorBlock,pl.position(),pl.duration,now,settings.lang);
   if (settings.captions && !captions.failed && !panelOpen && videoTex.ready) {

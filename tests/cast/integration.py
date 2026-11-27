@@ -198,7 +198,7 @@ def app(name, seconds, mode='off', race=False, timer=''):
     if timer == 'fade':
         env.pop('XT_SCREEN', None)
         env.update(XT_PLAY=IDS[0], XT_SLEEP_PATH='/api/sleep/set?what=xbox&min=0.5',
-                   XT_KEYS='.'*39+'B'+'.'*15+'U')
+                   XT_KEYS='.'*39+'B'+'.'*15+'L')  # L acorda os controles; U agora ajusta o volume com eles escondidos
     elif timer == 'end':
         env['XT_SLEEP_PATH'] = '/api/sleep/set?what=xbox&end=1'
     with lounge.cv:
