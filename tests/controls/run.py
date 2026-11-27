@@ -14,7 +14,7 @@ CONVERTED = ['client/src/ui_settings.hpp', 'client/src/ui_shell.hpp', 'client/sr
 # Direções, A e B são iguais em todo contexto; os demais botões só podem ser lidos pelo mapa.
 # Arquivos do player ainda em conversão: o número de `Input::` cru só pode cair (nunca subir). Quem converter baixa o teto;
 # em 0, mova o arquivo para CONVERTED.
-WATCHED = {'client/src/ui_player.hpp': 8, 'client/src/ui_shorts.hpp': 3}
+WATCHED = {'client/src/ui_player.hpp': 2, 'client/src/ui_shorts.hpp': 1}
 RAW = re.compile(r'Input::(X|Y|LB|RB|LT|RT|START|BACK)\b')
 
 with tempfile.TemporaryDirectory() as tmp:

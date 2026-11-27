@@ -249,7 +249,7 @@ Button prompts use the Xbox One / Series style (Menu / View are Start / Back on 
 | | Y · X | SponsorBlock skip/undo or Quality menu · TV / speaker sound |
 | | LT / RT | Hold to rewind / fast-forward; accelerates, release to seek |
 | | B | Close one level at a time, then leave the video |
-| | View | Return to browsing |
+| | View | Show / hide the options row (Menu pauses, so View took its old job) |
 | Music Now playing | B | Stop and clear queue; return to source page |
 | Settings | Up / Down · Left / Right · A / B | Choose row · Change value · Open / Back |
 | Up next | A / B | Play now / Cancel |

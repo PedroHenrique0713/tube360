@@ -211,6 +211,9 @@ struct UiContext {
 
   // ---- F67 membros tocando: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
+  // ---- F71 Rodada 3: campos novos desta frente só aqui
+  bool togglePause();  // ui_player.hpp: A no play, Menu (Start), Shorts e Tocando agora pausam e retomam pela mesma regra
+
   // Métodos: declarados aqui, definidos no arquivo de cada tela (ui_*.hpp).
   ErrorShot errorShot;
   const char* tr(K key) const { return i18n::get(settings.lang, key); }

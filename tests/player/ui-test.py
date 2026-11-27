@@ -158,7 +158,7 @@ case_b('f63-short-b-twice', keys='....RB', ms=3800, XT_PLAY_SHORT='1', **KEEP)
 case_b('f63-next', keys='....]', ms=6000, **KEEP)
 case_b('f63-next-prev', keys='....][', ms=9000, **KEEP)
 case_b('f63-later', keys='....X', ms=4500, signed=False, XT_PLAY='R6MlUcmOul8')
-case_b('f63-menu', keys='....S', ms=3800, **KEEP)
+case_b('f63-menu', keys='....V', ms=3800, **KEEP)  # View abre as opções (o Menu agora pausa: tests/f71)
 
 # Sem conta, fila local (playlist) e o volume no Nest: casos que o caminho com conta não cobre.
 case_b('f63-unsigned-shelf', keys='....DD', ms=3800, signed=False, XT_PLAY='R6MlUcmOul8')
@@ -221,12 +221,12 @@ assert shot_of('f63-short-actions') != shot_of('f63-short')
 log = log_of('f63-short-b-twice')
 assert log.index('shorts: foco 1') < log.index('shorts: foco 0'), 'B from the action column should only return focus to the video'
 assert 'shorts: foco' not in log_of('f63-short'), 'focus moved without a key'
-# Mapa único: RB = seguinte (o "a seguir"), LB volta ao anterior; X salva para depois; Menu abre a linha de opções.
+# Mapa único: RB = seguinte (o "a seguir"), LB volta ao anterior; X salva para depois; View abre a linha de opções (o Start pausa).
 assert len(pedidos('f63-next')) == 2 and 'R6MlUcmOul8' in pedidos('f63-next')[0], pedidos('f63-next')
 nv = pedidos('f63-next-prev')
 assert len(nv) == 3 and 'R6MlUcmOul8' in nv[2] and nv[1] != nv[2], nv
 assert 'local: save' in log_of('f63-later'), log_of('f63-later')[-400:]
-assert shot_of('f63-menu') != shot_of('f63-base') and 'player: pause' not in log_of('f63-menu'), 'Menu should open the options row without pausing'
+assert shot_of('f63-menu') != shot_of('f63-base') and 'player: pause' not in log_of('f63-menu'), 'View should open the options row without pausing'
 # Sem conta: a fileira e o RB continuam funcionando pelo caminho do console.
 assert len(pedidos('f63-unsigned-rb')) >= 1
 # Fila local: RB anda para o item seguinte da fila e LB volta ao anterior (nunca pulando).

@@ -287,6 +287,8 @@ inline void UiContext::musicNowInput(uint64_t now) {
       nav.action(navWorker, "/api/nav/transport?action=stop"); stopVideo();
     }
   };
+  // Menu (Start) pausa e retoma de qualquer ponto da tela, até com o foco no trilho; só o painel de som aberto o segura
+  if (!nav.sound.open && ctl::hit(in, ctl::Ctx::MusicNow, ctl::Act::Pause)) togglePause();
   // O trilho lateral (A6/A7) recebe o foco: A em um item sai da Música (para a fila) e abre a página escolhida
   // "Celular" abre o painel por cima do Tocando agora, com a música seguindo; B fecha o painel e o foco volta ao trilho
   if (railFocus) {
@@ -306,7 +308,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
     nav.seekTarget = std::clamp(base + delta, 0.0, pl.duration > 0 ? std::max(0.0, pl.duration - 2) : 1e9);
     nav.seekPending = true; nav.seekAt = now + 650;
   };
-  auto togglePlay = [&]() { if (!pl.waiting() || pl.paused) pl.setPaused(!pl.paused); };
+  auto togglePlay = [&]() { togglePause(); };
   auto continueWithRadio = [&]() {  // fim da fila com a reprodução automática ligada: segue com a rádio da faixa atual (o main pede quando o worker liberar)
     if (nav.continuing) return;
     nav.continuing = true; nav.cancelQueue = false; nav.queueStart.clear(); nav.radioFor = playing.id;
@@ -343,11 +345,12 @@ inline void UiContext::musicNowInput(uint64_t now) {
   if (nav.tab == 1) loadLyrics();
   if (nav.tab == 2) loadRelated();
 
-  // Faixas e modo valem em qualquer zona (LB RB e View do mapa)
+  // Faixas e modo valem em qualquer zona (LB RB e View do mapa); na fila local (A seguir) o View é "mover faixa" e o modo fica no seletor
   const auto now_ctx = ctl::Ctx::MusicNow;
+  const bool moveZone = nav.nowZone == Zone::ZoneQueue && nav.tab == 0 && nav.localQueue;
   if (ctl::hit(in, now_ctx, Act::PrevItem)) previous();
   if (ctl::hit(in, now_ctx, Act::NextItem)) next();
-  if (ctl::hit(in, now_ctx, Act::SongVideo)) toggleVideo();
+  if (!moveZone && ctl::hit(in, now_ctx, Act::SongVideo)) toggleVideo();
   // LB/RB trocam de aba (A seguir, Letra, Relacionados) em qualquer zona, sem precisar subir a fila inteira
   if (ctl::hit(in, now_ctx, Act::PrevTab) && nav.tab > 0) { nav.tab--; nav.autoFocus = false; }
   if (ctl::hit(in, now_ctx, Act::NextTab) && nav.tab < 2) { nav.tab++; nav.autoFocus = false; }
@@ -355,7 +358,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
   bool up = in.hit(Input::UP), down = in.hit(Input::DOWN), left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), a = in.hit(Input::A);
   bool pageUp = false, pageDown = false;
   // A página das listas segue pelas setas; LT/RT agora são faixa anterior e próxima
-  bool menu = ctl::hit(in, ctx, Act::Options);
+  bool menu = moveZone && ctl::hit(in, ctx, Act::Options);
   std::vector<NavItem>& list = nav.tab == 2 ? nav.related : nav.queue;
   int& sel = nav.tab == 2 ? nav.relatedSel : nav.queueSel;
   const int count = (int)list.size();
@@ -449,7 +452,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
         if (nav.shuffled) nav.queueSaved.push_back(list[(size_t)sel]);
         nav.queueChanged(); say(K::MusicAddedQueue);
       }
-      if (menu && count && nav.tab == 0) { if (nav.localQueue) nav.moving = true; else say(K::MusicQueueServer); }
+      if (menu && count) nav.moving = true;
       break;
   }
   // Fim da fila dos botões: o último botão leva à lista (à direita no layout normal, à esquerda no espelhado)
@@ -473,14 +476,24 @@ inline void UiContext::musicNowDraw() {
   const NowLayout L = nowLayout(g.rtlText);
   const auto ctx = ctl::Ctx::Music; using Act = ctl::Act;
   float hx = ui::X0, y = L.hintY;
-  hx = ctlHint(g, hx, y, ctx, Act::Open, settings.lang);
-  hx = ctlHint(g, hx, y, ctx, Act::Back, settings.lang);
-  hx = ctlHint(g, hx, y, ctl::Ctx::MusicNow, Act::PrevTab, settings.lang);
-  if (!ui::narrow) hx = ctlHint(g, hx, y, ctl::Ctx::MusicNow, Act::PrevItem, settings.lang);
-  hx = ctlHint(g, hx, y, ctl::Ctx::MusicNow, Act::SongVideo, settings.lang);
-  if (nav.nowZone == MusicNavigation::ZoneQueue && nav.tab == 0 && nav.localQueue) hx = ctlHint(g, hx, y, ctx, Act::Options, settings.lang, K::MusicMoveTrack);
-    if (nav.nowZone == MusicNavigation::ZoneQueue && nav.tab == 2 && nav.localQueue) hx = ctlHint(g, hx, y, ctx, Act::AddQueue, settings.lang);
-  if (nav.nowZone == MusicNavigation::ZoneSeek) hx = hint(g, hx, y, i18n::get(i18n::Lang::EN, K::BtnHorizontal), XG, tr(K::MusicSeekBar));
+  // A, B e Menu (pausar/retomar) sempre; as demais enquanto couberem (4:3 e texto grande): a de menor prioridade que não cabe sai inteira.
+  using ctl::Ctx;
+  struct Hint { Ctx ctx; Act act; K text; int priority; };  // quanto maior, mais cedo sai
+  const bool queue = nav.nowZone == MusicNavigation::ZoneQueue, move = queue && nav.tab == 0 && nav.localQueue;
+  std::vector<Hint> row = {{ctx, Act::Open, K::None, 0}, {ctx, Act::Back, K::None, 0}, {Ctx::MusicNow, Act::Pause, pl.paused ? K::Resume : K::Pause, 0},
+                           {Ctx::MusicNow, Act::PrevTab, K::None, 2}, {Ctx::MusicNow, Act::PrevItem, K::None, 3},
+                           move ? Hint{ctx, Act::Options, K::MusicMoveTrack, 1} : Hint{Ctx::MusicNow, Act::SongVideo, K::None, 1}};
+  if (queue && nav.tab == 2 && nav.localQueue) row.push_back({ctx, Act::AddQueue, K::None, 1});
+  const bool seek = nav.nowZone == MusicNavigation::ZoneSeek;  // a dica da barra de busca (←→) vem depois e também conta na largura
+  const float seekWidth = seek ? 44 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::MusicSeekBar)) + 26 : 0.f;
+  auto width = [&]() { float w = seekWidth; for (const auto& h : row) w += ctlHintWidth(g, h.ctx, h.act, settings.lang, h.text); return w; };
+  while (row.size() > 3 && ui::X0 + width() - 26 > ui::W - 48) {
+    size_t drop = 0;
+    for (size_t k = 1; k < row.size(); ++k) if (row[k].priority > row[drop].priority) drop = k;
+    row.erase(row.begin() + (long)drop);
+  }
+  for (const auto& h : row) hx = ctlHint(g, hx, y, h.ctx, h.act, settings.lang, h.text);
+  if (seek) hx = hint(g, hx, y, i18n::get(i18n::Lang::EN, K::BtnHorizontal), XG, tr(K::MusicSeekBar));
   if (nav.sound.open) soundPanelDraw(nav.sound, SDL_GetTicks());
   volumeHud(SDL_GetTicks());  // o volume (do controle ou do celular) aparece aqui como no player e nos Shorts
 }
