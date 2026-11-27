@@ -7,7 +7,7 @@ struct NavItem {
   yt::Membership members = yt::Membership::None;
   std::vector<std::string> titleLines; std::string byline;
   bool shortForm = false;
-  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = std::max(0,duration); v.live = duration < 0; v.members = members; return v; }
+  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = std::max(0,duration); v.live = duration == 0; v.members = members; return v; }
 };
 struct NavPage : ItemGrid {
   yt::search::Filters filters;
@@ -109,7 +109,7 @@ struct Navigation {
       if (p.direct) {
         p.title = p.query; p.subtitle = i18n::get(lang, K::Console); p.more = false;
         for (const auto& v : r.feed.items) {
-          NavItem item{"video",v.id,v.title,v.channel,v.id,"","",v.dur,v.members};
+          NavItem item{"video",v.id,v.title,v.channel,v.id,"","",v.live ? 0 : v.dur > 0 ? v.dur : -1,v.members};
           item.shortForm=v.shortForm; p.items.push_back(std::move(item));
         }
         p.offset = (int)p.items.size();
@@ -180,7 +180,7 @@ struct Navigation {
     if (list) {
       p.items.clear(); p.loading=p.more=false; p.direct=true; p.image.clear();
       p.subtitle=i18n::get(lang,K::LocalOnly);
-      for (const auto& e:p.kind=="local_later"?local->later:local->history) p.items.push_back({"video",e.id,e.title,e.channel,e.id,"","",e.duration});
+      for (const auto& e:p.kind=="local_later"?local->later:local->history) p.items.push_back({"video",e.id,e.title,e.channel,e.id,"","",e.duration > 0 ? e.duration : -1});
     } else {
       p.items.erase(std::remove_if(p.items.begin(),p.items.end(),[](const NavItem& i){return i.type=="local_later" || i.type=="local_history";}),p.items.end());
       NavItem later,history; later.type="local_later";later.id="LOCAL_LATER";later.title=i18n::get(lang,K::LocalLater);
