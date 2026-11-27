@@ -201,8 +201,15 @@ struct UiContext {
   void searchInput(const char* const* keys);
   void searchDraw(const char* const* keys, double t);
 
-  // ---- Páginas de navegação: canal, Inscrições, Biblioteca... (ui_channel.hpp)
+  // ---- Páginas de navegação: entrada genérica em ui_collection.hpp, ganchos por tipo em ui_channel, ui_music e ui_search
   void navInput(uint64_t now);
+  void channelHeaderPress(NavPage& p, uint64_t now);
+  void channelTabSelected(NavPage& p);
+  void playlistHeaderPress(NavPage& p);
+  void subscriptionStripInput(NavPage& p, bool left, bool right, bool down, bool a);
+  void musicHomeMove(NavPage& p, bool left, bool right, bool up, bool down);
+  void musicTabSelected(NavPage& p);
+  void searchFiltersPress(NavPage& p);
 
   // ---- Player (ui_player.hpp)
   void playerPanelInput(uint64_t now, const display::CommentsPanel& commentPanel);

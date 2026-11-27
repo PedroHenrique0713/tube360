@@ -1,6 +1,6 @@
-// Música: a tela "Tocando agora" (capa, fila, letra e botões) e o que a Música acrescenta por cima do player.
-// As páginas da Música (início, busca, playlists) são páginas de navegação: entrada em ui_channel.hpp, desenho em
-// Navigation::draw (navigation.hpp).
+// Música: as páginas (início com prateleiras, busca, álbum, artista, rádio, playlist de música), a tela "Tocando agora"
+// (capa, fila, letra e botões) e o que a Música acrescenta por cima do player. A entrada genérica das páginas está em
+// ui_collection.hpp; aqui ficam os ganchos da Música.
 #pragma once
 #include "ui_context.hpp"
 
@@ -103,4 +103,72 @@ inline void UiContext::musicSleepDraw(double sleepLeft) {
   float y = screen == PLAYER ? 124 : 24;
   gfx::rect(g, x, y, w, 32, ui::SURFACE2, 16);
   gfx::text(g, ui::F_SMALL, label, x + 15, y + 7, ui::MUTED);
+}
+
+// Prateleiras do início da Música: esquerda/direita andam na prateleira, cima/baixo trocam de prateleira (cima da primeira sobe para as abas).
+inline void UiContext::musicHomeMove(NavPage& p, bool left, bool right, bool up, bool down) {
+  auto& shelf = p.shelves[p.shelf];
+  if (left && p.sel > shelf.first) shelf.selected--;
+  if (right && p.sel + 1 < shelf.end) shelf.selected++;
+  if (up && p.shelf == 0) p.zone = 1;
+  else if (up) p.shelf--;
+  if (down && p.shelf + 1 < (int)p.shelves.size()) p.shelf++;
+  p.sel = p.shelves[p.shelf].selected;
+}
+
+// Troca de aba da Música: Início, Paradas, Mixes (ou Tudo, Músicas, Álbuns, Artistas na busca); no início a aba vira a consulta.
+inline void UiContext::musicTabSelected(NavPage& p) {
+  p.tab = p.tabSel == 1 ? "live" : p.tabSel == 2 ? "playlists" : "videos";
+  if (p.kind == "music") p.query = p.tabSel == 1 ? "charts" : p.tabSel == 2 ? "mixes" : "";
+}
+
+// Página de Música: fundo vermelho escuro, capa quadrada (redonda para artista), título grande, "Reproduzir tudo", abas e a
+// grade quadrada. O início troca a grade por prateleiras e põe as abas ao lado do título.
+inline float Navigation::drawMusicPage(NavDraw& d) {
+  auto& g = d.g; auto& p = d.p;
+  bool home = p.musicHome();
+  bool channel = p.kind == "channel", playlist = playlistKind(p);
+  if (!home) gfx::hgrad(g, 96, 0, 1184, 224, rgb(0x32161f), ui::BG);
+  float tx = 136;
+  if (!home && !p.image.empty()) { artwork(g, d.thumbs, d.worker, p.image, d.frame, tx, 46, 86, 86, true, p.kind == "channel" || p.kind == "artist"); tx += 110; }
+  int titleFont = !home ? ui::F_HERO : ui::F_BIG;
+  gfx::textBox(g, titleFont, p.displayTitle.empty() ? d.tr(titleKey(p)) : p.displayTitle, tx, !home ? 42 : 28, home ? (ui::narrow ? 150 : 480) : ui::W-tx-64, ui::TEXT);
+  if (home && !p.musicLabel.empty()) gfx::textBox(g, ui::F_TINY, p.musicLabel, ui::narrow ? 300 : tx, ui::narrow ? 32 : 69, ui::W-(ui::narrow ? 300 : tx)-64, ui::MUTED);
+  if (!home) gfx::text(g, ui::F_CHAN, p.displaySub, tx, 103, ui::MUTED);
+  if (channel || playlist) {
+    bool f = d.contentFocus && p.zone == 0;
+    gfx::rect(g, ui::W-316, 64, 252, 54, f ? ui::TEXT : ui::SURFACE2, 27);
+    gfx::text(g, ui::F_KEY, d.tr(channel ? p.subscribed ? K::Subscribed : K::Subscribe : K::PlayAll), ui::W-190, 80, f ? ui::INK : ui::TEXT, 1);
+  }
+  bool tabs = channel || p.kind == "music" || p.kind == "music_search";
+  if (tabs) {
+    const K channelTabs[] = {K::Videos,K::ChannelShorts,K::ChannelLive,K::Playlists};
+    const K musicTabs[] = {K::Home,K::Charts,K::Mixes};
+    const K songTabs[] = {K::AllResults,K::Songs,K::Albums,K::Artists};
+    int count = channel || p.kind == "music_search" ? 4 : 3; float x = home && !ui::narrow ? 650 : 136;
+    float tabY = home ? (ui::narrow ? 88 : 32) : 166;
+    navTabs(d, channel ? channelTabs : p.kind == "music" ? musicTabs : songTabs, count, x, tabY);
+  }
+  float top = 246;
+  auto m = navMetrics(d);
+  if (home) {
+    int shelfCount=ui::large ? 2 : 3, shelfColumns=ui::narrow ? 4 : ui::large ? 5 : 7;
+    int firstShelf = std::max(0, p.shelf-shelfCount+1);
+    for (int row = firstShelf; row < std::min(firstShelf+shelfCount, (int)p.shelves.size()); row++) {
+      const auto& shelf = p.shelves[row];
+      float y = (ui::narrow ? 150 : 99) + (row-firstShelf)*(ui::large ? 216 : 184);
+      gfx::text(g, ui::F_KEY, shelf.title, 136, y, ui::TEXT);
+      int first = std::max(shelf.first, shelf.selected-shelfColumns+1);
+      for (int i = first; i < std::min(shelf.end, first+shelfColumns); i++) {
+        const auto& item = p.items[i]; float x = 136 + (i - first) * 155;
+        bool f = d.contentFocus && p.zone == 3 && i == p.sel;
+        if (f) gfx::rect(g, x - 4, y + 26, 118, 118, ui::TEXT, 9);
+        artwork(g, d.thumbs, d.worker, item.image, d.frame, x, y + 30, 110, 110, true);
+        memberBadge(g, item.members, d.lang, x + 5, y + 35);
+        gfx::textBox(g, ui::F_SMALL, item.titleLines[0], x, y + 143, 135, ui::TEXT);
+        gfx::textBox(g, ui::F_TINY, item.byline, x, y + (ui::large ? 178 : 163), 135, ui::MUTED);
+      }
+    }
+  } else navGrid(d, top, m);
+  return top;
 }

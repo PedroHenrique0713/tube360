@@ -64,7 +64,7 @@ using gfx::Color;
 using gfx::rgb;
 using K = i18n::Key;
 
-#include "ui_cards.hpp"
+#include "ui_theme.hpp"
 
 struct ItemGrid {
   struct GridRow { std::vector<int> items; bool shorts = false; };
@@ -491,6 +491,7 @@ struct Input {
 };
 
 #include "music_navigation.hpp"
+#include "ui_cards.hpp"
 #include "local_library_ui.hpp"
 #include "update/ui.hpp"
 #include "nest_picker.hpp"
@@ -501,6 +502,7 @@ struct Input {
 #include "ui_settings.hpp"
 #include "ui_shell.hpp"
 #include "ui_search.hpp"
+#include "ui_collection.hpp"
 #include "ui_channel.hpp"
 #include "ui_player.hpp"
 #include "ui_music.hpp"

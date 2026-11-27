@@ -32,6 +32,13 @@ struct NavPage : ItemGrid {
     return "/api/nav?kind=" + kind + "&id=" + net::urlEncode(id) + "&q=" + net::urlEncode(query) + "&tab=" + tab + "&filter=" + std::to_string(tabSel) + (kind=="search" ? "&params="+net::urlEncode(filters.params()) : "");
   }
 };
+struct Navigation;
+// O que uma página precisa para se desenhar: o quadro, as miniaturas, a página aberta e se o foco está no conteúdo.
+struct NavDraw {
+  gfx::Gfx& g; Thumbs& thumbs; Worker& worker; uint64_t frame, now; i18n::Lang lang; bool contentFocus, hideShorts;
+  Navigation& nav; NavPage& p;
+  const char* tr(K key) const { return i18n::get(lang, key); }
+};
 struct Navigation {
   local::Library* local = nullptr;
   bool signedIn = false;
@@ -189,18 +196,8 @@ struct Navigation {
     if (busy) return;
     busy = true; actionPath = path; actionStamp = ++serial; worker.add({6, path, actionStamp}, true);
   }
-  static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::string& id, uint64_t frame, float x, float y, float w, float h, bool square = false, bool round = false, bool direct = false, bool portrait = false, float bottom = 1e9f) {
-    float visibleH=std::min(h,bottom-y);
-    if (visibleH <= 0) return;
-    if (visibleH == h && musicShortcutArt(g,id,x,y,w,h)) return;
-    float radius = round ? w / 2 : square ? 6 : 12;
-    const auto* s = id.empty() ? nullptr : thumbs.get(worker, id, frame, direct);
-    if (s) {
-      float crop = portrait ? (float)thumbs.height / thumbs.width * 9/16 : square ? (float)thumbs.height / thumbs.width : 1;
-      if (visibleH < h) gfx::imagePart(g,s->tex,x,y,w,visibleH,.5f-crop/2,0,.5f+crop/2,visibleH/h,{1,1,1,1});
-      else gfx::image(g, s->tex, x, y, w, h, radius, {1,1,1,1}, crop);
-    } else gfx::rect(g, x, y, w, visibleH, ui::SURFACE2, radius);
-  }
+  // páginas cujo botão do cabeçalho é "Reproduzir tudo"
+  static bool playlistKind(const NavPage& p) { return p.kind == "playlist" || p.kind == "album" || p.kind == "music_playlist" || p.kind == "music_recent" || p.kind == "later" || p.kind == "radio"; }
   static K titleKey(const NavPage& p) {
     if (p.kind == "local_later") return K::LocalLater;
     if (p.kind == "local_history") return K::LocalHistory;
@@ -218,7 +215,24 @@ struct Navigation {
     if (p.kind == "artist") return K::Artist;
     return K::Channel;
   }
-  void draw(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, uint64_t now, i18n::Lang lang, bool contentFocus, bool hideShorts = false);
+  // Despachante: o fundo, a página do tipo certo (cada uma no arquivo do seu dono), a mensagem de vazio e o rodapé.
+  void draw(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, uint64_t now, i18n::Lang lang, bool contentFocus, bool hideShorts = false) {
+    if (pages.empty()) return;
+    refreshLocal(g,lang);
+    auto& p = page();
+    NavDraw d{g, thumbs, worker, frame, now, lang, contentFocus, hideShorts, *this, p};
+    drawBanner(d);
+    float top = p.music ? drawMusicPage(d) : p.kind == "channel" ? drawChannelPage(d) : p.kind == "search" ? drawSearchPage(d) : drawCollectionPage(d);
+    drawEmpty(d, top);
+    drawFooter(d);
+  }
+  void drawBanner(NavDraw& d);
+  float drawMusicPage(NavDraw& d);       // ui_music.hpp
+  float drawChannelPage(NavDraw& d);     // ui_channel.hpp
+  float drawSearchPage(NavDraw& d);      // ui_search.hpp
+  float drawCollectionPage(NavDraw& d);  // ui_collection.hpp
+  void drawEmpty(NavDraw& d, float top);
+  void drawFooter(NavDraw& d);
   void drawMenu(gfx::Gfx& g, i18n::Lang lang);
   void prepareNow(gfx::Gfx& g, Video& playing, i18n::Lang lang);
   void drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const Video& playing, double pos, double duration, bool paused, bool waiting, K error, uint64_t frame, i18n::Lang lang);

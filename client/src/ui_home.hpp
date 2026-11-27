@@ -70,40 +70,14 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
       first=std::clamp(selected-visible+1,0,std::max(0,(int)row.items.size()-visible));
     }
     for (int col=first;col<std::min((int)row.items.size(),first+visible);++col) {
-    int i=row.items[col];
-    const Video& v=cur.feed.items[(size_t)i];
-    float artW=row.shorts ? shortW : cw, artH=row.shorts ? shortH : th;
-    float x=ui::X0+(col-first)*(artW+gap);
-    bool focused=zone==0 && !railFocus && i==cur.sel;
-    float& an=selAnim[i%600]; an+=((focused ? 1.f : 0.f)-an)*.25f;
-    float s=row.shorts ? 1 : 1+.045f*an, w=artW*s, h=artH*s, ix=x-(w-artW)/2, iy=y-(h-artH)/2;
-    if (row.shorts && focused && iy-5<646) gfx::rect(g,ix-5,iy-5,w+10,std::min(h+10,646-iy+5),ui::TEXT,12);
-    else if (!row.shorts && an>.02f && iy-4<646) {
-      if (iy-24>=140 && iy+h+32<=646) gfx::shadow(g,ix,iy+10,w,h,14,22,.6f*an);
-      gfx::rect(g,ix-4,iy-4,w+8,std::min(h+8,646-iy+4),ui::alpha(rgb(0xffffff),an),16);
-    }
-    Navigation::artwork(g,thumbs,thumbsWorker,v.id,frame,ix,iy,w,h,false,false,cur.feed.direct,row.shorts,646);
-    const auto* saved=(!account.signedIn() || cur.kind=="local_later" || cur.kind=="local_history")?local::Library::find(localUI.library.history,v.id):nullptr;
-    double shownPos=saved?saved->position:v.pos, shownDuration=saved?saved->duration:v.dur;
-    if (shownPos>0 && shownDuration>0 && iy+h<=646) {
-      gfx::rect(g,ix+4,iy+h-5,w-8,4,{0,0,0,.6f},2);
-      gfx::rect(g,ix+4,iy+h-5,std::max(4.f,(w-8)*(float)std::clamp(shownPos/shownDuration,0.0,1.0)),4,ui::A1,2);
-    }
-    if (!row.shorts && iy+h<=646 && v.dur>=0) {
-      std::string d=v.dur ? fmtTime(v.dur) : tr(K::Live);
-      float dw=gfx::textWidth(g,ui::F_TINY,d)+12, badgeH=ui::large ? 36 : 20, badgeY=iy+h-badgeH-7;
-      gfx::rect(g,ix+w-dw-7,badgeY,dw,badgeH,v.dur ? Color{0,0,0,.8f} : ui::A1,5);
-      gfx::text(g,ui::F_TINY,d,ix+w-dw/2-7,badgeY+(badgeH-g.fonts[ui::F_TINY].size)/2,rgb(0xffffff),1);
-    }
-    if (iy+7+(ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+8) : 20)<=646) memberBadge(g,v.members,settings.lang,ix+7,iy+7);
-    int titleFont=row.shorts ? ui::F_SMALL : ui::F_CARD, metaFont=row.shorts ? ui::F_TINY : ui::F_SMALL;
-    float ty=y+artH+(row.shorts ? 16 : 14);
-    for (const auto& line:gfx::wrap(g,titleFont,v.title,artW,2)) {
-      if (ty+g.fonts[titleFont].lineH<=646) gfx::textBox(g,titleFont,line,x,ty,artW,focused ? ui::TEXT : rgb(0xe4e4e7));
-      ty+=ui::large ? (row.shorts ? 34 : 31) : row.shorts ? 27 : 23;
-    }
-    std::string meta=v.channel+(v.views.empty() ? "" : "  \xC2\xB7  "+v.views);
-    if (ty+3+g.fonts[metaFont].lineH<=646) gfx::textBox(g,metaFont,gfx::ellipsize(g,metaFont,meta,artW),x,ty+3,artW,ui::MUTED);
+      int i=row.items[col];
+      const Video& v=cur.feed.items[(size_t)i];
+      float artW=row.shorts ? shortW : cw, artH=row.shorts ? shortH : th;
+      float x=ui::X0+(col-first)*(artW+gap);
+      bool focused=zone==0 && !railFocus && i==cur.sel;
+      float& an=selAnim[i%600]; an+=((focused ? 1.f : 0.f)-an)*.25f;
+      const auto* saved=(!account.signedIn() || cur.kind=="local_later" || cur.kind=="local_history")?local::Library::find(localUI.library.history,v.id):nullptr;
+      homeCard(g,thumbs,thumbsWorker,frame,settings.lang,v,cur.feed.direct,row.shorts,focused,x,y,artW,artH,an,saved);
     }
   }
   if (grid.rows.empty()) {

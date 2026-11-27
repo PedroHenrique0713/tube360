@@ -1,18 +1,8 @@
-// Peças de desenho compartilhadas entre as telas: tema, botões do controle, marca, ícones, selos e duração.
+// Peças de desenho compartilhadas entre as telas: botões do controle, marca, ícones, selos e duração, e os cartões
+// (miniatura, andamento, duração, selo de membros e textos) da Home e das páginas de navegação. Vem depois de Thumbs,
+// Worker e das páginas (navigation.hpp), que os cartões desenham.
 #pragma once
-
-// ---------------------------------------------------------------- tema
-namespace ui {
-const Color BG = rgb(0x0b0b0e), SURFACE = rgb(0x18181d), SURFACE2 = rgb(0x24242b), TEXT = rgb(0xf5f5f7),
-            MUTED = rgb(0xa1a1aa), FAINT = rgb(0x6b6b74), A1 = rgb(0xff0f3c), A2 = rgb(0xff5a52), INK = rgb(0x0b0b0e);
-enum { F_BODY, F_SMALL, F_CARD, F_H2, F_LOGO, F_BIG, F_KEY, F_TINY, F_HERO, F_CHAN, F_LOGOL, F_CODE, F_VIDEO_TITLE, F_META, F_DETAIL, F_CLOCK, F_BADGE };
-inline float W = 1280;
-constexpr float H = 720, RAIL = 96, X0 = 136;
-inline bool large = false, narrow = false;
-inline int columns(int preferred) { return narrow ? 2 : large ? std::min(3,preferred) : preferred; }
-inline Color alpha(Color c, float a) { return {c.r, c.g, c.b, c.a * a}; }
-inline Color mix(Color a, Color b, float t) { return {a.r + (b.r - a.r) * t, a.g + (b.g - a.g) * t, a.b + (b.b - a.b) * t, a.a + (b.a - a.a) * t}; }
-}  // namespace ui
+#include "music_shortcut_art.hpp"
 
 static std::string fmtTime(double s) {
   if (s < 0) s = 0;
@@ -187,3 +177,137 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
     gfx::rect(g, cx + std::cos(a) * r - 4, cy + std::sin(a) * r - 4, 8, 8, c, 4);
   }
 }
+
+// ---------------------------------------------------------------- cartões
+// Miniatura recortada para o formato do cartão (retrato para Shorts, quadrada para música); sem imagem, um bloco liso.
+static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::string& id, uint64_t frame, float x, float y, float w, float h, bool square = false, bool round = false, bool direct = false, bool portrait = false, float bottom = 1e9f) {
+  float visibleH=std::min(h,bottom-y);
+  if (visibleH <= 0) return;
+  if (visibleH == h && musicShortcutArt(g,id,x,y,w,h)) return;
+  float radius = round ? w / 2 : square ? 6 : 12;
+  const auto* s = id.empty() ? nullptr : thumbs.get(worker, id, frame, direct);
+  if (s) {
+    float crop = portrait ? (float)thumbs.height / thumbs.width * 9/16 : square ? (float)thumbs.height / thumbs.width : 1;
+    if (visibleH < h) gfx::imagePart(g,s->tex,x,y,w,visibleH,.5f-crop/2,0,.5f+crop/2,visibleH/h,{1,1,1,1});
+    else gfx::image(g, s->tex, x, y, w, h, radius, {1,1,1,1}, crop);
+  } else gfx::rect(g, x, y, w, visibleH, ui::SURFACE2, radius);
+}
+
+// Cartão de vídeo da Home. (x,y) é o canto da miniatura, artW×artH o tamanho em repouso, an a animação de foco (0 a 1),
+// saved o registro do histórico local (se a lista é local) e direct se a miniatura vem do console.
+static void homeCard(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, i18n::Lang lang, const Video& v, bool direct, bool shorts,
+                     bool focused, float x, float y, float artW, float artH, float an, const local::Entry* saved) {
+  float s=shorts ? 1 : 1+.045f*an, w=artW*s, h=artH*s, ix=x-(w-artW)/2, iy=y-(h-artH)/2;
+  if (shorts && focused && iy-5<646) gfx::rect(g,ix-5,iy-5,w+10,std::min(h+10,646-iy+5),ui::TEXT,12);
+  else if (!shorts && an>.02f && iy-4<646) {
+    if (iy-24>=140 && iy+h+32<=646) gfx::shadow(g,ix,iy+10,w,h,14,22,.6f*an);
+    gfx::rect(g,ix-4,iy-4,w+8,std::min(h+8,646-iy+4),ui::alpha(rgb(0xffffff),an),16);
+  }
+  artwork(g,thumbs,worker,v.id,frame,ix,iy,w,h,false,false,direct,shorts,646);
+  double shownPos=saved?saved->position:v.pos, shownDuration=saved?saved->duration:v.dur;
+  if (shownPos>0 && shownDuration>0 && iy+h<=646) {
+    gfx::rect(g,ix+4,iy+h-5,w-8,4,{0,0,0,.6f},2);
+    gfx::rect(g,ix+4,iy+h-5,std::max(4.f,(w-8)*(float)std::clamp(shownPos/shownDuration,0.0,1.0)),4,ui::A1,2);
+  }
+  if (!shorts && iy+h<=646 && v.dur>=0) {
+    std::string d=v.dur ? fmtTime(v.dur) : i18n::get(lang,K::Live);
+    float dw=gfx::textWidth(g,ui::F_TINY,d)+12, badgeH=ui::large ? 36 : 20, badgeY=iy+h-badgeH-7;
+    gfx::rect(g,ix+w-dw-7,badgeY,dw,badgeH,v.dur ? Color{0,0,0,.8f} : ui::A1,5);
+    gfx::text(g,ui::F_TINY,d,ix+w-dw/2-7,badgeY+(badgeH-g.fonts[ui::F_TINY].size)/2,rgb(0xffffff),1);
+  }
+  if (iy+7+(ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+8) : 20)<=646) memberBadge(g,v.members,lang,ix+7,iy+7);
+  int titleFont=shorts ? ui::F_SMALL : ui::F_CARD, metaFont=shorts ? ui::F_TINY : ui::F_SMALL;
+  float ty=y+artH+(shorts ? 16 : 14);
+  for (const auto& line:gfx::wrap(g,titleFont,v.title,artW,2)) {
+    if (ty+g.fonts[titleFont].lineH<=646) gfx::textBox(g,titleFont,line,x,ty,artW,focused ? ui::TEXT : rgb(0xe4e4e7));
+    ty+=ui::large ? (shorts ? 34 : 31) : shorts ? 27 : 23;
+  }
+  std::string meta=v.channel+(v.views.empty() ? "" : "  \xC2\xB7  "+v.views);
+  if (ty+3+g.fonts[metaFont].lineH<=646) gfx::textBox(g,metaFont,gfx::ellipsize(g,metaFont,meta,artW),x,ty+3,artW,ui::MUTED);
+}
+
+// Medidas da grade de uma página de navegação; ao calcular, já monta as linhas e anima a rolagem.
+struct NavMetrics { int cols; float cw, art, h, rowH, shortW, shortH, shortHeading, shortRowH; };
+static NavMetrics navMetrics(NavDraw& d) {
+  auto& g = d.g; auto& p = d.p;
+  NavMetrics m;
+  m.cols=ui::columns(4); m.cw=std::floor((ui::W-200-(m.cols-1)*24)/m.cols); m.art=p.music ? std::min(m.cw,246.f) : m.cw; m.h=p.music ? m.art : m.cw*9/16;
+  m.rowH=m.h+(p.kind=="library" ? 28 : ui::large ? 114 : 100);
+  p.grid(m.cols,d.hideShorts);
+  m.shortW=std::min(m.cw*.5f,112.f); m.shortH=m.shortW*16/9; m.shortHeading=std::max(30.f,g.fonts[ui::F_KEY].lineH+8); m.shortRowH=m.shortHeading+m.shortH+(ui::large ? 124 : 100);
+  float want = 0;
+  if (p.zone == 3) for (int row=0; row<p.gridRow(); ++row) want += p.rows[row].shorts ? m.shortRowH : m.rowH;
+  p.scroll += (want - p.scroll) * 0.24f;
+  return m;
+}
+
+// Cartão da grade de navegação (coleções, canal, busca e música). A Biblioteca usa o ladrilho com o título sobre a capa.
+static void navCard(NavDraw& d, const NavMetrics& m, const NavItem& item, bool shorts, bool focused, float x, float y, float artW, float artH) {
+  auto& g = d.g; auto& p = d.p; auto& nav = d.nav;
+  auto tr = [&](K k) { return d.tr(k); };
+  const float cw = m.cw, art = m.art, h = m.h;
+  if (focused && y-5 < 646) gfx::rect(g, x - 5, y - 5, artW + 10, std::min(artH+10,646-y+5), ui::TEXT, 12);
+  artwork(g, d.thumbs, d.worker, item.image, d.frame, x, y, artW, artH, p.music || item.type == "channel" || item.type == "artist", item.type == "channel" || item.type == "artist", p.direct, shorts, 646);
+  if (y+7+(ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+8) : 20) <= 646) memberBadge(g, item.members, d.lang, x + 7, y + 7);
+  const auto* saved=nav.local && (!nav.signedIn || p.kind=="local_later" || p.kind=="local_history")?local::Library::find(nav.local->history,item.id):nullptr;
+  double pos=saved?saved->position:0,duration=saved?saved->duration:item.duration;
+  if(item.type=="video" && pos>0 && duration>0 && y+artH <= 646){gfx::rect(g,x+4,y+artH-6,artW-8,4,ui::SURFACE2,2);gfx::rect(g,x+4,y+artH-6,(artW-8)*float(std::clamp(pos/duration,0.0,1.0)),4,ui::A1,2);}
+  if (p.kind == "library" && !shorts) {
+    gfx::vgrad(g, x, y, art, h, {0,0,0,0}, {0,0,0,0.94f}, 12);
+    float labelY = y + h - 12 - 27 * item.titleLines.size();
+    for (const auto& line : item.titleLines) { gfx::textBox(g, ui::F_KEY, line, x + 12, labelY, art-24, ui::TEXT); labelY += 27; }
+    return;
+  }
+  if (item.image.empty()) {
+    K k = item.type == "history" ? K::History : item.type == "later" ? K::WatchLater : item.type == "mixes" ? K::Mixes : K::Playlists;
+    if (y+h/2-12+g.fonts[ui::F_H2].lineH <= 646) gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, tr(k), art - 32), x + 16, y + h / 2 - 12, ui::MUTED);
+  }
+  float ty = y + artH + 16, textW=shorts ? m.shortW : cw;
+  int titleFont=shorts ? ui::F_SMALL : ui::F_KEY, bylineFont=shorts ? ui::F_TINY : ui::F_CHAN;
+  for (const auto& line : item.titleLines) {
+    if (ty+g.fonts[titleFont].lineH <= 646) gfx::textBox(g, titleFont, line, x, ty, textW, ui::TEXT);
+    ty += ui::large ? 34 : 27;
+  }
+  if (ty+4+g.fonts[bylineFont].lineH <= 646) gfx::textBox(g, bylineFont, item.byline, x, ty + 4, textW, ui::MUTED);
+}
+
+// Fileiras da grade de uma página de navegação (a partir do y = top), com a fileira de Shorts quando existe.
+static void navGrid(NavDraw& d, float top, const NavMetrics& m) {
+  auto& g = d.g; auto& p = d.p;
+  float rowY = top-p.scroll;
+  for (const auto& row : p.rows) {
+    float y=rowY, artW=row.shorts ? m.shortW : m.art, artH=row.shorts ? m.shortH : m.h;
+    rowY += row.shorts ? m.shortRowH : m.rowH;
+    if (y < top-2 || y >= 646) continue;
+    if (p.kind == "library" && !row.shorts && y+m.h > 656) continue;
+    int first=0, visible=(int)row.items.size();
+    if (row.shorts) {
+      if (y+g.fonts[ui::F_KEY].lineH <= 646) gfx::text(g,ui::F_KEY,d.tr(K::ChannelShorts),136,y,ui::TEXT);
+      y+=m.shortHeading;
+      visible=std::max(1,(int)((ui::W-200+24)/(m.shortW+24)));
+      int selected=p.gridRow()>=0 && p.rows[p.gridRow()].shorts ? p.gridPosition() : p.shortColumn;
+      first=std::clamp(selected-visible+1,0,std::max(0,(int)row.items.size()-visible));
+    }
+    for (int col=first; col<std::min((int)row.items.size(),first+visible); ++col) {
+      int i=row.items[col];
+      float x = 136 + (col-first) * ((row.shorts ? m.shortW : m.cw) + 24);
+      bool f = d.contentFocus && p.zone == 3 && (int)i == p.sel;
+      navCard(d, m, p.items[i], row.shorts, f, x, y, artW, artH);
+    }
+  }
+}
+
+// Abas de uma página (Vídeos/Shorts/Ao vivo/Playlists, Início/Paradas/Mixes...): a ativa sublinhada, a focada em branco.
+static void navTabs(NavDraw& d, const K* keys, int count, float x, float tabY) {
+  auto& g = d.g; auto& p = d.p;
+  for (int i = 0; i < count; i++) {
+    K key = keys[i];
+    float w = gfx::textWidth(g, ui::F_KEY, d.tr(key)) + 40;
+    bool active = i == p.tabSel, focus = d.contentFocus && active && p.zone == 1;
+    gfx::rect(g, x, tabY, w, 42, focus ? ui::TEXT : active ? ui::SURFACE2 : ui::BG, 23);
+    gfx::text(g, ui::F_KEY, d.tr(key), x + w / 2, tabY + 11, focus ? ui::INK : ui::TEXT, 1);
+    if (active && !focus) gfx::hgrad(g, x + 20, tabY + 43, w - 40, 3, ui::A1, ui::A2, 1.5f);
+    x += w + 14;
+  }
+}
+
