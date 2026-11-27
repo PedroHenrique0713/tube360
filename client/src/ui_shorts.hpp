@@ -25,6 +25,13 @@ inline void UiContext::shortsStep(int direction) {
   if (at >= 0 && to >= 0 && to < (int)shortsQueue.size()) { Video v = shortsQueue[(size_t)to]; shelf.shortsFocus = 0; startVideo(v, 0, false); }
 }
 
+// O Short acabou: vai para o seguinte da fila; no último, repete (como o Short no celular).
+inline void UiContext::shortsEnded() {
+  int at = shortsIndex();
+  if (at >= 0 && at + 1 < (int)shortsQueue.size()) { Video v = shortsQueue[(size_t)at + 1]; shelf.shortsFocus = 0; startVideo(v, 0, false); }
+  else { LOG("shorts: fim da fila, repetindo %s", playing.id.c_str()); startVideo(playing, 0, false); }
+}
+
 inline void UiContext::shortsInput(uint64_t now) {
   int vertical = in.hit(Input::DOWN) ? 1 : in.hit(Input::UP) ? -1 : 0;
   int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
@@ -37,9 +44,15 @@ inline void UiContext::shortsInput(uint64_t now) {
     if (focus) focus = std::clamp(focus + vertical, 1, actions);
     else shortsStep(vertical);
   }
-  if (in.hit(Input::RB)) shortsStep(1);
-  if (in.hit(Input::LB)) shortsStep(-1);
-  if (in.hit(Input::A) || in.hit(Input::START)) {
+  if (!playerFromRemote && !phonePlaybackSerial) {
+    if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::NextItem)) shortsStep(1);
+    if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::PrevItem)) shortsStep(-1);
+  }
+  // Menu (Opções) leva o foco às ações ao lado e de volta; LT/RT (sem papel no mapa dos Shorts) ajustam o volume.
+  if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::Options)) focus = focus ? 0 : 1;
+  if (in.hit(Input::LT)) adjustVolume(now, -1);
+  if (in.hit(Input::RT)) adjustVolume(now, 1);
+  if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::PlayPause)) {
     if (!focus) { if (!pl.waiting() || pl.paused) pl.setPaused(!pl.paused); }
     else if (focus <= 2) {
       if (account.signedIn()) {
@@ -49,9 +62,9 @@ inline void UiContext::shortsInput(uint64_t now) {
     } else if (focus == 3) { playerUI.panel = PlayerUI::COMMENTS_PANEL; if (!extras.loaded) extras.request(); }
     else openPlayerChannel(captions.channelId, playing.id);
   }
-  if (in.hit(Input::X)) playerWatchLater(now);
-  in.hit(Input::BACK); in.hit(Input::Y); in.hit(Input::LT); in.hit(Input::RT);
-  if (in.hit(Input::B)) { if (focus) focus = 0; else stopVideo(); }
+  if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::WatchLater)) playerWatchLater(now);
+  in.hit(Input::BACK); in.hit(Input::Y);
+  if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::Back)) { if (focus) focus = 0; else stopVideo(); }
   if (focus != focusBefore) LOG("shorts: foco %d", focus);
   if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
     nestSkip = true; toast = tr(K::SpeakerFallback); toastUntil = now + 5000;
@@ -99,11 +112,14 @@ inline void UiContext::shortsDraw(uint64_t now, double t) {
     shortsIcon(g, actions[i].icon, cx, cy, focus == i + 1, actions[i].marked);
     gfx::text(g, ui::F_TINY, actions[i].label, cx, cy + 34, focus == i + 1 ? ui::TEXT : ui::MUTED, 1);
   }
-  // Dicas à esquerda, fora do vídeo.
-  float hy = ui::H / 2 - 90, hx = 40;
+  // Dicas à esquerda, fora do vídeo, pelo mapa único.
+  float hy = ui::H / 2 - 110, hx = 40;
   hint(g, hx, hy, tr(K::BtnVertical), XG, focus ? tr(K::ChooseRow) : tr(K::ShortsStep));
-  hint(g, hx, hy + 44, "A", XA, tr(focus ? K::Open : pl.paused ? K::Resume : K::Pause));
-  hint(g, hx, hy + 88, "B", XB, tr(focus ? K::Close : K::Back));
+  ctlHint(g, hx, hy + 40, ctl::Ctx::Shorts, ctl::Act::PlayPause, settings.lang, focus ? K::Open : pl.paused ? K::Resume : K::Pause);
+  ctlHint(g, hx, hy + 80, ctl::Ctx::Shorts, ctl::Act::WatchLater, settings.lang);
+  ctlHint(g, hx, hy + 120, ctl::Ctx::Shorts, ctl::Act::Options, settings.lang);
+  ctlHint(g, hx, hy + 160, ctl::Ctx::Shorts, ctl::Act::Back, settings.lang, focus ? K::Close : K::None);
+  volumeHud(now);
   if (pl.waiting()) {
     spinner(g, ui::W / 2, ui::H / 2, 26, t);
   }

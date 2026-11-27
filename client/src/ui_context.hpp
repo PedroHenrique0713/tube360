@@ -242,6 +242,10 @@ struct UiContext {
   void playerShelfInput(uint64_t now);
   void playerShelfDraw(uint64_t now);
   void playerWatchLater(uint64_t now);
+  bool playerStep(int direction);
+  void shortsEnded();
+  void adjustVolume(uint64_t now, int direction);
+  void volumeHud(uint64_t now);
   int shortsIndex() const;
   void shortsStep(int direction);
   void shortsInput(uint64_t now);

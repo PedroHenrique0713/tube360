@@ -842,7 +842,7 @@ int run(int argc, char** argv) {
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
     bool localOpening=v.id!=playing.id || screen!=PLAYER;
     if (screen != PLAYER) playedBefore.clear();
-    if (!historyBack && screen == PLAYER && !playing.id.empty() && v.id != playing.id && !nav.musicNow) {
+    if (!historyBack && !nav.localQueue && screen == PLAYER && !playing.id.empty() && v.id != playing.id && !nav.musicNow) {
       if (playedBefore.empty() || playedBefore.back().id != playing.id) playedBefore.push_back(playing);
       if (playedBefore.size() > 20) playedBefore.erase(playedBefore.begin());
     }
@@ -1029,7 +1029,7 @@ int run(int argc, char** argv) {
   // ---- F62 Busca e canal: estado novo do run() só aqui
 
   // ---- F63 Player e Shorts: estado novo do run() só aqui
-  pl.setVolumePercent(settings.volume, settings.volume != 100);  // 100 não sobrescreve o volume que o Nest já tem
+  pl.setVolumePercent(settings.volume);  // volume salvo é só da TV; o app nunca manda SET_VOLUME ao Nest na abertura
   PlayerWatch playerWatch;
 
   // ---- F64 Configurações e controle: estado novo do run() só aqui
@@ -1627,9 +1627,10 @@ int run(int argc, char** argv) {
       w.phase = pl.state == player::CONNECTING ? Phase::Connecting : pl.state == player::BUFFERING ? Phase::Buffering :
                 pl.state == player::PLAYING ? Phase::Playing : Phase::Idle;
       w.paused = pl.paused; w.live = pl.live; w.nest = pl.nest || pl.speakerRequested; w.seeking = seekHold.active; w.position = pl.position();
+      w.bytes = (uint64_t)SDL_GetAtomicInt(&pl.netBytes); w.frames = pl.framesIn; w.streamEnded = pl.decDone;
       if (playerWatch.update(w)) {
         boot_session_player_stuck(playerWatch.stuck);
-        LOG("vigia: player %s (estado=%d pos=%.1f)", playerWatch.stuck ? "parado" : "voltou", (int)pl.state, w.position);
+        LOG("vigia: player %s (estado=%d pos=%.1f bytes=%llu quadros=%llu fim=%d)", playerWatch.stuck ? "parado" : w.inPlayer ? "voltou" : "saiu da tela", (int)pl.state, w.position, (unsigned long long)w.bytes, (unsigned long long)w.frames, (int)w.streamEnded);
       }
     }
     // Live retomada pelo próprio Nest (toque em cima, Google Home) também volta para o ao vivo.
@@ -1652,6 +1653,8 @@ int run(int argc, char** argv) {
         ++nav.queueIndex; startVideo(nav.queue[nav.queueIndex].video(),0,false);
       } else { endTimerPending = sleep.active && sleep.end; stopVideo(); }
     }
+    // ---- F63 Player e Shorts: fim de um Short emenda no próximo da fila (ou repete o último), sem o "a seguir em 8 s" de vídeo comum
+    if (screen == PLAYER && pl.state == player::ENDED && playing.shortForm && !playerFromRemote && !shutdownAt && !nav.localQueue && !(sleep.active && sleep.end)) screens.shortsEnded();
     if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && (playerFromRemote || !nextPending || now >= nextDeadline)) {
       if (!endedSent) {

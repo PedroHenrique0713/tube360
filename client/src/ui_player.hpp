@@ -88,12 +88,10 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
   // Na opção 1 aprovada os ícones ficam ABAIXO da barra: ↓ leva aos ícones, ↑ volta para a trilha.
   int vertical = in.hit(Input::DOWN) ? 1 : in.hit(Input::UP) ? -1 : 0;
   double jump = 0;
-  // Com os controles escondidos (ou logo depois de mexer no volume) cima/baixo ajustam o volume do app sem acordar a barra.
+  // Com os controles escondidos (ou logo depois de mexer no volume) cima/baixo ajustam o volume sem acordar a barra: na TV é o
+  // ganho do app (gravado em settings.volume); no Nest é a caixa ao vivo, a partir do nível real dela (nada é gravado).
   if (vertical && !horizontal && (!playerUI.visible(now) || now < shelf.volumeUntil)) {
-    int percent = pl.stepVolume(-vertical);
-    settings.volume = percent; saveSettings();
-    shelf.volumeUntil = now + 2500; vertical = 0;
-    LOG("player: volume %d", percent);
+    adjustVolume(now, -vertical); vertical = 0;
   }
   // ↓ na linha de ícones abre "a seguir e relacionados" sem parar o vídeo; sem lista, nada acontece.
   if (vertical > 0 && !horizontal && playerUI.visible(now) && playerUI.options && !related.empty() && !seekHold.active) {
@@ -101,14 +99,8 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
   }
   if (horizontal || vertical) { jump = playerUI.direction(now, horizontal, vertical, optionCount) * 10; any = true; }
   // Mapa único (#40): LB/RB = vídeo anterior/seguinte; avançar/voltar no tempo é LT/RT segurado.
-  if (in.hit(Input::LB) && !playedBefore.empty()) {
-    Video v = playedBefore.back(); playedBefore.pop_back();
-    historyBack = true; startVideo(v, 0, false); historyBack = false; return;
-  }
-  if (in.hit(Input::RB)) {
-    const Video* next = !upNext.id.empty() ? &upNext : !related.empty() ? &related.front() : nullptr;
-    if (next) { Video v = *next; startVideo(v, 0, false); return; }
-  }
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::PrevItem) && playerStep(-1)) return;
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::NextItem) && playerStep(1)) return;
   if (jump != 0) {
     if (pl.state == player::CONNECTING) {
       LOG("player: seek ignored: live status unknown (CONNECTING)");
@@ -156,19 +148,19 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     any = true;
   }
   // Durante a abertura, A não cria uma pausa invisível atrás do carregamento.
-  if (in.hit(Input::START)) { playerUI.options = !playerUI.options || !playerUI.visible(now); any = true; }
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { playerUI.options = !playerUI.options || !playerUI.visible(now); any = true; }
   if ((pressA && (!open || playerUI.selected == PlayerUI::TRANSPORT)) && (!pl.waiting() || pl.paused)) {
     if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
     LOG("player: pause=%d pos=%.2f", pl.paused ? 1 : 0, pl.position());
     any = true;
   }
-  if (in.hit(Input::Y)) {
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Quality)) {
     auto action=(!pl.live && pl.state!=player::FAILED && (pl.state==player::PLAYING || sponsors.canUndo(now))) ? sponsors.press(pl.position(),pl.duration,now,settings.sponsorBlock) : sponsorblock::Action{};
     if (action) sponsorSeek(action);
     else { LOG("player: Y qualidade pos=%.3f modo=%d menu=1 SponsorBlock_ativo=0",pl.position(),settings.videoMode); openQuality(); }
     any=true;
   }
-  if (in.hit(Input::X)) { playerWatchLater(now); any = true; }
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::WatchLater)) { playerWatchLater(now); any = true; }
   in.hit(Input::LT);in.hit(Input::RT);
   int trigger=in.held[Input::RT]==in.held[Input::LT]?0:in.held[Input::RT]?1:-1;
   if(trigger && (pl.live || pl.state==player::CONNECTING || pl.state==player::FAILED)) {
@@ -201,8 +193,58 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
 // X no player: salva o vídeo em "Assistir mais tarde" (na conta, se logada; senão na lista local), como nas demais telas.
 inline void UiContext::playerWatchLater(uint64_t now) {
   if (playing.id.empty()) return;
-  if (account.signedIn()) nav.action(navWorker, "/api/nav/action?action=later&id=" + playing.id + "&lang=" + i18n::code(settings.lang));
-  else { localUI.library.toggle(LocalLibraryUI::entry(playing)); toast = tr(K::LocalSaving); toastUntil = now + 2500; }
+  if (account.signedIn()) { nav.action(navWorker, "/api/nav/action?action=later&id=" + playing.id + "&lang=" + i18n::code(settings.lang)); return; }
+  bool had = localUI.library.contains(playing.id);
+  localUI.library.toggle(LocalLibraryUI::entry(playing));
+  toast = tr(had ? K::PlayerLaterRemoved : K::PlayerLaterAdded); toastUntil = now + 2500;
+}
+
+// LB/RB: vídeo anterior/seguinte. Com fila local (playlist, Mais tarde, Biblioteca, Música em vídeo) andam na fila; sem fila, o
+// "a seguir" e o histórico desta sessão. Sessão do celular: quem escolhe o próximo é o app do celular, então nada acontece.
+// Devolve true se tratou o botão (mesmo sem trocar de vídeo, para não cair em outra ação).
+inline bool UiContext::playerStep(int direction) {
+  if (playerFromRemote || phonePlaybackSerial) return false;
+  if (nav.localQueue) {
+    size_t at = nav.queueIndex, count = nav.queue.size();
+    if (direction > 0 && at + 1 < count) ++nav.queueIndex;
+    else if (direction < 0 && at > 0) --nav.queueIndex;
+    else return true;
+    Video v = nav.queue[nav.queueIndex].video(); startVideo(v, 0, false);
+    return true;
+  }
+  if (direction > 0) {
+    const Video* next = !upNext.id.empty() ? &upNext : !related.empty() ? &related.front() : nullptr;
+    if (!next) return false;
+    Video v = *next; startVideo(v, 0, false);
+    return true;
+  }
+  if (playedBefore.empty()) return false;
+  Video v = playedBefore.back(); playedBefore.pop_back();
+  historyBack = true; startVideo(v, 0, false); historyBack = false;
+  return true;
+}
+
+inline void UiContext::volumeHud(uint64_t now) {
+  if (now < shelf.volumeUntil) {
+    const float w = 300, h = 64, x = ui::W - w - 40, y = 36, frac = shelf.volumeShown / 100.f;
+    gfx::rect(g, x, y, w, h, {0, 0, 0, 0.78f}, 14);
+    gfx::text(g, ui::F_SMALL, shelf.volumeSpeaker ? gfx::ellipsize(g, ui::F_SMALL, nestName, 180) : std::string(tr(K::SettingVolume)), x + 20, y + 10, ui::MUTED);
+    gfx::text(g, ui::F_SMALL, std::to_string(shelf.volumeShown), x + w - 20, y + 10, ui::TEXT, 2);
+    gfx::rect(g, x + 20, y + 40, w - 40, 6, {1, 1, 1, 0.25f}, 3);
+    if (frac > 0) gfx::rect(g, x + 20, y + 40, (w - 40) * frac, 6, ui::TEXT, 3);
+  }
+}
+
+inline void UiContext::adjustVolume(uint64_t now, int direction) {
+  if (pl.nest && pl.directSpeaker.configured()) {
+    int percent = pl.stepSpeaker(direction);
+    if (percent >= 0) { shelf.volumeShown = percent; shelf.volumeSpeaker = true; shelf.volumeUntil = now + 2500; LOG("player: volume da caixa %d", percent); }
+    return;
+  }
+  int percent = pl.stepVolume(direction);
+  if (percent != settings.volume) { settings.volume = percent; saveSettings(); }
+  shelf.volumeShown = percent; shelf.volumeSpeaker = false; shelf.volumeUntil = now + 2500;
+  LOG("player: volume %d", percent);
 }
 
 inline void UiContext::playerShelfInput(uint64_t now) {
@@ -233,7 +275,7 @@ inline void UiContext::playerShelfDraw(uint64_t now) {
 }
 
 inline void UiContext::playerUpdate(uint64_t now) {
-  if (shelf.video != playing.id) { shelf.video = playing.id; shelf.open = false; shelf.sel = 0; }
+  if (shelf.video != playing.id || screen != PLAYER) { shelf.video = playing.id; shelf.open = false; shelf.sel = 0; shelf.shortsFocus = 0; }
   if(pl.qualityModesReady.exchange(false)) {
       qualityKnown=true;
       offeredQualities.assign(pl.qualityAvailable.load());
@@ -273,15 +315,19 @@ inline void UiContext::playerUpdate(uint64_t now) {
 
 inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool behindLive, const display::CommentsPanel& commentPanel,
                                   bool sleepWarning, double sleepLeft) {
-  if (playing.shortForm && !(ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt)) { shortsDraw(now, t); return; }
-  gfx::rect(g, 0, 0, ui::W, ui::H, rgb(0x000000), 0);
-  float scale=g.scale, scaleX=g.scaleX, insetX=g.insetX, insetY=g.insetY;
-  g.scaleX=g.scale=1; g.insetX=g.insetY=0;
-  gfx::rect(g,0,0,g.extent.width,g.extent.height,rgb(0x000000));
-  gfx::videoQuad(g,0,0,g.extent.width,g.extent.height,1,settings.videoFill);
-  g.scale=scale; g.scaleX=scaleX; g.insetX=insetX; g.insetY=insetY;
+  // Short: tela vertical própria; o painel de comentários (ou outro) desenha por cima dela, sem trocar para o player horizontal.
+  const bool shortScene = playing.shortForm && !(ratePanel || sleepPanel || sleepWarning || shutdownAt || nextAt);
+  if (shortScene) { shortsDraw(now, t); if (playerUI.panel == PlayerUI::NONE) return; }
+  else {
+    gfx::rect(g, 0, 0, ui::W, ui::H, rgb(0x000000), 0);
+    float scale=g.scale, scaleX=g.scaleX, insetX=g.insetX, insetY=g.insetY;
+    g.scaleX=g.scale=1; g.insetX=g.insetY=0;
+    gfx::rect(g,0,0,g.extent.width,g.extent.height,rgb(0x000000));
+    gfx::videoQuad(g,0,0,g.extent.width,g.extent.height,1,settings.videoFill);
+    g.scale=scale; g.scaleX=scaleX; g.insetX=insetX; g.insetY=insetY;
+  }
   bool panelOpen = ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt || shelf.open;
-  bool show = playerUI.visible(now) || panelOpen;
+  bool show = !shortScene && (playerUI.visible(now) || panelOpen);
   if (show) {
     const Color red = rgb(0xff0033), island = {0,0,0,0.63f};
     gfx::vgrad(g, 0, 420, ui::W, 300, {0,0,0,0}, {0,0,0,0.87f});
@@ -299,7 +345,13 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
       overlayMeta.update(g, ui::F_META, meta.c_str(), ui::W-80);
     }
     overlayTitle.update(g, ui::F_VIDEO_TITLE, title.c_str(), options && !transportFocus ? ui::W-520 : ui::W-80);
-    if(!panelOpen && pl.state!=player::FAILED)hint(g,40,ui::large?508:523,"Y",XY,tr(K::PlayerQuality));
+    if(!panelOpen && pl.state!=player::FAILED) {
+      float hx = 40, hy = ui::large ? 508 : 523;
+      hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::WatchLater, settings.lang);
+      hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::Quality, settings.lang);
+      if (!playerFromRemote && !phonePlaybackSerial) hx = ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::PrevItem, settings.lang);
+      ctlHint(g, hx, hy, ctl::Ctx::Player, ctl::Act::Options, settings.lang);
+    }
     if (!shelf.open) {
       gfx::textBox(g, ui::F_VIDEO_TITLE, overlayTitle.text, 40, ui::large ? 548 : 563, ui::W-80, ui::TEXT);
       gfx::textBox(g, ui::F_META, overlayMeta.text, 40, 591, ui::W-80, rgb(0xd4d4d8));
@@ -425,14 +477,7 @@ inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool 
     }
   }
   if (shelf.open) playerShelfDraw(now);
-  if (now < shelf.volumeUntil) {
-    const float w = 300, h = 64, x = ui::W - w - 40, y = 36, frac = pl.volumePercent() / 100.f;
-    gfx::rect(g, x, y, w, h, {0, 0, 0, 0.78f}, 14);
-    gfx::text(g, ui::F_SMALL, tr(K::SettingVolume), x + 20, y + 10, ui::MUTED);
-    gfx::text(g, ui::F_SMALL, std::to_string(pl.volumePercent()), x + w - 20, y + 10, ui::TEXT, 2);
-    gfx::rect(g, x + 20, y + 40, w - 40, 6, {1, 1, 1, 0.25f}, 3);
-    if (frac > 0) gfx::rect(g, x + 20, y + 40, (w - 40) * frac, 6, ui::TEXT, 3);
-  }
+  volumeHud(now);
   if (!panelOpen && !pl.live && pl.state==player::PLAYING)
     sponsorUI.hud(g,sponsors,settings.sponsorBlock,pl.position(),pl.duration,now,settings.lang);
   if (settings.captions && !captions.failed && !panelOpen && videoTex.ready) {

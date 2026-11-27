@@ -140,6 +140,7 @@ def prep_account_next():
 prep_account_next()
 
 
+pedidos = lambda n: [l.split('player: pedido ')[1].split(' ')[0] for l in log_of(n).splitlines() if 'player: pedido' in l]
 def shot_of(name): return (OUT / (name + '.ppm')).read_bytes()
 def log_of(name): return (OUT / (name + '.log')).read_text(errors='replace')
 KEEP = dict(signed=True, XT_PLAY='R6MlUcmOul8')
@@ -157,6 +158,35 @@ case_b('f63-next-prev', keys='....][', ms=9000, **KEEP)
 case_b('f63-later', keys='....X', ms=4500, signed=False, XT_PLAY='R6MlUcmOul8')
 case_b('f63-menu', keys='....S', ms=3800, **KEEP)
 
+# Sem conta, fila local (playlist) e o volume no Nest: casos que o caminho com conta não cobre.
+case_b('f63-unsigned-shelf', keys='....DD', ms=3800, signed=False, XT_PLAY='R6MlUcmOul8')
+case_b('f63-unsigned-rb', keys='....]', ms=6000, signed=False, XT_PLAY='R6MlUcmOul8')
+Q = dict(signed=True, XT_NAV='playlist', XT_NAV_ID='PLfixture')
+case_b('f63-q-open', keys='......DA', ms=5000, **Q)
+case_b('f63-q-rb', keys='......DA..........]', ms=9000, **Q)
+case_b('f63-q-rb-lb', keys='......DA..........]......[', ms=11000, **Q)
+
+def nest_volume(name, keys, volume_line='', ms=9000, sound='nest'):
+    # Receptor falso começando em 0,42, com o nest.txt salvo; devolve (volume final da caixa, pedidos SET_VOLUME).
+    sys.path.insert(0, str(ROOT / 'bench/standalone'))
+    from cast_test import Receiver
+    certs = OUT / '_cert'; certs.mkdir(exist_ok=True)
+    if not (certs / 'cert.pem').exists():
+        subprocess.run(['openssl', 'req', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1', '-subj', '/CN=cast-fixture',
+                        '-keyout', str(certs / 'key.pem'), '-out', str(certs / 'cert.pem')], check=True, stderr=subprocess.DEVNULL)
+    rx = Receiver(certs / 'cert.pem', certs / 'key.pem')
+    rx.consume = lambda url: None
+    assets = OUT / '_work' / name; assets.mkdir(parents=True, exist_ok=True)
+    (assets / 'nest.txt').write_text(f'127.0.0.1 {rx.port}\nNest de bancada\n')
+    (assets / 'nest-owner.json').unlink(missing_ok=True)
+    try:
+        case_b(name, signed=True, keys=keys, ms=ms, XT_PLAY='R6MlUcmOul8',
+               settings=f'lang=pt\ncols=4\nserver=off\nsound={sound}\nvideo_mode=auto\n{volume_line}')
+        sets = [e for e in rx.events if 'SET_VOLUME' in json.dumps(e)]
+        return rx.volume, sets
+    finally:
+        rx.close()
+
 # A fileira abre com ↓ na linha de ícones e só então: a tela muda, e muda de novo ao andar para a direita.
 assert shot_of('f63-icons') != shot_of('f63-base'), 'icons row did not open'
 assert shot_of('f63-shelf') != shot_of('f63-icons'), 'shelf did not open'
@@ -172,10 +202,23 @@ log = log_of('f63-short-b-twice')
 assert log.index('shorts: foco 1') < log.index('shorts: foco 0'), 'B from the action column should only return focus to the video'
 assert 'shorts: foco' not in log_of('f63-short'), 'focus moved without a key'
 # Mapa único: RB = seguinte (o "a seguir"), LB volta ao anterior; X salva para depois; Menu abre a linha de opções.
-pedidos = lambda n: [l for l in log_of(n).splitlines() if 'player: pedido' in l]
 assert len(pedidos('f63-next')) == 2 and 'R6MlUcmOul8' in pedidos('f63-next')[0], pedidos('f63-next')
 nv = pedidos('f63-next-prev')
 assert len(nv) == 3 and 'R6MlUcmOul8' in nv[2] and nv[1] != nv[2], nv
 assert 'local: save' in log_of('f63-later'), log_of('f63-later')[-400:]
-assert shot_of('f63-menu') == shot_of('f63-icons') or shot_of('f63-menu') != shot_of('f63-base')
+assert shot_of('f63-menu') != shot_of('f63-base') and 'player: pause' not in log_of('f63-menu'), 'Menu should open the options row without pausing'
+# Sem conta: a fileira e o RB continuam funcionando pelo caminho do console.
+assert len(pedidos('f63-unsigned-rb')) >= 1
+# Fila local: RB anda para o item seguinte da fila e LB volta ao anterior (nunca pulando).
+qa, qb, qc = pedidos('f63-q-open'), pedidos('f63-q-rb'), pedidos('f63-q-rb-lb')
+assert len(qb) == len(qa) + 1 and qb[-1] != qa[-1], (qa, qb)
+assert len(qc) == len(qb) + 1 and qc[-1] == qa[-1], (qa, qb, qc)
+# Volume: o salvo é só da TV; no Nest a tecla mexe na caixa a partir do nível real (0,42 -> 0,45) e a abertura nunca manda SET_VOLUME.
+vol, sets = nest_volume('f63-n-open', '', volume_line='volume=95\n')
+assert not sets and abs(vol - .42) < .001, (vol, sets)
+vol, sets = nest_volume('f63-n-up', '.' * 30 + 'U', ms=8000)
+assert len(sets) == 1 and abs(vol - .45) < .001, (vol, sets)
+assert 'volume=' not in (OUT / '_work/f63-n-up/settings.txt').read_text() or 'volume=100' in (OUT / '_work/f63-n-up/settings.txt').read_text()
+vol, sets = nest_volume('f63-n-tv', '.' * 30 + 'D', ms=8000, sound='tv')
+assert not sets and 'volume=95' in (OUT / '_work/f63-n-tv/settings.txt').read_text()
 print('PASS f63 ui: shelf, volume and Shorts')

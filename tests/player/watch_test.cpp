@@ -55,5 +55,23 @@ int main() {
     assert(w.update(s) && !w.stuck);
     assert(!w.update(at(300000, P::Connecting)));                     // contagem recomeça do zero
   }
-  std::puts("PASS player watch: 7 scenarios");
+  { // fim de stream / áudio mais curto: posição parada, mas o pipeline terminou ou ainda produz quadros
+    PlayerWatch w; auto s = at(0, P::Playing, 20); w.update(s);
+    s.streamEnded = true;
+    for (uint64_t t = 1000; t < 200000; t += 1000) { s.now = t; assert(!w.update(s)); }
+    PlayerWatch v; auto f = at(0, P::Playing, 20); v.update(f);
+    for (uint64_t t = 1000; t < 200000; t += 1000) { f.now = t; f.frames = t; assert(!v.update(f)); }  // decodificando, relógio parado
+  }
+  { // leitura de rede ainda andando: abertura lenta não é travada; sem nenhuma atividade é
+    PlayerWatch w; auto s = at(0, P::Connecting); w.update(s);
+    for (uint64_t t = 1000; t < 300000; t += 1000) { s.now = t; s.bytes = t; assert(!w.update(s)); }
+    for (uint64_t t = 300000; t < 419000; t += 1000) { s.now = t; assert(!w.update(s)); }
+    s.now = 420000; assert(w.update(s) && w.stuck);
+  }
+  { // travado de verdade: sem posição, sem bytes, sem quadros, stream não terminou
+    PlayerWatch w; auto s = at(0, P::Playing, 20); s.bytes = 5; s.frames = 7; w.update(s);
+    s.now = 44000; assert(!w.update(s));
+    s.now = 45000; assert(w.update(s) && w.stuck);
+  }
+  std::puts("PASS player watch: 10 scenarios");
 }

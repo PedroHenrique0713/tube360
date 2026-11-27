@@ -393,6 +393,8 @@ inline const char* arabic(Key key) {
 
     // ---- F63 Player e Shorts
     case Key::PlayerShelfTitle: return "التالي والمقترحات";
+    case Key::PlayerLaterAdded: return "تم الحفظ في المشاهدة لاحقاً";
+    case Key::PlayerLaterRemoved: return "تمت الإزالة من المشاهدة لاحقاً";
     case Key::ShortsStep: return "المقطع السابق / التالي";
 
     // ---- F64 Configurações e controle
