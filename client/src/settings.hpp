@@ -36,7 +36,6 @@ struct Settings {
         else if (key == "server") server = false;
         else if (key == "shorts") hideShorts = val == "hide";
         else if (key == "error_reports") errorReports = val != "off";
-        else if (key == "volume") volume = (int)std::clamp(std::atol(val.c_str()), 0L, 100L);
         else if (key == "video_mode") videoMode = playback::modeFromName(val.c_str());
         else if (key == "audio_preference") originalAudio = val != "interface";
         else if (key == "captions") captions = val == "on";
