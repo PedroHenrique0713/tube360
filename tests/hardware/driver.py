@@ -22,6 +22,9 @@ while depth:
     depth += (source[end] == '{') - (source[end] == '}')
     end += 1
 function = source[start:end]
+helper_start = source.find('static float tube360_raster_aspect')
+if helper_start >= 0:
+    function = source[helper_start:source.index('int tube360_set_output', helper_start)] + function
 prefix = '''#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
