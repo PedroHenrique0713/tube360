@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/revive360/catalog/blob/main/generated/apps/tube360.md"><img src="https://raw.githubusercontent.com/revive360/catalog/main/generated/badges/tube360.svg" alt="Revive360 Official" height="28"></a>
+  <a href="https://github.com/revive360/catalog/blob/main/generated/apps/tube360.md"><img src="https://raw.githubusercontent.com/revive360/catalog/main/generated/badges/tube360.svg" alt="Revive360 Official" height="28"></a><br>
   <a href="https://github.com/revive360/tube360/releases/latest"><img src="docs/img/badges/release.svg" alt="Release v0.3.3"></a>
   <img src="docs/img/badges/xbox360.svg" alt="Xbox 360">
   <img src="docs/img/badges/console-first.svg" alt="Console-first H.264">
