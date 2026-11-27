@@ -104,4 +104,4 @@ ainda podem esgotar a reserva; a continuidade imperceptível precisa ser conferi
 A apresentação a 60 Hz está ativa no perfil rápido e em Automático quando a fonte oferecer; a confirmação
 de folga de decode + upload + desenho depende do Xbox. Não extrapole os tempos da GPU Intel para o Xenos.
 Teste um vídeo com dublagem automática: original por padrão, troca nos dois sentidos no ponto atual,
-pausa preservada, preferência por idioma da interface e a mesma faixa no Nest (nativo e servidor).
+pausa preservada, preferência por idioma da interface e a mesma faixa no Nest.

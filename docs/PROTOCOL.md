@@ -58,7 +58,7 @@ B closes one level at a time, from panel to options, timeline, hidden bar and fi
 The bar hides after **5 seconds** without interaction on the timeline, including while paused. Options and panels
 hold it open. The next reveal always focuses the timeline. A/Menu, Y, X, LB/RB and LT/RT retain their playback
 functions; View still leaves directly. Modal A applies the focused choice. Seeking, including phone seeking, is
-blocked while `Player::state == CONNECTING`, before `X-Live` is known; live seeking remains blocked afterwards.
+blocked while `Player::state == CONNECTING`, before the player knows whether the video is live; live seeking remains blocked afterwards.
 
 **Go to channel** closes the video and opens the channel page (by channel ID, or resolved from the video when the
 ID is unknown).
@@ -80,6 +80,7 @@ unchanged signed URL to the Default Media Receiver (`CC1AD845`) using Cast v2 TL
 The channel implements CONNECT, PING/PONG, receiver/media GET_STATUS, LAUNCH, LOAD, SEEK,
 PAUSE, PLAY and STOP. A seek within the same URL retains the Cast media session. A new resource
 waits for the previous playback to stop. Discovery currently uses the configured host.
+A speaker request with no configured Nest (video or Music) plays on the TV and shows "No speaker configured"; it never fails the playback.
 
 Native LAUNCH replaces an idle/default receiver when needed. The console confirms STOP and closes its TLS
 channel before another sender is allowed to take the speaker.
