@@ -54,7 +54,7 @@ inline float Navigation::drawChannelPage(NavDraw& d) {
   navTabs(d, tabs, 5, 136, tabY);
   float top = tabY + 58;
   if (p.sortable && (p.tab == "videos" || p.tab == "live")) {
-    chipRow(d, {d.tr(K::SortRecent), d.tr(K::SortPopular), d.tr(K::SortOldest)}, p.sort, -1, 136, top - 4);
+    chipRow(d, {d.tr(K::SortRecent), d.tr(K::SortPopular), d.tr(K::SortOldest)}, p.sort, -1, g.rtlText ? ui::W - 64 : 136, top - 4);
     top += 48;
   }
   navGrid(d, top, navMetrics(d));

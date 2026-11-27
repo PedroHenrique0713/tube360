@@ -19,19 +19,24 @@ inline void UiContext::searchDraw(const char* const* keys, double t) {
 // Nos resultados, LB/RB trocam o chip de tipo (Tudo, Vídeos, Canais, Playlists, Ao vivo); a pílula "Filtros" na fileira de
 // chips (A) abre o painel. O chip marcado acompanha o tipo do filtro, também quando ele muda pelo painel.
 inline void UiContext::searchFiltersPress(NavPage& p) {
-  if (p.zone != 1) p.tabSel = p.filters.type;  // andar pelos chips só move o foco; buscar é com A (ou LB/RB)
+  if (p.zone != 1) p.tabSel = std::max(0, p.searchChip());  // andar pelos chips só move o foco; buscar é com A (ou LB/RB)
   if (p.loading || nav.busy) return;
   int step = ctl::hit(in, ctl::Ctx::Search, ctl::Act::NextTab) ? 1 : ctl::hit(in, ctl::Ctx::Search, ctl::Act::PrevTab) ? 4 : 0;
   if (!step) return;
-  p.tabSel = (p.filters.type + step) % 5;
+  p.tabSel = (std::max(0, p.searchChip()) + step) % 5;
   searchChipSelected(p);
 }
 
-// Chip de tipo escolhido: troca o tipo do filtro e refaz a busca.
+// Chip escolhido (0 Tudo, 1 Vídeos, 2 Shorts, 3 Canais, 4 Ao vivo). Shorts é filtro no cliente (mostra só os Shorts dos
+// resultados, sem nova busca); os outros trocam o tipo do filtro e refazem a busca.
 inline void UiContext::searchChipSelected(NavPage& p) {
-  p.filters.type = std::clamp(p.tabSel, 0, 4); p.filters.normalize();
+  const int chip = std::clamp(p.tabSel, 0, 4), types[] = {0, 1, 0, 2, 4};
+  const bool shorts = chip == 2, sameType = p.filters.type == types[chip];
+  p.onlyShorts = shorts; p.sel = 0; p.scroll = 0; p.gridSize = -1;
+  if (sameType) return;
+  p.filters.type = types[chip]; p.filters.normalize();
   searchUI.filters = p.filters;
-  p.filterLabel.clear(); p.sel = 0; p.scroll = 0; nav.load(navWorker, settings.lang);
+  p.filterLabel.clear(); nav.load(navWorker, settings.lang);
 }
 
 // Nome + marca de verificado na mesma linha, numa linha só (a marca segue o fim do texto, no lado certo em árabe).
@@ -49,15 +54,19 @@ static float nameWithBadge(gfx::Gfx& g, int font, const std::string& name, bool 
 }
 
 // Fileira de chips: a ativa em branco, as outras no cinza; `focus` = índice em foco na fileira (ou -1).
+// Em árabe a fileira espelha: o 1º chip fica no canto direito e as seguintes vão para a esquerda; `x` é o canto de partida
+// (esquerdo em LTR, direito em RTL) e o retorno é onde a fileira terminou.
 static float chipRow(NavDraw& d, const std::vector<std::string>& labels, int active, int focus, float x, float y) {
   auto& g = d.g;
+  const bool rtl = g.rtlText;
   for (size_t i = 0; i < labels.size(); i++) {
     float w = gfx::textWidth(g, ui::F_SMALL, labels[i]) + 32;
+    if (rtl) x -= w;
     bool on = int(i) == active, f = int(i) == focus;
     if (f) gfx::rect(g, x - 3, y - 3, w + 6, 42, ui::A1, 21);  // anel de foco
     gfx::rect(g, x, y, w, 36, on ? ui::TEXT : ui::SURFACE2, 18);  // chip ativo em branco, como na proposta
     gfx::text(g, ui::F_SMALL, labels[i], x + w / 2, y + (36 - g.fonts[ui::F_SMALL].size) / 2, on ? ui::INK : ui::TEXT, 1);
-    x += w + 10;
+    x = rtl ? x - 10 : x + w + 10;
   }
   return x;
 }
@@ -69,8 +78,9 @@ static void featuredChannel(NavDraw& d, const NavItem& it, bool focused, float y
   const float x = 136, w = ui::W - 136 - 64, h = 104;
   if (focused) gfx::rect(g, x - 4, y - 4, w + 8, h + 8, ui::TEXT, 20);
   gfx::rect(g, x, y, w, h, ui::SURFACE, 16);
-  artwork(g, d.thumbs, d.worker, it.image, d.frame, x + 22, y + 14, 76, 76, true, true, p.direct, false, 646);
-  const float tx = x + 122, tw = w - 122 - 44;
+  const bool rtl = g.rtlText;  // árabe: avatar à direita, texto à esquerda dele
+  artwork(g, d.thumbs, d.worker, it.image, d.frame, rtl ? x + w - 98 : x + 22, y + 14, 76, 76, true, true, p.direct, false, 646);
+  const float tx = rtl ? x + 44 : x + 122, tw = w - 122 - 44;
   float ty = nameWithBadge(g, ui::F_KEY, it.title, it.verified, tx, y + 12, tw, ui::TEXT) + 4;
   std::string meta = it.date;
   if (!it.views.empty()) meta += (meta.empty() ? "" : "  \xC2\xB7  ") + it.views;
@@ -94,11 +104,15 @@ static void drawSearchHeader(NavDraw& d, const std::string& title) {
   if (!p.image.empty()) { artwork(g, d.thumbs, d.worker, p.image, d.frame, tx, 28, 72, 72, true, false); tx += 96; }
   gfx::textBox(g, ui::F_BIG, title, tx, 24, ui::W-tx-64, ui::TEXT);
   const float chipsY = 84;
-  const std::vector<std::string> types = {d.tr(K::All), d.tr(K::Videos), d.tr(K::SearchTypeChannels), d.tr(K::Playlists), d.tr(K::ChannelLive)};
-  bool onRow = d.contentFocus && p.zone == 1;
-  float cx = chipRow(d, types, p.filters.type, onRow && p.tabSel < 5 ? p.tabSel : -1, 136, chipsY);
-  float endX = chipRow(d, {d.tr(K::SearchFilters)}, -1, onRow && p.tabSel == 5 ? 0 : -1, cx + 10, chipsY);
-  for (size_t row = 0; row < p.filterLines.size(); ++row) gfx::textBox(g, ui::F_CHAN, p.filterLines[row], endX + 16, chipsY + 6 + row * 26, ui::W - endX - 80, ui::A2);
+  const std::vector<std::string> types = {d.tr(K::All), d.tr(K::Videos), d.tr(K::ChannelShorts), d.tr(K::SearchTypeChannels), d.tr(K::ChannelLive)};
+  const bool rtl = g.rtlText, onRow = d.contentFocus && p.zone == 1;
+  const float start = rtl ? ui::W - 64 : 136;
+  float cx = chipRow(d, types, p.searchChip(), onRow && p.tabSel < 5 ? p.tabSel : -1, start, chipsY);
+  float endX = chipRow(d, {d.tr(K::SearchFilters)}, -1, onRow && p.tabSel == 5 ? 0 : -1, rtl ? cx - 10 : cx + 10, chipsY);
+  for (size_t row = 0; row < p.filterLines.size(); ++row) {
+    if (rtl) gfx::textBox(g, ui::F_CHAN, p.filterLines[row], 136, chipsY + 6 + row * 26, std::max(80.f, endX - 150), ui::A2);
+    else gfx::textBox(g, ui::F_CHAN, p.filterLines[row], endX + 16, chipsY + 6 + row * 26, ui::W - endX - 80, ui::A2);
+  }
 }
 
 // Página de resultados da busca (proposta A2): resultado de canal em destaque, grade de cartões ricos e os Shorts numa faixa

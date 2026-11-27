@@ -93,6 +93,18 @@ static void layoutContract() {
   NavPage p; p.kind="search"; p.items={card(0),card(1,true),card(2),card(3,true),card(4)};
   p.grid(4,false);
   require(p.rows.size()==3 && p.rows[0].items==std::vector<int>{0} && p.rows[1].items==std::vector<int>({1,3}) && p.rows[2].items==std::vector<int>({2,4}),"partial rows around first Short retain ordering");
+  {  // chips da busca: Shorts é filtro no cliente (só os Shorts); o chip em destaque acompanha o tipo do filtro
+    NavPage c; c.kind="search"; c.items={card(0),card(1,true),card(2),card(3,true)};
+    c.onlyShorts=true; c.grid(4,false);
+    require(c.rows.size()==1 && c.rows[0].shorts && c.rows[0].items==std::vector<int>({1,3}) && c.sel==1,"Shorts chip keeps only the Shorts and moves focus to the first one");
+    c.onlyShorts=false; c.grid(4,false);
+    require(c.rows.size()==3 && !c.rows[0].shorts && c.rows[1].shorts,"leaving the Shorts chip brings the ordinary results back");
+    c.onlyShorts=true; c.grid(4,true);
+    require(c.rows.size()==1 && c.rows[0].shorts,"the Shorts chip wins over the hide-Shorts setting");
+    NavPage t; t.kind="search";
+    int expect[]={0,1,3,-1,4}; for (int type=0;type<5;++type) { t.filters.type=type; require(t.searchChip()==expect[type],"active chip follows the filter type"); }
+    t.filters.type=4; t.onlyShorts=true; require(t.searchChip()==2,"Shorts chip is the active one while the client filter is on");
+  }
   std::cout<<"PASS layout: 2/3/4 columns, packed rows, controller, hidden focus, channel tab, continuation\n";
 }
 static void drawContract() {

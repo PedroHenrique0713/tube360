@@ -27,7 +27,10 @@ struct NavPage : ItemGrid {
   std::vector<Shelf> shelves;
   int shelf = 0;
   bool musicHome() const { return kind == "music"; }
-  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,hide && !(kind == "channel" && tab == "shorts"),kind == "history" || (kind == "channel" && tab == "home") ? 1 : 0); }
+  bool onlyShorts = false;  // chip "Shorts" da busca: filtro no cliente, mostra só os resultados que são Short
+  // Chip da busca em destaque: 0 Tudo, 1 Vídeos, 2 Shorts, 3 Canais, 4 Ao vivo; -1 quando o tipo vem só do painel (playlists).
+  int searchChip() const { if (onlyShorts) return 2; switch (filters.type) { case 0: return 0; case 1: return 1; case 2: return 3; case 4: return 4; default: return -1; } }
+  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,(hide && !onlyShorts) && !(kind == "channel" && tab == "shorts"),kind == "history" || (kind == "channel" && tab == "home") ? 1 : 0,onlyShorts); }
   int gridRow() const { return ItemGrid::gridRow(sel); }
   int gridPosition() const { return ItemGrid::gridPosition(sel); }
   bool moveGrid(int horizontal, int vertical) { return ItemGrid::moveGrid(sel,horizontal,vertical); }

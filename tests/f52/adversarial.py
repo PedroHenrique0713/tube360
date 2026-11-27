@@ -63,7 +63,7 @@ def card(index, short=False, channel=False, huge=False, arabic=False):
 
 def run(name, payload, keys='', selected=None, screen='search', lang='en', cols=4,
         large=False, height=720, hide=False, next_page=None, settings=None,
-        persisted=None, restart=False, player=None, filter_open=False, rail=False):
+        persisted=None, restart=False, player=None, filter_open=False, rail=False, searches=None):
     if args.cases and name not in args.cases:
         return
     assets = work/name
@@ -132,6 +132,10 @@ def run(name, payload, keys='', selected=None, screen='search', lang='en', cols=
             assert position and float(position[1]) > 0, 'Short must decode before returning'
         if filter_open:
             assert 'captura busca: painel=1' in text, text[-2200:]
+            assert 'tipo=0' in text, 'the Filters pill opens the panel on the current type (All), not on a chip it walked over'
+        if searches is not None:
+            made = (assets/'requests.log').read_text().count('/youtubei/v1/search')
+            assert made == searches, f'expected {searches} search request(s), got {made}'
         if next_page is not None:
             assert '"continuation":"F52_ADVERSARIAL_NEXT"' in (assets/'requests.log').read_text()
         if persisted:
@@ -171,7 +175,8 @@ for screen in ('search', 'home'):
     run(screen+'-only-one', [shorts[0]], prefix+'RRDDU', 0, screen)
     run(screen+'-single-middle', normal[:4]+[shorts[0]]+normal[4:], prefix+'RRRDDU', 4, screen)
     run(screen+'-no-shorts', normal, prefix+'RRDDU', 6, screen)
-    run(screen+'-player-back', mixed, prefix+'DRRA........B.B', 6, screen, player=18)
+    # O Short abre o player de Shorts (F63): B sai direto para a tela de origem (no player comum o 1º B só esconde a barra).
+    run(screen+'-player-back', mixed, prefix+'DRRA........B', 6, screen, player=18)
 
 run('search-left-end', shorts, 'S.....'+'R'*20+'L'*13, 0, rail=True)
 toggle = '......DRRLLL'+'D'*6+'A'+seq(7,'RBR')
@@ -189,12 +194,20 @@ for lang, cols, large, height in [('en', 4, False, 720), ('pt', 3, False, 720),
         run('layout-'+screen+'-'+profile, cards, ('S.....' if screen == 'search' else '......')+'D',
             screen=screen, lang=lang, cols=cols, large=large, height=height)
         effective = 2 if height == 480 else min(3, cols) if large else cols if screen == 'home' else 4
-        before_shorts = 3 if screen == 'home' else 4
+        # O canal do índice 1 vira o cartão em destaque da busca (fora da grade); na Home ele já era tirado: 3 antes dos Shorts nos dois.
+        before_shorts = 3
         run('portrait-'+screen+'-'+profile, cards,
             ('S.....' if screen == 'search' else '......')+'D'*((before_shorts+effective-1)//effective),
             selected=before_shorts, screen=screen, lang=lang, cols=cols, large=large, height=height)
-    run('filters-'+profile, cards, 'S.....D[', lang=lang, cols=cols,
+    # O painel de filtros abre pela pílula (6ª posição da fileira de chips): sobe até os chips (o canal em destaque é a 1ª parada).
+    run('filters-'+profile, cards, 'S.....UU'+'R'*5+'A', lang=lang, cols=cols,
         large=large, height=height, filter_open=True)
+
+# Chips da busca (A2): a direcional só anda pelos chips; buscar é com A. "Shorts" é filtro no cliente (sem nova busca).
+run('search-chips-walk-no-search', mixed, 'S.....U'+'RRRR', 0, searches=1)
+run('search-chip-type-searches', mixed, 'S.....U'+'RRRRA', 0, searches=2)
+run('search-chip-shorts-client-only', mixed, 'S.....U'+'RRAD', 4, searches=1)
+run('search-chip-rb', mixed, 'S.....U]', 0, searches=2)
 
 cursor = {'continuationCommand': {'token': 'F52_ADVERSARIAL_NEXT'}}
 run('continuation-new-row', [card(i) for i in range(40)]+[cursor], 'S.....'+'D'*9+'.....D',

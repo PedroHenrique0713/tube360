@@ -34,7 +34,7 @@ inline void UiContext::navInput(uint64_t now) {
     if (up && (channel || playlist)) p.zone = 0;
     // Busca: a direcional só anda pelos chips; buscar de novo é A no chip (ou LB/RB), e A na pílula abre o painel de filtros.
     if (a && search && p.tabSel == 5) searchUI.beginFilters(p.filters);
-    else if (a && search && p.tabSel != p.filters.type) searchChipSelected(p);
+    else if (a && search && p.tabSel != p.searchChip()) searchChipSelected(p);
     else if (down || a) p.zone = !p.channels.empty() ? 2 : 3;
     if (p.tabSel != before && !search) {
       if (channel) channelTabSelected(p); else musicTabSelected(p);
