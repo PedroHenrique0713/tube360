@@ -1,0 +1,184 @@
+// Início: abas, fileiras e cartões de vídeo (a entrada e o desenho da tela HOME).
+#pragma once
+#include "ui_context.hpp"
+
+inline void UiContext::homeInput(uint64_t now) {
+  Shelf& cur = inResults ? results : cats[(size_t)cat];
+  auto& grid=cur.feed.layout;
+  grid.build(cur.feed.items,cur.sel,ui::columns(settings.cols),settings.hideShorts);
+  int n = (int)cur.feed.items.size(), previousSel = cur.sel;
+  bool hasItems=!grid.rows.empty();
+  if (zone == 1 && !inResults) {
+    if (in.hit(Input::LEFT)) { if (cat > 0) { cat--; scroll = 0; } else { railFocus = true; railSel = 0; } }
+    if (in.hit(Input::RIGHT) && cat + 1 < (int)cats.size()) { cat++; scroll = 0; }
+    if (!cats[cat].stamp) requestFeed(cats[cat], cat == 0 ? 0 : 3);
+    if (cur.kind == "subs" && (in.hit(Input::DOWN) || in.hit(Input::A))) openNav("subscriptions");
+    else if ((in.hit(Input::DOWN) || in.hit(Input::A)) && hasItems) zone = 0;
+  } else {
+    if (in.hit(Input::LEFT)) { if (grid.gridPosition(cur.sel)>0) grid.moveGrid(cur.sel,-1,0); else { railFocus = true; railSel = inResults ? 1 : 0; } }
+    if (in.hit(Input::RIGHT)) grid.moveGrid(cur.sel,1,0);
+    if (in.hit(Input::DOWN)) grid.moveGrid(cur.sel,0,1);
+    // rolagem sem fim: perto do fim da grade, pede a próxima página
+    bool nearEnd=!hasItems || cur.sel>=n-8;
+    if (hasItems && grid.gridRow(cur.sel)+2 >= (int)grid.rows.size()) {
+      const auto& row=grid.rows[grid.gridRow(cur.sel)];
+      nearEnd |= !row.shorts || grid.gridPosition(cur.sel)+8 >= (int)row.items.size();
+    }
+    if (nearEnd && cur.feed.more && !cur.feed.loadingMore && !cur.feed.loading) {
+      cur.feed.loadingMore = true;
+      requestFeed(cur, inResults ? 1 : cat == 0 ? 0 : 3, false, n, true);
+    }
+    if (in.hit(Input::UP) && !grid.moveGrid(cur.sel,0,-1) && !inResults) zone = 1;
+    if (in.hit(Input::A) && hasItems) {
+      const Video& v = cur.feed.items[(size_t)cur.sel];
+      // Um item já concluído recomeça; pedir o fim exato devolve HTTP 416.
+      requestVideo(v, v.dur > 0 && v.pos >= v.dur ? 0 : v.pos);
+    }
+  }
+  if (cur.sel != previousSel) LOG("home: categoria %d, foco %d/%d", cat, cur.sel + 1, n);
+  if (in.hit(Input::START) && hasItems && zone == 0) { const auto& v = cur.feed.items[(size_t)cur.sel]; nav.menuItem = {"video",v.id,v.title,v.channel,v.id,"","",v.dur}; nav.menuSel = 0; nav.menu = true; }
+  if (in.hit(Input::Y)) openSearch();
+  if (in.hit(Input::X)) {
+    cur.feed = Feed{}; requestFeed(cur, inResults ? 1 : cat == 0 ? 0 : 3, true, 0, true);
+    cur.sel = 0; scroll = 0; zone = 0; toast = tr(K::Refreshing); toastUntil = now + 2500;
+  }
+  if (in.hit(Input::B)) { if (inResults) goHome(); else if (zone == 0) zone = 1; }
+  if (in.hit(Input::BACK)) quit = true;
+}
+
+inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
+  static float selAnim[600] = {};
+  const int cols = ui::columns(settings.cols);
+  const float gap=24, cw=std::floor((ui::W-ui::X0-64-(cols-1)*gap)/cols), th=std::round(cw*9/16), rowH=th+(ui::large ? 128 : 106), top=150;
+  auto& grid=cur.feed.layout;
+  grid.build(cur.feed.items,cur.sel,cols,settings.hideShorts);
+  float shortW=std::min(cw*.5f,112.f), shortH=shortW*16/9, shortHeading=std::max(30.f,g.fonts[ui::F_KEY].lineH+8), shortRowH=shortHeading+shortH+(ui::large ? 124 : 100);
+  float want=0;
+  if (zone==0) for (int row=0;row<grid.gridRow(cur.sel);++row) want+=grid.rows[row].shorts ? shortRowH : rowH;
+  scroll+=(want-scroll)*.2f;
+  float rowY=top-scroll;
+  for (const auto& row:grid.rows) {
+    float y=rowY;
+    rowY+=row.shorts ? shortRowH : rowH;
+    if (y<140 || y>=646) continue;
+    int first=0, visible=(int)row.items.size();
+    if (row.shorts) {
+      if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::text(g,ui::F_KEY,tr(K::ChannelShorts),ui::X0,y,ui::TEXT);
+      y+=shortHeading;
+      visible=std::max(1,(int)((ui::W-ui::X0-64+gap)/(shortW+gap)));
+      int selected=grid.gridRow(cur.sel)>=0 && grid.rows[grid.gridRow(cur.sel)].shorts ? grid.gridPosition(cur.sel) : grid.shortColumn;
+      first=std::clamp(selected-visible+1,0,std::max(0,(int)row.items.size()-visible));
+    }
+    for (int col=first;col<std::min((int)row.items.size(),first+visible);++col) {
+    int i=row.items[col];
+    const Video& v=cur.feed.items[(size_t)i];
+    float artW=row.shorts ? shortW : cw, artH=row.shorts ? shortH : th;
+    float x=ui::X0+(col-first)*(artW+gap);
+    bool focused=zone==0 && !railFocus && i==cur.sel;
+    float& an=selAnim[i%600]; an+=((focused ? 1.f : 0.f)-an)*.25f;
+    float s=row.shorts ? 1 : 1+.045f*an, w=artW*s, h=artH*s, ix=x-(w-artW)/2, iy=y-(h-artH)/2;
+    if (row.shorts && focused && iy-5<646) gfx::rect(g,ix-5,iy-5,w+10,std::min(h+10,646-iy+5),ui::TEXT,12);
+    else if (!row.shorts && an>.02f && iy-4<646) {
+      if (iy-24>=140 && iy+h+32<=646) gfx::shadow(g,ix,iy+10,w,h,14,22,.6f*an);
+      gfx::rect(g,ix-4,iy-4,w+8,std::min(h+8,646-iy+4),ui::alpha(rgb(0xffffff),an),16);
+    }
+    Navigation::artwork(g,thumbs,thumbsWorker,v.id,frame,ix,iy,w,h,false,false,cur.feed.direct,row.shorts,646);
+    const auto* saved=(!account.signedIn() || cur.kind=="local_later" || cur.kind=="local_history")?local::Library::find(localUI.library.history,v.id):nullptr;
+    double shownPos=saved?saved->position:v.pos, shownDuration=saved?saved->duration:v.dur;
+    if (shownPos>0 && shownDuration>0 && iy+h<=646) {
+      gfx::rect(g,ix+4,iy+h-5,w-8,4,{0,0,0,.6f},2);
+      gfx::rect(g,ix+4,iy+h-5,std::max(4.f,(w-8)*(float)std::clamp(shownPos/shownDuration,0.0,1.0)),4,ui::A1,2);
+    }
+    if (!row.shorts && iy+h<=646 && v.dur>=0) {
+      std::string d=v.dur ? fmtTime(v.dur) : tr(K::Live);
+      float dw=gfx::textWidth(g,ui::F_TINY,d)+12, badgeH=ui::large ? 36 : 20, badgeY=iy+h-badgeH-7;
+      gfx::rect(g,ix+w-dw-7,badgeY,dw,badgeH,v.dur ? Color{0,0,0,.8f} : ui::A1,5);
+      gfx::text(g,ui::F_TINY,d,ix+w-dw/2-7,badgeY+(badgeH-g.fonts[ui::F_TINY].size)/2,rgb(0xffffff),1);
+    }
+    if (iy+7+(ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+8) : 20)<=646) memberBadge(g,v.members,settings.lang,ix+7,iy+7);
+    int titleFont=row.shorts ? ui::F_SMALL : ui::F_CARD, metaFont=row.shorts ? ui::F_TINY : ui::F_SMALL;
+    float ty=y+artH+(row.shorts ? 16 : 14);
+    for (const auto& line:gfx::wrap(g,titleFont,v.title,artW,2)) {
+      if (ty+g.fonts[titleFont].lineH<=646) gfx::textBox(g,titleFont,line,x,ty,artW,focused ? ui::TEXT : rgb(0xe4e4e7));
+      ty+=ui::large ? (row.shorts ? 34 : 31) : row.shorts ? 27 : 23;
+    }
+    std::string meta=v.channel+(v.views.empty() ? "" : "  \xC2\xB7  "+v.views);
+    if (ty+3+g.fonts[metaFont].lineH<=646) gfx::textBox(g,metaFont,gfx::ellipsize(g,metaFont,meta,artW),x,ty+3,artW,ui::MUTED);
+    }
+  }
+  if (grid.rows.empty()) {
+    if (cur.feed.loading || cur.feed.loadingMore) { spinner(g, ui::X0 + (ui::W - ui::X0) / 2 - 32, 380, 22, t); gfx::text(g, ui::F_BODY, tr(K::LoadingVideos), ui::X0 + (ui::W - ui::X0) / 2 - 32, 420, ui::MUTED, 1); }
+    else if (cur.feed.error != K::None) {
+      float y=190;
+      bool serverError=net::serverEnabled && (cur.feed.error==K::NoResponse || cur.feed.error==K::BadResponse);
+      K errorTitle=serverError?K::ServerUnavailable:cur.feed.error, errorHelp=serverError?K::RetryServer:K::Refresh;
+#ifndef __XSDK__
+      errorShot={&cur.feed,errorTitle,errorHelp,serverError};
+#endif
+      for(const auto& line:gfx::wrap(g,ui::F_H2,tr(errorTitle),ui::W-ui::X0-64,4)) {
+        gfx::textBox(g,ui::F_H2,line,ui::X0,y,ui::W-ui::X0-64,ui::TEXT);y+=g.fonts[ui::F_H2].lineH+8;
+      }
+      const auto& errorDetail=serverError?serverAddress:cur.feed.errorDetail;
+      if(!errorDetail.empty()){gfx::textBox(g,ui::F_BODY,errorDetail,ui::X0,y+16,ui::W-ui::X0-64,ui::MUTED);y+=48;}
+      if(serverError)gfx::text(g,ui::F_BODY,tr(errorHelp),ui::X0,y+16,ui::MUTED);
+      else hint(g,ui::X0,y+24,"X",XX,tr(errorHelp));
+    } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
+  }
+  if (ui::large || ui::narrow) gfx::rect(g,96,648,ui::W-96,72,ui::BG);
+  // topo fixo: o nome e as categorias (a grade passa por baixo)
+  gfx::rect(g, 0, 0, ui::W, 118, ui::BG, 0);
+  gfx::vgrad(g, 0, 118, ui::W, 36, ui::BG, ui::alpha(ui::BG, 0));
+  wordmark(g, ui::X0, 22, 1, ui::BG);
+  {
+    float hw = 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Refresh)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::Search)) + 26 + 24 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::MoreOptions));
+    float lx = ui::W - 88 - hw, pillRight = lx - 18;
+    if (ui::narrow || ui::large) lx=ui::X0;
+    float hintY=(ui::narrow || ui::large) ? 680 : 32;
+    auto pill = [&](const std::string& label, Color color) {
+      std::string txt = gfx::ellipsize(g, ui::F_SMALL, label, 218);
+      float w = gfx::textWidth(g, ui::F_SMALL, txt) + 32;
+      gfx::rect(g, pillRight - w, 30, w, 28, ui::alpha(color, 0.16f), 14);
+      gfx::rect(g, pillRight - w + 10, 41, 6, 6, color, 3);
+      gfx::text(g, ui::F_SMALL, txt, pillRight - w + 22, 34, ui::TEXT);
+      pillRight -= w + 10;
+    };
+    // a contagem do timer entra na fileira de pílulas (sozinha à direita, cobria a legenda do X)
+    if (sleep.active && !ui::narrow && !ui::large) {
+      std::string value = sleep.end ? tr(K::SleepEnd) : fmtTime(std::ceil(sleepLeft));
+      if (sleep.end && sleepLeft >= 0) value += " · " + fmtTime(std::ceil(sleepLeft));
+      pill(std::string(tr(K::SleepTimer)) + " · " + value, ui::A1);
+    }
+    if (!castWho.empty() && !ui::narrow && !ui::large) pill(tr(K::PhonePrefix) + castWho, rgb(0x34c759));
+    accountPhoto();
+    float hx3 = hint(g, lx, hintY, "X", XX, tr(K::Refresh));
+    float hx4 = hint(g, hx3, hintY, "Y", XY, tr(K::Search));
+    hint(g, hx4, hintY, "Menu", XG, tr(K::MoreOptions));
+  }
+  if (inResults) {
+    gfx::text(g, ui::F_H2, gfx::ellipsize(g, ui::F_H2, cur.feed.title, ui::W-ui::X0-220), ui::X0, 78, ui::TEXT);
+    hint(g, ui::W - 64 - 120, 80, "B", XB, tr(K::Home));
+  } else {
+    // Chips inteiros: a janela acompanha o selecionado sem sair da tela.
+    int first = cat; float used = gfx::textWidth(g, ui::F_BODY, cats[(size_t)cat].title) + 34;
+    while (first > 0) {
+      float prev = gfx::textWidth(g, ui::F_BODY, cats[(size_t)first - 1].title) + 44;
+      if (used + prev > ui::W - ui::X0 - 64) break;
+      used += prev; first--;
+    }
+    float cx = ui::X0;
+    int last = first - 1;
+    for (int c = first; c < (int)cats.size(); c++) {
+      float w = gfx::textWidth(g, ui::F_BODY, cats[(size_t)c].title) + 34;
+      if (cx + w > ui::W - 64) break;
+      bool sel = c == cat, f = sel && zone == 1 && !railFocus;
+      if (f) gfx::shadow(g, cx, 76 + 5, w, 40, 20, 14, 0.5f);
+      gfx::rect(g, cx, 76, w, 40, f ? rgb(0xffffff) : sel ? ui::alpha(rgb(0xffffff), 0.9f) : ui::alpha(rgb(0xffffff), 0.09f), 20);
+      gfx::text(g, ui::F_BODY, cats[(size_t)c].title, cx + w / 2, 85, sel ? ui::INK : ui::TEXT, 1);
+      if (cats[(size_t)c].feed.loading && cats[(size_t)c].feed.items.empty()) gfx::rect(g, cx + w - 12, 82, 6, 6, ui::A1, 3);
+      cx += w + 10;
+      last = c;
+    }
+    if (first > 0) gfx::text(g, ui::F_SMALL, tr(K::BtnHorizontal), ui::X0 - 34, 88, ui::FAINT);
+    if (last + 1 < (int)cats.size()) gfx::triangle(g, ui::W - 36, 89, ui::W - 29, 96, ui::W - 36, 103, ui::MUTED);
+  }
+}
