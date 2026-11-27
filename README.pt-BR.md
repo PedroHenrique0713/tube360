@@ -1,5 +1,7 @@
 <p align="center"><a href="https://github.com/revive360"><img src="docs/img/revive360-strip.svg" alt="Um projeto da Revive360" width="100%"></a></p>
 
+<a href="https://github.com/revive360/catalog/blob/main/generated/apps/tube360.md"><img align="right" width="128" src="https://raw.githubusercontent.com/revive360/catalog/main/generated/badges/tube360-medal.svg" alt="Medalha Revive360 Project"></a>
+
 # YouTube no Xbox 360, sem PC.
 
 <p align="center">
