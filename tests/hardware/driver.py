@@ -53,7 +53,7 @@ cases = [
     ('safe-over-native-request', 'board=jasper\n', 0, 1280, 720, 0),
     ('native-contract-720', 'board=xenon\ndriver=native\n', 1, 1280, 720, 1),
     ('native-contract-4x3', 'board=falcon\ndriver=native\nmode=480p\n', 1, 640, 480, 1),
-    ('native-contract-wide-sd', 'board=corona-e\ndriver=native\nmode=480w\n', 1, 848, 480, 1),
+    ('native-contract-wide-sd', 'board=corona-e\ndriver=native\nmode=480w\n', 1, 864, 480, 1),
     ('native-staging', 'board=corona-e\ndriver=native\nmapped=off\n', 1, 1920, 1080, 0),
     ('real-kernel-limit', 'board=corona-e\ndriver=native\nmode=1080p\n', 1, 1280, 720, 1),
 ]

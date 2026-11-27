@@ -195,6 +195,43 @@ def finish(sdk,v4x):
     finish_sim_display(sdk,v4x)
 
 def finish_sim_display(sdk,v4x):
+    finish_sim_display_v5(sdk,v4x)
+    finish_display_fix(sdk,v4x)
+
+def finish_display_fix(sdk,v4x):
+    """Largura SD wide 864 (múltipla de 32, exigência do resolve), saída 5:4 e aspecto físico do pixel."""
+    stamp=sdk/'tube360-video-policy-v6'
+    if stamp.exists():return
+    pending={}
+    def replace(path,before,after):
+        text=pending.get(path,path.read_text())
+        if text.count(before)!=1:raise RuntimeError(f'Incompatible display fix hook: {path}: {before[:70]!r}')
+        pending[path]=text.replace(before,after)
+    # 848 não é múltiplo de 32: o resolve do Xenos não aceita, e o app saía logo depois de instalar o callback (issue #7).
+    replace(sdk/'src/display.c','mode == XSDK_DISPLAY_480W ? 848 : WIDTH_720P','mode == XSDK_DISPLAY_480W ? 864 : WIDTH_720P')
+    output=v4x/'src/display.c'
+    replace(output,'bool sd = height == 480 || video.display_height <= 576 || !video.is_widescreen;',
+            '// Monitor 5:4 (1280x1024) e maior: 720p com barras, nitidez de HD; só 4:3 de verdade (CRT, 640x480, 1024x768) vai a 480.\n'
+            '    bool monitor54 = !video.is_widescreen && video.display_width >= 1280 && video.display_height >= 1024;\n'
+            '    bool sd = height == 480 || video.display_height <= 576 || (!video.is_widescreen && !monitor54);')
+    replace(output,'tube360_display_width = sd ? (video.is_widescreen ? 848 : 640) : native ? 1920 : 1280;',
+            'tube360_display_width = sd ? (video.is_widescreen ? 864 : 640) : native ? 1920 : 1280;')
+    replace(output,'    xsdk_log_write("display: dashboard %ux%u %s %s; framebuffer %ux%u", video.display_width, video.display_height,',
+            '    // O pixel do framebuffer SD não é quadrado quando o raster não é 4:3 (5:4 em 480p) nem 16:9 (864x480).\n'
+            '    tube360_display_aspect = sd ? (video.is_widescreen ? 16.0f/9.0f : video.display_height > 576 ? (float)video.display_width/(float)video.display_height : 4.0f/3.0f) : 0;\n'
+            '    xsdk_log_write("display: dashboard %ux%u %s %s; framebuffer %ux%u", video.display_width, video.display_height,')
+    replace(output,'float tube360_output_aspect(void){return tube360_display_kernel ? tube360_display_aspect : 0;}',
+            'float tube360_output_aspect(void){return tube360_display_kernel || tube360_display_height == 480 ? tube360_display_aspect : 0;}')
+    # Diagnóstico para o próximo log: o raster que o kernel programou, lido só em leitura (sem escrita de registrador).
+    replace(sdk/'src/display.c','    VIDEO_BOOT("end","display.scaler-snapshot","saved");',
+            '    VIDEO_BOOT("end","display.scaler-snapshot","saved");\n'
+            '    VIDEO_BOOT("detect","display.raster","viewport=%08x hscale=%08x vscale=%08x crtc_htotal=%08x crtc_hblank=%08x query=%ux%u wide=%u; read-only, to compare the kernel raster with VdQueryVideoMode",\n'
+            '        (unsigned)gpu_registers[AVIVO_D1MODE_VIEWPORT_SIZE],(unsigned)old_scaler[HORIZONTAL_SCALE],(unsigned)old_scaler[VERTICAL_SCALE],(unsigned)gpu_registers[0x1800],(unsigned)gpu_registers[0x1801],(unsigned)video.display_width,(unsigned)video.display_height,(unsigned)video.is_widescreen);')
+    for path,text in pending.items():path.write_text(text)
+    stamp.write_text('SD wide 864 (multiple of 32), 720p letterbox on 5:4 monitors, physical pixel aspect, raster diagnostics\n')
+    (v4x/'tube360-video-policy-v6').write_text(stamp.read_text())
+
+def finish_sim_display_v5(sdk,v4x):
     stamp=sdk/'tube360-video-policy-v5'
     if stamp.exists():return
     header=sdk/'include/xsdk/tube360_video.h'
