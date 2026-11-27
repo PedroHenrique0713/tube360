@@ -46,7 +46,7 @@ python3 bench/sponsorblock/e2e.py
 python3 bench/sponsorblock/phone.py
 ```
 
-Results, logs and captures are in `.work/sponsorblock-e2e/`, with isolated HOME/cache/assets, `server=off`,
+Results, logs and captures are in `.work/sponsorblock-e2e/`, with isolated HOME/cache/assets,
 dummy audio and offscreen SDL. No personal account, real speaker or production service is used. Settings
 cases cover every mode in pt/en/es, 4:3/large text, persistence and B. Player cases cover button, natural
 expiry, one-press skip, automatic skip, Y return without reskip, undo expiry, marks, API offline/slow and a
@@ -156,7 +156,7 @@ The latest console procedure, including the 2 s criterion and a matching Off con
 
 Keep the installed app folder intact. Create a temporary folder, for example `HDD:\F34-SponsorBlock\`,
 with `tube360.xex`, all four `inter-*.ttf` fonts and the following files. Launch that `tube360.xex` with
-the coordinator's console tools. No `server.txt` or account file is needed.
+the coordinator's console tools. No account file is needed.
 
 `autoplay.txt`:
 
@@ -168,7 +168,6 @@ wWC8wVI4E3E 5
 
 ```text
 lang=pt
-server=off
 sound=tv
 sponsorblock=button
 ```
@@ -185,7 +184,7 @@ for font in Path('client/assets').glob('inter-*.ttf'):
     shutil.copyfile(font,folder/font.name)
 shutil.copyfile('client/build-x360/tube360.xex',folder/'tube360.xex')
 (folder/'autoplay.txt').write_text('wWC8wVI4E3E 5\n')
-(folder/'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\nsponsorblock=button\n')
+(folder/'settings.txt').write_text('lang=pt\nsound=tv\nsponsorblock=button\n')
 PY
 python3 <forcepush-360>/tools/xbdm.py 192.168.1.50 mkdir 'HDD:\F34-SponsorBlock'
 for asset in .work/console-f34/*; do

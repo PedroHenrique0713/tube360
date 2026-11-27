@@ -12,7 +12,6 @@ lang=es
 output_height=480
 large_text=on
 video_fit=fit
-server=off
 ```
 
 `large_text=off` mantém o tamanho normal em HD; SD sempre amplia o texto. `video_fit=fill`
@@ -31,13 +30,11 @@ python3 bench/catalog/prepare-replay.py .work/f22/replay
 python3 bench/quality/prepare.py .work/f22/media --mode both --seconds 10
 python3 bench/catalog/build-replay.py .work/f22
 python3 bench/display/e2e.py .work/f22
-PYTHONUSERBASE=$HOME/.local python3 bench/display/server_e2e.py .work/f22
 ```
 
 As capturas ficam em `.work/f22/<caso>/screen.png`. O replay substitui somente o transporte;
 main, fontes, geometria, player e shaders são os do produto. Fixtures contêm metadados em
 português/inglês; esses títulos e nomes são dados, não textos da interface. Não há conta real.
-`server_e2e.py` usa exclusivamente 8152/8252, HOME/config próprios e encerra o servidor criado.
 
 Conferir no console na integração: painel em 480i 4:3, 480p 4:3, SD widescreen e 720p;
 log `display: dashboard ... interlaced/progressive ... framebuffer ...` seguido de

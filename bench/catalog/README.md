@@ -49,6 +49,6 @@ ou contexto da implementação F35, e nunca provou aceitação de conta real.
 `tv-session.txt` preserva somente índices de uma sessão pública sanitizada de
 `/sw.js_data`, usada pelo oráculo antigo.
 
-`prepare-replay.py`, `capture-ui.py`, `membership-ui.py` e `visual-integration.py`
+`prepare-replay.py`, `capture-ui.py` e `visual-integration.py`
 continuam disponíveis para as provas públicas, membros e integração visual de
 canal/inscrições/biblioteca/player. Conta e mídia dessas bancadas são fictícias.

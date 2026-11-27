@@ -14,7 +14,7 @@ for lang in ('pt','en','es','ar'):
     for case in ('tls_date','tls','dns','network','http','json','fonts','sdl','video','folder','launch','timeout'):
         name=f'{lang}-{case}';folder=base/name;folder.mkdir(exist_ok=True)
         assets=folder/'assets';assets.mkdir(exist_ok=True)
-        (assets/'settings.txt').write_text(f'lang={lang}\nserver=off\nsound=tv\n')
+        (assets/'settings.txt').write_text(f'lang={lang}\nsound=tv\n')
         if case!='fonts':
             for f in (root/'client/assets').glob('*.ttf'):shutil.copy(f,assets)
         (folder/'error.txt').write_text(case)

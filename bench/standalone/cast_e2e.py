@@ -21,7 +21,7 @@ assets.mkdir(parents=True, exist_ok=True)
 replay.mkdir(parents=True, exist_ok=True)
 for font in (root/'client/assets').glob('inter-*.ttf'):
     shutil.copyfile(font, assets/font.name)
-(assets/'settings.txt').write_text('lang=pt\ncols=4\nquality=720\nsound=nest\nserver=off\nsync_ms=0\n')
+(assets/'settings.txt').write_text('lang=pt\ncols=4\nquality=720\nsound=nest\nsync_ms=0\n')
 (assets/'autoplay.txt').write_text('F13fixture0 0\n')
 (replay/'watch.html').write_text('<script>ytcfg.set({"VISITOR_DATA":"fixture","jsUrl":"/s/player/fixture/base.js"})</script>')
 (replay/'base.js').write_text('var fixture={signatureTimestamp:20775};')
@@ -87,8 +87,7 @@ def run(name, seconds, scenario=None, keys=''):
     if not keys:
         keys = '.'*(seconds-2)+'U'
     env = os.environ | {'XT_CAST_DISABLE': '1', 'SDL_VIDEO_DRIVER': 'offscreen', 'SDL_AUDIO_DRIVER': 'dummy',
-                       'XT_ASSETS': str(assets), 'XT_SERVER': '127.0.0.1:8133',
-                       'XT_YT_REPLAY': str(proof/'replay'), 'XT_SHOT': str(proof/(name+'.ppm')),
+                       'XT_ASSETS': str(assets), 'XT_YT_REPLAY': str(proof/'replay'), 'XT_SHOT': str(proof/(name+'.ppm')),
                        'XT_SHOT_MS': str(seconds*1000), 'XT_KEYS_MS': '1000', 'XT_KEYS': keys}
     with (proof/(name+'.log')).open('w') as log:
         app = subprocess.Popen([str(root/'client/build/tube360')], env=env, stdout=log, stderr=log)

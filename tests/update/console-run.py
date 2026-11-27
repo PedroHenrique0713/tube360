@@ -195,7 +195,7 @@ class Runner:
                 raise ValueError('XEX sem chave/gatilho descartável')
         if key not in files['default.xex']:
             raise ValueError('lançador usa outra chave')
-        files.update({'settings.txt': b'lang=pt\nserver=off\nsound=tv\n',
+        files.update({'settings.txt': b'lang=pt\nsound=tv\n',
                       'net_log.txt': f'{self.log_host} {self.args.udp_port}\n'.encode(),
                       'update-auto.txt': b'on\n'})
         self.files = files

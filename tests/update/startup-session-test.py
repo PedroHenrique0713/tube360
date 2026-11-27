@@ -108,7 +108,7 @@ for mode,clean in [('startup-recent',True),('startup-at-limit',True),('startup-s
                    ('main-heartbeat',True),('fatal-startup',False),('fatal-no-log',False),('fatal-gpu',False)]:
  folder=OUT/mode;folder.mkdir()
  for f in (ROOT/'client/assets').glob('*.ttf'):shutil.copyfile(f,folder/f.name)
- (folder/'settings.txt').write_text('server=off\nsound=tv\n')
+ (folder/'settings.txt').write_text('sound=tv\n')
  case_env={**env,'HOME':str(folder),'XDG_CONFIG_HOME':str(folder),'XDG_CACHE_HOME':str(folder),
            'XT_ASSETS':str(folder),'F56D_MODE':mode}
  if mode in ('fatal-startup','fatal-no-log'):case_env['XT_STARTUP_ERROR']='sdl'

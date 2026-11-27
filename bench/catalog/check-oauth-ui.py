@@ -106,7 +106,7 @@ for name, lang, signed, kind, query, config, expected_source in cases:
     assets = proof/('assets-'+name)
     shutil.copytree(replay/'assets', assets, dirs_exist_ok=True)
     for font in (root/'client/assets').glob('noto-sans-arabic-*.ttf'):shutil.copy(font,assets)
-    (assets/'settings.txt').write_text('lang='+lang+'\ncols=4\nquality=720\nsound=tv\nserver=off\n'+config.get('settings',''))
+    (assets/'settings.txt').write_text('lang='+lang+'\ncols=4\nquality=720\nsound=tv\n'+config.get('settings',''))
     token = assets/'yt-console-account.json'
     token.unlink(missing_ok=True)
     if signed:
@@ -120,7 +120,7 @@ for name, lang, signed, kind, query, config, expected_source in cases:
     env = {k:v for k,v in os.environ.items() if not k.startswith('XT_')}
     env.update(HOME=str(home_dir), XDG_CACHE_HOME=str(home_dir/'.cache'), SDL_VIDEO_DRIVER='offscreen',
         SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2', XT_CAST_DISABLE='1', XT_ASSETS=str(assets),
-        XT_SERVER='127.0.0.1:8136', XT_CATALOG_REPLAY=str(replay), XT_ACCOUNT_FIXTURES=str(accounts),
+        XT_CATALOG_REPLAY=str(replay), XT_ACCOUNT_FIXTURES=str(accounts),
         XT_CATALOG_AUDIT=str(audit), XT_MUSIC='1', XT_NAV=kind, XT_NAV_QUERY=query,
         XT_SHOT=str(proof/(name+'.ppm')), XT_SHOT_MS='2400', XT_SHOT_FRAME='2147483647')
     env.update({k:v for k,v in config.items() if k.startswith('XT_')})

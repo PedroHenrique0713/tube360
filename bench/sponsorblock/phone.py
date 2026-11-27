@@ -46,7 +46,7 @@ def run(undo):
     assets.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets/font.name)
-    (assets/'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\nsponsorblock=auto\n')
+    (assets/'settings.txt').write_text('lang=pt\nsound=tv\nsponsorblock=auto\n')
     lounge = cast.Lounge(MEDIA)
     lounge.sponsor_calls = 0
     server = ThreadingHTTPServer(('127.0.0.1', 8234), Handler)
@@ -56,8 +56,7 @@ def run(undo):
     thread.start()
     env = {k:v for k,v in os.environ.items() if not k.startswith('XT_')}
     env.update(HOME=str(assets), XDG_CACHE_HOME=str(assets/'.cache'), SDL_VIDEO_DRIVER='offscreen',
-        SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2', XT_ASSETS=str(assets), XT_SERVER='127.0.0.1:8134',
-        XT_SHOT=str(WORK/(name+'.ppm')), XT_SHOT_MS='6500', XT_KEYS_MS='100',
+        SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2', XT_ASSETS=str(assets), XT_SHOT=str(WORK/(name+'.ppm')), XT_SHOT_MS='6500', XT_KEYS_MS='100',
         XT_KEYS='.'*34+'Y' if undo else '')
     process = None
     try:
@@ -77,7 +76,7 @@ def run(undo):
         assert ('SponsorBlock: undo ' in text)==undo, text
         (WORK/(name+'-events.json')).write_text(json.dumps(lounge.events,indent=2))
         subprocess.run(['magick',str(WORK/(name+'.ppm')),str(WORK/(name+'.png'))],check=True)
-        print('PASS',name,'native lounge, server=off, seek and phone clock, single API request',flush=True)
+        print('PASS',name,'native lounge, seek and phone clock, single API request',flush=True)
     finally:
         (WORK/(name+'-events.json')).write_text(json.dumps(lounge.events,indent=2))
         if process and process.poll() is None:

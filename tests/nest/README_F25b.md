@@ -68,7 +68,7 @@ permanente agora exige a volta à TV após a liberação e os 10 s sem contato.
 
 ## Console — somente o coordenador executa
 
-Criar uma pasta temporária nova, sem conta, journal antigo ou `server.txt`.
+Criar uma pasta temporária nova, sem conta, ou journal antigo.
 Exemplo de preparação local (o ID é o mesmo do log de regressão):
 
 ```bash
@@ -83,7 +83,7 @@ for font in (root / 'client/assets').glob('inter-*.ttf'):
     shutil.copy2(font, stage / font.name)
 (stage / 'nest.txt').write_text('192.168.1.60 8009\nTeste Eliot\n')
 (stage / 'autoplay.txt').write_text('nuvwZLCNJCI 30\n')
-(stage / 'settings.txt').write_text('lang=pt\nquality=720\nsound=nest\nserver=off\nsync_ms=0\n')
+(stage / 'settings.txt').write_text('lang=pt\nquality=720\nsound=nest\nsync_ms=0\n')
 PY
 ```
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Celular e YouTube falsos em loopback, com o main/player/render reais e server=off."""
+"""Celular e YouTube falsos em loopback, com o main/player/render reais, sem servidor."""
 import argparse
 import contextlib
 import http.client
@@ -272,7 +272,7 @@ def app(binary, work, lang, shot, seconds, rail=False, server_mode="off"):
         shutil.copy(font, assets)
     (assets / 'settings.txt').write_text(f'lang={lang}\ncols=4\nquality=720\nsound=tv\nserver={server_mode}\n')
     env = dict(os.environ, HOME=str(home), XDG_CACHE_HOME=str(home / '.cache'), SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', XT_ASSETS=str(assets),
-               XT_SERVER='127.0.0.1:8134', XT_SHOT=str(work / (shot + '.ppm')), XT_SHOT_MS=str(seconds * 1000))
+               XT_SHOT=str(work / (shot + '.ppm')), XT_SHOT_MS=str(seconds * 1000))
     if rail:
         env.update(XT_SCREEN='rail', XT_KEYS='DDDDDA', XT_KEYS_MS='160')
     log = open(work / (shot + '.log'), 'w')
@@ -411,11 +411,11 @@ def main():
         with app(opts.binary.resolve(), work, 'pt', 'reserve-auto', 5, server_mode='auto'):
             wait_for(lambda: lounge.code_count > count, 'native receiver with PC reserve enabled')
             lounge.message('setPlaylist', {'listId': 'FAKE-QUEUE', 'videoIds': IDS[0], 'videoId': IDS[0], 'currentIndex': '0'})
-            wait_for(lambda: lounge.seen('nowPlaying', lambda d: d.get('videoId') == IDS[0] and d.get('state') == '1', mark), 'native cast with server=auto')
+            wait_for(lambda: lounge.seen('nowPlaying', lambda d: d.get('videoId') == IDS[0] and d.get('state') == '1', mark), 'native cast with a legacy server=auto line')
         assert not lounge.errors, lounge.errors
         (work / 'events.json').write_text(json.dumps(lounge.events, indent=2, ensure_ascii=False))
         print(f'PASS SSDP, DIAL, TV code, lounge, queue, pause/resume, seek, volume/mute, next/previous, natural end, reconnect, SID recovery')
-        print(f'PASS decoded 720p30 fixture with server=off, {lounge.ranges} range reads, {lounge.session} sessions, {time.monotonic() - started:.2f}s')
+        print(f'PASS decoded 720p30 fixture, {lounge.ranges} range reads, {lounge.session} sessions, {time.monotonic() - started:.2f}s')
         for name in ('player', 'pairing-pt', 'pairing-en', 'reserve-auto'):
             subprocess.run(['magick', str(work / (name + '.ppm')), str(work / (name + '.png'))], check=True)
     finally:

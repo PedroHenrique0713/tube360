@@ -15,7 +15,7 @@ def run(name,lang='pt',height=720,large=False,keys='',seconds=2.8,**extra):
     assets=work/name
     assets.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('*.ttf'): shutil.copyfile(font,assets/font.name)
-    (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nsound=tv\nserver=off\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
+    (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nsound=tv\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
     env=dict(os.environ,HOME=str(assets/'home'),XDG_CONFIG_HOME=str(assets/'config'),XDG_CACHE_HOME=str(assets/'cache'),
         SDL_VIDEO_DRIVER='offscreen',SDL_AUDIO_DRIVER='dummy',XT_ASSETS=str(assets),XT_CAST_DISABLE='1',
         XT_SEARCH_REPLAY=str(work/'replay'),XT_ACCOUNT_FIXTURES=str(work/'accounts'),XT_SCREEN='search',XT_SEARCH_TEXT='astronomia',
@@ -26,7 +26,7 @@ def run(name,lang='pt',height=720,large=False,keys='',seconds=2.8,**extra):
     with (assets/'app.log').open('w') as log:
         subprocess.run([str(work/'tube360-search-replay')],env=env,stdout=log,stderr=subprocess.STDOUT,timeout=45,check=True)
     text=(assets/'app.log').read_text()
-    assert 'captura:' in text and 'desligado: só console' in text,text[-3000:]
+    assert 'captura:' in text,text[-3000:]
     assert 'atlas full' not in text,text[-2000:]
     if lang=='ar': assert 'Arabic fonts:' in text,text[-2000:]
     subprocess.run(['magick',str(assets/'screen.ppm'),str(assets/'screen.png')],check=True)

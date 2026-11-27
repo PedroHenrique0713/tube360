@@ -54,7 +54,7 @@ def environment(folder, case):
         shutil.copy(font, assets)
     for name in ('board-sim.txt', 'video-driver.txt', 'boot-app.log', 'boot-mapped-test.log'):
         (assets / name).unlink(missing_ok=True)
-    (assets / 'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\noutput_height=720\n')
+    (assets / 'settings.txt').write_text('lang=pt\nsound=tv\noutput_height=720\n')
     (folder / 'error.txt').write_text('network')
     if 'config' in case:
         (assets / 'board-sim.txt').write_text(case['config'])

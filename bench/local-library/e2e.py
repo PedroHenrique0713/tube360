@@ -5,9 +5,6 @@ _sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
 from settings_nav import seq
 import argparse
 import json
-import http.server
-import threading
-import urllib.parse
 import os
 from pathlib import Path
 import re
@@ -84,11 +81,11 @@ results=[]
 def seed():
     return {'version':1,'later':[dict(id='video000001',title='Demo · Vídeo para assistir depois',channel='Demo · Canal de bancada',duration=120,position=0,order=2),dict(id='video000002',title='Demo · Retomar de onde parou',channel='Demo · Canal de bancada',duration=120,position=0,order=1)],'history':[dict(id='video000001',title='Demo · Retomar de onde parou',channel='Demo · Canal de bancada',duration=120,position=30,order=3)]}
 
-def run(name,lang='pt',large=False,height=720,keys='',seconds=3.5,saved=True,signed=False,assets=None,blocked=False,phone_control=False,**extra):
+def run(name,lang='pt',large=False,height=720,keys='',seconds=3.5,saved=True,signed=False,assets=None,blocked=False,**extra):
     if args.cases and name not in args.cases:return None
     assets=assets or work/name;assets.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('*.ttf'):shutil.copyfile(font,assets/font.name)
-    (assets/'settings.txt').write_text(f'lang={lang}\nserver={"auto" if phone_control else "off"}\nsound=tv\nsponsorblock=off\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
+    (assets/'settings.txt').write_text(f'lang={lang}\nsound=tv\nsponsorblock=off\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
     if isinstance(saved,dict):(assets/'local-library.json').write_text(json.dumps(saved))
     elif saved is True:(assets/'local-library.json').write_text(json.dumps(seed()))
     elif saved is False:(assets/'local-library.json').unlink(missing_ok=True)
@@ -99,31 +96,8 @@ def run(name,lang='pt',large=False,height=720,keys='',seconds=3.5,saved=True,sig
     env={k:v for k,v in os.environ.items() if not k.startswith('XT_')}
     env.update(HOME=str(work/'home'),XDG_CONFIG_HOME=str(work/'config'),XDG_CACHE_HOME=str(work/'cache'),LP_NUM_THREADS='2',SDL_VIDEO_DRIVER='offscreen',SDL_AUDIO_DRIVER='dummy',XT_CAST_DISABLE='1',XT_ASSETS=str(assets),XT_CATALOG_REPLAY=str(replay),XT_ACCOUNT_FIXTURES=str(work/'accounts'),XT_ACCOUNT_AUDIT=str(assets/'account-audit.log'),XT_KEYS=keys,XT_KEYS_MS='250',XT_SHOT=str(assets/'screen.ppm'),XT_SHOT_MS=str(int(seconds*1000)))
     env.update(extra)
-    remote_server=None; remote_thread=None; unexpected=[]
-    if phone_control:
-        class RemoteReplay(http.server.BaseHTTPRequestHandler):
-            sent=False
-            def log_message(self,*a):pass
-            def do_GET(self):
-                route=urllib.parse.urlsplit(self.path).path
-                if route=='/api/remote/poll':
-                    body='none\n' if RemoteReplay.sent else 'play\tvideo000001\t30\tDemo phone fixture\tcast\t1\n';RemoteReplay.sent=True
-                elif route=='/api/account':body='ok\tsigned_out\t\t\t\n'
-                elif route=='/api/sleep':body='ok\t0\t0\t0\t0\n'
-                elif route=='/api/nest/info':body='ok\t0\t\n'
-                elif route=='/api/video/video000001/next':body='none\n'
-                else:
-                    unexpected.append(route);self.send_error(503);return
-                raw=body.encode();self.send_response(200);self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw)
-        remote_server=http.server.ThreadingHTTPServer(('127.0.0.1',0),RemoteReplay)
-        remote_thread=threading.Thread(target=remote_server.serve_forever);remote_thread.start()
-        env['XT_SERVER']=f'127.0.0.1:{remote_server.server_port}'
-    try:
-        with (assets/'app.log').open('w') as log:subprocess.run([str(work/'tube360-replay')],env=env,stdout=log,stderr=log,timeout=70,check=True)
-    finally:
-        if remote_server:remote_server.shutdown();remote_server.server_close();remote_thread.join()
-    assert not unexpected,unexpected
-    log=(assets/'app.log').read_text();assert 'captura:' in log and (phone_control or 'desligado: só console' in log),log[-4000:]
+    with (assets/'app.log').open('w') as log:subprocess.run([str(work/'tube360-replay')],env=env,stdout=log,stderr=log,timeout=70,check=True)
+    log=(assets/'app.log').read_text();assert 'captura:' in log,log[-4000:]
     cmd('magick',assets/'screen.ppm',assets/'screen.png')
     results.append({'name':name,'image':str(assets/'screen.png')});(work/'results.json').write_text(json.dumps(results,indent=2))
     print('PASS',name,flush=True);return assets,log
@@ -183,10 +157,6 @@ if r:
 r=run('restart-play',XT_PLAY='video000001',keys='DA',seconds=5)
 if r:
     assert 'inicio=0.000' in r[1] and 'primeiro quadro:' in r[1];assert not json.loads((r[0]/'local-library.json').read_text())['history']
-r=run('phone-resume',phone_control=True,seconds=5)
-if r:
-    assert re.search(r'pedido video000001 inicio=30\.000.*remoto=1',r[1]) and 'primeiro quadro:' in r[1]
-    assert json.loads((r[0]/'local-library.json').read_text())['history'][0]['position']>30
 r=run('natural-end',XT_PLAY='video000001',keys='A]]',seconds=7)
 if r:assert not json.loads((r[0]/'local-library.json').read_text())['history']
 r=run('checkpoint',XT_PLAY='video000001',keys='A',seconds=34)

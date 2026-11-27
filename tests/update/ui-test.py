@@ -59,7 +59,7 @@ try:
         (assets / 'update-auto.txt').unlink(missing_ok=True)
         if name == 'auto-file-pt':
             (assets / 'update-auto.txt').write_text('on\n')
-        (assets / 'settings.txt').write_text(f'lang={lang}\nserver=off\nsound=tv\nlarge_text={"on" if large else "off"}\noutput_height={height}\n')
+        (assets / 'settings.txt').write_text(f'lang={lang}\nsound=tv\nlarge_text={"on" if large else "off"}\noutput_height={height}\n')
         env = {**os.environ, 'HOME': str(folder / 'home'), 'XDG_CACHE_HOME': str(folder / 'cache'),
                'SDL_VIDEO_DRIVER': 'offscreen', 'SDL_AUDIO_DRIVER': 'dummy', 'XT_CAST_DISABLE': '1',
                'XT_ASSETS': str(assets), 'XT_YT_REPLAY': str(assets), 'XT_SCREEN': screen,

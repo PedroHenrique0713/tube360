@@ -22,7 +22,7 @@ def app(name, on, keys, shot_ms, extra=None):
     assets.mkdir(exist_ok=True)
     for font in (ROOT / 'client/assets').glob('*.ttf'):
         shutil.copyfile(font, assets / font.name)
-    (assets / 'settings.txt').write_text(f'lang=en\nserver=off\nsound=tv\ncols=4\nphone_remote={"on" if on else "off"}\n')
+    (assets / 'settings.txt').write_text(f'lang=en\nsound=tv\ncols=4\nphone_remote={"on" if on else "off"}\n')
     env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
     env.update(HOME=str(assets / 'home'), XDG_CONFIG_HOME=str(assets / 'config'), XDG_CACHE_HOME=str(assets / 'cache'),
                SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', XT_CAST_DISABLE='1', XT_ASSETS=str(assets), XT_SCREEN='settings',

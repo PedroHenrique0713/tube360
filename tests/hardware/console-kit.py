@@ -32,7 +32,7 @@ for name, config in scenarios.items():
         shutil.copy(ROOT / 'client/build-x360' / source, folder / target)
     for font in (ROOT / 'client/assets').glob('inter-*.ttf'):
         shutil.copy(font, folder)
-    (folder / 'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\noutput_height=1080\nvideo_mode=1080p30\n')
+    (folder / 'settings.txt').write_text('lang=pt\nsound=tv\noutput_height=1080\nvideo_mode=1080p30\n')
     # Mantém o uso do dono em native; o board-sim safe tem precedência sobre este arquivo.
     (folder / 'video-driver.txt').write_text('native\n')
     if config is not None:

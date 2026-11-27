@@ -104,7 +104,7 @@ for height in (720, 1080):
             (replay/'player-visual.json').write_text(json.dumps(data))
             assets = work/('assets-'+name)
             shutil.copytree(replay/'assets', assets, dirs_exist_ok=True)
-            (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nquality=720\nsound=tv\nserver=off\noutput_height={height}\nvideo_mode=1080p30\n')
+            (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nquality=720\nsound=tv\noutput_height={height}\nvideo_mode=1080p30\n')
             (assets/'yt-console-account.json').write_text(json.dumps({'access_token': 'console-fixture-token',
                 'refresh_token': 'fixture-refresh', 'expires_at': 4070908800,
                 'client': {'client_id': 'fixture-client', 'client_secret': 'fixture-secret'}, 'name': 'Conta fictícia'}))
@@ -114,7 +114,7 @@ for height in (720, 1080):
             env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
             env.update(HOME=str(home), XDG_CACHE_HOME=str(home/'.cache'), SDL_VIDEO_DRIVER='offscreen',
                 SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2', XT_CAST_DISABLE='1', XT_ASSETS=str(assets),
-                XT_SERVER='127.0.0.1:8118', XT_ACCOUNT_FIXTURES=str(accounts), XT_CATALOG_REPLAY=str(replay),
+                XT_ACCOUNT_FIXTURES=str(accounts), XT_CATALOG_REPLAY=str(replay),
                 XT_SHOT=str(work/(name+'.ppm')), XT_SHOT_FRAME='2147483647', XT_SHOT_MS='3200', XT_KEYS_MS='450')
             env.update(config)
             with (work/(name+'.log')).open('w') as log:

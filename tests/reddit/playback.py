@@ -9,13 +9,13 @@ from PIL import Image
 root=Path(__file__).resolve().parents[2]
 base=Path(sys.argv[1]).resolve();assets=base/'assets';assets.mkdir(parents=True,exist_ok=True)
 for font in (root/'client/assets').glob('inter-*.ttf'):shutil.copy(font,assets)
-(assets/'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\nvideo_mode=1080p30\noutput_height=720\n')
+(assets/'settings.txt').write_text('lang=pt\nsound=tv\nvideo_mode=1080p30\noutput_height=720\n')
 proofs=base/'proofs';proofs.mkdir(exist_ok=True)
 def run(name,ms,**extra):
     # Os casos compartilham assets, mas cada sessão deve testar o player desde o início.
     (assets/'local-library.json').write_text('{"version":1,"later":[],"history":[]}\n')
     env={**os.environ,'HOME':str(base),'XDG_CACHE_HOME':str(base/'cache'),'SDL_VIDEO_DRIVER':'offscreen','SDL_AUDIO_DRIVER':'dummy','XT_CAST_DISABLE':'1','XT_ASSETS':str(assets),'XT_QUALITY_FIXTURES':str(base/'media'),'XT_PLAY':'4p_9OPKgcDE','XT_SHOT':str(proofs/(name+'.ppm')),'XT_SHOT_MS':str(ms),**extra}
-    for key in ('XT_YT_REPLAY','XT_CATALOG_REPLAY','XT_SERVER'):env.pop(key,None)
+    for key in ('XT_YT_REPLAY','XT_CATALOG_REPLAY'):env.pop(key,None)
     result=subprocess.run([str(root/'client/build/tube360-quality-fixture')],env=env,stdout=subprocess.PIPE,stderr=subprocess.STDOUT,timeout=ms/1000+40)
     log=result.stdout.decode(errors='replace');(proofs/(name+'.log')).write_text(log)
     assert result.returncode==0,(name,result.returncode,log[-2000:])

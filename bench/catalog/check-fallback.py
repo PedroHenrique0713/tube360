@@ -22,6 +22,7 @@ for label, codec, fail_native in (('aac', 'aac', True), ('mp2', 'mp2', True), ('
             entry['status'] = 503
     (replay / 'responses.json').write_text(json.dumps(manifest))
     (replay / 'assets/settings.txt').write_text('lang=pt\ncols=4\nquality=720\nsound=tv\nserver=auto\n')
+    (replay / 'assets/server.txt').write_text('127.0.0.1 8132\n')
     media = output / ('fallback.' + ('ts' if codec == 'aac' else 'mpg'))
     subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-i', str(source / 'video.mp4'),
                     '-c:v', 'copy' if codec == 'aac' else 'mpeg1video', '-threads', '2',
@@ -53,7 +54,7 @@ for label, codec, fail_native in (('aac', 'aac', True), ('mp2', 'mp2', True), ('
     try:
         env = {**os.environ, 'XT_CAST_DISABLE': '1', 'SDL_VIDEO_DRIVER': 'offscreen', 'SDL_AUDIO_DRIVER': 'dummy', 'LP_NUM_THREADS': '2',
                'XT_ASSETS': str(replay / 'assets'), 'XT_CATALOG_REPLAY': str(replay),
-               'XT_SERVER': '127.0.0.1:8132', 'XT_NAV': 'radio', 'XT_NAV_ID': 'F12audio001', 'XT_MUSIC': '1',
+               'XT_NAV': 'radio', 'XT_NAV_ID': 'F12audio001', 'XT_MUSIC': '1',
                'XT_KEYS': 'UA', 'XT_KEYS_MS': '400', 'XT_SHOT_FRAME': '2147483647', 'XT_SHOT_MS': '3000' if fail_native else '6500',
                'XT_SHOT': str(output / ('fallback-' + label + '.ppm'))}
         log = output / ('fallback-' + label + '.log')
@@ -61,7 +62,6 @@ for label, codec, fail_native in (('aac', 'aac', True), ('mp2', 'mp2', True), ('
             subprocess.run([str(app)], env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=30, check=True)
         content = log.read_text()
         assert not paths, paths
-        assert '(desligado: só console)' in content, content
         assert 'musica: reserva no PC' not in content, content
         if fail_native:
             assert 'estado=5 erro=console' in content, content

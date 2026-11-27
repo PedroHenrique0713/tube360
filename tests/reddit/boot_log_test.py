@@ -13,7 +13,7 @@ for name in ('normal','missing-fonts','video-fail','sdl-fail','long-path'):
     if name=='long-path':folder=folder/('USB external with spaces '+('x'*90))/('folder '+('y'*90))
     assets=folder/'assets';assets.mkdir(parents=True,exist_ok=True)
     for old in assets.glob('boot-*.log'):old.unlink()
-    (assets/'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\n')
+    (assets/'settings.txt').write_text('lang=pt\nsound=tv\n')
     if name!='missing-fonts':
         for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copy(font,assets)
     (folder/'error.txt').write_text('network')
