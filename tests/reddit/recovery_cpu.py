@@ -20,7 +20,7 @@ for f in formats:
         subprocess.run(['ffmpeg','-v','error','-stream_loop','2','-i',str(source/name),'-t','240','-c','copy','-movflags','+faststart',str(target)],check=True)
 (media/'player.json').write_text(json.dumps(dict(playabilityStatus=dict(status='OK'),videoDetails=dict(videoId='4p_9OPKgcDE',title='F32 synthetic persistent CPU pressure',lengthSeconds='240'),streamingData=dict(expiresInSeconds='3600',adaptiveFormats=formats))))
 for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copy(font,assets)
-(assets/'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\nvideo_mode=1080p30\n')
+(assets/'settings.txt').write_text('lang=pt\nsound=tv\nvideo_mode=1080p30\n')
 shot=base/'screen.ppm';shot.unlink(missing_ok=True)
 env={k:v for k,v in os.environ.items() if not k.startswith('XT_')}
 env.update(HOME=str(base),XDG_CACHE_HOME=str(base/'cache'),SDL_VIDEO_DRIVER='offscreen',SDL_AUDIO_DRIVER='dummy',XT_CAST_DISABLE='1',XT_ASSETS=str(assets),XT_QUALITY_FIXTURES=str(media),XT_PLAY='4p_9OPKgcDE',XT_QUALITY_DECODE_1080_MS='44',XT_QUALITY_DECODE_720_MS='19',XT_SHOT=str(shot),XT_SHOT_MS='170000',XT_KEYS_MS='700',XT_KEYS='.'*70+'l.')

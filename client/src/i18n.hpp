@@ -105,7 +105,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(Refresh, "Refresh", "Atualizar", "Actualizar") \
   X(Refreshing, "Finding new videos…", "Buscando vídeos novos…", "Buscando videos nuevos…") \
   X(LoadingVideos, "Loading videos…", "Carregando vídeos…", "Cargando videos…") \
-  X(ServerUnavailable, "Could not reach the server", "Não deu para falar com o servidor", "No se pudo conectar con el servidor") \
   X(NoResponse, "No response from the server", "Sem resposta do servidor", "El servidor no responde") \
   X(ClockWrong, "Set the console date and time", "Acerte a data e a hora do console", "Ajusta la fecha y la hora de la consola") \
   X(ConsoleClock, "Console clock: ", "Relógio do console: ", "Reloj de la consola: ") \
@@ -126,7 +125,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(StartupExit, "Exit", "Sair", "Salir") \
   X(SeekTarget, "Seek to ", "Ir para ", "Ir a ") \
   X(BadResponse, "Could not load this list", "Não deu para carregar esta lista", "No se pudo cargar esta lista") \
-  X(RetryServer, "Start the server and press Menu to try again.", "Ligue o servidor e aperte Menu para tentar de novo.", "Inicia el servidor y presiona Menu para volver a intentarlo.") \
   X(Empty, "Nothing found.", "Nada encontrado.", "No se encontraron resultados.") \
   X(PageError, "Could not load more videos. Press Menu to refresh.", "Não deu para carregar mais vídeos. Aperte Menu para atualizar.", "No se pudieron cargar más videos. Presiona Menu para actualizar.") \
   X(Live, "LIVE", "AO VIVO", "EN VIVO") \
@@ -167,8 +165,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(RequestingVideo, "Requesting video from the server…", "Pedindo o vídeo ao servidor…", "Solicitando el video al servidor…") \
   X(Loading, "Loading…", "Carregando…", "Cargando…") \
   X(VideoFailed, "Could not play this video", "Não deu para tocar este vídeo", "No se pudo reproducir este video") \
-  X(VideoOpenError, "The server could not open this video", "O servidor não conseguiu abrir este vídeo", "El servidor no pudo abrir este video") \
-  X(VideoClosed, "The server closed the video connection", "O servidor fechou a conexão do vídeo", "El servidor cerró la conexión del video") \
+  X(VideoOpenError, "Couldn't open this video.", "Não deu para abrir este vídeo.", "No se pudo abrir este video.") \
   X(Rate, "Rate", "Avaliar", "Calificar") \
   X(Comments, "Comments", "Comentários", "Comentarios") \
   X(CommentsEmpty, "Comments are unavailable for this video.", "Comentários indisponíveis para este vídeo.", "Los comentarios no están disponibles para este video.") \
@@ -211,7 +208,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(CastLoading, "Getting the TV code…", "Buscando o código…", "Obteniendo el código de TV…") \
   X(CastRemember, "The code changes every 5 minutes. Pair once and your phone remembers this TV.", "O código muda a cada 5 minutos. Pareie uma vez e o celular lembra desta TV.", "El código cambia cada 5 minutos. Vincula tu teléfono una vez para recordar esta TV.") \
   X(NoPhone, "No phone connected yet.", "Nenhum celular conectado ainda.", "Todavía no hay un teléfono conectado.") \
-  X(ServerOffline, "The server is offline right now.", "Sem conexão com o servidor agora.", "El servidor está desconectado.") \
   X(SearchSpeakers, "Find speakers", "Procurar alto-falantes", "Buscar altavoces") \
   X(SpeakerSearchHelp, "Choose a speaker on your local network.", "Escolha um alto-falante na sua rede local.", "Elige un altavoz en tu red local.") \
   X(SpeakerSearching, "Searching your network...", "Procurando na sua rede...", "Buscando en tu red...") \
@@ -527,9 +523,6 @@ inline Key playerError(const std::string& error) {
   if (error == "manual_quality_unavailable") return Key::ManualQualityMissing;
   if (error == "manual_quality_failed") return Key::ManualQualityFailed;
   if (error == "console") return Key::ConsoleVideoError;
-  if (error == "Sem conexão com o servidor do notebook") return Key::NoResponse;
-  if (error == "O servidor não conseguiu abrir este vídeo") return Key::VideoOpenError;
-  if (error == "O vídeo não chegou (o servidor fechou a conexão)") return Key::VideoClosed;
   if (error == "Vídeo só para membros do canal") return Key::VideoMembers;
   if (error == "Vídeo privado") return Key::VideoPrivate;
   if (error == "Vídeo com restrição de idade") return Key::VideoAge;

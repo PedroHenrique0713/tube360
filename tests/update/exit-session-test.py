@@ -37,7 +37,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-exit-session-') as temporary:
     for mode,expected_code,expected_state in [('normal',0,'clean'),('late-failure',73,'open')]:
         assets=base/mode;assets.mkdir()
         for font in (ROOT/'client/assets').glob('*.ttf'):shutil.copyfile(font,assets/font.name)
-        (assets/'settings.txt').write_text('server=off\nsound=tv\n')
+        (assets/'settings.txt').write_text('sound=tv\n')
         env={k:v for k,v in os.environ.items() if not k.startswith(('XT_','EXIT_SESSION_'))}
         env.update(HOME=str(assets),XDG_CONFIG_HOME=str(assets),XDG_CACHE_HOME=str(assets),
                    SDL_VIDEO_DRIVER='offscreen',SDL_AUDIO_DRIVER='dummy',LP_NUM_THREADS='2',XT_CAST_DISABLE='1',

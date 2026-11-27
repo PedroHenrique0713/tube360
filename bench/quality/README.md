@@ -15,7 +15,7 @@ client/build/player-state-test
 
 mkdir -p .work/quality/assets .work/quality/home .work/quality/proofs
 cp client/assets/inter-*.ttf .work/quality/assets/
-printf 'lang=pt\nquality=720\nsound=tv\nserver=off\n' > .work/quality/assets/settings.txt
+printf 'lang=pt\nquality=720\nsound=tv\n' > .work/quality/assets/settings.txt
 printf 'video_mode=1080p30\noutput_height=1080\naudio_preference=original\n' >> .work/quality/assets/settings.txt
 python3 bench/quality/prepare.py .work/quality/media --mode both --audio-tracks
 HOME="$PWD/.work/quality/home" SDL_VIDEO_DRIVER=offscreen SDL_AUDIO_DRIVER=dummy XT_CAST_DISABLE=1 \
@@ -41,10 +41,6 @@ Em `720p60`, três janelas ruins devem reduzir a apresentação para 30 sem reab
 Com as duas faixas da fixture, `XT_KEYS=..ULAD XT_KEYS_MS=400 XT_SHOT_MS=2800` abre Áudio e destaca português;
 acrescente `A` e capture depois de 5 s para aplicar. O log deve registrar `pt-auto` no ponto da troca. O original
 é um tom de 1000 Hz e a dublagem, 440 Hz. `audio_preference=interface` em pt seleciona a segunda já na abertura.
-Para testar HTTP/ffmpeg reais, suba `bench/quality/server_fixture.py <media>` com HOME/config isolados,
-`TUBE360_PORT=8135`, `TUBE360_ACCOUNT_PORT=8235`, `TUBE360_ACCOUNT_URL=http://127.0.0.1:8235`,
-`TUBE360_WARM_CACHE=0`. No app use `server=auto`, `XT_SERVER=127.0.0.1:8135` e `XT_QUALITY_SERVER=1`.
-O processo é só de teste e deve ser encerrado pelo PID guardado ao terminar.
 
 ## Framebuffer nativo e interface
 

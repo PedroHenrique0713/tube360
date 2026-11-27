@@ -55,13 +55,13 @@ int main() {
 
   auto root = std::filesystem::temp_directory_path() / ("tube360-f4-" + std::to_string(getpid()));
   std::filesystem::create_directory(root);
-  Settings settings; settings.captions = true; settings.captionLang = "pt-BR"; settings.sleepNotebook = true;
+  Settings settings; settings.captions = true; settings.captionLang = "pt-BR";
   assert(settings.save(root.string() + "/"));
   Settings loaded; loaded.load(root.string() + "/");
-  assert(loaded.captions && loaded.captionLang == "pt-BR" && loaded.sleepNotebook);
-  loaded.captions = false; loaded.sleepNotebook = false; assert(loaded.save(root.string() + "/"));
+  assert(loaded.captions && loaded.captionLang == "pt-BR");
+  loaded.captions = false; assert(loaded.save(root.string() + "/"));
   settings.load(root.string() + "/");
-  assert(!settings.captions && !settings.sleepNotebook);
+  assert(!settings.captions);
   settings.videoMode=playback::FAST; settings.outputHeight=1080; settings.originalAudio=false;
   assert(settings.save(root.string()+"/")); loaded.load(root.string()+"/");
   assert(loaded.videoMode==playback::FAST && loaded.outputHeight==1080 && !loaded.originalAudio);

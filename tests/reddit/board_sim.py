@@ -60,7 +60,7 @@ for driver in ('native','safe'):
     folder=base/('app-'+driver);assets=folder/'assets';assets.mkdir(parents=True,exist_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copy(font,assets)
     (assets/'board-sim.txt').write_text(f'board=corona\ndriver={driver}\nmode=480i\ncable=component\n')
-    (assets/'settings.txt').write_text('lang=pt\nserver=off\noutput_height=1080\n')
+    (assets/'settings.txt').write_text('lang=pt\noutput_height=1080\n')
     (folder/'error.txt').write_text('network');shot=folder/'screen.ppm';shot.unlink(missing_ok=True)
     (assets/'boot-app.log').unlink(missing_ok=True)
     env={k:v for k,v in os.environ.items() if not k.startswith('XT_')}

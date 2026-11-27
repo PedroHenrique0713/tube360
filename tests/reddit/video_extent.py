@@ -14,7 +14,7 @@ base.mkdir(parents=True,exist_ok=True);results=[]
 for height,width in ((480,640),(720,1280),(1080,1920)):
     folder=base/str(height);assets=folder/'assets';assets.mkdir(parents=True,exist_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copy(font,assets)
-    (assets/'settings.txt').write_text(f'lang=pt\nserver=off\nsound=tv\nsponsorblock=off\nvideo_mode=auto\noutput_height={height}\n')
+    (assets/'settings.txt').write_text(f'lang=pt\nsound=tv\nsponsorblock=off\nvideo_mode=auto\noutput_height={height}\n')
     shot=folder/'screen.ppm';shot.unlink(missing_ok=True)
     env={k:v for k,v in os.environ.items() if not k.startswith('XT_')}
     env.update(HOME=str(folder),XDG_CACHE_HOME=str(folder/'cache'),SDL_VIDEO_DRIVER='offscreen',SDL_AUDIO_DRIVER='dummy',

@@ -142,7 +142,7 @@ Tudo foi testado no Xbox 360 E do autor (placa Corona) com BadUpdate. Eu não te
 | **Contagem estimada de não gostei** | **Texto grande em HD** |
 | ![Contagem demonstrativa RYD](docs/img/dislikes.jpg) | ![Texto grande](docs/img/large-text.jpg) |
 
-<sub>Capturas do app de PC atual em modo console (`server=off`), com o mesmo código e renderizador do Xbox. Conteúdo público do Palmeiras; onde necessário, conta fictícia Demo e códigos ilustrativos. O selo e a recusa de membros usam respostas sintéticas e são identificados como Demo; o print do Nest mostra configuração, sem conectar a uma caixa real. Comentários e contagens demonstrativas são fictícios e identificados no [registro das capturas](docs/SCREENSHOTS.md). Nenhuma conta pessoal foi usada. As capturas não medem o desempenho do Xbox.</sub>
+<sub>Capturas do app de PC atual em modo console, com o mesmo código e renderizador do Xbox. Conteúdo público do Palmeiras; onde necessário, conta fictícia Demo e códigos ilustrativos. O selo e a recusa de membros usam respostas sintéticas e são identificados como Demo; o print do Nest mostra configuração, sem conectar a uma caixa real. Comentários e contagens demonstrativas são fictícios e identificados no [registro das capturas](docs/SCREENSHOTS.md). Nenhuma conta pessoal foi usada. As capturas não medem o desempenho do Xbox.</sub>
 
 ---
 
@@ -297,11 +297,9 @@ O build gera `client/build-x360/tube360.xex`. O empacotador instala o lançador 
 
 ```text
 client/          app nativo Xbox/PC, interface, player, conta, Música, Cast e HTTPS
-server/          servidor legado (última versão com suporte: v0.3.2)
-cast/            ponte opcional de conta e celular no PC (Node)
 bench/, tests/   fixtures isoladas e medições de desempenho
 docs/            arquitetura, protocolo, build e instruções de release
-tools/           builds, empacotamento e instalação opcional de serviços
+tools/           builds e empacotamento
 ```
 
 ## Limitações e solução de problemas
@@ -367,7 +365,7 @@ O Tube360 mora na organização [Revive360](https://github.com/revive360), uma c
 
 ## Créditos e licença
 
-O Tube360 tem [licença MIT](LICENSE). Você pode usar, mudar e compartilhar. Mantenha o aviso de copyright, ou seja, dê o crédito. As partes de terceiros e as licenças delas estão em [THIRD_PARTY.md](THIRD_PARTY.md). Valeu ao **pl_mpeg**, **yt-dlp**, **YouTube.js**, **yt-cast-receiver**, **FFmpeg**, **PyChromecast** e aos projetos **xsdk / vulkan4xenon / SDL-xenon**, que tornaram possível homebrew moderno no 360.
+O Tube360 tem [licença MIT](LICENSE). Você pode usar, mudar e compartilhar. Mantenha o aviso de copyright, ou seja, dê o crédito. As partes de terceiros e as licenças delas estão em [THIRD_PARTY.md](THIRD_PARTY.md). Valeu ao **pl_mpeg**, **FFmpeg** e aos projetos **xsdk / vulkan4xenon / SDL-xenon**, que tornaram possível homebrew moderno no 360.
 
 Feito por [@PedroHenrique0713](https://github.com/PedroHenrique0713).
 

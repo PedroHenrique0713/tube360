@@ -14,7 +14,7 @@ p.add_argument('--build',type=int,default=2)
 p.add_argument('--version',default='0.3.1')
 a=p.parse_args();d=a.directory.resolve();d.mkdir(parents=True,exist_ok=True)
 for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copyfile(font,d/font.name)
-(d/'settings.txt').write_text('lang=pt\nserver=off\ncols=4\nquality=720\nsound=tv\n')
+(d/'settings.txt').write_text('lang=pt\ncols=4\nquality=720\nsound=tv\n')
 rules=json.loads((ROOT/'client/src/update/rules-default.json').read_text());rules['version']=2
 (d/'rules.json').write_text(json.dumps(rules,ensure_ascii=False,indent=2)+'\n')
 (d/'tube360.xex').write_bytes(b'XEX2old desktop fixture')

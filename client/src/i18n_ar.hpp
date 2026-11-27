@@ -91,10 +91,8 @@ inline const char* arabic(Key key) {
     case Key::Refresh: return "تحديث";
     case Key::Refreshing: return "جارٍ البحث عن فيديوهات جديدة…";
     case Key::LoadingVideos: return "جارٍ تحميل الفيديوهات…";
-    case Key::ServerUnavailable: return "تعذّر الاتصال بالخادم";
     case Key::NoResponse: return "لا استجابة من الخادم";
     case Key::BadResponse: return "تعذّر تحميل القائمة";
-    case Key::RetryServer: return "شغّل الخادم واضغط Menu للمحاولة.";
     case Key::Empty: return "لا توجد نتائج.";
     case Key::PageError: return "تعذّر تحميل المزيد. اضغط Menu للتحديث.";
     case Key::Live: return "مباشر";
@@ -127,8 +125,7 @@ inline const char* arabic(Key key) {
     case Key::RequestingVideo: return "جارٍ طلب الفيديو من الخادم…";
     case Key::Loading: return "جارٍ التحميل…";
     case Key::VideoFailed: return "تعذّر تشغيل الفيديو";
-    case Key::VideoOpenError: return "تعذّر على الخادم فتح الفيديو";
-    case Key::VideoClosed: return "أغلق الخادم اتصال الفيديو";
+    case Key::VideoOpenError: return "تعذّر فتح هذا الفيديو.";
     case Key::Rate: return "تقييم";
     case Key::Comments: return "التعليقات";
     case Key::CommentsEmpty: return "التعليقات غير متاحة لهذا الفيديو.";
@@ -171,7 +168,6 @@ inline const char* arabic(Key key) {
     case Key::CastLoading: return "جارٍ جلب رمز التلفاز…";
     case Key::CastRemember: return "يتغير الرمز كل 5 دقائق. اربط الهاتف مرة ليتذكر التلفاز.";
     case Key::NoPhone: return "لا يوجد هاتف متصل بعد.";
-    case Key::ServerOffline: return "الخادم غير متصل حاليًا.";
     case Key::SearchSpeakers: return "البحث عن سماعات";
     case Key::SpeakerSearchHelp: return "اختر سماعة على شبكتك المحلية.";
     case Key::SpeakerSearching: return "جارٍ البحث في الشبكة…";

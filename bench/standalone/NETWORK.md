@@ -54,7 +54,7 @@ documenta recusas por visitante/cliente e bloqueios após um minuto; a validaç�
 
 ## Roteiro para o coordenador no Xbox
 
-Sem PC, `server=off`, TV, `video_mode=720p60`, saída 720p, `video-metrics.txt=0`; 2 minutos por vídeo:
+Sem PC, TV, `video_mode=720p60`, saída 720p, `video-metrics.txt=0`; 2 minutos por vídeo:
 
 1. `x14DyNL0BpU`: repetir a falha das 22:55, começando em 0 e depois buscando 60 s. Conferir itags, duas TLS,
    reuso, retomadas, TCP efetivo, fila, PCM e FPS na TV. Se houver pressão, esperar troca de fonte antes de erro.
@@ -63,7 +63,5 @@ Sem PC, `server=off`, TV, `video_mode=720p60`, saída 720p, `video-metrics.txt=0
 3. `HvZt-nh9sGg`: live usada pelo probe anterior, se ainda estiver no ar; caso contrário escolher a live atual
    do mesmo canal na interface. Medir pelo menos 2 minutos, fila/PCM e trocas HLS alinhadas por UTC.
 
-Depois repetir os três com `server=auto` e o PC **desligado**, verificando que pressão na menor fonte não encerra
-o player. Com o PC ligado, a primeira abertura ainda deve ser `console: player OK`; reserva precisa ser precedida
-por `opcoes diretas esgotadas, servidor respondendo`. Repetir com som no Nest depois da integração da F18.
+Repetir com som no Nest depois da integração da F18.
 Nenhum comando de deploy, FTP ou XBDM é necessário para as provas locais desta frente.

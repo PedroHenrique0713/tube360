@@ -20,7 +20,7 @@ def run(name,lang='pt',signed=True,keys='',ms=2400,settings='',**extra):
     if wanted and name not in wanted:return
     case=work/name;assets=case/'assets';assets.mkdir(parents=True,exist_ok=True)
     for font in (ROOT/'client/assets').glob('*.ttf'):shutil.copy(font,assets)
-    (assets/'settings.txt').write_text('lang='+lang+'\ncols=4\nserver=off\nsound=tv\nvideo_mode=auto\n'+settings)
+    (assets/'settings.txt').write_text('lang='+lang+'\ncols=4\nsound=tv\nvideo_mode=auto\n'+settings)
     for filename in ('local-library.json','yt-console-account.json'):(assets/filename).unlink(missing_ok=True)
     if signed:
         (assets/'yt-console-account.json').write_text(json.dumps({'access_token':'console-fixture-token','refresh_token':'fixture-refresh','expires_at':4070908800,'client':{'client_id':'fixture-client','client_secret':'fixture-secret'},'name':'Demo'}))
@@ -38,7 +38,7 @@ def run(name,lang='pt',signed=True,keys='',ms=2400,settings='',**extra):
                 self.send_response(200);self.send_header('Content-Length',str(len(data)));self.end_headers();self.wfile.write(data)
         server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler);server.daemon_threads=True
         thread=threading.Thread(target=server.serve_forever);thread.start()
-        extra['XT_SERVER']='127.0.0.1:'+str(server.server_port)
+        (assets/'server.txt').write_text('127.0.0.1 %d\n'%server.server_port)
     env.update(extra);(case/'audit.txt').unlink(missing_ok=True)
     try:
         with (case/'app.log').open('w') as output:

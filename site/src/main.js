@@ -202,7 +202,7 @@
       if (rect.top < viewport.top + scale || rect.bottom > viewport.bottom - scale) content.scrollTop = Math.max(0, Math.min(rows.length - visible, index - visible + 1)) * step;
       state.settingsIndex = index;
       appHints('settings');
-      $('#settings-help').textContent = index >= 16 ? n.LocalLimit : index === 2 ? n.ManualQualityHelp : index === 9 ? n.Display1080Help : index === 11 || index === 1 ? n.LargeTextHelp : index === 4 ? n.SyncHelp : index === 3 ? n.NoSpeaker : n.SavedAutomatically;
+      $('#settings-help').textContent = index >= 14 ? n.LocalLimit : index === 2 ? n.ManualQualityHelp : index === 7 ? n.Display1080Help : index === 9 || index === 1 ? n.LargeTextHelp : index === 4 ? n.SyncHelp : index === 3 ? n.NoSpeaker : n.SavedAutomatically;
     } else {
       const scale = tv.clientWidth / (matchMedia('(max-width: 700px)').matches ? 960 : 1280);
       const grid = element.closest('.browse-grid');
@@ -314,7 +314,7 @@
     if (page === 'home' || page === 'phone') { bottom.hidden = true; return; }
     bottom.hidden = false;
     bottom.innerHTML = page === 'settings'
-      ? hint('↑↓', n.ChooseRow) + hint('◀▶', n.ChangeValue) + (state.settingsIndex === 0 || state.settingsIndex >= 13 ? hint('A', n.Open, 'pad-a') : '') + hint('B', n.Back, 'pad-b')
+      ? hint('↑↓', n.ChooseRow) + hint('◀▶', n.ChangeValue) + (state.settingsIndex === 0 || state.settingsIndex >= 11 ? hint('A', n.Open, 'pad-a') : '') + hint('B', n.Back, 'pad-b')
       : page === 'search' ? hint('A', n.Type, 'pad-a') + hint('X', n.Delete, 'pad-x') + hint('☰', n.Search) + hint('B', n.Back, 'pad-b')
       : hint('A', n.Open, 'pad-a') + hint('B', n.Back, 'pad-b') + hint('X', n.Refresh, 'pad-x') + hint('Y', n.Search, 'pad-y') + (document.activeElement?.closest('.video-card') ? hint('☰', n.MoreOptions) : '');
   }
@@ -450,7 +450,7 @@
         [n.YouTubeAccount, n.SignedInAs + 'Conta de demonstração'], [n.VideosPerRow, n.Four],
         [n.DefaultQuality, n.Automatic], [n.Sound, n.TV], [n.SpeakerSync, '0' + n.Milliseconds],
         [n.Language, locale === 'pt-BR' ? n.Portuguese : n.English], [n.SleepTimer, n.SleepOff],
-        [n.SleepTogether, n.SleepXbox], [n.ServerMode, n.SleepOff], [n.DisplayOutput, '1280×720'],
+        [n.DisplayOutput, '1280×720'],
         [n.AudioPreference, n.AudioAlwaysOriginal], [n.LargeText, n.SleepOff], [n.VideoFit, n.VideoFitLetterbox],
         [n.SearchSpeakers, n.Open], [n.Updates, '0.3.0-dev'],
         [n.SponsorBlock, [n.SleepOff, n.SponsorButton, n.SponsorAuto][state.sponsorMode]],
@@ -459,8 +459,8 @@
       ];
       rows.forEach(([label, value], i) => {
         const button = makeButton('', () => {
-          if (i === 15) openDialog(n.SponsorBlock, t.sponsor_warning, [n.SleepOff, n.SponsorButton, n.SponsorAuto].map((label, mode) => [label, () => { state.sponsorMode = mode; closeDialog(); showPage('settings'); focus($$('.settings-row', content)[15]); }]));
-          else if (i >= 16) openDialog(label, n.LocalLimit, [[t.cancel, closeDialog], [t.apply, () => { if (i === 16) positions.clear(); else saved.clear(); closeDialog(); showPage('settings'); focus($$('.settings-row', content)[i]); }]]);
+          if (i === 13) openDialog(n.SponsorBlock, t.sponsor_warning, [n.SleepOff, n.SponsorButton, n.SponsorAuto].map((label, mode) => [label, () => { state.sponsorMode = mode; closeDialog(); showPage('settings'); focus($$('.settings-row', content)[13]); }]));
+          else if (i >= 14) openDialog(label, n.LocalLimit, [[t.cancel, closeDialog], [t.apply, () => { if (i === 14) positions.clear(); else saved.clear(); closeDialog(); showPage('settings'); focus($$('.settings-row', content)[i]); }]]);
           else if (i === 0) showPage('account');
         }, 'settings-row');
         const name = document.createElement('span'), detail = document.createElement('span'); name.textContent = label; detail.textContent = value; button.append(name, detail); button.dataset.setting = i;

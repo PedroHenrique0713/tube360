@@ -31,7 +31,7 @@ for fmt in formats:fmt['bitrate']=int((media/fmt['url'].rsplit('/',1)[1]).stat()
 data['streamingData']['adaptiveFormats']=formats
 (media/'player.json').write_text(json.dumps(data))
 for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copy2(font,assets)
-(assets/'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\nvideo_mode=1080p30\noutput_height=720\nh264_loop_filter='+('full' if args.case=='full' else 'auto')+'\n')
+(assets/'settings.txt').write_text('lang=pt\nsound=tv\nvideo_mode=1080p30\noutput_height=720\nh264_loop_filter='+('full' if args.case=='full' else 'auto')+'\n')
 (assets/'autoplay.txt').write_text('4p_9OPKgcDE 0\n')
 (assets/'f40-playback.txt').write_text(f'{seconds} {warmup} 137 0 {0 if args.case=="full" else 48} 4p_9OPKgcDE\n')
 env={k:v for k,v in os.environ.items() if not k.startswith('XT_')}

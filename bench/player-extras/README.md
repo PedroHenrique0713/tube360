@@ -2,7 +2,7 @@
 
 O executável de prova reutiliza `tube360-main` (o main, o player e os shaders do produto).
 Só o transporte HTTPS é substituído. Nenhum pedido chega ao YouTube, à conta do dono,
-ao servidor 8091 ou a um Nest real. Os receptores Cast são TLS em loopback.
+ou a um Nest real. Os receptores Cast são TLS em loopback.
 
 ```sh
 cmake -S client -B client/build -DCMAKE_BUILD_TYPE=Release

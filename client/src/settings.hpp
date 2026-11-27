@@ -14,7 +14,7 @@ struct Settings {
   int sponsorBlock = sponsorblock::BUTTON;
   bool originalAudio = true, largeText = false, videoFill = false;
   bool h264FullFilter = false;
-  bool server = false, nest = false, sleepNotebook = false, captions = false;
+  bool nest = false, captions = false;
   bool hideShorts = false, errorReports = true;
   bool phoneRemote = false;     // celular como controle (F66); desligado por padrão
   bool liveLowLatency = false;  // live com atraso mínimo (só TV): começa perto do ao vivo e alcança a 1,05x
@@ -35,7 +35,6 @@ struct Settings {
         else if (key == "large_text") largeText = val == "on";
         else if (key == "video_fit") videoFill = val == "fill";
         else if (key == "h264_loop_filter") h264FullFilter = val == "full";
-        else if (key == "server") server = false;
         else if (key == "shorts") hideShorts = val == "hide";
         else if (key == "phone_remote") phoneRemote = val == "on";
         else if (key == "error_reports") errorReports = val != "off";
@@ -43,7 +42,6 @@ struct Settings {
         else if (key == "audio_preference") originalAudio = val != "interface";
         else if (key == "captions") captions = val == "on";
         else if (key == "caption_lang" && val.size() <= 32 && val.find_first_not_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_") == std::string::npos) captionLang = val;
-        else if (key == "sleep_what") sleepNotebook = false;
         else if (key == "sound") { if (val == "nest" || val == "tv") nest = val == "nest"; }
         else {
           char* end = nullptr; long n = std::strtol(val.c_str(), &end, 10);
@@ -74,7 +72,7 @@ struct Settings {
   bool save(const std::string& dir) const {
     std::string tmp = dir + "settings.tmp", dest = dir + "settings.txt";
     FILE* f = std::fopen(tmp.c_str(), "w"); if (!f) return false;
-    bool ok = std::fprintf(f, "lang=%s\ncols=%d\nquality=%d\nsound=%s\nsync_ms=%d\nsleep_what=xbox\ncaptions=%s\ncaption_lang=%s\nserver=off\n", i18n::code(lang), cols, quality, nest ? "nest" : "tv", syncMs, captions ? "on" : "off", captionLang.c_str()) > 0;
+    bool ok = std::fprintf(f, "lang=%s\ncols=%d\nquality=%d\nsound=%s\nsync_ms=%d\nsleep_what=xbox\ncaptions=%s\ncaption_lang=%s\n", i18n::code(lang), cols, quality, nest ? "nest" : "tv", syncMs, captions ? "on" : "off", captionLang.c_str()) > 0;
     ok = ok && std::fprintf(f,"video_mode=%s\noutput_height=%d\naudio_preference=%s\n",playback::modeName(videoMode),outputHeight,originalAudio ? "original" : "interface") > 0;
     ok = ok && std::fprintf(f,"large_text=%s\nvideo_fit=%s\n",largeText ? "on" : "off",videoFill ? "fill" : "fit") > 0;
     ok = ok && std::fprintf(f,"sponsorblock=%s\n",sponsorBlock == sponsorblock::OFF ? "off" : sponsorBlock == sponsorblock::AUTO ? "auto" : "button") > 0;

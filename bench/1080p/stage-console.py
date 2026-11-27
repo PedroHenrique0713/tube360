@@ -47,7 +47,7 @@ if not args.cpu_only:
     copy(root / "client/build-x360/tube360.xex", "app/tube360.xex")
     for source in sorted((root / "client/assets").glob("inter-*.ttf")):
         copy(source, "app/" + source.name)
-    write("app/settings.txt", "lang=pt\nquality=720\nvideo_mode=1080p30\noutput_height=1080\nsound=tv\nserver=off\n")
+    write("app/settings.txt", "lang=pt\nquality=720\nvideo_mode=1080p30\noutput_height=1080\nsound=tv\n")
     write("app/decode-config.txt", "1 6 1 0\n")
     write("app/autoplay.txt", "4p_9OPKgcDE 31\n")
     write("app/f33-playback.txt", "120 10\n")

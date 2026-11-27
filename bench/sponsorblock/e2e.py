@@ -45,7 +45,7 @@ def run(name, mode='button', lang='pt', screen='player', keys='', seconds=3, at=
     assets.mkdir(exist_ok=True)
     for font in (ROOT / 'client/assets').glob('*.ttf'):
         shutil.copyfile(font, assets / font.name)
-    (assets / 'settings.txt').write_text(f'lang={lang}\nserver=off\nsound={"nest" if speaker else "tv"}\n'
+    (assets / 'settings.txt').write_text(f'lang={lang}\nsound={"nest" if speaker else "tv"}\n'
         f'output_height={height}\nlarge_text={"on" if large else "off"}\nvideo_mode=auto\nsponsorblock={mode}\n')
     if screen == 'player':
         (assets / 'autoplay.txt').write_text(f'{VIDEO} {at}\n')
@@ -78,7 +78,6 @@ def run(name, mode='button', lang='pt', screen='player', keys='', seconds=3, at=
             (WORK / (name + '-cast.json')).write_text(json.dumps(nest.events, indent=2))
     text = (WORK / (name + '.log')).read_text()
     assert 'BAD SponsorBlock' not in text, text
-    assert '(desligado: só console)' in text, text
     assert 'captura: ' in text, text
     if screen == 'player':
         assert 'primeiro quadro' in text, text

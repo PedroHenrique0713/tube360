@@ -20,7 +20,7 @@ for old in assets.glob('boot-*.log'):
     old.unlink()
 for font in (ROOT / 'client/assets').glob('inter-*.ttf'):
     shutil.copy(font, assets)
-(assets / 'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\noutput_height=720\n')
+(assets / 'settings.txt').write_text('lang=pt\nsound=tv\noutput_height=720\n')
 (folder / 'error.txt').write_text('network')
 shot = folder / 'screen.ppm'
 env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}

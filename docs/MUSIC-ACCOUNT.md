@@ -126,15 +126,13 @@ Aurora/XeXMenu para as cópias **dentro do próprio console**.
 2. Copiar exatamente **`Hdd1:\Games\YouTube 360\yt-console-account.json` →
    `Hdd1:\Games\Tube360-F35-test\yt-console-account.json`**, usando o gerenciador
    do console. Se a instalação principal tiver outro nome, ajustar somente esse
-   prefixo. Não abrir, fotografar ou exportar o conteúdo. Não copiar `server.txt`,
-   `nest.txt`, logs, cookies, chaves de atualização ou identidades de Cast.
+   prefixo. Não abrir, fotografar ou exportar o conteúdo. Não copiar `nest.txt`, logs, cookies, chaves de atualização ou identidades de Cast.
 3. Criar `settings.txt` na pasta temporária com:
 
    ```text
    lang=pt
    cols=4
    quality=720
-   server=off
    sound=tv
    audio_preference=original
    ```

@@ -106,18 +106,15 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
     if (cur.feed.loading || cur.feed.loadingMore) { spinner(g, ui::X0 + (ui::W - ui::X0) / 2 - 32, 380, 22, t); gfx::text(g, ui::F_BODY, tr(K::LoadingVideos), ui::X0 + (ui::W - ui::X0) / 2 - 32, 420, ui::MUTED, 1); }
     else if (cur.feed.error != K::None) {
       float y=190;
-      bool serverError=net::serverEnabled && (cur.feed.error==K::NoResponse || cur.feed.error==K::BadResponse);
-      K errorTitle=serverError?K::ServerUnavailable:cur.feed.error, errorHelp=serverError?K::RetryServer:K::Refresh;
 #ifndef __XSDK__
-      errorShot={&cur.feed,errorTitle,errorHelp,serverError};
+      errorShot={&cur.feed,cur.feed.error,K::Refresh};
 #endif
-      for(const auto& line:gfx::wrap(g,ui::F_H2,tr(errorTitle),ui::W-ui::X0-64,4)) {
+      for(const auto& line:gfx::wrap(g,ui::F_H2,tr(cur.feed.error),ui::W-ui::X0-64,4)) {
         gfx::textBox(g,ui::F_H2,line,ui::X0,y,ui::W-ui::X0-64,ui::TEXT);y+=g.fonts[ui::F_H2].lineH+8;
       }
-      const auto& errorDetail=serverError?serverAddress:cur.feed.errorDetail;
+      const auto& errorDetail=cur.feed.errorDetail;
       if(!errorDetail.empty()){gfx::textBox(g,ui::F_BODY,errorDetail,ui::X0,y+16,ui::W-ui::X0-64,ui::MUTED);y+=48;}
-      if(serverError)gfx::text(g,ui::F_BODY,tr(errorHelp),ui::X0,y+16,ui::MUTED);
-      else ctlHint(g,ui::X0,y+24,ctl::Ctx::Home,ctl::Act::Options,settings.lang,K::Refresh);
+      ctlHint(g,ui::X0,y+24,ctl::Ctx::Home,ctl::Act::Options,settings.lang,K::Refresh);
     } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
   }
   if (ui::large || ui::narrow) gfx::rect(g,96,648,ui::W-96,72,ui::BG);

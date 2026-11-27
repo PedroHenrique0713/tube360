@@ -88,7 +88,7 @@ const settle = p => p.waitForFunction(() => !window.gsap?.isTweening('.hero-intr
    assert.equal(await page.locator('.shorts-grid .video-card').count(), 4); await shot('shorts');
    await page.keyboard.press('Escape');
    // Automatic skip and undo, selected through Settings, use the same synthetic marks.
-   await page.locator('.sidebar-icon[data-page=settings]').click(); await page.locator('#browse-content .settings-row').nth(15).click();
+   await page.locator('.sidebar-icon[data-page=settings]').click(); await page.locator('#browse-content .settings-row').nth(13).click();
    await page.locator('#dialog-actions button').nth(2).click(); await page.keyboard.press('Escape');
    await page.locator('#video-grid .video-card').first().click();
    if (await page.getAttribute('#tv', 'data-state') === 'dialog') await page.locator('#dialog-actions button').nth(1).click();

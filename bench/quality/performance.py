@@ -26,7 +26,7 @@ for mode in ("1080p30", "720p60"):
         (folder / "home").mkdir(exist_ok=True)
         for font in (repo / "client/assets").glob("inter-*.ttf"):
             shutil.copy2(font, assets)
-        (assets / "settings.txt").write_text(f"lang=pt\nquality=720\nsound=tv\nserver=off\nvideo_mode={mode}\noutput_height=1080\n")
+        (assets / "settings.txt").write_text(f"lang=pt\nquality=720\nsound=tv\nvideo_mode={mode}\noutput_height=1080\n")
         (assets / "decode-config.txt").write_text(f"{direct} {threads} 1 {loop}\n")
         env = dict(os.environ, HOME=str(folder / "home"), SDL_VIDEO_DRIVER="offscreen", SDL_AUDIO_DRIVER="dummy",
                    XT_CAST_DISABLE="1", XT_ASSETS=str(assets), XT_QUALITY_FIXTURES=str(root / "media"),

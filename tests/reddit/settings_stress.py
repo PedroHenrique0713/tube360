@@ -17,7 +17,7 @@ for lang in ('pt','en','es'):
     for fixed in (False,True):
         name=f'{lang}-'+('fixed' if fixed else 'resize');work=base/name;assets=work/'assets';assets.mkdir(parents=True,exist_ok=True)
         for font in (ROOT/'client/assets').glob('*.ttf'):shutil.copy(font,assets)
-        (assets/'settings.txt').write_text(f'lang={lang}\nserver=off\nsound=tv\noutput_height={480 if sd else 720}\n')
+        (assets/'settings.txt').write_text(f'lang={lang}\nsound=tv\noutput_height={480 if sd else 720}\n')
         (work/'error.txt').write_text('network');shot=work/'screen.ppm';shot.unlink(missing_ok=True)
         boot=assets/'boot-app.log';boot.unlink(missing_ok=True)
         env={k:v for k,v in os.environ.items() if not k.startswith('XT_')}

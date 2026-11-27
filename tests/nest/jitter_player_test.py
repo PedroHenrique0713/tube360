@@ -25,7 +25,7 @@ def run(name, binary, jitter, seconds):
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets/font.name)
     (assets/'nest-owner.json').unlink(missing_ok=True)
-    (assets/'settings.txt').write_text('lang=pt\nquality=720\nsound=nest\nserver=off\nsync_ms=0\n')
+    (assets/'settings.txt').write_text('lang=pt\nquality=720\nsound=nest\nsync_ms=0\n')
     (assets/'autoplay.txt').write_text('F25fixture0 0\n')
     (assets/'video-metrics.txt').write_text('1\n')
     receiver = Receiver(cert, key)

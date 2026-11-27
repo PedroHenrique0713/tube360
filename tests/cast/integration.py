@@ -161,6 +161,8 @@ def app(name, seconds, mode='off', race=False, timer=''):
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets/font.name)
     (assets/'settings.txt').write_text(f'lang=pt\ncols=4\nquality=720\nsound=nest\nserver={mode}\n')
+    if mode == 'auto':
+        (assets/'server.txt').write_text('127.0.0.1 8234\n')
     (assets/'yt-console-account.json').write_text(json.dumps({'access_token': 'fixture-access',
         'refresh_token': 'fixture-refresh', 'expires_at': int(time.time())+3600,
         'client': {'client_id': 'fixture-tv-client', 'client_secret': 'fixture-tv-secret'}, 'name': 'Conta F14 integrada'}))
@@ -183,7 +185,7 @@ def app(name, seconds, mode='off', race=False, timer=''):
     env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
     env.update(SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2',
         XT_NEST_NETWORK='127.77.53.1/255.255.255.252',
-        XT_ASSETS=str(assets), XT_SERVER='127.0.0.1:8234', XT_ACCOUNT_FIXTURES=str(accounts), XT_ACCOUNT_AUDIT=str(audit),
+        XT_ASSETS=str(assets), XT_ACCOUNT_FIXTURES=str(accounts), XT_ACCOUNT_AUDIT=str(audit),
         XT_CATALOG_REPLAY=str(replay), XT_CATALOG_AUDIT=str(music_audit), XT_KEYS_MS='200',
         XT_SHOT=str(work/(name+'.ppm')), XT_SHOT_FRAME='2147483647', XT_SHOT_MS=str(int(seconds*1000)))
     if mode == 'auto':

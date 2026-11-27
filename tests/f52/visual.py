@@ -48,7 +48,7 @@ def run(name, keys='S', shorts='row', mixed=False, screen='search', lang='en', h
     for font in (ROOT / 'client/assets').glob('*.ttf'):
         shutil.copyfile(font, assets / font.name)
     settings = assets / 'settings.txt'
-    settings.write_text(f'lang={lang}\ncols=4\nsound=tv\nserver=off\nshorts={shorts}\nerror_reports=on\noutput_height={height}\n')
+    settings.write_text(f'lang={lang}\ncols=4\nsound=tv\nshorts={shorts}\nerror_reports=on\noutput_height={height}\n')
     env = dict(os.environ, HOME=str(assets / 'home'), XDG_CONFIG_HOME=str(assets / 'config'),
                XDG_CACHE_HOME=str(assets / 'cache'), SDL_VIDEO_DRIVER='offscreen',
                SDL_AUDIO_DRIVER='dummy', XT_CAST_DISABLE='1', XT_ASSETS=str(assets),

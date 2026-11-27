@@ -137,7 +137,7 @@ for name,extra,keys in cases:
  if wanted and name not in wanted:continue
  case=NATIVE/name;assets=case/'assets';assets.mkdir(parents=True,exist_ok=True)
  for p in (ROOT/'client/assets').glob('*.ttf'):shutil.copy2(p,assets/p.name)
- (assets/'settings.txt').write_text(f'lang={"pt" if LANG=="pt-BR" else "en"}\ncols=4\nserver=off\nsound=tv\nvideo_mode=auto\n')
+ (assets/'settings.txt').write_text(f'lang={"pt" if LANG=="pt-BR" else "en"}\ncols=4\nsound=tv\nvideo_mode=auto\n')
  (assets/'yt-console-account.json').write_text(json.dumps({'access_token':'console-fixture-token','refresh_token':'fixture-refresh','expires_at':4070908800,'client':{'client_id':'fixture-client','client_secret':'fixture-secret'},'name':'Conta de demonstração'}))
  saved=lambda i:dict(id=videos[i]['id'],title=videos[i]['title'],channel=videos[i]['channel'],duration=487,position=84 if i==1 else 0,order=i+1)
  (assets/'local-library.json').write_text(json.dumps(dict(version=1,later=[saved(0)],history=[saved(1)])))

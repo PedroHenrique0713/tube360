@@ -19,13 +19,12 @@ The default destination is `.work/releases/`; `--output-dir` and `--build-dir` s
 
 - `default.xex`, the stable `tube360-launcher.xex`, and `tube360.xex`, the app, both copied/converted from the current `client/build-x360` build;
 - the four Inter and four Noto Sans Arabic TTF weights 300, 400, 600 and 700, with their license notices;
-- inactive `settings.example.txt`, `nest.example.txt`, `server.example.txt`;
+- inactive `settings.example.txt`, `nest.example.txt`;
 - `START-HERE.txt`, `LICENSE`, `THIRD_PARTY.md`, third-party notices and a hash manifest.
 
 Only this explicit list is copied. The app's settings, grants, tokens, Cast identity, history, Nest journal,
 logs, cookies and machine config never become inputs. Source files used for license notices retain their
-copyright statements. `nest.example.txt` starts with host/port and name; `server.example.txt` starts with
-host/port. Their readers do not support leading comments. The sample addresses are documentation-only;
+copyright statements. `nest.example.txt` starts with host/port and name. Its reader does not support leading comments. The sample addresses are documentation-only;
 replace them with the user's real LAN address. Example suffixes remain inactive on installation.
 
 Some prebuilt libraries embed absolute host paths in diagnostic strings. When the XEX contains `/home/…`,
@@ -89,8 +88,7 @@ unreviewed checkout or from an earlier branch is not matching release source.
 ## Integration acceptance
 
 No publication, console upload, reboot or real-device tests are performed by the packager. On the final merged
-build the coordinator should install the ZIP to fresh writable storage and check fonts/startup without
-`server.txt`, account sign-in/out, history, library, subscriptions, Music, captions, both HD profiles/output
+build the coordinator should install the ZIP to fresh writable storage and check fonts/startup, account sign-in/out, history, library, subscriptions, Music, captions, both HD profiles/output
 sizes and original/dubbed audio. Check native phone pairing separately from account login. Test Nest Wi-Fi
 recovery and B/exit STOP, then a native sleep shutdown with the owner. Follow the hardware measurements in
 [STANDALONE.md](STANDALONE.md#transport-and-qualification). Rebuild and regenerate artifacts after integration.
