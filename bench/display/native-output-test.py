@@ -67,6 +67,9 @@ int main(void) {
     verify("monitor 1280x1024 5:4, saida 720: 640x480 com pixel 5:4 (issue 7)",(VIDEO_MODE){1280,1024,0,0},720,640,480,1280.f/1024);
     verify("monitor 1280x1024 5:4, saida 1080 pedida",(VIDEO_MODE){1280,1024,0,0},1080,640,480,1280.f/1024);
     verify("monitor 1280x1024 5:4, saida 480 pedida",(VIDEO_MODE){1280,1024,0,0},480,640,480,1280.f/1024);
+    verify("VGA 1360x768 sem wide: pelo raster, nao 4:3 (16:9 de monitor)",(VIDEO_MODE){1360,768,0,0},720,640,480,1360.f/768);
+    verify("VGA 1366x768 sem wide",(VIDEO_MODE){1366,768,0,0},720,640,480,1366.f/768);
+    verify("1080p sem wide: tela 4:3 como o xsdk",(VIDEO_MODE){1920,1080,0,0},1080,640,480,4.f/3);
     verify("monitor 1024x768 4:3",(VIDEO_MODE){1024,768,0,0},720,640,480,4.f/3);
     native_path=false;
     verify("safe 720p wide",(VIDEO_MODE){1280,720,0,1},480,1280,720,0);
