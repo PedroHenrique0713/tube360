@@ -13,7 +13,7 @@ def launch(i):
     if a.exists(): shutil.rmtree(a)
     a.mkdir(parents=True)
     for f in (W / 'client/assets').glob('*.ttf'): shutil.copyfile(f, a / f.name)
-    (a / 'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\ncols=4\nshorts=row\n')
+    (a / 'settings.txt').write_text('lang=pt\nsound=tv\ncols=4\nshorts=row\n')
     ms = random.randint(LO, HI)
     env = {k: v for k, v in os.environ.items() if not k.startswith(('XT_', 'F47_'))}
     env.update(HOME=str(a / 'home'), XDG_CONFIG_HOME=str(a / 'config'), XDG_CACHE_HOME=str(a / 'cache'), SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy',

@@ -10,8 +10,6 @@ Tube360 is MIT licensed (see `LICENSE`). It ships or depends on:
 | [Noto Sans Arabic 2.012](https://github.com/notofonts/arabic/releases/tag/NotoSansArabic-v2.012) | `client/assets/noto-sans-arabic-*.ttf`, unmodified Light/Regular/SemiBold/Bold | SIL OFL 1.1 (`client/assets/OFL-NotoSansArabic.txt`) |
 | [Inter](https://rsms.me/inter/) typeface by Rasmus Andersson | `client/assets/inter-*.ttf` | SIL Open Font License 1.1 (`client/assets/OFL-Inter.txt`) |
 | [Phosphor Icons](https://phosphoricons.com) (player controls and ratings) | `client/third_party/phosphor/`, rasterized into `client/src/icons.hpp` by `tools/gen-icons.py` | MIT (`client/third_party/phosphor/LICENSE`) |
-| [yt-cast-receiver](https://github.com/patrickkfkan/yt-cast-receiver) | `cast/` (npm) | MIT |
-| [YouTube.js](https://github.com/LuanRT/YouTube.js) (`youtubei.js`) | `cast/` (npm), the YouTube account | MIT |
 | [FFmpeg 7.1.5](https://ffmpeg.org/releases/ffmpeg-7.1.5.tar.xz) | H.264/AAC playback in the Xbox title (static) | LGPL-2.1-or-later |
 | [xsdk](https://github.com/xenosworks/xsdk), [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon) | Xbox 360 build toolchain (not vendored) | MIT |
 | [SDL-xenon](https://github.com/xenosworks/SDL-xenon) | Xbox SDL port | zlib |

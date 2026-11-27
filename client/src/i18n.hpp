@@ -165,8 +165,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(RequestingVideo, "Requesting video from the server…", "Pedindo o vídeo ao servidor…", "Solicitando el video al servidor…") \
   X(Loading, "Loading…", "Carregando…", "Cargando…") \
   X(VideoFailed, "Could not play this video", "Não deu para tocar este vídeo", "No se pudo reproducir este video") \
-  X(VideoOpenError, "The server could not open this video", "O servidor não conseguiu abrir este vídeo", "El servidor no pudo abrir este video") \
-  X(VideoClosed, "The server closed the video connection", "O servidor fechou a conexão do vídeo", "El servidor cerró la conexión del video") \
+  X(VideoOpenError, "Couldn't open this video.", "Não deu para abrir este vídeo.", "No se pudo abrir este video.") \
   X(Rate, "Rate", "Avaliar", "Calificar") \
   X(Comments, "Comments", "Comentários", "Comentarios") \
   X(CommentsEmpty, "Comments are unavailable for this video.", "Comentários indisponíveis para este vídeo.", "Los comentarios no están disponibles para este video.") \
@@ -524,9 +523,6 @@ inline Key playerError(const std::string& error) {
   if (error == "manual_quality_unavailable") return Key::ManualQualityMissing;
   if (error == "manual_quality_failed") return Key::ManualQualityFailed;
   if (error == "console") return Key::ConsoleVideoError;
-  if (error == "Sem conexão com o servidor do notebook") return Key::NoResponse;
-  if (error == "O servidor não conseguiu abrir este vídeo") return Key::VideoOpenError;
-  if (error == "O vídeo não chegou (o servidor fechou a conexão)") return Key::VideoClosed;
   if (error == "Vídeo só para membros do canal") return Key::VideoMembers;
   if (error == "Vídeo privado") return Key::VideoPrivate;
   if (error == "Vídeo com restrição de idade") return Key::VideoAge;

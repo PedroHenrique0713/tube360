@@ -10,8 +10,6 @@ __pycache__/
 # personal / machine-specific (never published)
 .work/
 design/
-cast/node_modules/
-cast/.node-persist/
 **/server.txt
 **/net_log.txt
 **/audio.txt

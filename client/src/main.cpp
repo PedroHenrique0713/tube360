@@ -794,7 +794,7 @@ int run(int argc, char** argv) {
   SpeakerPicker speakerPicker;
   nest::Config speakerChoice = pl.directSpeaker.settings();
   bool nestSkip = false;  // o Nest falhou neste vídeo: segue com o som da TV até trocar de vídeo ou apertar X
-  std::string castCode, castWho;  // castWho: quem está conectado pelo Transmitir  // código de "Assistir na TV" do receptor (cast/receptor.mjs)
+  std::string castCode, castWho;  // castWho: quem está conectado pelo Transmitir 
   if (nestOut && !pl.directSpeaker.configured()) control.add({5, "/api/nest/prepare", 0});
   auto requestAccount = [&](const char* path) {
     Job j{5, path, 0}; j.lang = settings.lang;

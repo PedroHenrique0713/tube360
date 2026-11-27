@@ -312,7 +312,6 @@ The build produces `client/build-x360/tube360.xex`. The packager installs the la
 
 ```text
 client/          native Xbox/PC app, UI, player, account, Music, Cast and HTTPS client
-cast/            optional PC account and phone bridge (Node)
 bench/, tests/   isolated fixtures and performance checks
 docs/            architecture, protocol, build and release instructions
 tools/           builds and packaging
@@ -367,7 +366,7 @@ Tube360 lives in the [Revive360](https://github.com/revive360) organization, a h
 
 ## Credits & license
 
-Tube360 is [MIT licensed](LICENSE). You can use, change and share it. Keep the copyright notice, which means giving credit. Third-party parts and their licenses are listed in [THIRD_PARTY.md](THIRD_PARTY.md). Thanks to **pl_mpeg**, **yt-dlp**, **YouTube.js**, **yt-cast-receiver**, **FFmpeg**, **PyChromecast**, and the **xsdk / vulkan4xenon / SDL-xenon** projects, which made modern homebrew on the 360 possible.
+Tube360 is [MIT licensed](LICENSE). You can use, change and share it. Keep the copyright notice, which means giving credit. Third-party parts and their licenses are listed in [THIRD_PARTY.md](THIRD_PARTY.md). Thanks to **pl_mpeg**, **FFmpeg**, and the **xsdk / vulkan4xenon / SDL-xenon** projects, which made modern homebrew on the 360 possible.
 
 Built by [@PedroHenrique0713](https://github.com/PedroHenrique0713).
 

@@ -125,8 +125,7 @@ inline const char* arabic(Key key) {
     case Key::RequestingVideo: return "جارٍ طلب الفيديو من الخادم…";
     case Key::Loading: return "جارٍ التحميل…";
     case Key::VideoFailed: return "تعذّر تشغيل الفيديو";
-    case Key::VideoOpenError: return "تعذّر على الخادم فتح الفيديو";
-    case Key::VideoClosed: return "أغلق الخادم اتصال الفيديو";
+    case Key::VideoOpenError: return "تعذّر فتح هذا الفيديو.";
     case Key::Rate: return "تقييم";
     case Key::Comments: return "التعليقات";
     case Key::CommentsEmpty: return "التعليقات غير متاحة لهذا الفيديو.";
