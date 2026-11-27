@@ -471,6 +471,10 @@ inline const char* arabic(Key key) {
     case Key::LiveWaiting: return "البث المباشر لم يبدأ بعد أو متوقف";
     case Key::LiveOnTv: return "البث المباشر يعمل على التلفاز: السماعة لا تستقبل البث المباشر";
 
+    // ---- F71 Rodada 3
+    case Key::HomeLiveNone: return "لا أحد ممن تتابعهم يبث مباشرة الآن.";
+    case Key::HomeLiveSignIn: return "سجّل الدخول من الإعدادات لترى من تتابعهم يبثون مباشرة.";
+
     default: return nullptr;  // Strings novas usam inglês até receberem tradução.
   }
 }

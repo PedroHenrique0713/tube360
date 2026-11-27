@@ -491,6 +491,10 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(LiveWaiting, "The live has not started yet or is paused", "A live ainda não começou ou está parada", "El directo aún no empezó o está detenido") \
   X(LiveOnTv, "Live plays on the TV: the speaker does not receive live streams", "Live toca na TV: a caixa ainda não recebe transmissão ao vivo", "El directo suena en la TV: el altavoz aún no recibe transmisiones en vivo") \
   /* */ \
+  /* ---- F71 Rodada 3 */ \
+  X(HomeLiveNone, "No one you follow is live right now.", "Ninguém que você segue está ao vivo agora.", "Nadie a quien sigues está en directo ahora.") \
+  X(HomeLiveSignIn, "Sign in to YouTube in Settings to see who you follow is live.", "Conecte sua conta em Configurações para ver quem você segue ao vivo.", "Inicia sesión en Configuración para ver quién de tus canales está en directo.") \
+  /* */ \
   /* ---- fim da lista */
 
 enum class Key {

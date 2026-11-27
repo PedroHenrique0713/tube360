@@ -343,6 +343,7 @@ struct ConsoleAccount::Impl {
         std::set<string> seen, continuations;
         string continuation, title, subtitle, image, banner, historyVideo, laterVideo, channelId, route="browse", fields;
         bool started=false, more=true, subscribed=false, videosOnly=false;
+        bool liveOnly=false;  // kind=live: o feed de Inscrições filtrado para o que está ao vivo agora (duration 0 pela yt::liveMark)
         unsigned pages=0;
         int64_t created=0;
     };
@@ -604,17 +605,20 @@ struct ConsoleAccount::Impl {
             Parsed extra; walk(channels,extra);
             for (auto it=extra.items.rbegin();it!=extra.items.rend();++it) if (it->type=="channel") parsed.items.insert(parsed.items.begin(),*it);
         }
-        for (auto& item:parsed.items) if ((!list.videosOnly || item.type=="video") && list.items.size()<size_t(policy->n("listItems")) && list.seen.insert(item.type+item.id).second) list.items.push_back(std::move(item));
+        for (auto& item:parsed.items) if ((!list.videosOnly || item.type=="video") && (!list.liveOnly || (item.type=="video" && !item.shortForm && item.duration==0)) &&
+            list.items.size()<size_t(policy->n("listItems")) && list.seen.insert(item.type+item.id).second) list.items.push_back(std::move(item));
         list.started=true; list.pages++;
         list.continuation=parsed.token;
-        list.more=!parsed.token.empty() && list.pages<unsigned(policy->n("listPages")) && list.items.size()<size_t(policy->n("listItems")) && list.continuations.insert(parsed.token).second;
+        // Ao vivo: as lives vêm no começo do feed; procurar nas primeiras páginas basta (cada página é um pedido de rede)
+        const unsigned pageLimit=list.liveOnly ? std::min(4u,unsigned(policy->n("listPages"))) : unsigned(policy->n("listPages"));
+        list.more=!parsed.token.empty() && list.pages<pageLimit && list.items.size()<size_t(policy->n("listItems")) && list.continuations.insert(parsed.token).second;
         return {};
     }
     AccountReply listing(const std::map<string,string>& p, bool feed, bool play=false) {
         auto value=[&](const char* k) { auto it=p.find(k); return it==p.end() ? string{} : it->second; };
         auto kind=value("kind"), itemId=value("id"), tab=value("tab");
         if (kind=="subs") kind="subscriptions";
-        bool privateList=kind=="subscriptions" || kind=="library" || kind=="history" || kind=="later" || itemId=="WL" || itemId=="VLWL";
+        bool privateList=kind=="subscriptions" || kind=="live" || kind=="library" || kind=="history" || kind=="later" || itemId=="WL" || itemId=="VLWL";
         if (privateList && tokens.refresh.empty()) return {{}, "signed_out"};
         if (!itemId.empty() && !id(itemId)) return {{}, "invalid_id"};
         int offset=std::atoi(value("offset").c_str());
@@ -624,10 +628,10 @@ struct ConsoleAccount::Impl {
         auto existing=lists.find(key);
         if (existing==lists.end() || (!offset && (value("fresh")=="1" || wall-existing->second.created>=300))) {
             if (lists.size()>=8) lists.erase(lists.begin());
-            List list; list.created=wall; list.videosOnly=feed;
+            List list; list.created=wall; list.videosOnly=feed; list.liveOnly=feed && kind=="live";
             string browseId;
             if (kind=="home") browseId=policy->s("homeBrowseId");
-            else if (kind=="subscriptions") browseId=policy->s("subscriptionsId");
+            else if (kind=="subscriptions" || (feed && kind=="live")) browseId=policy->s("subscriptionsId");
             else if (kind=="library") browseId=policy->s("libraryId");
             else if (kind=="history") browseId=policy->s("historyId");
             else if (kind=="later") browseId=policy->s("laterId");
@@ -724,7 +728,7 @@ bool ConsoleAccount::supports(const string& path) {
     if (route!="/api/nav" && route!="/api/feed" && route!="/api/nav/play") return false;
     auto p=params(q==string::npos ? "" : path.substr(q+1));
     auto k=p["kind"];
-    return k=="home" || k=="subs" || k=="subscriptions" || k=="library" || k=="history" || k=="later" || k=="playlist" || k=="channel";
+    return k=="home" || k=="subs" || k=="subscriptions" || (k=="live" && route=="/api/feed") || k=="library" || k=="history" || k=="later" || k=="playlist" || k=="channel";
 }
 AccountReply ConsoleAccount::request(const string& path,int64_t wall,int64_t monotonic) {
     std::lock_guard<std::mutex> lock(impl->mutex);

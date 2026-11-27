@@ -115,6 +115,11 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
       const auto& errorDetail=cur.feed.errorDetail;
       if(!errorDetail.empty()){gfx::textBox(g,ui::F_BODY,errorDetail,ui::X0,y+16,ui::W-ui::X0-64,ui::MUTED);y+=48;}
       ctlHint(g,ui::X0,y+24,ctl::Ctx::Home,ctl::Act::Options,settings.lang,K::Refresh);
+    } else if (cur.kind=="live") {  // F71: sem conta ou ninguém ao vivo agora
+      float y=190;
+      for(const auto& line:gfx::wrap(g,ui::F_H2,tr(account.signedIn() ? K::HomeLiveNone : K::HomeLiveSignIn),ui::W-ui::X0-64,3)) {
+        gfx::textBox(g,ui::F_H2,line,ui::X0,y,ui::W-ui::X0-64,ui::MUTED);y+=g.fonts[ui::F_H2].lineH+8;
+      }
     } else gfx::text(g, ui::F_BODY, tr(K::Empty), ui::X0, 190, ui::MUTED);
   }
   if (ui::large || ui::narrow) gfx::rect(g,96,648,ui::W-96,72,ui::BG);
