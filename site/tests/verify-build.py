@@ -53,24 +53,24 @@ print('PASS: release timestamps/timezones, offline publication override and vers
 # The changelog drives dates, order and inclusion; locale files hold reusable wording only.
 markdown=Path('CHANGELOG.md').read_text()
 releases=build.changelog_releases(markdown)
-assert [r['version'] for r in releases]==['0.3.2','0.3.1','0.3.0']
-assert [len(r['items']) for r in releases]==[7,4,6]
-assert releases[0]['date'] is None and releases[1]['date']=='2026-11-24'
+assert [r['version'] for r in releases]==['0.3.3','0.3.2','0.3.1']
+assert [len(r['items']) for r in releases]==[5,7,4]
+assert releases[0]['date']=='2026-11-26' and releases[1]['date']=='2026-11-25'
 for release in releases:
     for item in release['items']:
         assert markdown.splitlines()[item['line']-1].startswith('- ')
 # Removing a source change removes its summary without editing site dictionaries.
 removed=build.changelog_releases(markdown.replace('- Public search suggestions','- A different change'))
-assert 'search' not in [item['key'] for item in removed[0]['items']]
+assert 'search' not in [item['key'] for item in removed[1]['items']]
 # A new source heading/date changes the teaser and release URL automatically.
-future=build.changelog_releases(markdown.replace('## [0.3.2]','## [0.3.3] — 2027-01-02',1))
+future=build.changelog_releases(markdown.replace('## [0.3.3] — 2026-11-26','## [0.3.4] — 2027-01-02',1))
 for lang in ['en','pt-BR']:
     dictionary=json.loads(Path(f'site/src/i18n/{lang}.json').read_text())
     teaser,history=build.release_sections(releases,dictionary,lang)
-    assert 'v0.3.2' not in history and 'datetime="2026-11-24"' in history
+    assert '/releases/tag/v0.3.3' in history and 'datetime="2026-11-26"' in history
     assert 'release-0-3-2' in history and 'data-changelog-line=' in history
     changed_teaser,changed_history=build.release_sections(future,dictionary,lang)
-    assert '0.3.3' in changed_teaser and '/releases/tag/v0.3.3' in changed_history
+    assert '0.3.4' in changed_teaser and '/releases/tag/v0.3.4' in changed_history
     assert 'datetime="2027-01-02"' in changed_history
     dictionary['release_summaries']['local']='<script>alert(1)</script>'
     assert '<script>' not in build.release_sections(releases,dictionary,lang)[0]

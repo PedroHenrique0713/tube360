@@ -220,6 +220,11 @@ RELEASE_TOPICS = (
     ("speed", r"^Eight playback speeds"),
     ("crt", r"^4:3 / 480 CRT layout"),
     ("rule_updates", r"^Signed Ed25519 YouTube rule updates"),
+    ("search_rows", r"^Search results no longer leave an empty row"),
+    ("shorts_row", r"^Shorts are grouped into one row"),
+    ("nest_busy", r"^Opening a video with the Nest busy"),
+    ("members_message", r"^Members-only videos opened through the TV account"),
+    ("error_reports", r"^Automatic error reports"),
 )
 
 
