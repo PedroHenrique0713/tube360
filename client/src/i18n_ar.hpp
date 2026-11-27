@@ -282,7 +282,6 @@ inline const char* arabic(Key key) {
     case Key::NextTrack: return "المقطع التالي";
     case Key::Lyrics: return "الكلمات";
     case Key::NoLyrics: return "الكلمات غير متاحة لهذا المقطع.";
-    case Key::ShowVideo: return "عرض الفيديو";
     case Key::CardMenu: return "خيارات الفيديو";
     case Key::AddedLater: return "حُفظ للمشاهدة لاحقًا";
     case Key::AccountRequired: return "سجّل الدخول من الإعدادات للحفظ والاشتراك.";
@@ -430,6 +429,31 @@ inline const char* arabic(Key key) {
     case Key::SettingVolume: return "مستوى صوت التلفاز";
 
     // ---- F65 Música
+    case Key::MusicSeekBar: return "تقديم أو ترجيع";
+    case Key::MusicExplore: return "استكشاف";
+    case Key::MusicTopResult: return "أفضل نتيجة";
+    case Key::MusicFeatured: return "قوائم تشغيل مميزة";
+    case Key::MusicRelated: return "ذات صلة";
+    case Key::MusicRelatedEmpty: return "لا يوجد شيء ذو صلة بهذا المقطع.";
+    case Key::MusicAutoplay: return "التشغيل التلقائي";
+    case Key::MusicAutoplayOn: return "التشغيل التلقائي مفعل";
+    case Key::MusicAutoplayOff: return "التشغيل التلقائي متوقف";
+    case Key::MusicLyricsFailed: return "تعذر تحميل الكلمات.";
+    case Key::MusicAddedQueue: return "تمت الإضافة إلى القائمة";
+    case Key::MusicMixOf: return "مزيج من";
+    case Key::MusicLibrarySignIn: return "سجّل الدخول بحسابك لرؤية مكتبتك.";
+    case Key::MusicSongTab: return "الأغنية";
+    case Key::MusicVideoTab: return "الفيديو";
+    case Key::MusicMoveTrack: return "نقل المقطع";
+    case Key::MusicMovingTrack: return "النقل: أعلى وأسفل لوضعه، A لإفلاته";
+    case Key::MusicShuffleOn: return "التشغيل العشوائي مفعل";
+    case Key::MusicShuffleOff: return "التشغيل العشوائي متوقف";
+    case Key::MusicRepeatOff: return "التكرار متوقف";
+    case Key::MusicRepeatAll: return "تكرار القائمة";
+    case Key::MusicRepeatOne: return "تكرار هذا المقطع";
+    case Key::MusicQueueEmpty: return "القائمة فارغة.";
+    case Key::MusicQueueServer: return "الخادم يتحكم بالقائمة؛ القفز وإعادة الترتيب غير متاحان.";
+    case Key::MusicVideoLoading: return "جارٍ تحميل الفيديو…";
 
     // ---- F66 controle pelo celular
     case Key::SettingPhoneRemote: return "الهاتف كريموت";

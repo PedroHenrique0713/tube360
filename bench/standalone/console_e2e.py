@@ -135,7 +135,7 @@ try:
     assert 'som: Cast confirmou silêncio' in log and 'som: TV' in log and 'primeiro quadro' not in log
     receiver = Receiver(cert, key)
     log, _, _ = run('music-nest-video-roundtrip', 5.2, speaker=receiver,
-        XT_NAV='radio', XT_NAV_ID='F12audio001', XT_MUSIC='1', XT_KEYS='UARRRA..BB')
+        XT_NAV='radio', XT_NAV_ID='F12audio001', XT_MUSIC='1', XT_KEYS='UAUUA..AB')
     assert log.count('musica: primeiro audio') == 2 and 'primeiro quadro' in log
     assert len(receiver.commands('LOAD')) == 1 and len(receiver.commands('SEEK')) == 2
 finally:

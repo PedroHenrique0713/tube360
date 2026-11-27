@@ -324,7 +324,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(NextTrack, "Next track", "Próxima faixa", "Siguiente pista") \
   X(Lyrics, "Lyrics", "Letra", "Letra") \
   X(NoLyrics, "Lyrics are not available for this track.", "Letra indisponível para esta faixa.", "La letra de esta canción no está disponible.") \
-  X(ShowVideo, "Show video", "Mostrar vídeo", "Mostrar video") \
   X(CardMenu, "Video options", "Opções do vídeo", "Opciones del video") \
   X(AddedLater, "Saved to Watch later", "Salvo em Assistir mais tarde", "Guardado en Ver más tarde") \
   X(AccountRequired, "Sign in to YouTube in Settings to save and subscribe.", "Conecte sua conta em Configurações para salvar e se inscrever.", "Inicia sesión en Configuración para guardar y suscribirte.") \
@@ -450,6 +449,31 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SettingVolume, "TV volume", "Volume na TV", "Volumen en la TV") \
   /* */ \
   /* ---- F65 Música */ \
+  X(MusicSeekBar, "Seek", "Avançar ou voltar", "Adelantar o retroceder") \
+  X(MusicExplore, "Explore", "Explorar", "Explorar") \
+  X(MusicTopResult, "Top result", "Melhor resultado", "Mejor resultado") \
+  X(MusicFeatured, "Featured playlists", "Playlists em destaque", "Listas destacadas") \
+  X(MusicRelated, "Related", "Relacionados", "Relacionados") \
+  X(MusicRelatedEmpty, "Nothing related to this track.", "Nada relacionado a esta faixa.", "Nada relacionado con esta pista.") \
+  X(MusicAutoplay, "Autoplay", "Reprodução automática", "Reproducción automática") \
+  X(MusicAutoplayOn, "Autoplay on", "Reprodução automática ligada", "Reproducción automática activada") \
+  X(MusicAutoplayOff, "Autoplay off", "Reprodução automática desligada", "Reproducción automática desactivada") \
+  X(MusicLyricsFailed, "Could not load the lyrics.", "Não foi possível carregar a letra.", "No se pudo cargar la letra.") \
+  X(MusicAddedQueue, "Added to the queue", "Adicionado à fila", "Añadido a la cola") \
+  X(MusicMixOf, "Mix of", "Mix de", "Mix de") \
+  X(MusicLibrarySignIn, "Sign in with your account to see your Library.", "Entre com a sua conta para ver a sua Biblioteca.", "Inicia sesión con tu cuenta para ver tu Biblioteca.") \
+  X(MusicSongTab, "Song", "Música", "Canción") \
+  X(MusicVideoTab, "Video", "Vídeo", "Video") \
+  X(MusicMoveTrack, "Move track", "Mover faixa", "Mover pista") \
+  X(MusicMovingTrack, "Moving: up and down place it, A drops it", "Movendo: cima e baixo posicionam, A solta", "Moviendo: arriba y abajo la colocan, A la suelta") \
+  X(MusicShuffleOn, "Shuffle on", "Aleatório ligado", "Aleatorio activado") \
+  X(MusicShuffleOff, "Shuffle off", "Aleatório desligado", "Aleatorio desactivado") \
+  X(MusicRepeatOff, "Repeat off", "Repetir desligado", "Repetir desactivado") \
+  X(MusicRepeatAll, "Repeat the queue", "Repetir a fila", "Repetir la cola") \
+  X(MusicRepeatOne, "Repeat this track", "Repetir esta faixa", "Repetir esta pista") \
+  X(MusicQueueEmpty, "The queue is empty.", "A fila está vazia.", "La cola está vacía.") \
+  X(MusicQueueServer, "The queue is controlled by the server; jump and reorder are not available.", "A fila é controlada pelo servidor; pular e reordenar não estão disponíveis.", "El servidor controla la cola; saltar y reordenar no están disponibles.") \
+  X(MusicVideoLoading, "Loading the video…", "Carregando o vídeo…", "Cargando el vídeo…") \
   /* */ \
   /* ---- F66 controle pelo celular */ \
   X(SettingPhoneRemote, "Phone as remote", "Celular como controle", "Móvil como control") \

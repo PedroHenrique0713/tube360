@@ -28,7 +28,7 @@ inline void UiContext::navInput(uint64_t now) {
       else if (playlist) playlistHeaderPress(p);
     }
   } else if (p.zone == 1) {
-    int maxTab = channel ? 4 : search ? 5 : p.kind == "music_search" ? 3 : 2, before = p.tabSel;
+    int maxTab = channel ? 4 : search ? 5 : p.kind == "music_search" ? 5 : p.kind == "music" ? 3 : 2, before = p.tabSel;
     if (left && p.tabSel > 0) p.tabSel--;
     if (right && p.tabSel < maxTab) p.tabSel++;
     if (up && (channel || playlist)) p.zone = 0;
@@ -55,9 +55,13 @@ inline void UiContext::navInput(uint64_t now) {
       if (item.type == "video") {
         if (playlist && nav.nativePage()) {
           phonePlaybackSerial = 0;
-          nav.queueStart = item.id; nav.cancelQueue = false; nav.musicSession = p.music; nav.musicNow = false;
+          nav.queueStart = item.id; nav.cancelQueue = false; nav.musicSession = p.music; nav.musicNow = false; nav.queueTitle = p.title;
           nav.action(navWorker,"/api/nav/play?kind="+p.kind+"&id="+net::urlEncode(p.id)+"&lang="+i18n::code(settings.lang));
-        } else if (p.music) { openNav("radio", item.id, "", true); nav.page().zone = 0; }
+        } else if (p.music) {  // música avulsa: toca já e monta a fila de rádio dela (como no YouTube Music), sem a página "Iniciar rádio"
+          phonePlaybackSerial = 0;
+          nav.queueStart = item.id; nav.cancelQueue = false; nav.musicSession = true; nav.musicNow = false; nav.queueTitle = std::string(tr(K::MusicMixOf)) + " " + item.title;
+          nav.action(navWorker,"/api/nav/play?kind=radio&id="+net::urlEncode(item.id)+"&lang="+i18n::code(settings.lang));
+        }
         else requestVideo(item.video());
       } else if (item.type == "mixes") openNav("music", "", "mixes", true);
       else if (item.type == "history" || item.type == "later") openNav(item.type, "", "", p.music);
@@ -78,6 +82,7 @@ inline void UiContext::navInput(uint64_t now) {
   // X = Assistir mais tarde no vídeo em foco (atualizar a página agora vive no Menu)
   if (screen == NAV && nav.page().stamp == currentPage && !p.music && ctl::hit(in, ctl::Ctx::Collection, ctl::Act::WatchLater) && hasItems && p.zone == 3 && !p.loading &&
       p.sel >= 0 && p.sel < (int)p.items.size() && p.items[(size_t)p.sel].type == "video") saveForLater(p.items[(size_t)p.sel], now);
+  if (screen == NAV && nav.page().stamp == currentPage && p.music) musicPageKeys(p, now);  // X = adicionar à fila, LB/RB = abas (ui_music.hpp)
   if (in.hit(Input::Y)) openSearch();
   if (in.hit(Input::B)) {
     if (nav.busy && nav.actionPath.rfind("/api/nav/play?", 0) == 0) nav.cancelQueue = true;
@@ -96,7 +101,7 @@ inline void UiContext::saveForLater(const NavItem& item, uint64_t now) {
 inline void UiContext::playlistHeaderPress(NavPage& p) {
   phonePlaybackSerial = 0;
   nav.queueStart.clear();
-  nav.cancelQueue = false; nav.musicSession = p.music; nav.musicNow = false;
+  nav.cancelQueue = false; nav.musicSession = p.music; nav.musicNow = false; nav.queueTitle = p.title;
   nav.action(navWorker, "/api/nav/play?kind=" + p.kind + "&id=" + net::urlEncode(p.id) + "&lang=" + i18n::code(settings.lang));
 }
 
