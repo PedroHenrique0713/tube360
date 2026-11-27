@@ -240,7 +240,7 @@ static void spinner(gfx::Gfx& g, float cx, float cy, float r, double t) {
 }
 
 // ---------------------------------------------------------------- cartões
-// Miniatura recortada para o formato do cartão (retrato para Shorts, quadrada para música); sem imagem, um bloco liso.
+// Miniatura recortada para o formato do cartão (retrato para Shorts, quadrada para música); sem imagem, um bloco liso (cortado pela borda de baixo, ele esmaece).
 static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::string& id, uint64_t frame, float x, float y, float w, float h, bool square = false, bool round = false, bool direct = false, bool portrait = false, float bottom = 1e9f) {
   float visibleH=std::min(h,bottom-y);
   if (visibleH <= 0) return;
@@ -251,7 +251,8 @@ static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::stri
     float crop = portrait ? (float)thumbs.height / thumbs.width * 9/16 : square ? (float)thumbs.height / thumbs.width : 1;
     if (visibleH < h) gfx::imagePart(g,s->tex,x,y,w,visibleH,.5f-crop/2,0,.5f+crop/2,visibleH/h,{1,1,1,1});
     else gfx::image(g, s->tex, x, y, w, h, radius, {1,1,1,1}, crop);
-  } else gfx::rect(g, x, y, w, visibleH, ui::SURFACE2, radius);
+  } else if (visibleH >= h) gfx::rect(g, x, y, w, visibleH, ui::SURFACE2, radius);
+  else gfx::vgrad(g, x, y, w, visibleH, ui::SURFACE2, ui::alpha(ui::SURFACE2, 0));  // cortado pela borda de baixo e sem imagem: esmaece até o fundo (uma tira cinza lisa parecia defeito)
 }
 
 // ---- Cartão de vídeo (API da F61, usada por Home, coleções, busca, canal e player) ----

@@ -70,10 +70,13 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
   if (zone==0) for (int row=0;row<grid.gridRow(cur.sel);++row) want+=rowHeight(grid.rows[row]);
   scroll+=(want-scroll)*.2f;
   float rowY=top-scroll;
+  int cardsDrawn=0, noImage=0, noImageClipped=0;  // para o log abaixo
   for (const auto& row:grid.rows) {
     float y=rowY;
     rowY+=rowHeight(row);
-    if (y<140 || y>=646-std::min(60.f,th*.4f)) continue;  // sem tira de miniatura sobre a barra de dicas
+    // Fileira que só aparece como uma tira na borda de baixo (cartões ou Shorts) some até a rolagem trazê-la: a tira, sem imagem, era a faixa cinza.
+    const float artTop=y+(row.heading.empty() ? 0.f : groupH)+(row.shorts ? shortHeading : 0.f), artHeight=row.shorts ? shortH : th;
+    if (y<140 || 646-artTop<std::min(artHeight*.45f,64.f)) continue;
     if (!row.heading.empty()) {  // título da prateleira do YouTube (conta)
       if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::textBox(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-ui::X0-64),ui::X0,y,ui::W-ui::X0-64,ui::TEXT);
       y+=groupH;
@@ -100,6 +103,17 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
       float& an=selAnim[i%600]; an+=((focused ? 1.f : 0.f)-an)*.25f;
       const auto* saved=(!account.signedIn() || cur.kind=="local_later" || cur.kind=="local_history")?local::Library::find(localUI.library.history,v.id):nullptr;
       homeCard(g,thumbs,thumbsWorker,frame,settings.lang,v,cur.feed.direct,row.shorts,focused,x,y,artW,artH,an,saved);
+      ++cardsDrawn;
+      if (!thumbs.byId.count(v.id)) { ++noImage; if (y+artH>646) ++noImageClipped; }
+    }
+  }
+  // O que a tela mostra de miniatura e de aviso, no log só quando muda (separa "miniatura que não chegou" de "aviso de atualização" na faixa do pé).
+  {
+    static int lastShown=-1, lastClipped=-1, lastNotice=-1;
+    const int notice=updateUI.status.app.build ? 1 : 0;
+    if (noImage!=lastShown || noImageClipped!=lastClipped || notice!=lastNotice) {
+      lastShown=noImage; lastClipped=noImageClipped; lastNotice=notice;
+      LOG("home: %d cartoes na tela, %d sem miniatura (%d cortados pela borda de baixo), aviso de atualizacao=%d", cardsDrawn, noImage, noImageClipped, notice);
     }
   }
   if (grid.rows.empty()) {
