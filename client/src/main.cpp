@@ -751,7 +751,7 @@ int run(int argc, char** argv) {
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false; uint64_t nextDeadline = 0; bool nextPending = false;
-  std::vector<Video> related, shortsQueue; PlayerShelf shelf; std::string shortTitle; i18n::Lang shortLang = i18n::Lang::EN; std::vector<std::string> shortLines;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
+  std::vector<Video> related, shortsQueue, playedBefore; bool historyBack = false; PlayerShelf shelf; std::string shortTitle; i18n::Lang shortLang = i18n::Lang::EN; std::vector<std::string> shortLines;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
   bool livePaused = false;
   int& quality = settings.quality;
   quality=720;
@@ -841,6 +841,11 @@ int run(int argc, char** argv) {
   };
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
     bool localOpening=v.id!=playing.id || screen!=PLAYER;
+    if (screen != PLAYER) playedBefore.clear();
+    if (!historyBack && screen == PLAYER && !playing.id.empty() && v.id != playing.id && !nav.musicNow) {
+      if (playedBefore.empty() || playedBefore.back().id != playing.id) playedBefore.push_back(playing);
+      if (playedBefore.size() > 20) playedBefore.erase(playedBefore.begin());
+    }
     if (v.shortForm && std::none_of(shortsQueue.begin(), shortsQueue.end(), [&](const Video& s) { return s.id == v.id; })) {
       // Fila do ↑ ↓ dos Shorts: os Shorts da lista de onde o Short foi aberto, na ordem dela.
       shortsQueue.clear();
@@ -1204,6 +1209,8 @@ int run(int argc, char** argv) {
     .related=related,
     .shelf=shelf,
     .shortsQueue=shortsQueue,
+    .playedBefore=playedBefore,
+    .historyBack=historyBack,
     .shortTitle=shortTitle,
     .shortLang=shortLang,
     .shortLines=shortLines,

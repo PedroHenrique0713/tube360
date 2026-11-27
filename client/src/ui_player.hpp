@@ -100,8 +100,15 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     shelf.open = true; shelf.sel = 0; vertical = 0; any = true;
   }
   if (horizontal || vertical) { jump = playerUI.direction(now, horizontal, vertical, optionCount) * 10; any = true; }
-  if (in.hit(Input::LB)) jump = -60;
-  if (in.hit(Input::RB)) jump = 60;
+  // Mapa único (#40): LB/RB = vídeo anterior/seguinte; avançar/voltar no tempo é LT/RT segurado.
+  if (in.hit(Input::LB) && !playedBefore.empty()) {
+    Video v = playedBefore.back(); playedBefore.pop_back();
+    historyBack = true; startVideo(v, 0, false); historyBack = false; return;
+  }
+  if (in.hit(Input::RB)) {
+    const Video* next = !upNext.id.empty() ? &upNext : !related.empty() ? &related.front() : nullptr;
+    if (next) { Video v = *next; startVideo(v, 0, false); return; }
+  }
   if (jump != 0) {
     if (pl.state == player::CONNECTING) {
       LOG("player: seek ignored: live status unknown (CONNECTING)");
@@ -149,7 +156,8 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     any = true;
   }
   // Durante a abertura, A não cria uma pausa invisível atrás do carregamento.
-  if (((pressA && (!open || playerUI.selected == PlayerUI::TRANSPORT)) || in.hit(Input::START)) && (!pl.waiting() || pl.paused)) {
+  if (in.hit(Input::START)) { playerUI.options = !playerUI.options || !playerUI.visible(now); any = true; }
+  if ((pressA && (!open || playerUI.selected == PlayerUI::TRANSPORT)) && (!pl.waiting() || pl.paused)) {
     if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
     LOG("player: pause=%d pos=%.2f", pl.paused ? 1 : 0, pl.position());
     any = true;
@@ -160,19 +168,7 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     else { LOG("player: Y qualidade pos=%.3f modo=%d menu=1 SponsorBlock_ativo=0",pl.position(),settings.videoMode); openQuality(); }
     any=true;
   }
-  if (in.hit(Input::X)) {
-    if (pl.speed!=1) toast=tr(K::SpeedNest);
-    else if (!nestAvailable) toast = tr(K::NoSpeaker);
-    else {
-      bool row = playerUI.options;
-      if (nestOut && (nestSkip || (pl.speakerRequested && !pl.nest))) nestSkip = false;
-      else nestOut = !nestOut;
-      startVideo(playing, pl.position(), playerFromRemote); playerUI.options = row;
-      toast = tr(K::SoundPrefix) + (nestOut ? nestName : std::string(tr(K::TV)));
-      saveSettings();
-    }
-    toastUntil = now + 3000; any = true;
-  }
+  if (in.hit(Input::X)) { playerWatchLater(now); any = true; }
   in.hit(Input::LT);in.hit(Input::RT);
   int trigger=in.held[Input::RT]==in.held[Input::LT]?0:in.held[Input::RT]?1:-1;
   if(trigger && (pl.live || pl.state==player::CONNECTING || pl.state==player::FAILED)) {
@@ -200,6 +196,13 @@ inline void UiContext::playerInput(uint64_t now, int optionCount) {
     toast = tr(K::SpeakerFallback); toastUntil = now + 5000;
     startVideo(playing, pl.position(), playerFromRemote);
   }
+}
+
+// X no player: salva o vídeo em "Assistir mais tarde" (na conta, se logada; senão na lista local), como nas demais telas.
+inline void UiContext::playerWatchLater(uint64_t now) {
+  if (playing.id.empty()) return;
+  if (account.signedIn()) nav.action(navWorker, "/api/nav/action?action=later&id=" + playing.id + "&lang=" + i18n::code(settings.lang));
+  else { localUI.library.toggle(LocalLibraryUI::entry(playing)); toast = tr(K::LocalSaving); toastUntil = now + 2500; }
 }
 
 inline void UiContext::playerShelfInput(uint64_t now) {

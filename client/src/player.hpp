@@ -179,7 +179,14 @@ struct Player {
     if (toNest && directSpeaker.configured()) directSpeaker.volume(userVolume, percent == 0);
     return percent;
   }
-  int stepVolume(int direction) { return setVolumePercent(volume::stepped(volumePercent(), direction)); }
+  // Com o som no Nest o passo parte do volume real do alto-falante (o celular também mexe nele), e no limite não reenvia nada.
+  int stepVolume(int direction) {
+    int base = volumePercent();
+    if (nest && directSpeaker.configured()) { auto s = directSpeaker.sample(); if (s.volume >= 0) base = (int)std::lround(s.volume * 100); }
+    int next = volume::stepped(base, direction);
+    if (next == base) return volumePercent();
+    return setVolumePercent(next);
+  }
   void tvSound(bool on) {
     if (audible == on) return;
     if (audio && !SDL_SetAudioStreamGain(audio, on ? normalGain * fadeGain * userVolume : 0.0f)) return;

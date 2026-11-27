@@ -30,6 +30,7 @@ inline void UiContext::shortsInput(uint64_t now) {
   int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
   constexpr int actions = 4;  // curtir, não gostei, comentários, canal
   int& focus = shelf.shortsFocus;  // 0 = vídeo, 1..4 = ações
+  const int focusBefore = focus;
   if (horizontal > 0 && !focus) focus = 1;
   else if (horizontal < 0 && focus) focus = 0;
   if (vertical) {
@@ -48,8 +49,10 @@ inline void UiContext::shortsInput(uint64_t now) {
     } else if (focus == 3) { playerUI.panel = PlayerUI::COMMENTS_PANEL; if (!extras.loaded) extras.request(); }
     else openPlayerChannel(captions.channelId, playing.id);
   }
-  in.hit(Input::BACK); in.hit(Input::X); in.hit(Input::Y); in.hit(Input::LT); in.hit(Input::RT);
+  if (in.hit(Input::X)) playerWatchLater(now);
+  in.hit(Input::BACK); in.hit(Input::Y); in.hit(Input::LT); in.hit(Input::RT);
   if (in.hit(Input::B)) { if (focus) focus = 0; else stopVideo(); }
+  if (focus != focusBefore) LOG("shorts: foco %d", focus);
   if (pl.state == player::FAILED && pl.nestFailed && !nestSkip) {
     nestSkip = true; toast = tr(K::SpeakerFallback); toastUntil = now + 5000;
     startVideo(playing, pl.position(), playerFromRemote);

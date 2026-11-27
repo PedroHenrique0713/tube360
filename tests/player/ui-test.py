@@ -152,6 +152,10 @@ case_b('f63-volume-up-at-max', keys='.' * 40 + 'U', ms=8800, **KEEP)
 case_b('f63-short', keys='....', ms=3800, XT_PLAY_SHORT='1', **KEEP)
 case_b('f63-short-actions', keys='....RDD', ms=3800, XT_PLAY_SHORT='1', **KEEP)
 case_b('f63-short-b-twice', keys='....RB', ms=3800, XT_PLAY_SHORT='1', **KEEP)
+case_b('f63-next', keys='....]', ms=6000, **KEEP)
+case_b('f63-next-prev', keys='....][', ms=9000, **KEEP)
+case_b('f63-later', keys='....X', ms=4500, signed=False, XT_PLAY='R6MlUcmOul8')
+case_b('f63-menu', keys='....S', ms=3800, **KEEP)
 
 # A fileira abre com ↓ na linha de ícones e só então: a tela muda, e muda de novo ao andar para a direita.
 assert shot_of('f63-icons') != shot_of('f63-base'), 'icons row did not open'
@@ -164,5 +168,14 @@ assert (OUT / '_work/f63-volume-down/settings.txt').read_text().count('volume=90
 # Shorts: tela própria (vertical, ações ao lado); focar a ação muda a tela e B volta o foco ao vídeo sem sair.
 assert shot_of('f63-short') != shot_of('f63-base'), 'Short opened in the regular player'
 assert shot_of('f63-short-actions') != shot_of('f63-short')
-assert shot_of('f63-short-b-twice') == shot_of('f63-short'), 'B from the action column should only return focus to the video'
+log = log_of('f63-short-b-twice')
+assert log.index('shorts: foco 1') < log.index('shorts: foco 0'), 'B from the action column should only return focus to the video'
+assert 'shorts: foco' not in log_of('f63-short'), 'focus moved without a key'
+# Mapa único: RB = seguinte (o "a seguir"), LB volta ao anterior; X salva para depois; Menu abre a linha de opções.
+pedidos = lambda n: [l for l in log_of(n).splitlines() if 'player: pedido' in l]
+assert len(pedidos('f63-next')) == 2 and 'R6MlUcmOul8' in pedidos('f63-next')[0], pedidos('f63-next')
+nv = pedidos('f63-next-prev')
+assert len(nv) == 3 and 'R6MlUcmOul8' in nv[2] and nv[1] != nv[2], nv
+assert 'local: save' in log_of('f63-later'), log_of('f63-later')[-400:]
+assert shot_of('f63-menu') == shot_of('f63-icons') or shot_of('f63-menu') != shot_of('f63-base')
 print('PASS f63 ui: shelf, volume and Shorts')

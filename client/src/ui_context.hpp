@@ -178,6 +178,8 @@ struct UiContext {
   std::vector<Video>& related;
   PlayerShelf& shelf;
   std::vector<Video>& shortsQueue;
+  std::vector<Video>& playedBefore;
+  bool& historyBack;
   std::string& shortTitle;
   i18n::Lang& shortLang;
   std::vector<std::string>& shortLines;
@@ -239,6 +241,7 @@ struct UiContext {
   void playerInput(uint64_t now, int optionCount);
   void playerShelfInput(uint64_t now);
   void playerShelfDraw(uint64_t now);
+  void playerWatchLater(uint64_t now);
   int shortsIndex() const;
   void shortsStep(int direction);
   void shortsInput(uint64_t now);
