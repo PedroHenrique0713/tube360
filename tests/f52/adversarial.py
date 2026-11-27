@@ -113,7 +113,7 @@ def run(name, payload, keys='', selected=None, screen='search', lang='en', cols=
             subprocess.run([str(work/'tube360-search-replay')], env=env, stdout=log,
                            stderr=subprocess.STDOUT, timeout=50, check=True)
         text = log_file.read_text()
-        assert 'captura:' in text and 'desligado: só console' in text, text[-2200:]
+        assert 'captura:' in text, text[-2200:]
         assert 'atlas full' not in text, text[-2200:]
         if screen == 'search':
             match = re.search(r'captura navegação: search sel=(\d+).*menu=(\d+)', text)
@@ -142,6 +142,7 @@ def run(name, payload, keys='', selected=None, screen='search', lang='en', cols=
             saved = settings_file.read_text()
             for value in persisted:
                 assert value+'\n' in saved, (value, saved)
+            assert 'server' not in saved, saved
         with Image.open(assets/'screen.ppm') as img:
             if screen in ('home', 'search') and not filter_open:
                 pixels = img.convert('RGB').tobytes()
@@ -220,12 +221,12 @@ for mode in ('on', 'auto'):
         name = f'migration-{mode}-{legacy}'
         run(name, mixed, seq(7,'R',8,'R'), screen='settings',
             settings=f'server={mode}\nsleep_what={legacy}\n',
-            persisted=['server=off', 'sleep_what=xbox', 'shorts=hide', 'error_reports=off'])
+            persisted=['sleep_what=xbox', 'shorts=hide', 'error_reports=off'])
         run(name, mixed, seq(7,'R',8,'R'), screen='settings', restart=True,
-            persisted=['server=off', 'sleep_what=xbox', 'shorts=row', 'error_reports=on'])
+            persisted=['sleep_what=xbox', 'shorts=row', 'error_reports=on'])
 run('invalid-settings', mixed, seq(8,'R'), screen='settings',
     settings='server=INVALID\nsleep_what=INVALID\ncols=INVALID\nshorts=INVALID\nerror_reports=INVALID\n',
-    persisted=['server=off', 'sleep_what=xbox', 'shorts=row', 'error_reports=off'])
+    persisted=['sleep_what=xbox', 'shorts=row', 'error_reports=off'])
 run('reports-on', mixed, seq(8,'R'), screen='settings', settings='error_reports=off\n',
     persisted=['error_reports=on'])
 run('reports-on', mixed, screen='settings', restart=True, persisted=['error_reports=on'])

@@ -1,4 +1,4 @@
-// Tube360: YouTube nativo no Xbox 360 (BadUpdate), servido pelo notebook (server/, docs/PROTOCOL.md).
+// Tube360: YouTube nativo no Xbox 360 (BadUpdate); protocolos em docs/PROTOCOL.md.
 // Um código só: no Fedora (janela do SDL, teclado ou controle) e no 360 (vulkan4xenon + SDL-xenon).
 // Interface de TV: menu lateral, categorias, grade e configurações, com a cor do vídeo em foco no ambiente.
 #include <SDL3/SDL.h>
@@ -598,16 +598,6 @@ int run(int argc, char** argv) {
   if (FILE* f = std::fopen((assets + "mudo.txt").c_str(), "r")) { player::benchMute = true; std::fclose(f); LOG("bancada: mudo.txt, volume zero"); }
 #endif
   net::Server srv;
-  if (FILE* f = std::fopen((assets + "server.txt").c_str(), "r")) {
-    char ip[64] = {0}; int port = 0;
-    if (std::fscanf(f, "%63s %d", ip, &port) == 2) { srv.ip = ip; srv.port = port; }
-    std::fclose(f);
-  }
-  if (const char* e = std::getenv("XT_SERVER")) { char ip[64] = {0}; int port = 0; if (std::sscanf(e, "%63[^:]:%d", ip, &port) == 2) { srv.ip = ip; srv.port = port; } }
-  // Sem server.txt (nem XT_SERVER) o app é só do console: nenhum pedido ao PC, nem para o Nest ou o timer.
-  net::serverEnabled = net::effectiveServer(srv,settings.server);
-  const std::string serverAddress=srv.ip+":"+std::to_string(srv.port);
-  LOG("servidor %s:%d%s", srv.ip.c_str(), srv.port, net::serverEnabled ? "" : " (desligado: só console)");
 
   static gfx::Gfx g{};
   gfx::emergencyGraphics=&g;startup::releaseGraphics=gfx::closeForEmergency;
@@ -1141,7 +1131,6 @@ int run(int argc, char** argv) {
     .cat=cat,
     .cats=cats,
     .results=results,
-    .serverAddress=serverAddress,
     .castWho=castWho,
     .requestFeedFn=requestFeed,
     // Casca: painéis, conta e timer
@@ -1886,8 +1875,7 @@ int run(int argc, char** argv) {
         LOG("captura qualidade: modo=%s fixa=%d mascara=%x painel=%d selecao=%d fonte=%d pausa=%d aviso=%d estado=%d erro=%s",playback::modeName(settings.videoMode),playback::manual(settings.videoMode),pl.qualityAvailable.load(),playerUI.panel,playerUI.panelSel,pl.actualHeight.load(),pl.paused.load(),now<manualNoticeUntil,pl.state.load(),pl.state==player::FAILED?pl.error.c_str():"");
         if(playerUI.panel==PlayerUI::QUALITY)for(int i=0;i<offeredQualities.count;++i)LOG("captura opcao qualidade: %s | %s",playback::modeName(offeredQualities.modes[i]),tr(videoModeLabel(offeredQualities.modes[i])));
       }
-      if(screens.errorShot.feed)LOG("captura erro Home: preferencia=%d efetivo=%d | %s | %s | %s",settings.server,int(net::serverEnabled.load()),
-          tr(screens.errorShot.title),tr(screens.errorShot.help),screens.errorShot.server?serverAddress.c_str():screens.errorShot.feed->errorDetail.c_str());
+      if(screens.errorShot.feed)LOG("captura erro Home: %s | %s | %s",tr(screens.errorShot.title),tr(screens.errorShot.help),screens.errorShot.feed->errorDetail.c_str());
 #endif
       LOG("captura busca: painel=%d tipo=%d duracao=%d data=%d ordem=%d sugestoes=%u lista=%d selecao=%d recentes=%u",
           searchUI.filterOpen,searchUI.filterOpen ? searchUI.draft.type : searchUI.filters.type,

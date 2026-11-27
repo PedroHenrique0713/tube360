@@ -23,12 +23,12 @@ static void settingsContract(const std::string& dir) {
   for (auto legacy:{"notebook","together","xbox_notebook","xbox","invalid"}) {
     { std::ofstream out(dir+"settings.txt"); out<<"server=auto\nsleep_what="<<legacy<<"\nshorts=hide\nerror_reports=off\n"; }
     s.load(dir);
-    require(!s.server && !s.sleepNotebook && s.hideShorts && !s.errorReports,"legacy PC settings normalize to Xbox; new keys load");
+    require(s.hideShorts && !s.errorReports,"legacy PC settings load; new keys load");
     require(s.save(dir),"settings save succeeds");
     Settings restarted; restarted.load(dir);
-    require(restarted.hideShorts && !restarted.errorReports && !restarted.server && !restarted.sleepNotebook,"hide/off survive restart");
+    require(restarted.hideShorts && !restarted.errorReports,"hide/off survive restart");
     std::ifstream file(dir+"settings.txt"); std::string text((std::istreambuf_iterator<char>(file)),{});
-    require(text.find("shorts=hide\n")!=text.npos && text.find("error_reports=off\n")!=text.npos && text.find("sleep_what=xbox\n")!=text.npos,"launcher wire keys and Xbox target persisted");
+    require(text.find("shorts=hide\n")!=text.npos && text.find("error_reports=off\n")!=text.npos && text.find("sleep_what=xbox\n")!=text.npos && text.find("server")==text.npos,"launcher wire keys and Xbox target persisted, server= dropped");
   }
   { std::ofstream out(dir+"settings.txt"); out<<"shorts=unknown\nerror_reports=unknown\n"; }
   s.load(dir); require(!s.hideShorts && s.errorReports,"unknown values keep row/on defaults");

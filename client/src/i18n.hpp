@@ -105,7 +105,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(Refresh, "Refresh", "Atualizar", "Actualizar") \
   X(Refreshing, "Finding new videos…", "Buscando vídeos novos…", "Buscando videos nuevos…") \
   X(LoadingVideos, "Loading videos…", "Carregando vídeos…", "Cargando videos…") \
-  X(ServerUnavailable, "Could not reach the server", "Não deu para falar com o servidor", "No se pudo conectar con el servidor") \
   X(NoResponse, "No response from the server", "Sem resposta do servidor", "El servidor no responde") \
   X(ClockWrong, "Set the console date and time", "Acerte a data e a hora do console", "Ajusta la fecha y la hora de la consola") \
   X(ConsoleClock, "Console clock: ", "Relógio do console: ", "Reloj de la consola: ") \
@@ -126,7 +125,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(StartupExit, "Exit", "Sair", "Salir") \
   X(SeekTarget, "Seek to ", "Ir para ", "Ir a ") \
   X(BadResponse, "Could not load this list", "Não deu para carregar esta lista", "No se pudo cargar esta lista") \
-  X(RetryServer, "Start the server and press Menu to try again.", "Ligue o servidor e aperte Menu para tentar de novo.", "Inicia el servidor y presiona Menu para volver a intentarlo.") \
   X(Empty, "Nothing found.", "Nada encontrado.", "No se encontraron resultados.") \
   X(PageError, "Could not load more videos. Press Menu to refresh.", "Não deu para carregar mais vídeos. Aperte Menu para atualizar.", "No se pudieron cargar más videos. Presiona Menu para actualizar.") \
   X(Live, "LIVE", "AO VIVO", "EN VIVO") \
@@ -211,7 +209,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(CastLoading, "Getting the TV code…", "Buscando o código…", "Obteniendo el código de TV…") \
   X(CastRemember, "The code changes every 5 minutes. Pair once and your phone remembers this TV.", "O código muda a cada 5 minutos. Pareie uma vez e o celular lembra desta TV.", "El código cambia cada 5 minutos. Vincula tu teléfono una vez para recordar esta TV.") \
   X(NoPhone, "No phone connected yet.", "Nenhum celular conectado ainda.", "Todavía no hay un teléfono conectado.") \
-  X(ServerOffline, "The server is offline right now.", "Sem conexão com o servidor agora.", "El servidor está desconectado.") \
   X(SearchSpeakers, "Find speakers", "Procurar alto-falantes", "Buscar altavoces") \
   X(SpeakerSearchHelp, "Choose a speaker on your local network.", "Escolha um alto-falante na sua rede local.", "Elige un altavoz en tu red local.") \
   X(SpeakerSearching, "Searching your network...", "Procurando na sua rede...", "Buscando en tu red...") \
