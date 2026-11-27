@@ -43,7 +43,6 @@ inline void UiContext::homeInput(uint64_t now) {
     cur.sel = 0; scroll = 0; zone = 0; toast = tr(K::Refreshing); toastUntil = now + 2500;
   }
   if (in.hit(Input::B)) { if (inResults) goHome(); else if (zone == 0) zone = 1; }
-  if (in.hit(Input::BACK)) quit = true;
 }
 
 inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {

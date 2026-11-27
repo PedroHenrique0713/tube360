@@ -12,6 +12,30 @@ static std::string fmtTime(double s) {
   return b;
 }
 
+// Estrela de cinco pontas (leque de triângulos) e o "verificado" (círculo com o visto), pequenos, para a linha de texto do cartão.
+static void starShape(gfx::Gfx& g, float cx, float cy, float r, Color c) {
+  float px[10], py[10];
+  for (int i = 0; i < 10; i++) { float a = -1.5707963f + i * 0.6283185f, k = i % 2 ? r * .42f : r; px[i] = cx + std::cos(a) * k; py[i] = cy + std::sin(a) * k; }
+  for (int i = 0; i < 10; i++) gfx::triangle(g, cx, cy, px[i], py[i], px[(i + 1) % 10], py[(i + 1) % 10], c);
+}
+static void verifiedMark(gfx::Gfx& g, float x, float y, float d, Color c, Color ink) {
+  gfx::rect(g, x, y, d, d, c, d / 2);
+  float k = d / 14;
+  gfx::triangle(g, x + 3.2f*k, y + 7.4f*k, x + 4.6f*k, y + 6.2f*k, x + 6.2f*k, y + 9.2f*k, ink);
+  gfx::triangle(g, x + 5.6f*k, y + 9.9f*k, x + 6.8f*k, y + 8.9f*k, x + 11.2f*k, y + 4.4f*k, ink);
+  gfx::triangle(g, x + 11.2f*k, y + 4.4f*k, x + 12.2f*k, y + 5.4f*k, x + 6.8f*k, y + 8.9f*k, ink);
+}
+static const Color MEMBER_GREEN = rgb(0x3ddc84);
+
+// Linha "Só para membros" (verde, com estrela) sob o texto do cartão. Só para quem tem Membership; o vídeo já liberado diz "Membro".
+static void memberLine(gfx::Gfx& g, yt::Membership members, i18n::Lang lang, float x, float y, float w) {
+  if (members == yt::Membership::None) return;
+  const char* label = i18n::get(lang, members == yt::Membership::Accessible ? K::Member : K::MembersOnly);
+  float r = g.fonts[ui::F_TINY].size * .62f;
+  starShape(g, x + r, y + g.fonts[ui::F_TINY].lineH / 2, r, MEMBER_GREEN);
+  gfx::text(g, ui::F_TINY, gfx::ellipsize(g, ui::F_TINY, label, w - 2 * r - 8), x + 2 * r + 6, y, MEMBER_GREEN);
+}
+// Selo antigo (pílula sobre a miniatura), ainda usado pela Música; vídeo usa memberLine.
 static void memberBadge(gfx::Gfx& g, yt::Membership members, i18n::Lang lang, float x, float y) {
   if (members == yt::Membership::None) return;
   bool access = members == yt::Membership::Accessible;
@@ -193,50 +217,108 @@ static void artwork(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, const std::stri
   } else gfx::rect(g, x, y, w, visibleH, ui::SURFACE2, radius);
 }
 
-// Cartão de vídeo da Home. (x,y) é o canto da miniatura, artW×artH o tamanho em repouso, an a animação de foco (0 a 1),
-// saved o registro do histórico local (se a lista é local) e direct se a miniatura vem do console.
-static void homeCard(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, i18n::Lang lang, const Video& v, bool direct, bool shorts,
-                     bool focused, float x, float y, float artW, float artH, float an, const local::Entry* saved) {
+// ---- Cartão de vídeo (API da F61, usada por Home, coleções, busca, canal e player) ----
+// CardMeta é tudo o que um cartão mostra. Campos que a tela não tem ficam no padrão e a peça não desenha nada para eles.
+//   duration: segundos; 0 = ao vivo (selo vermelho "AO VIVO"); -1 = desconhecida (sem selo)
+//   progress: 0 a 1 (barra vermelha no pé da miniatura; 0 = sem barra)
+//   members:  selo "Só para membros" verde com estrela na LINHA DE BAIXO, nunca na miniatura (decisão do Pedro)
+//   verified: marca de verificado ao lado do canal (a F62 preenche); date: "há 2 dias" etc. (vazio = some)
+struct CardMeta {
+  std::string title, channel, views, date;
+  int duration = -1;
+  float progress = 0;
+  yt::Membership members = yt::Membership::None;
+  bool verified = false;
+};
+
+// Selo de duração (ou AO VIVO) no canto da miniatura; (ix,iy,w,h) é o retângulo da miniatura.
+static void cardDuration(gfx::Gfx& g, i18n::Lang lang, int duration, float ix, float iy, float w, float h) {
+  if (duration < 0 || iy + h > 646) return;
+  std::string d = duration ? fmtTime(duration) : i18n::get(lang, K::Live);
+  float dw = gfx::textWidth(g, ui::F_TINY, d) + 12, badgeH = ui::large ? 36 : 20, badgeY = iy + h - badgeH - 7;
+  gfx::rect(g, ix + w - dw - 7, badgeY, dw, badgeH, duration ? Color{0,0,0,.8f} : ui::A1, 5);
+  gfx::text(g, ui::F_TINY, d, ix + w - dw / 2 - 7, badgeY + (badgeH - g.fonts[ui::F_TINY].size) / 2, rgb(0xffffff), 1);
+}
+
+// Miniatura + barra de andamento + duração. A miniatura é pedida em HD e reduzida ao tamanho do cartão pelo Worker.
+static void cardThumb(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, i18n::Lang lang, const std::string& id, const CardMeta& m,
+                      bool direct, bool shorts, float ix, float iy, float w, float h) {
+  artwork(g, thumbs, worker, id, frame, ix, iy, w, h, false, false, direct, shorts, 646);
+  if (m.progress > 0 && iy + h <= 646) {
+    gfx::rect(g, ix + 4, iy + h - 5, w - 8, 4, {0,0,0,.6f}, 2);
+    gfx::rect(g, ix + 4, iy + h - 5, std::max(4.f, (w - 8) * std::clamp(m.progress, 0.f, 1.f)), 4, ui::A1, 2);
+  }
+  if (!shorts) cardDuration(g, lang, m.duration, ix, iy, w, h);
+}
+
+// Texto do cartão: título (até 2 linhas), canal (+ verificado), visualizações · data e a linha de membros. Devolve o y logo abaixo.
+// ty = topo do título; w = largura; titleFont/metaFont = fontes (Shorts usam as menores).
+static float cardText(gfx::Gfx& g, i18n::Lang lang, const CardMeta& m, float x, float ty, float w, int titleFont, int metaFont, bool focused, bool shorts) {
+  for (const auto& line : gfx::wrap(g, titleFont, m.title, w, 2)) {
+    if (ty + g.fonts[titleFont].lineH <= 646) gfx::textBox(g, titleFont, line, x, ty, w, focused ? ui::TEXT : rgb(0xe4e4e7));
+    ty += ui::large ? (shorts ? 34 : 31) : shorts ? 27 : 23;
+  }
+  ty += 3;
+  float lh = g.fonts[metaFont].lineH;
+  if (ty + lh <= 646) {
+    float mark = m.verified ? 14.f + 6 : 0;
+    std::string tail = m.views.empty() ? "" : m.views;
+    if (!m.date.empty()) tail += (tail.empty() ? "" : "  \xC2\xB7  ") + m.date;
+    std::string head = m.channel;
+    if (!shorts && !tail.empty() && !head.empty()) {
+      // canal e "visualizações · data" na mesma linha quando cabem; senão o canal ocupa a linha e o resto desce
+      std::string both = head + "  \xC2\xB7  " + tail;
+      if (gfx::textWidth(g, metaFont, both) + mark <= w) { head = both; tail.clear(); }
+    } else if (shorts && !tail.empty()) { head += (head.empty() ? "" : "  \xC2\xB7  ") + tail; tail.clear(); }
+    std::string shown = gfx::ellipsize(g, metaFont, head, w - mark);
+    float tw = gfx::textBox(g, metaFont, shown, x, ty, w, ui::MUTED);
+    (void)tw;
+    if (m.verified) verifiedMark(g, x + gfx::textWidth(g, metaFont, shown) + 6, ty + (lh - 14) / 2, 14, ui::MUTED, ui::BG);
+    ty += lh + 2;
+    if (!tail.empty() && ty + lh <= 646) { gfx::textBox(g, metaFont, gfx::ellipsize(g, metaFont, tail, w), x, ty, w, ui::MUTED); ty += lh + 2; }
+  }
+  if (m.members != yt::Membership::None && ty + g.fonts[ui::F_TINY].lineH <= 646) { memberLine(g, m.members, lang, x, ty, w); ty += g.fonts[ui::F_TINY].lineH + 2; }
+  return ty;
+}
+
+// Cartão de vídeo completo: realce de foco, miniatura, andamento, duração e texto. (x,y) é o canto da miniatura em repouso,
+// artW×artH o tamanho em repouso, an a animação de foco (0 a 1). Quem desenha em grade usa este; a F62 pode montar o dela com
+// cardThumb + cardText.
+static void videoCard(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, i18n::Lang lang, const std::string& id, const CardMeta& m, bool direct,
+                      bool shorts, bool focused, float x, float y, float artW, float artH, float an) {
   float s=shorts ? 1 : 1+.045f*an, w=artW*s, h=artH*s, ix=x-(w-artW)/2, iy=y-(h-artH)/2;
   if (shorts && focused && iy-5<646) gfx::rect(g,ix-5,iy-5,w+10,std::min(h+10,646-iy+5),ui::TEXT,12);
   else if (!shorts && an>.02f && iy-4<646) {
     if (iy-24>=140 && iy+h+32<=646) gfx::shadow(g,ix,iy+10,w,h,14,22,.6f*an);
     gfx::rect(g,ix-4,iy-4,w+8,std::min(h+8,646-iy+4),ui::alpha(rgb(0xffffff),an),16);
   }
-  artwork(g,thumbs,worker,v.id,frame,ix,iy,w,h,false,false,direct,shorts,646);
-  double shownPos=saved?saved->position:v.pos, shownDuration=saved?saved->duration:v.dur;
-  if (shownPos>0 && shownDuration>0 && iy+h<=646) {
-    gfx::rect(g,ix+4,iy+h-5,w-8,4,{0,0,0,.6f},2);
-    gfx::rect(g,ix+4,iy+h-5,std::max(4.f,(w-8)*(float)std::clamp(shownPos/shownDuration,0.0,1.0)),4,ui::A1,2);
-  }
-  if (!shorts && iy+h<=646 && v.dur>=0) {
-    std::string d=v.dur ? fmtTime(v.dur) : i18n::get(lang,K::Live);
-    float dw=gfx::textWidth(g,ui::F_TINY,d)+12, badgeH=ui::large ? 36 : 20, badgeY=iy+h-badgeH-7;
-    gfx::rect(g,ix+w-dw-7,badgeY,dw,badgeH,v.dur ? Color{0,0,0,.8f} : ui::A1,5);
-    gfx::text(g,ui::F_TINY,d,ix+w-dw/2-7,badgeY+(badgeH-g.fonts[ui::F_TINY].size)/2,rgb(0xffffff),1);
-  }
-  if (iy+7+(ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+8) : 20)<=646) memberBadge(g,v.members,lang,ix+7,iy+7);
-  int titleFont=shorts ? ui::F_SMALL : ui::F_CARD, metaFont=shorts ? ui::F_TINY : ui::F_SMALL;
-  float ty=y+artH+(shorts ? 16 : 14);
-  for (const auto& line:gfx::wrap(g,titleFont,v.title,artW,2)) {
-    if (ty+g.fonts[titleFont].lineH<=646) gfx::textBox(g,titleFont,line,x,ty,artW,focused ? ui::TEXT : rgb(0xe4e4e7));
-    ty+=ui::large ? (shorts ? 34 : 31) : shorts ? 27 : 23;
-  }
-  std::string meta=v.channel+(v.views.empty() ? "" : "  \xC2\xB7  "+v.views);
-  if (ty+3+g.fonts[metaFont].lineH<=646) gfx::textBox(g,metaFont,gfx::ellipsize(g,metaFont,meta,artW),x,ty+3,artW,ui::MUTED);
+  cardThumb(g, thumbs, worker, frame, lang, id, m, direct, shorts, ix, iy, w, h);
+  cardText(g, lang, m, x, y+artH+(shorts ? 16 : 14), artW, shorts ? ui::F_SMALL : ui::F_CARD, shorts ? ui::F_TINY : ui::F_SMALL, focused, shorts);
+}
+
+// Cartão de vídeo da Home (fina camada sobre videoCard). saved = registro do histórico local (andamento e duração), se a lista é local.
+static void homeCard(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, i18n::Lang lang, const Video& v, bool direct, bool shorts,
+                     bool focused, float x, float y, float artW, float artH, float an, const local::Entry* saved) {
+  CardMeta m; m.title = v.title; m.channel = v.channel; m.views = v.views; m.date = v.date; m.members = v.members;
+  m.duration = v.dur;
+  double pos = saved ? saved->position : v.pos, dur = saved ? saved->duration : v.dur;
+  m.progress = pos > 0 && dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0;
+  videoCard(g, thumbs, worker, frame, lang, v.id, m, direct, shorts, focused, x, y, artW, artH, an);
 }
 
 // Medidas da grade de uma página de navegação; ao calcular, já monta as linhas e anima a rolagem.
-struct NavMetrics { int cols; float cw, art, h, rowH, shortW, shortH, shortHeading, shortRowH; };
+struct NavMetrics { int cols; float cw, art, h, rowH, shortW, shortH, shortHeading, shortRowH, groupH; };
+// Altura de uma fileira da grade, com o título do grupo (dia do Histórico) quando ela abre um.
+static float navRowHeight(const NavMetrics& m, const ItemGrid::GridRow& row) { return (row.shorts ? m.shortRowH : m.rowH) + (row.heading.empty() ? 0.f : m.groupH); }
 static NavMetrics navMetrics(NavDraw& d) {
   auto& g = d.g; auto& p = d.p;
   NavMetrics m;
   m.cols=ui::columns(4); m.cw=std::floor((ui::W-200-(m.cols-1)*24)/m.cols); m.art=p.music ? std::min(m.cw,246.f) : m.cw; m.h=p.music ? m.art : m.cw*9/16;
   m.rowH=m.h+(p.kind=="library" ? 28 : ui::large ? 114 : 100);
   p.grid(m.cols,d.hideShorts);
-  m.shortW=std::min(m.cw*.5f,112.f); m.shortH=m.shortW*16/9; m.shortHeading=std::max(30.f,g.fonts[ui::F_KEY].lineH+8); m.shortRowH=m.shortHeading+m.shortH+(ui::large ? 124 : 100);
+  m.shortW=std::min(m.cw*.5f,112.f); m.shortH=m.shortW*16/9; m.shortHeading=std::max(30.f,g.fonts[ui::F_KEY].lineH+8); m.shortRowH=m.shortHeading+m.shortH+(ui::large ? 124 : 100); m.groupH=std::max(40.f,g.fonts[ui::F_KEY].lineH+14);
   float want = 0;
-  if (p.zone == 3) for (int row=0; row<p.gridRow(); ++row) want += p.rows[row].shorts ? m.shortRowH : m.rowH;
+  if (p.zone == 3) for (int row=0; row<p.gridRow(); ++row) want += navRowHeight(m,p.rows[row]);
   p.scroll += (want - p.scroll) * 0.24f;
   return m;
 }
@@ -248,7 +330,7 @@ static void navCard(NavDraw& d, const NavMetrics& m, const NavItem& item, bool s
   const float cw = m.cw, art = m.art, h = m.h;
   if (focused && y-5 < 646) gfx::rect(g, x - 5, y - 5, artW + 10, std::min(artH+10,646-y+5), ui::TEXT, 12);
   artwork(g, d.thumbs, d.worker, item.image, d.frame, x, y, artW, artH, p.music || item.type == "channel" || item.type == "artist", item.type == "channel" || item.type == "artist", p.direct, shorts, 646);
-  if (y+7+(ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+8) : 20) <= 646) memberBadge(g, item.members, d.lang, x + 7, y + 7);
+  if (item.type == "video" && !shorts && !p.music && p.kind != "library") cardDuration(g, d.lang, item.duration, x, y, artW, artH);
   const auto* saved=nav.local && (!nav.signedIn || p.kind=="local_later" || p.kind=="local_history")?local::Library::find(nav.local->history,item.id):nullptr;
   double pos=saved?saved->position:0,duration=saved?saved->duration:item.duration;
   if(item.type=="video" && pos>0 && duration>0 && y+artH <= 646){gfx::rect(g,x+4,y+artH-6,artW-8,4,ui::SURFACE2,2);gfx::rect(g,x+4,y+artH-6,(artW-8)*float(std::clamp(pos/duration,0.0,1.0)),4,ui::A1,2);}
@@ -269,6 +351,8 @@ static void navCard(NavDraw& d, const NavMetrics& m, const NavItem& item, bool s
     ty += ui::large ? 34 : 27;
   }
   if (ty+4+g.fonts[bylineFont].lineH <= 646) gfx::textBox(g, bylineFont, item.byline, x, ty + 4, textW, ui::MUTED);
+  ty += 4 + g.fonts[bylineFont].lineH + 2;
+  if (item.members != yt::Membership::None && ty + g.fonts[ui::F_TINY].lineH <= 646) memberLine(g, item.members, d.lang, x, ty, textW);
 }
 
 // Fileiras da grade de uma página de navegação (a partir do y = top), com a fileira de Shorts quando existe.
@@ -277,8 +361,15 @@ static void navGrid(NavDraw& d, float top, const NavMetrics& m) {
   float rowY = top-p.scroll;
   for (const auto& row : p.rows) {
     float y=rowY, artW=row.shorts ? m.shortW : m.art, artH=row.shorts ? m.shortH : m.h;
-    rowY += row.shorts ? m.shortRowH : m.rowH;
+    rowY += navRowHeight(m,row);
+    // Pré-carrega as miniaturas das duas fileiras logo abaixo da tela, para já estarem prontas ao rolar (#28).
+    if (y >= 646 && y < 646 + 2 * m.rowH && !row.shorts)
+      for (int i : row.items) if (!p.items[i].image.empty() && p.items[i].image.rfind("local:",0)) d.thumbs.get(d.worker, p.items[i].image, d.frame, p.direct);
     if (y < top-2 || y >= 646) continue;
+    if (!row.heading.empty()) {
+      if (y+g.fonts[ui::F_KEY].lineH <= 646) gfx::text(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-200),136,y,ui::TEXT);
+      y += m.groupH;
+    }
     if (p.kind == "library" && !row.shorts && y+m.h > 656) continue;
     int first=0, visible=(int)row.items.size();
     if (row.shorts) {
