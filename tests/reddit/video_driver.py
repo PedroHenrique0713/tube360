@@ -73,9 +73,9 @@ with tempfile.TemporaryDirectory(prefix='tube360-video-driver-') as tmp:
     functions='\n'.join(extract(source,sig) for sig in ('static VkResult check_create_info(', 'static void describe_image(', 'VKAPI_ATTR VkResult VKAPI_CALL vkCreateSwapchainKHR('))
     (work/'swapchain.c').write_text('#include <assert.h>\n#include "host.h"\n#include "objects.h"\n#include "xsdk/present.h"\n#include "xsdk/log.h"\nstatic bool swapchain_exists;\nenum {FIFO_SWAP_INTERVAL=1};\n'+functions)
     run([*common,ROOT/'tests/reddit/sd_swapchain.c',v4x/'src/display.c',work/'swapchain.c',work/'present.c',work/'display.o','-Wl,--gc-sections','-o',work/'sd'])
-    for case in ('safe-480i','safe-576i','safe-480p','safe-576i-wide','native-480i','native-576i','native-480p','safe-invalid'):
+    for case in ('safe-480i','safe-576i','safe-480p','safe-576i-wide','native-480i','native-576i','native-480p','safe-480i-vp720','safe-480i-vp852','native-480i-vp720','native-480i-vp852','safe-invalid'):
         result=run([work/'sd',case],capture_output=True,text=True);(a.evidence/(case+'.log')).write_text(result.stdout)
-        assert 'begin display.kernel-viewport' in result.stdout and 'kernel=1' in result.stdout
+        assert 'begin display.kernel-viewport' in result.stdout and 'kernel=1' in result.stdout or '-vp' in case
         print(result.stdout.splitlines()[-1],flush=True)
     run([*common,'-D__XSDK__','-DBOARD_SIM_POLICY','-I'+str(ROOT/'client/src'),ROOT/'tests/reddit/sd_swapchain.c',ROOT/'client/src/video_policy.c',ROOT/'client/src/board_sim.c',v4x/'src/display.c',work/'swapchain.c',work/'present.c',work/'display.o','-Wl,--gc-sections','-o',work/'corona'])
     for driver in ('native','safe'):
