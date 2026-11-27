@@ -9,12 +9,14 @@ inline void UiContext::navInput(uint64_t now) {
   auto& p = nav.page(); uint64_t currentPage = p.stamp;
   bool channel = p.kind == "channel";
   bool playlist = Navigation::playlistKind(p);
-  bool tabs = channel || p.kind == "music" || p.kind == "music_search";
+  bool search = p.kind == "search";
+  bool tabs = channel || search || p.kind == "music" || p.kind == "music_search";
   if (p.kind=="search") searchFiltersPress(p);
   int count = (int)p.items.size();
   if (p.musicHome()) { if (count) p.sel = std::clamp(p.sel, 0, count - 1); }
   else { nav.columnsSetting = settings.cols; p.grid(ui::columns(settings.cols),settings.hideShorts); }
   bool hasItems = p.musicHome() ? count != 0 : !p.rows.empty();
+  if (channel) channelSortInput(p);
   bool left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), up = in.hit(Input::UP), down = in.hit(Input::DOWN), a = in.hit(Input::A);
   bool firstColumn = p.musicHome() && !p.shelves.empty() ? p.sel == p.shelves[p.shelf].first : p.gridPosition() == 0;
   if (left && (p.zone == 0 || (p.zone == 1 && p.tabSel == 0) || (p.zone == 2 && p.channelSel == 0) || (p.zone == 3 && firstColumn))) {
@@ -26,17 +28,20 @@ inline void UiContext::navInput(uint64_t now) {
       else if (playlist) playlistHeaderPress(p);
     }
   } else if (p.zone == 1) {
-    int maxTab = channel || p.kind == "music_search" ? 3 : 2, before = p.tabSel;
+    int maxTab = channel ? 4 : search ? 5 : p.kind == "music_search" ? 3 : 2, before = p.tabSel;
     if (left && p.tabSel > 0) p.tabSel--;
     if (right && p.tabSel < maxTab) p.tabSel++;
     if (up && (channel || playlist)) p.zone = 0;
-    if (down || a) p.zone = 3;
-    if (p.tabSel != before) {
+    // Busca: a direcional só anda pelos chips; buscar de novo é A no chip (ou LB/RB), e A na pílula abre o painel de filtros.
+    if (a && search && p.tabSel == 5) searchUI.beginFilters(p.filters);
+    else if (a && search && p.tabSel != p.searchChip()) searchChipSelected(p);
+    else if (down || a) p.zone = !p.channels.empty() ? 2 : 3;
+    if (p.tabSel != before && !search) {
       if (channel) channelTabSelected(p); else musicTabSelected(p);
       p.sel = 0; p.scroll = 0; nav.load(navWorker, settings.lang);
     }
   } else if (p.zone == 2) {
-    subscriptionStripInput(p, left, right, down, a);
+    subscriptionStripInput(p, left, right, up && tabs, down, a);
   } else {
     if (p.musicHome() && !p.shelves.empty()) {
       musicHomeMove(p, left, right, up, down);
@@ -87,7 +92,8 @@ inline void UiContext::playlistHeaderPress(NavPage& p) {
 }
 
 // Faixa de canais das Inscrições: esquerda/direita escolhem, baixo volta para a grade, A abre o canal.
-inline void UiContext::subscriptionStripInput(NavPage& p, bool left, bool right, bool down, bool a) {
+inline void UiContext::subscriptionStripInput(NavPage& p, bool left, bool right, bool up, bool down, bool a) {
+  if (up) { p.zone = 1; return; }
   if (left && p.channelSel > 0) p.channelSel--;
   if (right && p.channelSel + 1 < (int)p.channels.size()) p.channelSel++;
   if (down) p.zone = 3;

@@ -73,12 +73,12 @@ struct ItemGrid {
   std::vector<GridRow> rows;
   std::vector<int> itemRows;
   int gridSize = -1, gridCols = 0, gridColumn = 0, shortColumn = 0;
-  bool gridHide = false; int gridGrouped = 0;
+  bool gridHide = false, gridOnlyShorts = false; int gridGrouped = 0;
   // grouped: 0 sem grupos; 1 grupos que quebram em fileiras (Histórico por dia); 2 uma fileira rolável por prateleira (Início da conta).
-  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide, int grouped = 0) {
+  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide, int grouped = 0, bool onlyShorts = false) {
     std::map<std::string,int> kept;
-    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide || gridGrouped != grouped) {
-      gridSize = (int)items.size(); gridCols = cols; gridHide = hide; gridGrouped = grouped;
+    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide || gridGrouped != grouped || gridOnlyShorts != onlyShorts) {
+      gridSize = (int)items.size(); gridCols = cols; gridHide = hide; gridGrouped = grouped; gridOnlyShorts = onlyShorts;
       for (const auto& r : rows) if (r.carousel) kept[r.heading] = r.column;  // a posição de cada prateleira sobrevive à continuação
       rows.clear(); itemRows.assign(items.size(), -1);
       int shortRow = -1;
@@ -89,6 +89,7 @@ struct ItemGrid {
           if (shortRow < 0) { shortRow = (int)rows.size(); rows.push_back({{},true}); }
           rows[shortRow].items.push_back(i); itemRows[i] = shortRow;
         } else {
+          if (onlyShorts) continue;  // chip "Shorts" da busca: só os Shorts
           bool newGroup = false;
           if constexpr (requires { items[i].section; }) {
             newGroup = grouped && !items[i].section.empty() && items[i].section != lastSection;

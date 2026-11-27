@@ -174,6 +174,8 @@ struct UiContext {
   int homeShelves(const Shelf& cur) const;  // ui_home.hpp: 2 = prateleiras do YouTube da conta (Início), 0 = lista única
 
   // ---- F62 Busca e canal: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  void channelSortInput(NavPage& p); // definido em ui_channel.hpp
+  void searchChipSelected(NavPage& p); // definido em ui_search.hpp
 
   // ---- F63 Player e Shorts: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   std::vector<Video>& related;
@@ -236,7 +238,7 @@ struct UiContext {
   void channelHeaderPress(NavPage& p, uint64_t now);
   void channelTabSelected(NavPage& p);
   void playlistHeaderPress(NavPage& p);
-  void subscriptionStripInput(NavPage& p, bool left, bool right, bool down, bool a);
+  void subscriptionStripInput(NavPage& p, bool left, bool right, bool up, bool down, bool a);
   void musicHomeMove(NavPage& p, bool left, bool right, bool up, bool down);
   void musicTabSelected(NavPage& p);
   void searchFiltersPress(NavPage& p);
