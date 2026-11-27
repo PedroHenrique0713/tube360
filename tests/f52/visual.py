@@ -1,4 +1,8 @@
 """App e controle reais; o transporte de prova recusa pedidos HTTPS não previstos."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import json
 import os
 import re
@@ -78,10 +82,10 @@ run('regular-down', keys='S....D')
 run('shorts', keys='S....D', mixed=True)
 run('shorts-right', keys='S....D'+'R'*11, mixed=True)
 run('shorts-hide', mixed=True, shorts='hide')
-run('settings-shorts', screen='settings', keys='D'*7+'R', lang='pt')
-run('settings-reports', screen='settings', keys='D'*8+'R', lang='pt')
+run('settings-shorts', screen='settings', keys=seq(7,'R'), lang='pt')
+run('settings-reports', screen='settings', keys=seq(8,'R'), lang='pt')
 run('shorts-crt', keys='S....DD', mixed=True, height=480)
-run('settings-ar', screen='settings', keys='D'*8, lang='ar', height=480)
+run('settings-ar', screen='settings', keys=seq(8), lang='ar', height=480)
 run('sleep-panel', keys='S....A....DA')
 run('sleep-apply', keys='S....A....DADRA')
 (work / 'manifest.json').write_text(json.dumps(manifest, indent=2))

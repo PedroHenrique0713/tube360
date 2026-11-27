@@ -1,4 +1,8 @@
 """App/player/decoder/Vulkan reais: escolhas manuais, oferta esparsa, pausa e aviso sem fallback."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import json
 import os
 from pathlib import Path
@@ -67,7 +71,7 @@ for lang in ('pt','en','es','ar'):
     for sd in (False,True):
         if 'ui' not in groups:break
         suffix=lang+('-sd' if sd else '-hd')
-        log,settings=run('settings-'+suffix,lang=lang,sd=sd,screen='settings',keys='DDRRRRRR',ms=6600)
+        log,settings=run('settings-'+suffix,lang=lang,sd=sd,screen='settings',keys=seq(2,'RRRRRR'),ms=6600)
         assert 'video_mode=144p' in settings,(suffix,settings)
         log,settings=run('menu-'+suffix,lang=lang,sd=sd,mode='480p',selected=sparse,keys='....AYDA.Y',ms=8000)
         modes=re.findall(r'captura opcao qualidade: ([^ ]+) \|',log)

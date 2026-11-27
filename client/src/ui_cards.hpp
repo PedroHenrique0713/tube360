@@ -111,7 +111,7 @@ static float ctlHint(gfx::Gfx& g, float x, float y, ctl::Ctx c, ctl::Act a, i18n
   return hint(g, x, y, glyph, color, i18n::get(lang, text != K::None ? text : ctl::label(a)));
 }
 // Uma fileira de dicas, na ordem dada.
-static float ctlFooter(gfx::Gfx& g, float x, float y, ctl::Ctx c, i18n::Lang lang, std::initializer_list<ctl::Act> acts) {
+[[maybe_unused]] static float ctlFooter(gfx::Gfx& g, float x, float y, ctl::Ctx c, i18n::Lang lang, std::initializer_list<ctl::Act> acts) {
   for (ctl::Act a : acts) x = ctlHint(g, x, y, c, a, lang);
   return x;
 }
@@ -370,7 +370,7 @@ static void navCard(NavDraw& d, const NavMetrics& m, const NavItem& item, bool s
   const float cw = m.cw, art = m.art, h = m.h;
   if (focused && y-5 < 646) gfx::rect(g, x - 5, y - 5, artW + 10, std::min(artH+10,646-y+5), ui::TEXT, 12);
   artwork(g, d.thumbs, d.worker, item.image, d.frame, x, y, artW, artH, p.music || item.type == "channel" || item.type == "artist", item.type == "channel" || item.type == "artist", p.direct, shorts, 646);
-  if (item.type == "video" && !shorts && !p.music && p.kind != "library") cardDuration(g, d.lang, item.duration, item.duration < 0, x, y, artW, artH);
+  if (item.type == "video" && !shorts && !p.music && p.kind != "library") cardDuration(g, d.lang, item.duration, item.duration == 0, x, y, artW, artH);
   const auto* saved=nav.local && (!nav.signedIn || p.kind=="local_later" || p.kind=="local_history")?local::Library::find(nav.local->history,item.id):nullptr;
   double pos=saved?saved->position:0,duration=saved?saved->duration:item.duration;
   if(item.type=="video" && pos>0 && duration>0 && y+artH <= 646){gfx::rect(g,x+4,y+artH-6,artW-8,4,ui::SURFACE2,2);gfx::rect(g,x+4,y+artH-6,(artW-8)*float(std::clamp(pos/duration,0.0,1.0)),4,ui::A1,2);}
@@ -407,7 +407,7 @@ static void navGrid(NavDraw& d, float top, const NavMetrics& m) {
       for (int i : row.items) if (!p.items[i].image.empty() && p.items[i].image.rfind("local:",0)) d.thumbs.get(d.worker, p.items[i].image, d.frame, p.direct);
     if (y < top-2 || y >= 646 - std::min(60.f, m.h * .4f)) continue;  // sem tira de miniatura sobre a barra de dicas
     if (!row.heading.empty()) {
-      if (y+g.fonts[ui::F_KEY].lineH <= 646) gfx::text(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-200),136,y,ui::TEXT);
+      if (y+g.fonts[ui::F_KEY].lineH <= 646) gfx::textBox(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-200),136,y,ui::W-200,ui::TEXT);
       y += m.groupH;
     }
     if (p.kind == "library" && !row.shorts && y+m.h > 656) continue;

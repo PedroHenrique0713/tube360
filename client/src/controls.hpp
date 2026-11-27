@@ -14,7 +14,7 @@ enum class Btn { A, B, X, Y, LB, RB, LT, RT, Menu, View, Count };
 // O que o botão faz. Pares (PrevTab/NextTab...) têm uma dica só, "LB RB" ou "LT RT".
 enum class Act {
   None, Open, PlayPause, Back, WatchLater, AddQueue, Search, Quality, Options, SongVideo,
-  PrevTab, NextTab, PrevItem, NextItem, PageUp, PageDown, SeekBack, SeekForward, Count
+  PrevTab, NextTab, PrevItem, NextItem, PageUp, PageDown, SeekBack, SeekForward, Refresh, Count
 };
 
 struct Table { Act a[(int)Btn::Count]; };
@@ -27,8 +27,8 @@ static constexpr Table kMap[(int)Ctx::Count] = {
   /* Player     */ {{Act::PlayPause, Act::Back, Act::WatchLater, Act::Quality, Act::PrevItem, Act::NextItem, Act::SeekBack, Act::SeekForward, Act::Options, Act::None}},
   /* Shorts     */ {{Act::PlayPause, Act::Back, Act::WatchLater, Act::None,    Act::PrevItem, Act::NextItem, Act::None,     Act::None,        Act::Options, Act::None}},
   /* Music      */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevItem, Act::NextItem, Act::PageUp,   Act::PageDown,    Act::Options, Act::SongVideo}},
-  /* Settings   */ {{Act::Open,      Act::Back, Act::None,       Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PageUp,   Act::PageDown,    Act::None,    Act::None}},
-  /* Panel      */ {{Act::Open,      Act::Back, Act::None,       Act::Search,  Act::None,     Act::None,     Act::None,     Act::None,        Act::None,    Act::None}},
+  /* Settings   */ {{Act::Open,      Act::Back, Act::None,       Act::None,    Act::PrevTab,  Act::NextTab,  Act::None,     Act::None,        Act::None,    Act::None}},
+  /* Panel      */ {{Act::Open,      Act::Back, Act::None,       Act::Search,  Act::None,     Act::None,     Act::None,     Act::None,        Act::Refresh, Act::None}},
 };
 
 constexpr Act act(Ctx c, Btn b) { return kMap[(int)c].a[(int)b]; }
@@ -58,6 +58,7 @@ constexpr K label(Act a) {
     case Act::PrevItem: case Act::NextItem: return K::CtlPrevNext;
     case Act::PageUp: case Act::PageDown: return K::CtlPage;
     case Act::SeekBack: case Act::SeekForward: return K::CtlSeek;
+    case Act::Refresh: return K::CtlCheckAgain;
     default: return K::None;
   }
 }

@@ -69,15 +69,17 @@ using K = i18n::Key;
 #include "ui_theme.hpp"
 
 struct ItemGrid {
-  struct GridRow { std::vector<int> items; bool shorts = false; std::string heading; bool carousel = false; };  // heading: título do grupo (Histórico por dia), só na 1ª fileira do grupo
+  struct GridRow { std::vector<int> items; bool shorts = false; std::string heading; bool carousel = false; int column = 0; };  // column: posição própria de cada prateleira rolável  // heading: título do grupo (Histórico por dia), só na 1ª fileira do grupo
   std::vector<GridRow> rows;
   std::vector<int> itemRows;
   int gridSize = -1, gridCols = 0, gridColumn = 0, shortColumn = 0;
   bool gridHide = false; int gridGrouped = 0;
   // grouped: 0 sem grupos; 1 grupos que quebram em fileiras (Histórico por dia); 2 uma fileira rolável por prateleira (Início da conta).
   template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide, int grouped = 0) {
+    std::map<std::string,int> kept;
     if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide || gridGrouped != grouped) {
       gridSize = (int)items.size(); gridCols = cols; gridHide = hide; gridGrouped = grouped;
+      for (const auto& r : rows) if (r.carousel) kept[r.heading] = r.column;  // a posição de cada prateleira sobrevive à continuação
       rows.clear(); itemRows.assign(items.size(), -1);
       int shortRow = -1;
       std::string lastSection;
@@ -102,6 +104,7 @@ struct ItemGrid {
         }
       }
     }
+    for (auto& r : rows) if (r.carousel) { auto k = kept.find(r.heading); if (k != kept.end()) r.column = k->second; }
     if (rows.empty()) { sel = 0; return; }
     if (sel < 0 || sel >= gridSize || itemRows[sel] < 0) {
       int next = std::clamp(sel, 0, std::max(0, gridSize-1));
@@ -123,12 +126,14 @@ struct ItemGrid {
       col = std::clamp(col+horizontal,0,(int)rows[row].items.size()-1);
       sel = rows[row].items[col];
       if (rows[row].shorts) shortColumn = col; else gridColumn = col;
+      if (rows[row].carousel) rows[row].column = col;
     }
     if (vertical) {
       if (!rows[row].shorts) gridColumn = col;
+      if (rows[row].carousel) rows[row].column = col;
       int next = row+vertical;
       if (next < 0 || next >= (int)rows.size()) return false;
-      int column = rows[next].shorts ? shortColumn : gridColumn;
+      int column = rows[next].shorts ? shortColumn : rows[next].carousel ? rows[next].column : gridColumn;
       sel = rows[next].items[std::clamp(column,0,(int)rows[next].items.size()-1)];
     }
     return true;
@@ -155,7 +160,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
     auto f = net::split(lines[i], '\t');
     if (f.size() < 5 || f[0].empty()) continue;
     Video v; v.id = f[0]; v.dur = std::atoi(f[1].c_str()); v.channel = f[2]; v.views = f[3]; v.title = f[4];
-    if (v.dur < 0) { v.dur = 0; v.live = true; }  // o fio marca transmissão ao vivo com duração -1; 0 é duração desconhecida
+    v.live = v.dur == 0; if (v.dur <= 0) v.dur = v.live ? 0 : -1;  // fio: 0 = ao vivo, -1 = desconhecida, > 0 = segundos
     if (f.size() > 5) { double pos = std::atof(f[5].c_str()); if (std::isfinite(pos)) v.pos = std::max(0.0, pos); }
     if (f.size() > 6) v.members = yt::membershipWire(f[6]);
     if (f.size() > 7) v.shortForm = f[7] == "short";
@@ -259,8 +264,7 @@ struct Worker {
           for (auto& card : page.cards) {
             Video v; v.id = std::move(card.id); v.title = std::move(card.title); v.members = card.members; v.shortForm = card.shortForm;
             v.channel = std::move(card.channel); v.views = std::move(card.views); v.date = std::move(card.date); v.dur = card.duration;
-            if (v.dur == 0) { v.live = true; }  // Card: -1 desconhecida, 0 ao vivo (marca explícita no collect)
-            if (v.dur < 0) v.dur = -1;
+            v.live = v.dur == 0;  // Card: 0 = ao vivo (liveMark no collect), -1 = desconhecida
             r.feed.items.push_back(std::move(v));
           }
           r.feed.title = j.kind == 6 ? j.query : j.a;
@@ -1649,6 +1653,8 @@ int run(int argc, char** argv) {
     } else if (screen == PLAYER) {
       screens.playerInput(now,optionCount);
     }
+    // ---- F64 Configurações e controle
+    screens.pageMenuFallback();
     screens.playerUpdate(now);
     // ---- F63 Player e Shorts: vigia do player (marca a sessão para o relatório de erro)
     {

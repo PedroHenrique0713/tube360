@@ -188,6 +188,9 @@ struct UiContext {
   std::vector<std::string>& shortLines;
 
   // ---- F64 Configurações e controle: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  void refreshPage(uint64_t now);   // ui_shell.hpp: o "Atualizar" do Menu (Início e páginas de navegação)
+  void openPageMenu();              // Menu sem vídeo em foco: só as opções da página
+  void pageMenuFallback();          // chamado por último no ciclo de entrada: abre o menu da página se ninguém usou o Menu
 
   // ---- F65 Música: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 

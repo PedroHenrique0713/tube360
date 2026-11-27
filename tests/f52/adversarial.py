@@ -1,4 +1,8 @@
 """Ataques de controle no app real, com HTTPS fechado e estado isolado por caso."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import argparse
 import json
 import os
@@ -170,7 +174,7 @@ for screen in ('search', 'home'):
     run(screen+'-player-back', mixed, prefix+'DRRA........B.B', 6, screen, player=18)
 
 run('search-left-end', shorts, 'S.....'+'R'*20+'L'*13, 0, rail=True)
-toggle = '......DRRLLL'+'D'*6+'A'+'D'*7+'RBR'
+toggle = '......DRRLLL'+'D'*6+'A'+seq(7,'RBR')
 run('home-toggle-focused-short', mixed, toggle+'R', 18, screen='home',
     persisted=['shorts=hide'])
 run('home-toggle-row-again', mixed, toggle+'L'+'D'*6+'ARBRUR', 5, screen='home',
@@ -201,15 +205,15 @@ run('continuation-extend-row', [card(0, True)]+[card(i) for i in range(1, 41)]+[
 for mode in ('on', 'auto'):
     for legacy in ('notebook', 'together', 'xbox_notebook'):
         name = f'migration-{mode}-{legacy}'
-        run(name, mixed, 'D'*7+'R'+'DR', screen='settings',
+        run(name, mixed, seq(7,'R',8,'R'), screen='settings',
             settings=f'server={mode}\nsleep_what={legacy}\n',
             persisted=['server=off', 'sleep_what=xbox', 'shorts=hide', 'error_reports=off'])
-        run(name, mixed, 'D'*7+'RDR', screen='settings', restart=True,
+        run(name, mixed, seq(7,'R',8,'R'), screen='settings', restart=True,
             persisted=['server=off', 'sleep_what=xbox', 'shorts=row', 'error_reports=on'])
-run('invalid-settings', mixed, 'D'*8+'R', screen='settings',
+run('invalid-settings', mixed, seq(8,'R'), screen='settings',
     settings='server=INVALID\nsleep_what=INVALID\ncols=INVALID\nshorts=INVALID\nerror_reports=INVALID\n',
     persisted=['server=off', 'sleep_what=xbox', 'shorts=row', 'error_reports=off'])
-run('reports-on', mixed, 'D'*8+'R', screen='settings', settings='error_reports=off\n',
+run('reports-on', mixed, seq(8,'R'), screen='settings', settings='error_reports=off\n',
     persisted=['error_reports=on'])
 run('reports-on', mixed, screen='settings', restart=True, persisted=['error_reports=on'])
 

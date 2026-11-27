@@ -227,8 +227,7 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailOverlayTimeStatusRenderer")) out.duration = seconds(text(get(*badge,"text")));
   if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
   if (out.type == "video" && !out.duration) if (const auto* badge = find(v,"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
-  // Transmissão ao vivo: só com a marca explícita (duração 0 é desconhecida). -1 no Item e no fio = ao vivo.
-  if (out.type == "video" && !out.duration && (findValue(v,"style","LIVE") || findValue(v,"style","BADGE_STYLE_TYPE_LIVE_NOW"))) out.duration = -1;
+  if (out.type == "video" && !music && !out.shortForm && !out.duration && !yt::liveMark(v)) out.duration = -1; // 0 = ao vivo; sem selo de tempo = desconhecida
   if (!out.duration) for (const auto& c : array(get(v,"fixedColumns"))) out.duration = seconds(text(get(get(c,"musicResponsiveListItemFixedColumnRenderer"),"text")));
   if (!out.duration && cols.size() > 1) {
     for (const auto& c : cols) {

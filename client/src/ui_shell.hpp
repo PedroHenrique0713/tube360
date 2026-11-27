@@ -199,21 +199,52 @@ inline void UiContext::localInput(uint64_t now) {
 }
 
 inline void UiContext::videoMenuInput(uint64_t now) {
+  const auto entries = nav.menuEntries();
   if (in.hit(Input::UP) && nav.menuSel > 0) nav.menuSel--;
-  if (in.hit(Input::DOWN) && nav.menuSel < (account.signedIn()?3:2)) nav.menuSel++;
+  if (in.hit(Input::DOWN) && nav.menuSel + 1 < (int)entries.size()) nav.menuSel++;
+  nav.menuSel = std::min(nav.menuSel, (int)entries.size() - 1);
   if (in.hit(Input::B)) nav.menu = false;
   if (in.hit(Input::A) && !nav.busy) {
     const auto item = nav.menuItem;
-    if (nav.menuSel == 0) {
-      nav.menu = false;
-      if (!item.channelId.empty()) openNav("channel", item.channelId);
-      else openChannelForVideo(item.id);
-    } else if (nav.menuSel == 3 || (nav.menuSel==1 && !account.signedIn())) {
-      localUI.library.toggle(LocalLibraryUI::entry(item.video()));nav.menu=false;toast=tr(K::LocalSaving);toastUntil=now+2500;
-    } else if (nav.menuSel == 1) {
-      nav.action(navWorker, "/api/nav/action?action=later&id=" + item.id + "&lang=" + i18n::code(settings.lang));
-    } else { nav.menu = false; openNav("radio", item.id, "", true); }
+    switch (entries[(size_t)nav.menuSel].kind) {
+      case Navigation::MenuKind::Channel:
+        nav.menu = false;
+        if (!item.channelId.empty()) openNav("channel", item.channelId);
+        else openChannelForVideo(item.id);
+        break;
+      case Navigation::MenuKind::Local:
+        localUI.library.toggle(LocalLibraryUI::entry(item.video())); nav.menu = false; toast = tr(K::LocalSaving); toastUntil = now + 2500;
+        break;
+      case Navigation::MenuKind::Later:
+        nav.action(navWorker, "/api/nav/action?action=later&id=" + item.id + "&lang=" + i18n::code(settings.lang));
+        break;
+      case Navigation::MenuKind::Radio: nav.menu = false; openNav("radio", item.id, "", true); break;
+      case Navigation::MenuKind::Refresh: nav.menu = false; refreshPage(now); break;
+    }
   }
+}
+
+// "Atualizar" não é mais um botão: vive no Menu (#40). Reproduz o que o X fazia no Início e nas páginas de navegação.
+inline void UiContext::refreshPage(uint64_t now) {
+  if (screen == HOME) {
+    Shelf& cur = inResults ? results : cats[(size_t)cat];
+    cur.feed = Feed{}; requestFeed(cur, inResults ? 1 : cat == 0 ? 0 : 3, true, 0, true);
+    cur.sel = 0; scroll = 0; zone = 0; toast = tr(K::Refreshing); toastUntil = now + 2500;
+  } else if (screen == NAV && !nav.pages.empty()) {
+    nav.page().sel = 0; nav.page().scroll = 0; nav.load(navWorker, settings.lang, true);
+  }
+}
+
+inline void UiContext::openPageMenu() { nav.menuItem = NavItem{}; nav.menuSel = 0; nav.menu = true; }
+
+// Páginas vazias ou com erro não têm vídeo em foco: o Menu abre só as opções da página. Roda depois das telas, que
+// consomem o Menu quando há vídeo em foco.
+inline void UiContext::pageMenuFallback() {
+  const int menuKey = ctl::inputIndex<Input>(ctl::button(ctl::Ctx::Collection, ctl::Act::Options));
+  if (!in.fired[menuKey]) return;
+  const bool page = (screen == HOME || (screen == NAV && !nav.pages.empty())) && !railFocus && !nav.menu && !nav.unsubscribe &&
+      !phonePanel && !loginPanel && !logoutPanel && !sleepPanel && !shutdownAt && !searchUI.filterOpen && !localUI.resume && localUI.clear < 0;
+  if (page) { in.fired[menuKey] = false; openPageMenu(); }
 }
 
 inline void UiContext::unsubscribeInput() {
@@ -251,29 +282,33 @@ inline void Navigation::drawFooter(NavDraw& d) {
   bool home = p.musicHome(), channel = p.kind == "channel", playlist = playlistKind(p);
   gfx::rect(g, 96, 646, ui::W-96, 74, ui::BG);
   if (p.loading) { spinner(g, ui::W-64, 146, 12, d.now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), ui::W-324, 130, ui::MUTED); }
-  float hx = hint(g, 136, 676, "A", XA, tr(p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open));
-  hx = hint(g, hx, 676, "B", XB, tr(K::Back));
-  bool videoMenu=p.zone == 3 && (home ? !p.items.empty() : !p.rows.empty()) && p.sel < (int)p.items.size() && p.items[(size_t)p.sel].type == "video";
-  // Reserva a dica de salvar no rodapé curto; X/Y continuam disponíveis.
-  if (!videoMenu || (!ui::narrow && !ui::large)) {
-    hx = hint(g, hx, 676, "X", XX, tr(K::Refresh));
-    hx = hint(g, hx, 676, "Y", XY, tr(K::Search));
-  }
-  if (videoMenu) hint(g, hx, 676, "Menu", XG, tr(K::MoreOptions));
+  const ctl::Ctx ctx = p.music || home ? ctl::Ctx::Music : channel ? ctl::Ctx::Channel : p.kind == "search" ? ctl::Ctx::Search : ctl::Ctx::Collection;
+  float hx = ctlHint(d.g, 136, 676, ctx, ctl::Act::Open, d.lang, p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open);
+  hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Back, d.lang);
+  // O X ainda não tem a dica: a F61 troca o X de atualizar por "Assistir mais tarde" e põe a dica de volta. O Menu abre as
+  // opções do vídeo em foco ou, sem vídeo (página vazia ou com erro), as da página, e "Atualizar" mora nele.
+  hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Options, d.lang, K::MoreOptions);
+  ctlHint(d.g, hx, 676, ctx, ctl::Act::Search, d.lang);
 }
 
 inline void Navigation::drawMenu(gfx::Gfx& g, i18n::Lang lang) {
   auto tr = [&](K k) { return i18n::get(lang, k); };
+  const auto entries = menuEntries();
+  const bool page = pageMenu();
+  const float rowTop = page ? 236.f : 320.f, rowEnd = rowTop + (entries.size() - 1) * 60 + 50, boxH = rowEnd + 64 - 150, left = (ui::W-740)/2;
   gfx::rect(g, 0, 0, ui::W, 720, {0,0,0,0.8f});
-  float left=(ui::W-740)/2;
-  gfx::rect(g, left, 150, 740, 480, ui::SURFACE, 28);
+  gfx::rect(g, left, 150, 740, boxH, ui::SURFACE, 28);
   gfx::text(g, ui::F_BIG, tr(K::CardMenu), left+38, 180, ui::TEXT);
-  gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, menuItem.title, 662), left+38, 235, ui::TEXT);
-  gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, menuItem.channel + " · " + fmtTime(menuItem.duration), 662), left+38, 272, ui::MUTED);
-  const K keys[] = {K::GoChannel, !signedIn ? (local && local->contains(menuItem.id) ? K::RemoveLocalLater : K::LocalLater) : K::WatchLater, K::Radio, local && local->contains(menuItem.id) ? K::RemoveLocalLater : K::LocalLater};
-  for (int i = 0; i < (signedIn ? 4 : 3); i++) {
-    gfx::rect(g, left+34, 320 + i * 60, 672, 50, i == menuSel ? ui::TEXT : ui::SURFACE2, 16);
-    gfx::text(g, ui::F_KEY, tr(keys[i]), left+58, 334 + i * 60, i == menuSel ? ui::INK : ui::TEXT);
+  if (!page) {
+    gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, menuItem.title, 662), left+38, 235, ui::TEXT);
+    gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, menuItem.channel + " · " + fmtTime(menuItem.duration), 662), left+38, 272, ui::MUTED);
   }
-  float hx = hint(g, left+38, 584, "A", XA, tr(K::Open)); hint(g, hx, 584, "B", XB, tr(K::Back));
+  for (size_t i = 0; i < entries.size(); i++) {
+    const float y = rowTop + i * 60;
+    gfx::rect(g, left+34, y, 672, 50, (int)i == menuSel ? ui::TEXT : ui::SURFACE2, 16);
+    gfx::text(g, ui::F_KEY, tr(entries[i].label), left+58, y + 14, (int)i == menuSel ? ui::INK : ui::TEXT);
+  }
+  const float hy = rowEnd + 24;
+  float hx = ctlHint(g, left+38, hy, ctl::Ctx::Panel, ctl::Act::Open, lang);
+  ctlHint(g, hx, hy, ctl::Ctx::Panel, ctl::Act::Back, lang);
 }

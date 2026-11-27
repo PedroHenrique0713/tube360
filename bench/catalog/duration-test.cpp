@@ -14,11 +14,12 @@ int main() {
     auto it = item(v, "gridVideoRenderer", false, "");
     if (it.type != "video" || it.duration != expect[i]) { std::cerr << "FAIL case " << i << " duration=" << it.duration << '\n'; return 1; }
   }
-  // Ao vivo só com a marca explícita; sem duração e sem marca fica 0 (desconhecida, nunca "AO VIVO").
+  // Convenção: 0 = ao vivo (só com a marca, yt::liveMark, inclusive o badgeStyle do cliente TV), -1 = desconhecida, > 0 = segundos.
   struct Live { const char* json; int expect; } lives[] = {
-    {R"({"videoId":"abcdefghijk","title":{"runs":[{"text":"T"}]},"thumbnailOverlays":[{"thumbnailOverlayTimeStatusRenderer":{"style":"LIVE","text":{"simpleText":"LIVE"}}}]})", -1},
-    {R"({"videoId":"abcdefghijk","title":{"runs":[{"text":"T"}]},"badges":[{"metadataBadgeRenderer":{"style":"BADGE_STYLE_TYPE_LIVE_NOW"}}]})", -1},
-    {R"({"videoId":"abcdefghijk","title":{"runs":[{"text":"T"}]}})", 0},
+    {R"({"videoId":"abcdefghijk","title":{"runs":[{"text":"T"}]},"thumbnailOverlays":[{"thumbnailOverlayTimeStatusRenderer":{"style":"LIVE","text":{"simpleText":"LIVE"}}}]})", 0},
+    {R"({"videoId":"abcdefghijk","title":{"runs":[{"text":"T"}]},"badges":[{"metadataBadgeRenderer":{"style":"BADGE_STYLE_TYPE_LIVE_NOW"}}]})", 0},
+    {R"({"videoId":"abcdefghijk","title":{"runs":[{"text":"T"}]},"thumbnailViewModel":{"overlays":[{"thumbnailBadgeViewModel":{"badgeStyle":"THUMBNAIL_OVERLAY_BADGE_STYLE_LIVE","text":"LIVE"}}]}})", 0},
+    {R"({"videoId":"abcdefghijk","title":{"runs":[{"text":"T"}]}})", -1},
   };
   for (const auto& c : lives) {
     J v; if (!parse(c.json, v)) { std::cerr << "FAIL parse live\n"; return 1; }
@@ -30,5 +31,5 @@ int main() {
   if (!parse(history, page)) { std::cerr << "FAIL parse history\n"; return 1; }
   auto decoded = decode(page, false);
   if (decoded.items.size() != 2 || decoded.items[0].section != "Hoje" || decoded.items[1].section != "Ontem") { std::cerr << "FAIL history day headings\n"; return 1; }
-  std::cout << "3 duration layouts, 3 live-marker cases and 2 history day headings parsed\n";
+  std::cout << "3 duration layouts, 4 live-mark cases and 2 history day headings parsed\n";
 }

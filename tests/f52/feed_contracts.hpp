@@ -122,8 +122,13 @@ static void feedContract(const std::string& dir) {
     feed.layout.build(feed.items,selected,4,false,0);
     require(feed.layout.rows.size()==4 && feed.layout.rows[0].heading.empty(),"Home shelves: without grouping the list stays a plain grid");
     feed.layout.build(feed.items,selected,4,false,2);
+    // cada prateleira guarda a própria posição: descer cai na posição da outra prateleira, e voltar devolve a posição anterior
     selected=0; feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,0,1);
-    require(selected==7,"Home shelves: D-pad keeps the column when moving to the next shelf");
+    require(selected==5,"Home shelves: moving down lands on the next shelf's own position (still the first card)");
+    feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,0,-1);
+    require(selected==2 && feed.layout.rows[0].column==2 && feed.layout.rows[1].column==1,"Home shelves: moving back up restores the first shelf's position; the second keeps its own");
+    feed.layout.moveGrid(selected,0,1);
+    require(selected==6,"Home shelves: the second shelf resumes where it was left");
     {  // um Short no meio ou no começo do dia não pode esconder o título do dia (#29)
       std::vector<Video> day; auto add=[&](const char* id,const char* section,bool shortForm) { Video v; v.id=id; v.section=section; v.shortForm=shortForm; day.push_back(v); };
       add("f61dayvid01","Hoje",false); add("f61dayshr01","Hoje",true); add("f61dayvid02","Hoje",false);
@@ -139,9 +144,9 @@ static void feedContract(const std::string& dir) {
       auto reply=account.request("/api/nav?kind=subscriptions",1000,10);
       NavPage page; page.kind="subscriptions";
       require(reply.ok() && Navigation::parse(reply.body,page) && page.items.size()==3,"live fixture lists three videos");
-      require(page.items[0].duration<0 && page.items[1].duration==0 && page.items[2].duration==245,"nav: LIVE marker -> -1, no length -> 0 (unknown), 4:05 -> 245");
+      require(page.items[0].duration==0 && page.items[1].duration==-1 && page.items[2].duration==245,"nav: LIVE marker -> 0 (live), no length -> -1 (unknown), 4:05 -> 245");
       auto feed=parseNativeFeed(account.request("/api/feed?kind=subs",1001,11));
-      require(feed.items.size()==3 && feed.items[0].live && !feed.items[1].live && feed.items[1].dur==0 && !feed.items[2].live && feed.items[2].dur==245,"feed wire: live flag only with the marker");
+      require(feed.items.size()==3 && feed.items[0].live && !feed.items[1].live && feed.items[1].dur==-1 && !feed.items[2].live && feed.items[2].dur==245,"feed wire: live flag only with the marker");
     }
     {  // Histórico WEB: o título do dia vem em itemSectionRenderer.header.itemSectionHeaderRenderer
       FeedMock days; days.account=true; days.expectedBrowse="FEhistory";

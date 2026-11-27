@@ -71,13 +71,13 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
     rowY+=rowHeight(row);
     if (y<140 || y>=646-std::min(60.f,th*.4f)) continue;  // sem tira de miniatura sobre a barra de dicas
     if (!row.heading.empty()) {  // título da prateleira do YouTube (conta)
-      if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::text(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-ui::X0-64),ui::X0,y,ui::TEXT);
+      if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::textBox(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-ui::X0-64),ui::X0,y,ui::W-ui::X0-64,ui::TEXT);
       y+=groupH;
     }
     int first=0, visible=(int)row.items.size();
     if (row.carousel) {  // fileira rolável: mostra `cols` cartões e acompanha o selecionado
       visible=cols;
-      int selected=grid.gridRow(cur.sel)>=0 && &grid.rows[grid.gridRow(cur.sel)]==&row ? grid.gridPosition(cur.sel) : grid.gridColumn;
+      int selected=grid.gridRow(cur.sel)>=0 && &grid.rows[grid.gridRow(cur.sel)]==&row ? grid.gridPosition(cur.sel) : row.column;  // cada prateleira guarda a própria posição
       first=std::clamp(selected-visible+1,0,std::max(0,(int)row.items.size()-visible));
     }
     if (row.shorts) {

@@ -1,6 +1,7 @@
 #include "locale.hpp"
 #include "console_account.hpp"
 #include "membership_json.hpp"
+#include "live.hpp"
 #include "update/rules.hpp"
 #include "picojson.h"
 #include <algorithm>
@@ -248,12 +249,10 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     bool hidden=flag(v,"isUpcoming") || v.contains("upcomingEventData");
     const auto& playable=get(v,"isPlayable");
     hidden=hidden || (playable.is<bool>() && !playable.get<bool>() && item.members==Membership::None);
-    bool live=false;
     for (auto& overlay:arr(overlays)) {
         const auto& timing=get(overlay,"thumbnailOverlayTimeStatusRenderer");
         auto style=str(timing,"style");
         hidden=hidden || style.find("UPCOMING")!=string::npos;
-        live=live || style=="LIVE";
         item.shortForm=item.shortForm || style.find("SHORTS")!=string::npos;
         if (!item.duration) item.duration=seconds(text(get(timing,"text")));
         double progress=num(get(get(overlay,"thumbnailOverlayResumePlaybackRenderer"),"percentDurationWatched"));
@@ -263,12 +262,11 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     for (auto* badge:badges) {
         auto style=str(*badge,"style");
         hidden=hidden || style.find("UPCOMING")!=string::npos;
-        live=live || style.find("LIVE_NOW")!=string::npos;
         item.shortForm=item.shortForm || style.find("SHORTS")!=string::npos;
     }
     if (hidden || !id(item.id)) return;
-    // -1 = ao vivo (só com a marca explícita); duração 0 continua sendo "desconhecida"
-    if (live && !item.duration) item.duration=-1;
+    // 0 = ao vivo (só com a marca explícita, yt::liveMark); sem selo de tempo e sem marca = -1 (desconhecida)
+    if (id(item.id,11) && !item.shortForm && !item.duration && !liveMark(v)) item.duration=-1;
     if (playlist) item.type="playlist";
     else if (channel(item.id) || type.find("CHANNEL")!=string::npos) item.type="channel";
     else if (type=="LOCKUP_CONTENT_TYPE_PLAYLIST" || item.id.compare(0,2,"VL")==0 || item.id.compare(0,2,"PL")==0 || item.id.compare(0,2,"RD")==0) item.type="playlist";

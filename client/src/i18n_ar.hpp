@@ -30,9 +30,9 @@ inline const char* arabic(Key key) {
     case Key::UpdateAvailable: return "تحديث · ";
     case Key::Updates: return "تحديثات التطبيق";
     case Key::UpdateInstalled: return "المثبت · ";
-    case Key::UpdateCurrent: return "لا يوجد تحديث موقّع أحدث. اضغط X للفحص.";
+    case Key::UpdateCurrent: return "لا يوجد تحديث موقّع أحدث. اضغط Menu للفحص.";
     case Key::UpdateChecking: return "جارٍ فحص التحديثات الموقّعة…";
-    case Key::UpdateCheckFailed: return "تعذّر فحص التحديثات. اضغط X للمحاولة.";
+    case Key::UpdateCheckFailed: return "تعذّر فحص التحديثات. اضغط Menu للمحاولة.";
     case Key::UpdateDownload: return "تحديث";
     case Key::UpdateDownloading: return "جارٍ التنزيل والتحقق…";
     case Key::UpdateNextStart: return "سيُثبّت التحديث عند فتح Tube360 مجددًا.";
@@ -94,7 +94,7 @@ inline const char* arabic(Key key) {
     case Key::ServerUnavailable: return "تعذّر الاتصال بالخادم";
     case Key::NoResponse: return "لا استجابة من الخادم";
     case Key::BadResponse: return "تعذّر تحميل القائمة";
-    case Key::RetryServer: return "شغّل الخادم واضغط X للمحاولة.";
+    case Key::RetryServer: return "شغّل الخادم واضغط Menu للمحاولة.";
     case Key::Empty: return "لا توجد نتائج.";
     case Key::PageError: return "تعذّر تحميل المزيد. اضغط X للتحديث.";
     case Key::Live: return "مباشر";
@@ -419,7 +419,10 @@ inline const char* arabic(Key key) {
     case Key::SecTimer: return "المؤقت";
     case Key::SecPrivacy: return "الخصوصية";
     case Key::SecSystem: return "النظام";
-    case Key::SettingVolume: return "مستوى الصوت";
+    case Key::CtlCheckAgain: return "افحص مجددًا";
+    case Key::UpdateToastHead: return "تحديث ";
+    case Key::UpdateToastTail: return " متاح · الإعدادات > النظام";
+    case Key::SettingVolume: return "مستوى صوت التلفاز";
 
     // ---- F65 Música
 

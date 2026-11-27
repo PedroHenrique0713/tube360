@@ -1,4 +1,8 @@
 """Exercita saída e fontes pelo controle no app real, com respostas locais e HOME isolado."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import os
 from pathlib import Path
 import re
@@ -24,7 +28,7 @@ env.update(HOME=str(folder), XDG_CACHE_HOME=str(folder / 'cache'),
            SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy',
            XT_CAST_DISABLE='1', XT_ASSETS=str(assets), XT_YT_REPLAY=str(folder),
            XT_SCREEN='settings', XT_SHOT=str(shot), XT_SHOT_MS='5000',
-           XT_KEYS='D' * 9 + 'RRR' + 'DD' + 'RR', XT_KEYS_MS='100')
+           XT_KEYS=seq(9, 'RRR', 11, 'RR'), XT_KEYS_MS='100')
 run = subprocess.run([str(ROOT / 'client/build/tube360')], cwd=folder, env=env,
                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=30)
 (folder / 'stdout.log').write_bytes(run.stdout)
