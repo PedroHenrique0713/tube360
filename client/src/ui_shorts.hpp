@@ -121,7 +121,6 @@ inline void UiContext::shortsDraw(uint64_t now, double t) {
   }
   // Dicas ao lado do vídeo, depois da coluna de ações (como na proposta A4); no árabe, espelhadas para o lado esquerdo.
   const float hy = ui::H / 2 - 110, hw0 = 290, hx = rtl ? std::max(16.f, vx - 150 - hw0) : vx + vw + 150, hw = std::min(hw0, ui::W - hx - 24);
-  gfx::rect(g, hx - 12, hy - 10, hw + 12, 246, {0, 0, 0, 0.55f}, 14);
   hint(g, hx, hy, tr(K::BtnVertical), XG, focus ? tr(K::ChooseRow) : tr(K::ShortsStep));
   ctlHint(g, hx, hy + 40, ctl::Ctx::Shorts, ctl::Act::PlayPause, settings.lang, focus ? K::Open : pl.paused ? K::Resume : K::Pause);
   ctlHint(g, hx, hy + 80, ctl::Ctx::Shorts, ctl::Act::WatchLater, settings.lang);

@@ -780,7 +780,7 @@ int run(int argc, char** argv) {
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false; uint64_t nextDeadline = 0; bool nextPending = false;
-  std::vector<Video> related, shortsQueue, playedBefore, shelfScratch; bool historyBack = false; NavPage shelfChannel; PlayerShelf shelf; std::string shortTitle; i18n::Lang shortLang = i18n::Lang::EN; std::vector<std::string> shortLines;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
+  std::vector<Video> related, shortsQueue, playedBefore; bool historyBack = false; NavPage shelfChannel; PlayerShelf shelf; std::string shortTitle; i18n::Lang shortLang = i18n::Lang::EN; std::vector<std::string> shortLines;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
   bool livePaused = false;
   int& quality = settings.quality;
   quality=720;
@@ -1269,7 +1269,6 @@ int run(int argc, char** argv) {
     .playedBefore=playedBefore,
     .historyBack=historyBack,
     .shelfChannel=shelfChannel,
-    .shelfScratch=shelfScratch,
     .shortTitle=shortTitle,
     .shortLang=shortLang,
     .shortLines=shortLines,
@@ -1431,6 +1430,7 @@ int run(int argc, char** argv) {
             v.shortForm = row.size() > 6 && row[6] == "short";
             related.push_back(std::move(v));
           }
+          LOG("player: a seguir=%s relacionados=%zu", upNext.id.empty() ? "-" : upNext.id.c_str(), related.size());
         }
       } else if (r.key.rfind("/api/account", 0) == 0) {
         accountBusy = false;
