@@ -1607,6 +1607,9 @@ int run(int argc, char** argv) {
     int optionCount = behindLive ? PlayerUI::COUNT : PlayerUI::EDGE;
     if (playerUI.selected >= optionCount) playerUI.selected = PlayerUI::CHANNEL;
     // entrada: o painel aberto mais por cima captura o controle; sem painel, vale a tela (métodos de ui_*.hpp)
+    // ---- F64 Configurações e controle
+    screens.sleepWarning = sleepWarning;
+    screens.pageMenuIntercept();
     if (shutdownAt) {
       if (now >= shutdownAt) {
         if (powerDownXbox()) quit = true;
@@ -1654,8 +1657,6 @@ int run(int argc, char** argv) {
     } else if (screen == PLAYER) {
       screens.playerInput(now,optionCount);
     }
-    // ---- F64 Configurações e controle
-    screens.pageMenuFallback();
     screens.playerUpdate(now);
     // ---- F63 Player e Shorts: vigia do player (marca a sessão para o relatório de erro)
     {

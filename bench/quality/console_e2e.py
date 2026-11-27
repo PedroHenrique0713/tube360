@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 """F15 composta com conta, catálogo e Nest TLS locais, nas duas saídas físicas."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import array
 import http.server
 import json
@@ -172,7 +176,7 @@ try:
         run(f'music-{height}', height, XT_NAV='music', XT_MUSIC='1')
         run(f'channel-{height}', height, XT_NAV='channel', XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw')
         run(f'player-row-{height}', height, seconds=4.5, XT_PLAY='4p_9OPKgcDE', XT_KEYS='......U')
-        run(f'settings-{height}', height, seconds=6.5, XT_SCREEN='settings', XT_KEYS='DDDDDDDDDD')
+        run(f'settings-{height}', height, seconds=6.5, XT_SCREEN='settings', XT_KEYS=seq(10))
     run('nest-audio-roundtrip', 1080, seconds=9, speaker=True, XT_PLAY='4p_9OPKgcDE', XT_KEYS='..ULADA..AUA')
     run('nest-paused-audio', 1080, seconds=13, speaker=True, XT_PLAY='4p_9OPKgcDE', XT_KEYS='........AULADA')
     run('nest-music-interface', 720, seconds=5, preference='interface', speaker=True,

@@ -190,7 +190,9 @@ struct UiContext {
   // ---- F64 Configurações e controle: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   void refreshPage(uint64_t now);   // ui_shell.hpp: o "Atualizar" do Menu (Início e páginas de navegação)
   void openPageMenu();              // Menu sem vídeo em foco: só as opções da página
-  void pageMenuFallback();          // chamado por último no ciclo de entrada: abre o menu da página se ninguém usou o Menu
+  void pageMenuIntercept();         // chamado ANTES da cadeia de entrada: o Menu sem vídeo em foco abre o menu da página
+  bool videoInFocus() const;        // o mesmo critério com que Início e coleções abrem o menu do vídeo
+  bool sleepWarning = false;        // main.cpp copia aqui o aviso do timer de dormir (o Menu não abre por cima dele)
 
   // ---- F65 Música: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 

@@ -9,12 +9,12 @@ namespace ctl {
 using K = i18n::Key;
 
 // Onde o usuário está. Painel = qualquer janela por cima (conta, timer, caixa de som, confirmações, menu de vídeo).
-enum class Ctx { Home, Collection, Channel, Search, Player, Shorts, Music, Settings, Panel, Count };
+enum class Ctx { Home, Collection, Channel, Search, Player, Shorts, Music, Settings, Panel, Update, PlayerShelf, Count };
 enum class Btn { A, B, X, Y, LB, RB, LT, RT, Menu, View, Count };
 // O que o botão faz. Pares (PrevTab/NextTab...) têm uma dica só, "LB RB" ou "LT RT".
 enum class Act {
   None, Open, PlayPause, Back, WatchLater, AddQueue, Search, Quality, Options, SongVideo,
-  PrevTab, NextTab, PrevItem, NextItem, PageUp, PageDown, SeekBack, SeekForward, Refresh, Count
+  PrevTab, NextTab, PrevItem, NextItem, PageUp, PageDown, SeekBack, SeekForward, VolumeDown, VolumeUp, Refresh, Count
 };
 
 struct Table { Act a[(int)Btn::Count]; };
@@ -25,10 +25,12 @@ static constexpr Table kMap[(int)Ctx::Count] = {
   /* Channel    */ {{Act::Open,      Act::Back, Act::WatchLater, Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PageUp,   Act::PageDown,    Act::Options, Act::None}},
   /* Search     */ {{Act::Open,      Act::Back, Act::WatchLater, Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PageUp,   Act::PageDown,    Act::Options, Act::None}},
   /* Player     */ {{Act::PlayPause, Act::Back, Act::WatchLater, Act::Quality, Act::PrevItem, Act::NextItem, Act::SeekBack, Act::SeekForward, Act::Options, Act::None}},
-  /* Shorts     */ {{Act::PlayPause, Act::Back, Act::WatchLater, Act::None,    Act::PrevItem, Act::NextItem, Act::None,     Act::None,        Act::Options, Act::None}},
+  /* Shorts     */ {{Act::PlayPause, Act::Back, Act::WatchLater, Act::None,    Act::PrevItem, Act::NextItem, Act::VolumeDown, Act::VolumeUp,   Act::Options, Act::None}},
   /* Music      */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevItem, Act::NextItem, Act::PageUp,   Act::PageDown,    Act::Options, Act::SongVideo}},
   /* Settings   */ {{Act::Open,      Act::Back, Act::None,       Act::None,    Act::PrevTab,  Act::NextTab,  Act::None,     Act::None,        Act::None,    Act::None}},
-  /* Panel      */ {{Act::Open,      Act::Back, Act::None,       Act::Search,  Act::None,     Act::None,     Act::None,     Act::None,        Act::Refresh, Act::None}},
+  /* Panel      */ {{Act::Open,      Act::Back, Act::None,       Act::Search,  Act::None,     Act::None,     Act::None,     Act::None,        Act::None,    Act::None}},
+  /* Update     */ {{Act::Open,      Act::Back, Act::None,       Act::None,    Act::None,     Act::None,     Act::None,     Act::None,        Act::Refresh, Act::None}},
+  /* PlayerShelf*/ {{Act::Open,      Act::Back, Act::WatchLater, Act::None,    Act::PrevTab,  Act::NextTab,  Act::None,     Act::None,        Act::Options, Act::None}},
 };
 
 constexpr Act act(Ctx c, Btn b) { return kMap[(int)c].a[(int)b]; }
@@ -40,7 +42,7 @@ constexpr Btn button(Ctx c, Act a) {
 constexpr bool has(Ctx c, Act a) { return button(c, a) != Btn::Count; }
 
 // Segunda metade de um par: não tem dica própria (a da primeira mostra "LB RB" ou "LT RT").
-constexpr bool pairSecond(Act a) { return a == Act::NextTab || a == Act::NextItem || a == Act::PageDown || a == Act::SeekForward; }
+constexpr bool pairSecond(Act a) { return a == Act::NextTab || a == Act::NextItem || a == Act::PageDown || a == Act::SeekForward || a == Act::VolumeUp; }
 
 // Rótulo da dica (texto do app; K::None se a ação não tem dica).
 constexpr K label(Act a) {
@@ -58,6 +60,7 @@ constexpr K label(Act a) {
     case Act::PrevItem: case Act::NextItem: return K::CtlPrevNext;
     case Act::PageUp: case Act::PageDown: return K::CtlPage;
     case Act::SeekBack: case Act::SeekForward: return K::CtlSeek;
+    case Act::VolumeDown: case Act::VolumeUp: return K::CtlVolume;
     case Act::Refresh: return K::CtlCheckAgain;
     default: return K::None;
   }

@@ -96,7 +96,7 @@ inline const char* arabic(Key key) {
     case Key::BadResponse: return "تعذّر تحميل القائمة";
     case Key::RetryServer: return "شغّل الخادم واضغط Menu للمحاولة.";
     case Key::Empty: return "لا توجد نتائج.";
-    case Key::PageError: return "تعذّر تحميل المزيد. اضغط X للتحديث.";
+    case Key::PageError: return "تعذّر تحميل المزيد. اضغط Menu للتحديث.";
     case Key::Live: return "مباشر";
     case Key::PhonePrefix: return "الهاتف: ";
     case Key::AccountPrefix: return "الحساب: ";
@@ -419,6 +419,8 @@ inline const char* arabic(Key key) {
     case Key::SecTimer: return "المؤقت";
     case Key::SecPrivacy: return "الخصوصية";
     case Key::SecSystem: return "النظام";
+    case Key::CtlVolume: return "مستوى الصوت";
+    case Key::PageMenu: return "خيارات الصفحة";
     case Key::CtlCheckAgain: return "افحص مجددًا";
     case Key::UpdateToastHead: return "تحديث ";
     case Key::UpdateToastTail: return " متاح · الإعدادات > النظام";
