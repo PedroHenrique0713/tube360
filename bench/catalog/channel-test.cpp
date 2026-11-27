@@ -62,6 +62,8 @@ int main() {
     check(!home.banner.empty(),"banner kept");
     check(home.items.size()==1 && home.items[0].id=="AAAAAAAAAAA" && home.items[0].section=="Populares","Home tab keeps the creator's section");
     check(!home.sortable,"Home tab has no sort chips");
+    check(!home.subscribedKnown && !home.subscribed,"signed in but the page has no subscription flag (public/refused): state is unknown, never shown as false");
+    check(wire(home).substr(0,wire(home).find('\n')).size()>2 && wire(home).substr(0,wire(home).find('\n')).back()=='0',"wire header says the subscription state is unknown");
     auto w = wire(home); auto head = w.substr(0,w.find('\n'));
     check(head.find("\t1\tBio do canal")!=string::npos,"wire header carries verified and description");
 
@@ -83,6 +85,11 @@ int main() {
     check(row.find("\thá 3 anos\t1\t9 mi de visualizações\ttrecho da descrição\t")!=string::npos,"wire item carries date, verified, views, description");
     check(pw.substr(0,pw.find('\n')).find("\t1\t")!=string::npos,"wire header carries the sortable flag");
   }
+  {  // sem conta: nunca inscrito, então o estado vale
+    Http h; Client client(h);
+    auto home = client.browse({{"kind","channel"},{"id","UCaaaaaaaaaaaaaaaaaaaaaa"},{"tab","home"},{"lang","pt"}});
+    check(home.error.empty() && home.subscribedKnown && !home.subscribed,"guest: not subscribed is a known state");
+  }
   {  // busca: lockupViewModel (formato real), duração desconhecida x ao vivo, resultado de canal
     Http h; Client client(h);
     auto s = client.browse({{"kind","search"},{"q","SEARCHQ"},{"lang","en"}});
@@ -93,6 +100,12 @@ int main() {
     check(s.items[2].duration==0,"video with the live mark keeps 0 (LIVE)");
     check(s.items[3].type=="channel" && s.items[3].subscribed==1 && s.items[3].date=="@canal","channel result keeps handle and subscription state");
     auto w = wire(s); check(w.find("\t1\t6.4 thousand views\t")!=string::npos,"search wire carries the lockup metadata");
+  }
+  {  // curso (lockup COURSE): o 1º texto é o canal, nunca a data
+    J course;
+    check(parse(R"({"contentId":"PLcourse0001","contentType":"LOCKUP_CONTENT_TYPE_COURSE","metadata":{"lockupMetadataViewModel":{"title":{"content":"Aulas"},"metadata":{"contentMetadataViewModel":{"metadataRows":[{"metadataParts":[{"text":{"content":"Canal USP"}}]},{"metadataParts":[{"text":{"content":"Curso"}}]}]}}}}})",course),"course lockup parses");
+    auto it = item(course,"lockupViewModel",false,"");
+    check(it.channel=="Canal USP" && it.date.empty(),"course lockup keeps the channel out of the date field");
   }
   {  // lockupViewModel do cliente TV: badgeStyle ..._LIVE = ao vivo (0); sem selo de tempo nem de live = desconhecida (-1)
     J live, plain;

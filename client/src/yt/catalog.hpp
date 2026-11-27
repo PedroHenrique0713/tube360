@@ -153,7 +153,7 @@ inline string channel(const J& v) {
   return {};
 }
 // Metadados do lockupViewModel (busca real): linha 1 = canal (+ verificado), depois visualizações (ícone de play) e data.
-inline void lockupMeta(const J& lock, Item& out) {
+inline void lockupMeta(const J& lock, Item& out, bool course = false) {
   const auto& rows = array(get(get(get(lock,"metadata"),"contentMetadataViewModel"),"metadataRows"));
   for (const auto& row : rows) for (const auto& part : array(get(row,"metadataParts"))) {
     if (const auto* stack = find(part,"avatarStackViewModel")) {
@@ -164,6 +164,7 @@ inline void lockupMeta(const J& lock, Item& out) {
     }
     auto t = text(get(part,"text")); if (t.empty()) continue;
     auto label = str(part,"accessibilityLabel");
+    if (course && out.channel.empty() && !get(part,"leadingIcon").is<Object>()) { out.channel = t; continue; }  // curso: o 1º texto é o canal, nunca a data
     if (get(part,"leadingIcon").is<Object>()) { if (out.views.empty()) out.views = label.empty() ? t : label; }
     else if (out.date.empty()) out.date = label.empty() ? t : label;
   }
@@ -240,7 +241,7 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   if (out.type == "video" && !music && !out.shortForm && !out.duration && !yt::liveMark(v)) out.duration = -1; // 0 = ao vivo; sem selo de tempo = desconhecida
   if (out.type == "video" || out.type == "playlist") {
     out.date = text(get(v,"publishedTimeText")); out.views = text(get(v,"viewCountText"));
-    lockupMeta(lock,out);
+    lockupMeta(lock,out,str(v,"contentType").find("COURSE") != string::npos);
   } else if (out.type == "channel") {
     out.date = text(get(v,"subscriberCountText")); out.views = text(get(v,"videoCountText"));
   }

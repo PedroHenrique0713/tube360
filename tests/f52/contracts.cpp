@@ -110,7 +110,7 @@ static void drawContract() {
     return ys;
   };
   nav.draw(g,thumbs,worker,1,1,i18n::Lang::EN,true);
-  auto rows=artRows(); require(rows==std::vector<float>({140,381.75}),"actual renderer draws second thumbnail row even when its text crosses footer (search grid now starts under the chips, y=140)");
+  auto rows=artRows(); require(rows==std::vector<float>({140,415.75}),"actual renderer draws second thumbnail row even when its text crosses footer (search grid now starts under the chips, y=140)");
   std::cout<<"PASS draw: thumbnail rows at y="<<rows[0]<<", "<<rows[1]<<"; old whole-card cull suppressed row 2\n";
   {  // a busca desenha nas mesmas colunas em que a entrada anda (BAIXO do 1º cartão vai ao 5º, logo abaixo dele)
     std::vector<std::pair<float,float>> at;
@@ -119,14 +119,19 @@ static void drawContract() {
     require(nav.page().gridCols==ui::columns(4),"search draws with the columns the input moves in");
     // o cartão em foco (item 0) cresce e fica fora desta lista: at[0..2] = itens 1..3, at[3] = item 4
     require(at.size()>=4 && at[0].second==at[2].second && at[3].second>at[0].second && at[3].first==136 && at[0].first>136,"cards sit in a 4-column grid: item 4 is back in the first column, one row below");
+    // faixa vertical (min,max) dos vértices verdes da linha de membros; (1e9,-1e9) = nenhum
     auto green=[&]() {
-      for (const auto& v:g.verts) if (std::abs(v.r-0x3d/255.f)<.01 && std::abs(v.g-0xdc/255.f)<.01 && std::abs(v.b-0x84/255.f)<.01) return true;
-      return false;
+      std::pair<float,float> r{1e9f,-1e9f};
+      for (const auto& v:g.verts) if (std::abs(v.r-0x3d/255.f)<.01 && std::abs(v.g-0xdc/255.f)<.01 && std::abs(v.b-0x84/255.f)<.01) { r.first=std::min(r.first,v.y); r.second=std::max(r.second,v.y); }
+      return r;
     };
-    require(!green(),"no members line without members");
+    require(green().second<0,"no members line without members");
     nav.page().items[0].members=yt::Membership::Only; g.verts.clear(); g.cmds.clear();
     nav.draw(g,thumbs,worker,9,9,i18n::Lang::EN,true);
-    require(green(),"search result for members-only video carries the green members line");
+    {
+      auto r=green(); float nextRow=rows[1];
+      require(r.second>0 && r.first>140+141.75f && r.second<nextRow,"members line sits inside its own card text block: below the thumbnail, above the next row's thumbnail (visible, not covered)");
+    }
     nav.page().items[0].members=yt::Membership::None;
     std::cout<<"PASS draw: search grid columns match the input, members line on search cards\n";
   }

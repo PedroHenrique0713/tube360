@@ -49,7 +49,8 @@ inline float Navigation::drawChannelPage(NavDraw& d) {
     gfx::text(g, ui::F_KEY, d.tr(p.subscribed ? K::Subscribed : K::Subscribe), ui::W-190, 48, f ? ui::INK : ui::TEXT, 1);
   }
   const K tabs[] = {K::ChannelHome,K::Videos,K::ChannelShorts,K::ChannelLive,K::Playlists};
-  const float tabY = 148;
+  // As abas ficam abaixo da descrição, que cresce com o texto grande.
+  const float tabY = std::max(148.f, 78 + g.fonts[ui::F_CHAN].lineH + 4 + g.fonts[ui::F_SMALL].lineH + 10);
   navTabs(d, tabs, 5, 136, tabY);
   float top = tabY + 58;
   if (p.sortable && (p.tab == "videos" || p.tab == "live")) {

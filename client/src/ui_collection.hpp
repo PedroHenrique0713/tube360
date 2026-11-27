@@ -32,10 +32,12 @@ inline void UiContext::navInput(uint64_t now) {
     if (left && p.tabSel > 0) p.tabSel--;
     if (right && p.tabSel < maxTab) p.tabSel++;
     if (up && (channel || playlist)) p.zone = 0;
-    if (a && search && p.tabSel == 5) searchUI.beginFilters(p.filters);  // a pílula "Filtros" abre o painel
+    // Busca: a direcional só anda pelos chips; buscar de novo é A no chip (ou LB/RB), e A na pílula abre o painel de filtros.
+    if (a && search && p.tabSel == 5) searchUI.beginFilters(p.filters);
+    else if (a && search && p.tabSel != p.filters.type) searchChipSelected(p);
     else if (down || a) p.zone = !p.channels.empty() ? 2 : 3;
-    if (p.tabSel != before && !(search && p.tabSel == 5)) {
-      if (channel) channelTabSelected(p); else if (search) searchChipSelected(p); else musicTabSelected(p);
+    if (p.tabSel != before && !search) {
+      if (channel) channelTabSelected(p); else musicTabSelected(p);
       p.sel = 0; p.scroll = 0; nav.load(navWorker, settings.lang);
     }
   } else if (p.zone == 2) {

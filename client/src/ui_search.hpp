@@ -4,8 +4,8 @@
 #include "ui_context.hpp"
 
 inline void UiContext::searchInput(const char* const* keys) {
-  if (settings.lang==i18n::Lang::AR && in.hit(Input::RB)) latinKeyboard=!latinKeyboard;
-  if (!searchMusic && in.hit(Input::LB)) searchUI.beginFilters(searchUI.filters);
+  if (settings.lang==i18n::Lang::AR && ctl::hit(in, ctl::Ctx::Search, ctl::Act::NextTab)) latinKeyboard=!latinKeyboard;
+  if (!searchMusic && ctl::hit(in, ctl::Ctx::Search, ctl::Act::PrevTab)) searchUI.beginFilters(searchUI.filters);
   if (!searchUI.listFocus && searchUI.keyCol==0 && in.fired[Input::LEFT]) { in.hit(Input::LEFT); railFocus=true; railSel=1; }
   auto chosen=searchUI.keyboardInput(in,query,keys);
   if (!chosen.empty()) doSearch(chosen);
@@ -88,11 +88,11 @@ static void searchCard(NavDraw& d, const NavMetrics& m, const NavItem& it, bool 
 }
 
 // Cabeçalho da busca: título, chips de tipo e a pílula "Filtros" (o resumo dos filtros ativos vai ao lado).
-static void drawSearchHeader(NavDraw& d) {
+static void drawSearchHeader(NavDraw& d, const std::string& title) {
   auto& g = d.g; auto& p = d.p;
   float tx = 136;
   if (!p.image.empty()) { artwork(g, d.thumbs, d.worker, p.image, d.frame, tx, 28, 72, 72, true, false); tx += 96; }
-  gfx::textBox(g, ui::F_BIG, p.displayTitle.empty() ? d.tr(titleKey(p)) : p.displayTitle, tx, 24, ui::W-tx-64, ui::TEXT);
+  gfx::textBox(g, ui::F_BIG, title, tx, 24, ui::W-tx-64, ui::TEXT);
   const float chipsY = 84;
   const std::vector<std::string> types = {d.tr(K::All), d.tr(K::Videos), d.tr(K::SearchTypeChannels), d.tr(K::Playlists), d.tr(K::ChannelLive)};
   bool onRow = d.contentFocus && p.zone == 1;
@@ -137,6 +137,6 @@ inline float Navigation::drawSearchPage(NavDraw& d) {
     }
   }
   gfx::rect(g, 96, 0, ui::W - 96, top, ui::BG);
-  drawSearchHeader(d);
+  drawSearchHeader(d, p.displayTitle.empty() ? d.tr(titleKey(p)) : p.displayTitle);
   return top;
 }
