@@ -412,6 +412,25 @@ inline const char* arabic(Key key) {
     case Key::SettingVolume: return "مستوى الصوت";
 
     // ---- F65 Música
+    case Key::MusicMembersOnly: return "للأعضاء فقط";
+    case Key::MusicSeekBar: return "تقديم أو ترجيع";
+    case Key::MusicExplore: return "استكشاف";
+    case Key::MusicTopResult: return "أفضل نتيجة";
+    case Key::MusicFeatured: return "قوائم تشغيل مميزة";
+    case Key::MusicSongTab: return "الأغنية";
+    case Key::MusicVideoTab: return "الفيديو";
+    case Key::MusicMoveTrack: return "نقل المقطع";
+    case Key::MusicMovingTrack: return "النقل: أعلى وأسفل لوضعه، A لإفلاته";
+    case Key::MusicPrevious: return "المقطع السابق";
+    case Key::MusicShuffleOn: return "التشغيل العشوائي مفعل";
+    case Key::MusicShuffleOff: return "التشغيل العشوائي متوقف";
+    case Key::MusicRepeatOff: return "التكرار متوقف";
+    case Key::MusicRepeatAll: return "تكرار القائمة";
+    case Key::MusicRepeatOne: return "تكرار هذا المقطع";
+    case Key::MusicQueueEmpty: return "القائمة فارغة.";
+    case Key::MusicQueueServer: return "الخادم يتحكم بالقائمة؛ القفز وإعادة الترتيب غير متاحان.";
+    case Key::MusicVideoLoading: return "جارٍ تحميل الفيديو…";
+    case Key::MusicPlayCount: return "مقاطع";
 
     // ---- F66 controle pelo celular
 

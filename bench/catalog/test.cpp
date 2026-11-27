@@ -70,17 +70,49 @@ int main(int argc, char** argv) {
   h.add(music,browse,read(dir,"music-home.json"),{{"browseId",J(string("FEmusic_home"))}});
   auto mixes = request("music"); mixes["q"] = "mixes";
   p = c.browse(mixes); check(!p.items.empty() && std::all_of(p.items.begin(),p.items.end(),[](const Item& i) { return i.type == "playlist"; }),"mixes contain playlists");
+  {  // F65: chips de clima viram itens "chip" no topo e o pessoal (Ouvir de novo) passa na frente do genérico
+    string home = read(dir,"music-home.json");
+    auto rename = [&](const string& from, const string& to) { auto at = home.find(from); check(at != string::npos,"fixture shelf title"); home.replace(at,from.size(),to); };
+    rename("Mixes de músicas","Generico A"); rename("Hits de hoje","Ouvir de novo");
+    h.add(music,browse,home,{{"browseId",J(string("FEmusic_home"))}});
+    auto fresh = request("music"); fresh["fresh"] = "1";
+    auto shaped = c.browse(fresh);
+    size_t chips = 0; while (chips < shaped.items.size() && shaped.items[chips].type == "chip") ++chips;
+    check(chips >= 6 && shaped.items.front().section == "chips" && !shaped.items.front().id.empty(),"mood chips come first with their params");
+    check(chips < shaped.items.size() && shaped.items[chips].section == "Ouvir de novo","personal shelf before generic shelf");
+    check(std::any_of(shaped.items.begin()+chips,shaped.items.end(),[](const Item& i) { return i.section == "Generico A"; }),"generic shelf is kept");
+    const string id = shaped.items.front().id; auto one = id.find('|'), two = id.find('|',one+1);
+    check(one != string::npos && two != string::npos && id.substr(0,one) == "FEmusic_home" && id.substr(two+1) == shaped.items.front().title,"chip id carries browseId, params and label");
+    Object chipArgs{{"browseId",J(string("FEmusic_home"))},{"params",J(id.substr(one+1,two-one-1))}};
+    h.add(music,browse,read(dir,"music-home.json"),chipArgs);
+    auto mood = request("chip"); mood["id"] = id;
+    auto moodPage = c.browse(mood);
+    check(!moodPage.items.empty() && moodPage.title == shaped.items.front().title,"a mood chip opens the Music home filtered by its params, titled by its label");
+    auto bad = request("chip"); bad["id"] = "not-a-chip"; check(c.browse(bad).error == "invalid_navigation","a malformed chip id is refused before any request");
+    bad["id"] = "evil|x|y"; check(c.browse(bad).error == "invalid_navigation","a chip must target a browse id starting with FE");
+    h.add(music,browse,read(dir,"music-explore.json"),{{"browseId",J(string("FEmusic_explore"))}});
+    auto explore = request("music"); explore["q"] = "explore";
+    auto ex = c.browse(explore);
+    size_t buttons = 0; while (buttons < ex.items.size() && ex.items[buttons].type == "chip" && ex.items[buttons].section == "chips") ++buttons;
+    check(buttons >= 3,"Explore starts with its navigation buttons (releases, charts, moods and genres)");
+    check(std::any_of(ex.items.begin(),ex.items.end(),[](const Item& i) { return i.type == "chip" && i.section != "chips"; }),"Explore lists the mood and genre buttons in their own shelf");
+    check(std::any_of(ex.items.begin(),ex.items.end(),[](const Item& i) { return i.type == "album" || i.type == "video" || i.type == "playlist"; }),"Explore keeps its release shelves");
+  }
   h.add(music,browse,read(dir,"music-explore.json"),{{"browseId",J(string("FEmusic_explore"))}});
   h.add(music,browse,read(dir,"music-charts.json"),{{"browseId",J(string("FEmusic_charts"))},{"params",J(string("sgYPRkVtdXNpY19leHBsb3Jl"))}});
   auto charts = request("music"); charts["q"] = "charts";
   check(!c.browse(charts).items.empty(),"charts follows the charts endpoint after releases");
-  for (int filter = 0; filter < 4; ++filter) {
+  for (int filter = 0; filter < 6; ++filter) {
     Object args{{"query",J(string("jazz instrumental"))}};
-    const char* params[] = {"","EgWKAQIIAQ%3D%3D","EgWKAQIYAQ%3D%3D","EgWKAQIgAQ%3D%3D"};
+    const char* params[] = {"","EgWKAQIIAQ%3D%3D","EgWKAQIYAQ%3D%3D","EgWKAQIgAQ%3D%3D","EgWKAQIQAQ%3D%3D","EgeKAQQoADgBagwQDhAKEAMQBBAJEAU%3D"};
     if (filter) args["params"] = J(string(params[filter]));
     h.add(music,search,read(dir,"music-search.json"),args);
     auto q = request("music_search"); q["q"] = "jazz instrumental"; q["filter"] = std::to_string(filter);
-    check(!c.browse(q).items.empty(),"search filter contract");
+    auto found = c.browse(q);
+    check(!found.items.empty(),"search filter contract");
+    // F65: o cartão do topo vira o "melhor resultado" só na aba Tudo; as abas com filtro mantêm a ordem do YouTube
+    check((filter == 0) == (found.items.front().section == "top"),"top result only on the unfiltered tab");
+    if (filter == 0) check(found.items.front().type == "playlist" && found.items.front().id == "VLRDATnXgy" && found.items.front().title.find("jazz") != string::npos,"top result is the card at the head of the results");
   }
   h.add(music,browse,read(dir,"music-album.json"),{{"browseId",J(string("MPREb_GuNCgmKDLZT"))}});
   check(c.browse(request("album","MPREb_GuNCgmKDLZT")).title.find("Jazz") != string::npos,"album metadata");

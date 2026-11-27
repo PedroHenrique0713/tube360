@@ -432,6 +432,25 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SettingVolume, "Volume", "Volume", "Volumen") \
   /* */ \
   /* ---- F65 Música */ \
+  X(MusicMembersOnly, "Members only", "Só para membros", "Solo para miembros") \
+  X(MusicSeekBar, "Seek", "Avançar ou voltar", "Adelantar o retroceder") \
+  X(MusicExplore, "Explore", "Explorar", "Explorar") \
+  X(MusicTopResult, "Top result", "Melhor resultado", "Mejor resultado") \
+  X(MusicFeatured, "Featured playlists", "Playlists em destaque", "Listas destacadas") \
+  X(MusicSongTab, "Song", "Música", "Canción") \
+  X(MusicVideoTab, "Video", "Vídeo", "Video") \
+  X(MusicMoveTrack, "Move track", "Mover faixa", "Mover pista") \
+  X(MusicMovingTrack, "Moving: up and down place it, A drops it", "Movendo: cima e baixo posicionam, A solta", "Moviendo: arriba y abajo la colocan, A la suelta") \
+  X(MusicPrevious, "Previous track", "Faixa anterior", "Pista anterior") \
+  X(MusicShuffleOn, "Shuffle on", "Aleatório ligado", "Aleatorio activado") \
+  X(MusicShuffleOff, "Shuffle off", "Aleatório desligado", "Aleatorio desactivado") \
+  X(MusicRepeatOff, "Repeat off", "Repetir desligado", "Repetir desactivado") \
+  X(MusicRepeatAll, "Repeat the queue", "Repetir a fila", "Repetir la cola") \
+  X(MusicRepeatOne, "Repeat this track", "Repetir esta faixa", "Repetir esta pista") \
+  X(MusicQueueEmpty, "The queue is empty.", "A fila está vazia.", "La cola está vacía.") \
+  X(MusicQueueServer, "The queue is controlled by the server; jump and reorder are not available.", "A fila é controlada pelo servidor; pular e reordenar não estão disponíveis.", "El servidor controla la cola; saltar y reordenar no están disponibles.") \
+  X(MusicVideoLoading, "Loading the video…", "Carregando o vídeo…", "Cargando el vídeo…") \
+  X(MusicPlayCount, "tracks", "faixas", "pistas") \
   /* */ \
   /* ---- F66 controle pelo celular */ \
   /* */ \

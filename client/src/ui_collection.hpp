@@ -26,7 +26,7 @@ inline void UiContext::navInput(uint64_t now) {
       else if (playlist) playlistHeaderPress(p);
     }
   } else if (p.zone == 1) {
-    int maxTab = channel || p.kind == "music_search" ? 3 : 2, before = p.tabSel;
+    int maxTab = p.kind == "music_search" ? 5 : channel || p.kind == "music" ? 3 : 2, before = p.tabSel;
     if (left && p.tabSel > 0) p.tabSel--;
     if (right && p.tabSel < maxTab) p.tabSel++;
     if (up && (channel || playlist)) p.zone = 0;

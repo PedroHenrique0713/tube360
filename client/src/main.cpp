@@ -873,7 +873,7 @@ int run(int argc, char** argv) {
     phonePanel = loginPanel = logoutPanel = false;
     pl.nestOffset = nestOffsetMs / 1000.0;
     if (screen != PLAYER) nav.musicNow = nav.musicSession;
-    pl.audioOnly = nav.musicSession && nav.musicNow;
+    pl.audioOnly = nav.musicSession && nav.musicNow && !nav.videoMode;
     if (pl.audioOnly) { pl.speed=1; pl.loop=false; }
     if (pl.requestLanguage != i18n::code(settings.lang)) { pl.halt(); pl.requestLanguage=i18n::code(settings.lang); }
     pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track,v.members != yt::Membership::None);
@@ -1375,7 +1375,7 @@ int run(int argc, char** argv) {
               startVideo(nav.queue[nav.queueIndex].video(),0,false);
             }
           }
-          nav.nowSel = 0; nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
+          nav.resetNow(); nav.lyrics.clear(); nav.lyricsId.clear(); nav.lyricLines.clear(); nav.lyricScroll = 0;
         } else if (r.key.rfind("/api/nav/lyrics?", 0) == 0) {
           if (screen == PLAYER && r.key == "/api/nav/lyrics?id=" + playing.id) {
             auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
@@ -1388,6 +1388,7 @@ int run(int argc, char** argv) {
         if (r.key == "/api/nav/transport?action=stop") { nav.cancelQueue = false; nav.ownsQueue = false; }
         if (!ok) {
           if (r.key.rfind("/api/nav/play?", 0) == 0) nav.musicSession = nav.musicNow = false;
+          if (r.key.rfind("/api/nav/lyrics?", 0) == 0) continue;  // sem letra: a aba mostra "Letra indisponível", sem aviso
           auto fields = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
           toast = fields.size() > 1 ? fields[1] : tr(K::ActionFailed); toastUntil = now + 4500;
         }
@@ -1596,8 +1597,9 @@ int run(int argc, char** argv) {
     // Fim natural continua sendo informado mesmo com um cartão aberto.
     if (screen == PLAYER && nav.localQueue && pl.state == player::ENDED) {
       SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
-      if (nav.queueIndex+1 < nav.queue.size() && !(sleep.active && sleep.end)) {
-        ++nav.queueIndex; startVideo(nav.queue[nav.queueIndex].video(),0,false);
+      size_t following = 0;
+      if (nav.advance(following) && !(sleep.active && sleep.end)) {
+        nav.queueIndex = following; nav.queueSel = (int)following; startVideo(nav.queue[following].video(),0,false);
       } else { endTimerPending = sleep.active && sleep.end; stopVideo(); }
     }
     if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;

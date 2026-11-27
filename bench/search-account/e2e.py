@@ -53,7 +53,7 @@ def run(name,lang='pt',signed=True,keys='',ms=2400,settings='',**extra):
         else:assert re.search(r'navegação search: [1-9]\d* itens',log),log[-3000:]
         if 'filtered' in name:assert any('params=1' in line for line in requests),audit
     if name.startswith('music'):
-        assert 'music=tv' in log and 'navegação music: 15 itens' in log,log[-3000:]
+        assert 'music=tv' in log and 'navegação music: 18 itens' in log,log[-3000:]
     if name.startswith('warning'):
         assert 'manual 480p itag 135 sob pressao sustentada' in log and 'aviso=1' in log,log[-4000:]
         assert 'qualidade: fonte ' not in log and log.count('console: MP4')==1,log[-4000:]
