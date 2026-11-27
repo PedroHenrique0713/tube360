@@ -147,7 +147,7 @@ if args.review:
     run('emoji-titles-ar',lang='ar',saved=demo,XT_NAV='local_later')
     demo['later']=demo['later'][1:]
     run('emoji-titles-ar-43-large',lang='ar',height=480,large=True,saved=demo,XT_NAV='local_later')
-    run('shorts-clean',XT_NAV='channel',XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw',keys='URD',seconds=4)
+    run('shorts-clean',XT_NAV='channel',XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw',keys='URRD',seconds=4)
     print('Review UI checks:',len(results))
     raise SystemExit
 
