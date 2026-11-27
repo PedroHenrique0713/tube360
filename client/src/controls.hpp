@@ -9,7 +9,7 @@ namespace ctl {
 using K = i18n::Key;
 
 // Onde o usuário está. Painel = qualquer janela por cima (conta, timer, caixa de som, confirmações, menu de vídeo).
-enum class Ctx { Home, Collection, Channel, Search, Player, Shorts, Music, Settings, Panel, Update, PlayerShelf, Count };
+enum class Ctx { Home, Collection, Channel, Search, Player, Shorts, Music, Settings, Panel, Update, PlayerShelf, MusicPage, Count };
 enum class Btn { A, B, X, Y, LB, RB, LT, RT, Menu, View, Count };
 // O que o botão faz. Pares (PrevTab/NextTab...) têm uma dica só, "LB RB" ou "LT RT".
 enum class Act {
@@ -31,6 +31,7 @@ static constexpr Table kMap[(int)Ctx::Count] = {
   /* Panel      */ {{Act::Open,      Act::Back, Act::None,       Act::Search,  Act::None,     Act::None,     Act::None,     Act::None,        Act::None,    Act::None}},
   /* Update     */ {{Act::Open,      Act::Back, Act::None,       Act::None,    Act::None,     Act::None,     Act::None,     Act::None,        Act::Refresh, Act::None}},
   /* PlayerShelf*/ {{Act::Open,      Act::Back, Act::WatchLater, Act::None,    Act::PrevTab,  Act::NextTab,  Act::None,     Act::None,        Act::Options, Act::None}},
+  /* MusicPage  */ {{Act::Open,      Act::Back, Act::AddQueue,   Act::Search,  Act::PrevTab,  Act::NextTab,  Act::PageUp,   Act::PageDown,    Act::Options, Act::None}},
 };
 
 constexpr Act act(Ctx c, Btn b) { return kMap[(int)c].a[(int)b]; }
