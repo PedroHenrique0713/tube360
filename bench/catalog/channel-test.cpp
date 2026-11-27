@@ -94,5 +94,12 @@ int main() {
     check(s.items[3].type=="channel" && s.items[3].subscribed==1 && s.items[3].date=="@canal","channel result keeps handle and subscription state");
     auto w = wire(s); check(w.find("\t1\t6.4 thousand views\t")!=string::npos,"search wire carries the lockup metadata");
   }
+  {  // lockupViewModel do cliente TV: badgeStyle ..._LIVE = ao vivo (0); sem selo de tempo nem de live = desconhecida (-1)
+    J live, plain;
+    check(parse(R"({"contentId":"GGGGGGGGGGG","contentType":"LOCKUP_CONTENT_TYPE_VIDEO","contentImage":{"thumbnailViewModel":{"overlays":[{"thumbnailBottomOverlayViewModel":{"badges":[{"thumbnailBadgeViewModel":{"text":"AO VIVO","badgeStyle":"THUMBNAIL_OVERLAY_BADGE_STYLE_LIVE"}}]}}]}}})",live),"live lockup parses");
+    check(parse(R"({"contentId":"HHHHHHHHHHH","contentType":"LOCKUP_CONTENT_TYPE_VIDEO"})",plain),"plain lockup parses");
+    check(yt::liveMark(live) && !yt::liveMark(plain),"shared liveMark sees the TV lockup live badge");
+    check(item(live,"lockupViewModel",false,"").duration==0 && item(plain,"lockupViewModel",false,"").duration==-1,"live lockup is 0, unknown lockup is -1");
+  }
   std::cout << "ok " << checks << " checks\n";
 }

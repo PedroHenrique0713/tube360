@@ -3,6 +3,7 @@
 #include "client.hpp"
 #include "search.hpp"
 #include "membership_json.hpp"
+#include "live.hpp"
 #include "update/rules.hpp"
 #ifndef PICOJSON_USE_LOCALE
 #define PICOJSON_USE_LOCALE 0
@@ -150,19 +151,6 @@ inline string channel(const J& v) {
   for (const auto& x : array(v)) { auto id = channel(x); if (!id.empty()) return id; }
   return {};
 }
-// Marca de transmissão ao vivo (selo do renderer clássico, do badge novo ou o texto do selo).
-inline bool liveMark(const J& v) {
-  if (v.is<Object>()) {
-    for (const auto& kv : v.get<Object>()) {
-      if ((kv.first == "style" || kv.first == "badgeStyle" || kv.first == "iconType") && kv.second.is<string>()) {
-        const auto& t = kv.second.get<string>();
-        if (t.find("LIVE") != string::npos) return true;
-      }
-      if (liveMark(kv.second)) return true;
-    }
-  } else for (const auto& x : array(v)) if (liveMark(x)) return true;
-  return false;
-}
 // Metadados do lockupViewModel (busca real): linha 1 = canal (+ verificado), depois visualizações (ícone de play) e data.
 inline void lockupMeta(const J& lock, Item& out) {
   const auto& rows = array(get(get(get(lock,"metadata"),"contentMetadataViewModel"),"metadataRows"));
@@ -246,7 +234,7 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
       if (n) out.duration = n;
     }
   }
-  if (out.type == "video" && !music && !out.shortForm && !out.duration && !liveMark(v)) out.duration = -1; // 0 = ao vivo; sem selo de tempo = desconhecida
+  if (out.type == "video" && !music && !out.shortForm && !out.duration && !yt::liveMark(v)) out.duration = -1; // 0 = ao vivo; sem selo de tempo = desconhecida
   if (out.type == "video" || out.type == "playlist") {
     out.date = text(get(v,"publishedTimeText")); out.views = text(get(v,"viewCountText"));
     lockupMeta(lock,out);
