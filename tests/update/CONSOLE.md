@@ -27,7 +27,7 @@ Não é necessário subir outros processos nem usar o controle. O runner:
 2. Sobe seu servidor TCP 8266 e receptor UDP 7466, guardando seus PIDs.
 3. Usa exclusivamente `Games\Tube360 Teste`. Se a pasta já existir, arquiva seus
    logs antes de substituí-la. Tenta `Hdd1:`; somente erro 414 habilita `HDD:`.
-4. Instala N, fontes/licenças, `settings.txt` (`server=off`, `sound=tv`), `net_log.txt`
+4. Instala N, fontes/licenças, `settings.txt` (`sound=tv`), `net_log.txt`
    e `update-auto.txt`. Relê os dois XEX por XBDM e confere SHA-256.
 5. Lança `default.xex`, espera staged #2602, relança e exige boot confirmado #2602.
    Libera o título no Aurora antes de selecionar fail, evitando uma consulta em
@@ -102,7 +102,7 @@ sobreponha o app normal. Abra o `default.xex` dessa pasta pelo gerenciador do Au
 o title ID é igual ao normal, então não dependa de qual atalho o scan escolheu.
 Se já existir uma pasta de teste, guarde-a com outro nome primeiro.
 
-Crie somente na pasta de teste `settings.txt` com `lang=pt`, `server=off`, `sound=tv`
+Crie somente na pasta de teste `settings.txt` com `lang=pt`, `sound=tv`
 (uma chave por linha), sem `nest.txt`/conta reais. Opcionalmente crie `net_log.txt`
 com `192.168.1.20 7466`. Para ver o UDP no notebook:
 

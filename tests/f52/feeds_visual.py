@@ -71,7 +71,7 @@ def run(name, signed=False, hide=False, keys='....D', expected='portrait', sd=Fa
     for font in (ROOT/'client/assets').glob('*.ttf'):
         shutil.copyfile(font, assets/font.name)
     settings = assets/'settings.txt'
-    settings.write_text(f'lang=en\nserver=off\nsound=tv\ncols=4\nshorts={"hide" if hide else "row"}\noutput_height={480 if sd else 720}\n')
+    settings.write_text(f'lang=en\nsound=tv\ncols=4\nshorts={"hide" if hide else "row"}\noutput_height={480 if sd else 720}\n')
     payload = copy.deepcopy(mixed)
     if only:
         payload = {'contents': [short(i) for i in range(101, 114)]}

@@ -76,7 +76,7 @@ sincronismo acústico continuam sendo a prova do coordenador no hardware.
 ## Console — somente o coordenador executa
 
 O kit desta revisão fica em `.work/f25b-jitter/console/`, com XEX, quatro fontes,
-`settings.txt` (`sound=nest`, `server=off`), `nest.txt` legado e `autoplay.txt`
+`settings.txt` (`sound=nest`), `nest.txt` legado e `autoplay.txt`
 (`nuvwZLCNJCI 30`). Não copiar conta, journal ou servidor da pasta de uso real.
 O kit deixa as métricas por quadro desligadas: esse volume de log pode interferir
 na própria medição. O log agregado `qualidade` já está ativo.

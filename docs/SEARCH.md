@@ -79,8 +79,8 @@ results public rather than personalized. Account recommendations, library and
 Music keep their account routes. An anonymous search failure is logged with its
 internal route, HTTP status and numeric API/transport code, without the query,
 cursor, token, remote error message or response body. HTTP 200 with a top-level
-error is a failure too. Search stays on the typed catalogue even with an optional
-PC server configured; errors cannot fall through to a TV-account or PC search.
+error is a failure too. Search stays on the typed catalogue; errors cannot fall
+through to a TV-account search.
 [Adversarial account-search replay and visual proofs](../bench/search-account/README.md).
 
 Public search now uses the typed catalogue in `yt/catalog.hpp`, sharing channel,
@@ -137,7 +137,7 @@ Do not deploy from the feature worktree. Integrate and build the coordinator's
 candidate with the shared Xbox lock, then use the coordinator's existing console
 installation/log procedure. Keep real accounts and `net_log.txt` out of packages.
 
-1. With server off, press Y and type a public query slowly. Suggestions should
+1. Press Y and type a public query slowly. Suggestions should
    appear after a pause. Type quickly, change query, press B during a request and
    reopen: no stale list, frozen keys or interruption of B. The log should show
    `app-thread: suggestions HW 5 … priority -1`.

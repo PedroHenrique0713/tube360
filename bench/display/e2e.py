@@ -47,7 +47,7 @@ def run(name, height=480, keys='', seconds=2.5, fill=False, large=False, caption
     assets.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets/font.name)
-    (assets/'settings.txt').write_text(f'lang=es\ncols=4\nquality=720\nsound=tv\nserver=off\noutput_height={height}\nlarge_text={"on" if large else "off"}\nvideo_fit={"fill" if fill else "fit"}\ncaptions={"on" if captions else "off"}\n')
+    (assets/'settings.txt').write_text(f'lang=es\ncols=4\nquality=720\nsound=tv\noutput_height={height}\nlarge_text={"on" if large else "off"}\nvideo_fit={"fill" if fill else "fit"}\ncaptions={"on" if captions else "off"}\n')
     env = dict(os.environ, HOME=str(assets), SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy',
                XT_ASSETS=str(assets), XT_CAST_DISABLE='1', XT_CATALOG_REPLAY=str(replay),
                XT_ACCOUNT_FIXTURES=str(accounts), XT_KEYS=keys, XT_KEYS_MS='150',
@@ -57,7 +57,6 @@ def run(name, height=480, keys='', seconds=2.5, fill=False, large=False, caption
     subprocess.run(['magick', str(assets/'screen.ppm'), str(assets/'screen.png')], check=True)
     text = (assets/'app.log').read_text()
     assert f'tela {640 if height==480 else 1280}x{height}' in text
-    assert 'servidor 0.0.0.0:8091 (desligado: só console)' in text
     assert 'captura: ' in text
     if name=='480-language-en': assert 'lang=en' in (assets/'settings.txt').read_text()
     if name=='480-language-pt': assert 'lang=pt' in (assets/'settings.txt').read_text()

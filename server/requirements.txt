@@ -1,7 +1,0 @@
-fastapi>=0.110
-uvicorn>=0.29
-yt-dlp[default]>=2025.11.12
-pillow>=10
-pychromecast>=14
-anyio>=4
-pydantic>=2

@@ -22,7 +22,7 @@ def run(name, lang='ar', height=720, large=False, keys='', seconds=2.5, missing=
     assets.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('*.ttf'):
         if not missing or font.name.startswith('inter-'): shutil.copyfile(font,assets/font.name)
-    (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nsound=tv\nserver=off\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
+    (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nsound=tv\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
     replay=work/('plain-replay' if plain else 'replay')
     accounts=work/('plain-accounts' if plain else 'accounts')
     env=dict(os.environ,HOME=str(work/'home'),XDG_CONFIG_HOME=str(work/'config'),XDG_CACHE_HOME=str(work/'cache'),
@@ -32,7 +32,7 @@ def run(name, lang='ar', height=720, large=False, keys='', seconds=2.5, missing=
     with (assets/'app.log').open('w') as log:
         subprocess.run([str(binary)],env=env,stdout=log,stderr=subprocess.STDOUT,timeout=65,check=True)
     text=(assets/'app.log').read_text()
-    assert 'captura:' in text and 'desligado: só console' in text,text[-2000:]
+    assert 'captura:' in text,text[-2000:]
     if missing: assert 'Arabic font missing:' in text
     elif plain: assert 'Arabic fonts:' not in text,'Latin-only interface must not load Noto'
     else: assert 'Arabic fonts:' in text and 'atlas full' not in text,text[-4000:]

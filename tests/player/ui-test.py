@@ -44,7 +44,7 @@ def shot(name, binary, assets, env_extra, ms, keys, settings, timeout=60):
 
 
 def case_a(name, signed=False, nav=None, nav_id=None, nav_q=None, keys='', ms=3000, screen=None, text=None,
-           settings='lang=en\nserver=off\nsound=tv\ncols=4\nshorts=row\n', payload=None):
+           settings='lang=en\nsound=tv\ncols=4\nshorts=row\n', payload=None):
     if WANTED and name not in WANTED:
         return
     assets = OUT / '_work' / name
@@ -94,7 +94,7 @@ def case_a(name, signed=False, nav=None, nav_id=None, nav_q=None, keys='', ms=30
     (replay / 'responses.json').write_text(json.dumps(base_routes))
 
 
-def case_b(name, signed=True, keys='', ms=3000, settings='lang=pt\ncols=4\nserver=off\nsound=tv\nvideo_mode=auto\n', **extra):
+def case_b(name, signed=True, keys='', ms=3000, settings='lang=pt\ncols=4\nsound=tv\nvideo_mode=auto\n', **extra):
     if WANTED and name not in WANTED:
         return
     assets = OUT / '_work' / name
@@ -184,7 +184,7 @@ def nest_volume(name, keys, volume_line='', ms=9000, sound='nest', external=None
         timer = __import__('threading').Timer(3, lambda: setattr(rx, 'volume', external)); timer.start()
     try:
         case_b(name, signed=True, keys=keys, ms=ms, XT_PLAY='R6MlUcmOul8',
-               settings=f'lang=pt\ncols=4\nserver=off\nsound={sound}\nvideo_mode=auto\n{volume_line}')
+               settings=f'lang=pt\ncols=4\nsound={sound}\nvideo_mode=auto\n{volume_line}')
         sets = [e for e in rx.events if 'SET_VOLUME' in json.dumps(e)]
         return rx.volume, sets
     finally:

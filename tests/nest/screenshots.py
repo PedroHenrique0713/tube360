@@ -23,7 +23,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-screen-') as temp:
         assets.mkdir(exist_ok=True)
         for font in (root / 'client/assets').glob('inter-*.ttf'):
             shutil.copy(font, assets / font.name)
-        (assets / 'settings.txt').write_text(f'lang={lang}\ncols=4\nquality=720\nsound=tv\nserver=off\nlarge_text={"on" if large else "off"}\n')
+        (assets / 'settings.txt').write_text(f'lang={lang}\ncols=4\nquality=720\nsound=tv\nlarge_text={"on" if large else "off"}\n')
         (assets / 'nest.txt').unlink(missing_ok=True)
         env = {**os.environ, 'SDL_VIDEO_DRIVER': 'offscreen', 'SDL_AUDIO_DRIVER': 'dummy', 'XT_ASSETS': str(assets) + '/', 'XT_NEST_NETWORK': network, 'XT_YT_REPLAY': str(root / 'bench/standalone/fixtures'), 'XT_CAST_DISABLE': '1', 'XT_SHOT': str(work / (name + '.ppm')), 'XT_SHOT_MS': str(ms), 'XT_KEYS_MS': '110', 'XT_KEYS': keys}
         with (work / (name + '.log')).open('w') as log:

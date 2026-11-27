@@ -48,7 +48,7 @@ def run(name, seconds=2, token=None, expired=False, speaker=None, scenario=None,
     assets.mkdir(exist_ok=True)
     for font in (root / 'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets / font.name)
-    (assets / 'settings.txt').write_text('lang=pt\nquality=720\ncols=4\nserver=off\nsound=' + ('nest' if speaker else 'tv') + '\n')
+    (assets / 'settings.txt').write_text('lang=pt\nquality=720\ncols=4\nsound=' + ('nest' if speaker else 'tv') + '\n')
     account = assets / 'yt-console-account.json'
     account.unlink(missing_ok=True)
     if token:
@@ -64,7 +64,7 @@ def run(name, seconds=2, token=None, expired=False, speaker=None, scenario=None,
     music_audit.unlink(missing_ok=True)
     env = {key: value for key, value in os.environ.items() if not key.startswith('XT_')}
     env.update(XT_CAST_DISABLE='1', SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2',
-        XT_ASSETS=str(assets), XT_SERVER='127.0.0.1:8118', XT_ACCOUNT_FIXTURES=str(accounts),
+        XT_ASSETS=str(assets), XT_ACCOUNT_FIXTURES=str(accounts),
         XT_ACCOUNT_AUDIT=str(audit), XT_CATALOG_REPLAY=str(replay), XT_CATALOG_AUDIT=str(music_audit),
         XT_SHOT=str(proof / f'{name}.ppm'), XT_SHOT_FRAME='2147483647', XT_SHOT_MS=str(int(seconds*1000)),
         XT_KEYS_MS='400')

@@ -101,7 +101,7 @@ def run(name, height, seconds=5.5, preference='original', speaker=False, **confi
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets/font.name)
     (assets/'settings.txt').write_text(f'lang=pt\ncols=4\nquality=720\nsound={"nest" if speaker else "tv"}\n'
-        f'server=off\noutput_height={height}\nvideo_mode=1080p30\naudio_preference={preference}\n')
+        f'output_height={height}\nvideo_mode=1080p30\naudio_preference={preference}\n')
     (assets/'yt-console-account.json').write_text(json.dumps({'access_token': 'fixture-access',
         'refresh_token': 'fixture-refresh', 'expires_at': int(time.time())+3600,
         'client': {'client_id': 'fixture-tv-client', 'client_secret': 'fixture-tv-secret'}, 'name': 'Conta integrada F15'}))
@@ -126,7 +126,7 @@ def run(name, height, seconds=5.5, preference='original', speaker=False, **confi
         nest.consume = consume
     env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
     env.update(XT_CAST_DISABLE='1', SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2',
-        XT_ASSETS=str(assets), XT_SERVER='127.0.0.1:8135', XT_ACCOUNT_FIXTURES=str(accounts),
+        XT_ASSETS=str(assets), XT_ACCOUNT_FIXTURES=str(accounts),
         XT_ACCOUNT_AUDIT=str(work/(name+'-account.tsv')), XT_CATALOG_REPLAY=str(replay),
         XT_CATALOG_AUDIT=str(work/(name+'-music.tsv')), XT_SHOT=str(work/(name+'.ppm')),
         XT_SHOT_FRAME='2147483647', XT_SHOT_MS=str(int(seconds*1000)), XT_KEYS_MS='500')

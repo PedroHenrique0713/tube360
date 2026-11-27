@@ -81,7 +81,7 @@ mídia capturada. Ela não substitui a reprodução pelo app de PC.
 
 1. Fechar o app e instalar o `client/build-x360/tube360.xex` desta branch com o procedimento normal do
    coordenador. Guardar o log e confirmar o hash do executável. Não alterar o launcher/fontes por este teste.
-2. Usar `server=off`, `sound=tv`, `video_mode=1080p30`, sem conta, e `autoplay.txt` com
+2. Usar `sound=tv`, `video_mode=1080p30`, sem conta, e `autoplay.txt` com
    `5PQYM_KSXag 120`. Reabrir pelo launcher. Recolher o log por até 30 s.
 3. Esperar `cabecalho: video resultado=0`, tamanho acima de 2 GiB, poucos pedidos, `seek_ms` limitado;
    depois áudio, `console: MP4 1080p ... itags 137/140 ... início 120.000 abertura_ms=...` e

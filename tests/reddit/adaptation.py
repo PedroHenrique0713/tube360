@@ -23,7 +23,7 @@ for name,ms,extra in (
     work=base/name;assets=work/'assets';media=work/'media';assets.mkdir(parents=True,exist_ok=True);media.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):shutil.copy(font,assets)
     # O caso 298/134 omite video_mode: reproduz o perfil padrão do relato.
-    (assets/'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\n'+('' if name=='cadence' else 'video_mode=1080p30\n'))
+    (assets/'settings.txt').write_text('lang=pt\nsound=tv\n'+('' if name=='cadence' else 'video_mode=1080p30\n'))
     selected=[f for f in formats if name!='cadence' or f['itag'] in (298,134,140)]
     for fmt in selected:
         filename=fmt['url'].rsplit('/',1)[1];origin=source/filename

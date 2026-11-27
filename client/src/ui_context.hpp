@@ -9,7 +9,7 @@
 enum Screen { HOME, SEARCH, PLAYER, SETTINGS, NAV };
 
 // Dados do último erro da Home desenhado, só para o log da captura de teste.
-struct ErrorShot { const Feed* feed = nullptr; K title = K::None, help = K::None; bool server = false; };
+struct ErrorShot { const Feed* feed = nullptr; K title = K::None, help = K::None; };
 
 struct UiContext {
   // ---- compartilhado
@@ -53,7 +53,6 @@ struct UiContext {
   int& cat;
   std::vector<Shelf>& cats;
   Shelf& results;
-  const std::string& serverAddress;
   std::string& castWho;
   std::function<void(Shelf&, int, bool, int, bool)> requestFeedFn;
   // ---- Casca: painéis, conta e timer

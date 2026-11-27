@@ -21,11 +21,7 @@ O teste de canal usa Vídeos/Ao vivo/Playlists de `bench/catalog/fixtures` e a n
 Também roda os quatro testes anteriores de catálogo/OAuth/membros/conta, com transportes falsos.
 
 O E2E religa os objetos de produção do app trocando somente HTTPS pelo replay fechado. HOME, XDG,
-assets, conta fictícia e cache ficam sob o diretório informado. Cast está desabilitado e o servidor
-está off nos casos normais. O caso `phone-resume` liga somente um servidor HTTP de loopback em porta
-efêmera para injetar um comando de controle com marcador Cast/serial fictício, sem telefone real. Rotas
-não previstas retornam 503; os bytes de vídeo continuam vindo do replay HTTPS nativo. O servidor é
-encerrado e sua thread recebe join em finally. Todos os pedidos não gravados falham fechados. Nunca aponte esse teste para uma pasta real.
+assets, conta fictícia e cache ficam sob o diretório informado. Cast está desabilitado. Todos os pedidos não gravados falham fechados. Nunca aponte esse teste para uma pasta real.
 As capturas contêm arte em gradiente e mídia testsrc/senoide de 120 s, sem imagens/áudio dos vídeos públicos.
 Há 39 casos nos quatro idiomas, 480p/4:3/texto grande, conta fictícia com ações WL/local separadas no Menu, limpeza confirmada/cancelada,
 arquivo corrompido, falha de escrita, checkpoint de 30 s, retomada no player e início do zero. A captura encerra normalmente o aplicativo,
@@ -49,8 +45,8 @@ por isso os PNGs também precisam ser inspecionados.
 ## Roteiro para o coordenador no Xbox
 
 Não executar em cima da pasta/conta real. Copiar o pacote completo compilado para uma pasta descartável
-usando o procedimento habitual do coordenador. Manter `server.txt`, `nest.txt` e arquivos de conta fora
-dessa pasta; usar `server=off`, `sound=tv` e `sponsorblock=off`. Não substituir o lançador pelo app.
+usando o procedimento habitual do coordenador. Manter `nest.txt` e arquivos de conta fora
+dessa pasta; usar `sound=tv` e `sponsorblock=off`. Não substituir o lançador pelo app.
 
 1. Abrir `default.xex`. Home deve oferecer Assistir mais tarde e Continuar assistindo sem login.
    Menu num VOD público → lista local. Abrir Biblioteca e conferir o atalho/miniatura.

@@ -48,7 +48,7 @@ def run(name, silence=False, permanent=False, missing_time=False, handshake_dela
     (assets/'nest-owner.json').unlink(missing_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets/font.name)
-    (assets/'settings.txt').write_text('lang=pt\nquality=720\nsound=nest\nserver=off\nsync_ms=0\n')
+    (assets/'settings.txt').write_text('lang=pt\nquality=720\nsound=nest\nsync_ms=0\n')
     (assets/'autoplay.txt').write_text('F25fixture0 0\n')
     receiver = Receiver(cert, key, handshake_delay=handshake_delay)
     receiver.online = not offline

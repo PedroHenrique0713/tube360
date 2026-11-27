@@ -4,17 +4,29 @@
 #include "net.hpp"
 #include "settings.hpp"
 #include <cstdio>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <unistd.h>
 #include <cstdlib>
 #include <cmath>
 void check(bool ok,const char* why){if(!ok){std::fprintf(stderr,"FAIL %s\n",why);std::exit(1);}}
 int main(){
-  Settings defaults;net::Server server;
-  check(!defaults.server && !net::effectiveServer(server,defaults.server),"server defaults off without an address");
-  for(bool requested:{true,false,true})check(!net::effectiveServer(server,requested),"settings toggle never enables an unconfigured server");
-  server.ip="127.0.0.1";
-  check(!net::effectiveServer(server,defaults.server),"default remains console-only even with a configured legacy address");
-  check(net::effectiveServer(server,true) && !net::effectiveServer(server,false),"configured server follows explicit preference");
-  std::puts("PASS server: default off with or without address, repeated toggle and legacy configured/off modes");
+  const std::string dir=(std::filesystem::temp_directory_path()/("tube360-legacy-server-"+std::to_string(getpid()))).string()+"/";
+  std::filesystem::create_directories(dir);
+  for(const char* legacy:{"off","auto","on","1"}){
+    { std::ofstream out(dir+"settings.txt"); out<<"lang=pt\nserver="<<legacy<<"\ncols=3\nquality=480\n"; }
+    Settings loaded;loaded.load(dir);
+    check(loaded.lang==i18n::Lang::PT && loaded.cols==3 && loaded.quality==480,"legacy server= line is ignored and the other keys still load");
+    check(loaded.save(dir),"legacy settings save");
+    std::ifstream file(dir+"settings.txt");std::string text((std::istreambuf_iterator<char>(file)),{});
+    check(text.find("server")==std::string::npos && text.find("cols=3\n")!=std::string::npos,"next save drops server= and keeps the rest");
+  }
+  { std::ofstream out(dir+"server.txt"); out<<"192.0.2.10 8091\n"; }
+  Settings withFile;withFile.load(dir);
+  check(withFile.cols==3,"a stray server.txt does not affect settings");
+  std::filesystem::remove_all(dir);
+  std::puts("PASS server: legacy server= and server.txt are ignored silently and dropped on the next save");
   playback::QualityPressure pressure;
   check(!pressure.sample(3800,1000,true,true,true,true) && !pressure.sample(7700,1000,true,true,true,true),"reported 3.8/7.7 second startup windows cannot trigger source drops");
   pressure.changed(0);

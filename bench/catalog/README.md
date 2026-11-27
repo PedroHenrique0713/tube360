@@ -42,13 +42,11 @@ Pesquisa, mudanças e roteiro para teste com o login que já está no console:
 
 ## Bancadas anteriores
 
-`capture-oauth.mjs --check` verifica o registro histórico da youtubei.js 16.0.1
-em `fixtures/oauth-requests.json`, com sessão e tokens falsos. Requer essa versão
-em `cast/node_modules`. Ele documenta a F16; não é mais o contrato de cabeçalhos
-ou contexto da implementação F35, e nunca provou aceitação de conta real.
+`fixtures/oauth-requests.json` é só o registro histórico da F16 (youtubei.js 16.0.1, sessão e tokens falsos);
+não é o contrato de cabeçalhos da implementação F35 e nunca provou aceitação de conta real.
 `tv-session.txt` preserva somente índices de uma sessão pública sanitizada de
 `/sw.js_data`, usada pelo oráculo antigo.
 
-`prepare-replay.py`, `capture-ui.py`, `membership-ui.py` e `visual-integration.py`
+`prepare-replay.py`, `capture-ui.py` e `visual-integration.py`
 continuam disponíveis para as provas públicas, membros e integração visual de
 canal/inscrições/biblioteca/player. Conta e mídia dessas bancadas são fictícias.

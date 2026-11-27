@@ -52,7 +52,7 @@ for case, video, start, nest, full, output in (
     for font in fonts:
         copy(font, f'{case}/{font.name}')
     write(f'{case}/autoplay.txt', f'{video} {start}\n')
-    write(f'{case}/settings.txt', f'lang=pt\nserver=off\nquality=720\nvideo_mode=1080p30\noutput_height={output}\nsound={"nest" if nest else "tv"}\nh264_loop_filter={"full" if full else "auto"}\n')
+    write(f'{case}/settings.txt', f'lang=pt\nquality=720\nvideo_mode=1080p30\noutput_height={output}\nsound={"nest" if nest else "tv"}\nh264_loop_filter={"full" if full else "auto"}\n')
     write(f'{case}/f40-playback.txt', f'120 10 137 {int(nest)} {0 if full else 48} {video}\n')
     write(f'{case}/video-metrics.txt', '0\n')
     if not nest:

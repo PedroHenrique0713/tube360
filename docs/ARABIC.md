@@ -127,8 +127,7 @@ No Xbox, use uma pasta de teste gravável com o pacote completo e confira:
 6. Em uma cópia descartável, omitir uma Noto, abrir árabe e conferir aviso legível com os nomes; restaurar o
    arquivo e reabrir. A F32 pode adicionar um diagnóstico de início: integrar os nomes de todas as fontes.
 
-Log esperado: `layout: ...`, uma linha `Arabic fonts: ...` por carga de resolução, sem repetição por quadro;
-`servidor ... desligado: só console` quando não houver reserva. Não há validação em console real nesta frente.
+Log esperado: `layout: ...`, uma linha `Arabic fonts: ...` por carga de resolução, sem repetição por quadro. Não há validação em console real nesta frente.
 
 
 ## Integração 0.3.2: revisão linguística pendente

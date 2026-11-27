@@ -1,4 +1,4 @@
-"""F32/5: Home real, preferência auto padrão, replay HTTPS e reserva HTTP em loopback."""
+"""F32/5: Home real, replay HTTPS e preferências/arquivo de servidor legados em loopback, ignorados em silêncio."""
 import http.server
 import json
 import os
@@ -15,11 +15,6 @@ TITLES = {
     'pt': ('Acerte a data e a hora do console', 'Falha na conexão segura. Confira as atualizações do app.', 'Falha no DNS. Confira o DNS nas configurações de rede.', 'Sem conexão. Confira o cabo ou Wi-Fi.', 'YouTube recusou o pedido. Tente mais tarde.', 'Não deu para carregar esta lista'),
     'en': ('Set the console date and time', 'Secure connection failed. Check for app updates.', 'DNS failed. Check your network DNS settings.', 'No connection. Check your cable or Wi-Fi.', 'YouTube refused the request. Try again later.', 'Could not load this list'),
     'es': ('Ajusta la fecha y la hora de la consola', 'Falló la conexión segura. Busca actualizaciones de la app.', 'Falló el DNS. Revisa el DNS en los ajustes de red.', 'Sin conexión. Revisa el cable o Wi-Fi.', 'YouTube rechazó la solicitud. Inténtalo más tarde.', 'No se pudo cargar esta lista'),
-}
-SERVER = {
-    'pt': ('Não deu para falar com o servidor', 'Ligue o servidor e aperte X para tentar de novo.'),
-    'en': ('Could not reach the server', 'Start the server and press X to try again.'),
-    'es': ('No se pudo conectar con el servidor', 'Inicia el servidor y presiona X para volver a intentarlo.'),
 }
 REFRESH = {'pt': 'Atualizar', 'en': 'Refresh', 'es': 'Actualizar'}
 REASONS = ('tls_date', 'tls', 'dns', 'network', 'http', 'json')
@@ -46,7 +41,6 @@ def capture(base, lang, reason, *, mode='default', sd=False):
     assets.mkdir(exist_ok=True)
     for font in (ROOT / 'client/assets').glob('inter-*.ttf'):
         shutil.copy(font, assets)
-    # O cenário principal omite server= deliberadamente: Settings.server nasce true.
     settings = f'lang={lang}\nsound=tv\n'
     if mode in ('server', 'auto'):
         settings += 'server=auto\n'
@@ -73,30 +67,24 @@ def capture(base, lang, reason, *, mode='default', sd=False):
     log = result.stdout.decode(errors='replace')
     (image.with_suffix('.log')).write_text(log)
     assert result.returncode == 0, (name, result.returncode, log[-2000:])
-    match = re.search(r'captura erro Home: preferencia=(\d) efetivo=(\d) \| (.*?) \| (.*?) \| (.*)', log)
+    match = re.search(r'captura erro Home: (.*?) \| (.*?) \| (.*)', log)
     assert match, (name, 'Home error was not drawn', log[-2000:])
-    pref, effective, title, help_text, detail = match.groups()
+    title, help_text, detail = match.groups()
     assert 'tela 0,' in log, (name, 'capture is not Home')
-    assert pref == ('0' if mode == 'off' else '1'), (name, match[0])
-    if mode == 'server':
-        assert effective == '1' and (title, help_text) == SERVER[lang], (name, match[0])
-        assert detail == f'127.0.0.1:{reserve.server_port}', (name, detail)
-        assert any(path.startswith('/api/feed?') for path in Reserve.paths[before:]), name
+    assert title == TITLES[lang][REASONS.index(reason)], (name, match[0])
+    assert help_text == REFRESH[lang], (name, help_text)
+    assert not any(word in (title + help_text + detail).lower() for word in ('server', 'servidor', '0.0.0.0')), name
+    assert len(Reserve.paths) == before, (name, 'a legacy server preference or server.txt caused a request')
+    if reason == 'tls_date':
+        assert re.search(r'\d{4}-\d\d-\d\d \d\d:\d\d:\d\d UTC', detail), (name, detail)
     else:
-        assert effective == '0' and title == TITLES[lang][REASONS.index(reason)], (name, match[0])
-        assert help_text == REFRESH[lang], (name, help_text)
-        assert not any(word in (title + help_text + detail).lower() for word in ('server', 'servidor', '0.0.0.0')), name
-        assert len(Reserve.paths) == before, (name, 'console mode requested the reserve server')
-        if reason == 'tls_date':
-            assert re.search(r'\d{4}-\d\d-\d\d \d\d:\d\d:\d\d UTC', detail), (name, detail)
-        else:
-            assert not detail, (name, detail)
+        assert not detail, (name, detail)
     with Image.open(image) as im:
         assert im.size == ((640, 480) if sd else (1280, 720)), name
         im.save(image.with_suffix('.png'))
     image.unlink()
-    print('PASS', name, 'preference=' + pref, 'effective=' + effective, title, flush=True)
-    return dict(name=name, preference=int(pref), effective=int(effective), title=title,
+    print('PASS', name, title, flush=True)
+    return dict(name=name, mode=mode, title=title,
                 help=help_text, detail=detail, screenshot=str(image.with_suffix('.png')))
 
 
@@ -118,7 +106,7 @@ with http.server.ThreadingHTTPServer(('127.0.0.1', 0), Reserve) as reserve:
         reserve.shutdown()
         thread.join(timeout=5)
 (base / 'results.json').write_text(json.dumps(reports, ensure_ascii=False, indent=2) + '\n')
-# Cada coluna é um idioma; última linha conserva a reserva HTTP explícita.
+# Cada coluna é um idioma; a última linha é o servidor legado configurado, que não muda nada.
 montage = Image.new('RGB', (1280, 240 * 7), (24, 24, 29))
 for row, reason in enumerate((*REASONS, 'server')):
     for col, lang in enumerate(('pt', 'en', 'es')):
@@ -126,4 +114,4 @@ for row, reason in enumerate((*REASONS, 'server')):
         with Image.open(base / 'proofs' / (name + '.png')) as im:
             montage.paste(im.resize((426, 240)), (col * 426, row * 240))
 montage.save(base / 'proofs' / 'home-errors-montage.png')
-print('PASS 30 Home captures: default auto without address, explicit server, auto, off and SD/large text', flush=True)
+print('PASS 30 Home captures: default, legacy server.txt with server=auto or off, and SD/large text', flush=True)

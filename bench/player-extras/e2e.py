@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Mesmo main/player do produto, transportes públicos locais e server=off."""
+"""Mesmo main/player do produto, transportes públicos locais, sem servidor."""
 import json
 import os
 from pathlib import Path
@@ -22,7 +22,7 @@ def run(name, keys='', seconds=6, lang='pt', at=0, speaker=False, height=720, la
     assets.mkdir(exist_ok=True)
     for font in (ROOT/'client/assets').glob('inter-*.ttf'):
         shutil.copyfile(font, assets/font.name)
-    (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nquality=720\nsound={"nest" if speaker else "tv"}\nserver=off\nvideo_mode=720p60\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
+    (assets/'settings.txt').write_text(f'lang={lang}\ncols=4\nquality=720\nsound={"nest" if speaker else "tv"}\nvideo_mode=720p60\noutput_height={height}\nlarge_text={"on" if large else "off"}\n')
     (assets/'autoplay.txt').write_text(f'4p_9OPKgcDE {at}\n')
     env = {k: v for k, v in os.environ.items() if not k.startswith('XT_')}
     env.update(HOME=str(assets), XDG_CACHE_HOME=str(assets/'.cache'), SDL_VIDEO_DRIVER='offscreen', SDL_AUDIO_DRIVER='dummy', LP_NUM_THREADS='2',
@@ -56,7 +56,6 @@ def run(name, keys='', seconds=6, lang='pt', at=0, speaker=False, height=720, la
     cpu=after.ru_utime+after.ru_stime-before.ru_utime-before.ru_stime
     text=(WORK/(name+'.log')).read_text()
     assert 'primeiro quadro' in text, text[-2500:]
-    assert '(desligado: só console)' in text, 'server must be off'
     assert 'unexpected fixture URL' not in text, text[-2500:]
     if shutdown:
         assert 'repetição: 1' in text and 'timer: prazo do console venceu' in text and 'build PC fecha o app' in text, text[-2500:]

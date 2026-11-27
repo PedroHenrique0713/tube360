@@ -120,5 +120,5 @@ assets = dest / 'assets'
 assets.mkdir(exist_ok=True)
 for font in (source.parents[2] / 'client/assets').glob('inter-*.ttf'):
     shutil.copyfile(font, assets / font.name)
-(assets / 'settings.txt').write_text('lang=pt\ncols=4\nquality=720\nsound=tv\nserver=off\n')
+(assets / 'settings.txt').write_text('lang=pt\ncols=4\nquality=720\nsound=tv\n')
 print(dest)

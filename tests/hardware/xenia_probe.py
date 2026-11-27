@@ -39,7 +39,7 @@ try:
                 shutil.copy(font, folder)
             xex = folder / (title + '.xex')
             shutil.copy(ROOT / 'client/build-x360' / xex.name, xex)
-            (folder / 'settings.txt').write_text('lang=pt\nserver=off\nsound=tv\n')
+            (folder / 'settings.txt').write_text('lang=pt\nsound=tv\n')
             (folder / 'video-driver.txt').write_text('safe\n')
             (folder / 'dbgprint.txt').write_text('1\n')
             home = folder / 'home'
