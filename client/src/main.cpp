@@ -34,6 +34,7 @@
 #include "player.hpp"
 #include "music_player.hpp"
 #include "player_ui.hpp"
+#include "player_watch.hpp"
 #include "player_extras.hpp"
 #include "sponsorblock_worker.hpp"
 #include "player_text.hpp"
@@ -505,6 +506,7 @@ struct Input {
 #include "ui_collection.hpp"
 #include "ui_channel.hpp"
 #include "ui_player.hpp"
+#include "ui_shorts.hpp"
 #include "ui_music.hpp"
 #ifndef __XSDK__
 #include "../../bench/search/frame_probe.hpp"
@@ -749,6 +751,7 @@ int run(int argc, char** argv) {
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false; uint64_t nextDeadline = 0; bool nextPending = false;
+  std::vector<Video> related, shortsQueue, playedBefore; bool historyBack = false; PlayerShelf shelf; std::string shortTitle; i18n::Lang shortLang = i18n::Lang::EN; std::vector<std::string> shortLines;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
   bool livePaused = false;
   int& quality = settings.quality;
   quality=720;
@@ -838,6 +841,20 @@ int run(int argc, char** argv) {
   };
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
     bool localOpening=v.id!=playing.id || screen!=PLAYER;
+    if (screen != PLAYER) playedBefore.clear();
+    if (!historyBack && !nav.localQueue && screen == PLAYER && !playing.id.empty() && v.id != playing.id && !nav.musicNow) {
+      if (playedBefore.empty() || playedBefore.back().id != playing.id) playedBefore.push_back(playing);
+      if (playedBefore.size() > 20) playedBefore.erase(playedBefore.begin());
+    }
+    if (v.shortForm && std::none_of(shortsQueue.begin(), shortsQueue.end(), [&](const Video& s) { return s.id == v.id; })) {
+      // Fila do ↑ ↓ dos Shorts: os Shorts da lista de onde o Short foi aberto, na ordem dela.
+      shortsQueue.clear();
+      const Shelf* source = nullptr;
+      for (const Shelf* s : {inResults ? &results : (const Shelf*)nullptr, cat >= 0 && cat < (int)cats.size() ? &cats[(size_t)cat] : (const Shelf*)nullptr})
+        if (s && !source && std::any_of(s->feed.items.begin(), s->feed.items.end(), [&](const Video& i) { return i.id == v.id; })) source = s;
+      if (source) for (const auto& i : source->feed.items) if (i.shortForm) shortsQueue.push_back(i);
+      if (shortsQueue.empty()) shortsQueue.push_back(v);
+    }
     if(localOpening){recordLocal();localUI.checkpoint=SDL_GetTicks()+30000;}
     ++playerPositionRevision;
     offeredQualities.assign(1);
@@ -858,7 +875,7 @@ int run(int argc, char** argv) {
       extras.select(v.id,i18n::code(settings.lang)); commentLines.clear(); commentIndex=-1;
     }
     if (v.id != playing.id) {
-      nestSkip = false; likeState.clear(); upNext = Video{};
+      nestSkip = false; likeState.clear(); upNext = Video{}; related.clear();
       if (!nav.localQueue) {
         Job next{5, "/api/video/" + v.id + "/next", 0}; next.lang=settings.lang;
         next.native = !fromRemote && !account.signedIn(); control.add(next, true); nextPending = true;
@@ -979,7 +996,7 @@ int run(int argc, char** argv) {
       gfx::image(g, slot->tex, ui::W-72, 26, 40, 40, 20, {1,1,1,1}, (float)thumbs.height / thumbs.width);
     }
   };
-  if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; requestVideo(v); }
+  if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; v.shortForm = std::getenv("XT_PLAY_SHORT") != nullptr; requestVideo(v); }
 #ifndef __XSDK__
   if (const char* q = std::getenv("XT_QUERY")) doSearch(q);
 #endif
@@ -1012,6 +1029,8 @@ int run(int argc, char** argv) {
   // ---- F62 Busca e canal: estado novo do run() só aqui
 
   // ---- F63 Player e Shorts: estado novo do run() só aqui
+  pl.setVolumePercent(settings.volume);  // volume salvo é só da TV; o app nunca manda SET_VOLUME ao Nest na abertura
+  PlayerWatch playerWatch;
 
   // ---- F64 Configurações e controle: estado novo do run() só aqui
 
@@ -1187,6 +1206,14 @@ int run(int argc, char** argv) {
     // ---- F62 Busca e canal
 
     // ---- F63 Player e Shorts
+    .related=related,
+    .shelf=shelf,
+    .shortsQueue=shortsQueue,
+    .playedBefore=playedBefore,
+    .historyBack=historyBack,
+    .shortTitle=shortTitle,
+    .shortLang=shortLang,
+    .shortLines=shortLines,
 
     // ---- F64 Configurações e controle
 
@@ -1322,11 +1349,24 @@ int run(int argc, char** argv) {
           toastUntil = now + 3000;
         } else if (!nav.localQueue && r.feed.direct && id == playing.id && !r.feed.items.empty()) {
           upNext = r.feed.items.front();
+          related.clear();
+          for (const auto& it : r.feed.items) if (it.id != playing.id && related.size() < 24) related.push_back(it);
         } else if (ok && id == playing.id && f.size() >= 5) {
           if (nav.localQueue) { likeState = f[1]; continue; }
           likeState = f[1];
           upNext = Video{};
-          if (f[2].size() == 11) { upNext.id = f[2]; upNext.channel = f[3]; upNext.title = f[4]; }
+          if (f[2].size() == 11) { upNext.id = f[2]; upNext.channel = f[3]; upNext.title = f[4]; related.assign(1, upNext); }
+          size_t nl = r.feed.title.find('\n');
+          while (nl != std::string::npos && related.size() < 24) {
+            size_t end = r.feed.title.find('\n', nl + 1);
+            auto row = net::split(r.feed.title.substr(nl + 1, end == std::string::npos ? std::string::npos : end - nl - 1), '\t');
+            nl = end;
+            if (row.size() < 5 || row[0] != "rel" || row[1].size() != 11 || row[1] == playing.id || row[1] == upNext.id) continue;
+            Video v; v.id = row[1]; v.title = row[2]; v.channel = row[3]; v.dur = std::atoi(row[4].c_str());
+            if (row.size() > 5) v.members = yt::membershipWire(row[5]);
+            v.shortForm = row.size() > 6 && row[6] == "short";
+            related.push_back(std::move(v));
+          }
         }
       } else if (r.key.rfind("/api/account", 0) == 0) {
         accountBusy = false;
@@ -1580,6 +1620,19 @@ int run(int argc, char** argv) {
       screens.playerInput(now,optionCount);
     }
     screens.playerUpdate(now);
+    // ---- F63 Player e Shorts: vigia do player (marca a sessão para o relatório de erro)
+    {
+      using Phase = PlayerWatch::Phase;
+      PlayerWatch::Sample w; w.now = now; w.inPlayer = screen == PLAYER && !nav.musicNow;
+      w.phase = pl.state == player::CONNECTING ? Phase::Connecting : pl.state == player::BUFFERING ? Phase::Buffering :
+                pl.state == player::PLAYING ? Phase::Playing : Phase::Idle;
+      w.paused = pl.paused; w.live = pl.live; w.nest = pl.nest || pl.speakerRequested; w.seeking = seekHold.active; w.position = pl.position();
+      w.bytes = (uint64_t)SDL_GetAtomicInt(&pl.netBytes); w.frames = pl.framesIn; w.streamEnded = pl.decDone;
+      if (playerWatch.update(w)) {
+        boot_session_player_stuck(playerWatch.stuck);
+        LOG("vigia: player %s (estado=%d pos=%.1f bytes=%llu quadros=%llu fim=%d)", playerWatch.stuck ? "parado" : w.inPlayer ? "voltou" : "saiu da tela", (int)pl.state, w.position, (unsigned long long)w.bytes, (unsigned long long)w.frames, (int)w.streamEnded);
+      }
+    }
     // Live retomada pelo próprio Nest (toque em cima, Google Home) também volta para o ao vivo.
     if (screen == PLAYER && pl.live) { if (pl.paused) livePaused = true; else if (livePaused) resumeLive(); }
     else livePaused = false;
@@ -1600,6 +1653,8 @@ int run(int argc, char** argv) {
         ++nav.queueIndex; startVideo(nav.queue[nav.queueIndex].video(),0,false);
       } else { endTimerPending = sleep.active && sleep.end; stopVideo(); }
     }
+    // ---- F63 Player e Shorts: fim de um Short emenda no próximo da fila (ou repete o último), sem o "a seguir em 8 s" de vídeo comum
+    if (screen == PLAYER && pl.state == player::ENDED && playing.shortForm && !playerFromRemote && !shutdownAt && !nav.localQueue && !(sleep.active && sleep.end)) screens.shortsEnded();
     if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && (playerFromRemote || !nextPending || now >= nextDeadline)) {
       if (!endedSent) {

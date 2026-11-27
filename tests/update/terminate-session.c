@@ -100,6 +100,10 @@ int main(int argc,char** argv) {
         boot_event("error",!strcmp(mode,"startup-error")?"startup.fail":"gpu.vulkan",
                          "2: vkWaitForFences(g.dev,1,&fence,VK_TRUE,5000000000ULL)");
     }
+    int stuck=!strcmp(mode,"player-stuck") || !strcmp(mode,"player-recovered");
+    if(stuck)boot_session_player_stuck(1);
+    if(!strcmp(mode,"player-recovered"))boot_session_player_stuck(0);
+    stuck=!strcmp(mode,"player-stuck");
     int cleaned=!strncmp(mode,"already-clean",13);
     if(cleaned || !strcmp(mode,"clean-resume"))boot_session_clean();
     if(!strcmp(mode,"clean-resume"))boot_session_resume();
@@ -154,7 +158,7 @@ int main(int argc,char** argv) {
     if(!interrupted){callback=1;registration->notification_routine();callback=0;}
     assert(!registration && registrations==1 && removals==1);
     int no_path=!strncmp(argv[1],"game:",5) || strlen(expected)>=1024;
-    int unavailable=no_path || interrupted || stale || failed || cleaned;
+    int unavailable=no_path || interrupted || stale || failed || cleaned || stuck;
     assert(creates==(unavailable?0:1));
     unsigned opened=!unavailable && !create_fail;
     unsigned prepared=opened && !write_fail && !io_write_fail && !short_write;
@@ -162,7 +166,7 @@ int main(int argc,char** argv) {
     assert(closes==opened && writes==opened+published);
     assert(flushes==prepared+(published && !prefix_fail && !prefix_short));
     unsigned refreshed_startup=!strcmp(mode,"startup-progress")?4:0;
-    assert(clock_reads-setup_reads==(no_heartbeat?refreshed_startup+!no_path:interrupted?2:(no_path || failed || cleaned)?1:!strcmp(mode,"refreshed")?3:2));
+    assert(clock_reads-setup_reads==(no_heartbeat?refreshed_startup+!no_path:interrupted?2:(no_path || failed || cleaned || stuck)?1:!strcmp(mode,"refreshed")?3:2));
     printf("PASS raw termination %s mode=%s create=%u write=%u flush=%u close=%u clock=%u; no stdio/malloc/lock/POSIX clock\n",
            argv[1],mode,creates,writes,flushes,closes,clock_reads);
     return 0;

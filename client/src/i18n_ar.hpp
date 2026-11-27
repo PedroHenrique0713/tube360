@@ -392,8 +392,28 @@ inline const char* arabic(Key key) {
     // ---- F62 Busca e canal
 
     // ---- F63 Player e Shorts
+    case Key::PlayerShelfTitle: return "التالي والمقترحات";
+    case Key::PlayerLaterAdded: return "تم الحفظ في المشاهدة لاحقاً";
+    case Key::PlayerLaterRemoved: return "تمت الإزالة من المشاهدة لاحقاً";
+    case Key::ShortsStep: return "المقطع السابق / التالي";
 
     // ---- F64 Configurações e controle
+    case Key::CtlPlayPause: return "تشغيل / إيقاف مؤقت";
+    case Key::CtlAddQueue: return "أضف إلى القائمة";
+    case Key::CtlSongVideo: return "أغنية / فيديو";
+    case Key::CtlSwitchTab: return "تبديل التبويب";
+    case Key::CtlPrevNext: return "السابق / التالي";
+    case Key::CtlPage: return "قفز صفحة";
+    case Key::CtlSeek: return "تقديم (اضغط مطولاً)";
+    case Key::CtlSection: return "القسم";
+    case Key::SecAccount: return "الحساب";
+    case Key::SecVideo: return "الفيديو";
+    case Key::SecSound: return "الصوت";
+    case Key::SecScreen: return "الشاشة واللغة";
+    case Key::SecTimer: return "المؤقت";
+    case Key::SecPrivacy: return "الخصوصية";
+    case Key::SecSystem: return "النظام";
+    case Key::SettingVolume: return "مستوى الصوت";
 
     // ---- F65 Música
 

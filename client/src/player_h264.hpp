@@ -578,7 +578,7 @@ inline void Player::decodeOriginal() {
           file->requests.load(),file->resumes.load(),file->error.c_str());
     if (direct) { if (!retryConverted) directFailed(); } else retryConverted=true;
   }
-  else { SDL_LockMutex(mu); decEnded = true; SDL_UnlockMutex(mu); }
+  else { SDL_LockMutex(mu); decEnded = true; decDone = true; SDL_UnlockMutex(mu); }
 }
 
 }  // namespace player

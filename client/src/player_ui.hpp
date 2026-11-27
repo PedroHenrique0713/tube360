@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <string>
 
 struct PlayerUI {
   enum Panel { NONE, CAPTIONS, QUALITY, SOUND, TRACKS, COMMENTS_PANEL, SPEED_PANEL } panel = NONE;
@@ -33,4 +34,15 @@ struct PlayerUI {
     if (visible(now)) { until = 0; return true; }
     return false;
   }
+};
+
+// "A seguir" e relacionados: fileira que abre com ↓ na linha de ícones, sem parar o vídeo. volumeUntil: mostra o volume do app.
+struct PlayerShelf {
+  bool open = false;
+  int sel = 0;
+  std::string video;  // vídeo ao qual a fileira pertence; ao trocar, fecha
+  uint64_t volumeUntil = 0;
+  int volumeShown = 100;
+  bool volumeSpeaker = false;  // o indicador mostra a caixa (Nest), não o volume da TV
+  int shortsFocus = 0;  // Shorts: 0 vídeo, 1 curtir, 2 não gostei, 3 comentários, 4 canal
 };
