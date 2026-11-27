@@ -5,19 +5,19 @@
 
 namespace phonectl {
 
-// Ordem: título, instrução do código, entrar, código errado, bloqueado, buscar (placeholder), buscar (botão), nada tocando, desconectado
-inline const char* const kPageText[4][10] = {
-  /* EN */ {"Tube360 remote", "Type the code shown on the TV", "Connect", "Wrong code", "Too many tries. Wait a moment and use the new code on the TV", "Search YouTube", "Search", "Nothing playing", "Disconnected. Pair again", "Paused"},
-  /* PT */ {"Controle do Tube360", "Digite o código que aparece na TV", "Conectar", "Código errado", "Muitas tentativas. Espere um pouco e use o código novo da TV", "Buscar no YouTube", "Buscar", "Nada tocando", "Desconectado. Pareie de novo", "Pausado"},
-  /* ES */ {"Control de Tube360", "Escribe el código que aparece en la TV", "Conectar", "Código incorrecto", "Demasiados intentos. Espera un momento y usa el código nuevo de la TV", "Buscar en YouTube", "Buscar", "Nada en reproducción", "Desconectado. Vuelve a emparejar", "En pausa"},
-  /* AR */ {"ريموت Tube360", "اكتب الرمز الظاهر على التلفاز", "اتصال", "رمز خاطئ", "محاولات كثيرة. انتظر قليلًا واستخدم الرمز الجديد على التلفاز", "ابحث في يوتيوب", "بحث", "لا شيء قيد التشغيل", "انقطع الاتصال. اقترن من جديد", "متوقف مؤقتًا"},
+// Ordem: título, instrução do código, entrar, código errado, bloqueado, buscar (placeholder), buscar (botão), nada tocando, desconectado, pausado, pareamento fechado
+inline const char* const kPageText[4][11] = {
+  /* EN */ {"Tube360 remote", "Type the code shown on the TV", "Connect", "Wrong code", "Too many tries. Wait a moment and use the new code on the TV", "Search YouTube", "Search", "Nothing playing", "Disconnected. Pair again", "Paused", "Open the pairing screen on the TV first: Settings, Privacy, Phone as remote"},
+  /* PT */ {"Controle do Tube360", "Digite o código que aparece na TV", "Conectar", "Código errado", "Muitas tentativas. Espere um pouco e use o código novo da TV", "Buscar no YouTube", "Buscar", "Nada tocando", "Desconectado. Pareie de novo", "Pausado", "Abra a tela de pareamento na TV antes: Configurações, Privacidade, Celular como controle"},
+  /* ES */ {"Control de Tube360", "Escribe el código que aparece en la TV", "Conectar", "Código incorrecto", "Demasiados intentos. Espera un momento y usa el código nuevo de la TV", "Buscar en YouTube", "Buscar", "Nada en reproducción", "Desconectado. Vuelve a emparejar", "En pausa", "Abre antes la pantalla de emparejamiento en la TV: Configuración, Privacidad, Móvil como control"},
+  /* AR */ {"ريموت Tube360", "اكتب الرمز الظاهر على التلفاز", "اتصال", "رمز خاطئ", "محاولات كثيرة. انتظر قليلًا واستخدم الرمز الجديد على التلفاز", "ابحث في يوتيوب", "بحث", "لا شيء قيد التشغيل", "انقطع الاتصال. اقترن من جديد", "متوقف مؤقتًا", "افتح شاشة الاقتران على التلفاز أولًا: الإعدادات، الخصوصية، الهاتف كريموت"},
 };
 
 inline std::string page(i18n::Lang lang) {
   int l = lang == i18n::Lang::PT ? 1 : lang == i18n::Lang::ES ? 2 : lang == i18n::Lang::AR ? 3 : 0;
   const char* const* t = kPageText[l];
   std::string js = "const T=[";
-  for (int i = 0; i < 10; ++i) { js += "\""; js += t[i]; js += "\","; }
+  for (int i = 0; i < 11; ++i) { js += "\""; js += t[i]; js += "\","; }
   js += "];";
   std::string html = R"HTML(<!doctype html><html lang=")HTML" + std::string(i18n::code(lang)) + R"HTML(" dir=")HTML" + (l == 3 ? "rtl" : "ltr") + R"HTML("><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#0b0b0e">
@@ -54,7 +54,7 @@ button:active,button.hold{background:#3a3a44}
 <button data-a="left" data-r="1">&#9664;</button><button class="ok" data-a="ok">A</button><button data-a="right" data-r="1">&#9654;</button>
 <span></span><button data-a="down" data-r="1">&#9660;</button><span></span></div>
 <div class="row"><button class="b" data-a="back">B</button><button data-a="playpause">&#9199;</button><span></span>
-<button data-a="voldown" data-r="1">&#128265; &minus;</button><span></span><button data-a="volup" data-r="1">&#128266; +</button></div>
+<button data-a="voldown" data-r="1" data-v="1">&#128265; &minus;</button><span></span><button data-a="volup" data-r="1" data-v="1">&#128266; +</button></div>
 <div class="card" style="margin-top:16px"><div class="sr"><input id="q" maxlength="100" enterkeyhint="search" autocomplete="off"><button id="find"></button></div><div class="err" id="cerr"></div></div>
 </section></main><script>)HTML" + js + R"HTML(
 const $=id=>document.getElementById(id);let tok=null;try{tok=sessionStorage.getItem("t")}catch(e){}
@@ -64,7 +64,7 @@ async function api(m,p,b){const h={"X-T360":tok||"pair"};if(b)h["Content-Type"]=
  const r=await fetch(p,{method:m,headers:h,body:b,cache:"no-store"});if(r.status===401&&tok){tok=null;try{sessionStorage.removeItem("t")}catch(e){}show(true);$("perr").textContent=T[8]}return r}
 $("join").onclick=async()=>{$("perr").textContent="";try{const r=await api("POST","/pair","code="+encodeURIComponent($("code").value.trim()));
  if(r.status===200){tok=(await r.json()).token;try{sessionStorage.setItem("t",tok)}catch(e){}$("code").value="";show(false);poll()}
- else $("perr").textContent=r.status===429?T[4]:T[3]}catch(e){$("perr").textContent=T[8]}};
+ else $("perr").textContent=r.status===429?T[4]:r.status===423?T[10]:T[3]}catch(e){$("perr").textContent=T[8]}};
 function send(a,q){const b="a="+a+(q!==undefined?"&q="+encodeURIComponent(q):"");return api("POST","/cmd",b).then(r=>{$("cerr").textContent=r.status===429?"…":""}).catch(()=>{})}
 document.querySelectorAll("[data-a]").forEach(el=>{let t=null,d=null;const a=el.dataset.a,rep=el.dataset.r;
  const stop=()=>{clearTimeout(t);clearInterval(d);el.classList.remove("hold")};
@@ -73,7 +73,7 @@ document.querySelectorAll("[data-a]").forEach(el=>{let t=null,d=null;const a=el.
 function find(){const v=$("q").value.trim();if(v){send("search",v);$("q").value="";$("q").blur()}}
 $("find").onclick=find;$("q").addEventListener("keydown",e=>{if(e.key==="Enter")find()});
 async function poll(){if(!tok)return;try{const r=await api("GET","/state");if(r.status===200){const s=await r.json();const n=$("now");
- n.textContent=s.playing?(s.title||"")+(s.paused?" · "+T[9]:""):T[7];n.classList.toggle("on",!!s.playing)}}catch(e){}setTimeout(poll,2000)}
+ n.textContent=s.playing?(s.title||"")+(s.paused?" · "+T[9]:""):T[7];n.classList.toggle("on",!!s.playing);document.querySelectorAll("[data-v]").forEach(e=>e.style.visibility=s.playing?"visible":"hidden")}}catch(e){}setTimeout(poll,2000)}
 if(tok){show(false);poll()}else show(true);
 </script></body></html>)HTML";
   return html;

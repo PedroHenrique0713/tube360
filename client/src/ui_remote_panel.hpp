@@ -20,6 +20,7 @@ inline void UiContext::remoteDraw(uint64_t now) {
   std::string code = remoteCore.code();
   gfx::text(g, ui::F_CHAN, tr(K::RemoteCode), px + 48, py + (ui::large ? 250 : 206), ui::MUTED);
   gfx::textGrad(g, ui::F_CODE, code.substr(0, 3) + " " + code.substr(3), px + 48, py + (ui::large ? 282 : 236), ui::A1, ui::A2);
-  gfx::textBox(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, tr(K::RemoteSafe), pw - 96), px + 48, py + (ui::large ? 400 : 322), pw - 96, ui::MUTED);
-  ctlHint(g, px + 48, py + ph - 52, ctl::Ctx::Panel, ctl::Act::Open, settings.lang, K::Close);
+  gfx::textBox(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, tr(now < remoteNoticeUntil ? K::RemoteWrongCode : K::RemoteSafe), pw - 96), px + 48, py + (ui::large ? 400 : 322), pw - 96, now < remoteNoticeUntil ? rgb(0xff6b6b) : ui::MUTED);
+  float hx = ctlHint(g, px + 48, py + ph - 52, ctl::Ctx::Panel, ctl::Act::Open, settings.lang, K::Close);
+  ctlHint(g, hx, py + ph - 52, ctl::Ctx::Panel, ctl::Act::Back, settings.lang);
 }

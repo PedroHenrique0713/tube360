@@ -795,6 +795,7 @@ int run(int argc, char** argv) {
   quality=720;
   bool& nestOut = settings.nest; int& nestOffsetMs = settings.syncMs;
   auto saveSettings = [&]() {
+    LOG("settings: gravando settings.txt");
     if (!settings.save(assets)) { toast = tr(K::SaveFailed); toastUntil = SDL_GetTicks() + 4000; }
   };
   std::string nestName = pl.directSpeaker.configured() ? pl.directSpeaker.settings().name : tr(K::Nest);
@@ -1092,7 +1093,9 @@ int run(int argc, char** argv) {
   if (const char* fixed = std::getenv("XT_REMOTE_CODE")) phoneCore.setCodeForTest(fixed);  // teste de bancada; no console o código é sempre aleatório
 #endif
   SDL_Thread* phoneThread = nullptr;
-  size_t phonePaired = 0; uint64_t phoneRemoteStateAt = 0;
+  size_t phonePaired = 0; uint64_t phoneRemoteStateAt = 0; unsigned phoneNoticeSeen = 0;
+  bool phoneWasOn = false, phonePanelPrev = false;
+  std::deque<phonectl::Event> phoneBacklog;
 
   // ---- F67 membros tocando: estado novo do run() só aqui
 
@@ -1285,6 +1288,7 @@ int run(int argc, char** argv) {
   };
   struct PhoneRun { phonectl::Net* net; phonectl::Core* core; } phoneRun{&phoneNet, &phoneCore};
   phoneThread = yt::worker([](void* p) { auto* r = static_cast<PhoneRun*>(p); r->net->run(*r->core); return 0; }, "remote", &phoneRun);
+  struct PhoneThreadGuard { phonectl::Net& net; SDL_Thread*& thread; ~PhoneThreadGuard() { net.quit = true; if (thread) SDL_WaitThread(thread, nullptr); thread = nullptr; } } phoneGuard{phoneNet, phoneThread};  // a thread sai mesmo se uma exceção atravessar o run()
   boot_event("begin","app.first-frame","enter render loop; no disk logging each frame after ready");
   while (!quit) {
 #ifndef __XSDK__
@@ -1642,40 +1646,61 @@ int run(int argc, char** argv) {
     screens.sleepWarning = sleepWarning;
     screens.pageMenuIntercept();
     // ---- F66 controle pelo celular
+#ifndef __XSDK__
+    if (frame == 2 && settings.phoneRemote && std::getenv("XT_REMOTE_PANEL")) screens.remotePanelOpen = true;  // bancada: abre o painel de pareamento sem teclas
+#endif
     phoneNet.enabled = settings.phoneRemote;
-    if (!settings.phoneRemote) { screens.remotePanelOpen = false; phonePaired = 0; }
-    else {
+    if (!settings.phoneRemote) {
+      if (phoneWasOn) { phoneCore.reset(); phoneBacklog.clear(); phonePaired = 0; phoneNoticeSeen = 0; phonePanelPrev = false; }  // desligar derruba todas as sessões
+      phoneWasOn = false; screens.remotePanelOpen = false;
+    } else {
+      phoneWasOn = true;
+      if (screens.remotePanelOpen != phonePanelPrev) {  // o pareamento só vale com o painel aberto na TV
+        if (screens.remotePanelOpen) phoneCore.openPairing(); else phoneCore.closePairing();
+        phonePanelPrev = screens.remotePanelOpen;
+      }
+      if (screens.remotePanelOpen && !phoneCore.pairingOpen()) screens.remotePanelOpen = false;  // a janela fecha sozinha em 5 min
       if (now >= phoneRemoteStateAt) { phoneRemoteStateAt = now + 500; phoneCore.setNowPlaying(playing.title, screen == PLAYER, pl.paused); }
       size_t paired = phoneCore.sessions();
       if (paired != phonePaired) LOG("celular: %u sessao(oes) pareada(s), porta %d", (unsigned)paired, phoneNet.port.load());
       if (paired > phonePaired) { toast = tr(K::RemoteConnected); toastUntil = now + 4000; screens.remotePanelOpen = false; }
       phonePaired = paired;
-      auto events = phoneCore.drain();
+      if (unsigned notices = phoneCore.wrongCodeNotices(); notices != phoneNoticeSeen) { phoneNoticeSeen = notices; screens.remoteNoticeUntil = now + 10000; LOG("celular: codigo errado 5 vezes, codigo novo na TV"); }
+      for (auto& e : phoneCore.drain()) if (phoneBacklog.size() < phonectl::kMaxQueue) phoneBacklog.push_back(std::move(e));  // o excedente some
       if (screens.remotePanelOpen) {
-        if (in.hit(Input::A) || in.hit(Input::B)) screens.remotePanelOpen = false;
+        // painel de pareamento: o celular já pareado fecha com Voltar (ou OK); o resto do que chegou é descartado
+        for (const auto& e : phoneBacklog) if (e.action == phonectl::Action::Back || e.action == phonectl::Action::Ok) screens.remotePanelOpen = false;
+        phoneBacklog.clear();
+        if (ctl::hit(in, ctl::Ctx::Panel, ctl::Act::Open) || ctl::hit(in, ctl::Ctx::Panel, ctl::Act::Back)) screens.remotePanelOpen = false;
         in.clear();
-      } else if (!events.empty()) {
-        const bool modal = phonePanel || loginPanel || logoutPanel || nav.menu || searchUI.filterOpen || localUI.resume || localUI.clear >= 0 ||
-                           speakerPicker.open || sleepPanel || ratePanel || sleepWarning || shutdownAt || updateUI.open;
+      } else if (!phoneBacklog.empty()) {
+        // um evento por quadro: o que veio em rajada anda na ordem, cada passo com a tela já atualizada
+        const phonectl::Event e = phoneBacklog.front(); phoneBacklog.pop_front();
+        const bool modal = phonePanel || loginPanel || logoutPanel || nav.menu || nav.unsubscribe || searchUI.filterOpen || localUI.resume || localUI.clear >= 0 ||
+                           speakerPicker.open || sleepPanel || ratePanel || sleepWarning || shutdownAt || updateUI.open || sponsorUI.open ||
+                           (screen == PLAYER && playerUI.panel != PlayerUI::NONE) || (screen == PLAYER && nextAt);
         const ctl::Ctx ctx = screen == PLAYER ? (nav.musicNow ? ctl::Ctx::Music : playing.shortForm ? ctl::Ctx::Shorts : ctl::Ctx::Player)
                            : screen == SETTINGS ? ctl::Ctx::Settings : screen == SEARCH ? ctl::Ctx::Search : ctl::Ctx::Home;
         phonectl::Ports ports;
-        ports.playPause = [&] { if (screen == PLAYER && pl.state != player::IDLE) pl.setPaused(!pl.paused); };
-        ports.volume = [&](int step) { screens.adjustVolume(now, step); };
+        // mesma condição do A do controle: sem pausa invisível durante a abertura; live pausada volta à borda
+        ports.playPause = [&] {
+          if (screen != PLAYER || (pl.waiting() && !pl.paused)) return;
+          if (pl.live && pl.paused) resumeLive(); else pl.setPaused(!pl.paused);
+        };
+        ports.volume = [&](int step) { if (screen == PLAYER) screens.adjustVolume(now, step); };  // só onde o controle também muda o volume
         ports.search = [&](const std::string& q) {
           if (modal) return;
           if (screen == PLAYER) stopVideo();
           if (screen != SEARCH) { searchBack = screen; searchMusic = screen == NAV && !nav.pages.empty() && nav.page().music; }
           doSearch(q);
         };
-        for (const auto& e : events) {
-          LOG("celular: acao %d%s ctx %d", (int)e.action, modal ? " (painel aberto)" : "", (int)ctx);
-          if (modal && e.action != phonectl::Action::Back && e.action != phonectl::Action::Ok && e.action != phonectl::Action::Up &&
-              e.action != phonectl::Action::Down && e.action != phonectl::Action::Left && e.action != phonectl::Action::Right) continue;
-          phonectl::inject(e, in, ctx, ports);
-        }
+        LOG("celular: acao %d%s ctx %d", (int)e.action, modal ? " (painel aberto)" : "", (int)ctx);
+        const bool movesOrCloses = e.action == phonectl::Action::Back || e.action == phonectl::Action::Ok || e.action == phonectl::Action::Up ||
+                                   e.action == phonectl::Action::Down || e.action == phonectl::Action::Left || e.action == phonectl::Action::Right;
+        if (!modal || movesOrCloses) phonectl::inject(e, in, ctx, ports);
       }
     }
+    if (screens.volumeSaveAt && now >= screens.volumeSaveAt) { screens.volumeSaveAt = 0; saveSettings(); }
     if (shutdownAt) {
       if (now >= shutdownAt) {
         if (powerDownXbox()) quit = true;
@@ -1876,10 +1901,10 @@ int run(int argc, char** argv) {
 #endif
     if (frame % 600 == 0 && screen == PLAYER) LOG("player: %s pos %.1f quadros %lld perdidos %lld", playing.id.c_str(), pl.position(), (long long)pl.shownFrames, (long long)pl.droppedFrames);
   }
+  if (screens.volumeSaveAt) { screens.volumeSaveAt = 0; saveSettings(); }
   recordHistory();
   if(localUI.submitted!=localUI.library.revision)localUI.writer.submit(localUI.library);
   phone.stop();
-  phoneNet.quit = true; SDL_WaitThread(phoneThread, nullptr);
   captionLoader.stop();
   extras.close();
   pl.halt();

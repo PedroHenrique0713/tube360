@@ -206,7 +206,8 @@ struct UiContext {
   phonectl::Core& remoteCore;       // pareamento, sessões e fila de ações (remote_control.hpp)
   phonectl::Net& remoteNet;         // a thread do servidor: porta em uso (remote_net.hpp)
   bool remotePanelOpen = false;     // painel com endereço e código; a linha das Configurações abre, A/B fecham
-  std::string remoteAddress; uint64_t remoteAddressAt = 0;
+  std::string remoteAddress; uint64_t remoteAddressAt = 0, remoteNoticeUntil = 0;
+  uint64_t volumeSaveAt = 0;        // o volume grava o settings.txt 1 s depois do último ajuste (e na saída), não a cada passo
   void remoteDraw(uint64_t now);    // ui_remote.hpp
 
   // ---- F67 membros tocando: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp

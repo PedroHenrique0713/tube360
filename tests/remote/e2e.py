@@ -32,9 +32,9 @@ def app(name, on, keys, shot_ms, extra=None):
     return subprocess.Popen([str(ROOT / 'client/build/tube360')], env=env, stdout=log, stderr=subprocess.STDOUT), assets
 
 
-def call(method, path, body=None, token='pair', port=8135):
+def call(method, path, body=None, token='pair', port=8135, host=None):
     req = urllib.request.Request(f'http://127.0.0.1:{port}{path}', data=body.encode() if body is not None else None, method=method,
-                                 headers={'X-T360': token} if token else {})
+                                 headers=({'X-T360': token} if token else {}) | ({'Host': host} if host else {}))
     try:
         with urllib.request.urlopen(req, timeout=3) as r:
             return r.status, r.read().decode()
@@ -76,13 +76,22 @@ if (assets / 'screen.ppm').exists():
         pass
 
 # 2) pareamento e comandos contra o app real
-proc, assets = app('pair', True, '', 9000)
+# painel de pareamento fechado: ninguém pareia (423), mesmo com o código certo
+proc, assets = app('closed', True, '', 5000)
+try:
+    check(wait_port(proc), 'servidor sobe com a opção ligada')
+    check(call('POST', '/pair', f'code={CODE}')[0] == 423, 'pareamento recusado (423) com o painel fechado')
+finally:
+    proc.wait(timeout=60)
+
+proc, assets = app('pair', True, '', 9000, {'XT_REMOTE_PANEL': '1'})  # bancada: abre o painel de pareamento sem teclas
 try:
     check(wait_port(proc), 'servidor responde a página na porta 8135 com a opção ligada')
     page = call('GET', '/', token=None)[1]
     check('Tube360' in page and 'https://' not in page, 'página sem recurso externo')
     check(call('POST', '/cmd', 'a=down', token='pair')[0] == 401, 'comando sem pareamento recusado (401)')
     check(call('POST', '/cmd', 'a=down', token=None)[0] == 400, 'POST sem cabeçalho próprio recusado (400)')
+    check(call('GET', '/', token=None, host='evil.example:8135')[0] == 400, 'Host de outro nome recusado (400, rebinding)')
     check(call('POST', '/pair', 'code=000000')[0] == 403, 'código errado recusado (403)')
     status, body = call('POST', '/pair', f'code={CODE}')
     check(status == 200 and '"token"' in body, 'código certo pareia')

@@ -442,6 +442,7 @@ inline const char* arabic(Key key) {
     case Key::RemoteCode: return "رمز الاقتران";
     case Key::RemoteSafe: return "يمكن فقط للأجهزة في شبكة منزلك الاتصال. يتغير الرمز بعد كل اقتران.";
     case Key::RemoteNoNetwork: return "لا توجد شبكة. وصّل الجهاز بالواي فاي أو بالكابل.";
+    case Key::RemoteWrongCode: return "أخطأ أحدهم في الرمز. اقرأ الرمز الجديد أعلاه.";
     case Key::RemoteConnected: return "تم اتصال الهاتف";
 
     // ---- F67 membros tocando

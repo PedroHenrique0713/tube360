@@ -37,8 +37,8 @@ static std::string http(int port, const std::string& req, int waitMs = 1500) {
   while ((n = ::recv(fd, buf, sizeof(buf), 0)) > 0) out.append(buf, (size_t)n);
   ::close(fd); return out;
 }
-static std::string rq(const char* m, const char* p, const std::string& body = "", const char* token = nullptr) {
-  std::string r = std::string(m) + " " + p + " HTTP/1.1\r\nHost: tv\r\n";
+static std::string rq(const char* m, const char* p, const std::string& body = "", const char* token = nullptr, const std::string& host = "127.0.0.1") {
+  std::string r = std::string(m) + " " + p + " HTTP/1.1\r\nHost: " + host + "\r\n";
   if (token) r += std::string("X-T360: ") + token + "\r\n";
   r += "Content-Length: " + std::to_string(body.size()) + "\r\n\r\n" + body; return r;
 }
@@ -59,7 +59,7 @@ int main() {
   CHECK(!privateAddress((8u << 24) | (8u << 16) | (8u << 8) | 8) && !privateAddress((172u << 24) | (32u << 16)) && !privateAddress((200u << 24)));
   // ---- pareamento
   {
-    Core c = make(); std::string code = c.code();
+    Core c = make(); c.openPairing(); std::string code = c.code();
     CHECK(code.size() == 6 && code.find_first_not_of("0123456789") == std::string::npos);
     Request page{"GET", "/", "", "", false};
     CHECK(c.handle(page, LAN).status == 200 && c.handle(page, LAN).type.rfind("text/html", 0) == 0);
@@ -74,7 +74,7 @@ int main() {
     std::string tok = tokenOf(ok);
     CHECK(ok.status == 200 && tok.size() == 32 && c.sessions() == 1);
     CHECK(c.code() != code);                                                                      // o código muda a cada pareamento
-    CHECK(c.handle(post("/pair", "code=" + code), LAN).status == 403);                            // o código velho não vale mais
+    CHECK(c.handle(post("/pair", "code=" + code), LAN).status == 423);                            // o código velho não vale mais
     CHECK(c.handle(post("/cmd", "a=ok", tok), LAN).status == 200 && c.pending() == 1);
     CHECK(c.handle(post("/cmd", "a=format_disk", tok), LAN).status == 400 && c.pending() == 1);  // alfabeto fechado
     CHECK(c.handle(post("/cmd", "a=search&q=" + std::string("%3Cb%3Elo-fi%20beats"), tok), LAN).status == 200);
@@ -89,24 +89,43 @@ int main() {
     CHECK(c.handle(post("/cmd", "a=ok", tok), LAN).status == 401 && c.sessions() == 0);
     fakeNow += 1000;
   }
-  // ---- força bruta: 5 erros bloqueiam, o código muda e o certo antigo não vale
+  // ---- pareamento só com o painel aberto, 5 erros mudam o código sem trancar o dono
   {
-    Core c = make(3); std::string code = c.code();
-    int last = 0; for (int i = 0; i < kMaxFailures; ++i) last = c.handle(post("/pair", "code=999999"), LAN).status;
-    CHECK(last == 429 && c.code() != code);
-    CHECK(c.handle(post("/pair", "code=" + c.code()), LAN).status == 429);  // bloqueado mesmo com o código novo certo
-    fakeNow += kLockoutMs + 1;
-    CHECK(c.handle(post("/pair", "code=" + c.code()), LAN).status == 200);
+    Core c = make(5);
+    const uint32_t ATT = (192u << 24) | (168u << 16) | 99, OWN = (192u << 24) | (168u << 16) | 7;
+    CHECK(!c.pairingOpen() && c.handle(post("/pair", "code=" + c.code()), OWN).status == 423 && c.sessions() == 0);  // painel fechado
+    c.openPairing(); std::string first = c.code();
+    CHECK(c.pairingOpen());
+    c.closePairing(); CHECK(c.handle(post("/pair", "code=" + first), OWN).status == 423);
+    c.openPairing(); CHECK(c.code() != first);                                                    // código novo a cada abertura
+    fakeNow += kPairingOpenMs + 1; CHECK(!c.pairingOpen() && c.handle(post("/pair", "code=" + c.code()), OWN).status == 423);  // fecha sozinho
+    c.openPairing(); std::string code = c.code(); unsigned notices = c.wrongCodeNotices();
+    int last = 0; for (int i = 0; i < kMaxFailures; ++i) last = c.handle(post("/pair", "code=999999"), ATT).status;
+    CHECK(last == 429 && c.code() != code && c.wrongCodeNotices() == notices + 1);              // 5 erros: código novo e aviso
+    CHECK(c.handle(post("/pair", "code=" + c.code()), ATT).status == 429);                        // o atacante espera, mesmo com o código certo
+    CHECK(c.handle(post("/pair", "code=" + c.code()), OWN).status == 200 && c.sessions() == 1);   // o dono pareia no meio do ataque
+    fakeNow += kIpBlockMs + 1;
+    c.openPairing(); CHECK(c.handle(post("/pair", "code=" + c.code()), ATT).status == 200);        // passado o minuto o atacante volta a poder tentar
+    // erros de IPs diferentes também chegam a 5 e mudam o código
+    c.openPairing(); std::string before = c.code();
+    for (uint32_t k = 0; k < (uint32_t)kMaxFailures; ++k) c.handle(post("/pair", "code=111111"), (10u << 24) | (k + 1));
+    CHECK(c.code() != before);
   }
+  // ---- Host
+  CHECK(hostAllowed("192.168.0.5", "192.168.0.5", 8135) && hostAllowed("192.168.0.5:8135", "192.168.0.5", 8135));
+  CHECK(!hostAllowed("evil.example:8135", "192.168.0.5", 8135) && !hostAllowed("192.168.0.5:9999", "192.168.0.5", 8135) && !hostAllowed("", "192.168.0.5", 8135) && !hostAllowed("192.168.0.5", "", 8135));
+  { Core c = make(2); Request r{"GET", "/", "", "", false}; r.hostOk = false; CHECK(c.handle(r, LAN).status == 400); }
+  CHECK(sanitizeText("a\xe2\x80\x8b" "b\xe2\x80\xae" "c\xe2\x81\xa6" "d\xef\xbb\xbf" "e") == "abcde");   // ZWSP, override RTL, isolate, BOM
+  CHECK(sanitizeText("\xe2\x82\xac") == "\xe2\x82\xac");
   // ---- fila limitada
   {
-    Core c = make(9); auto tok = tokenOf(c.handle(post("/pair", "code=" + c.code()), LAN));
+    Core c = make(9); c.openPairing(); auto tok = tokenOf(c.handle(post("/pair", "code=" + c.code()), LAN));
     int busy = 0; for (int i = 0; i < 100; ++i) busy += c.handle(post("/cmd", "a=down", tok), LAN).status == 429;
     CHECK(c.pending() == kMaxQueue && busy == 100 - (int)kMaxQueue);
     CHECK(c.drain().size() == kMaxQueue);
     // mais de 4 celulares: o mais antigo cai
     std::string first = tok;
-    for (size_t i = 0; i < kMaxSessions; ++i) tokenOf(c.handle(post("/pair", "code=" + c.code()), LAN));
+    for (size_t i = 0; i < kMaxSessions; ++i) { c.openPairing(); tokenOf(c.handle(post("/pair", "code=" + c.code()), LAN)); }
     CHECK(c.sessions() == kMaxSessions && c.handle(post("/cmd", "a=ok", first), LAN).status == 401);
     c.reset(); CHECK(c.sessions() == 0);
   }
@@ -135,18 +154,21 @@ int main() {
   }
   // ---- servidor de verdade
   {
-    Core core = make(21);
+    Core core = make(21); core.openPairing();
     Net net; net.firstPort = 18135; net.enabled = true;
     std::thread th([&] { net.run(core); });
     for (int i = 0; i < 50 && !net.port; ++i) std::this_thread::sleep_for(std::chrono::milliseconds(50));
     int port = net.port; CHECK(port == 18135);
     std::string page = http(port, rq("GET", "/"));
-    CHECK(page.find("200 OK") != std::string::npos && page.find("page") != std::string::npos && page.find("Content-Security-Policy") != std::string::npos);
+    CHECK(page.find("200 OK") != std::string::npos && page.find("page") != std::string::npos && page.find("frame-ancestors 'none'") != std::string::npos);
     CHECK(http(port, rq("POST", "/cmd", "a=ok", "pair")).find("401") != std::string::npos);
     CHECK(http(port, rq("POST", "/cmd", "a=ok")).find("400") != std::string::npos);  // sem o cabeçalho
+    CHECK(http(port, rq("GET", "/", "", nullptr, "evil.example:" + std::to_string(port))).find("400 Bad Request") != std::string::npos);  // Host de outro nome (rebinding)
+    CHECK(http(port, rq("GET", "/", "", nullptr, "127.0.0.1:" + std::to_string(port))).find("200 OK") != std::string::npos);
+    CHECK(http(port, "GET / HTTP/1.0\r\n\r\n").find("400 Bad Request") != std::string::npos);                                    // sem Host
     CHECK(http(port, "GET / HTTP/1.1\r\nHost: x\r\nContent-Length: 99999\r\n\r\n").find("400") != std::string::npos);
     CHECK(http(port, "lixo sem estrutura\r\n\r\n").find("400") != std::string::npos);
-    CHECK(http(port, rq("POST", "/pair", "code=000000" , "pair")).find("403") != std::string::npos);
+    CHECK(http(port, rq("POST", "/pair", "code=000000", "pair")).find("403") != std::string::npos);
     std::string r = http(port, rq("POST", "/pair", "code=" + core.code(), "pair"));
     std::string tok = r.find("\"token\":\"") != std::string::npos ? r.substr(r.find("\"token\":\"") + 9, 32) : "";
     CHECK(tok.size() == 32);
