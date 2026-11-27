@@ -307,9 +307,13 @@ inline std::vector<Video> UiContext::shelfItems(int tab) {
   std::vector<Video> shelfScratch;
   if (tab == 0) {
     if (!upNext.id.empty()) shelfScratch.push_back(upNext);
-    if (nav.localQueue) for (size_t i = nav.queueIndex + 1; i < nav.queue.size() && shelfScratch.size() < 24; ++i) shelfScratch.push_back(nav.queue[i].video());
+    if (nav.localQueue) for (size_t i = nav.queueIndex + 1; i < nav.queue.size() && shelfScratch.size() < 24; ++i) {
+      Video v = nav.queue[i].video(); v.views = nav.queue[i].views; v.date = nav.queue[i].date; shelfScratch.push_back(std::move(v));
+    }
   } else if (tab == 1) {
-    for (const auto& it : shelfChannel.items) if (it.type == "video" && it.id != playing.id && shelfScratch.size() < 24) shelfScratch.push_back(it.video());
+    for (const auto& it : shelfChannel.items) if (it.type == "video" && it.id != playing.id && shelfScratch.size() < 24) {
+      Video v = it.video(); v.views = it.views; v.date = it.date; shelfScratch.push_back(std::move(v));
+    }
   } else {
     for (const auto& v : related) if (v.id != upNext.id && v.id != playing.id) shelfScratch.push_back(v);
   }
@@ -367,25 +371,28 @@ inline void UiContext::playerShelfDraw(uint64_t now) {
   (void)now;
   const bool rtl = g.rtlText;
   const auto items = shelfItems(shelf.tab);
-  const int count = (int)items.size(), cols = ui::narrow ? 4 : 5;
-  const float gap = 18, left = 56, cw = std::floor((ui::W - left * 2 - gap * (cols - 1)) / cols), ch = std::floor(cw * 9 / 16);
-  const float tabsY = 380, rowY = 432;
+  // Mesmas medidas do cartão da Home (4 colunas em 16:9, 3 em 4:3): a fileira mostra cols cartões e o seguinte pela borda.
+  const int count = (int)items.size(), cols = ui::narrow ? 3 : 4;
+  const float gap = 24, left = 56, cw = std::floor((ui::W - 200 - (float)(cols - 1) * gap) / (float)cols), ch = std::floor(cw * 9 / 16);
+  const float tabsY = 364, rowY = 424;
   const Color ink{0.043f, 0.043f, 0.055f, 0};
   auto shade = [&](float a) { Color c = ink; c.a = a; return c; };
-  gfx::vgrad(g, 0, 0, ui::W, ui::H * .38f, shade(.15f), shade(.55f));
-  gfx::vgrad(g, 0, ui::H * .38f, ui::W, ui::H * .24f, shade(.55f), shade(.96f));
-  gfx::rect(g, 0, ui::H * .62f, ui::W, ui::H * .38f + 1, shade(.96f));
+  // Escurecimento em dois degraus com cortes em pixel inteiro (corte fracionário deixava uma linha fina atravessando a tela).
+  const float y1 = std::round(ui::H * .38f), y2 = std::round(ui::H * .62f);
+  gfx::vgrad(g, 0, 0, ui::W, y1, shade(.15f), shade(.55f));
+  gfx::vgrad(g, 0, y1, ui::W, y2 - y1, shade(.55f), shade(.96f));
+  gfx::rect(g, 0, y2, ui::W, ui::H - y2, shade(.96f));
   // abas
   const K names[3] = {K::PlayerShelfNext, K::PlayerShelfChannel, K::PlayerShelfRelated};
   float tx = rtl ? ui::W - left : left;
   for (int t = 0; t < 3; ++t) {
     if (!shelfTabShown(t)) continue;
     std::string name = tr(names[t]);
-    float w = gfx::textWidth(g, ui::F_H2, name), x = rtl ? tx - w : tx;
+    float w = gfx::textWidth(g, ui::F_BIG, name), x = rtl ? tx - w : tx;
     bool on = t == shelf.tab;
-    gfx::text(g, ui::F_H2, name, x, tabsY, on ? ui::TEXT : ui::MUTED);
-    if (on) gfx::rect(g, x, tabsY + g.fonts[ui::F_H2].lineH + 4, w, 3, ui::A1, 1);
-    tx += (rtl ? -1 : 1) * (w + 34);
+    gfx::text(g, ui::F_BIG, name, x, tabsY, on ? ui::TEXT : ui::MUTED);
+    if (on) gfx::rect(g, x, tabsY + g.fonts[ui::F_BIG].lineH + 4, w, 4, ui::A1, 2);
+    tx += (rtl ? -1 : 1) * (w + 38);
   }
   if (!count) gfx::text(g, ui::F_BODY, tr(K::Loading), rtl ? ui::W - left : left, rowY + 10, ui::MUTED, rtl ? 2 : 0);
   {  // o que a fileira DESENHA (a lista da aba ativa), depois de tudo que mexe na lista: uma linha por mudança (teste e log do console)
@@ -403,12 +410,21 @@ inline void UiContext::playerShelfDraw(uint64_t now) {
   float frac = pl.live ? 1.f : dur > 0 ? (float)std::clamp(pos / dur, 0.0, 1.0) : 0.f;
   gfx::rect(g, 0, ui::H - 5, ui::W, 5, {1, 1, 1, 0.2f});
   if (frac > 0) gfx::rect(g, 0, ui::H - 5, ui::W * frac, 5, ui::A1);
-  float hy = ui::H - 46, hx = rtl ? ui::W - 40 - 640 : 40;
+  // Dicas: Escolher, A e B sempre; X e LB RB só se couberem (4:3 e texto grande): cada uma sai inteira, nunca cortada.
+  using ctl::Act; const auto C = ctl::Ctx::PlayerShelf;
+  const float avail = ui::W - 80, hy = ui::H - 46;
+  float wChoose = 44 + 8 + gfx::textWidth(g, ui::F_SMALL, tr(K::ChooseRow)) + 26;
+  float wOpen = ctlHintWidth(g, C, Act::Open, settings.lang, K::WatchNow), wBack = ctlHintWidth(g, C, Act::Back, settings.lang, K::PlayerShelfBack);
+  float wLater = ctlHintWidth(g, C, Act::WatchLater, settings.lang), wTab = ctlHintWidth(g, C, Act::PrevTab, settings.lang);
+  float used = wChoose + wOpen + wBack;
+  bool showLater = used + wLater <= avail; if (showLater) used += wLater;
+  bool showTab = used + wTab <= avail; if (showTab) used += wTab;
+  float hx = rtl ? ui::W - 40 - used : 40;
   hx = hint(g, hx, hy, tr(K::BtnHorizontal), XG, tr(K::ChooseRow));
-  hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::Open, settings.lang, K::WatchNow);
-  hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::WatchLater, settings.lang);
-  hx = ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::PrevTab, settings.lang);
-  ctlHint(g, hx, hy, ctl::Ctx::PlayerShelf, ctl::Act::Back, settings.lang, K::PlayerShelfBack);
+  hx = ctlHint(g, hx, hy, C, Act::Open, settings.lang, K::WatchNow);
+  if (showLater) hx = ctlHint(g, hx, hy, C, Act::WatchLater, settings.lang);
+  if (showTab) hx = ctlHint(g, hx, hy, C, Act::PrevTab, settings.lang);
+  ctlHint(g, hx, hy, C, Act::Back, settings.lang, K::PlayerShelfBack);
 }
 
 inline void UiContext::playerUpdate(uint64_t now) {
