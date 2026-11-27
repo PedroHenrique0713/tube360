@@ -248,10 +248,12 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     bool hidden=flag(v,"isUpcoming") || v.contains("upcomingEventData");
     const auto& playable=get(v,"isPlayable");
     hidden=hidden || (playable.is<bool>() && !playable.get<bool>() && item.members==Membership::None);
+    bool live=false;
     for (auto& overlay:arr(overlays)) {
         const auto& timing=get(overlay,"thumbnailOverlayTimeStatusRenderer");
         auto style=str(timing,"style");
         hidden=hidden || style.find("UPCOMING")!=string::npos;
+        live=live || style=="LIVE";
         item.shortForm=item.shortForm || style.find("SHORTS")!=string::npos;
         if (!item.duration) item.duration=seconds(text(get(timing,"text")));
         double progress=num(get(get(overlay,"thumbnailOverlayResumePlaybackRenderer"),"percentDurationWatched"));
@@ -261,9 +263,12 @@ void render(const J& v, const string& key, const string& section, Parsed& out) {
     for (auto* badge:badges) {
         auto style=str(*badge,"style");
         hidden=hidden || style.find("UPCOMING")!=string::npos;
+        live=live || style.find("LIVE_NOW")!=string::npos;
         item.shortForm=item.shortForm || style.find("SHORTS")!=string::npos;
     }
     if (hidden || !id(item.id)) return;
+    // -1 = ao vivo (só com a marca explícita); duração 0 continua sendo "desconhecida"
+    if (live && !item.duration) item.duration=-1;
     if (playlist) item.type="playlist";
     else if (channel(item.id) || type.find("CHANNEL")!=string::npos) item.type="channel";
     else if (type=="LOCKUP_CONTENT_TYPE_PLAYLIST" || item.id.compare(0,2,"VL")==0 || item.id.compare(0,2,"PL")==0 || item.id.compare(0,2,"RD")==0) item.type="playlist";
@@ -279,6 +284,12 @@ void walk(const J& j, Parsed& out, const string& section="", int depth=0) {
         static const std::set<string> renderers={"tileRenderer","videoRenderer","gridVideoRenderer","playlistVideoRenderer","playlistPanelVideoRenderer",
             "lockupViewModel","channelRenderer","gridChannelRenderer","playlistRenderer","gridPlaylistRenderer","reelItemRenderer","shortsLockupViewModel"};
         if (renderers.count(k)) render(v,k,section,out);
+        else if (k=="itemSectionRenderer") {
+            // WEB: o dia do Histórico vem no cabeçalho da seção, que `ignored` descarta
+            auto heading=text(get(get(get(v,"header"),"itemSectionHeaderRenderer"),"title"));
+            walk(get(v,"contents"),out,heading.empty()?section:heading,depth+1);
+            walk(get(v,"continuations"),out,section,depth+1);
+        }
         else if (k=="tabRenderer") { if (flag(v,"selected")) walk(get(v,"content"),out,section,depth+1); }
         else if (k=="shelfRenderer") {
             auto heading=text(get(v,"title"));

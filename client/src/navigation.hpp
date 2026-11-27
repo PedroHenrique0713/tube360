@@ -9,7 +9,8 @@ struct NavItem {
   bool shortForm = false, verified = false;
   int subscribed = -1; // só no resultado de canal da busca: -1 desconhecido, 0/1
   std::string date, views, description;
-  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = duration; v.members = members; return v; }
+  // Convenção de duração (CONTRATO): 0 = ao vivo, -1 = desconhecida, > 0 = segundos.
+  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = std::max(0,duration); v.live = duration == 0; v.members = members; return v; }
 };
 struct NavPage : ItemGrid {
   yt::search::Filters filters;
@@ -45,6 +46,7 @@ struct NavDraw {
   const char* tr(K key) const { return i18n::get(lang, key); }
 };
 struct Navigation {
+  int columnsSetting = 4;  // Configurações > colunas; a grade das páginas de navegação segue o mesmo ajuste da Home
   local::Library* local = nullptr;
   bool signedIn = false;
   uint64_t localRevision = 0;
@@ -163,7 +165,7 @@ struct Navigation {
           item.byline = gfx::ellipsize(g, ui::F_TINY, item.channel, 140);
           continue;
         }
-        float width = std::floor((ui::W-200-(ui::columns(4)-1)*24)/ui::columns(4));
+        float width = std::floor((ui::W-200-(ui::columns(columnsSetting)-1)*24)/ui::columns(columnsSetting));
         if (item.shortForm) width = std::min(width*.5f,112.f);
         item.titleLines = gfx::wrap(g, item.shortForm ? ui::F_SMALL : ui::F_KEY, item.title, width-(p.kind=="library" && !item.shortForm ? 24 : 0), 2);
         std::string by = item.type == "album" ? std::string(i18n::get(lang, K::Album)) + (item.channel.empty() ? "" : " · " + item.channel) :

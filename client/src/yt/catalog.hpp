@@ -225,6 +225,8 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailOverlayTimeStatusRenderer")) out.duration = seconds(text(get(*badge,"text")));
   if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
   if (out.type == "video" && !out.duration) if (const auto* badge = find(v,"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
+  // Transmissão ao vivo: só com a marca explícita (duração 0 é desconhecida). -1 no Item e no fio = ao vivo.
+  if (out.type == "video" && !out.duration && (findValue(v,"style","LIVE") || findValue(v,"style","BADGE_STYLE_TYPE_LIVE_NOW"))) out.duration = -1;
   if (!out.duration) for (const auto& c : array(get(v,"fixedColumns"))) out.duration = seconds(text(get(get(c,"musicResponsiveListItemFixedColumnRenderer"),"text")));
   if (!out.duration && cols.size() > 1) {
     for (const auto& c : cols) {
@@ -261,6 +263,11 @@ inline void walk(const J& v, Page& p, bool music, std::set<string>& seen, string
     const auto& key = kv.first; const auto& x = kv.second;
     if (key == "tabRenderer") {
       if (flag(x,"selected") || (music && !x.contains("selected"))) walk(get(x,"content"),p,music,seen,section,depth+1);
+    } else if (key == "itemSectionRenderer") {
+      // WEB: o dia do Histórico vem no cabeçalho da seção (itemSectionHeaderRenderer), que o walk ignora como "header".
+      string heading = text(get(get(get(x,"header"),"itemSectionHeaderRenderer"),"title"));
+      walk(get(x,"contents"),p,music,seen,heading.empty() ? section : heading,depth+1);
+      walk(get(x,"continuations"),p,music,seen,section,depth+1);
     } else if (key == "horizontalListRenderer") {
       walk(get(x,"items"),p,music,seen,section,depth+1);
     } else if (key == "musicCarouselShelfRenderer" || key == "musicShelfRenderer" || key == "shelfRenderer") {

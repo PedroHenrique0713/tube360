@@ -124,6 +124,32 @@ static void feedContract(const std::string& dir) {
     feed.layout.build(feed.items,selected,4,false,2);
     selected=0; feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,0,1);
     require(selected==7,"Home shelves: D-pad keeps the column when moving to the next shelf");
+    {  // um Short no meio ou no começo do dia não pode esconder o título do dia (#29)
+      std::vector<Video> day; auto add=[&](const char* id,const char* section,bool shortForm) { Video v; v.id=id; v.section=section; v.shortForm=shortForm; day.push_back(v); };
+      add("f61dayvid01","Hoje",false); add("f61dayshr01","Hoje",true); add("f61dayvid02","Hoje",false);
+      add("f61dayshr02","Ontem",true); add("f61dayvid03","Ontem",false);
+      ItemGrid grid; int sel=0; grid.build(day,sel,4,false,1);
+      int headings=0; for (const auto& row:grid.rows) headings+=!row.heading.empty();
+      require(headings==2 && grid.rows[0].heading=="Hoje","History days: a Short between videos of one day adds no heading, and the next day still gets its own");
+    }
+    {  // ao vivo só com a marca explícita; estreia agendada e vídeo sem duração nunca viram "AO VIVO" (nav e feed da conta)
+      FeedMock live; live.account=true; live.expectedBrowse="FEsubscriptions";
+      live.body=R"({"contents":[{"videoRenderer":{"videoId":"f61livvid01","title":{"simpleText":"Live"},"thumbnailOverlays":[{"thumbnailOverlayTimeStatusRenderer":{"style":"LIVE","text":{"simpleText":"LIVE"}}}]}},{"videoRenderer":{"videoId":"f61livvid02","title":{"simpleText":"No length"}}},{"videoRenderer":{"videoId":"f61livvid03","title":{"simpleText":"Normal"},"lengthText":{"simpleText":"4:05"}}}]})";
+      yt::ConsoleAccount account(live,path);
+      auto reply=account.request("/api/nav?kind=subscriptions",1000,10);
+      NavPage page; page.kind="subscriptions";
+      require(reply.ok() && Navigation::parse(reply.body,page) && page.items.size()==3,"live fixture lists three videos");
+      require(page.items[0].duration<0 && page.items[1].duration==0 && page.items[2].duration==245,"nav: LIVE marker -> -1, no length -> 0 (unknown), 4:05 -> 245");
+      auto feed=parseNativeFeed(account.request("/api/feed?kind=subs",1001,11));
+      require(feed.items.size()==3 && feed.items[0].live && !feed.items[1].live && feed.items[1].dur==0 && !feed.items[2].live && feed.items[2].dur==245,"feed wire: live flag only with the marker");
+    }
+    {  // Histórico WEB: o título do dia vem em itemSectionRenderer.header.itemSectionHeaderRenderer
+      FeedMock days; days.account=true; days.expectedBrowse="FEhistory";
+      days.body=R"({"contents":[{"itemSectionRenderer":{"header":{"itemSectionHeaderRenderer":{"title":{"simpleText":"Hoje"}}},"contents":[{"videoRenderer":{"videoId":"f61hisvid01","title":{"simpleText":"A"}}}]}},{"itemSectionRenderer":{"header":{"itemSectionHeaderRenderer":{"title":{"simpleText":"Ontem"}}},"contents":[{"videoRenderer":{"videoId":"f61hisvid02","title":{"simpleText":"B"}}}]}}]})";
+      yt::ConsoleAccount account(days,path);
+      NavPage page; page.kind="history"; auto reply=account.request("/api/nav?kind=history",1000,10);
+      require(reply.ok() && Navigation::parse(reply.body,page) && page.items.size()==2 && page.items[0].section=="Hoje" && page.items[1].section=="Ontem","History: day headings from itemSectionHeaderRenderer reach the NavItem section");
+    }
     std::cout<<"PASS account home shelves: titled scrolling rows from the TV Home, continuation appends\n";
   }
   FeedMock variants; variants.account=true; variants.expectedBrowse="FEwhat_to_watch";

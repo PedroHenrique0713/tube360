@@ -14,7 +14,7 @@ inline void UiContext::navInput(uint64_t now) {
   if (p.kind=="search") searchFiltersPress(p);
   int count = (int)p.items.size();
   if (p.musicHome()) { if (count) p.sel = std::clamp(p.sel, 0, count - 1); }
-  else p.grid(ui::columns(4),settings.hideShorts);
+  else { nav.columnsSetting = settings.cols; p.grid(ui::columns(settings.cols),settings.hideShorts); }
   bool hasItems = p.musicHome() ? count != 0 : !p.rows.empty();
   if (channel) channelSortInput(p);
   bool left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), up = in.hit(Input::UP), down = in.hit(Input::DOWN), a = in.hit(Input::A);
@@ -113,7 +113,8 @@ inline float Navigation::drawCollectionPage(NavDraw& d) {
   }
   float top = p.kind == "library" ? 120 : 178;
   if (p.kind == "subscriptions" && !p.channels.empty()) {
-    const float stripY = 126;
+    // logo abaixo do cabeçalho: com subtítulo vazio (Inscrições) a faixa sobe até o fim do título (#27)
+    const float stripY = p.displaySub.empty() ? 28 + g.fonts[ui::F_BIG].lineH + 18 : 126;
     int channelCount=ui::narrow ? 4 : ui::large ? 5 : 7;
     int first = std::max(0, p.channelSel-channelCount+1);
     for (int c = first; c < std::min(first+channelCount, (int)p.channels.size()); c++) {
