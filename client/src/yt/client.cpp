@@ -88,6 +88,19 @@ string member(const char* name, const string& value) {
 bool httpsUrl(const string& u) {
     return updates::youtubeUrl(u);
 }
+// Procura recursiva por uma chave, ou por uma chave com um valor de texto (marcas de transmissão ao vivo e de estreia agendada).
+bool hasKey(const J& j, const string& key, int depth = 0) {
+    if (depth > 12) return false;
+    if (j.is<Object>()) { for (const auto& kv : j.get<Object>()) if (kv.first==key || hasKey(kv.second,key,depth+1)) return true; }
+    else if (j.is<Array>()) for (const auto& v : j.get<Array>()) if (hasKey(v,key,depth+1)) return true;
+    return false;
+}
+bool hasValue(const J& j, const string& key, const string& value, int depth = 0) {
+    if (depth > 12) return false;
+    if (j.is<Object>()) { for (const auto& kv : j.get<Object>()) { if (kv.first==key && kv.second.is<string>() && kv.second.get<string>()==value) return true; if (hasValue(kv.second,key,value,depth+1)) return true; } }
+    else if (j.is<Array>()) for (const auto& v : j.get<Array>()) if (hasValue(v,key,value,depth+1)) return true;
+    return false;
+}
 void collect(const J& j, Page& out, std::set<string>& seen, size_t limit) {
     if (out.cards.size() >= limit) return;
     if (j.is<Array>()) {
@@ -129,8 +142,10 @@ void collect(const J& j, Page& out, std::set<string>& seen, size_t limit) {
                         if (!length.empty()) {
                             long long total = 0, part = 0; bool valid = true;
                             for (char c : length) { if (c==':') { total = total*60+part; part = 0; } else if (c>='0' && c<='9') part = part*10+(c-'0'); else valid = false; }
-                            card.duration = valid && length.find(':')!=string::npos ? int(std::min<long long>(total*60+part,86400LL*7)) : 0;
+                            if (valid && length.find(':')!=string::npos) card.duration = int(std::min<long long>(total*60+part,86400LL*7));
                         }
+                        // ao vivo só com a marca explícita; estreia agendada (UPCOMING) nunca vira LIVE
+                        if (card.duration<0 && !hasKey(v,"upcomingEventData") && !hasKey(v,"isUpcoming") && (hasValue(v,"style","LIVE") || hasValue(v,"style","BADGE_STYLE_TYPE_LIVE_NOW"))) card.duration = 0;
                     }
                     out.cards.push_back(std::move(card));
                 }

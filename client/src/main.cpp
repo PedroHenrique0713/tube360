@@ -79,6 +79,7 @@ struct ItemGrid {
       gridSize = (int)items.size(); gridCols = cols; gridHide = hide; gridGrouped = grouped;
       rows.clear(); itemRows.assign(items.size(), -1);
       int shortRow = -1;
+      std::string lastSection;
       for (int i = 0; i < gridSize; ++i) {
         if (items[i].shortForm) {
           if (hide) continue;
@@ -86,7 +87,10 @@ struct ItemGrid {
           rows[shortRow].items.push_back(i); itemRows[i] = shortRow;
         } else {
           bool newGroup = false;
-          if constexpr (requires { items[i].section; }) newGroup = grouped && !items[i].section.empty() && (i == 0 || items[i].section != items[i-1].section);
+          if constexpr (requires { items[i].section; }) {
+            newGroup = grouped && !items[i].section.empty() && items[i].section != lastSection;
+            lastSection = items[i].section;  // só vídeos comuns: um Short no meio não esconde o título do dia
+          }
           bool full = !rows.empty() && (int)rows.back().items.size() == cols;
           if (!rows.empty() && rows.back().carousel && !rows.back().shorts && !newGroup) full = false;
           if (rows.empty() || rows.back().shorts || full || newGroup) {
@@ -130,7 +134,7 @@ struct ItemGrid {
   }
 };
 
-struct Video { std::string id, channel, views, title, date, section; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; bool shortForm = false; };
+struct Video { std::string id, channel, views, title, date, section; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; bool shortForm = false, live = false; };
 struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; std::string errorDetail; bool more = true, loadingMore = false, direct = false; ItemGrid layout; };
 struct Shelf { std::string title, query; Feed feed; int sel = 0; std::string kind = "search"; uint64_t stamp = 0; };
 
@@ -150,6 +154,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
     auto f = net::split(lines[i], '\t');
     if (f.size() < 5 || f[0].empty()) continue;
     Video v; v.id = f[0]; v.dur = std::atoi(f[1].c_str()); v.channel = f[2]; v.views = f[3]; v.title = f[4];
+    if (v.dur < 0) { v.dur = 0; v.live = true; }  // o fio marca transmissão ao vivo com duração -1; 0 é duração desconhecida
     if (f.size() > 5) { double pos = std::atof(f[5].c_str()); if (std::isfinite(pos)) v.pos = std::max(0.0, pos); }
     if (f.size() > 6) v.members = yt::membershipWire(f[6]);
     if (f.size() > 7) v.shortForm = f[7] == "short";
@@ -253,6 +258,8 @@ struct Worker {
           for (auto& card : page.cards) {
             Video v; v.id = std::move(card.id); v.title = std::move(card.title); v.members = card.members; v.shortForm = card.shortForm;
             v.channel = std::move(card.channel); v.views = std::move(card.views); v.date = std::move(card.date); v.dur = card.duration;
+            if (v.dur == 0) { v.live = true; }  // Card: -1 desconhecida, 0 ao vivo (marca explícita no collect)
+            if (v.dur < 0) v.dur = -1;
             r.feed.items.push_back(std::move(v));
           }
           r.feed.title = j.kind == 6 ? j.query : j.a;
@@ -305,10 +312,11 @@ struct Worker {
           }
         }
         if (!native && (j.native || !net::serverEnabled || (consoleAccount && consoleAccount->active())) && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
-          // #15: a capa HD (1280x720) reduzida ao cartão; sem ela, a de 320x180 de sempre. No console o JPEG HD só vale para
-          // o modo de capa grande (decodificar 1280x720 no Xenon custa CPU e 3,6 MB), então lá o padrão segue 320x180.
+          // #15: a capa HD (1280x720) reduzida ao cartão; sem ela, a de 320x180 de sempre. No console o JPEG HD só vale para a
+          // capa grande (640x360, uma imagem): decodificar 1280x720 por cartão custa ~19x de CPU e ~11 MB de pico no Xenon, inclusive
+          // com 3 colunas (384x216), texto grande e 480p; lá os cartões seguem em 320x180.
 #ifdef __XSDK__
-          const bool wantHd = j.w > 320;
+          const bool wantHd = j.w >= 640;
 #else
           const bool wantHd = true;
 #endif
@@ -1690,7 +1698,7 @@ int run(int argc, char** argv) {
 
     if (screen == SETTINGS) screens.settingsDraw();
 
-    if (screen == NAV) { nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus, settings.hideShorts); accountPhoto(); }
+    if (screen == NAV) { nav.columnsSetting = settings.cols; nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus, settings.hideShorts); accountPhoto(); }
 
     if (screen == HOME || screen == SEARCH || screen == SETTINGS || screen == NAV) {
       screens.railDraw(remoteOnline);
@@ -1764,8 +1772,8 @@ int run(int argc, char** argv) {
   LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes + thumbs.bannerBytes), (unsigned)thumbs.peakPending);
   LOG("%s saindo", brandName.c_str());
   boot_event("end","app.exit","normal shutdown frames=%llu run_ms=%llu simulated_frame_delay_ms=%u",(unsigned long long)frame,(unsigned long long)(SDL_GetTicks()-runStart),g.simFrameDelay);
+  localUI.shutdown();  // F61 (#42): o gravador da Biblioteca termina antes de SDL_Quit e da destruição de mutex/condição; antes do boot_close para a última gravação ficar no log
   boot_close();
-  localUI.shutdown();  // F61 (#42): o gravador da Biblioteca termina antes de SDL_Quit e da destruição de mutex/condição
   SDL_Quit();
   return 0;
 }

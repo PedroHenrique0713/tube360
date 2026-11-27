@@ -56,7 +56,7 @@ inline void UiContext::homeInput(uint64_t now) {
 inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
   static float selAnim[600] = {};
   const int cols = ui::columns(settings.cols);
-  const float gap=24, cw=std::floor((ui::W-ui::X0-64-(cols-1)*gap)/cols), th=std::round(cw*9/16), rowH=th+(ui::large ? 128 : 106), top=150;
+  const float gap=24, cw=std::floor((ui::W-ui::X0-64-(cols-1)*gap)/cols), th=std::round(cw*9/16), rowH=th+cardTextBlock(g,false), top=150;
   auto& grid=cur.feed.layout;
   grid.build(cur.feed.items,cur.sel,cols,settings.hideShorts,homeShelves(cur));
   float shortW=std::min(cw*.5f,112.f), shortH=shortW*16/9, shortHeading=std::max(30.f,g.fonts[ui::F_KEY].lineH+8), shortRowH=shortHeading+shortH+(ui::large ? 124 : 100);
@@ -69,7 +69,7 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
   for (const auto& row:grid.rows) {
     float y=rowY;
     rowY+=rowHeight(row);
-    if (y<140 || y>=646) continue;
+    if (y<140 || y>=646-std::min(60.f,th*.4f)) continue;  // sem tira de miniatura sobre a barra de dicas
     if (!row.heading.empty()) {  // título da prateleira do YouTube (conta)
       if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::text(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-ui::X0-64),ui::X0,y,ui::TEXT);
       y+=groupH;

@@ -110,7 +110,7 @@ static void drawContract() {
     return ys;
   };
   nav.draw(g,thumbs,worker,1,1,i18n::Lang::EN,true);
-  auto rows=artRows(); require(rows==std::vector<float>({210,451.75}),"actual renderer draws second thumbnail row even when its text crosses footer");
+  auto rows=artRows(); require(rows==std::vector<float>({210,485.75}),"actual renderer draws second thumbnail row even when its text crosses footer");
   std::cout<<"PASS draw: thumbnail rows at y="<<rows[0]<<", "<<rows[1]<<"; old whole-card cull suppressed row 2\n";
   nav.page().items={card(100,true),card(101,true)}; nav.page().gridSize=-1;
   nav.page().sel=0; nav.page().scroll=0; nav.format(nav.page(),g,i18n::Lang::EN);
