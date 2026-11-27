@@ -12,11 +12,6 @@ Tube360 is MIT licensed (see `LICENSE`). It ships or depends on:
 | [Phosphor Icons](https://phosphoricons.com) (player controls and ratings) | `client/third_party/phosphor/`, rasterized into `client/src/icons.hpp` by `tools/gen-icons.py` | MIT (`client/third_party/phosphor/LICENSE`) |
 | [yt-cast-receiver](https://github.com/patrickkfkan/yt-cast-receiver) | `cast/` (npm) | MIT |
 | [YouTube.js](https://github.com/LuanRT/YouTube.js) (`youtubei.js`) | `cast/` (npm), the YouTube account | MIT |
-| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | server (pip) | Unlicense |
-| [FastAPI](https://github.com/fastapi/fastapi), [Uvicorn](https://github.com/encode/uvicorn) | server (pip) | MIT / BSD-3-Clause |
-| [PyChromecast](https://github.com/home-assistant-libs/pychromecast) | server (pip) | MIT |
-| [Pillow](https://github.com/python-pillow/Pillow) | server (pip) | MIT-CMU |
-| [FFmpeg](https://ffmpeg.org) | server (system binary, invoked as a process) | LGPL/GPL |
 | [FFmpeg 7.1.5](https://ffmpeg.org/releases/ffmpeg-7.1.5.tar.xz) | H.264/AAC playback in the Xbox title (static) | LGPL-2.1-or-later |
 | [xsdk](https://github.com/xenosworks/xsdk), [vulkan4xenon](https://github.com/xenosworks/vulkan4xenon) | Xbox 360 build toolchain (not vendored) | MIT |
 | [SDL-xenon](https://github.com/xenosworks/SDL-xenon) | Xbox SDL port | zlib |

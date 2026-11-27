@@ -1,8 +1,7 @@
 # Native playback on Xbox 360
 
-The v0.3.0 client runs YouTube on the console. A PC is an optional reserve. Without `server.txt` beside
-the XEX, or with `server=off`, account, catalogue, Music, phone receiver and speaker control do not
-need Python/Node services. This supersedes the pre-integration plan formerly kept in this document.
+The client runs YouTube on the console. Account, catalogue, Music, phone receiver and speaker control do not
+need a PC or any Python/Node service. This supersedes the pre-integration plan formerly kept in this document.
 Its dated measurements remain in Git (`git show 8236373:docs/STANDALONE.md`) and the benchmark fixtures;
 they describe those earlier experiments, not the current feature boundary.
 
@@ -18,15 +17,14 @@ they describe those earlier experiments, not the current feature boundary.
 | Audio-only Music | `music_player.hpp`: AAC-only decode, local radio/playlist queue, optional lyrics and return to video at the current position. |
 | Phone Cast | `client/src/cast/`: DIAL TCP 8134, SSDP UDP 1900 and YouTube lounge. Pairing, commands, queue state, volume/mute and persistent device/screen identity. |
 | Nest | `nest.hpp`, `player_nest.hpp`: direct Cast v2 TLS on port 8009, Default Media Receiver, selected YouTube audio URL and speaker-clock picture. |
-| Sleep | Local deadline/end-of-video handling in `main.cpp` when server requests are disabled; warning/fade and kernel shutdown through `sleep.hpp`. Optional server mode retains its HTTP timer. |
+| Sleep | Local deadline/end-of-video handling in `main.cpp`; warning/fade and kernel shutdown through `sleep.hpp`. |
 | Captions | Native caption discovery/JSON3, language selection and cues against the displayed clock. Live captions remain unavailable. |
-| Reserve | `server/` + `cast/`: original AVC/AAC remux when eligible, otherwise MPEG-1/MP2 conversion and the legacy HTTP control protocol. |
 
 A media URL is distinct from the account grant. Successful browse, sign-in or player metadata does not prove
 CDN byte delivery. YouTube can block clients or media independently. Saved grants, signed URLs, Cast identity
 and Nest ownership files must not enter releases.
 
-Native `requestSleep` handles set/add/cancel locally when `net::serverEnabled` is false. Deadlines use
+Native `requestSleep` handles set/add/cancel locally. Deadlines use
 `SDL_GetTicks`; natural end suppresses autoplay and takes shutdown priority. Console mode targets Xbox only.
 The native warning/fade can be exercised on desktop; the final physical power-off must be accepted on Xbox.
 
@@ -35,7 +33,7 @@ The native warning/fade can be exercised on desktop; the final physical power-of
 `video_mode=auto|720p60|1080p30` sets source preference. Automatic can prefer 1080p detail; the fast profile
 favors 720p60, and detail caps source cadence at 30 fps. These choices describe input, not guaranteed throughput.
 Under pressure the player can reduce presentation to 30 fps and move to a lighter native video rendition while
-retaining the audio clock, before trying a configured server reserve. The project target is 720p30 including
+retaining the audio clock. The project target is 720p30 including
 60 fps input; acceptance must measure actual displayed frames.
 
 The 1080p30 decoder profile now opens six FRAME workers across Xenon's HW threads `0,2,4,1,3,5`
@@ -52,7 +50,7 @@ with fonts/icons rasterized at output scale. The GPU downscales larger YUV input
 Mapped linear surfaces avoid extra copies when supported; unsupported layouts keep direct playback through
 the copy path. FFmpeg uses Xenon-safe VMX rather than assuming generic PowerPC instructions work.
 
-Original/dubbed track selection carries through TV audio, native Nest, Music and reserve streams.
+Original/dubbed track selection carries through TV audio, native Nest and Music.
 Original is preferred over automatic dubs. Interface-language preference falls back to original.
 
 ## Nest and phone

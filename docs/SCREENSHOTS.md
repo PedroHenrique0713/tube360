@@ -1,7 +1,7 @@
 # v0.3.0 screenshot notes
 
 App images are JPEGs (1280×720, or 640×480 for the CRT captures), captured from the current desktop app with the production UI/player,
-`server=off`, a dedicated HOME/assets directory and recorded transports. They illustrate console mode;
+a dedicated HOME/assets directory and recorded transports. They illustrate console mode;
 they do not measure Xbox frame rate or prove access to a real account, phone or speaker.
 
 | File in `docs/img/` | Content |
