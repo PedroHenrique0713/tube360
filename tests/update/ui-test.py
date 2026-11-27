@@ -51,6 +51,9 @@ try:
         for source in (folder / 'ui').iterdir():
             if source.is_file() and source.suffix not in ('.log',) and not source.name.startswith('update-'):
                 shutil.copyfile(source, assets / source.name)
+        if lang == 'ar':  # sem a fonte Noto o texto árabe não desenha e a captura não prova nada
+            for font in (ROOT / 'client/assets').glob('noto-sans-arabic-*.ttf'):
+                shutil.copyfile(font, assets / font.name)
         for filename in ('update-app-state.json', 'tube360.next.xex', 'tube360.next.xex.part'):
             (assets / filename).unlink(missing_ok=True)
         (assets / 'update-auto.txt').unlink(missing_ok=True)
@@ -66,7 +69,7 @@ try:
             subprocess.run([str(folder / 'tube360-ui')], env=env, stdout=log, stderr=subprocess.STDOUT, check=True, timeout=25)
         # O 2º A só baixa se o painel já estiver em "disponível": confere no log do serviço, não só na imagem.
         expected = {'downloading-pt': ['download inicio'], 'ready-pt': ['download inicio', 'staged build='],
-                    'cancelled-pt': ['download inicio'], 'error-pt': ['download inicio', 'download fim erro=']}
+                    'cancelled-pt': ['download inicio', 'download cancelado'], 'error-pt': ['download inicio', 'download fim erro=']}
         if name in expected:
             service_log = (assets / 'update.log').read_text()
             for needle in expected[name]:

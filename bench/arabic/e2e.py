@@ -1,4 +1,8 @@
 """Capture production UI with closed offline transports, isolated HOME/XDG and synthetic media."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import json
 import os
 from pathlib import Path
@@ -37,7 +41,7 @@ def run(name, lang='ar', height=720, large=False, keys='', seconds=2.5, missing=
     results.append(dict(name=name,image=str(assets/'screen.png')))
 
 run('home-ar')
-run('settings-ar',XT_SCREEN='settings',keys='DDDDD',seconds=3)
+run('settings-ar',XT_SCREEN='settings',keys=seq(5),seconds=3)
 run('search-ar',keys='YRAAA',seconds=3)
 run('search-latin-ar',keys='Y]ARA',seconds=3)
 run('player-ar',XT_PLAY='zjSVzGsljwA',seconds=3.5)
@@ -47,9 +51,9 @@ run('channel-pt',lang='pt',XT_NAV='channel',XT_NAV_ID='UC0000000000000000000001'
 run('titles-en',lang='en')
 run('titles-es',lang='es')
 run('large-home-ar',large=True)
-run('large-settings-ar',large=True,XT_SCREEN='settings',keys='DDDDD',seconds=3)
+run('large-settings-ar',large=True,XT_SCREEN='settings',keys=seq(5),seconds=3)
 run('crt-home-ar',height=480)
-run('crt-settings-ar',height=480,XT_SCREEN='settings',keys='DDDDD',seconds=3)
+run('crt-settings-ar',height=480,XT_SCREEN='settings',keys=seq(5),seconds=3)
 run('crt-search-ar',height=480,keys='YRAAA',seconds=3)
 run('crt-error-ar',height=480,XT_PLAY='error000001',seconds=3)
 run('1080-home-ar',height=1080)
@@ -60,10 +64,10 @@ run('search-back-ar',keys='YRAAAB',seconds=3)
 if not wanted or 'search-back-ar' in wanted:
     assert 'tela 0, vídeo' in (work/'search-back-ar/app.log').read_text()
 # Language can switch at runtime, persist and switch back without changing controller directions.
-run('switch-to-ar',lang='es',XT_SCREEN='settings',keys='DDDDDR',seconds=3.5)
+run('switch-to-ar',lang='es',XT_SCREEN='settings',keys=seq(5,'R'),seconds=3.5)
 if not wanted or 'switch-to-ar' in wanted:
     assert 'lang=ar' in (work/'switch-to-ar/settings.txt').read_text()
-run('switch-from-ar',lang='ar',XT_SCREEN='settings',keys='DDDDDR',seconds=3.5)
+run('switch-from-ar',lang='ar',XT_SCREEN='settings',keys=seq(5,'R'),seconds=3.5)
 if not wanted or 'switch-from-ar' in wanted:
     assert 'lang=en' in (work/'switch-from-ar/settings.txt').read_text()
 (work/'screenshots.json').write_text(json.dumps(results,indent=2))

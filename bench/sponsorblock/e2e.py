@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 """PC real, resposta pública gravada, mídia sintética e HOME/assets isolados."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import json
 import os
 from pathlib import Path
@@ -101,16 +105,16 @@ if __name__ == '__main__':
     cases = {}
     for lang in ('pt', 'en', 'es', 'ar'):
         for mode in ('off', 'button', 'auto'):
-            cases[f'settings-{lang}-{mode}'] = dict(screen='settings', lang=lang, mode=mode, keys='D'*15+'A', seconds=2.5, key_ms=70)
+            cases[f'settings-{lang}-{mode}'] = dict(screen='settings', lang=lang, mode=mode, keys=seq(15,'A'), seconds=2.5, key_ms=70)
         cases[f'button-{lang}'] = dict(lang=lang, seconds=2)
         cases[f'auto-{lang}'] = dict(lang=lang, mode='auto', seconds=3)
     cases.update({
-        'settings-sd-ar': dict(screen='settings', lang='ar', height=480, keys='D'*15+'A', seconds=2.5, key_ms=70),
-        'settings-large-ar': dict(screen='settings', lang='ar', large=True, keys='D'*15+'A', seconds=2.5, key_ms=70),
-        'settings-sd': dict(screen='settings', lang='es', height=480, keys='D'*15+'A', seconds=2.5, key_ms=70),
-        'settings-large': dict(screen='settings', lang='pt', large=True, keys='D'*15+'A', seconds=2.5, key_ms=70),
-        'settings-switch': dict(screen='settings', keys='D'*15+'ADR', seconds=3, key_ms=70),
-        'settings-back': dict(screen='settings', keys='D'*15+'AB', seconds=3, key_ms=70),
+        'settings-sd-ar': dict(screen='settings', lang='ar', height=480, keys=seq(15,'A'), seconds=2.5, key_ms=70),
+        'settings-large-ar': dict(screen='settings', lang='ar', large=True, keys=seq(15,'A'), seconds=2.5, key_ms=70),
+        'settings-sd': dict(screen='settings', lang='es', height=480, keys=seq(15,'A'), seconds=2.5, key_ms=70),
+        'settings-large': dict(screen='settings', lang='pt', large=True, keys=seq(15,'A'), seconds=2.5, key_ms=70),
+        'settings-switch': dict(screen='settings', keys=seq(15,'ADR'), seconds=3, key_ms=70),
+        'settings-back': dict(screen='settings', keys=seq(15,'AB'), seconds=3, key_ms=70),
         'button-expired': dict(at=19.5, seconds=3),
         'button-skip': dict(keys='.........Y', seconds=4),
         'button-paused': dict(keys='....A....Y', seconds=3.5),

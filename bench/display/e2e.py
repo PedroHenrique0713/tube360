@@ -1,4 +1,8 @@
 """Capturas do mesmo app com transporte gravado, sem conta ou rede reais."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import json
 import os
 from pathlib import Path
@@ -72,21 +76,21 @@ run('480-home-scroll', keys='D')
 run('480-rail', keys='DD', XT_SCREEN='rail')
 run('480-phone', keys='DDDDDA', XT_SCREEN='rail')
 run('480-settings', XT_SCREEN='settings')
-run('480-language-en', keys='DDDDDR', XT_SCREEN='settings')
-run('480-language-pt', keys='DDDDDL', XT_SCREEN='settings')
-run('480-fill-toggle', keys='DDDDDDDDDDDDR', XT_SCREEN='settings')
-run('480-language', keys='DDDDD', XT_SCREEN='settings')
-run('480-fit-setting', keys='DDDDDDDDDDDD', XT_SCREEN='settings')
+run('480-language-en', keys=seq(5,'R'), XT_SCREEN='settings')
+run('480-language-pt', keys=seq(5,'L'), XT_SCREEN='settings')
+run('480-fill-toggle', keys=seq(12,'R'), XT_SCREEN='settings')
+run('480-language', keys=seq(5), XT_SCREEN='settings')
+run('480-fit-setting', keys=seq(12), XT_SCREEN='settings')
 run('480-search', XT_SCREEN='search')
 run('480-channel', XT_NAV='channel', XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw')
 run('480-music', XT_NAV='music', XT_MUSIC='1')
 run('480-player-captions', seconds=3.5, captions=True, XT_PLAY='4p_9OPKgcDE')
 run('480-player-fit', seconds=3, XT_PLAY='4p_9OPKgcDE')
 run('480-player-fill', seconds=3, fill=True, XT_PLAY='4p_9OPKgcDE')
-run('720-text-toggle', height=720, keys='DDDDDDDDDDDR', XT_SCREEN='settings')
+run('720-text-toggle', height=720, keys=seq(11,'R'), XT_SCREEN='settings')
 run('720-default', height=720)
-run('720-to480', height=720, keys='DDDDDDDDDL', XT_SCREEN='settings')
-run('480-to720', height=480, keys='DDDDDDDDDR', XT_SCREEN='settings')
+run('720-to480', height=720, keys=seq(9,'L'), XT_SCREEN='settings')
+run('480-to720', height=480, keys=seq(9,'R'), XT_SCREEN='settings')
 run('720-large-home', height=720, large=True)
 run('720-large-settings', height=720, large=True, XT_SCREEN='settings')
 run('720-large-player', height=720, large=True, seconds=3, XT_PLAY='4p_9OPKgcDE')
