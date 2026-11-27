@@ -9,7 +9,7 @@ build=Path(sys.argv[1]).resolve() if len(sys.argv)>1 else ROOT/'client/build'
 with tempfile.TemporaryDirectory(prefix='tube360-update-contracts-') as temporary:
     base=Path(temporary)
     names=('libtube360-update-core.a','libtube360-yt.a','libtube360-boot.a','libmbedcrypto.a',
-           'libmbedtls.a','libmbedx509.a','libcurl.a','libeverest.a','libp256m.a','libquickjs-ng.a')
+           'libmbedtls.a','libmbedx509.a','libcurl.a','libeverest.a','libp256m.a')
     libraries=[]
     for name in names:
         paths=list(build.rglob(name));assert len(paths)==1,(name,paths)
