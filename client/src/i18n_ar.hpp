@@ -391,6 +391,11 @@ inline const char* arabic(Key key) {
     case Key::MembersOnly: return "للأعضاء فقط";
 
     // ---- F62 Busca e canal
+    case Key::ChannelHome: return "الرئيسية";
+    case Key::SortRecent: return "الأحدث";
+    case Key::SortPopular: return "رائج";
+    case Key::SortOldest: return "الأقدم";
+    case Key::SearchTypeChannels: return "القنوات";
 
     // ---- F63 Player e Shorts
     case Key::PlayerShelfNext: return "التالي";

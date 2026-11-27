@@ -411,6 +411,11 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(MembersOnly, "Members only", "Só para membros", "Solo para miembros") \
   /* */ \
   /* ---- F62 Busca e canal */ \
+  X(ChannelHome, "Home", "Início", "Inicio") \
+  X(SortRecent, "Latest", "Mais recentes", "Más recientes") \
+  X(SortPopular, "Trending", "Em alta", "En tendencia") \
+  X(SortOldest, "Oldest", "Mais antigos", "Más antiguos") \
+  X(SearchTypeChannels, "Channels", "Canais", "Canales") \
   /* */ \
   /* ---- F63 Player e Shorts */ \
   X(PlayerShelfNext, "Up next", "A seguir", "A continuación") \
