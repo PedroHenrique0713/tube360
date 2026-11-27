@@ -91,6 +91,7 @@ struct Gfx {
   uint64_t fontRevision = 0;
   Video* video = nullptr;
   float videoFilter[2] = {};
+  float pixelAspect = 1; // largura/altura física de um pixel do framebuffer; ≠ 1 em 5:4 e em 16:9 anamórfico (outputAspect)
   SDL_Window* win = nullptr;
   float clip[4] = {-1e9f, -1e9f, 1e9f, 1e9f};
   int videoMetrics = 0;
@@ -564,7 +565,7 @@ inline float textGrad(Gfx& g, int font, const std::string& s, float x, float y, 
 
 inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 1, bool fill = false) {
   if (!g.video || !g.video->ready) return;
-  auto r = display::videoRect(w,h,g.video->w,g.video->h,fill);
+  auto r = display::videoRect(w,h,g.video->w,g.video->h,fill,g.pixelAspect);
   x += r.x; y += r.y; w = r.w; h = r.h;
   bool hd = g.video->bt709, full = g.video->fullRange;
   float c = full ? 1.f : 255.f / 224.f;
@@ -572,8 +573,10 @@ inline void videoQuad(Gfx& g, float x, float y, float w, float h, float alpha = 
                 full ? 1.f : 255.f / 219.f, full ? 0.f : 16.f / 255.f};
   // Os dois coeficientes do verde usam a cor constante dos vértices. A matriz já chega pronta ao Xenos.
   // Quatro amostras bilineares só na luma ao reduzir; a crominância 4:2:0 já tem resolução menor que a saída.
-  g.videoFilter[0] = g.video->w > w * g.scaleX + 1 ? .375f / g.video->w : 0;
-  g.videoFilter[1] = g.video->h > h * g.scale + 1 ? .375f / g.video->h : 0;
+  // O afastamento acompanha a razão fonte/saída de cada eixo (display::downscaleTap): 1080p em 720p serrilhava.
+  float ratioX = g.video->w / std::max(1.f, w * g.scaleX), ratioY = g.video->h / std::max(1.f, h * g.scale);
+  g.videoFilter[0] = g.video->w > w * g.scaleX + 1 ? display::downscaleTap(ratioX) / g.video->w : 0;
+  g.videoFilter[1] = g.video->h > h * g.scale + 1 ? display::downscaleTap(ratioY) / g.video->h : 0;
   quad(g, VIDEO, g.video->set, p, x, y, w, h, {(hd ? .187324f : .344136f) * c, (hd ? .468124f : .714136f) * c, 0, alpha},r.u0,r.v0,r.u1,r.v1);
 }
 
@@ -671,6 +674,12 @@ inline void makeSwapchain(Gfx& g, int w, int h) {
   }
 }
 
+inline float outputAspect();
+inline void updatePixelAspect(Gfx& g) {
+  float aspect = outputAspect();
+  g.pixelAspect = aspect > 0 && g.extent.height ? aspect * g.extent.height / g.extent.width : 1.f;
+  if (std::fabs(g.pixelAspect - 1.f) > .01f) LOG("saida: pixel %.3f:1 (aspecto fisico %.3f, framebuffer %ux%u)",g.pixelAspect,aspect,g.extent.width,g.extent.height);
+}
 inline bool init(Gfx& g, int W, int H, const char* title) {
   tube360_video_policy_init();
   g.simFrameDelay=tube360_board_sim_frame_delay();
@@ -727,6 +736,7 @@ inline bool init(Gfx& g, int W, int H, const char* title) {
   }
   makeSwapchain(g, W, H);
   boot_event("end","gpu.swapchain","extent=%ux%u buffers=%u",g.extent.width,g.extent.height,unsigned(g.images.size()));
+  updatePixelAspect(g);
   boot_event("begin","gpu.resources","descriptors, command buffers and pipelines");
   LOG("tela %ux%u", g.extent.width, g.extent.height);
   VkDescriptorSetLayoutBinding tb{0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_FRAGMENT_BIT, nullptr};
@@ -811,6 +821,7 @@ inline bool output(Gfx& g, int height) {
     width,
 #endif
     height);
+  updatePixelAspect(g);
   for (int p=0;p<PIPE_COUNT;++p) g.pipes[p]=makePipeline(g,(Pipe)p);
   for (auto& sample : g.samples) sample.pending=false;
   g.bootFrame=true;
