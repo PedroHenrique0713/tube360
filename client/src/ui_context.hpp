@@ -171,9 +171,13 @@ struct UiContext {
   float& manualNoticeWidth;
 
   // ---- F61 Início e coleção: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  void saveForLater(const NavItem& item, uint64_t now);  // ui_collection.hpp: X = Assistir mais tarde (conta) ou lista local (sem conta)
+  uint64_t homeSeenAt = 0;  // ui_home.hpp: última vez que o Início esteve na tela; voltar depois de um tempo atualiza sozinho
   int homeShelves(const Shelf& cur) const;  // ui_home.hpp: 2 = prateleiras do YouTube da conta (Início), 0 = lista única
 
   // ---- F62 Busca e canal: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  void channelSortInput(NavPage& p); // definido em ui_channel.hpp
+  void searchChipSelected(NavPage& p); // definido em ui_search.hpp
 
   // ---- F63 Player e Shorts: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   std::vector<Video>& related;
@@ -181,6 +185,8 @@ struct UiContext {
   std::vector<Video>& shortsQueue;
   std::vector<Video>& playedBefore;
   bool& historyBack;
+  NavPage& shelfChannel;
+  std::vector<Video>& shelfScratch;
   std::string& shortTitle;
   i18n::Lang& shortLang;
   std::vector<std::string>& shortLines;
@@ -188,7 +194,9 @@ struct UiContext {
   // ---- F64 Configurações e controle: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   void refreshPage(uint64_t now);   // ui_shell.hpp: o "Atualizar" do Menu (Início e páginas de navegação)
   void openPageMenu();              // Menu sem vídeo em foco: só as opções da página
-  void pageMenuFallback();          // chamado por último no ciclo de entrada: abre o menu da página se ninguém usou o Menu
+  void pageMenuIntercept();         // chamado ANTES da cadeia de entrada: o Menu sem vídeo em foco abre o menu da página
+  bool videoInFocus() const;        // o mesmo critério com que Início e coleções abrem o menu do vídeo
+  bool sleepWarning = false;        // main.cpp copia aqui o aviso do timer de dormir (o Menu não abre por cima dele)
 
   // ---- F65 Música: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
@@ -232,7 +240,7 @@ struct UiContext {
   void channelHeaderPress(NavPage& p, uint64_t now);
   void channelTabSelected(NavPage& p);
   void playlistHeaderPress(NavPage& p);
-  void subscriptionStripInput(NavPage& p, bool left, bool right, bool down, bool a);
+  void subscriptionStripInput(NavPage& p, bool left, bool right, bool up, bool down, bool a);
   void musicHomeMove(NavPage& p, bool left, bool right, bool up, bool down);
   void musicTabSelected(NavPage& p);
   void searchFiltersPress(NavPage& p);
@@ -245,6 +253,10 @@ struct UiContext {
   void playerInput(uint64_t now, int optionCount);
   void playerShelfInput(uint64_t now);
   void playerShelfDraw(uint64_t now);
+  const std::vector<Video>& shelfItems(int tab);
+  bool shelfTabShown(int tab);
+  int shelfFirstTab();
+  void shelfAskChannel();
   void playerWatchLater(uint64_t now);
   bool playerStep(int direction);
   void shortsEnded();

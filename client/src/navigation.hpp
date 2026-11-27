@@ -6,31 +6,39 @@ struct NavItem {
   int duration = 0;
   yt::Membership members = yt::Membership::None;
   std::vector<std::string> titleLines; std::string byline;
-  bool shortForm = false;
-  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = std::max(0,duration); v.live = duration == 0; v.members = members; return v; }
+  bool shortForm = false, verified = false;
+  std::string date, views, description;
+  // Convenção de duração (CONTRATO): 0 = ao vivo, -1 = desconhecida, > 0 = segundos.
+  Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = std::max(0,duration); v.live = duration == 0; v.members = members; v.shortForm = shortForm; return v; }
   bool pill() const { return type == "chip" && image.empty(); }  // chip de clima ou botão do Explorar (os atalhos da Biblioteca são "chip" com capa)
 };
 struct NavPage : ItemGrid {
   yt::search::Filters filters;
   std::string filterLabel;
   std::vector<std::string> filterLines;
+  std::string description;
+  int sort = 0;
+  bool verified = false, sortable = false;
   std::string kind, id, query, tab = "videos", title, subtitle, image, channelId, error, displayTitle, displaySub, banner, historyVideo, laterVideo;
   std::vector<NavItem> items, channels;
-  bool music = false, direct = false, native = false, loading = true, more = false, subscribed = false;
+  bool music = false, direct = false, native = false, loading = true, more = false, subscribed = false, subscribedKnown = true;
   std::string musicSource, musicLabel;
   int sel = 0, channelSel = 0, zone = 3, tabSel = 0, offset = 0;
   struct Shelf { int first, end, selected; std::string title; };
   std::vector<Shelf> shelves;
   int shelf = 0;
   bool musicHome() const { return kind == "music" || kind == "chip"; }
-  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,hide && !(kind == "channel" && tab == "shorts"),kind == "history" ? 1 : 0); }
+  bool onlyShorts = false;  // chip "Shorts" da busca: filtro no cliente, mostra só os resultados que são Short
+  // Chip da busca em destaque: 0 Tudo, 1 Vídeos, 2 Shorts, 3 Canais, 4 Ao vivo; -1 quando o tipo vem só do painel (playlists).
+  int searchChip() const { if (onlyShorts) return 2; switch (filters.type) { case 0: return 0; case 1: return 1; case 2: return 3; case 4: return 4; default: return -1; } }
+  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,(hide && !onlyShorts) && !(kind == "channel" && tab == "shorts"),kind == "history" || (kind == "channel" && tab == "home") ? 1 : 0,onlyShorts); }
   int gridRow() const { return ItemGrid::gridRow(sel); }
   int gridPosition() const { return ItemGrid::gridPosition(sel); }
   bool moveGrid(int horizontal, int vertical) { return ItemGrid::moveGrid(sel,horizontal,vertical); }
   float scroll = 0;
   uint64_t stamp = 0;
   std::string path() const {
-    return "/api/nav?kind=" + kind + "&id=" + net::urlEncode(id) + "&q=" + net::urlEncode(query) + "&tab=" + tab + "&filter=" + std::to_string(tabSel) + (kind=="search" ? "&params="+net::urlEncode(filters.params()) : "");
+    return "/api/nav?kind=" + kind + "&id=" + net::urlEncode(id) + "&q=" + net::urlEncode(query) + "&tab=" + tab + "&sort=" + std::to_string(sort) + "&filter=" + std::to_string(tabSel) + (kind=="search" ? "&params="+net::urlEncode(filters.params()) : "");
   }
 };
 struct Navigation;
@@ -71,12 +79,12 @@ struct Navigation {
   void open(Worker& worker, i18n::Lang lang, std::string kind, std::string id = "", std::string query = "", bool music = false, yt::search::Filters filters = {}) {
     // As telas guardam seleção e rolagem; B não refaz a consulta de onde o usuário veio.
     if (pages.size() >= 12) pages.erase(pages.begin() + 1);
-    NavPage p; p.kind = kind; p.id = id; p.query = query; p.music = music; p.filters=filters;
+    NavPage p; p.kind = kind; p.id = id; if (kind == "channel") p.tab = "home"; p.query = query; p.music = music; p.filters=filters;
     if (kind == "music") p.tabSel = query == "explore" ? 1 : query == "library" ? 2 : query == "charts" ? 3 : query == "mixes" ? 4 : 0;
     pages.push_back(std::move(p)); load(worker, lang);
   }
   void channelFromVideo(Worker& worker, i18n::Lang lang, const std::string& id) {
-    NavPage p; p.kind = "channel"; p.stamp = ++serial; pages.push_back(std::move(p));
+    NavPage p; p.kind = "channel"; p.tab = "home"; p.stamp = ++serial; pages.push_back(std::move(p));
     worker.add({6, "/api/nav/channel?id=" + id + "&lang=" + i18n::code(lang), page().stamp}, true);
   }
   static bool parse(const std::string& body, NavPage& p, bool append = false) {
@@ -84,7 +92,7 @@ struct Navigation {
     if (h.empty() || h[0] != "ok" || h.size() < 7) { p.error = h.size() > 1 ? h[1] : ""; return false; }
     if (!append) { p.title = h[1]; p.subtitle = h[2]; p.image = h[3]; p.subscribed = h[4] == "1"; p.channelId = h[6];
       p.banner = h.size() > 7 ? h[7] : ""; p.historyVideo = h.size() > 8 ? h[8] : ""; p.laterVideo = h.size() > 9 ? h[9] : "";
-      p.musicSource = h.size() > 10 ? h[10] : "";
+      p.musicSource = h.size() > 10 ? h[10] : ""; p.verified = h.size() > 11 && h[11] == "1"; p.description = h.size() > 12 ? h[12] : ""; p.sortable = h.size() > 13 && h[13] == "1"; p.subscribedKnown = !(h.size() > 14 && h[14] == "0");
     }
     if (p.kind == "channel" && p.id.empty()) p.id = p.channelId;
     p.more = h[5] == "1";
@@ -93,8 +101,12 @@ struct Navigation {
       NavItem item{f[0], f[1], f[2], f[3], f[5], f[6], f[7], std::atoi(f[4].c_str())};
       if (f.size() > 8) item.members = yt::membershipWire(f[8]);
       if (f.size() > 9) item.shortForm = f[9] == "short";
+      if (f.size() > 10) item.date = f[10];
+      if (f.size() > 11) item.verified = f[11] == "1";
+      if (f.size() > 12) item.views = f[12];
+      if (f.size() > 13) item.description = f[13];
       p.offset++;
-      if (p.kind == "subscriptions" && item.type == "channel") p.channels.push_back(item);
+      if ((p.kind == "subscriptions" || (p.kind == "search" && !p.music && !append && p.channels.empty())) && item.type == "channel") p.channels.push_back(item);
       else p.items.push_back(item);
     }
     return true;

@@ -96,7 +96,7 @@ inline const char* arabic(Key key) {
     case Key::BadResponse: return "تعذّر تحميل القائمة";
     case Key::RetryServer: return "شغّل الخادم واضغط Menu للمحاولة.";
     case Key::Empty: return "لا توجد نتائج.";
-    case Key::PageError: return "تعذّر تحميل المزيد. اضغط X للتحديث.";
+    case Key::PageError: return "تعذّر تحميل المزيد. اضغط Menu للتحديث.";
     case Key::Live: return "مباشر";
     case Key::PhonePrefix: return "الهاتف: ";
     case Key::AccountPrefix: return "الحساب: ";
@@ -391,12 +391,21 @@ inline const char* arabic(Key key) {
     case Key::MembersOnly: return "للأعضاء فقط";
 
     // ---- F62 Busca e canal
+    case Key::ChannelHome: return "الرئيسية";
+    case Key::SortRecent: return "الأحدث";
+    case Key::SortPopular: return "رائج";
+    case Key::SortOldest: return "الأقدم";
+    case Key::SearchTypeChannels: return "القنوات";
 
     // ---- F63 Player e Shorts
-    case Key::PlayerShelfTitle: return "التالي والمقترحات";
+    case Key::PlayerShelfNext: return "التالي";
+    case Key::PlayerShelfChannel: return "من القناة";
+    case Key::PlayerShelfRelated: return "مقترحات";
+    case Key::PlayerNoNext: return "لا يوجد فيديو تالٍ";
+    case Key::PlayerNoPrev: return "لا يوجد فيديو سابق";
     case Key::PlayerLaterAdded: return "تم الحفظ في المشاهدة لاحقاً";
     case Key::PlayerLaterRemoved: return "تمت الإزالة من المشاهدة لاحقاً";
-    case Key::ShortsStep: return "المقطع السابق / التالي";
+    case Key::ShortsStep: return "السابق / التالي";
 
     // ---- F64 Configurações e controle
     case Key::CtlPlayPause: return "تشغيل / إيقاف مؤقت";
@@ -414,6 +423,8 @@ inline const char* arabic(Key key) {
     case Key::SecTimer: return "المؤقت";
     case Key::SecPrivacy: return "الخصوصية";
     case Key::SecSystem: return "النظام";
+    case Key::CtlVolume: return "مستوى الصوت";
+    case Key::PageMenu: return "خيارات الصفحة";
     case Key::CtlCheckAgain: return "افحص مجددًا";
     case Key::UpdateToastHead: return "تحديث ";
     case Key::UpdateToastTail: return " متاح · الإعدادات > النظام";

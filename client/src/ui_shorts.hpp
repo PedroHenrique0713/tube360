@@ -22,11 +22,14 @@ inline int UiContext::shortsIndex() const {
 
 inline void UiContext::shortsStep(int direction) {
   int at = shortsIndex(), to = at + direction;
-  if (at >= 0 && to >= 0 && to < (int)shortsQueue.size()) { Video v = shortsQueue[(size_t)to]; shelf.shortsFocus = 0; startVideo(v, 0, false); }
+  if (at >= 0 && to >= 0 && to < (int)shortsQueue.size()) { Video v = shortsQueue[(size_t)to]; shelf.shortsFocus = 0; shelf.shortOpenedAt = SDL_GetTicks(); startVideo(v, 0, false); }
 }
 
 // O Short acabou: vai para o seguinte da fila; no último, repete (como o Short no celular).
 inline void UiContext::shortsEnded() {
+  uint64_t now = SDL_GetTicks();
+  if (shelf.shortOpenedAt && now - shelf.shortOpenedAt < 1000) return;  // Short curtíssimo: espera 1 s para não virar laço de pedidos
+  shelf.shortOpenedAt = now;
   int at = shortsIndex();
   if (at >= 0 && at + 1 < (int)shortsQueue.size()) { Video v = shortsQueue[(size_t)at + 1]; shelf.shortsFocus = 0; startVideo(v, 0, false); }
   else { LOG("shorts: fim da fila, repetindo %s", playing.id.c_str()); startVideo(playing, 0, false); }
@@ -35,6 +38,7 @@ inline void UiContext::shortsEnded() {
 inline void UiContext::shortsInput(uint64_t now) {
   int vertical = in.hit(Input::DOWN) ? 1 : in.hit(Input::UP) ? -1 : 0;
   int horizontal = in.hit(Input::LEFT) ? -1 : in.hit(Input::RIGHT) ? 1 : 0;
+  if (g.rtlText) horizontal = -horizontal;  // árabe: as ações ficam à esquerda do vídeo
   constexpr int actions = 4;  // curtir, não gostei, comentários, canal
   int& focus = shelf.shortsFocus;  // 0 = vídeo, 1..4 = ações
   const int focusBefore = focus;
@@ -50,8 +54,8 @@ inline void UiContext::shortsInput(uint64_t now) {
   }
   // Menu (Opções) leva o foco às ações ao lado e de volta; LT/RT (sem papel no mapa dos Shorts) ajustam o volume.
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::Options)) focus = focus ? 0 : 1;
-  if (in.hit(Input::LT)) adjustVolume(now, -1);
-  if (in.hit(Input::RT)) adjustVolume(now, 1);
+  if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::VolumeDown)) adjustVolume(now, -1);
+  if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::VolumeUp)) adjustVolume(now, 1);
   if (ctl::hit(in, ctl::Ctx::Shorts, ctl::Act::PlayPause)) {
     if (!focus) { if (!pl.waiting() || pl.paused) pl.setPaused(!pl.paused); }
     else if (focus <= 2) {
@@ -102,24 +106,28 @@ inline void UiContext::shortsDraw(uint64_t now, double t) {
     gfx::rect(g, ui::W / 2 + 5, ui::H / 2 - 17, 9, 34, rgb(0xffffff), 3);
   }
   // Ações ao lado, como no celular.
-  const float cx = vx + vw + 56, top = ui::H / 2 - 150;
+  const bool rtl = g.rtlText;
+  const float cx = rtl ? vx - 56 : vx + vw + 56;
+  // Espaço entre ações pelo tamanho real do rótulo (480p e texto grande não encostam no botão de baixo).
+  const float step = 58 + g.fonts[ui::F_TINY].lineH + 26, top = ui::H / 2 - step * 1.5f;
   const bool liked = likeState == "LIKE", disliked = likeState == "DISLIKE";
   struct Action { icons::PlayerIcon icon; const char* label; bool marked; };
   const Action actions[] = {{icons::THUMBS_UP, tr(K::Like), liked}, {icons::THUMBS_DOWN, tr(K::Dislike), disliked},
                             {icons::CHAT_CIRCLE_TEXT, tr(K::Comments), false}, {icons::USER_CIRCLE, tr(K::Channel), false}};
   for (int i = 0; i < 4; ++i) {
-    float cy = top + (float)i * 92;
+    float cy = top + (float)i * step;
     shortsIcon(g, actions[i].icon, cx, cy, focus == i + 1, actions[i].marked);
     gfx::text(g, ui::F_TINY, actions[i].label, cx, cy + 34, focus == i + 1 ? ui::TEXT : ui::MUTED, 1);
   }
-  // Dicas à esquerda, fora do vídeo, pelo mapa único.
-  float hy = ui::H / 2 - 110, hx = 40;
-  gfx::rect(g, hx - 12, hy - 10, 330, 206, {0, 0, 0, 0.55f}, 14);
+  // Dicas ao lado do vídeo, depois da coluna de ações (como na proposta A4); no árabe, espelhadas para o lado esquerdo.
+  const float hy = ui::H / 2 - 110, hw0 = 290, hx = rtl ? std::max(16.f, vx - 150 - hw0) : vx + vw + 150, hw = std::min(hw0, ui::W - hx - 24);
+  gfx::rect(g, hx - 12, hy - 10, hw + 12, 246, {0, 0, 0, 0.55f}, 14);
   hint(g, hx, hy, tr(K::BtnVertical), XG, focus ? tr(K::ChooseRow) : tr(K::ShortsStep));
   ctlHint(g, hx, hy + 40, ctl::Ctx::Shorts, ctl::Act::PlayPause, settings.lang, focus ? K::Open : pl.paused ? K::Resume : K::Pause);
   ctlHint(g, hx, hy + 80, ctl::Ctx::Shorts, ctl::Act::WatchLater, settings.lang);
   ctlHint(g, hx, hy + 120, ctl::Ctx::Shorts, ctl::Act::Options, settings.lang);
   ctlHint(g, hx, hy + 160, ctl::Ctx::Shorts, ctl::Act::Back, settings.lang, focus ? K::Close : K::None);
+  ctlHint(g, hx, hy + 200, ctl::Ctx::Shorts, ctl::Act::VolumeDown, settings.lang);
   volumeHud(now);
   if (pl.waiting()) {
     spinner(g, ui::W / 2, ui::H / 2, 26, t);

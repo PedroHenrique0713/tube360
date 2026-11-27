@@ -166,7 +166,7 @@ case_b('f63-q-open', keys='......DA', ms=5000, **Q)
 case_b('f63-q-rb', keys='......DA..........]', ms=9000, **Q)
 case_b('f63-q-rb-lb', keys='......DA..........]......[', ms=11000, **Q)
 
-def nest_volume(name, keys, volume_line='', ms=9000, sound='nest'):
+def nest_volume(name, keys, volume_line='', ms=9000, sound='nest', external=None):
     # Receptor falso começando em 0,42, com o nest.txt salvo; devolve (volume final da caixa, pedidos SET_VOLUME).
     sys.path.insert(0, str(ROOT / 'bench/standalone'))
     from cast_test import Receiver
@@ -179,6 +179,9 @@ def nest_volume(name, keys, volume_line='', ms=9000, sound='nest'):
     assets = OUT / '_work' / name; assets.mkdir(parents=True, exist_ok=True)
     (assets / 'nest.txt').write_text(f'127.0.0.1 {rx.port}\nNest de bancada\n')
     (assets / 'nest-owner.json').unlink(missing_ok=True)
+    timer = None
+    if external is not None:  # a caixa muda por fora 3 s depois de abrir (o app lê no próximo status, a cada 2 s)
+        timer = __import__('threading').Timer(3, lambda: setattr(rx, 'volume', external)); timer.start()
     try:
         case_b(name, signed=True, keys=keys, ms=ms, XT_PLAY='R6MlUcmOul8',
                settings=f'lang=pt\ncols=4\nserver=off\nsound={sound}\nvideo_mode=auto\n{volume_line}')
@@ -219,6 +222,9 @@ assert not sets and abs(vol - .42) < .001, (vol, sets)
 vol, sets = nest_volume('f63-n-up', '.' * 30 + 'U', ms=8000)
 assert len(sets) == 1 and abs(vol - .45) < .001, (vol, sets)
 assert 'volume=' not in (OUT / '_work/f63-n-up/settings.txt').read_text() or 'volume=100' in (OUT / '_work/f63-n-up/settings.txt').read_text()
+# O volume da caixa pode mudar por fora (Google Home, voz, botões): o passo parte do que ela informou (0,80 -> 0,85), não do último pedido.
+vol, sets = nest_volume('f63-n-ext', '.' * 40 + 'U', ms=11000, external=.8)
+assert len(sets) == 1 and abs(vol - .85) < .001, (vol, sets)
 vol, sets = nest_volume('f63-n-tv', '.' * 30 + 'D', ms=8000, sound='tv')
 assert not sets and 'volume=95' in (OUT / '_work/f63-n-tv/settings.txt').read_text()
 print('PASS f63 ui: shelf, volume and Shorts')

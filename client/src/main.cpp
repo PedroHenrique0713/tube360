@@ -73,12 +73,12 @@ struct ItemGrid {
   std::vector<GridRow> rows;
   std::vector<int> itemRows;
   int gridSize = -1, gridCols = 0, gridColumn = 0, shortColumn = 0;
-  bool gridHide = false; int gridGrouped = 0;
+  bool gridHide = false, gridOnlyShorts = false; int gridGrouped = 0;
   // grouped: 0 sem grupos; 1 grupos que quebram em fileiras (Histórico por dia); 2 uma fileira rolável por prateleira (Início da conta).
-  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide, int grouped = 0) {
+  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide, int grouped = 0, bool onlyShorts = false) {
     std::map<std::string,int> kept;
-    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide || gridGrouped != grouped) {
-      gridSize = (int)items.size(); gridCols = cols; gridHide = hide; gridGrouped = grouped;
+    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide || gridGrouped != grouped || gridOnlyShorts != onlyShorts) {
+      gridSize = (int)items.size(); gridCols = cols; gridHide = hide; gridGrouped = grouped; gridOnlyShorts = onlyShorts;
       for (const auto& r : rows) if (r.carousel) kept[r.heading] = r.column;  // a posição de cada prateleira sobrevive à continuação
       rows.clear(); itemRows.assign(items.size(), -1);
       int shortRow = -1;
@@ -89,6 +89,7 @@ struct ItemGrid {
           if (shortRow < 0) { shortRow = (int)rows.size(); rows.push_back({{},true}); }
           rows[shortRow].items.push_back(i); itemRows[i] = shortRow;
         } else {
+          if (onlyShorts) continue;  // chip "Shorts" da busca: só os Shorts
           bool newGroup = false;
           if constexpr (requires { items[i].section; }) {
             newGroup = grouped && !items[i].section.empty() && items[i].section != lastSection;
@@ -785,7 +786,7 @@ int run(int argc, char** argv) {
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false; uint64_t nextDeadline = 0; bool nextPending = false;
-  std::vector<Video> related, shortsQueue, playedBefore; bool historyBack = false; PlayerShelf shelf; std::string shortTitle; i18n::Lang shortLang = i18n::Lang::EN; std::vector<std::string> shortLines;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
+  std::vector<Video> related, shortsQueue, playedBefore, shelfScratch; bool historyBack = false; NavPage shelfChannel; PlayerShelf shelf; std::string shortTitle; i18n::Lang shortLang = i18n::Lang::EN; std::vector<std::string> shortLines;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
   bool livePaused = false;
   int& quality = settings.quality;
   quality=720;
@@ -1245,6 +1246,8 @@ int run(int argc, char** argv) {
     .shortsQueue=shortsQueue,
     .playedBefore=playedBefore,
     .historyBack=historyBack,
+    .shelfChannel=shelfChannel,
+    .shelfScratch=shelfScratch,
     .shortTitle=shortTitle,
     .shortLang=shortLang,
     .shortLines=shortLines,
@@ -1473,7 +1476,11 @@ int run(int argc, char** argv) {
           toast = fields.size() > 1 ? fields[1] : tr(K::ActionFailed); toastUntil = now + 4500;
         }
       } else {
-        nav.arrived(r, g, settings.lang);
+        if (shelfChannel.stamp && r.stamp == shelfChannel.stamp) {
+          // "Do canal" da fileira do player: mesma leitura da página de canal, numa página à parte.
+          Navigation scratch; scratch.pages.push_back(shelfChannel); scratch.arrived(r, g, settings.lang);
+          shelfChannel = scratch.pages.front(); shelfChannel.loading = false;
+        } else nav.arrived(r, g, settings.lang);
         if (screen == NAV && !nav.pages.empty() && nav.page().stamp == r.stamp && !nav.page().items.empty() && !nav.page().error.empty()) {
           toast = nav.page().error; toastUntil = now + 4500;
         }
@@ -1613,6 +1620,9 @@ int run(int argc, char** argv) {
     int optionCount = behindLive ? PlayerUI::COUNT : PlayerUI::EDGE;
     if (playerUI.selected >= optionCount) playerUI.selected = PlayerUI::CHANNEL;
     // entrada: o painel aberto mais por cima captura o controle; sem painel, vale a tela (métodos de ui_*.hpp)
+    // ---- F64 Configurações e controle
+    screens.sleepWarning = sleepWarning;
+    screens.pageMenuIntercept();
     if (shutdownAt) {
       if (now >= shutdownAt) {
         if (powerDownXbox()) quit = true;
@@ -1660,8 +1670,6 @@ int run(int argc, char** argv) {
     } else if (screen == PLAYER) {
       screens.playerInput(now,optionCount);
     }
-    // ---- F64 Configurações e controle
-    screens.pageMenuFallback();
     screens.playerUpdate(now);
     // ---- F63 Player e Shorts: vigia do player (marca a sessão para o relatório de erro)
     {

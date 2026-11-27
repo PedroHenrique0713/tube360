@@ -37,11 +37,11 @@ struct UI {
     bool input(Service& service,Input& in,bool onHome,bool inSettings=false) {
         if(!onHome && !inSettings){open=false;return false;}
         if(!open)return false;
-        if(ctl::hit(in,ctl::Ctx::Panel,ctl::Act::Back)){service.cancelDownload();open=false;}
-        else if(ctl::hit(in,ctl::Ctx::Panel,ctl::Act::Open)){
+        if(ctl::hit(in,ctl::Ctx::Update,ctl::Act::Back)){service.cancelDownload();open=false;}
+        else if(ctl::hit(in,ctl::Ctx::Update,ctl::Act::Open)){
             if(status.state==State::AVAILABLE || status.state==State::ERROR)service.requestDownload();
         }
-        else if(ctl::hit(in,ctl::Ctx::Panel,ctl::Act::Refresh)){
+        else if(ctl::hit(in,ctl::Ctx::Update,ctl::Act::Refresh)){
             if(status.state!=State::DOWNLOADING && status.state!=State::CHECKING)service.requestCheck();
         }
         return true;
@@ -71,9 +71,9 @@ struct UI {
         for(const auto& text:messages){gfx::textBox(g,ui::F_SMALL,text,left+40,y,content,ui::A2);y+=std::max(24.f,g.fonts[ui::F_SMALL].lineH);}
         if(status.state==State::DOWNLOADING){gfx::rect(g,left+40,526,content,4,ui::SURFACE2,2);gfx::rect(g,left+40,526,content*status.progress/100.f,4,ui::A1,2);}
         float x=left+40;
-        if(status.state==State::AVAILABLE || status.state==State::ERROR)x=ctlHint(g,x,564,ctl::Ctx::Panel,ctl::Act::Open,lang,K::UpdateDownload);
-        if(status.state!=State::DOWNLOADING && status.state!=State::CHECKING)x=ctlHint(g,x,564,ctl::Ctx::Panel,ctl::Act::Refresh,lang);
-        ctlHint(g,x,564,ctl::Ctx::Panel,ctl::Act::Back,lang,status.state==State::DOWNLOADING?K::Cancel:K::Back);
+        if(status.state==State::AVAILABLE || status.state==State::ERROR)x=ctlHint(g,x,564,ctl::Ctx::Update,ctl::Act::Open,lang,K::UpdateDownload);
+        if(status.state!=State::DOWNLOADING && status.state!=State::CHECKING)x=ctlHint(g,x,564,ctl::Ctx::Update,ctl::Act::Refresh,lang);
+        ctlHint(g,x,564,ctl::Ctx::Update,ctl::Act::Back,lang,status.state==State::DOWNLOADING?K::Cancel:K::Back);
     }
 };
 }

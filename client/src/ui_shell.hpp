@@ -237,14 +237,28 @@ inline void UiContext::refreshPage(uint64_t now) {
 
 inline void UiContext::openPageMenu() { nav.menuItem = NavItem{}; nav.menuSel = 0; nav.menu = true; }
 
-// Páginas vazias ou com erro não têm vídeo em foco: o Menu abre só as opções da página. Roda depois das telas, que
-// consomem o Menu quando há vídeo em foco.
-inline void UiContext::pageMenuFallback() {
+// O Menu de uma tela sem vídeo em foco (página vazia ou com erro, abas do Início, grades sem vídeo) abre o menu da página.
+// A casca decide antes da tela: com vídeo em foco o Menu segue para o Início e as coleções, que abrem o menu do vídeo.
+inline bool UiContext::videoInFocus() const {
+  if (screen == HOME) {
+    const Shelf& cur = inResults ? results : cats[(size_t)cat];
+    return zone == 0 && !cur.feed.layout.rows.empty();
+  }
+  if (screen == NAV && !nav.pages.empty()) {
+    const auto& p = nav.pages.back();
+    const bool hasItems = p.musicHome() ? !p.items.empty() : !p.rows.empty();
+    return hasItems && p.sel >= 0 && p.sel < (int)p.items.size() && p.items[(size_t)p.sel].type == "video";
+  }
+  return false;
+}
+
+inline void UiContext::pageMenuIntercept() {
   const int menuKey = ctl::inputIndex<Input>(ctl::button(ctl::Ctx::Collection, ctl::Act::Options));
   if (!in.fired[menuKey]) return;
-  const bool page = (screen == HOME || (screen == NAV && !nav.pages.empty())) && !railFocus && !nav.menu && !nav.unsubscribe &&
-      !phonePanel && !loginPanel && !logoutPanel && !sleepPanel && !shutdownAt && !searchUI.filterOpen && !localUI.resume && localUI.clear < 0;
-  if (page) { in.fired[menuKey] = false; openPageMenu(); }
+  const bool free = (screen == HOME || (screen == NAV && !nav.pages.empty())) && !railFocus && !nav.menu && !nav.unsubscribe &&
+      !phonePanel && !loginPanel && !logoutPanel && !sleepPanel && !sleepWarning && !shutdownAt && !ratePanel && !updateUI.open &&
+      !searchUI.filterOpen && !localUI.resume && localUI.clear < 0;
+  if (free && !videoInFocus()) { in.fired[menuKey] = false; openPageMenu(); }
 }
 
 inline void UiContext::unsubscribeInput() {
@@ -285,8 +299,9 @@ inline void Navigation::drawFooter(NavDraw& d) {
   const ctl::Ctx ctx = p.music || home ? ctl::Ctx::Music : channel ? ctl::Ctx::Channel : p.kind == "search" ? ctl::Ctx::Search : ctl::Ctx::Collection;
   float hx = ctlHint(d.g, 136, 676, ctx, ctl::Act::Open, d.lang, p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open);
   hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Back, d.lang);
-  // O X ainda não tem a dica: a F61 troca o X de atualizar por "Assistir mais tarde" e põe a dica de volta. O Menu abre as
-  // opções do vídeo em foco ou, sem vídeo (página vazia ou com erro), as da página, e "Atualizar" mora nele.
+  // X = Assistir mais tarde (F61). O Menu abre as opções do vídeo em foco ou, sem vídeo (página vazia ou com erro), as da
+  // página, e "Atualizar" mora nele.
+  if (!p.music && !home && !channel && p.kind != "search") hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::WatchLater, d.lang);
   hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Options, d.lang, K::MoreOptions);
   ctlHint(d.g, hx, 676, ctx, ctl::Act::Search, d.lang);
 }
@@ -298,7 +313,7 @@ inline void Navigation::drawMenu(gfx::Gfx& g, i18n::Lang lang) {
   const float rowTop = page ? 236.f : 320.f, rowEnd = rowTop + (entries.size() - 1) * 60 + 50, boxH = rowEnd + 64 - 150, left = (ui::W-740)/2;
   gfx::rect(g, 0, 0, ui::W, 720, {0,0,0,0.8f});
   gfx::rect(g, left, 150, 740, boxH, ui::SURFACE, 28);
-  gfx::text(g, ui::F_BIG, tr(K::CardMenu), left+38, 180, ui::TEXT);
+  gfx::text(g, ui::F_BIG, tr(page ? K::PageMenu : K::CardMenu), left+38, 180, ui::TEXT);
   if (!page) {
     gfx::text(g, ui::F_KEY, gfx::ellipsize(g, ui::F_KEY, menuItem.title, 662), left+38, 235, ui::TEXT);
     gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, menuItem.channel + " · " + fmtTime(menuItem.duration), 662), left+38, 272, ui::MUTED);

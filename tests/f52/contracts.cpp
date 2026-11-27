@@ -93,6 +93,18 @@ static void layoutContract() {
   NavPage p; p.kind="search"; p.items={card(0),card(1,true),card(2),card(3,true),card(4)};
   p.grid(4,false);
   require(p.rows.size()==3 && p.rows[0].items==std::vector<int>{0} && p.rows[1].items==std::vector<int>({1,3}) && p.rows[2].items==std::vector<int>({2,4}),"partial rows around first Short retain ordering");
+  {  // chips da busca: Shorts é filtro no cliente (só os Shorts); o chip em destaque acompanha o tipo do filtro
+    NavPage c; c.kind="search"; c.items={card(0),card(1,true),card(2),card(3,true)};
+    c.onlyShorts=true; c.grid(4,false);
+    require(c.rows.size()==1 && c.rows[0].shorts && c.rows[0].items==std::vector<int>({1,3}) && c.sel==1,"Shorts chip keeps only the Shorts and moves focus to the first one");
+    c.onlyShorts=false; c.grid(4,false);
+    require(c.rows.size()==3 && !c.rows[0].shorts && c.rows[1].shorts,"leaving the Shorts chip brings the ordinary results back");
+    c.onlyShorts=true; c.grid(4,true);
+    require(c.rows.size()==1 && c.rows[0].shorts,"the Shorts chip wins over the hide-Shorts setting");
+    NavPage t; t.kind="search";
+    int expect[]={0,1,3,-1,4}; for (int type=0;type<5;++type) { t.filters.type=type; require(t.searchChip()==expect[type],"active chip follows the filter type"); }
+    t.filters.type=4; t.onlyShorts=true; require(t.searchChip()==2,"Shorts chip is the active one while the client filter is on");
+  }
   std::cout<<"PASS layout: 2/3/4 columns, packed rows, controller, hidden focus, channel tab, continuation\n";
 }
 static void drawContract() {
@@ -110,8 +122,31 @@ static void drawContract() {
     return ys;
   };
   nav.draw(g,thumbs,worker,1,1,i18n::Lang::EN,true);
-  auto rows=artRows(); require(rows==std::vector<float>({210,485.75}),"actual renderer draws second thumbnail row even when its text crosses footer");
+  auto rows=artRows(); require(rows==std::vector<float>({140,415.75}),"actual renderer draws second thumbnail row even when its text crosses footer (search grid now starts under the chips, y=140)");
   std::cout<<"PASS draw: thumbnail rows at y="<<rows[0]<<", "<<rows[1]<<"; old whole-card cull suppressed row 2\n";
+  {  // a busca desenha nas mesmas colunas em que a entrada anda (BAIXO do 1º cartão vai ao 5º, logo abaixo dele)
+    std::vector<std::pair<float,float>> at;
+    for (const auto& cmd:g.cmds) if (cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-252)<.01 && std::abs(cmd.params[1]-141.75)<.01)
+      for (unsigned i=0;i<cmd.count;i+=6) at.push_back({g.verts[cmd.first+i].x,g.verts[cmd.first+i].y});
+    require(nav.page().gridCols==ui::columns(4),"search draws with the columns the input moves in");
+    // o cartão em foco (item 0) cresce e fica fora desta lista: at[0..2] = itens 1..3, at[3] = item 4
+    require(at.size()>=4 && at[0].second==at[2].second && at[3].second>at[0].second && at[3].first==136 && at[0].first>136,"cards sit in a 4-column grid: item 4 is back in the first column, one row below");
+    // faixa vertical (min,max) dos vértices verdes da linha de membros; (1e9,-1e9) = nenhum
+    auto green=[&]() {
+      std::pair<float,float> r{1e9f,-1e9f};
+      for (const auto& v:g.verts) if (std::abs(v.r-0x3d/255.f)<.01 && std::abs(v.g-0xdc/255.f)<.01 && std::abs(v.b-0x84/255.f)<.01) { r.first=std::min(r.first,v.y); r.second=std::max(r.second,v.y); }
+      return r;
+    };
+    require(green().second<0,"no members line without members");
+    nav.page().items[0].members=yt::Membership::Only; g.verts.clear(); g.cmds.clear();
+    nav.draw(g,thumbs,worker,9,9,i18n::Lang::EN,true);
+    {
+      auto r=green(); float nextRow=rows[1];
+      require(r.second>0 && r.first>140+141.75f && r.second<nextRow,"members line sits inside its own card text block: below the thumbnail, above the next row's thumbnail (visible, not covered)");
+    }
+    nav.page().items[0].members=yt::Membership::None;
+    std::cout<<"PASS draw: search grid columns match the input, members line on search cards\n";
+  }
   nav.page().items={card(100,true),card(101,true)}; nav.page().gridSize=-1;
   nav.page().sel=0; nav.page().scroll=0; nav.format(nav.page(),g,i18n::Lang::EN);
   g.verts.clear(); g.cmds.clear(); nav.draw(g,thumbs,worker,2,2,i18n::Lang::EN,true);

@@ -1,4 +1,8 @@
 """Production UI/player replay; isolated files, recorded channel DOM and synthetic media/art."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import argparse
 import json
 import http.server
@@ -132,7 +136,7 @@ if args.review:
         for height,large in ((720,False),(480,True)):
             for state,videos,positions in (('many',3,12),('one',1,1),('empty',0,0)):
                 name=f'counts-{lang}-{height}-{state}'
-                r=run(name,lang=lang,height=height,large=large,saved=collections(videos,positions),XT_SCREEN='settings',keys='D'*17,XT_KEYS_MS='100',seconds=3)
+                r=run(name,lang=lang,height=height,large=large,saved=collections(videos,positions),XT_SCREEN='settings',keys=seq(17),XT_KEYS_MS='100',seconds=3)
                 if r:
                     data=json.loads((r[0]/'local-library.json').read_text())
                     assert len(data['later'])==videos and len(data['history'])==positions
@@ -143,17 +147,17 @@ if args.review:
     run('emoji-titles-ar',lang='ar',saved=demo,XT_NAV='local_later')
     demo['later']=demo['later'][1:]
     run('emoji-titles-ar-43-large',lang='ar',height=480,large=True,saved=demo,XT_NAV='local_later')
-    run('shorts-clean',XT_NAV='channel',XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw',keys='URD',seconds=4)
+    run('shorts-clean',XT_NAV='channel',XT_NAV_ID='UC_x5XG1OV2P6uZZ5FSM9Ttw',keys='URRD',seconds=4)
     print('Review UI checks:',len(results))
     raise SystemExit
 
 for lang in ('pt','en','es','ar'):
     run('later-'+lang,lang=lang,XT_NAV='local_later')
     run('resume-'+lang,lang=lang,XT_PLAY='video000001')
-    run('settings-'+lang,lang=lang,XT_SCREEN='settings',keys='D'*16,seconds=5.5)
+    run('settings-'+lang,lang=lang,XT_SCREEN='settings',keys=seq(16),seconds=5.5)
 run('later-43-large',height=480,large=True,XT_NAV='local_later')
 run('resume-ar-43-large',lang='ar',height=480,large=True,XT_PLAY='video000001')
-run('clear-ar-43-large',lang='ar',height=480,large=True,XT_SCREEN='settings',keys='D'*16+'A',seconds=6)
+run('clear-ar-43-large',lang='ar',height=480,large=True,XT_SCREEN='settings',keys=seq(16,'A'),seconds=6)
 run('library-guest',XT_NAV='library')
 r=run('library-account',signed=True,XT_NAV='library',seconds=5)
 if r:assert 'conectada=1' in r[1] and json.loads((r[0]/'local-library.json').read_text())==seed()
@@ -191,7 +195,7 @@ if r:
     assert json.loads((r[0]/'local-library.json').read_text())['history'][0]['position']>60
 r=run('resume-back',XT_PLAY='video000001',keys='B')
 if r:assert 'tela 0, vídeo ' in r[1] and 'player: pedido' not in r[1]
-for name,keys in [('clear-cancel','D'*16+'AB'),('clear-confirm','D'*16+'ADA'),('clear-list','D'*17+'ADA')]:
+for name,keys in [('clear-cancel',seq(16,'AB')),('clear-confirm',seq(16,'ADA')),('clear-list',seq(17,'ADA'))]:
     r=run(name,XT_SCREEN='settings',keys=keys,seconds=6.5)
     if r:
         data=json.loads((r[0]/'local-library.json').read_text())

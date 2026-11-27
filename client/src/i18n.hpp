@@ -126,9 +126,9 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(StartupExit, "Exit", "Sair", "Salir") \
   X(SeekTarget, "Seek to ", "Ir para ", "Ir a ") \
   X(BadResponse, "Could not load this list", "Não deu para carregar esta lista", "No se pudo cargar esta lista") \
-  X(RetryServer, "Start the server and press X to try again.", "Ligue o servidor e aperte X para tentar de novo.", "Inicia el servidor y presiona X para volver a intentarlo.") \
+  X(RetryServer, "Start the server and press Menu to try again.", "Ligue o servidor e aperte Menu para tentar de novo.", "Inicia el servidor y presiona Menu para volver a intentarlo.") \
   X(Empty, "Nothing found.", "Nada encontrado.", "No se encontraron resultados.") \
-  X(PageError, "Could not load more videos. Press X to refresh.", "Não deu para carregar mais vídeos. Aperte X para atualizar.", "No se pudieron cargar más videos. Presiona X para actualizar.") \
+  X(PageError, "Could not load more videos. Press Menu to refresh.", "Não deu para carregar mais vídeos. Aperte Menu para atualizar.", "No se pudieron cargar más videos. Presiona Menu para actualizar.") \
   X(Live, "LIVE", "AO VIVO", "EN VIVO") \
   X(PhonePrefix, "Phone: ", "Celular: ", "Teléfono: ") \
   X(AccountPrefix, "Account: ", "Conta: ", "Cuenta: ") \
@@ -411,12 +411,21 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(MembersOnly, "Members only", "Só para membros", "Solo para miembros") \
   /* */ \
   /* ---- F62 Busca e canal */ \
+  X(ChannelHome, "Home", "Início", "Inicio") \
+  X(SortRecent, "Latest", "Mais recentes", "Más recientes") \
+  X(SortPopular, "Trending", "Em alta", "En tendencia") \
+  X(SortOldest, "Oldest", "Mais antigos", "Más antiguos") \
+  X(SearchTypeChannels, "Channels", "Canais", "Canales") \
   /* */ \
   /* ---- F63 Player e Shorts */ \
-  X(PlayerShelfTitle, "Up next and related", "A seguir e relacionados", "A continuación y relacionados") \
+  X(PlayerShelfNext, "Up next", "A seguir", "A continuación") \
+  X(PlayerShelfChannel, "From the channel", "Do canal", "Del canal") \
+  X(PlayerShelfRelated, "Related", "Relacionados", "Relacionados") \
+  X(PlayerNoNext, "No next video", "Não há próximo vídeo", "No hay siguiente vídeo") \
+  X(PlayerNoPrev, "No previous video", "Não há vídeo anterior", "No hay vídeo anterior") \
   X(PlayerLaterAdded, "Saved to Watch later", "Salvo em Assistir mais tarde", "Guardado en Ver más tarde") \
   X(PlayerLaterRemoved, "Removed from Watch later", "Removido de Assistir mais tarde", "Quitado de Ver más tarde") \
-  X(ShortsStep, "Previous / next Short", "Short anterior / seguinte", "Short anterior / siguiente") \
+  X(ShortsStep, "Previous / next", "Anterior / próximo", "Anterior / siguiente") \
   /* */ \
   /* ---- F64 Configurações e controle */ \
   X(CtlPlayPause, "Play / pause", "Tocar / pausar", "Reproducir / pausar") \
@@ -434,6 +443,8 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SecTimer, "Timer", "Timer", "Temporizador") \
   X(SecPrivacy, "Privacy", "Privacidade", "Privacidad") \
   X(SecSystem, "System", "Sistema", "Sistema") \
+  X(CtlVolume, "Volume", "Volume", "Volumen") \
+  X(PageMenu, "Page options", "Opções da página", "Opciones de la página") \
   X(CtlCheckAgain, "Check again", "Verificar de novo", "Comprobar de nuevo") \
   X(UpdateToastHead, "Update ", "Atualização ", "Actualización ") \
   X(UpdateToastTail, " available · Settings > System", " disponível · Configurações > Sistema", " disponible · Configuración > Sistema") \
