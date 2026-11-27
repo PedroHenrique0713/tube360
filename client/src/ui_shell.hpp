@@ -297,13 +297,27 @@ inline void Navigation::drawFooter(NavDraw& d) {
   gfx::rect(g, 96, 646, ui::W-96, 74, ui::BG);
   if (p.loading) { spinner(g, ui::W-64, 146, 12, d.now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), ui::W-324, 130, ui::MUTED); }
   const ctl::Ctx ctx = p.music || home ? ctl::Ctx::MusicPage : channel ? ctl::Ctx::Channel : p.kind == "search" ? ctl::Ctx::Search : ctl::Ctx::Collection;
-  float hx = ctlHint(d.g, 136, 676, ctx, ctl::Act::Open, d.lang, p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open);
-  hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Back, d.lang);
+  // As dicas encaixam por prioridade: A e B sempre; depois X (assistir mais tarde), Menu, Buscar (já está no trilho) e, por último, as abas. A de menor prioridade que não couber sai
+  // INTEIRA (nunca cortada no meio). Em 4:3 o rodapé tem menos de 800 px.
+  struct Item { ctl::Ctx ctx; ctl::Act act; K text; int priority; };
+  std::vector<Item> items = {
+    {ctx, ctl::Act::Open, p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open, 0},
+    {ctx, ctl::Act::Back, K::None, 0}};
   // X = Assistir mais tarde (F61). O Menu abre as opções do vídeo em foco ou, sem vídeo (página vazia ou com erro), as da
-  // página, e "Atualizar" mora nele.
-  if (!p.music && !home && !channel && p.kind != "search") hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::WatchLater, d.lang);
-  hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Options, d.lang, K::MoreOptions);
-  ctlHint(d.g, hx, 676, ctx, ctl::Act::Search, d.lang);
+  // página, e "Atualizar" mora nele. Na Música o X não age fora do Tocando agora, então não há dica dele aqui.
+  if (!p.music && !home && !channel && p.kind != "search") items.push_back({ctx, ctl::Act::WatchLater, K::None, 1});
+  if (p.music && (p.kind == "music" || p.kind == "music_search")) items.push_back({ctx, ctl::Act::PrevTab, K::None, 4});  // LB RB: abas da Música
+  items.push_back({ctx, ctl::Act::Options, K::MoreOptions, 2});
+  items.push_back({ctx, ctl::Act::Search, K::None, 3});
+  const float limit = ui::W - 48;
+  auto total = [&]() { float w = 136; for (const auto& i : items) w += ctlHintWidth(g, i.ctx, i.act, d.lang, i.text); return w; };
+  while (items.size() > 2 && total() > limit) {
+    size_t drop = 2;
+    for (size_t i = 2; i < items.size(); i++) if (items[i].priority >= items[drop].priority) drop = i;
+    items.erase(items.begin() + (long)drop);
+  }
+  float hx = 136;
+  for (const auto& i : items) hx = ctlHint(g, hx, 676, i.ctx, i.act, d.lang, i.text);
 }
 
 inline void Navigation::drawMenu(gfx::Gfx& g, i18n::Lang lang) {

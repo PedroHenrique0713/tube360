@@ -43,17 +43,6 @@ static void memberLine(gfx::Gfx& g, yt::Membership members, i18n::Lang lang, flo
   starShape(g, x + r, y + g.fonts[ui::F_TINY].lineH / 2, r, MEMBER_GREEN);
   gfx::text(g, ui::F_TINY, shown, x + 2 * r + 6, y, MEMBER_GREEN);
 }
-// Selo antigo (pílula sobre a miniatura), ainda usado pela Música; vídeo usa memberLine.
-static void memberBadge(gfx::Gfx& g, yt::Membership members, i18n::Lang lang, float x, float y) {
-  if (members == yt::Membership::None) return;
-  bool access = members == yt::Membership::Accessible;
-  const char* label = i18n::get(lang, access ? K::Member : K::Members);
-  float w = gfx::textWidth(g, ui::F_TINY, label) + 12;
-  float h=ui::large ? std::max(36.f,g.fonts[ui::F_TINY].size+8) : 20;
-  gfx::rect(g, x, y, w, h, access ? rgb(0x20563f) : Color{0,0,0,0.86f}, 5);
-  gfx::text(g, ui::F_TINY, label, x + w / 2, y + (ui::large ? (h-g.fonts[ui::F_TINY].size)/2 : 3), access ? rgb(0xb5f3cd) : ui::TEXT, 1);
-}
-
 // ---------------------------------------------------------------- peças de desenho
 static const Color XA = rgb(0x7ed957), XB = rgb(0xff5a52), XX = rgb(0x4ea8ff), XY = rgb(0xffd23f), XG = rgb(0xd4d4d8);
 
@@ -109,6 +98,19 @@ static float ctlHint(gfx::Gfx& g, float x, float y, ctl::Ctx c, ctl::Act a, i18n
       b == ctl::Btn::View ? "View" : b == ctl::Btn::RB ? "RB" : "RT";
   Color color = b == ctl::Btn::A ? XA : b == ctl::Btn::B ? XB : b == ctl::Btn::X ? XX : b == ctl::Btn::Y ? XY : XG;
   return hint(g, x, y, glyph, color, i18n::get(lang, text != K::None ? text : ctl::label(a)));
+}
+// Largura que `ctlHint` ocupa (0 se a ação não tem dica no contexto): o rodapé usa para decidir o que cabe antes de desenhar.
+static float ctlHintWidth(gfx::Gfx& g, ctl::Ctx c, ctl::Act a, i18n::Lang lang, K text = K::None) {
+  ctl::Btn b = ctl::button(c, a);
+  if (b == ctl::Btn::Count || ctl::pairSecond(a)) return 0;
+  const bool pairLB = b == ctl::Btn::LB, pairLT = b == ctl::Btn::LT;
+  const char* glyph = pairLB ? i18n::get(i18n::Lang::EN, K::BtnShoulders) : pairLT ? i18n::get(i18n::Lang::EN, K::BtnTriggers) :
+      b == ctl::Btn::A ? "A" : b == ctl::Btn::B ? "B" : b == ctl::Btn::X ? "X" : b == ctl::Btn::Y ? "Y" : b == ctl::Btn::Menu ? "Menu" :
+      b == ctl::Btn::View ? "View" : b == ctl::Btn::RB ? "RB" : "RT";
+  const float d = ui::large ? std::max(36.f, g.fonts[ui::F_TINY].size + 10) : 24;
+  const bool round = b == ctl::Btn::A || b == ctl::Btn::B || b == ctl::Btn::X || b == ctl::Btn::Y || b == ctl::Btn::Menu || b == ctl::Btn::View;
+  const float glyphW = round ? d : gfx::textWidth(g, ui::F_TINY, glyph) + 18;
+  return glyphW + 8 + gfx::textWidth(g, ui::F_SMALL, i18n::get(lang, text != K::None ? text : ctl::label(a))) + 26;
 }
 // Uma fileira de dicas, na ordem dada.
 [[maybe_unused]] static float ctlFooter(gfx::Gfx& g, float x, float y, ctl::Ctx c, i18n::Lang lang, std::initializer_list<ctl::Act> acts) {
