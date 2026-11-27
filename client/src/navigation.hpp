@@ -222,7 +222,7 @@ struct Navigation {
     auto& p = page();
     NavDraw d{g, thumbs, worker, frame, now, lang, contentFocus, hideShorts, *this, p};
     drawBanner(d);
-    float top = p.music ? drawMusicPage(d) : p.kind == "channel" ? drawChannelPage(d) : p.kind == "search" ? drawSearchPage(d) : drawCollectionPage(d);
+    float top = p.music || p.musicHome() || p.kind == "music_search" ? drawMusicPage(d) : p.kind == "channel" ? drawChannelPage(d) : p.kind == "search" ? drawSearchPage(d) : drawCollectionPage(d);
     drawEmpty(d, top);
     drawFooter(d);
   }

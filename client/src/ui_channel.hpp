@@ -14,7 +14,6 @@ inline void UiContext::channelHeaderPress(NavPage& p, uint64_t now) {
 inline void UiContext::channelTabSelected(NavPage& p) {
   p.tab = p.tabSel==1 ? "shorts" : p.tabSel==2 ? "live" : p.tabSel==3 ? "playlists" : "videos";
 }
-// Página de canal: avatar, nome, botão Inscrever-se e as abas Vídeos/Shorts/Ao vivo/Playlists, sobre a grade do canal.
 inline float Navigation::drawChannelPage(NavDraw& d) {
   auto& g = d.g; auto& p = d.p;
   float tx = 136;

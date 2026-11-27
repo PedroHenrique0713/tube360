@@ -78,7 +78,6 @@ inline void UiContext::navInput(uint64_t now) {
   }
 }
 
-
 // Botão "Reproduzir tudo" no cabeçalho de uma playlist (ou lista de Música): começa a fila do servidor desde o primeiro item.
 inline void UiContext::playlistHeaderPress(NavPage& p) {
   phonePlaybackSerial = 0;
@@ -100,7 +99,7 @@ inline void UiContext::subscriptionStripInput(NavPage& p, bool left, bool right,
 inline float Navigation::drawCollectionPage(NavDraw& d) {
   auto& g = d.g; auto& p = d.p;
   float tx = 136;
-  if (!p.image.empty()) { artwork(g, d.thumbs, d.worker, p.image, d.frame, tx, 28, 72, 72, true, false); tx += 96; }
+  if (!p.image.empty()) { artwork(g, d.thumbs, d.worker, p.image, d.frame, tx, 28, 72, 72, true, p.kind == "artist"); tx += 96; }
   gfx::textBox(g, ui::F_BIG, p.displayTitle.empty() ? d.tr(titleKey(p)) : p.displayTitle, tx, 28, ui::W-tx-64, ui::TEXT);
   gfx::text(g, ui::F_CHAN, p.displaySub, tx, 82, ui::MUTED);
   if (playlistKind(p)) {
