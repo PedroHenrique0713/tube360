@@ -263,13 +263,7 @@ struct Navigation {
   void drawEmpty(NavDraw& d, float top);
   void drawFooter(NavDraw& d);
   void drawMenu(gfx::Gfx& g, i18n::Lang lang);
-  // ---- F61 Início e coleção: funções novas desta frente só aqui
 
-  // ---- F62 Busca e canal: funções novas desta frente só aqui
-
-  // ---- F63 Player e Shorts: funções novas desta frente só aqui
-
-  // ---- F64 Configurações e controle: funções novas desta frente só aqui
   // Linhas do Menu: as do vídeo em foco (se houver) e, sempre por último, "Atualizar" a página.
   enum class MenuKind { Channel, Later, Radio, Local, Refresh };
   struct MenuEntry { MenuKind kind; K label; };
@@ -286,11 +280,5 @@ struct Navigation {
     list.push_back({MenuKind::Refresh, K::Refresh});
     return list;
   }
-
-  // ---- F65 Música: funções novas desta frente só aqui
-
-  // ---- F66 controle pelo celular: funções novas desta frente só aqui
-
-  // ---- F67 membros tocando: funções novas desta frente só aqui
 
 };

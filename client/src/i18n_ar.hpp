@@ -377,17 +377,14 @@ inline const char* arabic(Key key) {
     case Key::SettingErrorReports: return "تقارير الأخطاء";
     case Key::SettingOn: return "تشغيل";
     case Key::SettingOff: return "إيقاف";
-    // ---- F61 Início e coleção
     case Key::MembersOnly: return "للأعضاء فقط";
 
-    // ---- F62 Busca e canal
     case Key::ChannelHome: return "الرئيسية";
     case Key::SortRecent: return "الأحدث";
     case Key::SortPopular: return "رائج";
     case Key::SortOldest: return "الأقدم";
     case Key::SearchTypeChannels: return "القنوات";
 
-    // ---- F63 Player e Shorts
     case Key::PlayerShelfNext: return "التالي";
     case Key::PlayerShelfChannel: return "من القناة";
     case Key::PlayerShelfRelated: return "مقترحات";
@@ -398,7 +395,6 @@ inline const char* arabic(Key key) {
     case Key::PlayerLaterRemoved: return "تمت الإزالة من المشاهدة لاحقاً";
     case Key::ShortsStep: return "السابق / التالي";
 
-    // ---- F64 Configurações e controle
     case Key::CtlPlayPause: return "تشغيل / إيقاف مؤقت";
     case Key::CtlAddQueue: return "أضف إلى القائمة";
     case Key::CtlSongVideo: return "أغنية / فيديو";
@@ -423,7 +419,6 @@ inline const char* arabic(Key key) {
     case Key::UpdateToastTail: return " متاح · الإعدادات > النظام";
     case Key::SettingVolume: return "مستوى صوت التلفاز";
 
-    // ---- F65 Música
     case Key::MusicSeekBar: return "تقديم أو ترجيع";
     case Key::MusicExplore: return "استكشاف";
     case Key::MusicTopResult: return "أفضل نتيجة";
@@ -450,7 +445,6 @@ inline const char* arabic(Key key) {
     case Key::MusicQueueServer: return "القفز وإعادة الترتيب غير متاحان في هذه القائمة.";
     case Key::MusicVideoLoading: return "جارٍ تحميل الفيديو…";
 
-    // ---- F66 controle pelo celular
     case Key::SettingPhoneRemote: return "الهاتف كريموت";
     case Key::PhoneRemoteHelp: return "تحكم بالتطبيق من متصفح الهاتف على نفس شبكة الواي فاي. اضغط A لعرض العنوان والرمز.";
     case Key::RemoteTitle: return "الهاتف كريموت";
@@ -462,11 +456,9 @@ inline const char* arabic(Key key) {
     case Key::RemoteTooMany: return "محاولات خاطئة كثيرة. افتحها مجددًا لإنشاء رمز آخر.";
     case Key::RemoteConnected: return "تم اتصال الهاتف";
 
-    // ---- F67 membros tocando
     case Key::LiveWaiting: return "البث المباشر لم يبدأ بعد أو متوقف";
     case Key::LiveOnTv: return "البث المباشر يعمل على التلفاز: السماعة لا تستقبل البث المباشر";
 
-    // ---- F71 Rodada 3
     case Key::HomeLiveNone: return "لا أحد ممن تتابعهم يبث مباشرة الآن.";
     case Key::HomeLiveSignIn: return "سجّل الدخول من الإعدادات لترى من تتابعهم يبثون مباشرة.";
 

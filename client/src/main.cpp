@@ -1023,19 +1023,10 @@ int run(int argc, char** argv) {
 #ifndef __XSDK__
   searchbench::Frames searchFrames;
 #endif
-  // ---- F61 Início e coleção: estado novo do run() só aqui
 
-  // ---- F62 Busca e canal: estado novo do run() só aqui
-
-  // ---- F63 Player e Shorts: estado novo do run() só aqui
   pl.setVolumePercent(settings.volume);  // volume salvo é só da TV; o app nunca manda SET_VOLUME ao Nest na abertura
   PlayerWatch playerWatch;
 
-  // ---- F64 Configurações e controle: estado novo do run() só aqui
-
-  // ---- F65 Música: estado novo do run() só aqui
-
-  // ---- F66 controle pelo celular: estado novo do run() só aqui
   phonectl::Core phoneCore(
       [](unsigned char* bytes, size_t size) {
 #ifdef __XSDK__
@@ -1056,8 +1047,6 @@ int run(int argc, char** argv) {
   size_t phonePaired = 0; uint64_t phoneRemoteStateAt = 0; unsigned phoneNoticeSeen = 0, phoneTooManySeen = 0; uint64_t phoneAddressAt = 0;
   bool phoneWasOn = false, phonePanelPrev = false;
   std::deque<phonectl::Event> phoneBacklog;
-
-  // ---- F67 membros tocando: estado novo do run() só aqui
 
   UiContext screens{
     // compartilhado
@@ -1216,11 +1205,6 @@ int run(int argc, char** argv) {
     .manualNoticeLang=manualNoticeLang,
     .manualNoticeWidth=manualNoticeWidth,
 
-    // ---- F61 Início e coleção
-
-    // ---- F62 Busca e canal
-
-    // ---- F63 Player e Shorts
     .related=related,
     .shelf=shelf,
     .shortsQueue=shortsQueue,
@@ -1231,15 +1215,9 @@ int run(int argc, char** argv) {
     .shortLang=shortLang,
     .shortLines=shortLines,
 
-    // ---- F64 Configurações e controle
-
-    // ---- F65 Música
-
-    // ---- F66 controle pelo celular
     .remoteCore=phoneCore,
     .remoteNet=phoneNet,
 
-    // ---- F67 membros tocando
   };
   struct PhoneRun { phonectl::Net* net; phonectl::Core* core; } phoneRun{&phoneNet, &phoneCore};
   phoneThread = yt::worker([](void* p) { auto* r = static_cast<PhoneRun*>(p); r->net->run(*r->core); return 0; }, "remote", &phoneRun);
@@ -1588,10 +1566,8 @@ int run(int argc, char** argv) {
     int optionCount = behindLive ? PlayerUI::COUNT : PlayerUI::EDGE;
     if (playerUI.selected >= optionCount) playerUI.selected = PlayerUI::CHANNEL;
     // entrada: o painel aberto mais por cima captura o controle; sem painel, vale a tela (métodos de ui_*.hpp)
-    // ---- F64 Configurações e controle
     screens.sleepWarning = sleepWarning;
     screens.pageMenuIntercept();
-    // ---- F66 controle pelo celular
 #ifndef __XSDK__
     if (frame == 2 && settings.phoneRemote && std::getenv("XT_REMOTE_PANEL")) screens.remotePanelOpen = true;  // bancada: abre o painel de pareamento sem teclas
 #endif
@@ -1702,7 +1678,7 @@ int run(int argc, char** argv) {
       screens.playerInput(now,optionCount);
     }
     screens.playerUpdate(now);
-    // ---- F63 Player e Shorts: vigia do player (marca a sessão para o relatório de erro)
+    // Vigia do player (marca a sessão para o relatório de erro)
     {
       using Phase = PlayerWatch::Phase;
       PlayerWatch::Sample w; w.now = now; w.inPlayer = screen == PLAYER;  // inclui o Tocando agora: música travada também gera relatório
@@ -1744,7 +1720,7 @@ int run(int argc, char** argv) {
     if (nav.continuing && !nav.radioFor.empty() && !nav.busy) {
       nav.action(navWorker,"/api/nav/play?kind=radio&id="+net::urlEncode(nav.radioFor)+"&lang="+i18n::code(settings.lang)); nav.radioFor.clear();
     }
-    // ---- F63 Player e Shorts: fim de um Short emenda no próximo da fila (ou repete o último), sem o "a seguir em 8 s" de vídeo comum
+    // Fim de um Short emenda no próximo da fila (ou repete o último), sem o "a seguir em 8 s" de vídeo comum
     if (screen == PLAYER && pl.state == player::ENDED && playing.shortForm && !playerFromRemote && !shutdownAt && !nav.localQueue && !(sleep.active && sleep.end)) screens.shortsEnded();
     if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && !nav.continuing && (playerFromRemote || !nextPending || now >= nextDeadline)) {
@@ -1823,7 +1799,7 @@ int run(int argc, char** argv) {
       screens.musicSleepDraw(sleepLeft);
     }
     screens.overlaysDraw(now,t,sleepWarning,sleepLeft);
-    if (screens.remotePanelOpen) screens.remoteDraw(now);  // ---- F66 controle pelo celular
+    if (screens.remotePanelOpen) screens.remoteDraw(now);
     bool shoot = shotPath && (int)frame == shotFrame;
 #ifndef __XSDK__
     if (shotPath && std::getenv("XT_SHOT_MS")) shoot = now - runStart >= (uint64_t)std::atoi(std::getenv("XT_SHOT_MS"));
