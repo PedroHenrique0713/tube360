@@ -27,7 +27,9 @@ int main() {
   CHECK(act(Ctx::Player, Btn::LB) == Act::PrevItem && act(Ctx::Home, Btn::LB) == Act::PrevTab);
   CHECK(button(Ctx::Music, Act::SongVideo) == Btn::View && !has(Ctx::Home, Act::SongVideo));
   CHECK(act(Ctx::Settings, Btn::Y) == Act::None && act(Ctx::Settings, Btn::LT) == Act::None);  // o que a tela não faz sai do mapa
-  CHECK(button(Ctx::Panel, Act::Refresh) == Btn::Menu && act(Ctx::Settings, Btn::LB) == Act::PrevTab);
+  CHECK(button(Ctx::Update, Act::Refresh) == Btn::Menu && !has(Ctx::Panel, Act::Refresh) && act(Ctx::Settings, Btn::LB) == Act::PrevTab);
+  CHECK(act(Ctx::Shorts, Btn::LT) == Act::VolumeDown && act(Ctx::Shorts, Btn::RT) == Act::VolumeUp && pairSecond(Act::VolumeUp));  // volume nos Shorts
+  CHECK(act(Ctx::PlayerShelf, Btn::LB) == Act::PrevTab && act(Ctx::PlayerShelf, Btn::X) == Act::WatchLater);  // abas da fileira do player
   FakeInput in; in.fired[FakeInput::START] = true;
   CHECK(!hit(in, Ctx::Home, Act::SongVideo));
   CHECK(hit(in, Ctx::Home, Act::Options) && !hit(in, Ctx::Home, Act::Options));
