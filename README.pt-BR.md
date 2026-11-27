@@ -8,10 +8,10 @@
 
 <p align="center">
   <a href="https://github.com/revive360/catalog/blob/main/generated/apps/tube360.md"><img src="https://raw.githubusercontent.com/revive360/catalog/main/generated/badges/tube360.svg" alt="Revive360 Official" height="28"></a>
-  <a href="https://github.com/revive360/tube360/releases/latest"><img src="https://img.shields.io/badge/release-v0.3.3-ff0f3c?style=for-the-badge&amp;labelColor=111" alt="Release v0.3.3"></a>
-  <img src="https://img.shields.io/badge/Xbox%20360-BadUpdate%20%C2%B7%20RGH%20%C2%B7%20JTAG-107C10?style=for-the-badge&logo=xbox&logoColor=white&labelColor=111" alt="Xbox 360">
-  <img src="https://img.shields.io/badge/Console--first%20H.264-ff5a52?style=for-the-badge&labelColor=111" alt="Console-first H.264">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licen%C3%A7a-MIT-blue?style=for-the-badge&labelColor=111" alt="MIT"></a>
+  <a href="https://github.com/revive360/tube360/releases/latest"><img src="docs/img/badges/release.svg" alt="Release v0.3.3"></a>
+  <img src="docs/img/badges/xbox360.svg" alt="Xbox 360">
+  <img src="docs/img/badges/console-first.svg" alt="Console-first H.264">
+  <a href="LICENSE"><img src="docs/img/badges/license-pt.svg" alt="MIT"></a>
 </p>
 
 <p align="center">
