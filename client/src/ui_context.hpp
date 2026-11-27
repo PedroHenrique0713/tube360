@@ -170,6 +170,20 @@ struct UiContext {
   i18n::Lang& manualNoticeLang;
   float& manualNoticeWidth;
 
+  // ---- F61 Início e coleção: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+
+  // ---- F62 Busca e canal: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+
+  // ---- F63 Player e Shorts: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+
+  // ---- F64 Configurações e controle: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+
+  // ---- F65 Música: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+
+  // ---- F66 controle pelo celular: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+
+  // ---- F67 membros tocando: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+
   // Métodos: declarados aqui, definidos no arquivo de cada tela (ui_*.hpp).
   ErrorShot errorShot;
   const char* tr(K key) const { return i18n::get(settings.lang, key); }

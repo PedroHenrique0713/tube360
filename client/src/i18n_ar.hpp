@@ -387,6 +387,20 @@ inline const char* arabic(Key key) {
     case Key::SettingErrorReports: return "تقارير الأخطاء";
     case Key::SettingOn: return "تشغيل";
     case Key::SettingOff: return "إيقاف";
+    // ---- F61 Início e coleção
+
+    // ---- F62 Busca e canal
+
+    // ---- F63 Player e Shorts
+
+    // ---- F64 Configurações e controle
+
+    // ---- F65 Música
+
+    // ---- F66 controle pelo celular
+
+    // ---- F67 membros tocando
+
     default: return nullptr;  // Strings novas usam inglês até receberem tradução.
   }
 }

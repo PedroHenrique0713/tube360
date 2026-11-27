@@ -406,7 +406,22 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SettingShortsHide, "Hide", "Esconder", "Ocultar") \
   X(SettingErrorReports, "Error reports", "Relatórios de erro", "Informes de errores") \
   X(SettingOn, "On", "Ligado", "Activado") \
-  X(SettingOff, "Off", "Desligado", "Desactivado")
+  X(SettingOff, "Off", "Desligado", "Desactivado") \
+  /* ---- F61 Início e coleção */ \
+  /* */ \
+  /* ---- F62 Busca e canal */ \
+  /* */ \
+  /* ---- F63 Player e Shorts */ \
+  /* */ \
+  /* ---- F64 Configurações e controle */ \
+  /* */ \
+  /* ---- F65 Música */ \
+  /* */ \
+  /* ---- F66 controle pelo celular */ \
+  /* */ \
+  /* ---- F67 membros tocando */ \
+  /* */ \
+  /* ---- fim da lista */
 
 enum class Key {
 #define TEXT_KEY(k, en, pt, es) k,

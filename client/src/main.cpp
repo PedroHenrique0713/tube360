@@ -1007,6 +1007,20 @@ int run(int argc, char** argv) {
 #ifndef __XSDK__
   searchbench::Frames searchFrames;
 #endif
+  // ---- F61 Início e coleção: estado novo do run() só aqui
+
+  // ---- F62 Busca e canal: estado novo do run() só aqui
+
+  // ---- F63 Player e Shorts: estado novo do run() só aqui
+
+  // ---- F64 Configurações e controle: estado novo do run() só aqui
+
+  // ---- F65 Música: estado novo do run() só aqui
+
+  // ---- F66 controle pelo celular: estado novo do run() só aqui
+
+  // ---- F67 membros tocando: estado novo do run() só aqui
+
   UiContext screens{
     // compartilhado
     .g=g,
@@ -1167,6 +1181,20 @@ int run(int argc, char** argv) {
     .manualNoticeFont=manualNoticeFont,
     .manualNoticeLang=manualNoticeLang,
     .manualNoticeWidth=manualNoticeWidth,
+
+    // ---- F61 Início e coleção
+
+    // ---- F62 Busca e canal
+
+    // ---- F63 Player e Shorts
+
+    // ---- F64 Configurações e controle
+
+    // ---- F65 Música
+
+    // ---- F66 controle pelo celular
+
+    // ---- F67 membros tocando
   };
   boot_event("begin","app.first-frame","enter render loop; no disk logging each frame after ready");
   while (!quit) {
