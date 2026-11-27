@@ -68,12 +68,13 @@ using K = i18n::Key;
 #include "ui_theme.hpp"
 
 struct ItemGrid {
-  struct GridRow { std::vector<int> items; bool shorts = false; std::string heading; };  // heading: título do grupo (Histórico por dia), só na 1ª fileira do grupo
+  struct GridRow { std::vector<int> items; bool shorts = false; std::string heading; bool carousel = false; };  // heading: título do grupo (Histórico por dia), só na 1ª fileira do grupo
   std::vector<GridRow> rows;
   std::vector<int> itemRows;
   int gridSize = -1, gridCols = 0, gridColumn = 0, shortColumn = 0;
-  bool gridHide = false, gridGrouped = false;
-  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide, bool grouped = false) {
+  bool gridHide = false; int gridGrouped = 0;
+  // grouped: 0 sem grupos; 1 grupos que quebram em fileiras (Histórico por dia); 2 uma fileira rolável por prateleira (Início da conta).
+  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide, int grouped = 0) {
     if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide || gridGrouped != grouped) {
       gridSize = (int)items.size(); gridCols = cols; gridHide = hide; gridGrouped = grouped;
       rows.clear(); itemRows.assign(items.size(), -1);
@@ -86,9 +87,11 @@ struct ItemGrid {
         } else {
           bool newGroup = false;
           if constexpr (requires { items[i].section; }) newGroup = grouped && !items[i].section.empty() && (i == 0 || items[i].section != items[i-1].section);
-          if (rows.empty() || rows.back().shorts || (int)rows.back().items.size() == cols || newGroup) {
+          bool full = !rows.empty() && (int)rows.back().items.size() == cols;
+          if (!rows.empty() && rows.back().carousel && !rows.back().shorts && !newGroup) full = false;
+          if (rows.empty() || rows.back().shorts || full || newGroup) {
             rows.push_back({});
-            if constexpr (requires { items[i].section; }) if (grouped && (newGroup || rows.size() == 1)) rows.back().heading = items[i].section;
+            if constexpr (requires { items[i].section; }) if (grouped && (newGroup || rows.size() == 1)) { rows.back().heading = items[i].section; rows.back().carousel = grouped == 2 && !items[i].section.empty(); }
           }
           rows.back().items.push_back(i); itemRows[i] = (int)rows.size()-1;
         }
@@ -127,7 +130,7 @@ struct ItemGrid {
   }
 };
 
-struct Video { std::string id, channel, views, title, date; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; bool shortForm = false; };
+struct Video { std::string id, channel, views, title, date, section; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; bool shortForm = false; };
 struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; std::string errorDetail; bool more = true, loadingMore = false, direct = false; ItemGrid layout; };
 struct Shelf { std::string title, query; Feed feed; int sel = 0; std::string kind = "search"; uint64_t stamp = 0; };
 
@@ -150,6 +153,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
     if (f.size() > 5) { double pos = std::atof(f[5].c_str()); if (std::isfinite(pos)) v.pos = std::max(0.0, pos); }
     if (f.size() > 6) v.members = yt::membershipWire(f[6]);
     if (f.size() > 7) v.shortForm = f[7] == "short";
+    if (f.size() > 8) v.section = f[8];
     feed.items.push_back(v);
   }
 }

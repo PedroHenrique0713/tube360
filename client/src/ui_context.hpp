@@ -171,6 +171,7 @@ struct UiContext {
   float& manualNoticeWidth;
 
   // ---- F61 Início e coleção: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  int homeShelves(const Shelf& cur) const;  // ui_home.hpp: 2 = prateleiras do YouTube da conta (Início), 0 = lista única
 
   // ---- F62 Busca e canal: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
