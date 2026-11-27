@@ -13,6 +13,7 @@ struct MusicNavigation : Navigation {
   enum Button { BtnPrev, BtnBack10, BtnPlay, BtnForward30, BtnNext, BtnLike, BtnDislike, BtnRepeat, BtnShuffle, BtnCount };
   int queueSel = 0, queueTop = 0, tab = 0;      // tab: 0 = A seguir, 1 = Letra, 2 = Relacionados
   int relatedSel = 0, relatedTop = 0, rowsTab = -1;
+  bool railHasFocus = false;                    // o foco está no trilho lateral: a moldura da lista não aparece
   bool lyricsFailed = false, autoplay = true, autoFocus = false, continuing = false, relatedLoaded = false;  // autoplay: ao fim da fila, segue com a rádio
   std::vector<NavItem> related; std::string relatedId;
   std::string radioFor;                         // faixa da qual a rádio de continuação ainda tem de ser pedida (o worker pode estar ocupado)

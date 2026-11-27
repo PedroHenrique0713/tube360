@@ -297,7 +297,7 @@ inline void Navigation::drawFooter(NavDraw& d) {
   gfx::rect(g, 96, 646, ui::W-96, 74, ui::BG);
   if (p.loading) { spinner(g, ui::W-64, 146, 12, d.now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), ui::W-324, 130, ui::MUTED); }
   const ctl::Ctx ctx = p.music || home ? ctl::Ctx::MusicPage : channel ? ctl::Ctx::Channel : p.kind == "search" ? ctl::Ctx::Search : ctl::Ctx::Collection;
-  // As dicas encaixam por prioridade: A e B sempre; depois Menu, Buscar, abas e X. A de menor prioridade que não couber sai
+  // As dicas encaixam por prioridade: A e B sempre; depois X (assistir mais tarde), Menu, Buscar (já está no trilho) e, por último, as abas. A de menor prioridade que não couber sai
   // INTEIRA (nunca cortada no meio). Em 4:3 o rodapé tem menos de 800 px.
   struct Item { ctl::Ctx ctx; ctl::Act act; K text; int priority; };
   std::vector<Item> items = {
@@ -305,10 +305,10 @@ inline void Navigation::drawFooter(NavDraw& d) {
     {ctx, ctl::Act::Back, K::None, 0}};
   // X = Assistir mais tarde (F61). O Menu abre as opções do vídeo em foco ou, sem vídeo (página vazia ou com erro), as da
   // página, e "Atualizar" mora nele. Na Música o X não age fora do Tocando agora, então não há dica dele aqui.
-  if (!p.music && !home && !channel && p.kind != "search") items.push_back({ctx, ctl::Act::WatchLater, K::None, 4});
-  if (p.music && (p.kind == "music" || p.kind == "music_search")) items.push_back({ctx, ctl::Act::PrevTab, K::None, 3});  // LB RB: abas da Música
-  items.push_back({ctx, ctl::Act::Options, K::MoreOptions, 1});
-  items.push_back({ctx, ctl::Act::Search, K::None, 2});
+  if (!p.music && !home && !channel && p.kind != "search") items.push_back({ctx, ctl::Act::WatchLater, K::None, 1});
+  if (p.music && (p.kind == "music" || p.kind == "music_search")) items.push_back({ctx, ctl::Act::PrevTab, K::None, 4});  // LB RB: abas da Música
+  items.push_back({ctx, ctl::Act::Options, K::MoreOptions, 2});
+  items.push_back({ctx, ctl::Act::Search, K::None, 3});
   const float limit = ui::W - 48;
   auto total = [&]() { float w = 136; for (const auto& i : items) w += ctlHintWidth(g, i.ctx, i.act, d.lang, i.text); return w; };
   while (items.size() > 2 && total() > limit) {
