@@ -251,15 +251,16 @@ inline void Navigation::drawFooter(NavDraw& d) {
   bool home = p.musicHome(), channel = p.kind == "channel", playlist = playlistKind(p);
   gfx::rect(g, 96, 646, ui::W-96, 74, ui::BG);
   if (p.loading) { spinner(g, ui::W-64, 146, 12, d.now / 1000.0); gfx::text(g, ui::F_CHAN, tr(p.offset ? K::MoreLoading : K::Loading), ui::W-324, 130, ui::MUTED); }
-  float hx = hint(g, 136, 676, "A", XA, tr(p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open));
-  hx = hint(g, hx, 676, "B", XB, tr(K::Back));
+  const ctl::Ctx ctx = p.music || home ? ctl::Ctx::Music : channel ? ctl::Ctx::Channel : p.kind == "search" ? ctl::Ctx::Search : ctl::Ctx::Collection;
+  float hx = ctlHint(d.g, 136, 676, ctx, ctl::Act::Open, d.lang, p.zone == 0 ? channel ? p.subscribed ? K::Subscribed : K::Subscribe : playlist ? K::PlayAll : K::Open : K::Open);
+  hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Back, d.lang);
   bool videoMenu=p.zone == 3 && (home ? !p.items.empty() : !p.rows.empty()) && p.sel < (int)p.items.size() && p.items[(size_t)p.sel].type == "video";
-  // Reserva a dica de salvar no rodapé curto; X/Y continuam disponíveis.
-  if (!videoMenu || (!ui::narrow && !ui::large)) {
-    hx = hint(g, hx, 676, "X", XX, tr(K::Refresh));
-    hx = hint(g, hx, 676, "Y", XY, tr(K::Search));
+  // Reserva a dica de salvar no rodapé curto: com vídeo em foco, X (salvar) e Menu (opções) vêm antes de Y.
+  if (videoMenu) {
+    hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::WatchLater, d.lang);
+    hx = ctlHint(d.g, hx, 676, ctx, ctl::Act::Options, d.lang);
   }
-  if (videoMenu) hint(g, hx, 676, "Menu", XG, tr(K::MoreOptions));
+  if (!videoMenu || (!ui::narrow && !ui::large)) ctlHint(d.g, hx, 676, ctx, ctl::Act::Search, d.lang);
 }
 
 inline void Navigation::drawMenu(gfx::Gfx& g, i18n::Lang lang) {
