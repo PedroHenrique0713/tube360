@@ -198,7 +198,13 @@ int main() {
       CHECK(open <= 2);                                                                       // 12 conexões do mesmo IP: só 2 ficam abertas
       for (int s2 : held) ::close(s2);
       std::this_thread::sleep_for(std::chrono::milliseconds(300));
-      CHECK(http(port, rq("GET", "/")).find("200 OK") != std::string::npos); }
+      CHECK(http(port, rq("GET", "/")).find("200 OK") != std::string::npos);
+      // lotou com conexões mudas: a mais antiga (parada há mais de 300 ms) cai e o pedido novo passa
+      std::vector<int> idle;
+      for (int i = 0; i < 2; ++i) { int s2 = ::socket(AF_INET, SOCK_STREAM, 0); ::connect(s2, (sockaddr*)&a2, sizeof(a2)); idle.push_back(s2); }
+      std::this_thread::sleep_for(std::chrono::milliseconds(450));
+      CHECK(http(port, rq("GET", "/")).find("200 OK") != std::string::npos);
+      for (int s2 : idle) ::close(s2); }
     // inundação: 300 comandos, a fila segura no teto e a TV só vê o que cabe
     int ok200 = 0, busy = 0;
     for (int i = 0; i < 300; ++i) { auto x = http(port, rq("POST", "/cmd", "a=down", tok.c_str())); ok200 += x.find("200 OK") != std::string::npos; busy += x.find("429") != std::string::npos; }

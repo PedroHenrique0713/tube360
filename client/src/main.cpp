@@ -1089,12 +1089,11 @@ int run(int argc, char** argv) {
       [] { return (uint64_t)SDL_GetTicks(); },
       [&settings] { return phonectl::page(settings.lang); });
   phonectl::Net phoneNet;
-  phoneNet.advertised = [] { return phonectl::localAddress(); };  // o endereço que o painel mostra também vale como Host
 #ifndef __XSDK__
   if (const char* fixed = std::getenv("XT_REMOTE_CODE")) phoneCore.setCodeForTest(fixed);  // teste de bancada; no console o código é sempre aleatório
 #endif
   SDL_Thread* phoneThread = nullptr;
-  size_t phonePaired = 0; uint64_t phoneRemoteStateAt = 0; unsigned phoneNoticeSeen = 0, phoneTooManySeen = 0;
+  size_t phonePaired = 0; uint64_t phoneRemoteStateAt = 0; unsigned phoneNoticeSeen = 0, phoneTooManySeen = 0; uint64_t phoneAddressAt = 0;
   bool phoneWasOn = false, phonePanelPrev = false;
   std::deque<phonectl::Event> phoneBacklog;
 
@@ -1651,6 +1650,10 @@ int run(int argc, char** argv) {
     if (frame == 2 && settings.phoneRemote && std::getenv("XT_REMOTE_PANEL")) screens.remotePanelOpen = true;  // bancada: abre o painel de pareamento sem teclas
 #endif
     phoneNet.enabled = settings.phoneRemote;
+    if (settings.phoneRemote && now >= phoneAddressAt) {  // o endereço que o painel mostra também vale como Host; lido aqui, a thread da rede só vê a cópia
+      phoneAddressAt = now + 2000;
+      in_addr a{}; phoneNet.advertisedIp = ::inet_pton(AF_INET, phonectl::localAddress().c_str(), &a) == 1 ? a.s_addr : 0;
+    }
     if (!settings.phoneRemote) {
       if (phoneWasOn) { phoneCore.reset(); phoneBacklog.clear(); phonePaired = 0; phoneNoticeSeen = 0; phoneTooManySeen = 0; phonePanelPrev = false; }  // desligar derruba todas as sessões
       phoneWasOn = false; screens.remotePanelOpen = false;
