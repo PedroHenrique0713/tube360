@@ -3,6 +3,7 @@ extern "C" {
 #include "../../third_party/quickjs-ng/quickjs.h"
 }
 #include <chrono>
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 
@@ -120,7 +121,9 @@ std::string Solver::solve(const std::string& n, std::string& out, unsigned timeo
     if (!text) { JS_FreeValue(m.ctx, res); return "bad_result"; }
     out.assign(text, len);
     JS_FreeCString(m.ctx, text); JS_FreeValue(m.ctx, res);
-    if (out.empty() || out.size() > 64) return "bad_result";
+    // A transformação do player devolve o próprio `n` ou um texto com `enhanced_except_` quando algo do ambiente falta.
+    if (out.empty() || out.size() > 64 || out.find("enhanced_except") != std::string::npos) return "bad_result";
+    for (unsigned char c : out) if (!(std::isalnum(c) || c == '_' || c == '-')) return "bad_result";
     return out == n ? "same_value" : std::string();
 }
 
