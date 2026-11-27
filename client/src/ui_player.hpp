@@ -75,8 +75,9 @@ inline void UiContext::playerPanelInput(uint64_t now, const display::CommentsPan
 }
 
 inline void UiContext::playerNextInput() {
-  if (in.hit(Input::A) || in.hit(Input::START)) { Video v = upNext; startVideo(v, 0, false); }
-  else if (in.hit(Input::B) || in.hit(Input::BACK)) { nextAt = 0; stopVideo(); }
+  in.hit(Input::BACK); in.hit(Input::START);  // View e Menu não têm papel no cartão de próximo automático (mapa único #40)
+  if (in.hit(Input::A)) { Video v = upNext; startVideo(v, 0, false); }
+  else if (in.hit(Input::B)) { nextAt = 0; stopVideo(); }
 }
 
 inline void UiContext::playerInput(uint64_t now, int optionCount) {
@@ -251,7 +252,8 @@ inline void UiContext::playerShelfInput(uint64_t now) {
   int count = (int)related.size();
   if (in.hit(Input::LEFT)) shelf.sel = std::max(0, shelf.sel - 1);
   if (in.hit(Input::RIGHT)) shelf.sel = std::min(count - 1, shelf.sel + 1);
-  if (in.hit(Input::A) || in.hit(Input::START)) {
+  if (ctl::hit(in, ctl::Ctx::Player, ctl::Act::Options)) { shelf.open = false; playerUI.options = true; }  // Menu = opções
+  else if (in.hit(Input::A)) {
     if (shelf.sel >= 0 && shelf.sel < count) { Video v = related[(size_t)shelf.sel]; shelf.open = false; startVideo(v, 0, false); }
   } else if (in.hit(Input::B) || in.hit(Input::UP)) shelf.open = false;
   in.hit(Input::BACK); in.hit(Input::DOWN);

@@ -114,12 +114,13 @@ inline void UiContext::shortsDraw(uint64_t now, double t) {
   }
   // Dicas à esquerda, fora do vídeo, pelo mapa único.
   float hy = ui::H / 2 - 110, hx = 40;
-  gfx::rect(g, hx - 12, hy - 10, 330, 206, {0, 0, 0, 0.55f}, 14);
+  gfx::rect(g, hx - 12, hy - 10, 330, 246, {0, 0, 0, 0.55f}, 14);
   hint(g, hx, hy, tr(K::BtnVertical), XG, focus ? tr(K::ChooseRow) : tr(K::ShortsStep));
   ctlHint(g, hx, hy + 40, ctl::Ctx::Shorts, ctl::Act::PlayPause, settings.lang, focus ? K::Open : pl.paused ? K::Resume : K::Pause);
   ctlHint(g, hx, hy + 80, ctl::Ctx::Shorts, ctl::Act::WatchLater, settings.lang);
   ctlHint(g, hx, hy + 120, ctl::Ctx::Shorts, ctl::Act::Options, settings.lang);
   ctlHint(g, hx, hy + 160, ctl::Ctx::Shorts, ctl::Act::Back, settings.lang, focus ? K::Close : K::None);
+  hint(g, hx, hy + 200, i18n::get(i18n::Lang::EN, K::BtnTriggers), XG, tr(K::SettingVolume));  // LT/RT: volume (sem papel no mapa dos Shorts)
   volumeHud(now);
   if (pl.waiting()) {
     spinner(g, ui::W / 2, ui::H / 2, 26, t);
