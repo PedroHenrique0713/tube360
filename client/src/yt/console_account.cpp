@@ -642,7 +642,7 @@ struct ConsoleAccount::Impl {
         for (size_t i=size_t(offset); i<end; ++i) {
             const auto& v=list.items[i];
             if (feed) {
-                if (v.type=="video") body+=v.id+"\t"+std::to_string(v.duration)+"\t"+clean(v.byline)+"\t\t"+clean(v.title)+"\t"+std::to_string(v.pos)+"\t"+membershipWire(v.members)+(v.shortForm ? "\tshort" : "")+"\n";
+                if (v.type=="video") body+=v.id+"\t"+std::to_string(v.duration)+"\t"+clean(v.byline)+"\t\t"+clean(v.title)+"\t"+std::to_string(v.pos)+"\t"+membershipWire(v.members)+"\t"+(v.shortForm ? "short" : "")+"\t"+clean(v.section)+"\n";
             } else if (!play || v.type=="video") body+=v.type+"\t"+v.id+"\t"+clean(v.title)+"\t"+clean(v.byline)+"\t"+std::to_string(v.duration)+"\t"+itemImage(v)+"\t"+v.channelId+"\t"+clean(v.section)+"\t"+membershipWire(v.members)+(v.shortForm ? "\tshort" : "")+"\n";
         }
         return {body,{}};

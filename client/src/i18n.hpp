@@ -408,6 +408,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SettingOn, "On", "Ligado", "Activado") \
   X(SettingOff, "Off", "Desligado", "Desactivado") \
   /* ---- F61 Início e coleção */ \
+  X(MembersOnly, "Members only", "Só para membros", "Solo para miembros") \
   /* */ \
   /* ---- F62 Busca e canal */ \
   X(ChannelHome, "Home", "Início", "Inicio") \

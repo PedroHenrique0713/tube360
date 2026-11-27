@@ -110,16 +110,17 @@ inline float Navigation::drawCollectionPage(NavDraw& d) {
   }
   float top = p.kind == "library" ? 120 : 178;
   if (p.kind == "subscriptions" && !p.channels.empty()) {
+    const float stripY = 126;
     int channelCount=ui::narrow ? 4 : ui::large ? 5 : 7;
     int first = std::max(0, p.channelSel-channelCount+1);
     for (int c = first; c < std::min(first+channelCount, (int)p.channels.size()); c++) {
-      float x = 136 + (c - first) * 154; const auto& item = p.channels[(size_t)c];
+      float x = 136 + (c - first) * 154; const auto& item = p.channels[(size_t)c];  // faixa logo abaixo do cabeçalho (#27)
       bool f = d.contentFocus && p.zone == 2 && c == p.channelSel;
-      if (f) gfx::rect(g, x - 5, 166 - 5, 106, 106, ui::TEXT, 53);
-      artwork(g, d.thumbs, d.worker, item.image, d.frame, x, 166, 96, 96, true, true);
-      gfx::text(g, ui::F_CHAN, item.byline, x, 276, f ? ui::TEXT : ui::MUTED);
+      if (f) gfx::rect(g, x - 5, stripY - 5, 106, 106, ui::TEXT, 53);
+      artwork(g, d.thumbs, d.worker, item.image, d.frame, x, stripY, 96, 96, true, true);
+      gfx::text(g, ui::F_CHAN, item.byline, x, stripY + 110, f ? ui::TEXT : ui::MUTED);
     }
-    top = 342;
+    top = stripY + 176;
   }
   navGrid(d, top, navMetrics(d));
   return top;

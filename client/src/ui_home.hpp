@@ -2,10 +2,18 @@
 #pragma once
 #include "ui_context.hpp"
 
+// A Home da conta (TVHTML5) vem em prateleiras com título, na ordem do YouTube; cada uma vira uma fileira rolável com o título.
+// Só a categoria Início da conta e só quando o servidor mandou as seções; busca e demais categorias seguem a lista única.
+inline int UiContext::homeShelves(const Shelf& cur) const {
+  if (inResults || cur.kind!="home" || !account.signedIn()) return 0;
+  for (const auto& v:cur.feed.items) if (!v.section.empty()) return 2;
+  return 0;
+}
+
 inline void UiContext::homeInput(uint64_t now) {
   Shelf& cur = inResults ? results : cats[(size_t)cat];
   auto& grid=cur.feed.layout;
-  grid.build(cur.feed.items,cur.sel,ui::columns(settings.cols),settings.hideShorts);
+  grid.build(cur.feed.items,cur.sel,ui::columns(settings.cols),settings.hideShorts,homeShelves(cur));
   int n = (int)cur.feed.items.size(), previousSel = cur.sel;
   bool hasItems=!grid.rows.empty();
   if (zone == 1 && !inResults) {
@@ -43,7 +51,6 @@ inline void UiContext::homeInput(uint64_t now) {
     cur.sel = 0; scroll = 0; zone = 0; toast = tr(K::Refreshing); toastUntil = now + 2500;
   }
   if (in.hit(Input::B)) { if (inResults) goHome(); else if (zone == 0) zone = 1; }
-  if (in.hit(Input::BACK)) quit = true;
 }
 
 inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
@@ -51,17 +58,28 @@ inline void UiContext::homeDraw(Shelf& cur, double t, double sleepLeft) {
   const int cols = ui::columns(settings.cols);
   const float gap=24, cw=std::floor((ui::W-ui::X0-64-(cols-1)*gap)/cols), th=std::round(cw*9/16), rowH=th+(ui::large ? 128 : 106), top=150;
   auto& grid=cur.feed.layout;
-  grid.build(cur.feed.items,cur.sel,cols,settings.hideShorts);
+  grid.build(cur.feed.items,cur.sel,cols,settings.hideShorts,homeShelves(cur));
   float shortW=std::min(cw*.5f,112.f), shortH=shortW*16/9, shortHeading=std::max(30.f,g.fonts[ui::F_KEY].lineH+8), shortRowH=shortHeading+shortH+(ui::large ? 124 : 100);
+  const float groupH=std::max(40.f,g.fonts[ui::F_KEY].lineH+14);
+  auto rowHeight=[&](const ItemGrid::GridRow& r) { return (r.shorts ? shortRowH : rowH)+(r.heading.empty() ? 0.f : groupH); };
   float want=0;
-  if (zone==0) for (int row=0;row<grid.gridRow(cur.sel);++row) want+=grid.rows[row].shorts ? shortRowH : rowH;
+  if (zone==0) for (int row=0;row<grid.gridRow(cur.sel);++row) want+=rowHeight(grid.rows[row]);
   scroll+=(want-scroll)*.2f;
   float rowY=top-scroll;
   for (const auto& row:grid.rows) {
     float y=rowY;
-    rowY+=row.shorts ? shortRowH : rowH;
+    rowY+=rowHeight(row);
     if (y<140 || y>=646) continue;
+    if (!row.heading.empty()) {  // título da prateleira do YouTube (conta)
+      if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::text(g,ui::F_KEY,gfx::ellipsize(g,ui::F_KEY,row.heading,ui::W-ui::X0-64),ui::X0,y,ui::TEXT);
+      y+=groupH;
+    }
     int first=0, visible=(int)row.items.size();
+    if (row.carousel) {  // fileira rolável: mostra `cols` cartões e acompanha o selecionado
+      visible=cols;
+      int selected=grid.gridRow(cur.sel)>=0 && &grid.rows[grid.gridRow(cur.sel)]==&row ? grid.gridPosition(cur.sel) : grid.gridColumn;
+      first=std::clamp(selected-visible+1,0,std::max(0,(int)row.items.size()-visible));
+    }
     if (row.shorts) {
       if (y+g.fonts[ui::F_KEY].lineH<=646) gfx::text(g,ui::F_KEY,tr(K::ChannelShorts),ui::X0,y,ui::TEXT);
       y+=shortHeading;

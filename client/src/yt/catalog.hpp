@@ -204,6 +204,10 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   out.duration = seconds(text(get(v,"lengthText")));
   if (!out.duration) if (const auto* badge = find(get(v,"header"),"thumbnailOverlayTimeStatusRenderer")) out.duration = seconds(text(get(*badge,"text")));
   if (!out.duration) if (const auto* badge = find(get(v,"contentImage"),"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
+  // Inscrições/Home da conta mandam a duração em thumbnailOverlays (renderer clássico) ou num badge solto, sem lengthText.
+  if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailOverlayTimeStatusRenderer")) out.duration = seconds(text(get(*badge,"text")));
+  if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
+  if (out.type == "video" && !out.duration) if (const auto* badge = find(v,"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
   if (!out.duration) for (const auto& c : array(get(v,"fixedColumns"))) out.duration = seconds(text(get(get(c,"musicResponsiveListItemFixedColumnRenderer"),"text")));
   if (!out.duration && cols.size() > 1) {
     for (const auto& c : cols) {

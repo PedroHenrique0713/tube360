@@ -26,7 +26,7 @@ struct NavPage : ItemGrid {
   std::vector<Shelf> shelves;
   int shelf = 0;
   bool musicHome() const { return kind == "music"; }
-  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,hide && !(kind == "channel" && tab == "shorts")); }
+  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,hide && !(kind == "channel" && tab == "shorts"),kind == "history" ? 1 : 0); }
   int gridRow() const { return ItemGrid::gridRow(sel); }
   int gridPosition() const { return ItemGrid::gridPosition(sel); }
   bool moveGrid(int horizontal, int vertical) { return ItemGrid::moveGrid(sel,horizontal,vertical); }

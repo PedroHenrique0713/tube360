@@ -25,6 +25,7 @@
 #undef PL_MPEG_IMPLEMENTATION
 
 #include "gfx.hpp"
+#include "thumb_scale.hpp"
 #include "startup.hpp"
 #include "boot_log.h"
 #include "connection_error.hpp"
@@ -67,14 +68,15 @@ using K = i18n::Key;
 #include "ui_theme.hpp"
 
 struct ItemGrid {
-  struct GridRow { std::vector<int> items; bool shorts = false; };
+  struct GridRow { std::vector<int> items; bool shorts = false; std::string heading; bool carousel = false; };  // heading: título do grupo (Histórico por dia), só na 1ª fileira do grupo
   std::vector<GridRow> rows;
   std::vector<int> itemRows;
   int gridSize = -1, gridCols = 0, gridColumn = 0, shortColumn = 0;
-  bool gridHide = false;
-  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide) {
-    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide) {
-      gridSize = (int)items.size(); gridCols = cols; gridHide = hide;
+  bool gridHide = false; int gridGrouped = 0;
+  // grouped: 0 sem grupos; 1 grupos que quebram em fileiras (Histórico por dia); 2 uma fileira rolável por prateleira (Início da conta).
+  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide, int grouped = 0) {
+    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide || gridGrouped != grouped) {
+      gridSize = (int)items.size(); gridCols = cols; gridHide = hide; gridGrouped = grouped;
       rows.clear(); itemRows.assign(items.size(), -1);
       int shortRow = -1;
       for (int i = 0; i < gridSize; ++i) {
@@ -83,7 +85,14 @@ struct ItemGrid {
           if (shortRow < 0) { shortRow = (int)rows.size(); rows.push_back({{},true}); }
           rows[shortRow].items.push_back(i); itemRows[i] = shortRow;
         } else {
-          if (rows.empty() || rows.back().shorts || (int)rows.back().items.size() == cols) rows.push_back({});
+          bool newGroup = false;
+          if constexpr (requires { items[i].section; }) newGroup = grouped && !items[i].section.empty() && (i == 0 || items[i].section != items[i-1].section);
+          bool full = !rows.empty() && (int)rows.back().items.size() == cols;
+          if (!rows.empty() && rows.back().carousel && !rows.back().shorts && !newGroup) full = false;
+          if (rows.empty() || rows.back().shorts || full || newGroup) {
+            rows.push_back({});
+            if constexpr (requires { items[i].section; }) if (grouped && (newGroup || rows.size() == 1)) { rows.back().heading = items[i].section; rows.back().carousel = grouped == 2 && !items[i].section.empty(); }
+          }
           rows.back().items.push_back(i); itemRows[i] = (int)rows.size()-1;
         }
       }
@@ -121,7 +130,7 @@ struct ItemGrid {
   }
 };
 
-struct Video { std::string id, channel, views, title; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; bool shortForm = false; };
+struct Video { std::string id, channel, views, title, date, section; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; bool shortForm = false; };
 struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; std::string errorDetail; bool more = true, loadingMore = false, direct = false; ItemGrid layout; };
 struct Shelf { std::string title, query; Feed feed; int sel = 0; std::string kind = "search"; uint64_t stamp = 0; };
 
@@ -144,6 +153,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
     if (f.size() > 5) { double pos = std::atof(f[5].c_str()); if (std::isfinite(pos)) v.pos = std::max(0.0, pos); }
     if (f.size() > 6) v.members = yt::membershipWire(f[6]);
     if (f.size() > 7) v.shortForm = f[7] == "short";
+    if (f.size() > 8) v.section = f[8];
     feed.items.push_back(v);
   }
 }
@@ -242,6 +252,7 @@ struct Worker {
           r.feed.direct = true;
           for (auto& card : page.cards) {
             Video v; v.id = std::move(card.id); v.title = std::move(card.title); v.members = card.members; v.shortForm = card.shortForm;
+            v.channel = std::move(card.channel); v.views = std::move(card.views); v.date = std::move(card.date); v.dur = card.duration;
             r.feed.items.push_back(std::move(v));
           }
           r.feed.title = j.kind == 6 ? j.query : j.a;
@@ -294,14 +305,23 @@ struct Worker {
           }
         }
         if (!native && (j.native || !net::serverEnabled || (consoleAccount && consoleAccount->active())) && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
-          auto img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg");
+          // #15: a capa HD (1280x720) reduzida ao cartão; sem ela, a de 320x180 de sempre. No console o JPEG HD só vale para
+          // o modo de capa grande (decodificar 1280x720 no Xenon custa CPU e 3,6 MB), então lá o padrão segue 320x180.
+#ifdef __XSDK__
+          const bool wantHd = j.w > 320;
+#else
+          const bool wantHd = true;
+#endif
+          yt::Response img;
+          if (wantHd) { img = https->request("https://i.ytimg.com/vi/" + j.a + "/hq720.jpg"); }
+          if (!(img.status == 200 && img.error.empty())) img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg");
           native = img.status == 200 && img.error.empty();
           if (native) resp.body.assign(img.body.begin(), img.body.end());
         }
         if (native || (!artwork && net::get(srv, "/api/thumb/" + (j.a[0] == '~' ? "nav/" + j.a.substr(1) : j.a) + size, resp, 10000))) {
           int w, h, n;
           // Não decodifica dimensões arbitrárias recebidas pela rede.
-          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (artwork || (native && j.a.rfind("~yt",0) == 0) ? (w < 1 || h < 1 || w > 2048 || h > 2048 || int64_t(w)*h > 2097152) : native ? (w != 320 || h != 180) : (w != j.w || h != j.h))) { w = h = 0; }
+          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (artwork || (native && j.a.rfind("~yt",0) == 0) ? (w < 1 || h < 1 || w > 2048 || h > 2048 || int64_t(w)*h > 2097152) : native ? !((w == 320 && h == 180) || (w == 1280 && h == 720)) : (w != j.w || h != j.h))) { w = h = 0; }
           if (!w && artwork && !jpegTried) {
             auto fallback=yt::catalog::jpegThumbnail(address);
             if(!fallback.empty() && fallback!=address){
@@ -322,12 +342,14 @@ struct Worker {
               int dw = std::max(1,int(w*scale)), dh = std::max(1,int(h*scale));
               if (banner) { dw = j.w; dh = j.h; }
               int dx = (j.w-dw)/2, dy = (j.h-dh)/2;
-              for (int y = 0; y < dh; ++y) for (int x = 0; x < dw; ++x)
+              if (w > dw || h > dh) boxScale(px, w, h, 0, 0, w, h, r.rgba.data() + 4 * ((size_t)dy * j.w + dx), 4 * j.w, dw, dh);
+              else for (int y = 0; y < dh; ++y) for (int x = 0; x < dw; ++x)
                 std::memcpy(r.rgba.data()+4*((y+dy)*j.w+x+dx),px+4*((y*h/dh)*w+x*w/dw),4);
             } else if (w == j.w && h == j.h) r.rgba.assign(px, px + (size_t)w*h*4);
             else {
               r.rgba.resize((size_t)j.w*j.h*4);
-              for (int y=0; y<j.h; ++y) for (int x=0; x<j.w; ++x)
+              if (w > j.w || h > j.h) boxScale(px, w, h, 0, 0, w, h, r.rgba.data(), 4 * j.w, j.w, j.h);
+              else for (int y=0; y<j.h; ++y) for (int x=0; x<j.w; ++x)
                 std::memcpy(r.rgba.data() + 4*(y*j.w+x), px + 4*((y*h/j.h)*w + x*w/j.w), 4);
             }
             stbi_image_free(px);
@@ -1743,6 +1765,7 @@ int run(int argc, char** argv) {
   LOG("%s saindo", brandName.c_str());
   boot_event("end","app.exit","normal shutdown frames=%llu run_ms=%llu simulated_frame_delay_ms=%u",(unsigned long long)frame,(unsigned long long)(SDL_GetTicks()-runStart),g.simFrameDelay);
   boot_close();
+  localUI.shutdown();  // F61 (#42): o gravador da Biblioteca termina antes de SDL_Quit e da destruição de mutex/condição
   SDL_Quit();
   return 0;
 }

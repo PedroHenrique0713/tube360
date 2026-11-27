@@ -116,8 +116,24 @@ void collect(const J& j, Page& out, std::set<string>& seen, size_t limit) {
                     id = str(v,"contentId");
                     title = str(field(field(field(v,"metadata"),"lockupMetadataViewModel"),"title"),"content");
                 }
-                if (!id.empty() && !title.empty() && seen.insert(id).second && out.cards.size()<limit)
-                    out.cards.push_back({id,title,membership(v),shortForm});
+                if (!id.empty() && !title.empty() && seen.insert(id).second && out.cards.size()<limit) {
+                    Card card{id,title,membership(v),shortForm};
+                    if (!shortForm && kv.first!="lockupViewModel") {
+                        for (auto k : {"shortBylineText","longBylineText","ownerText"}) if (card.channel.empty()) card.channel = label(field(v,k));
+                        card.views = label(field(v,"shortViewCountText"));
+                        if (card.views.empty()) card.views = label(field(v,"viewCountText"));
+                        card.date = label(field(v,"publishedTimeText"));
+                        string length = label(field(v,"lengthText"));
+                        if (length.empty()) for (const auto& overlay : array(field(v,"thumbnailOverlays")))
+                            if (length.empty()) length = label(field(field(overlay,"thumbnailOverlayTimeStatusRenderer"),"text"));
+                        if (!length.empty()) {
+                            long long total = 0, part = 0; bool valid = true;
+                            for (char c : length) { if (c==':') { total = total*60+part; part = 0; } else if (c>='0' && c<='9') part = part*10+(c-'0'); else valid = false; }
+                            card.duration = valid && length.find(':')!=string::npos ? int(std::min<long long>(total*60+part,86400LL*7)) : 0;
+                        }
+                    }
+                    out.cards.push_back(std::move(card));
+                }
             } else collect(v,out,seen,limit);
         }
     }

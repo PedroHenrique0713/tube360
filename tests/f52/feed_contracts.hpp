@@ -92,6 +92,40 @@ static void feedContract(const std::string& dir) {
   feed.layout.build(feed.items,selected,4,true);
   require(feed.items.size()==26 && !feed.more && continuation.continuations==1 && feed.layout.rows.size()==1 && selected==24,"continuation deduplicates Shorts and exposes ordinary video without offset drift");
   std::cout<<"PASS account continuation: 24 hidden Shorts -> video at raw index 24; duplicate skipped; more=0\n";
+  // Início da conta (TVHTML5): prateleiras `shelfRenderer` com o título em `shelfHeaderRenderer.avatarLockup`, cada uma com
+  // 5 `tileRenderer`; a próxima página vem por `nextContinuationData`. Tudo inventado, só a estrutura é a do YouTube.
+  {
+    auto tile=[](const std::string& id,const std::string& title,const std::string& channel,const std::string& length) {
+      return "{\"tileRenderer\":{\"style\":\"TILE_STYLE_YTLR_DEFAULT\",\"contentType\":\"TILE_CONTENT_TYPE_VIDEO\",\"contentId\":\""+id+"\","
+             "\"header\":{\"tileHeaderRenderer\":{\"thumbnailOverlays\":[{\"thumbnailOverlayTimeStatusRenderer\":{\"text\":{\"simpleText\":\""+length+"\"},\"style\":\"DEFAULT\"}}]}},"
+             "\"metadata\":{\"tileMetadataRenderer\":{\"title\":{\"simpleText\":\""+title+"\"},\"lines\":[{\"lineRenderer\":{\"items\":[{\"lineItemRenderer\":{\"text\":{\"runs\":[{\"text\":\""+channel+"\"}]}}}]}}]}},"
+             "\"onSelectCommand\":{\"watchEndpoint\":{\"videoId\":\""+id+"\"}}}}";
+    };
+    auto shelf=[&](const std::string& title,const std::string& prefix) {
+      std::string items;
+      for (int i=0;i<5;++i) { if (i) items+=","; items+=tile(prefix+std::to_string(1000+i).substr(1),title+" item "+std::to_string(i+1),"Canal "+prefix,"3:0"+std::to_string(i)); }
+      return "{\"shelfRenderer\":{\"headerRenderer\":{\"shelfHeaderRenderer\":{\"avatarLockup\":{\"avatarLockupRenderer\":{\"title\":{\"runs\":[{\"text\":\""+title+"\"}]}}}}},"
+             "\"content\":{\"horizontalListRenderer\":{\"items\":["+items+"]}}}}";
+    };
+    FeedMock shelves; shelves.account=true; shelves.expectedBrowse="FEwhat_to_watch";
+    shelves.body=R"({"contents":{"tvBrowseRenderer":{"content":{"tvSurfaceContentRenderer":{"content":{"sectionListRenderer":{"contents":[)"+
+        shelf("Prateleira A","f61shlfA")+","+shelf("Prateleira B","f61shlfB")+R"(],"continuations":[{"nextContinuationData":{"continuation":"F52_NEXT"}}]}}}}}}})";
+    shelves.nextBody=R"({"continuationContents":{"sectionListContinuation":{"contents":[)"+shelf("Prateleira C","f61shlfC")+"]}}}";
+    yt::ConsoleAccount home(shelves,path);
+    auto feed=parseNativeFeed(home.request("/api/feed?kind=home",1000,10));
+    // A conta pede a continuação sozinha enquanto a página (24 itens) não enche: 2 prateleiras + 1 da continuação.
+    require(feed.items.size()==15 && !feed.more && shelves.continuations==1,"Home shelves: first page fills from the continuation (5+5+5 tiles)");
+    require(feed.items[0].section=="Prateleira A" && feed.items[4].section=="Prateleira A" && feed.items[5].section=="Prateleira B" && feed.items[10].section=="Prateleira C","Home shelves: the shelf title travels as section on the wire");
+    require(feed.items[0].dur==180 && feed.items[0].channel=="Canal f61shlfA","Home shelves: duration and channel come from the tile");
+    int selected=0; feed.layout.build(feed.items,selected,4,false,2);
+    require(feed.layout.rows.size()==3 && feed.layout.rows[0].carousel && feed.layout.rows[0].items.size()==5 && feed.layout.rows[0].heading=="Prateleira A" && feed.layout.rows[1].heading=="Prateleira B" && feed.layout.rows[2].heading=="Prateleira C","Home shelves: one scrolling row per shelf, in YouTube's order, with its title");
+    feed.layout.build(feed.items,selected,4,false,0);
+    require(feed.layout.rows.size()==4 && feed.layout.rows[0].heading.empty(),"Home shelves: without grouping the list stays a plain grid");
+    feed.layout.build(feed.items,selected,4,false,2);
+    selected=0; feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,0,1);
+    require(selected==7,"Home shelves: D-pad keeps the column when moving to the next shelf");
+    std::cout<<"PASS account home shelves: titled scrolling rows from the TV Home, continuation appends\n";
+  }
   FeedMock variants; variants.account=true; variants.expectedBrowse="FEwhat_to_watch";
   variants.body=R"({"contents":[{"tileRenderer":{"contentId":"f52vid00201","onSelectCommand":{"watchEndpoint":{"videoId":"f52vid00201"}},"metadata":{"tileMetadataRenderer":{"title":{"simpleText":"TV Short"}}},"header":{"tileHeaderRenderer":{"thumbnailOverlays":[{"thumbnailOverlayTimeStatusRenderer":{"style":"SHORTS"}}]}}}},{"videoRenderer":{"videoId":"f52vid00202","title":{"simpleText":"Badge Short"},"badges":[{"metadataBadgeRenderer":{"style":"BADGE_STYLE_TYPE_SHORTS"}}]}},{"videoRenderer":{"videoId":"f52vid00203","title":{"simpleText":"Upcoming"},"isUpcoming":true}},{"reelItemRenderer":{"videoId":"f52vid00204","headline":{"simpleText":"Unplayable"},"isPlayable":false}}]})";
   yt::ConsoleAccount tv(variants,path); auto legacy=parseNativeFeed(tv.request("/api/feed?kind=home",1000,10));
