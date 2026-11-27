@@ -33,6 +33,8 @@ static int report(uint32_t pointers) {
             }
         }
     }
+    // A notificação de término vem a seguir: sem esta marca, a sessão pareceria encerrada pelo usuário.
+    boot_session_failed();
     XamLoaderTerminateTitle();
     return 0;
 }

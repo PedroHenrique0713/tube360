@@ -38,7 +38,7 @@ class FenceTests(unittest.TestCase):
                                ('boot app error gpu.vulkan 2: vkWaitForFences(...)', 'gpu.fence'),
                                ('Vulkan falhou (-4): vkQueueSubmit(...)', 'gpu.vulkan'),
                                ('gpu.fence failed', 'gpu.fence'), ('gpu fence timed out', 'gpu.fence'),
-                               ('gpu_fence failed', 'gpu.fence'), ('gpu-fence failed', 'gpu.fence'),
+                               ('gpu_fence failed', 'gpu.fence'), ('gpu-fence failed', 'gpu.fence'), ('failed gpu.fence', 'gpu.fence'), ('dead gpu fence', 'gpu.fence'),
                                ('gpu.fence timeout', 'gpu.fence'), ('gpu.fence status=dead', 'gpu.fence')]:
             with self.subTest(failure=failure):
                 self.assertEqual(r.classify(self.data(failure)), ('crash', point))

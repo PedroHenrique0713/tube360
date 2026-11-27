@@ -65,7 +65,7 @@ def classify(data):
     for line in evidence.splitlines():
         if re.search(r'vulkan falhou \(|^gpu\.vulkan | error gpu\.vulkan ', line):
             return 'crash', 'gpu.fence' if 'vkwaitforfences' in line else 'gpu.vulkan'
-        if re.search(r'gpu[ ._-]fence.*(?:failed|dead|timed out|timeout(?!=))', line):
+        if re.search(r'gpu[ ._-]fence', line) and re.search(r'failed|dead|timed out|timeout(?!=)', line):
             return 'crash', 'gpu.fence'
     # Timeouts de handoff/partida não são timeouts de rede.
     if re.search(r'startup.*(?:timeout|20 seconds|20 segundos)|handoff.*(?:timeout|did not reach)', error):
