@@ -166,6 +166,7 @@ inline void MusicNavigation::drawNow(gfx::Gfx& g, Thumbs& thumbs, Worker& worker
         gfx::text(g, ui::F_SMALL, digits, left + signW + signGap, my - g.fonts[ui::F_SMALL].size / 2 - 2, c);
       }
       else if (i == BtnPlay) atlasIcon(g, paused ? icons::PLAY : icons::PAUSE, mx, my, true, ui::INK);
+      else if (i == BtnSound) atlasIcon(g, icons::SPEAKER_HIGH, mx, my, false, c);
       else if (i == BtnLike) glyph(g, rating == "LIKE" ? icons::THUMB_UP_FILL : icons::THUMB_UP, false, std::round(mx - 12), std::round(my - 12), c);
       else if (i == BtnDislike) glyph(g, rating == "DISLIKE" ? icons::THUMB_DOWN_FILL : icons::THUMB_DOWN, false, std::round(mx - 12), std::round(my - 12), c);
       else if (i == BtnRepeat) {
@@ -293,6 +294,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
     if (in.fired[Input::A]) leaveMusic();
     railInput(); return;
   }
+  if (nav.sound.open) { soundPanelInput(nav.sound, now); return; }  // painel de som aberto: ↑↓ linhas, ←→ volume, A troca a saída, B fecha
   auto enterRail = [&]() { railFocus = true; railSel = 4; };
   using Zone = MusicNavigation; using Act = ctl::Act; const auto ctx = ctl::Ctx::Music;
   auto say = [&](K k) { toast = tr(k); toastUntil = now + 2500; };
@@ -342,18 +344,17 @@ inline void UiContext::musicNowInput(uint64_t now) {
   if (nav.tab == 2) loadRelated();
 
   // Faixas e modo valem em qualquer zona (LB RB e View do mapa)
-  if (ctl::hit(in, ctx, Act::PrevItem)) previous();
-  if (ctl::hit(in, ctx, Act::NextItem)) next();
-  if (ctl::hit(in, ctx, Act::SongVideo)) toggleVideo();
+  const auto now_ctx = ctl::Ctx::MusicNow;
+  if (ctl::hit(in, now_ctx, Act::PrevItem)) previous();
+  if (ctl::hit(in, now_ctx, Act::NextItem)) next();
+  if (ctl::hit(in, now_ctx, Act::SongVideo)) toggleVideo();
+  // LB/RB trocam de aba (A seguir, Letra, Relacionados) em qualquer zona, sem precisar subir a fila inteira
+  if (ctl::hit(in, now_ctx, Act::PrevTab) && nav.tab > 0) { nav.tab--; nav.autoFocus = false; }
+  if (ctl::hit(in, now_ctx, Act::NextTab) && nav.tab < 2) { nav.tab++; nav.autoFocus = false; }
 
   bool up = in.hit(Input::UP), down = in.hit(Input::DOWN), left = in.hit(Input::LEFT), right = in.hit(Input::RIGHT), a = in.hit(Input::A);
   bool pageUp = false, pageDown = false;
-  // LT/RT: nas listas (fila, relacionadas, letra) pulam página (mapa Music); nos botões e na barra ajustam o volume (mapa MusicNow)
-  if (nav.nowZone == Zone::ZoneQueue) { pageUp = ctl::hit(in, ctx, Act::PageUp); pageDown = ctl::hit(in, ctx, Act::PageDown); }
-  else {
-    if (ctl::hit(in, ctl::Ctx::MusicNow, Act::VolumeDown)) adjustVolume(now, -1);
-    if (ctl::hit(in, ctl::Ctx::MusicNow, Act::VolumeUp)) adjustVolume(now, +1);
-  }
+  // A página das listas segue pelas setas; LT/RT agora são faixa anterior e próxima
   bool menu = ctl::hit(in, ctx, Act::Options);
   std::vector<NavItem>& list = nav.tab == 2 ? nav.related : nav.queue;
   int& sel = nav.tab == 2 ? nav.relatedSel : nav.queueSel;
@@ -383,6 +384,7 @@ inline void UiContext::musicNowInput(uint64_t now) {
           nav.repeat = (nav.repeat + 1) % 3;
           say(nav.repeat == musicqueue::OFF ? K::MusicRepeatOff : nav.repeat == musicqueue::ALL ? K::MusicRepeatAll : K::MusicRepeatOne);
           break;
+        case Zone::BtnSound: nav.sound.open = true; nav.sound.sel = pl.nest ? 1 : 0; break;
         case Zone::BtnShuffle:
           if (!nav.localQueue) { say(K::MusicQueueServer); break; }
           nav.toggleShuffle((uint32_t)(SDL_GetTicks() * 2654435761u));
@@ -473,12 +475,13 @@ inline void UiContext::musicNowDraw() {
   float hx = ui::X0, y = L.hintY;
   hx = ctlHint(g, hx, y, ctx, Act::Open, settings.lang);
   hx = ctlHint(g, hx, y, ctx, Act::Back, settings.lang);
-  if (!ui::narrow) hx = ctlHint(g, hx, y, ctx, Act::PrevItem, settings.lang);
-  hx = ctlHint(g, hx, y, ctx, Act::SongVideo, settings.lang);
+  hx = ctlHint(g, hx, y, ctl::Ctx::MusicNow, Act::PrevTab, settings.lang);
+  if (!ui::narrow) hx = ctlHint(g, hx, y, ctl::Ctx::MusicNow, Act::PrevItem, settings.lang);
+  hx = ctlHint(g, hx, y, ctl::Ctx::MusicNow, Act::SongVideo, settings.lang);
   if (nav.nowZone == MusicNavigation::ZoneQueue && nav.tab == 0 && nav.localQueue) hx = ctlHint(g, hx, y, ctx, Act::Options, settings.lang, K::MusicMoveTrack);
-  if (nav.nowZone == MusicNavigation::ZoneButtons || nav.nowZone == MusicNavigation::ZoneSeek) hx = ctlHint(g, hx, y, ctl::Ctx::MusicNow, Act::VolumeDown, settings.lang);  // LT RT: volume
-  if (nav.nowZone == MusicNavigation::ZoneQueue && nav.tab == 2 && nav.localQueue) hx = ctlHint(g, hx, y, ctx, Act::AddQueue, settings.lang);
+    if (nav.nowZone == MusicNavigation::ZoneQueue && nav.tab == 2 && nav.localQueue) hx = ctlHint(g, hx, y, ctx, Act::AddQueue, settings.lang);
   if (nav.nowZone == MusicNavigation::ZoneSeek) hx = hint(g, hx, y, i18n::get(i18n::Lang::EN, K::BtnHorizontal), XG, tr(K::MusicSeekBar));
+  if (nav.sound.open) soundPanelDraw(nav.sound, SDL_GetTicks());
   volumeHud(SDL_GetTicks());  // o volume (do controle ou do celular) aparece aqui como no player e nos Shorts
 }
 
