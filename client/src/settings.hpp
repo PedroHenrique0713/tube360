@@ -50,6 +50,8 @@ struct Settings {
           if (key == "quality" && (n == 720 || n == 480 || n == 360)) quality = (int)n;
           if (key == "sync_ms") syncMs = (int)std::clamp(n, -2000L, 2000L);
           if (key == "output_height" && (n == 480 || n == 720 || n == 1080)) outputHeight = (int)n;
+          // Vazio ou inválido mantém o padrão (100): zero deixaria o app e a caixa mudos. Passos de 5.
+          if (key == "volume") volume = (int)std::clamp((n + 2) / 5 * 5, 0L, 100L);
         }
       }
       std::fclose(f); return;

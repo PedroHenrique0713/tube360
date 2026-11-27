@@ -12,6 +12,8 @@ struct LocalLibraryUI {
     corrupt=library.load(assets+"local-library.json")==local::Library::Corrupt;
     submitted=library.revision;
   }
+  // Fim do app: entrega a última revisão ao gravador e espera a thread terminar antes de SDL_Quit.
+  void shutdown(){if(submitted!=library.revision){submitted=library.revision;writer.submit(library);}writer.stop();}
   static local::Entry entry(const Video& v){return {v.id,v.title,v.channel,v.dur,v.pos};}
   void record(const Video& v, double pos, double duration, bool ended) {
     auto e=entry(v);e.position=pos;e.duration=int(std::clamp(duration,0.0,604800.0));library.record(std::move(e),ended);

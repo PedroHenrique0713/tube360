@@ -3,6 +3,7 @@
 #include "client.hpp"
 #include "search.hpp"
 #include "membership_json.hpp"
+#include "live.hpp"
 #include "update/rules.hpp"
 #ifndef PICOJSON_USE_LOCALE
 #define PICOJSON_USE_LOCALE 0
@@ -204,6 +205,11 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   out.duration = seconds(text(get(v,"lengthText")));
   if (!out.duration) if (const auto* badge = find(get(v,"header"),"thumbnailOverlayTimeStatusRenderer")) out.duration = seconds(text(get(*badge,"text")));
   if (!out.duration) if (const auto* badge = find(get(v,"contentImage"),"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
+  // Inscrições/Home da conta mandam a duração em thumbnailOverlays (renderer clássico) ou num badge solto, sem lengthText.
+  if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailOverlayTimeStatusRenderer")) out.duration = seconds(text(get(*badge,"text")));
+  if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
+  if (out.type == "video" && !out.duration) if (const auto* badge = find(v,"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
+  if (out.type == "video" && !music && !out.shortForm && !out.duration && !yt::liveMark(v)) out.duration = -1; // 0 = ao vivo; sem selo de tempo = desconhecida
   if (!out.duration) for (const auto& c : array(get(v,"fixedColumns"))) out.duration = seconds(text(get(get(c,"musicResponsiveListItemFixedColumnRenderer"),"text")));
   if (!out.duration && cols.size() > 1) {
     for (const auto& c : cols) {
@@ -223,6 +229,11 @@ inline void walk(const J& v, Page& p, bool music, std::set<string>& seen, string
     const auto& key = kv.first; const auto& x = kv.second;
     if (key == "tabRenderer") {
       if (flag(x,"selected") || (music && !x.contains("selected"))) walk(get(x,"content"),p,music,seen,section,depth+1);
+    } else if (key == "itemSectionRenderer") {
+      // WEB: o dia do Histórico vem no cabeçalho da seção (itemSectionHeaderRenderer), que o walk ignora como "header".
+      string heading = text(get(get(get(x,"header"),"itemSectionHeaderRenderer"),"title"));
+      walk(get(x,"contents"),p,music,seen,heading.empty() ? section : heading,depth+1);
+      walk(get(x,"continuations"),p,music,seen,section,depth+1);
     } else if (key == "horizontalListRenderer") {
       walk(get(x,"items"),p,music,seen,section,depth+1);
     } else if (key == "musicCarouselShelfRenderer" || key == "musicShelfRenderer" || key == "shelfRenderer") {

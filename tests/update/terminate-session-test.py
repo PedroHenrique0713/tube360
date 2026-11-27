@@ -95,6 +95,7 @@ with tempfile.TemporaryDirectory(prefix='tube360-f56-terminate-') as temporary:
              (usb, 'gpu-error', False), (usb, 'startup-error', False), (usb, 'error-no-log', False),
              (usb, 'already-clean', True), (usb, 'already-clean-write-fail', True),
              (usb, 'clean-resume', True),
+             (usb, 'player-stuck', False), (hdd, 'player-recovered', True),
              (usb, 'retryable-network', True), (usb, 'recoverable-output', True),
              (usb, 'startup-recent', True), (usb, 'startup-at-limit', True),
              (usb, 'startup-over-limit', False), (usb, 'startup-progress', True),

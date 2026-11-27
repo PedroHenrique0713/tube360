@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
   yt::ConsoleAccount account(h,path);
   for (const auto& kind : {"home","subs","history","later"}) {
     auto reply=account.request(string("/api/feed?kind=")+kind,1000,10);
-    check(reply.ok() && reply.body.find("\tmembers\n")!=string::npos,"TV feeds retain members");
+    check(reply.ok() && reply.body.find("\tmembers\t\t\n")!=string::npos,"TV feeds retain members");
   }
   for (const auto& kind : {"subscriptions","library","history","later"}) {
     auto reply=account.request(string("/api/nav?kind=")+kind,1000,10);

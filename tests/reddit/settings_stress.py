@@ -1,4 +1,8 @@
 """Configurações reais por controle: saída, idioma, atlas/texto e fit; Vulkan desktop real."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import os
 from pathlib import Path
 import shutil
@@ -8,7 +12,7 @@ from PIL import Image
 ROOT=Path(__file__).resolve().parents[2]
 base=Path(sys.argv[1]).resolve();base.mkdir(parents=True,exist_ok=True)
 sd=len(sys.argv)>2 and sys.argv[2]=='480'
-keys='D'*5+'RRRR'+'D'*4+'RRR'+'DD'+'R'+'D'+'R'+'UUU'
+keys=seq(5,'RRRR',9,'RRR',11,'R',12,'R')
 for lang in ('pt','en','es'):
     for fixed in (False,True):
         name=f'{lang}-'+('fixed' if fixed else 'resize');work=base/name;assets=work/'assets';assets.mkdir(parents=True,exist_ok=True)

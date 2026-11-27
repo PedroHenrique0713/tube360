@@ -92,6 +92,71 @@ static void feedContract(const std::string& dir) {
   feed.layout.build(feed.items,selected,4,true);
   require(feed.items.size()==26 && !feed.more && continuation.continuations==1 && feed.layout.rows.size()==1 && selected==24,"continuation deduplicates Shorts and exposes ordinary video without offset drift");
   std::cout<<"PASS account continuation: 24 hidden Shorts -> video at raw index 24; duplicate skipped; more=0\n";
+  // Início da conta (TVHTML5): prateleiras `shelfRenderer` com o título em `shelfHeaderRenderer.avatarLockup`, cada uma com
+  // 5 `tileRenderer`; a próxima página vem por `nextContinuationData`. Tudo inventado, só a estrutura é a do YouTube.
+  {
+    auto tile=[](const std::string& id,const std::string& title,const std::string& channel,const std::string& length) {
+      return "{\"tileRenderer\":{\"style\":\"TILE_STYLE_YTLR_DEFAULT\",\"contentType\":\"TILE_CONTENT_TYPE_VIDEO\",\"contentId\":\""+id+"\","
+             "\"header\":{\"tileHeaderRenderer\":{\"thumbnailOverlays\":[{\"thumbnailOverlayTimeStatusRenderer\":{\"text\":{\"simpleText\":\""+length+"\"},\"style\":\"DEFAULT\"}}]}},"
+             "\"metadata\":{\"tileMetadataRenderer\":{\"title\":{\"simpleText\":\""+title+"\"},\"lines\":[{\"lineRenderer\":{\"items\":[{\"lineItemRenderer\":{\"text\":{\"runs\":[{\"text\":\""+channel+"\"}]}}}]}}]}},"
+             "\"onSelectCommand\":{\"watchEndpoint\":{\"videoId\":\""+id+"\"}}}}";
+    };
+    auto shelf=[&](const std::string& title,const std::string& prefix) {
+      std::string items;
+      for (int i=0;i<5;++i) { if (i) items+=","; items+=tile(prefix+std::to_string(1000+i).substr(1),title+" item "+std::to_string(i+1),"Canal "+prefix,"3:0"+std::to_string(i)); }
+      return "{\"shelfRenderer\":{\"headerRenderer\":{\"shelfHeaderRenderer\":{\"avatarLockup\":{\"avatarLockupRenderer\":{\"title\":{\"runs\":[{\"text\":\""+title+"\"}]}}}}},"
+             "\"content\":{\"horizontalListRenderer\":{\"items\":["+items+"]}}}}";
+    };
+    FeedMock shelves; shelves.account=true; shelves.expectedBrowse="FEwhat_to_watch";
+    shelves.body=R"({"contents":{"tvBrowseRenderer":{"content":{"tvSurfaceContentRenderer":{"content":{"sectionListRenderer":{"contents":[)"+
+        shelf("Prateleira A","f61shlfA")+","+shelf("Prateleira B","f61shlfB")+R"(],"continuations":[{"nextContinuationData":{"continuation":"F52_NEXT"}}]}}}}}}})";
+    shelves.nextBody=R"({"continuationContents":{"sectionListContinuation":{"contents":[)"+shelf("Prateleira C","f61shlfC")+"]}}}";
+    yt::ConsoleAccount home(shelves,path);
+    auto feed=parseNativeFeed(home.request("/api/feed?kind=home",1000,10));
+    // A conta pede a continuação sozinha enquanto a página (24 itens) não enche: 2 prateleiras + 1 da continuação.
+    require(feed.items.size()==15 && !feed.more && shelves.continuations==1,"Home shelves: first page fills from the continuation (5+5+5 tiles)");
+    require(feed.items[0].section=="Prateleira A" && feed.items[4].section=="Prateleira A" && feed.items[5].section=="Prateleira B" && feed.items[10].section=="Prateleira C","Home shelves: the shelf title travels as section on the wire");
+    require(feed.items[0].dur==180 && feed.items[0].channel=="Canal f61shlfA","Home shelves: duration and channel come from the tile");
+    int selected=0; feed.layout.build(feed.items,selected,4,false,2);
+    require(feed.layout.rows.size()==3 && feed.layout.rows[0].carousel && feed.layout.rows[0].items.size()==5 && feed.layout.rows[0].heading=="Prateleira A" && feed.layout.rows[1].heading=="Prateleira B" && feed.layout.rows[2].heading=="Prateleira C","Home shelves: one scrolling row per shelf, in YouTube's order, with its title");
+    feed.layout.build(feed.items,selected,4,false,0);
+    require(feed.layout.rows.size()==4 && feed.layout.rows[0].heading.empty(),"Home shelves: without grouping the list stays a plain grid");
+    feed.layout.build(feed.items,selected,4,false,2);
+    // cada prateleira guarda a própria posição: descer cai na posição da outra prateleira, e voltar devolve a posição anterior
+    selected=0; feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,0,1);
+    require(selected==5,"Home shelves: moving down lands on the next shelf's own position (still the first card)");
+    feed.layout.moveGrid(selected,1,0); feed.layout.moveGrid(selected,0,-1);
+    require(selected==2 && feed.layout.rows[0].column==2 && feed.layout.rows[1].column==1,"Home shelves: moving back up restores the first shelf's position; the second keeps its own");
+    feed.layout.moveGrid(selected,0,1);
+    require(selected==6,"Home shelves: the second shelf resumes where it was left");
+    {  // um Short no meio ou no começo do dia não pode esconder o título do dia (#29)
+      std::vector<Video> day; auto add=[&](const char* id,const char* section,bool shortForm) { Video v; v.id=id; v.section=section; v.shortForm=shortForm; day.push_back(v); };
+      add("f61dayvid01","Hoje",false); add("f61dayshr01","Hoje",true); add("f61dayvid02","Hoje",false);
+      add("f61dayshr02","Ontem",true); add("f61dayvid03","Ontem",false);
+      ItemGrid grid; int sel=0; grid.build(day,sel,4,false,1);
+      int headings=0; for (const auto& row:grid.rows) headings+=!row.heading.empty();
+      require(headings==2 && grid.rows[0].heading=="Hoje","History days: a Short between videos of one day adds no heading, and the next day still gets its own");
+    }
+    {  // ao vivo só com a marca explícita; estreia agendada e vídeo sem duração nunca viram "AO VIVO" (nav e feed da conta)
+      FeedMock live; live.account=true; live.expectedBrowse="FEsubscriptions";
+      live.body=R"({"contents":[{"videoRenderer":{"videoId":"f61livvid01","title":{"simpleText":"Live"},"thumbnailOverlays":[{"thumbnailOverlayTimeStatusRenderer":{"style":"LIVE","text":{"simpleText":"LIVE"}}}]}},{"videoRenderer":{"videoId":"f61livvid02","title":{"simpleText":"No length"}}},{"videoRenderer":{"videoId":"f61livvid03","title":{"simpleText":"Normal"},"lengthText":{"simpleText":"4:05"}}}]})";
+      yt::ConsoleAccount account(live,path);
+      auto reply=account.request("/api/nav?kind=subscriptions",1000,10);
+      NavPage page; page.kind="subscriptions";
+      require(reply.ok() && Navigation::parse(reply.body,page) && page.items.size()==3,"live fixture lists three videos");
+      require(page.items[0].duration==0 && page.items[1].duration==-1 && page.items[2].duration==245,"nav: LIVE marker -> 0 (live), no length -> -1 (unknown), 4:05 -> 245");
+      auto feed=parseNativeFeed(account.request("/api/feed?kind=subs",1001,11));
+      require(feed.items.size()==3 && feed.items[0].live && !feed.items[1].live && feed.items[1].dur==-1 && !feed.items[2].live && feed.items[2].dur==245,"feed wire: live flag only with the marker");
+    }
+    {  // Histórico WEB: o título do dia vem em itemSectionRenderer.header.itemSectionHeaderRenderer
+      FeedMock days; days.account=true; days.expectedBrowse="FEhistory";
+      days.body=R"({"contents":[{"itemSectionRenderer":{"header":{"itemSectionHeaderRenderer":{"title":{"simpleText":"Hoje"}}},"contents":[{"videoRenderer":{"videoId":"f61hisvid01","title":{"simpleText":"A"}}}]}},{"itemSectionRenderer":{"header":{"itemSectionHeaderRenderer":{"title":{"simpleText":"Ontem"}}},"contents":[{"videoRenderer":{"videoId":"f61hisvid02","title":{"simpleText":"B"}}}]}}]})";
+      yt::ConsoleAccount account(days,path);
+      NavPage page; page.kind="history"; auto reply=account.request("/api/nav?kind=history",1000,10);
+      require(reply.ok() && Navigation::parse(reply.body,page) && page.items.size()==2 && page.items[0].section=="Hoje" && page.items[1].section=="Ontem","History: day headings from itemSectionHeaderRenderer reach the NavItem section");
+    }
+    std::cout<<"PASS account home shelves: titled scrolling rows from the TV Home, continuation appends\n";
+  }
   FeedMock variants; variants.account=true; variants.expectedBrowse="FEwhat_to_watch";
   variants.body=R"({"contents":[{"tileRenderer":{"contentId":"f52vid00201","onSelectCommand":{"watchEndpoint":{"videoId":"f52vid00201"}},"metadata":{"tileMetadataRenderer":{"title":{"simpleText":"TV Short"}}},"header":{"tileHeaderRenderer":{"thumbnailOverlays":[{"thumbnailOverlayTimeStatusRenderer":{"style":"SHORTS"}}]}}}},{"videoRenderer":{"videoId":"f52vid00202","title":{"simpleText":"Badge Short"},"badges":[{"metadataBadgeRenderer":{"style":"BADGE_STYLE_TYPE_SHORTS"}}]}},{"videoRenderer":{"videoId":"f52vid00203","title":{"simpleText":"Upcoming"},"isUpcoming":true}},{"reelItemRenderer":{"videoId":"f52vid00204","headline":{"simpleText":"Unplayable"},"isPlayable":false}}]})";
   yt::ConsoleAccount tv(variants,path); auto legacy=parseNativeFeed(tv.request("/api/feed?kind=home",1000,10));

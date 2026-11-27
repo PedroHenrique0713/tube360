@@ -41,7 +41,7 @@ struct SpeakerPicker {
     for (const auto& line:gfx::wrap(g,ui::F_SMALL,tr(status),w,2)) { gfx::text(g,ui::F_SMALL,line,x,y,ui::MUTED); y+=ui::large ? 26 : 22; }
     float hx=hint(g,x,678,tr(K::BtnVertical),XG,tr(K::ChooseRow));
     hx=hint(g,hx,678,"A",XA,tr(K::SpeakerChoose));
-    hx=hint(g,hx,678,"X",XX,tr(K::SpeakerSearchAgain));
+    hx=hint(g,hx,678,"Y",XY,tr(K::SpeakerSearchAgain));
     hint(g,hx,678,"B",XB,tr(K::Back));
   }
 };

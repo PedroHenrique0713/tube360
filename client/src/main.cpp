@@ -25,6 +25,7 @@
 #undef PL_MPEG_IMPLEMENTATION
 
 #include "gfx.hpp"
+#include "thumb_scale.hpp"
 #include "startup.hpp"
 #include "boot_log.h"
 #include "connection_error.hpp"
@@ -34,6 +35,7 @@
 #include "player.hpp"
 #include "music_player.hpp"
 #include "player_ui.hpp"
+#include "player_watch.hpp"
 #include "player_extras.hpp"
 #include "sponsorblock_worker.hpp"
 #include "player_text.hpp"
@@ -67,27 +69,42 @@ using K = i18n::Key;
 #include "ui_theme.hpp"
 
 struct ItemGrid {
-  struct GridRow { std::vector<int> items; bool shorts = false; };
+  struct GridRow { std::vector<int> items; bool shorts = false; std::string heading; bool carousel = false; int column = 0; };  // column: posição própria de cada prateleira rolável  // heading: título do grupo (Histórico por dia), só na 1ª fileira do grupo
   std::vector<GridRow> rows;
   std::vector<int> itemRows;
   int gridSize = -1, gridCols = 0, gridColumn = 0, shortColumn = 0;
-  bool gridHide = false;
-  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide) {
-    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide) {
-      gridSize = (int)items.size(); gridCols = cols; gridHide = hide;
+  bool gridHide = false; int gridGrouped = 0;
+  // grouped: 0 sem grupos; 1 grupos que quebram em fileiras (Histórico por dia); 2 uma fileira rolável por prateleira (Início da conta).
+  template<class Item> void build(const std::vector<Item>& items, int& sel, int cols, bool hide, int grouped = 0) {
+    std::map<std::string,int> kept;
+    if (gridSize != (int)items.size() || gridCols != cols || gridHide != hide || gridGrouped != grouped) {
+      gridSize = (int)items.size(); gridCols = cols; gridHide = hide; gridGrouped = grouped;
+      for (const auto& r : rows) if (r.carousel) kept[r.heading] = r.column;  // a posição de cada prateleira sobrevive à continuação
       rows.clear(); itemRows.assign(items.size(), -1);
       int shortRow = -1;
+      std::string lastSection;
       for (int i = 0; i < gridSize; ++i) {
         if (items[i].shortForm) {
           if (hide) continue;
           if (shortRow < 0) { shortRow = (int)rows.size(); rows.push_back({{},true}); }
           rows[shortRow].items.push_back(i); itemRows[i] = shortRow;
         } else {
-          if (rows.empty() || rows.back().shorts || (int)rows.back().items.size() == cols) rows.push_back({});
+          bool newGroup = false;
+          if constexpr (requires { items[i].section; }) {
+            newGroup = grouped && !items[i].section.empty() && items[i].section != lastSection;
+            lastSection = items[i].section;  // só vídeos comuns: um Short no meio não esconde o título do dia
+          }
+          bool full = !rows.empty() && (int)rows.back().items.size() == cols;
+          if (!rows.empty() && rows.back().carousel && !rows.back().shorts && !newGroup) full = false;
+          if (rows.empty() || rows.back().shorts || full || newGroup) {
+            rows.push_back({});
+            if constexpr (requires { items[i].section; }) if (grouped && (newGroup || rows.size() == 1)) { rows.back().heading = items[i].section; rows.back().carousel = grouped == 2 && !items[i].section.empty(); }
+          }
           rows.back().items.push_back(i); itemRows[i] = (int)rows.size()-1;
         }
       }
     }
+    for (auto& r : rows) if (r.carousel) { auto k = kept.find(r.heading); if (k != kept.end()) r.column = k->second; }
     if (rows.empty()) { sel = 0; return; }
     if (sel < 0 || sel >= gridSize || itemRows[sel] < 0) {
       int next = std::clamp(sel, 0, std::max(0, gridSize-1));
@@ -109,19 +126,21 @@ struct ItemGrid {
       col = std::clamp(col+horizontal,0,(int)rows[row].items.size()-1);
       sel = rows[row].items[col];
       if (rows[row].shorts) shortColumn = col; else gridColumn = col;
+      if (rows[row].carousel) rows[row].column = col;
     }
     if (vertical) {
       if (!rows[row].shorts) gridColumn = col;
+      if (rows[row].carousel) rows[row].column = col;
       int next = row+vertical;
       if (next < 0 || next >= (int)rows.size()) return false;
-      int column = rows[next].shorts ? shortColumn : gridColumn;
+      int column = rows[next].shorts ? shortColumn : rows[next].carousel ? rows[next].column : gridColumn;
       sel = rows[next].items[std::clamp(column,0,(int)rows[next].items.size()-1)];
     }
     return true;
   }
 };
 
-struct Video { std::string id, channel, views, title; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; bool shortForm = false; };
+struct Video { std::string id, channel, views, title, date, section; int dur = -1; double pos = 0; yt::Membership members = yt::Membership::None; bool shortForm = false, live = false; };
 struct Feed { std::string title; std::vector<Video> items; bool loading = false; K error = K::None; std::string errorDetail; bool more = true, loadingMore = false, direct = false; ItemGrid layout; };
 struct Shelf { std::string title, query; Feed feed; int sel = 0; std::string kind = "search"; uint64_t stamp = 0; };
 
@@ -141,9 +160,11 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
     auto f = net::split(lines[i], '\t');
     if (f.size() < 5 || f[0].empty()) continue;
     Video v; v.id = f[0]; v.dur = std::atoi(f[1].c_str()); v.channel = f[2]; v.views = f[3]; v.title = f[4];
+    v.live = v.dur == 0; if (v.dur <= 0) v.dur = v.live ? 0 : -1;  // fio: 0 = ao vivo, -1 = desconhecida, > 0 = segundos
     if (f.size() > 5) { double pos = std::atof(f[5].c_str()); if (std::isfinite(pos)) v.pos = std::max(0.0, pos); }
     if (f.size() > 6) v.members = yt::membershipWire(f[6]);
     if (f.size() > 7) v.shortForm = f[7] == "short";
+    if (f.size() > 8) v.section = f[8];
     feed.items.push_back(v);
   }
 }
@@ -242,6 +263,8 @@ struct Worker {
           r.feed.direct = true;
           for (auto& card : page.cards) {
             Video v; v.id = std::move(card.id); v.title = std::move(card.title); v.members = card.members; v.shortForm = card.shortForm;
+            v.channel = std::move(card.channel); v.views = std::move(card.views); v.date = std::move(card.date); v.dur = card.duration;
+            v.live = v.dur == 0;  // Card: 0 = ao vivo (liveMark no collect), -1 = desconhecida
             r.feed.items.push_back(std::move(v));
           }
           r.feed.title = j.kind == 6 ? j.query : j.a;
@@ -294,14 +317,24 @@ struct Worker {
           }
         }
         if (!native && (j.native || !net::serverEnabled || (consoleAccount && consoleAccount->active())) && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
-          auto img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg");
+          // #15: a capa HD (1280x720) reduzida ao cartão; sem ela, a de 320x180 de sempre. No console o JPEG HD só vale para a
+          // capa grande (640x360, uma imagem): decodificar 1280x720 por cartão custa ~19x de CPU e ~11 MB de pico no Xenon, inclusive
+          // com 3 colunas (384x216), texto grande e 480p; lá os cartões seguem em 320x180.
+#ifdef __XSDK__
+          const bool wantHd = j.w >= 640;
+#else
+          const bool wantHd = true;
+#endif
+          yt::Response img;
+          if (wantHd) { img = https->request("https://i.ytimg.com/vi/" + j.a + "/hq720.jpg"); }
+          if (!(img.status == 200 && img.error.empty())) img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg");
           native = img.status == 200 && img.error.empty();
           if (native) resp.body.assign(img.body.begin(), img.body.end());
         }
         if (native || (!artwork && net::get(srv, "/api/thumb/" + (j.a[0] == '~' ? "nav/" + j.a.substr(1) : j.a) + size, resp, 10000))) {
           int w, h, n;
           // Não decodifica dimensões arbitrárias recebidas pela rede.
-          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (artwork || (native && j.a.rfind("~yt",0) == 0) ? (w < 1 || h < 1 || w > 2048 || h > 2048 || int64_t(w)*h > 2097152) : native ? (w != 320 || h != 180) : (w != j.w || h != j.h))) { w = h = 0; }
+          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (artwork || (native && j.a.rfind("~yt",0) == 0) ? (w < 1 || h < 1 || w > 2048 || h > 2048 || int64_t(w)*h > 2097152) : native ? !((w == 320 && h == 180) || (w == 1280 && h == 720)) : (w != j.w || h != j.h))) { w = h = 0; }
           if (!w && artwork && !jpegTried) {
             auto fallback=yt::catalog::jpegThumbnail(address);
             if(!fallback.empty() && fallback!=address){
@@ -322,12 +355,14 @@ struct Worker {
               int dw = std::max(1,int(w*scale)), dh = std::max(1,int(h*scale));
               if (banner) { dw = j.w; dh = j.h; }
               int dx = (j.w-dw)/2, dy = (j.h-dh)/2;
-              for (int y = 0; y < dh; ++y) for (int x = 0; x < dw; ++x)
+              if (w > dw || h > dh) boxScale(px, w, h, 0, 0, w, h, r.rgba.data() + 4 * ((size_t)dy * j.w + dx), 4 * j.w, dw, dh);
+              else for (int y = 0; y < dh; ++y) for (int x = 0; x < dw; ++x)
                 std::memcpy(r.rgba.data()+4*((y+dy)*j.w+x+dx),px+4*((y*h/dh)*w+x*w/dw),4);
             } else if (w == j.w && h == j.h) r.rgba.assign(px, px + (size_t)w*h*4);
             else {
               r.rgba.resize((size_t)j.w*j.h*4);
-              for (int y=0; y<j.h; ++y) for (int x=0; x<j.w; ++x)
+              if (w > j.w || h > j.h) boxScale(px, w, h, 0, 0, w, h, r.rgba.data(), 4 * j.w, j.w, j.h);
+              else for (int y=0; y<j.h; ++y) for (int x=0; x<j.w; ++x)
                 std::memcpy(r.rgba.data() + 4*(y*j.w+x), px + 4*((y*h/j.h)*w + x*w/j.w), 4);
             }
             stbi_image_free(px);
@@ -505,6 +540,7 @@ struct Input {
 #include "ui_collection.hpp"
 #include "ui_channel.hpp"
 #include "ui_player.hpp"
+#include "ui_shorts.hpp"
 #include "ui_music.hpp"
 #ifndef __XSDK__
 #include "../../bench/search/frame_probe.hpp"
@@ -749,6 +785,7 @@ int run(int argc, char** argv) {
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false; uint64_t nextDeadline = 0; bool nextPending = false;
+  std::vector<Video> related, shortsQueue, playedBefore; bool historyBack = false; PlayerShelf shelf; std::string shortTitle; i18n::Lang shortLang = i18n::Lang::EN; std::vector<std::string> shortLines;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
   bool livePaused = false;
   int& quality = settings.quality;
   quality=720;
@@ -838,6 +875,20 @@ int run(int argc, char** argv) {
   };
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
     bool localOpening=v.id!=playing.id || screen!=PLAYER;
+    if (screen != PLAYER) playedBefore.clear();
+    if (!historyBack && !nav.localQueue && screen == PLAYER && !playing.id.empty() && v.id != playing.id && !nav.musicNow) {
+      if (playedBefore.empty() || playedBefore.back().id != playing.id) playedBefore.push_back(playing);
+      if (playedBefore.size() > 20) playedBefore.erase(playedBefore.begin());
+    }
+    if (v.shortForm && std::none_of(shortsQueue.begin(), shortsQueue.end(), [&](const Video& s) { return s.id == v.id; })) {
+      // Fila do ↑ ↓ dos Shorts: os Shorts da lista de onde o Short foi aberto, na ordem dela.
+      shortsQueue.clear();
+      const Shelf* source = nullptr;
+      for (const Shelf* s : {inResults ? &results : (const Shelf*)nullptr, cat >= 0 && cat < (int)cats.size() ? &cats[(size_t)cat] : (const Shelf*)nullptr})
+        if (s && !source && std::any_of(s->feed.items.begin(), s->feed.items.end(), [&](const Video& i) { return i.id == v.id; })) source = s;
+      if (source) for (const auto& i : source->feed.items) if (i.shortForm) shortsQueue.push_back(i);
+      if (shortsQueue.empty()) shortsQueue.push_back(v);
+    }
     if(localOpening){recordLocal();localUI.checkpoint=SDL_GetTicks()+30000;}
     ++playerPositionRevision;
     offeredQualities.assign(1);
@@ -858,7 +909,7 @@ int run(int argc, char** argv) {
       extras.select(v.id,i18n::code(settings.lang)); commentLines.clear(); commentIndex=-1;
     }
     if (v.id != playing.id) {
-      nestSkip = false; likeState.clear(); upNext = Video{};
+      nestSkip = false; likeState.clear(); upNext = Video{}; related.clear();
       if (!nav.localQueue) {
         Job next{5, "/api/video/" + v.id + "/next", 0}; next.lang=settings.lang;
         next.native = !fromRemote && !account.signedIn(); control.add(next, true); nextPending = true;
@@ -979,7 +1030,7 @@ int run(int argc, char** argv) {
       gfx::image(g, slot->tex, ui::W-72, 26, 40, 40, 20, {1,1,1,1}, (float)thumbs.height / thumbs.width);
     }
   };
-  if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; requestVideo(v); }
+  if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; v.shortForm = std::getenv("XT_PLAY_SHORT") != nullptr; requestVideo(v); }
 #ifndef __XSDK__
   if (const char* q = std::getenv("XT_QUERY")) doSearch(q);
 #endif
@@ -1012,6 +1063,8 @@ int run(int argc, char** argv) {
   // ---- F62 Busca e canal: estado novo do run() só aqui
 
   // ---- F63 Player e Shorts: estado novo do run() só aqui
+  pl.setVolumePercent(settings.volume);  // volume salvo é só da TV; o app nunca manda SET_VOLUME ao Nest na abertura
+  PlayerWatch playerWatch;
 
   // ---- F64 Configurações e controle: estado novo do run() só aqui
 
@@ -1187,6 +1240,14 @@ int run(int argc, char** argv) {
     // ---- F62 Busca e canal
 
     // ---- F63 Player e Shorts
+    .related=related,
+    .shelf=shelf,
+    .shortsQueue=shortsQueue,
+    .playedBefore=playedBefore,
+    .historyBack=historyBack,
+    .shortTitle=shortTitle,
+    .shortLang=shortLang,
+    .shortLines=shortLines,
 
     // ---- F64 Configurações e controle
 
@@ -1322,11 +1383,24 @@ int run(int argc, char** argv) {
           toastUntil = now + 3000;
         } else if (!nav.localQueue && r.feed.direct && id == playing.id && !r.feed.items.empty()) {
           upNext = r.feed.items.front();
+          related.clear();
+          for (const auto& it : r.feed.items) if (it.id != playing.id && related.size() < 24) related.push_back(it);
         } else if (ok && id == playing.id && f.size() >= 5) {
           if (nav.localQueue) { likeState = f[1]; continue; }
           likeState = f[1];
           upNext = Video{};
-          if (f[2].size() == 11) { upNext.id = f[2]; upNext.channel = f[3]; upNext.title = f[4]; }
+          if (f[2].size() == 11) { upNext.id = f[2]; upNext.channel = f[3]; upNext.title = f[4]; related.assign(1, upNext); }
+          size_t nl = r.feed.title.find('\n');
+          while (nl != std::string::npos && related.size() < 24) {
+            size_t end = r.feed.title.find('\n', nl + 1);
+            auto row = net::split(r.feed.title.substr(nl + 1, end == std::string::npos ? std::string::npos : end - nl - 1), '\t');
+            nl = end;
+            if (row.size() < 5 || row[0] != "rel" || row[1].size() != 11 || row[1] == playing.id || row[1] == upNext.id) continue;
+            Video v; v.id = row[1]; v.title = row[2]; v.channel = row[3]; v.dur = std::atoi(row[4].c_str());
+            if (row.size() > 5) v.members = yt::membershipWire(row[5]);
+            v.shortForm = row.size() > 6 && row[6] == "short";
+            related.push_back(std::move(v));
+          }
         }
       } else if (r.key.rfind("/api/account", 0) == 0) {
         accountBusy = false;
@@ -1580,7 +1654,22 @@ int run(int argc, char** argv) {
     } else if (screen == PLAYER) {
       screens.playerInput(now,optionCount);
     }
+    // ---- F64 Configurações e controle
+    screens.pageMenuFallback();
     screens.playerUpdate(now);
+    // ---- F63 Player e Shorts: vigia do player (marca a sessão para o relatório de erro)
+    {
+      using Phase = PlayerWatch::Phase;
+      PlayerWatch::Sample w; w.now = now; w.inPlayer = screen == PLAYER && !nav.musicNow;
+      w.phase = pl.state == player::CONNECTING ? Phase::Connecting : pl.state == player::BUFFERING ? Phase::Buffering :
+                pl.state == player::PLAYING ? Phase::Playing : Phase::Idle;
+      w.paused = pl.paused; w.live = pl.live; w.nest = pl.nest || pl.speakerRequested; w.seeking = seekHold.active; w.position = pl.position();
+      w.bytes = (uint64_t)SDL_GetAtomicInt(&pl.netBytes); w.frames = pl.framesIn; w.streamEnded = pl.decDone;
+      if (playerWatch.update(w)) {
+        boot_session_player_stuck(playerWatch.stuck);
+        LOG("vigia: player %s (estado=%d pos=%.1f bytes=%llu quadros=%llu fim=%d)", playerWatch.stuck ? "parado" : w.inPlayer ? "voltou" : "saiu da tela", (int)pl.state, w.position, (unsigned long long)w.bytes, (unsigned long long)w.frames, (int)w.streamEnded);
+      }
+    }
     // Live retomada pelo próprio Nest (toque em cima, Google Home) também volta para o ao vivo.
     if (screen == PLAYER && pl.live) { if (pl.paused) livePaused = true; else if (livePaused) resumeLive(); }
     else livePaused = false;
@@ -1602,6 +1691,8 @@ int run(int argc, char** argv) {
         nav.queueIndex = following; nav.queueSel = (int)following; startVideo(nav.queue[following].video(),0,false);
       } else { endTimerPending = sleep.active && sleep.end; stopVideo(); }
     }
+    // ---- F63 Player e Shorts: fim de um Short emenda no próximo da fila (ou repete o último), sem o "a seguir em 8 s" de vídeo comum
+    if (screen == PLAYER && pl.state == player::ENDED && playing.shortForm && !playerFromRemote && !shutdownAt && !nav.localQueue && !(sleep.active && sleep.end)) screens.shortsEnded();
     if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && (playerFromRemote || !nextPending || now >= nextDeadline)) {
       if (!endedSent) {
@@ -1670,7 +1761,7 @@ int run(int argc, char** argv) {
 
     if (screen == SETTINGS) screens.settingsDraw();
 
-    if (screen == NAV) { nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus, settings.hideShorts); accountPhoto(); }
+    if (screen == NAV) { nav.columnsSetting = settings.cols; nav.draw(g, thumbs, thumbsWorker, frame, now, settings.lang, !railFocus, settings.hideShorts); accountPhoto(); }
 
     if (screen == HOME || screen == SEARCH || screen == SETTINGS || screen == NAV) {
       screens.railDraw(remoteOnline);
@@ -1744,6 +1835,7 @@ int run(int argc, char** argv) {
   LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes + thumbs.bannerBytes), (unsigned)thumbs.peakPending);
   LOG("%s saindo", brandName.c_str());
   boot_event("end","app.exit","normal shutdown frames=%llu run_ms=%llu simulated_frame_delay_ms=%u",(unsigned long long)frame,(unsigned long long)(SDL_GetTicks()-runStart),g.simFrameDelay);
+  localUI.shutdown();  // F61 (#42): o gravador da Biblioteca termina antes de SDL_Quit e da destruição de mutex/condição; antes do boot_close para a última gravação ficar no log
   boot_close();
   SDL_Quit();
   return 0;

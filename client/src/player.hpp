@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <cmath>
+#include "player_volume.hpp"
 #include <deque>
 #include <string>
 #include <vector>
@@ -106,6 +107,8 @@ struct Player {
   // fila de quadros (protegida por mu)
   std::deque<Frame*> frames; std::vector<Frame*> spare; int maxFrames = 10, startupFrames = 6;
   bool decEnded = false;
+  std::atomic<bool> decDone{false};        // espelho de decEnded para o vigia (lido sem o mutex)
+  std::atomic<uint64_t> framesIn{0};       // quadros decodificados entregues à fila, monotônico (vigia do player)
   std::atomic<bool> original{false}, retryConverted{false};
   std::atomic<bool> allowOriginal{true};
   bool direct = false, refreshed = false;
@@ -143,6 +146,8 @@ struct Player {
   // áudio
   SDL_AudioStream* audio = nullptr; std::atomic<bool> hasAudio{false};
   float normalGain = 1, fadeGain = 1;
+  // Volume escolhido na interface (0..1), por cima do fade do sono e do volume do celular. Gravado em settings.txt (`volume`, 0 a 100).
+  float userVolume = 1;
   std::atomic<bool> audible{true};
   uint64_t tvMutedSince = 0;
 #ifdef __XSDK__
@@ -164,11 +169,30 @@ struct Player {
   void sleepGain(float gain) {
     if (gain == fadeGain) return;
     fadeGain = gain;
-    if (audio && audible) SDL_SetAudioStreamGain(audio, normalGain * gain);
+    if (audio && audible) SDL_SetAudioStreamGain(audio, normalGain * gain * userVolume);
+  }
+  // Dois volumes separados. TV: ganho relativo do app (`settings.volume`, 0..100, passos de 5), aplicado no stream de áudio.
+  // Nest: o nível real da caixa, ajustado ao vivo a partir do que ela informa; nunca é gravado e nunca é enviado na abertura do vídeo.
+  int volumePercent() const { return (int)std::lround(userVolume * 100); }
+  int setVolumePercent(int percent, bool = false) {  // só TV; o 2º parâmetro ficou por compatibilidade e é ignorado
+    percent = volume::clampPercent(percent);
+    userVolume = percent / 100.f;
+    if (audio && audible) SDL_SetAudioStreamGain(audio, normalGain * fadeGain * userVolume);
+    return percent;
+  }
+  int stepVolume(int direction) { return setVolumePercent(volume::stepped(volumePercent(), direction)); }
+  bool speakerVolumeControl() { return nest && directSpeaker.configured() && directSpeaker.sample().volume >= 0; }
+  // Passo na caixa (Nest) a partir do volume real dela; devolve o nível novo em % ou -1 se a caixa não informou o volume.
+  int stepSpeaker(int direction) {
+    auto s = directSpeaker.sample();
+    if (!nest || !directSpeaker.configured() || s.volume < 0) return -1;
+    int base = (int)std::lround(s.volume * 100), next = volume::stepped(base, direction);
+    if (next != base) directSpeaker.volume(next / 100.0, next == 0);
+    return next;
   }
   void tvSound(bool on) {
     if (audible == on) return;
-    if (audio && !SDL_SetAudioStreamGain(audio, on ? normalGain * fadeGain : 0.0f)) return;
+    if (audio && !SDL_SetAudioStreamGain(audio, on ? normalGain * fadeGain * userVolume : 0.0f)) return;
 #ifdef __XSDK__
     if (!on && audio && firstPts >= 0) {
       XsdkAudioStats stats{};
@@ -267,7 +291,7 @@ struct Player {
     original = retryConverted = false; originalWatch = 0; maxFrames = 10; startupFrames = 6; queueMin = maxFrames;
     speakerRequested = speaker; nest = false;
     srv = s; id = vid; startAt = std::max(0.0, t); title = ttl; duration = dur; quality = q; error.clear();
-    ring.assign(6u << 20, 0); rhead = rcount = 0; netEof = netErr = false; decEnded = false;
+    ring.assign(6u << 20, 0); rhead = rcount = 0; netEof = netErr = false; decEnded = false; decDone = false;
     SDL_SetAtomicInt(&audioBaseMs, -1); SDL_SetAtomicInt(&pushed, 0); firstPts = -1; wallStart = 0; pausedAt = 0; pausedTotal = 0; lastPos = startAt;
     droppedFrames = shownFrames = 0;
     activeH264Threads=0;activeLoopFilter=0;activeH264Spread=false;activeVideoItag=0;
@@ -541,7 +565,7 @@ struct Player {
       }
     }
     if (hasAudio && !stop) finishAudio();
-    SDL_LockMutex(mu); decEnded = true; SDL_UnlockMutex(mu);
+    SDL_LockMutex(mu); decEnded = true; decDone = true; SDL_UnlockMutex(mu);
     plm_destroy(plm);
   }
 
@@ -560,7 +584,7 @@ struct Player {
     int cw = (w + 1) / 2, ch = (h + 1) / 2;
     fr->w = w; fr->h = h; fr->pts = pts; fr->bt709 = bt709; fr->fullRange = full; fr->sourceFps = fps;
     fr->surface = std::move(surface);
-    if (fr->surface) { SDL_LockMutex(mu); frames.push_back(fr); SDL_UnlockMutex(mu); return; }
+    if (fr->surface) { SDL_LockMutex(mu); frames.push_back(fr); ++framesIn; SDL_UnlockMutex(mu); return; }
     fr->yuv.resize((size_t)w * h + 2 * (size_t)cw * ch);
     uint8_t* dst = fr->yuv.data();
     for (int i = 0; i < 3; ++i) {
@@ -572,7 +596,7 @@ struct Player {
         for (int y = 0; y < height; ++y, dst += width) std::memcpy(dst, planes[i] + y * strides[i], width);
       }
     }
-    SDL_LockMutex(mu); frames.push_back(fr); SDL_UnlockMutex(mu);
+    SDL_LockMutex(mu); frames.push_back(fr); ++framesIn; SDL_UnlockMutex(mu);
   }
 
   static int readOriginal(void* user, uint8_t* dst, int size);

@@ -171,12 +171,24 @@ struct UiContext {
   float& manualNoticeWidth;
 
   // ---- F61 Início e coleção: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  int homeShelves(const Shelf& cur) const;  // ui_home.hpp: 2 = prateleiras do YouTube da conta (Início), 0 = lista única
 
   // ---- F62 Busca e canal: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
   // ---- F63 Player e Shorts: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  std::vector<Video>& related;
+  PlayerShelf& shelf;
+  std::vector<Video>& shortsQueue;
+  std::vector<Video>& playedBefore;
+  bool& historyBack;
+  std::string& shortTitle;
+  i18n::Lang& shortLang;
+  std::vector<std::string>& shortLines;
 
   // ---- F64 Configurações e controle: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
+  void refreshPage(uint64_t now);   // ui_shell.hpp: o "Atualizar" do Menu (Início e páginas de navegação)
+  void openPageMenu();              // Menu sem vídeo em foco: só as opções da página
+  void pageMenuFallback();          // chamado por último no ciclo de entrada: abre o menu da página se ninguém usou o Menu
 
   // ---- F65 Música: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
@@ -231,6 +243,17 @@ struct UiContext {
   void ratePanelInput(uint64_t now);
   void playerNoticeDraw(uint64_t now);
   void playerInput(uint64_t now, int optionCount);
+  void playerShelfInput(uint64_t now);
+  void playerShelfDraw(uint64_t now);
+  void playerWatchLater(uint64_t now);
+  bool playerStep(int direction);
+  void shortsEnded();
+  void adjustVolume(uint64_t now, int direction);
+  void volumeHud(uint64_t now);
+  int shortsIndex() const;
+  void shortsStep(int direction);
+  void shortsInput(uint64_t now);
+  void shortsDraw(uint64_t now, double t);
   void playerUpdate(uint64_t now);
   void playerDraw(uint64_t now, double t, int optionCount, bool behindLive, const display::CommentsPanel& commentPanel,
                   bool sleepWarning, double sleepLeft);

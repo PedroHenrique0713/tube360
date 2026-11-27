@@ -1,4 +1,8 @@
 """Perfis × controle real do app de PC. Sem rede externa, dispositivos ou inferência de clock."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import argparse
 import json
 import os
@@ -88,7 +92,7 @@ for case in cases:
     # Teclas e captura no mesmo relógio de frames: uma compilação concorrente pode atrasar um atlas.
     # O último botão normal é aplicado no frame 400; a foto só sai no 520.
     env.update(XT_SCREEN='settings', XT_SHOT=str(shot), XT_SHOT_FRAME='520',
-               XT_KEYS='D' * 9 + 'RRR' + 'DD' + 'RR' + ('B' if case.get('failure') else ''))
+               XT_KEYS=seq(9, 'RRR', 11, 'RR') + ('B' if case.get('failure') else ''))
     began = time.monotonic()
     try:
         run = subprocess.run([str(a.app.resolve())], cwd=folder, env=env, capture_output=True, timeout=30)

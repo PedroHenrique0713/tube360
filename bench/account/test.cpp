@@ -110,7 +110,7 @@ void feeds(const string& path) {
     auto r=a.request("/api/feed?kind=home",1000,10);
     check(r.ok() && r.body.find("vid00000023")!=string::npos && r.body.find("vid00000024")==string::npos,"first 24 feed items");
     check(r.body.find("OCULTO")==string::npos && r.body.find("MENU")==string::npos,"menus and unselected tabs excluded");
-    check(r.body.find("\t600\t")!=string::npos && r.body.find("\t300\t\n")!=string::npos,"duration and resume position");
+    check(r.body.find("\t600\t")!=string::npos && r.body.find("\t300\t\t\t\n")!=string::npos,"duration and resume position");
     f.add("/browse",R"("continuation":"PAGE2")",R"({"onResponseReceivedActions":[{"appendContinuationItemsAction":{"continuationItems":[)"+tile("vid00000024","Duplicado")+","+tile("vid00000026","Novo")+R"(]}}]})",200,"fake-a");
     r=a.request("/api/feed?kind=home&offset=24",1001,11);
     check(r.ok() && r.body.find("vid00000024")!=string::npos && r.body.find("Duplicado")==string::npos && r.body.find("Novo")!=string::npos,"continuation preserves offset and deduplicates");

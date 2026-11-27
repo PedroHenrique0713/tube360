@@ -26,6 +26,8 @@ int main() {
   CHECK(act(Ctx::Player, Btn::LT) == Act::SeekBack && act(Ctx::Collection, Btn::LT) == Act::PageUp);
   CHECK(act(Ctx::Player, Btn::LB) == Act::PrevItem && act(Ctx::Home, Btn::LB) == Act::PrevTab);
   CHECK(button(Ctx::Music, Act::SongVideo) == Btn::View && !has(Ctx::Home, Act::SongVideo));
+  CHECK(act(Ctx::Settings, Btn::Y) == Act::None && act(Ctx::Settings, Btn::LT) == Act::None);  // o que a tela não faz sai do mapa
+  CHECK(button(Ctx::Panel, Act::Refresh) == Btn::Menu && act(Ctx::Settings, Btn::LB) == Act::PrevTab);
   FakeInput in; in.fired[FakeInput::START] = true;
   CHECK(!hit(in, Ctx::Home, Act::SongVideo));
   CHECK(hit(in, Ctx::Home, Act::Options) && !hit(in, Ctx::Home, Act::Options));

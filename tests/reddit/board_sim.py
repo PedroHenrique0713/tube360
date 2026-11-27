@@ -1,4 +1,8 @@
 """Contrato mínimo board-sim e caminho SD do app real; sem simular sinal físico."""
+import sys as _sys
+from pathlib import Path as _Path
+_sys.path.insert(0, str(_Path(__file__).resolve().parents[2] / 'tests'))
+from settings_nav import seq
 import os
 import re
 import json
@@ -60,7 +64,7 @@ for driver in ('native','safe'):
     (folder/'error.txt').write_text('network');shot=folder/'screen.ppm';shot.unlink(missing_ok=True)
     (assets/'boot-app.log').unlink(missing_ok=True)
     env={k:v for k,v in os.environ.items() if not k.startswith('XT_')}
-    env.update(HOME=str(folder),XDG_CACHE_HOME=str(folder/'cache'),SDL_VIDEO_DRIVER='offscreen',SDL_AUDIO_DRIVER='dummy',XT_CAST_DISABLE='1',XT_ASSETS=str(assets),XT_YT_REPLAY=str(folder),XT_SCREEN='settings',XT_KEYS='D'*9+'RRR',XT_KEYS_MS='100',XT_SHOT=str(shot),XT_SHOT_MS='4000')
+    env.update(HOME=str(folder),XDG_CACHE_HOME=str(folder/'cache'),SDL_VIDEO_DRIVER='offscreen',SDL_AUDIO_DRIVER='dummy',XT_CAST_DISABLE='1',XT_ASSETS=str(assets),XT_YT_REPLAY=str(folder),XT_SCREEN='settings',XT_KEYS=seq(9,'RRR'),XT_KEYS_MS='100',XT_SHOT=str(shot),XT_SHOT_MS='4000')
     run=subprocess.run([str(ROOT/'client/build/tube360')],cwd=folder,env=env,capture_output=True,text=True,timeout=25)
     (folder/'player.log').write_text(run.stdout+run.stderr)
     assert run.returncode==0 and shot.exists(),(driver,run.stdout[-3000:])
