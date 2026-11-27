@@ -215,6 +215,25 @@ int main() {
     CHECK(net.port == 0 && http(18135, rq("GET", "/"), 300) == "CONNECT_FAIL" && core.sessions() == 0);
     net.quit = true; th.join();
   }
+  // ---- socket aceito não bloqueante (o XAM pode herdar o O_NONBLOCK do listener) com resposta maior que o buffer de envio
+  {
+    const std::string big(400000, 'x');
+    Core core([](unsigned char* b, size_t n) { for (size_t i = 0; i < n; ++i) b[i] = (unsigned char)i; }, [] { return fakeNow; }, [&] { return big; });
+    Net net; net.firstPort = 18235; net.enabled = true; net.testNonblockAccepted = true;
+    std::thread th([&] { net.run(core); });
+    for (int i = 0; i < 50 && !net.port; ++i) std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    int fd = ::socket(AF_INET, SOCK_STREAM, 0); int rcv = 4096; ::setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcv, sizeof(rcv));
+    sockaddr_in a3{}; a3.sin_family = AF_INET; a3.sin_port = htons((uint16_t)net.port.load()); a3.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    ::connect(fd, (sockaddr*)&a3, sizeof(a3));
+    std::string req = rq("GET", "/"); ::send(fd, req.data(), req.size(), 0);
+    std::this_thread::sleep_for(std::chrono::milliseconds(300));  // o leitor atrasa: o servidor bate em EWOULDBLOCK várias vezes
+    std::string out; char buf[8192]; ssize_t n; timeval tv3{3, 0}; ::setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv3, sizeof(tv3));
+    while ((n = ::recv(fd, buf, sizeof(buf), 0)) > 0) { out.append(buf, (size_t)n); std::this_thread::sleep_for(std::chrono::microseconds(500)); }
+    ::close(fd);
+    size_t head = out.find("\r\n\r\n");
+    CHECK(out.find("200 OK") != std::string::npos && head != std::string::npos && out.size() - head - 4 == big.size());   // a página chegou inteira
+    net.quit = true; th.join();
+  }
   // ---- página: 4 idiomas, sem recurso externo
   for (auto lang : {i18n::Lang::EN, i18n::Lang::PT, i18n::Lang::ES, i18n::Lang::AR}) {
     std::string h = page(lang);

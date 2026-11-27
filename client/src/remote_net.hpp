@@ -28,7 +28,12 @@ struct Net {
   int firstPort = kFirstPort;    // testes usam outra
   std::atomic<uint32_t> advertisedIp{0};     // endereço que o painel da TV mostra, em ordem de rede (a thread principal grava, esta só lê); 0 = só o da conexão
 
-  static bool sendAll(int fd, const std::string& s) {
+  bool testNonblockAccepted = false;  // só teste: deixa o socket aceito não bloqueante, como o XAM pode herdar do listener
+
+  // Envia tudo em até 2 s. EAGAIN/EWOULDBLOCK/EINTR esperam poll(POLLOUT) e tentam de novo (socket aceito pode ser não bloqueante);
+  // só erro de verdade ou o prazo estourado devolvem falso.
+  static bool sendAll(int fd, const std::string& s, uint64_t budgetMs = 2000) {
+    const uint64_t deadline = SDL_GetTicks() + budgetMs;
     size_t off = 0;
 #ifdef MSG_NOSIGNAL
     constexpr int flags = MSG_NOSIGNAL;
@@ -37,8 +42,14 @@ struct Net {
 #endif
     while (off < s.size()) {
       ssize_t n = ::send(fd, s.data() + off, s.size() - off, flags);
-      if (n <= 0) return false;
-      off += (size_t)n;
+      if (n > 0) { off += (size_t)n; continue; }
+      if (n == 0 || (errno != EAGAIN && errno != EWOULDBLOCK && errno != EINTR)) return false;
+      uint64_t now = SDL_GetTicks();
+      if (now >= deadline) return false;
+      pollfd p{fd, POLLOUT, 0};
+      int ready = ::poll(&p, 1, (int)std::min<uint64_t>(deadline - now, 200));
+      if (ready < 0 && errno != EINTR) return false;
+      if (ready > 0 && (p.revents & (POLLERR | POLLHUP | POLLNVAL))) return false;
     }
     return true;
   }
@@ -104,6 +115,8 @@ struct Net {
           sockaddr_in peer{}; socklen_t size = sizeof(peer);
           int c = ::accept(fd, (sockaddr*)&peer, &size);
           if (c >= 0) {
+            { int fl = ::fcntl(c, F_GETFL, 0); if (fl >= 0) ::fcntl(c, F_SETFL, testNonblockAccepted ? (fl | O_NONBLOCK) : (fl & ~O_NONBLOCK)); }
+            if (testNonblockAccepted) { int small = 4096; ::setsockopt(c, SOL_SOCKET, SO_SNDBUF, &small, sizeof(small)); }  // o aceito nunca herda o O_NONBLOCK do listener (Winsock herda)
             uint32_t ip = ntohl(peer.sin_addr.s_addr);
             size_t same = (size_t)std::count_if(conns.begin(), conns.end(), [&](const Conn& o) { return o.peer == ip; });
             bool full = conns.size() >= kMaxConns || same >= kMaxPerIp;
@@ -124,7 +137,8 @@ struct Net {
           for (const auto& f : fds) if (f.fd == c.fd) rev = f.revents;  // o vetor pode ter encolhido por remoções: busca pelo fd
           if (rev & (POLLIN | POLLHUP | POLLERR)) {
             char buf[1024]; ssize_t n = ::recv(c.fd, buf, sizeof(buf), 0);
-            if (n <= 0) done = true;  // fechou sem terminar o pedido
+            if (n < 0 && (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)) {}  // nada a ler agora
+            else if (n <= 0) done = true;  // fechou sem terminar o pedido
             else {
               c.raw.append(buf, (size_t)n);
               long missing = missingBytes(c.raw);
