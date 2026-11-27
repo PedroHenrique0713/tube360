@@ -7,6 +7,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/revive360/catalog/blob/main/generated/apps/tube360.md"><img src="https://raw.githubusercontent.com/revive360/catalog/main/generated/badges/tube360.svg" alt="Revive360 Official" height="28"></a>
   <a href="https://github.com/revive360/tube360/releases"><img src="https://img.shields.io/github/v/release/revive360/tube360?style=for-the-badge&amp;labelColor=111&amp;color=ff0f3c" alt="Release"></a>
   <a href="https://github.com/revive360/tube360/stargazers"><img src="https://img.shields.io/github/stars/revive360/tube360?style=for-the-badge&logo=github&color=ff0f3c&labelColor=111" alt="Estrelas"></a>
   <img src="https://img.shields.io/badge/Xbox%20360-BadUpdate%20%C2%B7%20RGH%20%C2%B7%20JTAG-107C10?style=for-the-badge&logo=xbox&logoColor=white&labelColor=111" alt="Xbox 360">
