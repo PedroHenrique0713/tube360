@@ -30,7 +30,7 @@ struct Fake final : Transport {
     std::atomic<int> tick{60};
     std::atomic<long long> head{4};
     std::atomic<long> failStatus{0}; std::atomic<long long> failFrom{-1}, missingBelow{-1};
-    std::atomic<unsigned> requests{0}; bool stallAs204 = false;
+    std::atomic<unsigned> requests{0}; bool stallAs204 = false, headAs204 = false;
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     long long headAt() const {
         auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - t0).count();
@@ -44,6 +44,7 @@ struct Fake final : Transport {
         long long sq = at == string::npos ? -1 : std::atoll(r.url.c_str() + at + 4);
         if (failStatus && failFrom >= 0 && sq >= failFrom) { res.status = failStatus; return res; }
         if (sq >= 0 && sq < missingBelow) { res.status = 404; return res; }
+        if (sq < 0 && headAs204) { res.status = 204; return res; }
         if (sq < 0) sq = headAt();
         for (int waited = 0; sq > headAt() && !cancelled(); waited += 5) { if (waited > 4000) { res.status = 503; return res; } std::this_thread::sleep_for(std::chrono::milliseconds(5)); }
         if (sq >= count) { for (int w = 0; w < 600 && !cancelled(); w += 5) std::this_thread::sleep_for(std::chrono::milliseconds(5)); res.status = stallAs204 ? 204 : 404; return res; }
@@ -239,6 +240,15 @@ int main(int argc, char** argv) {
         CHECK(std::fabs((e1 - f1) - 2.0) < .01, "low latency starts on the newest segment: one segment to the edge (%.2f)", e1 - f1);
         CHECK(std::fabs((e3 - f3) - 6.0) < .01, "default starts three segments back (%.2f)", e3 - f3);
         CHECK(std::fabs(d1 - 2.0) < .01, "segment duration from the playlist (%.2f)", d1);
+    }
+    // 3c. Live que ainda não começou (ou parou antes da abertura): a borda responde 204. É "esperando", não falha de formato.
+    {
+        fake.headAs204 = true;
+        LiveSeq ls;
+        bool ok = ls.open("https://r1.googlevideo.com/videoplayback?live=1", "https://r1.googlevideo.com/videoplayback?live=1", true, &stop,
+                          std::make_unique<Proxy>(fake, true), std::make_unique<Proxy>(fake, false));
+        CHECK(!ok && ls.error == "waiting", "204 at the edge is 'waiting' (%s), so the player shows the live-not-started message and does not step down the ladder", ls.error.c_str());
+        fake.headAs204 = false; stop = true; ls.close(); stop = false;
     }
     // 4. Cancelar enquanto espera o long-poll destrava a leitura sem demora.
     {
