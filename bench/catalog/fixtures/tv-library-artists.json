@@ -1,0 +1,78 @@
+{
+ "contents": {
+  "tvBrowseRenderer": {
+   "content": {
+    "tvSurfaceContentRenderer": {
+     "content": {
+      "gridRenderer": {
+       "items": [
+        {
+         "tileRenderer": {
+          "header": {
+           "tileHeaderRenderer": {
+            "thumbnail": {
+             "thumbnails": [
+              {
+               "url": "https://yt3.googleusercontent.com/fixartist1=s192",
+               "width": 544,
+               "height": 544
+              }
+             ]
+            }
+           }
+          },
+          "metadata": {
+           "tileMetadataRenderer": {
+            "title": {
+             "simpleText": "Artista Ficticio Um"
+            }
+           }
+          },
+          "onSelectCommand": {
+           "browseEndpoint": {
+            "browseId": "UCfixtureartist000001a"
+           }
+          },
+          "contentId": "UCfixtureartist000001a",
+          "contentType": "TILE_CONTENT_TYPE_CHANNEL"
+         }
+        },
+        {
+         "tileRenderer": {
+          "header": {
+           "tileHeaderRenderer": {
+            "thumbnail": {
+             "thumbnails": [
+              {
+               "url": "https://yt3.googleusercontent.com/fixartist2=s192",
+               "width": 544,
+               "height": 544
+              }
+             ]
+            }
+           }
+          },
+          "metadata": {
+           "tileMetadataRenderer": {
+            "title": {
+             "simpleText": "Artista Ficticio Dois"
+            }
+           }
+          },
+          "onSelectCommand": {
+           "browseEndpoint": {
+            "browseId": "UCfixtureartist000002a"
+           }
+          },
+          "contentId": "UCfixtureartist000002a",
+          "contentType": "TILE_CONTENT_TYPE_CHANNEL"
+         }
+        }
+       ]
+      }
+     }
+    }
+   }
+  }
+ }
+}
