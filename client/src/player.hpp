@@ -174,19 +174,19 @@ struct Player {
   // Dois volumes separados. TV: ganho relativo do app (`settings.volume`, 0..100, passos de 5), aplicado no stream de áudio.
   // Nest: o nível real da caixa, ajustado ao vivo a partir do que ela informa; nunca é gravado e nunca é enviado na abertura do vídeo.
   int volumePercent() const { return (int)std::lround(userVolume * 100); }
-  int setVolumePercent(int percent, bool = false) {  // só TV; o 2º parâmetro ficou por compatibilidade e é ignorado
+  int setVolumePercent(int percent) {  // só TV
     percent = volume::clampPercent(percent);
     userVolume = percent / 100.f;
     if (audio && audible) SDL_SetAudioStreamGain(audio, normalGain * fadeGain * userVolume);
     return percent;
   }
   int stepVolume(int direction) { return setVolumePercent(volume::stepped(volumePercent(), direction)); }
-  bool speakerVolumeControl() { return nest && directSpeaker.configured() && directSpeaker.sample().volume >= 0; }
   // Passo na caixa (Nest) a partir do volume real dela; devolve o nível novo em % ou -1 se a caixa não informou o volume.
   int stepSpeaker(int direction) {
     auto s = directSpeaker.sample();
-    if (!nest || !directSpeaker.configured() || s.volume < 0) return -1;
-    int base = (int)std::lround(s.volume * 100), next = volume::stepped(base, direction);
+    double known = s.actual >= 0 ? s.actual : s.volume;  // o que a caixa informou no último status vence o último pedido
+    if (!nest || !directSpeaker.configured() || known < 0) return -1;
+    int base = (int)std::lround(known * 100), next = volume::stepped(base, direction);
     if (next != base) directSpeaker.volume(next / 100.0, next == 0);
     return next;
   }
