@@ -97,7 +97,7 @@ inline void UiContext::saveForLater(const NavItem& item, uint64_t now) {
   else { localUI.library.toggle(LocalLibraryUI::entry(item.video())); toast = tr(K::LocalSaving); toastUntil = now + 2500; }
 }
 
-// Botão "Reproduzir tudo" no cabeçalho de uma playlist (ou lista de Música): começa a fila do servidor desde o primeiro item.
+// Botão "Reproduzir tudo" no cabeçalho de uma playlist (ou lista de Música): começa a fila desde o primeiro item.
 inline void UiContext::playlistHeaderPress(NavPage& p) {
   phonePlaybackSerial = 0;
   nav.queueStart.clear();

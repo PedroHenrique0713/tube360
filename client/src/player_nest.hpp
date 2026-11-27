@@ -5,32 +5,6 @@ inline void Player::directNestLoop() {
   constexpr uint64_t speakerGoneMs = 10000;
   while (!stop && !castMediaReady && state != FAILED) SDL_Delay(10);
   if (stop || state == FAILED) return;
-  if (net::serverEnabled && speakerRequested) {
-    uint64_t deadline = SDL_GetTicks()+3500;
-    bool claimed = false;
-    LOG("Nest: dono=console; solicitando silencio e fechamento do servidor");
-    while (!stop && SDL_GetTicks() < deadline) {
-      net::Response reply;
-      bool answered = net::get(srv,"/api/nest/owner?owner=console",reply,700,1024);
-      if (answered &&
-          std::string(reply.body.begin(),reply.body.end()).find("QUIET\t") == 0) { claimed = true; break; }
-      if (!answered && !reply.status && previousSession == 0) {
-        LOG("Nest: servidor ausente, sem sessao de reserva anterior; console direto");
-        claimed = true; break;
-      }
-      if (reply.status == 404) {
-        LOG("Nest: servidor sem controle de posse (versao antiga); console direto");
-        claimed = true; break;
-      }
-      SDL_Delay(100);
-    }
-    previousSession = 0;
-    if (stop) return;
-    // O Nest nunca depende do PC: sem confirmação, o console assume (o LAUNCH dele encerra a sessão do servidor)
-    // e a escolha da TV nunca fica presa esperando o servidor.
-    if (!claimed) LOG("Nest: servidor nao confirmou em 3500 ms; console assume");
-    LOG("Nest: dono=console autorizado");
-  }
   // HLS não oferece um relógio comum entre duas aberturas independentes do manifesto.
   const auto& audioUrl = media.speakerAudio.url;
   bool supported = speakerRequested && !live && !audioUrl.empty();

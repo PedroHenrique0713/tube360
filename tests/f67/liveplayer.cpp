@@ -5,9 +5,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#define PL_MPEG_IMPLEMENTATION
-#include "pl_mpeg.h"
-#undef PL_MPEG_IMPLEMENTATION
 #define LOG(...) SDL_Log(__VA_ARGS__)
 #include "player.hpp"
 #include <fstream>
@@ -33,7 +30,6 @@ int main(int argc, char** argv) {
     SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "dummy");
     SDL_Init(SDL_INIT_AUDIO);
     const std::string mode = argv[1]; const bool low = std::atoi(argv[4]) == 1; const int seconds = std::atoi(argv[5]);
-    net::serverEnabled = false;
     player::Player p; p.cacheBase = argv[3]; p.init();
     if (!p.audio) { std::puts("sem audio"); return 2; }
     SDL_SetAudioPostmixCallback(SDL_GetAudioStreamDevice(p.audio), postmix, nullptr);
@@ -48,7 +44,7 @@ int main(int argc, char** argv) {
         p.cachedQuality = 720; p.cachedVideoMode = 0; p.cachedAudio = "original"; p.validUntil = SDL_GetTicks() + 3600000;
     } else id = argv[2];
     p.liveLowLatency = low;
-    p.start({"127.0.0.1", 1}, id, 0, "live", 0, 720, false, true, false, 0);
+    p.start(id, 0, "live", 0, 720, false, false, 0);
     FILE* csv = std::fopen(argv[7], "w"); std::fprintf(csv, "ms,speed,clock,display,state,shown,dropped\n");
     uint64_t t0 = SDL_GetTicks(); double lastSpeed = 1; int switches = 0;
     const int pauseAt = std::getenv("PAUSE_AT") ? std::atoi(std::getenv("PAUSE_AT")) : -1, pauseMs = std::getenv("PAUSE_MS") ? std::atoi(std::getenv("PAUSE_MS")) : 0;

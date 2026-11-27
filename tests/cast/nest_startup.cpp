@@ -3,9 +3,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#define PL_MPEG_IMPLEMENTATION
-#include "pl_mpeg.h"
-#undef PL_MPEG_IMPLEMENTATION
 #define LOG(...) SDL_Log(__VA_ARGS__)
 #include "player.hpp"
 #include "i18n.hpp"
@@ -47,7 +44,6 @@ int main(int argc, char** argv) {
     videoBytes = read(std::string(argv[2]) + "/video.mp4");
     audioBytes = read(std::string(argv[2]) + "/audio.m4a");
     if (videoBytes.empty() || audioBytes.empty()) return 2;
-    net::serverEnabled = false;
     player::Player p;
     p.mu = SDL_CreateMutex(); p.cv = SDL_CreateCondition(); p.nmu = SDL_CreateMutex();
     SDL_AudioSpec spec{SDL_AUDIO_F32, 2, 44100};
@@ -60,7 +56,7 @@ int main(int argc, char** argv) {
     p.cachedQuality = 720; p.cachedVideoMode = playback::AUTO; p.cachedAudio = "original";
     p.validUntil = SDL_GetTicks() + 120000;
     uint64_t began = SDL_GetTicks();
-    p.start({"127.0.0.1", 1}, p.media.id, 0, "F53", 60, 720, true);
+    p.start(p.media.id, 0, "F53", 60, 720, true);
     unsigned notices = 0;
     std::string line;
     while (std::getline(std::cin, line) && line != "quit") {

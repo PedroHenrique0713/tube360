@@ -5,17 +5,12 @@
 #include "yt/live_seq.hpp"
 namespace player {
 
-inline bool Player::directFailed(bool fatal) {
-  if(playback::manual(videoMode)){if(fatal){error="manual_quality_failed";state=FAILED;}return false;}
-  // Esta sonda roda no worker, depois das opções locais. Nunca bloqueia o desenho nem acorda o PC.
-  net::Response response;
-  directReserveReady = !stop && net::serverEnabled && srv.ip != "0.0.0.0" &&
-      net::get(srv,"/api/remote/state",response,700,8192);
+inline void Player::directFailed() {
+  if (playback::manual(videoMode)) { error = "manual_quality_failed"; state = FAILED; return; }
   if (!stop) {
-    LOG("console: opcoes diretas esgotadas, servidor %s", directReserveReady ? "respondendo" : "indisponivel");
-    if (fatal || directReserveReady) retryConverted = true;
+    LOG("console: opcoes diretas esgotadas");
+    consoleFailure = true;
   }
-  return directReserveReady;
 }
 
 inline int Player::readOriginal(void* user, uint8_t* dst, int size) {
@@ -51,7 +46,7 @@ inline void Player::decodeOriginal() {
   h264::Stream s, separate;
   s.videoBuffers = videoBuffers; s.threadType = h264ThreadType;
   const bool fullFilter=h264FullFilter || h264LoopFilter==0;
-  s.source(0,sourceFpsHint,fullFilter);
+  s.source(0,0,fullFilter);
   unsigned workUs = 0, workFrames = 0;
   h264::ffmpeg_work_metrics(&workUs,&workFrames);
   std::unique_ptr<yt::RangeFile> videoFile, audioFile;
@@ -79,185 +74,183 @@ inline void Player::decodeOriginal() {
     file.aheadEnabled=true;
     return result;
   };
-  if (direct) {
-    if (!youtube) {
-      transport = yt::https(&stop);
-      youtube = std::make_unique<yt::Client>(*transport, cacheBase);
+  if (!youtube) {
+    transport = yt::https(&stop);
+    youtube = std::make_unique<yt::Client>(*transport, cacheBase);
+  }
+  if (media.id != id || quality != cachedQuality || videoMode != cachedVideoMode || cachedAudio != audioSelection || SDL_GetTicks() >= validUntil) {
+    youtube->setLanguage(requestLanguage);
+    media = youtube->player(id, quality, nullptr,videoMode,audioSelection,memberResponse());
+    validUntil = SDL_GetTicks() + 1000ULL * (media.ttl - std::min(30,media.ttl/10));
+    cachedQuality = quality;
+    cachedVideoMode=videoMode; cachedAudio=audioSelection;
+  }
+  if (stop) return;
+  if (media.status == "ERROR" && !stop && (media.failure==yt::Failure::NETWORK || media.failure==yt::Failure::SESSION)) {
+    // Falha de rede ou sessão (não é recusa do YouTube): tenta de novo pelo console com conexão e sessão novas.
+    LOG("console: player ERROR: %s; nova tentativa direta", media.reason.c_str());
+    youtube.reset(); transport.reset();
+    transport = yt::https(&stop);
+    youtube = std::make_unique<yt::Client>(*transport, cacheBase);
+    youtube->setLanguage(requestLanguage);
+    media = youtube->player(id, quality, nullptr,videoMode,audioSelection,memberResponse());
+    validUntil = SDL_GetTicks() + 1000ULL * (media.ttl - std::min(30,media.ttl/10));
+  }
+  if (stop) return;
+  qualityAvailable=media.qualityModes;qualityModesReady=true;
+  if (media.status != "OK") {
+    LOG("console: player %s, classe %s, cliente %s, %u pedidos: %s", media.status.c_str(), yt::failureName(media.failure),
+        media.playerClient.c_str(), media.playerAttempts, media.reason.c_str());
+    if (media.reason == "members") { error = "Vídeo só para membros do canal"; state = FAILED; return; }
+    directFailed(); return;
+  }
+  LOG("console: player OK, cliente %s, %u pedidos: %s resolucao_ms=%llu",media.playerClient.c_str(),media.playerAttempts,media.playerTrace.c_str(),
+      (unsigned long long)(SDL_GetTicks()-openedMs));
+  if (memberVideo && media.hls.empty() && media.video.url.empty()) {
+    LOG("console: video de membros sem HLS ou URL de video; encerrando sem renovar URL");
+    error = "members_unsupported"; renew = consoleFailure = false; state = FAILED; return;
+  }
+  live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
+  // Live de membros sem HLS: segmentos &sq=N, uma faixa de vídeo e uma de áudio, `n` já resolvido pelo cliente.
+  seqLive = media.liveSeq && media.hls.empty() && !media.video.url.empty() && !media.audio.url.empty();
+  if (seqLive) live = true;   // os degraus (lowerVideo) ficam: servem de reserva se a abertura da fonte escolhida falhar
+  if (stop) return;
+  if (live) { speed=1; loop=false; tempo.reset(1); }
+  castMediaReady = true;
+  state = BUFFERING;
+  mediaReady = true;
+  if(playback::manual(videoMode) && (media.video.url.empty() || !(media.qualityModes&(1u<<videoMode))) && !live){error="manual_quality_unavailable";state=FAILED;return;}
+  if (seqLive) {
+    qualityAvailable=1;qualityModesReady=true;
+    s.wrap33 = separate.wrap33 = false;
+    auto openSeq=[&](const yt::Format& format) {
+      liveSeq = std::make_unique<yt::LiveSeq>();
+      s.source(format.height,format.fps,fullFilter);
+      bool opened = liveSeq->open(format.url,media.audio.url,liveLowLatency,&stop,yt::https(&stop),yt::https(&stop));
+      LOG("live-seq: abertura %s %dp, borda sq=%lld, inicio sq=%lld, segmento %.1f s, atraso minimo %d, erro=%s HTTP=%ld",opened?"ok":"falhou",
+          format.height,liveSeq->headSeq(),liveSeq->first,liveSeq->segSec(),int(liveLowLatency),liveSeq->error.c_str(),liveSeq->httpStatus());
+      int result = opened ? 0 : AVERROR_INVALIDDATA;
+      if (result >= 0) result = s.open(&liveSeq->tracks[0],yt::LiveSeq::pull,requestedThreads,false,true,nullptr,"mov");
+      if (result >= 0 && audio) result = separate.open(&liveSeq->tracks[1],yt::LiveSeq::pull,1,true,false,nullptr,"mov");
+      return result;
+    };
+    r = openSeq(media.video);
+    // Fonte escolhida não abriu (inclusive 403: há lives em que o degrau mais alto responde 403 e os outros não): desce um degrau, como no VOD.
+    // Se todos derem 403 sobra o caminho do 403 de membros. Troca de degrau com a live em curso não existe.
+    if (r < 0 && !stop && liveSeq->error == "waiting") {
+      // Live que não começou ou parou: descer degrau não resolve. Mensagem própria, sem renovar.
+      LOG("live-seq: borda sem segmento novo (204 ou tempo esgotado); live nao comecou ou esta parada");
+      error = "live_waiting"; renew = consoleFailure = false; state = FAILED; return;
     }
-    if (media.id != id || quality != cachedQuality || videoMode != cachedVideoMode || cachedAudio != audioSelection || SDL_GetTicks() >= validUntil) {
-      youtube->setLanguage(requestLanguage);
-      media = youtube->player(id, quality, nullptr,videoMode,audioSelection,memberResponse());
-      validUntil = SDL_GetTicks() + 1000ULL * (media.ttl - std::min(30,media.ttl/10));
-      cachedQuality = quality;
-      cachedVideoMode=videoMode; cachedAudio=audioSelection;
+    while (r < 0 && !stop && !playback::manual(videoMode) && liveSeq->error != "waiting" && !media.lowerVideo.empty()) {
+      auto next = media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
+      LOG("qualidade: live por segmentos %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
+      s.reset(); separate.reset(); s.wrap33 = separate.wrap33 = false;
+      media.video = next; media.fallbackVideo = {};
+      r = openSeq(next);
     }
-    if (stop) return;
-    if (media.status == "ERROR" && !stop && (media.failure==yt::Failure::NETWORK || media.failure==yt::Failure::SESSION)) {
-      // Falha de rede ou sessão (não é recusa do YouTube): tenta de novo pelo console com conexão e sessão novas.
-      LOG("console: player ERROR: %s; nova tentativa direta", media.reason.c_str());
-      youtube.reset(); transport.reset();
-      transport = yt::https(&stop);
-      youtube = std::make_unique<yt::Client>(*transport, cacheBase);
-      youtube->setLanguage(requestLanguage);
-      media = youtube->player(id, quality, nullptr,videoMode,audioSelection,memberResponse());
-      validUntil = SDL_GetTicks() + 1000ULL * (media.ttl - std::min(30,media.ttl/10));
-    }
-    if (stop) return;
-    qualityAvailable=media.qualityModes;qualityModesReady=true;
-    if (media.status != "OK") {
-      LOG("console: player %s, classe %s, cliente %s, %u pedidos: %s", media.status.c_str(), yt::failureName(media.failure),
-          media.playerClient.c_str(), media.playerAttempts, media.reason.c_str());
-      if (media.reason == "members") { error = "Vídeo só para membros do canal"; state = FAILED; return; }
-      directFailed(); return;
-    }
-    LOG("console: player OK, cliente %s, %u pedidos: %s resolucao_ms=%llu",media.playerClient.c_str(),media.playerAttempts,media.playerTrace.c_str(),
-        (unsigned long long)(SDL_GetTicks()-openedMs));
-    if (memberVideo && media.hls.empty() && media.video.url.empty()) {
-      LOG("console: video de membros sem HLS ou URL de video; encerrando sem renovar URL");
-      error = "members_unsupported"; renew = retryConverted = false; state = FAILED; return;
-    }
-    live = !media.hls.empty() && (media.live || media.video.url.empty() || !media.duration);
-    // Live de membros sem HLS: segmentos &sq=N, uma faixa de vídeo e uma de áudio, `n` já resolvido pelo cliente.
-    seqLive = media.liveSeq && media.hls.empty() && !media.video.url.empty() && !media.audio.url.empty();
-    if (seqLive) live = true;   // os degraus (lowerVideo) ficam: servem de reserva se a abertura da fonte escolhida falhar
-    if (stop) return;
-    if (live) { speed=1; loop=false; tempo.reset(1); }
-    castMediaReady = true;
-    state = BUFFERING;
-    mediaReady = true;
-    if(playback::manual(videoMode) && (media.video.url.empty() || !(media.qualityModes&(1u<<videoMode))) && !live){error="manual_quality_unavailable";state=FAILED;return;}
-    if (seqLive) {
-      qualityAvailable=1;qualityModesReady=true;
-      s.wrap33 = separate.wrap33 = false;
-      auto openSeq=[&](const yt::Format& format) {
-        liveSeq = std::make_unique<yt::LiveSeq>();
-        s.source(format.height,format.fps,fullFilter);
-        bool opened = liveSeq->open(format.url,media.audio.url,liveLowLatency,&stop,yt::https(&stop),yt::https(&stop));
-        LOG("live-seq: abertura %s %dp, borda sq=%lld, inicio sq=%lld, segmento %.1f s, atraso minimo %d, erro=%s HTTP=%ld",opened?"ok":"falhou",
-            format.height,liveSeq->headSeq(),liveSeq->first,liveSeq->segSec(),int(liveLowLatency),liveSeq->error.c_str(),liveSeq->httpStatus());
-        int result = opened ? 0 : AVERROR_INVALIDDATA;
-        if (result >= 0) result = s.open(&liveSeq->tracks[0],yt::LiveSeq::pull,requestedThreads,false,true,nullptr,"mov");
-        if (result >= 0 && audio) result = separate.open(&liveSeq->tracks[1],yt::LiveSeq::pull,1,true,false,nullptr,"mov");
-        return result;
-      };
-      r = openSeq(media.video);
-      // Fonte escolhida não abriu (inclusive 403: há lives em que o degrau mais alto responde 403 e os outros não): desce um degrau, como no VOD.
-      // Se todos derem 403 sobra o caminho do 403 de membros. Troca de degrau com a live em curso não existe.
-      if (r < 0 && !stop && liveSeq->error == "waiting") {
-        // Live que não começou ou parou: descer degrau não resolve. Mensagem própria, sem renovar nem cair no servidor.
-        LOG("live-seq: borda sem segmento novo (204 ou tempo esgotado); live nao comecou ou esta parada");
-        error = "live_waiting"; renew = retryConverted = false; state = FAILED; return;
-      }
-      while (r < 0 && !stop && !playback::manual(videoMode) && liveSeq->error != "waiting" && !media.lowerVideo.empty()) {
-        auto next = media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
-        LOG("qualidade: live por segmentos %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
-        s.reset(); separate.reset(); s.wrap33 = separate.wrap33 = false;
-        media.video = next; media.fallbackVideo = {};
-        r = openSeq(next);
-      }
-      actualHeight = media.video.height;
-      origin = NAN;
-    } else if (live) {
-      liveTransport = yt::https(&endLiveReader);
-      playlistTransport = yt::https(&endLiveReader);
-      broadcast = std::make_unique<yt::LiveFile>(*playlistTransport, *liveTransport, endLiveReader);
-      broadcast->startBack = liveLowLatency ? 1 : yt::LiveFile::reserve;
-      bool opened=broadcast->open(media.hls,playback::manual(videoMode)?playback::fixedHeight(videoMode):quality,videoMode==playback::FAST,media.selectedAudio.empty() ? audioSelection : media.selectedAudio,playback::manual(videoMode));
-      qualityAvailable=broadcast->qualityModes;qualityModesReady=true;
-      if (!opened) {r = AVERROR_INVALIDDATA;if(playback::manual(videoMode) && broadcast->status!=403){error="manual_quality_unavailable";state=FAILED;return;}}
-      else {
-        source.file = broadcast.get();
-        reader = yt::worker([](void* data) {
-          auto& source = *static_cast<LiveInput*>(data);
-          auto& p = *source.player;
-          moveToHardwareThread(3);
-          int result = 0;
-          std::deque<uint64_t> starts;
-          uint64_t written = 0;
-          while (!p.stop && !p.endLiveReader && (result = source.file->refill()) >= 0) {
-            if (p.audio && !source.file->sound.empty()) {
-              SDL_LockMutex(p.mu);
-              while (source.audio.size() >= 3 && !p.stop && !p.endLiveReader) SDL_WaitCondition(p.cv,p.mu);
-              SDL_AddAtomicInt(&p.netBytes,int(source.file->sound.size()));
-              source.audio.push_back(std::move(source.file->sound));
-              SDL_BroadcastCondition(p.cv); SDL_UnlockMutex(p.mu);
-            }
-            const auto& bytes = source.file->segment;
-            p.putBytes(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size());
-            if (p.endLiveReader) break;
-            starts.push_back(written); written += bytes.size();
-            SDL_LockMutex(p.mu); size_t buffered = p.rcount; SDL_UnlockMutex(p.mu);
-            while (!starts.empty() && starts.front() < written - buffered) starts.pop_front();
-            if (source.file->segments == 1 || source.file->segments % 3 == 0)
-              LOG("HLS: %u segmentos, %u conexoes novas, transferencia %.2f Mbit/s, reserva %u segmentos completos",
-                  source.file->segments,source.file->connections,source.file->bytes * .008 / std::max<uint64_t>(1,source.file->transferMs),
-                  unsigned(starts.size()));
+    actualHeight = media.video.height;
+    origin = NAN;
+  } else if (live) {
+    liveTransport = yt::https(&endLiveReader);
+    playlistTransport = yt::https(&endLiveReader);
+    broadcast = std::make_unique<yt::LiveFile>(*playlistTransport, *liveTransport, endLiveReader);
+    broadcast->startBack = liveLowLatency ? 1 : yt::LiveFile::reserve;
+    bool opened=broadcast->open(media.hls,playback::manual(videoMode)?playback::fixedHeight(videoMode):quality,videoMode==playback::FAST,media.selectedAudio.empty() ? audioSelection : media.selectedAudio,playback::manual(videoMode));
+    qualityAvailable=broadcast->qualityModes;qualityModesReady=true;
+    if (!opened) {r = AVERROR_INVALIDDATA;if(playback::manual(videoMode) && broadcast->status!=403){error="manual_quality_unavailable";state=FAILED;return;}}
+    else {
+      source.file = broadcast.get();
+      reader = yt::worker([](void* data) {
+        auto& source = *static_cast<LiveInput*>(data);
+        auto& p = *source.player;
+        moveToHardwareThread(3);
+        int result = 0;
+        std::deque<uint64_t> starts;
+        uint64_t written = 0;
+        while (!p.stop && !p.endLiveReader && (result = source.file->refill()) >= 0) {
+          if (p.audio && !source.file->sound.empty()) {
+            SDL_LockMutex(p.mu);
+            while (source.audio.size() >= 3 && !p.stop && !p.endLiveReader) SDL_WaitCondition(p.cv,p.mu);
+            SDL_AddAtomicInt(&p.netBytes,int(source.file->sound.size()));
+            source.audio.push_back(std::move(source.file->sound));
+            SDL_BroadcastCondition(p.cv); SDL_UnlockMutex(p.mu);
           }
-          SDL_LockMutex(p.mu); p.netEof = true; p.netErr = !p.endLiveReader && result < 0 && result != AVERROR_EOF;
-          SDL_BroadcastCondition(p.cv); SDL_UnlockMutex(p.mu);
-          return 0;
-        }, "hls", &source);
-        s.source(broadcast->height,broadcast->frameRate,fullFilter);
-        r = reader ? s.open(this, readOriginal, requestedThreads, audio && broadcast->audioPlaylist.empty()) : AVERROR(ENOMEM);
-      }
-      if (r >= 0 && audio && !broadcast->audioPlaylist.empty()) r = separate.openPackedAudio();
-      actualHeight = broadcast->height;
-      if (r >= 0) LOG("console: live %s, master %dp %.3f fps", id.c_str(), broadcast->height, broadcast->frameRate);
-      origin = NAN;
-    } else {
-      // A lista original sobrevive ao cache de Media: seek/pausa não podem apagar o caminho de volta.
-      qualityLadder=media.videoLadder;
-      if(qualityLadder.empty()) {qualityLadder.push_back(media.video);qualityLadder.insert(qualityLadder.end(),media.lowerVideo.begin(),media.lowerVideo.end());}
-      videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.video.url, &netBytes, yt::https(&stop));
-      s.source(media.video.height,media.video.fps,fullFilter);
-      r = media.video.url.empty() ? AVERROR_STREAM_NOT_FOUND :
-          openRange(s,*videoFile,media.muxed && audio,true,startAt);
-      while (r<0 && !playback::manual(videoMode) && !stop && !media.muxed && videoFile->status!=403 && !media.lowerVideo.empty()) {
-        auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
-        LOG("qualidade: abertura direta %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
-        s.reset(); videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
-        s.source(next.height,next.fps,fullFilter);
-        r=openRange(s,*videoFile,false,true,startAt);
-        media.video=next; presentFps=30; adapted=true;
-      }
-      if (r >= 0 && audio && !media.muxed) {
-        audioFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.audio.url, &netBytes);
-        r = media.audio.url.empty() ? AVERROR_STREAM_NOT_FOUND :
-            openRange(separate,*audioFile,true,false,startAt);
-      }
-      actualHeight = media.video.height;
-      origin = startAt;
-      if (quality >= 720 && media.highFrameRate720 && media.video.height < 720)
-        LOG("console: %s tem 720p60, selecionado %dp %.2f fps", id.c_str(), media.video.height, media.video.fps);
+          const auto& bytes = source.file->segment;
+          p.putBytes(reinterpret_cast<const uint8_t*>(bytes.data()),bytes.size());
+          if (p.endLiveReader) break;
+          starts.push_back(written); written += bytes.size();
+          SDL_LockMutex(p.mu); size_t buffered = p.rcount; SDL_UnlockMutex(p.mu);
+          while (!starts.empty() && starts.front() < written - buffered) starts.pop_front();
+          if (source.file->segments == 1 || source.file->segments % 3 == 0)
+            LOG("HLS: %u segmentos, %u conexoes novas, transferencia %.2f Mbit/s, reserva %u segmentos completos",
+                source.file->segments,source.file->connections,source.file->bytes * .008 / std::max<uint64_t>(1,source.file->transferMs),
+                unsigned(starts.size()));
+        }
+        SDL_LockMutex(p.mu); p.netEof = true; p.netErr = !p.endLiveReader && result < 0 && result != AVERROR_EOF;
+        SDL_BroadcastCondition(p.cv); SDL_UnlockMutex(p.mu);
+        return 0;
+      }, "hls", &source);
+      s.source(broadcast->height,broadcast->frameRate,fullFilter);
+      r = reader ? s.open(this, readOriginal, requestedThreads, audio && broadcast->audioPlaylist.empty()) : AVERROR(ENOMEM);
     }
-    LOG("console: %s %dp, itags %d/%d, início %.3f abertura_ms=%llu", live ? (seqLive ? "SEG" : "HLS") : "MP4", actualHeight.load(), media.video.itag, media.audio.itag, startAt,
-        (unsigned long long)(SDL_GetTicks()-openedMs));
-    LOG("qualidade: selecao %s fixa=%d fonte=%dp itag=%d disponiveis=%x",playback::modeName(videoMode),playback::manual(videoMode),actualHeight.load(),media.video.itag,qualityAvailable.load());
-    audioTracks=broadcast ? broadcast->audioTracks : media.audioTracks;
-    selectedAudio=broadcast ? broadcast->selectedAudio : media.selectedAudio;
-    if (broadcast) for (auto& track : audioTracks) {
-      auto found=std::find_if(media.audioTracks.begin(),media.audioTracks.end(),[&](const yt::AudioTrack& t){ return t.language==track.language; });
-      if (found!=media.audioTracks.end() && std::count_if(media.audioTracks.begin(),media.audioTracks.end(),[&](const yt::AudioTrack& t){ return t.language==track.language; })==1) {
-        if (track.code==selectedAudio) selectedAudio=found->code;
-        track.code=found->code;track.original=found->original;track.automatic=found->automatic;
-      }
+    if (r >= 0 && audio && !broadcast->audioPlaylist.empty()) r = separate.openPackedAudio();
+    actualHeight = broadcast->height;
+    if (r >= 0) LOG("console: live %s, master %dp %.3f fps", id.c_str(), broadcast->height, broadcast->frameRate);
+    origin = NAN;
+  } else {
+    // A lista original sobrevive ao cache de Media: seek/pausa não podem apagar o caminho de volta.
+    qualityLadder=media.videoLadder;
+    if(qualityLadder.empty()) {qualityLadder.push_back(media.video);qualityLadder.insert(qualityLadder.end(),media.lowerVideo.begin(),media.lowerVideo.end());}
+    videoFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.video.url, &netBytes, yt::https(&stop));
+    s.source(media.video.height,media.video.fps,fullFilter);
+    r = media.video.url.empty() ? AVERROR_STREAM_NOT_FOUND :
+        openRange(s,*videoFile,media.muxed && audio,true,startAt);
+    while (r<0 && !playback::manual(videoMode) && !stop && !media.muxed && videoFile->status!=403 && !media.lowerVideo.empty()) {
+      auto next=media.lowerVideo.front(); media.lowerVideo.erase(media.lowerVideo.begin());
+      LOG("qualidade: abertura direta %dp%.3f -> %dp%.3f, motivo=abertura anterior falhou",media.video.height,media.video.fps,next.height,next.fps);
+      s.reset(); videoFile=std::make_unique<yt::RangeFile>(yt::https(&stop),next.url,&netBytes,yt::https(&stop));
+      s.source(next.height,next.fps,fullFilter);
+      r=openRange(s,*videoFile,false,true,startAt);
+      media.video=next; presentFps=30; adapted=true;
     }
-    LOG("audio: selecionada %s, %u faixas",selectedAudio.empty() ? "padrao do stream" : selectedAudio.c_str(),(unsigned)audioTracks.size());
-    tracksReady=true;
-  } else r = s.open(this, readOriginal, requestedThreads, audio != nullptr);
+    if (r >= 0 && audio && !media.muxed) {
+      audioFile = std::make_unique<yt::RangeFile>(yt::https(&stop), media.audio.url, &netBytes);
+      r = media.audio.url.empty() ? AVERROR_STREAM_NOT_FOUND :
+          openRange(separate,*audioFile,true,false,startAt);
+    }
+    actualHeight = media.video.height;
+    origin = startAt;
+    if (quality >= 720 && media.highFrameRate720 && media.video.height < 720)
+      LOG("console: %s tem 720p60, selecionado %dp %.2f fps", id.c_str(), media.video.height, media.video.fps);
+  }
+  LOG("console: %s %dp, itags %d/%d, início %.3f abertura_ms=%llu", live ? (seqLive ? "SEG" : "HLS") : "MP4", actualHeight.load(), media.video.itag, media.audio.itag, startAt,
+      (unsigned long long)(SDL_GetTicks()-openedMs));
+  LOG("qualidade: selecao %s fixa=%d fonte=%dp itag=%d disponiveis=%x",playback::modeName(videoMode),playback::manual(videoMode),actualHeight.load(),media.video.itag,qualityAvailable.load());
+  audioTracks=broadcast ? broadcast->audioTracks : media.audioTracks;
+  selectedAudio=broadcast ? broadcast->selectedAudio : media.selectedAudio;
+  if (broadcast) for (auto& track : audioTracks) {
+    auto found=std::find_if(media.audioTracks.begin(),media.audioTracks.end(),[&](const yt::AudioTrack& t){ return t.language==track.language; });
+    if (found!=media.audioTracks.end() && std::count_if(media.audioTracks.begin(),media.audioTracks.end(),[&](const yt::AudioTrack& t){ return t.language==track.language; })==1) {
+      if (track.code==selectedAudio) selectedAudio=found->code;
+      track.code=found->code;track.original=found->original;track.automatic=found->automatic;
+    }
+  }
+  LOG("audio: selecionada %s, %u faixas",selectedAudio.empty() ? "padrao do stream" : selectedAudio.c_str(),(unsigned)audioTracks.size());
+  tracksReady=true;
   hasAudio = (s.audio || separate.audio) && r >= 0;
   double last = -1, intervalPts = -1, nextAudioPts = NAN;
   unsigned pauseEpoch = pauseChanges.load();
   int count = 0, slow = 0, packets = 0, decoded = 0, filtered = 0;
   int64_t previousShown = 0, previousLost = 0, phase = AV_NOPTS_VALUE;
-  double sourceRate = broadcast ? broadcast->frameRate : direct ? media.video.fps : sourceFpsHint;
+  double sourceRate = broadcast ? broadcast->frameRate : media.video.fps;
   if (r >= 0 && s.video && sourceRate <= 0) sourceRate = av_q2d(s.fmt->streams[s.vi]->avg_frame_rate);
   if (!std::isfinite(sourceRate) || sourceRate < 0) sourceRate = 0;
   auto publishPolicy=[&]() {
     if (!s.video) return;
     threads=s.video->thread_count;
     activeH264Threads=threads;activeLoopFilter=int(s.video->skip_loop_filter);activeH264Spread=s.policy.spread;
-    activeVideoItag=direct && !broadcast ? media.video.itag : 0;
+    activeVideoItag=!broadcast ? media.video.itag : 0;
     LOG("decod-config: threads %d, tipo solicitado %d ativo %d, buffers %s, loop %d spread %d politica=abertura",
         threads,s.video->thread_type,s.video->active_thread_type,videoBuffers ? "diretos" : "copiados",
         int(s.video->skip_loop_filter),int(s.policy.spread));
@@ -275,10 +268,9 @@ inline void Player::decodeOriginal() {
   size_t memoryFloor = SIZE_MAX;
   double videoSeconds = 0, handoffFloor = -1;
   uint64_t previousWait = 0;
-  bool reserveChecked = false;
   unsigned liveSwitches = 0;
   // A troca pode precisar de índice + seek pela rede. 6 s de PCM estéreo custam cerca de 2 MiB.
-  const double audioReserve=direct && !broadcast && !seqLive && !speakerRequested && !media.muxed ? 6.0 : 0.65;
+  const double audioReserve=!broadcast && !seqLive && !speakerRequested && !media.muxed ? 6.0 : 0.65;
   // Reserva da live: mídia já entregue ao demuxer menos a mídia em tela (segmentos: fim do último entregue; HLS: UTC planejado).
   auto liveAhead = [&]() -> double {
     const int c = masterMs.load();
@@ -320,7 +312,7 @@ inline void Player::decodeOriginal() {
       if (!video && f->sample_rate > 0) nextAudioPts = pts + double(f->nb_samples) / f->sample_rate;
       if (!std::isfinite(origin)) origin = pts;
       pts -= origin;
-      if (live && direct) pts = std::remainder(pts, double(1LL<<33)/90000);
+      if (live) pts = std::remainder(pts, double(1LL<<33)/90000);
       if (!std::isfinite(pts) || f->decode_error_flags) {
         LOG("decod: quadro %s invalido, pts %.3f, flags %d", video ? "AVC" : "AAC", pts, f->decode_error_flags);
         return AVERROR_INVALIDDATA;
@@ -407,7 +399,7 @@ inline void Player::decodeOriginal() {
     return true;
   };
   auto lowerVideo = [&](const char* reason) {
-    if (playback::manual(videoMode) || !direct || broadcast || liveSeq || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
+    if (playback::manual(videoMode) || broadcast || liveSeq || media.muxed || (audio && !separate.audio) || media.lowerVideo.empty() || stop) return false;
     return switchVideo(ladderIndex()+1,reason,false);
   };
   bool videoEnd = false, audioEnd = !separate.audio;
@@ -420,7 +412,7 @@ inline void Player::decodeOriginal() {
       SDL_UnlockMutex(mu);
     }
     h264::Stream& input = readAudio ? separate : s;
-    if (direct && (media.ttl || media.expiresAt) && SDL_GetTicks() >= validUntil) { r = AVERROR(ETIMEDOUT); break; }
+    if ((media.ttl || media.expiresAt) && SDL_GetTicks() >= validUntil) { r = AVERROR(ETIMEDOUT); break; }
     if (readAudio && broadcast) {
       if (packed.cursor == packed.bytes.size()) {
         SDL_LockMutex(mu);
@@ -442,7 +434,7 @@ inline void Player::decodeOriginal() {
       if (r >= 0 && input.audio && !finishAudio()) r = AVERROR_INVALIDDATA;
       if (readAudio) audioEnd = true; else videoEnd = true;
       if (videoEnd && audioEnd) {
-        double expected = direct ? media.duration : duration;
+        double expected = media.duration;
         if (last < 0 || (!live && expected > 0 && startAt + last + 1.25 < expected)) r = AVERROR_INVALIDDATA;
         break;
       }
@@ -514,7 +506,7 @@ inline void Player::decodeOriginal() {
       // A TV pode ficar sem PCM com a fila de imagem cheia: ambos vêm do mesmo demuxer.
       bool slowLive = broadcast && displayRate < targetRate * .85 &&
                       (insufficient || behind || lost - previousLost > 10);
-      bool slowUpload = original && displayRate < targetRate * .90 && lost - previousLost > 3;
+      bool slowUpload = displayRate < targetRate * .90 && lost - previousLost > 3;
       uint64_t waited=videoFile ? videoFile->waitMs : 0;
       bool networkPressure=waited>previousWait+(now-since)/6 && insufficient;
       previousWait=waited;
@@ -623,10 +615,9 @@ inline void Player::decodeOriginal() {
         presentFps=std::min(playback::rate(videoMode),int(std::lround(sourceRate)));adapted=false;recovery.changed(now,true);
         LOG("qualidade: apresentacao 30 -> %d, motivo=20s de folga medida em decode e rede",presentFps.load());
       }
-      if (slow>=5 && (!direct || broadcast || media.lowerVideo.empty())) {
+      if (slow>=5 && (broadcast || media.lowerVideo.empty())) {
         LOG("qualidade: opcoes locais esgotadas sob pressao; %d janelas, rede %d, fila %d",slow,(int)networkPressure,minimum);
-        if (!direct || (!reserveChecked && net::serverEnabled && directFailed(false))) { r=AVERROR(ETIMEDOUT); break; }
-        reserveChecked=true; slow=0;
+        slow=0;
       }
       since = SDL_GetTicks(); count = packets = decoded = filtered = directFrames = skippedLoopPackets = 0; ns = copyNs = flushNs = 0; videoSeconds = 0;
     }
@@ -640,7 +631,7 @@ inline void Player::decodeOriginal() {
   if (stop) return;
   bool forbidden = (videoFile && videoFile->status == 403) || (audioFile && audioFile->status == 403) ||
                    (broadcast && broadcast->status == 403) || (liveSeq && liveSeq->httpStatus() == 403);
-  if (direct && memberVideo && forbidden && media.nsigSolved && !refreshed) {
+  if (memberVideo && forbidden && media.nsigSolved && !refreshed) {
     // Com o `n` resolvido o 403 pode ser passageiro (rede, borda do CDN) ou URL vencida. Espera 2,5 s e testa a MESMA URL com 1 byte:
     // se responde, repete a URL; se não, renova pelo /player. Um segundo 403 depois disso vira a mensagem de membros.
     for (int waited = 0; waited < 2500 && !stop; waited += 50) SDL_Delay(50);
@@ -652,17 +643,17 @@ inline void Player::decodeOriginal() {
     LOG("console: video de membros HTTP=403 com n resolvido; sonda da mesma URL HTTP=%ld, %s", answer.status, sameUrlRetry ? "repete a URL" : "renova pelo /player");
     renew = true; return;
   }
-  if (direct && memberVideo && forbidden) {
+  if (memberVideo && forbidden) {
     LOG("console: video de membros HTTP=403; encerrando sem renovar URL");
-    error = "members_unsupported"; renew = retryConverted = false; state = FAILED; return;
+    error = "members_unsupported"; renew = consoleFailure = false; state = FAILED; return;
   }
-  if (direct && (forbidden || ((media.ttl || media.expiresAt) && SDL_GetTicks() >= validUntil))) { renew = true; return; }
+  if ((forbidden || ((media.ttl || media.expiresAt) && SDL_GetTicks() >= validUntil))) { renew = true; return; }
   if (r < 0) {
     LOG("decod: falha H.264 %d, último PTS %.3f", r, last);
     for (const auto* file : {videoFile.get(),audioFile.get()}) if (file && file->failed)
       LOG("rede: falha Range classe %s HTTP %ld, pedidos %u, retomadas %u: %s",yt::failureName(file->failure),file->status,
           file->requests.load(),file->resumes.load(),file->error.c_str());
-    if (direct) { if (!retryConverted) directFailed(); } else retryConverted=true;
+    if (!consoleFailure) directFailed();
   }
   else { SDL_LockMutex(mu); decEnded = true; decDone = true; SDL_UnlockMutex(mu); }
 }

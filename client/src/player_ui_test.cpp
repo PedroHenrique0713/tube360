@@ -5,6 +5,7 @@
 #include <cassert>
 #include <filesystem>
 #include <iostream>
+#include <unistd.h>
 
 int main() {
   PlayerUI ui;
@@ -45,7 +46,8 @@ int main() {
   std::cout << "focus: reveal, seek, row, held visibility, four Back levels, Down OK\n";
 
   cc::Data data;
-  assert(data.parse("ok\ten\tmanual\t0\t\nmeta\tTitle\tChannel\t2026-11-23\tUCdemo\ntrack\ten\tEnglish\tmanual\ncue\t1\t2\tFirst\ncue\t3\t5\tSecond\n"));
+  data.title = "Title"; data.tracks.push_back({"en", "English", false});
+  data.cues.push_back({1, 2, "First"}); data.cues.push_back({3, 5, "Second"});
   assert(data.at(0.99) == -1 && data.at(1) == 0 && data.at(1.99) == 0);
   assert(data.at(2) == -1 && data.at(3) == 1 && data.at(5) == -1);
   assert(data.at(1.2) == 0);  // busca de volta

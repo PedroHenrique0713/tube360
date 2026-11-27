@@ -39,11 +39,8 @@ inline const char* arabic(Key key) {
     case Key::UpdateReady: return "التحديث جاهز · أعد فتح Tube360";
     case Key::UpdateFailed: return "تعذّر التحقق أو الحفظ. حاول مجددًا.";
     case Key::UpdateSetup: return "ثبّت حزمة التطبيق كاملة لتفعيل التحديثات.";
-    case Key::ServerOriginal: return "الخادم · أصلي";
-    case Key::ServerConverted: return "الخادم · محوّل";
     case Key::ConsoleVideoError: return "تعذّر فتح بث YouTube على هذا الجهاز.";
     case Key::Console: return "الجهاز";
-    case Key::ServerMode: return "الخادم";
     case Key::Automatic: return "تلقائي";
     case Key::Video720Fast: return "720p · 60 fps";
     case Key::Video1080Detail: return "1080p · 30 fps";
@@ -91,7 +88,7 @@ inline const char* arabic(Key key) {
     case Key::Refresh: return "تحديث";
     case Key::Refreshing: return "جارٍ البحث عن فيديوهات جديدة…";
     case Key::LoadingVideos: return "جارٍ تحميل الفيديوهات…";
-    case Key::NoResponse: return "لا استجابة من الخادم";
+    case Key::NoResponse: return "لا استجابة من YouTube";
     case Key::BadResponse: return "تعذّر تحميل القائمة";
     case Key::Empty: return "لا توجد نتائج.";
     case Key::PageError: return "تعذّر تحميل المزيد. اضغط Menu للتحديث.";
@@ -122,7 +119,6 @@ inline const char* arabic(Key key) {
     case Key::TenSeconds: return "10 ثوانٍ";
     case Key::OneMinute: return "دقيقة";
     case Key::SpeakerFallback: return "لم تستجب السماعة: الصوت على التلفاز (X للمحاولة)";
-    case Key::RequestingVideo: return "جارٍ طلب الفيديو من الخادم…";
     case Key::Loading: return "جارٍ التحميل…";
     case Key::VideoFailed: return "تعذّر تشغيل الفيديو";
     case Key::VideoOpenError: return "تعذّر فتح هذا الفيديو.";
@@ -186,7 +182,6 @@ inline const char* arabic(Key key) {
     case Key::Sound: return "الصوت";
     case Key::SpeakerSync: return "مزامنة السماعة";
     case Key::SleepTimer: return "مؤقت الإيقاف";
-    case Key::SleepTogether: return "إيقاف أيضًا";
     case Key::SleepOff: return "معطّل";
     case Key::SleepEnd: return "عند نهاية الفيديو";
     case Key::SleepXbox: return "Xbox فقط";
@@ -238,7 +233,7 @@ inline const char* arabic(Key key) {
     case Key::Pending: return "بانتظار الدخول";
     case Key::SavedAutomatically: return "تُحفظ التغييرات تلقائيًا.";
     case Key::SaveFailed: return "تعذّر حفظ الإعدادات على هذا الجهاز";
-    case Key::NoSpeaker: return "لا توجد سماعة مُعدّة على الخادم";
+    case Key::NoSpeaker: return "لا توجد سماعة مُعدّة";
     case Key::SpeakerChecking: return "جارٍ البحث عن سماعة…";
     case Key::SyncHelp: return "الضبط بخطوات 40 مللي ثانية. القيم الموجبة تقدّم الصورة.";
     case Key::ChooseRow: return "اختيار";
@@ -452,7 +447,7 @@ inline const char* arabic(Key key) {
     case Key::MusicRepeatAll: return "تكرار القائمة";
     case Key::MusicRepeatOne: return "تكرار هذا المقطع";
     case Key::MusicQueueEmpty: return "القائمة فارغة.";
-    case Key::MusicQueueServer: return "الخادم يتحكم بالقائمة؛ القفز وإعادة الترتيب غير متاحان.";
+    case Key::MusicQueueServer: return "القفز وإعادة الترتيب غير متاحان في هذه القائمة.";
     case Key::MusicVideoLoading: return "جارٍ تحميل الفيديو…";
 
     // ---- F66 controle pelo celular

@@ -20,9 +20,6 @@
 #define STBI_ONLY_JPEG
 #define STBI_ONLY_PNG
 #include "stb_image.h"
-#define PL_MPEG_IMPLEMENTATION
-#include "pl_mpeg.h"
-#undef PL_MPEG_IMPLEMENTATION
 
 #include "gfx.hpp"
 #include "thumb_scale.hpp"
@@ -173,7 +170,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
 
 struct Worker {
   SDL_Mutex* decodeMu = SDL_CreateMutex();  // uma decodificação grande por vez: as 3 threads de miniatura dividem o mesmo núcleo, e assim o pico de memória é de uma imagem HD só
-  net::Server srv; std::shared_ptr<yt::ConsoleAccount> consoleAccount; SDL_Mutex* mu = SDL_CreateMutex(); SDL_Condition* cv = SDL_CreateCondition();
+  std::shared_ptr<yt::ConsoleAccount> consoleAccount; SDL_Mutex* mu = SDL_CreateMutex(); SDL_Condition* cv = SDL_CreateCondition();
   std::deque<Job> jobs; std::deque<Result> results; bool quit = false, finishJobs = false; int hw = 5;
   std::string musicToken;
   std::atomic_uint64_t musicRevision{0};
@@ -205,7 +202,6 @@ struct Worker {
       std::string access = musicToken;
       SDL_UnlockMutex(mu);
       Result r; r.kind = j.kind; r.key = j.a; r.stamp = j.stamp; r.offset = j.offset;
-      net::Response resp;
       if (j.kind == 6 && yt::catalog::supported(j.a)) {
         if (j.catalogBackend != musicRevision.load() || (consoleAccount && j.backend != consoleAccount->revision())) continue;
         r.catalogRoute = true; r.catalogBackend = j.catalogBackend;
@@ -220,8 +216,8 @@ struct Worker {
         }
         bool accountFallback = !r.catalog && consoleAccount && consoleAccount->active() && yt::ConsoleAccount::supports(j.a);
         // "signed_out" (Biblioteca sem conta) chega ao cliente como pedido de login, não como falta de resposta
-        if (!r.catalog && !net::serverEnabled && !accountFallback && r.feed.title != "error\tsigned_out\n") { r.feed.error = K::NoResponse; r.feed.title.clear(); }
-        if (r.catalog || (!net::serverEnabled && !accountFallback)) {
+        if (!r.catalog && !accountFallback && r.feed.title != "error\tsigned_out\n") { r.feed.error = K::NoResponse; r.feed.title.clear(); }
+        if (r.catalog || !accountFallback) {
           LOG("catalogo console: %s, %u bytes, music=%s%s%s",j.a.substr(0,j.a.find('?')).c_str(),(unsigned)r.feed.title.size(),catalog.musicSource.c_str(),
               catalog.authError.empty() ? "" : ", conta recusada: ",catalog.authError.c_str());
           SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu); continue;
@@ -250,7 +246,7 @@ struct Worker {
         } else r.feed.error = K::BadResponse;
         if (j.kind == 7 && !reply.ok()) LOG("histórico nativo: %s", reply.error.c_str());
       };
-      if (accountRoute && (!net::serverEnabled || consoleAccount->active()) && !(j.native && feedJob && j.feedKind == "home")) {
+      if (accountRoute && !(j.native && feedJob && j.feedKind == "home")) {
         nativeAccount();
         if (j.kind == 7) continue;
         SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu);
@@ -272,7 +268,7 @@ struct Worker {
             r.feed.items.push_back(std::move(v));
           }
           r.feed.title = j.kind == 6 ? j.query : j.a;
-        } else if (!net::serverEnabled) {
+        } else {
           r.feed.error = connection::message(page.failure);
           if(page.failure==yt::Failure::TLS_DATE)r.feed.errorDetail=std::string(i18n::get(j.lang,K::ConsoleClock))+connection::clock();
           LOG("catalogo: falha %s%s%s",yt::failureName(page.failure),r.feed.errorDetail.empty()?"":" ",r.feed.errorDetail.c_str());
@@ -282,27 +278,17 @@ struct Worker {
         SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu);
         continue;
       }
-      if (j.kind == 6) {
-        if (!net::get(srv, j.a, resp, 30000, 512 * 1024)) r.feed.error = K::NoResponse;
-        r.feed.title.assign(resp.body.begin(), resp.body.end());
-      } else if (j.kind == 5) {
-        if (!net::get(srv, j.a, resp, 8000, 4096)) r.feed.error = K::NoResponse;
-        r.feed.title.assign(resp.body.begin(), resp.body.end());
-      } else if (j.kind == 0 || j.kind == 1 || j.kind == 3) {
-        std::string path = "/api/feed?kind=" + j.feedKind + "&n=24&lang=" + i18n::code(j.lang);
-        if (j.feedKind == "search") path += "&q=" + net::urlEncode(j.a);
-        if (j.fresh) path += "&fresh=1";
-        if (j.offset) path += "&offset=" + std::to_string(j.offset);
-        if (!net::get(srv, path, resp, 30000)) r.feed.error = K::NoResponse;
-        else parseFeed(resp.body, r.feed);
+      // Só miniatura chega aqui com rota própria; os outros pedidos sem conta, catálogo nem busca nativa não têm de onde responder.
+      if (j.kind != 2) {
+        r.feed.error = K::NoResponse;
       } else {
-        std::string size = "?w=" + std::to_string(j.w) + "&h=" + std::to_string(j.h);
+        std::vector<uint8_t> image;
         bool native = false;
         if (consoleAccount && j.a.rfind("~yt", 0) == 0) {
           auto url = consoleAccount->pictureUrl(j.a);
           auto img = url.empty() ? yt::Response{} : https->request(url);
           native = img.status == 200 && img.error.empty();
-          if (native) resp.body.assign(img.body.begin(), img.body.end());
+          if (native) image.assign(img.body.begin(), img.body.end());
         }
         bool markedBanner = !j.a.empty() && j.a.front() == '!';
         bool banner = markedBanner || (j.w == 1184 && j.h == 160);
@@ -316,41 +302,41 @@ struct Worker {
           auto hd = wide ? yt::catalog::hdThumbnail(address) : yt::catalog::sdThumbnail(address);
           if (!hd.empty()) {
             auto img = https->request(hd);
-            if (img.status == 200 && img.error.empty()) { native = true; source = wide ? "hq720" : "sd"; resp.body.assign(img.body.begin(), img.body.end()); }
+            if (img.status == 200 && img.error.empty()) { native = true; source = wide ? "hq720" : "sd"; image.assign(img.body.begin(), img.body.end()); }
           }
         }
         if (artwork && !native) {
           auto img = https->request(yt::catalog::imageUrl(address));
           native = img.status == 200 && img.error.empty();
-          if (native) resp.body.assign(img.body.begin(),img.body.end());
+          if (native) image.assign(img.body.begin(),img.body.end());
           else {
             auto fallback=yt::catalog::jpegThumbnail(address);
             if(!fallback.empty() && fallback!=yt::catalog::imageUrl(address)){
               jpegTried=true;auto jpg=https->request(fallback);native=jpg.status==200 && jpg.error.empty();
-              if(native){source="fallback";resp.body.assign(jpg.body.begin(),jpg.body.end());}
+              if(native){source="fallback";image.assign(jpg.body.begin(),jpg.body.end());}
             }
           }
         }
-        if (!native && (j.native || !net::serverEnabled || (consoleAccount && consoleAccount->active())) && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
+        if (!native && j.a.size() == 11 && j.a.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-") == std::string::npos) {
           // #15 (por id): sddefault.jpg até 640 px de largura, hq720.jpg acima disso; sem elas a de 320x180 de sempre.
           // A decodificação grande é serializada (decodeMu) e o slot da GPU segue com o tamanho do cartão.
           yt::Response img;
           img = https->request("https://i.ytimg.com/vi/" + j.a + (wide ? "/hq720.jpg" : "/sddefault.jpg")); source = wide ? "hq720" : "sd";
           if (!(img.status == 200 && img.error.empty())) { img = https->request("https://i.ytimg.com/vi/" + j.a + "/mqdefault.jpg"); source = "fallback"; }
           native = img.status == 200 && img.error.empty();
-          if (native) resp.body.assign(img.body.begin(), img.body.end());
+          if (native) image.assign(img.body.begin(), img.body.end());
         }
-        if (native || (!artwork && net::get(srv, "/api/thumb/" + (j.a[0] == '~' ? "nav/" + j.a.substr(1) : j.a) + size, resp, 10000))) {
+        if (native) {
           int w, h, n;
           // Não decodifica dimensões arbitrárias recebidas pela rede.
-          if (!stbi_info_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n) || (artwork || (native && j.a.rfind("~yt",0) == 0) ? (w < 1 || h < 1 || w > 2048 || h > 2048 || int64_t(w)*h > 2097152) : native ? !((w == 320 && h == 180) || (w == 640 && h == 480) || (w == 1280 && h == 720)) : (w != j.w || h != j.h))) { w = h = 0; }
+          if (!stbi_info_from_memory(image.data(), (int)image.size(), &w, &h, &n) || (artwork || (native && j.a.rfind("~yt",0) == 0) ? (w < 1 || h < 1 || w > 2048 || h > 2048 || int64_t(w)*h > 2097152) : native ? !((w == 320 && h == 180) || (w == 640 && h == 480) || (w == 1280 && h == 720)) : (w != j.w || h != j.h))) { w = h = 0; }
           if (!w && artwork && !jpegTried) {
             auto fallback=yt::catalog::jpegThumbnail(address);
             if(!fallback.empty() && fallback!=address){
               auto jpg=https->request(fallback);
               if(jpg.status==200 && jpg.error.empty()){
-                resp.body.assign(jpg.body.begin(),jpg.body.end());
-                if(!stbi_info_from_memory(resp.body.data(),int(resp.body.size()),&w,&h,&n) || w<1 || h<1 || w>2048 || h>2048 || int64_t(w)*h>2097152)w=h=0;
+                image.assign(jpg.body.begin(),jpg.body.end());
+                if(!stbi_info_from_memory(image.data(),int(image.size()),&w,&h,&n) || w<1 || h<1 || w>2048 || h>2048 || int64_t(w)*h>2097152)w=h=0;
                 LOG("miniatura: JPEG fallback ok=%d",w>0);
                 source = "fallback";
               }
@@ -359,7 +345,7 @@ struct Worker {
           const bool bigImage = int64_t(w) * h > 400000;
           if (bigImage) SDL_LockMutex(decodeMu);
           const uint32_t decodeStart = SDL_GetTicks();
-          unsigned char* px = w ? stbi_load_from_memory(resp.body.data(), (int)resp.body.size(), &w, &h, &n, 4) : nullptr;
+          unsigned char* px = w ? stbi_load_from_memory(image.data(), (int)image.size(), &w, &h, &n, 4) : nullptr;
           const uint32_t decodeMs = SDL_GetTicks() - decodeStart;
           const int decodedW = w, decodedH = h;
           int cropY = 0, cropH = h;  // sddefault (640x480): corta 60 px de cima e de baixo, ficando 640x360 (16:9 vem com faixa preta; vertical vem com fundo desfocado)
@@ -388,45 +374,10 @@ struct Worker {
           if (bigImage) SDL_UnlockMutex(decodeMu);
         }
       }
-      bool safeFallback = feedJob || accountPath == "/api/account" || accountPath == "/api/account/login" ||
-          accountPath.rfind("/api/nav?", 0) == 0 || accountPath.rfind("/api/nav/channel?", 0) == 0 || accountPath.ends_with("/next");
-      if (accountRoute && safeFallback && r.feed.error == K::NoResponse) {
-        consoleAccount->select(true);
-        r.feed = {}; nativeAccount();
-      }
       SDL_LockMutex(mu); results.push_back(std::move(r)); SDL_UnlockMutex(mu);
     }
   }
   bool pop(Result& r) { SDL_LockMutex(mu); bool ok = !results.empty(); if (ok) { r = std::move(results.front()); results.pop_front(); } SDL_UnlockMutex(mu); return ok; }
-};
-
-// ---------------------------------------------------------------- controle pelo celular (poll a cada ~500 ms)
-struct Remote {
-  net::Server srv; SDL_Mutex* mu = SDL_CreateMutex(); std::deque<std::vector<std::string>> cmds; std::atomic_bool quit{false};
-  std::string playing, ended; double pos = 0, dur = 0; bool paused = false; bool online = false;
-  static int main(void* p) { ((Remote*)p)->loop(); return 0; }
-  void loop() {
-    player::moveToHardwareThread(5);
-    while (!quit) {
-      if (!net::serverEnabled) { SDL_Delay(100); continue; }
-      SDL_LockMutex(mu);
-      char q[256];
-      std::snprintf(q, sizeof(q), "/api/remote/poll?playing=%s&pos=%.1f&dur=%.1f&paused=%d&ended=%s", playing.c_str(), pos, dur, paused ? 1 : 0, ended.c_str());
-      ended.clear();
-      SDL_UnlockMutex(mu);
-      net::Response r;
-      bool ok = net::get(srv, q, r, 3000, 4096);
-      SDL_LockMutex(mu);
-      ok = ok && net::serverEnabled; online = ok;
-      if (ok) {
-        std::string line(r.body.begin(), r.body.end());
-        while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) line.pop_back();
-        if (!line.empty() && line != "none") cmds.push_back(net::split(line, '\t'));
-      }
-      SDL_UnlockMutex(mu);
-      SDL_Delay(ok ? 450 : 2000);
-    }
-  }
 };
 
 // ---------------------------------------------------------------- miniaturas na GPU (vagas reaproveitadas) e cor média
@@ -614,8 +565,6 @@ int run(int argc, char** argv) {
 #if defined(TUBE360_F40_BENCH) || defined(TUBE360_F33_BENCH)
   if (FILE* f = std::fopen((assets + "mudo.txt").c_str(), "r")) { player::benchMute = true; std::fclose(f); LOG("bancada: mudo.txt, volume zero"); }
 #endif
-  net::Server srv;
-
   static gfx::Gfx g{};
   gfx::emergencyGraphics=&g;startup::releaseGraphics=gfx::closeForEmergency;
   gfx::failureScreen=[](const char* reason){startup::fail(K::StartupVideo,reason);};
@@ -689,26 +638,21 @@ int run(int argc, char** argv) {
   updates::UI updateUI;
   auto accountNet = yt::accountTransport();
   auto consoleAccount = std::make_shared<yt::ConsoleAccount>(*accountNet, assets + "yt-console-account.json");
-  consoleAccount->select(!net::serverEnabled); pl.memberAccount = consoleAccount;
-  Worker worker; worker.srv = srv; worker.consoleAccount = consoleAccount;
+  consoleAccount->select(true); pl.memberAccount = consoleAccount;
+  Worker worker; worker.consoleAccount = consoleAccount;
   SDL_Thread* wt = yt::worker(Worker::main, "trabalho", &worker);
   // Conta e pareamento não esperam as buscas do feed.
-  Worker control; control.srv = srv; control.consoleAccount = consoleAccount; control.finishJobs = true; control.hw = 5;
+  Worker control; control.consoleAccount = consoleAccount; control.finishJobs = true; control.hw = 5;
   SDL_Thread* ct = yt::worker(Worker::main, "conta", &control);
-  Worker navWorker; navWorker.srv = srv; navWorker.consoleAccount = consoleAccount; navWorker.hw = 5;
+  Worker navWorker; navWorker.consoleAccount = consoleAccount; navWorker.hw = 5;
   SDL_Thread* nt = yt::worker(Worker::main, "navegação", &navWorker);
   MusicNavigation nav;
   LocalLibraryUI localUI(assets); nav.local=&localUI.library;
-  Worker sleepWorker; sleepWorker.srv = srv; sleepWorker.hw = 5;
-  SDL_Thread* st = yt::worker(Worker::main, "timer", &sleepWorker);
   // miniaturas numa fila própria, com 3 threads: não esperam atrás das buscas das categorias
-  Worker thumbsWorker; thumbsWorker.srv = srv; thumbsWorker.consoleAccount = consoleAccount; thumbsWorker.hw = 5;
+  Worker thumbsWorker; thumbsWorker.consoleAccount = consoleAccount; thumbsWorker.hw = 5;
   SDL_Thread* tw[3];
   for (auto& th : tw) th = yt::worker(Worker::main, "miniaturas", &thumbsWorker);
-  if(!wt || !ct || !nt || !st || !tw[0] || !tw[1] || !tw[2])return startup::fail(K::StartupSDL,"worker: "+std::string(SDL_GetError()));
-  Remote remote; remote.srv = srv;
-  SDL_Thread* rt = SDL_CreateThread(Remote::main, "controle", &remote);
-  if(!rt)return startup::fail(K::StartupSDL,"remote worker: "+std::string(SDL_GetError()));
+  if(!wt || !ct || !nt || !tw[0] || !tw[1] || !tw[2])return startup::fail(K::StartupSDL,"worker: "+std::string(SDL_GetError()));
   boot_event("end","network.workers","threads created; failures remain local");
   boot_event("begin","phone.start","optional SSDP/lounge receiver");
   cast::Receiver phone(assets, brandName); phone.enable(true);
@@ -721,7 +665,7 @@ int run(int argc, char** argv) {
   std::vector<Shelf> cats;
   Shelf results; bool inResults = false; int cat = 0;
   Account account; bool accountBusy = false, accountKnown = false, accountFailed = false;
-  uint64_t accountAt = 0, nestInfoAt = 0, stamp = 0, accountBackend = consoleAccount->revision();
+  uint64_t accountAt = 0, stamp = 0, accountBackend = consoleAccount->revision();
   auto requestFeed = [&](Shelf& shelf, int kind, bool fresh = false, int offset = 0, bool front = false) {
     if (!offset) { shelf.stamp = ++stamp; shelf.feed.loading = true; shelf.feed.loadingMore = false; shelf.feed.error = K::None; }
     if(shelf.kind=="local_later" || shelf.kind=="local_history") {
@@ -811,7 +755,6 @@ int run(int argc, char** argv) {
   nest::Config speakerChoice = pl.directSpeaker.settings();
   bool nestSkip = false;  // o Nest falhou neste vídeo: segue com o som da TV até trocar de vídeo ou apertar X
   std::string castCode, castWho;  // castWho: quem está conectado pelo Transmitir 
-  if (nestOut && !pl.directSpeaker.configured()) control.add({5, "/api/nest/prepare", 0});
   auto requestAccount = [&](const char* path) {
     Job j{5, path, 0}; j.lang = settings.lang;
     control.add(j); accountBusy = true;
@@ -823,16 +766,15 @@ int run(int argc, char** argv) {
   };
 
   SleepState sleep;
-  uint64_t sleepAt = 0, shutdownAt = 0; int sleepPending = 0, sleepChoice = 0; uint64_t sleepRevision = 0;
+  uint64_t shutdownAt = 0; int sleepChoice = 0;
   bool sleepPanel = false;
   const int sleepMinutes[] = {0, 15, 30, 45, 60, 90, 120};
   auto sleepLabel = [&](int choice) -> std::string {
     return choice == 0 ? tr(K::SleepOff) : choice == 7 ? tr(K::SleepEnd) : std::to_string(sleepMinutes[choice]) + " min";
   };
-  // Sem PC o timer é do próprio console: mesmo formato da resposta do servidor, prazo contado aqui.
-  auto localSleep = [&](const std::string& path) {
+  // O timer é do próprio console: o prazo é contado aqui, no formato que SleepState::parse lê.
+  auto requestSleep = [&](const std::string& path) {
     uint64_t at = SDL_GetTicks();
-    if (path.find("target_only=1") != std::string::npos || path == "/api/sleep") return;
     bool active = sleep.active, end = sleep.end; double seconds = sleep.remaining(at);
     if (path.rfind("/api/sleep/cancel", 0) == 0) { active = false; end = false; seconds = 0; }
     else if (path.rfind("/api/sleep/add", 0) == 0) {
@@ -846,10 +788,6 @@ int run(int argc, char** argv) {
     std::snprintf(text, sizeof(text), "ok\t%s\t%.0f\txbox\t%s", active ? "on" : "off", seconds, end ? "fim_do_video" : "minutos");
     sleep.parse(text, at);
     LOG("timer: %s %.0f s %s (console)", sleep.active ? "on" : "off", sleep.seconds, sleep.end ? "fim_do_video" : "minutos");
-  };
-  auto requestSleep = [&](const std::string& path) {
-    if (!net::serverEnabled) { localSleep(path); return; }
-    sleepWorker.add({5, path, ++sleepRevision}); sleepPending++;
   };
 #ifndef __XSDK__
   if (const char* t = std::getenv("XT_SLEEP_PATH")) requestSleep(t);  // teste: ex. /api/sleep/set?what=xbox&min=0.05
@@ -946,7 +884,8 @@ int run(int argc, char** argv) {
     if (pl.audioOnly) { pl.speed=1; pl.loop=false; }
     if (pl.requestLanguage != i18n::code(settings.lang)) { pl.halt(); pl.requestLanguage=i18n::code(settings.lang); }
     pl.liveLowLatency = settings.liveLowLatency;  // F67: só a TV (live de membros por segmentos)
-    pl.start(srv, v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, !fromRemote || !net::serverEnabled || phonePlaybackSerial != 0,false,settings.videoMode,track,v.members != yt::Membership::None);
+    pl.start(v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, false, settings.videoMode, track, v.members != yt::Membership::None);
+    if (pl.speakerMissing) { toast = tr(K::NoSpeaker); toastUntil = SDL_GetTicks() + 3000; }  // a caixa sumiu da configuração: toca na TV e avisa
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
     seekHold.cancel();
     screen = PLAYER; playerUI.reset(SDL_GetTicks());
@@ -982,8 +921,7 @@ int run(int argc, char** argv) {
     if (videoTex.set) { gfx::videoDestroy(g, videoTex); videoTex = {}; }
     ratePanel = sleepPanel = false; playerUI.panel = PlayerUI::NONE; playerUI.options = false; nextAt = 0;
     screen = backTo == PLAYER ? HOME : backTo; };
-  // Live pausada não continua de onde parou: o ffmpeg do servidor para junto, e a janela de algumas lives no YouTube
-  // tem só 30 s. Continuar abre de novo perto do ao vivo.
+  // Live pausada não continua de onde parou: a janela de algumas lives no YouTube tem só 30 s. Continuar abre de novo perto do ao vivo.
   auto resumeLive = [&]() { livePaused = false; startVideo(playing, 0, playerFromRemote); };
 
   auto railPage = [&]() {
@@ -1146,7 +1084,6 @@ int run(int argc, char** argv) {
     .startVideoFn=startVideo,
     .navWorker=navWorker,
     .railOpen=railOpen,
-    .srv=srv,
     .consoleAccount=consoleAccount,
     .stopVideo=stopVideo,
     .openChannelForVideo=openChannelForVideo,
@@ -1168,7 +1105,6 @@ int run(int argc, char** argv) {
     .beginLogin=beginLogin,
     .sleepLabel=sleepLabel,
     .accountAt=accountAt,
-    .nestInfoAt=nestInfoAt,
     .phonePanel=phonePanel,
     .phonePlaybackSerial=phonePlaybackSerial,
     .railPage=railPage,
@@ -1178,7 +1114,6 @@ int run(int argc, char** argv) {
     .phoneStatus=phoneStatus,
     .loginPanel=loginPanel,
     .loginError=loginError,
-    .sleepPending=sleepPending,
     .requestAccount=requestAccount,
     .requestSleep=requestSleep,
     // Busca
@@ -1371,40 +1306,20 @@ int run(int argc, char** argv) {
     if (speakerPicker.poll(pl.directSpeaker.finder())) {
       auto choice = pl.directSpeaker.settings();
       speakerChoice = choice;
-      if (!choice.host.empty() || !net::serverEnabled) {
-        nestAvailable = !choice.host.empty(); nestChecked = true;
-        nestName = nestAvailable ? choice.name : tr(K::Nest);
-      }
+      nestAvailable = !choice.host.empty(); nestChecked = true;
+      nestName = nestAvailable ? choice.name : tr(K::Nest);
       if (speakerPicker.result.state == nest::SearchState::SaveError) { toast=tr(K::SaveFailed); toastUntil=now+4000; }
     }
     syncMusicToken();
     Result r;
     while (thumbsWorker.pop(r)) if (r.kind == 2) thumbs.arrived(std::move(r));
-    while (sleepWorker.pop(r)) {
-      sleepPending--;
-      if (r.feed.error == K::None && sleep.parse(r.feed.title, now)) {
-        if (!sleepPanel && r.stamp == sleepRevision) {
-          sleepChoice = 0;
-          if (sleep.active) {
-            sleepChoice = 7;
-            if (!sleep.end) {
-              sleepChoice = 6;
-              for (int i = 1; i <= 6; i++) if (sleep.seconds <= sleepMinutes[i] * 60) { sleepChoice = i; break; }
-            }
-          }
-        }
-        LOG("timer: %s %.0f s %s", sleep.active ? "on" : "off", sleep.seconds, sleep.end ? "fim_do_video" : "minutos");
-      } else if (r.key != "/api/sleep") { toast = tr(K::SleepError); toastUntil = now + 4000; }
-      sleepAt = now + 5000;
-    }
-    if (net::serverEnabled && !sleepPending && now >= sleepAt && !shutdownAt) requestSleep("/api/sleep");
     double sleepLeft = sleep.remaining(now, sleep.end && pl.paused);
     bool sleepWarning = sleep.active && sleepLeft >= 0 && sleepLeft <= 60 && !shutdownAt;
     double gain = sleepWarning ? std::clamp(sleepLeft / 60, 0.0, 1.0) : 1.0;
     pl.sleepGain((float)gain * phoneGain);
     pl.directSpeaker.fade(gain);
     if (!sleep.active || !sleep.end) endTimerPending = false;
-    if (!net::serverEnabled && sleep.active && !shutdownAt &&
+    if (sleep.active && !shutdownAt &&
         ((!sleep.end && sleepLeft <= 0) || (sleep.end && endTimerPending))) {
       LOG("timer: prazo do console venceu, desligando");
       if (screen == PLAYER) stopVideo();
@@ -1412,12 +1327,7 @@ int run(int argc, char** argv) {
     }
     while (control.pop(r)) {
       if (r.accountRoute && r.backend != consoleAccount->revision()) continue;
-      if (r.key == "/api/nest/info") {
-        if (pl.directSpeaker.configured()) continue;
-        auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
-        nestChecked = true; nestAvailable = f.size() > 1 && f[0] == "ok" && !f[1].empty();
-        if (nestAvailable) nestName = f[1];
-      } else if (r.key.rfind("/api/video/", 0) == 0) {
+      if (r.key.rfind("/api/video/", 0) == 0) {
         auto f = net::split(r.feed.title.substr(0, r.feed.title.find('\n')), '\t');
         bool ok = r.feed.error == K::None && !f.empty() && f[0] == "ok";
         std::string id = r.key.substr(11, 11);
@@ -1556,13 +1466,11 @@ int run(int argc, char** argv) {
     thumbs.upload(g, frame, 2);
 
     // ---------------------------------------------------------------- comandos do celular
-    SDL_LockMutex(remote.mu);
-    std::deque<std::vector<std::string>> cmds; cmds.swap(remote.cmds);
-    bool remoteOnline = remote.online;
-    SDL_UnlockMutex(remote.mu);
+    std::deque<std::vector<std::string>> cmds;
+    bool remoteOnline = false;
     {
       phone.drain(cmds, phoneStatus);
-      remoteOnline = remoteOnline || phoneStatus.online;
+      remoteOnline = phoneStatus.online;
       if (castWho != phoneStatus.who) {
         toast = phoneStatus.who.empty() ? tr(K::PhoneDisconnected) : tr(K::PhoneConnected) + phoneStatus.who;
         toastUntil = now + 5000;
@@ -1607,8 +1515,6 @@ int run(int argc, char** argv) {
         phoneGain = muted ? 0 : level;
         pl.sleepGain((float)gain * phoneGain);
         pl.directSpeaker.volume(level,muted);
-        if (nestOut && net::serverEnabled && !pl.directSpeaker.configured())
-          control.add({5,"/api/nest/volume?v="+std::to_string(muted ? 0 : level*100),0});
         shelf.volumeShown = (int)std::lround(muted ? 0 : level*100); shelf.volumeSpeaker = false; shelf.volumeUntil = now + 2500;  // o indicador aparece também quando o celular muda o volume (player, Shorts e Tocando agora)
         LOG("cast: volume %.0f, mudo %s", std::atof(c[1].c_str()), c[2].c_str());
         continue;
@@ -1628,7 +1534,7 @@ int run(int argc, char** argv) {
         }
         phonePlaybackSerial = c.size() > 5 && c[4] == "cast" ? std::strtoull(c[5].c_str(), nullptr, 10) : 0;
         startVideo(v, t, true);
-        LOG("cast: play %s em %.2f, servidor %s", v.id.c_str(), t, net::serverEnabled ? "auto" : "off");
+        LOG("cast: play %s em %.2f", v.id.c_str(), t);
         if (!queueStart) { toast = tr(K::PhoneRequest); toastUntil = now + 2500; }
       } else if (screen == PLAYER) {
         if (c[0] == "pause") pl.setPaused(true);
@@ -1657,7 +1563,6 @@ int run(int argc, char** argv) {
     nav.refreshLocal(g,settings.lang);
     // ---------------------------------------------------------------- lógica por tela
     // código de pareamento e quem está conectado pelo Transmitir (o código troca a cada 5 min)
-    if (net::serverEnabled && !pl.directSpeaker.configured() && now >= nestInfoAt) { control.add({5, "/api/nest/info", 0}); nestInfoAt = now + 60000; }
     if (!accountBusy && now >= accountAt) requestAccount("/api/account");
     bool alternateKeyboard=settings.lang==i18n::Lang::AR && latinKeyboard;
     auto keyboardText=[&](K k) { return i18n::get(alternateKeyboard ? i18n::Lang::EN : settings.lang,k); };
@@ -1817,7 +1722,6 @@ int run(int argc, char** argv) {
     }
     // Fim natural continua sendo informado mesmo com um cartão aberto.
     if (screen == PLAYER && nav.localQueue && pl.state == player::ENDED) {
-      SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
       size_t following = 0;
       if (nav.advance(following) && !(sleep.active && sleep.end)) {
         nav.queueIndex = following; if (nav.nowZone != MusicNavigation::ZoneQueue) nav.queueSel = (int)following; startVideo(nav.queue[following].video(),0,false);
@@ -1837,7 +1741,6 @@ int run(int argc, char** argv) {
     if (screen == PLAYER && pl.state == player::ENDED && !nextDeadline) nextDeadline = now + 8000;
     if (screen == PLAYER && pl.state == player::ENDED && !shutdownAt && !nav.continuing && (playerFromRemote || !nextPending || now >= nextDeadline)) {
       if (!endedSent) {
-        SDL_LockMutex(remote.mu); remote.ended = playing.id; SDL_UnlockMutex(remote.mu);
         endTimerPending = sleep.active && sleep.end;
         if (endTimerPending) LOG("timer: fim de video, aguardando desligar");
         if (phonePlaybackSerial && playerFromRemote && !endTimerPending) phone.publish({playing.id, pl.position(), pl.duration, 4, phonePlaybackSerial}, playing.id);
@@ -1856,9 +1759,6 @@ int run(int argc, char** argv) {
     const Video* focusVid = nullptr;
     if (!cur.feed.items.empty()) { cur.sel = std::clamp(cur.sel, 0, (int)cur.feed.items.size() - 1); focusVid = &cur.feed.items[(size_t)cur.sel]; }
 
-    SDL_LockMutex(remote.mu);
-    remote.playing = screen == PLAYER ? playing.id : ""; remote.pos = pl.position(); remote.dur = pl.duration; remote.paused = pl.paused;
-    SDL_UnlockMutex(remote.mu);
     if (now >= phoneStateAt) {
       int state = screen != PLAYER ? -1 : (pl.state == player::ENDED || pl.state == player::FAILED) ? 4 : pl.paused ? 2 : pl.state == player::PLAYING ? 1 : 3;
       auto speaker = pl.directSpeaker.sample();
@@ -1962,17 +1862,13 @@ int run(int argc, char** argv) {
   searchUI.worker.close();
   pl.directSpeaker.shutdown();
   SDL_LockMutex(worker.mu); worker.quit = true; SDL_SignalCondition(worker.cv); SDL_UnlockMutex(worker.mu);
-  remote.quit = true;
-  SDL_LockMutex(sleepWorker.mu); sleepWorker.quit = true; SDL_SignalCondition(sleepWorker.cv); SDL_UnlockMutex(sleepWorker.mu);
   SDL_LockMutex(navWorker.mu); navWorker.quit = true; SDL_SignalCondition(navWorker.cv); SDL_UnlockMutex(navWorker.mu);
   SDL_WaitThread(nt, nullptr);
-  SDL_WaitThread(st, nullptr);
   SDL_LockMutex(control.mu); control.quit = true; SDL_SignalCondition(control.cv); SDL_UnlockMutex(control.mu);
   SDL_LockMutex(thumbsWorker.mu); thumbsWorker.quit = true; SDL_BroadcastCondition(thumbsWorker.cv); SDL_UnlockMutex(thumbsWorker.mu);
   SDL_WaitThread(wt, nullptr);
   SDL_WaitThread(ct, nullptr);
   for (auto* th : tw) SDL_WaitThread(th, nullptr);
-  SDL_WaitThread(rt, nullptr);
   vkDeviceWaitIdle(g.dev);
   gfx::videoDestroy(g,videoTex);
   LOG("miniaturas: %u bytes GPU, pico de RGBA aguardando upload %u bytes", (unsigned)(thumbs.slots.size() * thumbs.slotBytes + thumbs.bannerBytes), (unsigned)thumbs.peakPending);

@@ -3,9 +3,6 @@
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
-#define PL_MPEG_IMPLEMENTATION
-#include "pl_mpeg.h"
-#undef PL_MPEG_IMPLEMENTATION
 #define LOG(...) SDL_Log(__VA_ARGS__)
 #include "player.hpp"
 #include "i18n.hpp"
@@ -95,7 +92,7 @@ static void run(const std::string& directory, bool members, const char* track, i
     player::Player p;
     p.videoMode = mode;
     p.mu = SDL_CreateMutex(); p.cv = SDL_CreateCondition(); p.nmu = SDL_CreateMutex();
-    p.direct = p.original = true; p.memberVideo = members; p.id = "member00001";
+    p.memberVideo = members; p.id = "member00001";
     p.state = player::BUFFERING; p.output = player::Player::LOCAL;
     p.openedMs = SDL_GetTicks();
     Http accountTransport;
@@ -122,7 +119,7 @@ static void run(const std::string& directory, bool members, const char* track, i
     p.decodeOriginal();
     if (urlHasN) {
         // Sem como resolver o `n`, nenhum link sai do cliente: a mensagem de membros, sem pedir mídia nem renovar.
-        check(p.state == player::FAILED && p.error == "members_unsupported" && !p.renew && !p.retryConverted, "unsolved n ends in the members message");
+        check(p.state == player::FAILED && p.error == "members_unsupported" && !p.renew && !p.consoleFailure, "unsolved n ends in the members message");
         check(players == 1 && videos + audios + playlists == 0 && iframeRequests >= 1, "unsolved n makes no media request");
         check(p.media.reason.compare(0, 5, "nsig:") == 0 && p.media.video.url.empty() && !p.media.nsigSolved, "unsolved n leaves the media without URLs");
         std::cout << "PASS member n unsolved HTTP=" << status << " reason=" << p.media.reason << " error=" << p.error << '\n';
@@ -139,26 +136,26 @@ static void run(const std::string& directory, bool members, const char* track, i
         std::cerr << "member HTTP=" << status << " mode=" << playback::modeName(mode) << " state=" << p.state << " error=" << p.error << '\n';
     if (terminal) {
         check(p.state == player::FAILED && p.error == "members_unsupported", "member 403 or missing formats is terminal and specific");
-        check(!p.renew && !p.retryConverted, "no URL renewal or server fallback");
+        check(!p.renew && !p.consoleFailure, "no URL renewal or console failure");
         int requests = players + videos + audios + playlists;
         for (int i = 0; i < 100; ++i) check(!p.take(), "failed player has no frame");
         check(requests == players + videos + audios + playlists && players == 1, "first failure makes no repeated player/media requests");
-        check(p.state == player::FAILED && p.error == "members_unsupported" && !p.renew && !p.retryConverted, "member failure remains terminal after polling");
+        check(p.state == player::FAILED && p.error == "members_unsupported" && !p.renew && !p.consoleFailure, "member failure remains terminal after polling");
     } else if ((hls || noFormats) && playback::manual(mode) && status != 403) {
         check(p.state == player::FAILED && p.error == "manual_quality_unavailable", "non-403 fixed HLS or missing formats keeps quality error");
-        check(!p.renew && !p.retryConverted, "non-403 fixed HLS or missing formats does not renew");
+        check(!p.renew && !p.consoleFailure, "non-403 fixed HLS or missing formats does not renew");
     } else {
         check(p.error != "members_unsupported", "ordinary error is preserved");
-        check(status == 403 ? p.renew.load() : p.retryConverted.load(), "existing renewal/fallback retained");
+        check(status == 403 ? p.renew.load() : p.consoleFailure.load(), "existing renewal/failure retained");
         if (noFormats) {
             check(!p.take() && p.state == player::FAILED && p.error == "console", "ordinary missing formats keeps generic console error");
-            check(!p.renew && !p.retryConverted && players + videos + audios + playlists == 0, "ordinary missing formats stops without media requests");
+            check(!p.renew && !p.consoleFailure && players + videos + audios + playlists == 0, "ordinary missing formats stops without media requests");
         }
     }
     if (!noFormats) check((hls ? playlists : failingTrack == "video" ? videos : audios) == 1, "one failed media request");
     std::cout << "PASS " << (members ? "member" : "ordinary") << ' ' << (noFormats ? "live sq without HLS" : hls ? "HLS" : track)
               << " mode=" << playback::modeName(mode) << " HTTP=" << status << " players=" << players << " video=" << videos << " audio=" << audios
-              << " playlists=" << playlists << " renew=" << p.renew << " fallback=" << p.retryConverted << " error=" << p.error << '\n';
+              << " playlists=" << playlists << " renew=" << p.renew << " failure=" << p.consoleFailure << " error=" << p.error << '\n';
     p.halt();
     if (p.audio) SDL_DestroyAudioStream(p.audio);
     SDL_DestroyMutex(p.mu); SDL_DestroyCondition(p.cv); SDL_DestroyMutex(p.nmu);
@@ -170,7 +167,7 @@ static void retry(const std::string& directory, bool transient) {
     players = videos = audios = playlists = 0; iframeRequests = 0;
     player::Player p;
     p.mu = SDL_CreateMutex(); p.cv = SDL_CreateCondition(); p.nmu = SDL_CreateMutex();
-    p.direct = p.original = true; p.memberVideo = true; p.id = "member00001";
+    p.memberVideo = true; p.id = "member00001";
     p.state = player::BUFFERING; p.output = player::Player::LOCAL; p.openedMs = SDL_GetTicks();
     Http accountTransport;
     p.memberAccount = std::make_shared<yt::ConsoleAccount>(accountTransport, directory + "/account.json");
@@ -179,7 +176,7 @@ static void retry(const std::string& directory, bool transient) {
     p.decodeOriginal();
     auto waited = SDL_GetTicks() - began;
     check(p.media.nsigSolved && p.media.video.url.find("n=devlosnuZ") != std::string::npos, "the n was solved before the media request");
-    check(p.renew && p.state != player::FAILED && p.error.empty() && !p.retryConverted, "first 403 with n solved asks for one renewal, no message yet");
+    check(p.renew && p.state != player::FAILED && p.error.empty() && !p.consoleFailure, "first 403 with n solved asks for one renewal, no message yet");
     check(p.sameUrlRetry == transient, "a probe that answers repeats the URL; one that does not renews through /player");
     check(waited >= 2400, "waits before probing (the 403 may be transient)");
     int requestsAfterFirst = players;
@@ -187,7 +184,7 @@ static void retry(const std::string& directory, bool transient) {
     p.refreshed = true; p.renew = false; if (!p.sameUrlRetry) p.validUntil = 0; p.sameUrlRetry = false;
     p.state = player::BUFFERING;
     p.decodeOriginal();
-    check(p.state == player::FAILED && p.error == "members_unsupported" && !p.renew && !p.retryConverted, "403 -> renewal -> 403 ends in the members message");
+    check(p.state == player::FAILED && p.error == "members_unsupported" && !p.renew && !p.consoleFailure, "403 -> renewal -> 403 ends in the members message");
     check(players == requestsAfterFirst + (transient ? 0 : 1), "same URL reuses the /player answer, otherwise one new /player");
     std::cout << "PASS member 403 with n solved, " << (transient ? "transient (same URL repeated)" : "persistent (new /player)") << " players=" << players << " videos=" << videos << '\n';
     p.halt(); SDL_DestroyMutex(p.mu); SDL_DestroyCondition(p.cv); SDL_DestroyMutex(p.nmu);
@@ -198,7 +195,6 @@ int main(int argc, char** argv) {
     std::ifstream input(std::string(argv[1]) + "/video.mp4", std::ios::binary);
     videoBytes.assign(std::istreambuf_iterator<char>(input), {});
     check(!videoBytes.empty(), "real MP4 fixture exists");
-    net::serverEnabled = false;
     run(argv[1], true, "video", 403);
     run(argv[1], true, "audio", 403);
     run(argv[1], true, "video", 403, Fixture::HLS);
