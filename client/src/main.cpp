@@ -164,6 +164,7 @@ static void parseFeed(const std::vector<uint8_t>& raw, Feed& feed) {
     if (f.size() > 6) v.members = yt::membershipWire(f[6]);
     if (f.size() > 7) v.shortForm = f[7] == "short";
     if (f.size() > 8) v.section = f[8];
+    if (f.size() > 9) v.date = f[9];
     feed.items.push_back(v);
   }
 }
@@ -839,7 +840,11 @@ int run(int argc, char** argv) {
       for (const Shelf* s : {inResults ? &results : (const Shelf*)nullptr, cat >= 0 && cat < (int)cats.size() ? &cats[(size_t)cat] : (const Shelf*)nullptr})
         if (s && !source && std::any_of(s->feed.items.begin(), s->feed.items.end(), [&](const Video& i) { return i.id == v.id; })) source = s;
       if (source) for (const auto& i : source->feed.items) if (i.shortForm) shortsQueue.push_back(i);
+      // Aberto de uma página de navegação (busca, aba Shorts do canal, coleções): os Shorts dela.
+      if (!source && !nav.pages.empty() && std::any_of(nav.page().items.begin(), nav.page().items.end(), [&](const NavItem& i) { return i.id == v.id; }))
+        for (const auto& i : nav.page().items) if (i.shortForm && i.type == "video") shortsQueue.push_back(i.video());
       if (shortsQueue.empty()) shortsQueue.push_back(v);
+      LOG("shorts: fila %zu (%s)", shortsQueue.size(), source ? "inicio/busca" : shortsQueue.size() > 1 ? "pagina" : "so este");
     }
     if(localOpening){recordLocal();localUI.checkpoint=SDL_GetTicks()+30000;}
     ++playerPositionRevision;

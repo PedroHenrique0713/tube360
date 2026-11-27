@@ -274,6 +274,7 @@ struct UiContext {
   void volumeHud(uint64_t now);
   int shortsIndex() const;
   void shortsStep(int direction);
+  void shortsExtend();
   void shortsInput(uint64_t now);
   void shortsDraw(uint64_t now, double t);
   void playerUpdate(uint64_t now);

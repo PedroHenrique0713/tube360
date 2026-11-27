@@ -272,7 +272,7 @@ struct CardMeta {
 
 // Selo de duração (ou AO VIVO) no canto da miniatura; (ix,iy,w,h) é o retângulo da miniatura.
 static void cardDuration(gfx::Gfx& g, i18n::Lang lang, int duration, bool live, float ix, float iy, float w, float h) {
-  if ((duration <= 0 && !live) || iy + h > 646) return;
+  if ((duration <= 0 && !live) || iy + h > ui::bottom) return;
   std::string d = live ? i18n::get(lang, K::Live) : fmtTime(duration);
   float dw = gfx::textWidth(g, ui::F_TINY, d) + 12, badgeH = ui::large ? 36 : 20, badgeY = iy + h - badgeH - 7;
   gfx::rect(g, ix + w - dw - 7, badgeY, dw, badgeH, live ? ui::A1 : Color{0,0,0,.8f}, 5);
@@ -282,8 +282,8 @@ static void cardDuration(gfx::Gfx& g, i18n::Lang lang, int duration, bool live, 
 // Miniatura + barra de andamento + duração. A miniatura é pedida em HD e reduzida ao tamanho do cartão pelo Worker.
 static void cardThumb(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, i18n::Lang lang, const std::string& id, const CardMeta& m,
                       bool direct, bool shorts, float ix, float iy, float w, float h) {
-  artwork(g, thumbs, worker, id, frame, ix, iy, w, h, false, false, direct, shorts, 646);
-  if (m.progress > 0 && iy + h <= 646) {
+  artwork(g, thumbs, worker, id, frame, ix, iy, w, h, false, false, direct, shorts, ui::bottom);
+  if (m.progress > 0 && iy + h <= ui::bottom) {
     gfx::rect(g, ix + 4, iy + h - 5, w - 8, 4, {0,0,0,.6f}, 2);
     gfx::rect(g, ix + 4, iy + h - 5, std::max(4.f, (w - 8) * std::clamp(m.progress, 0.f, 1.f)), 4, ui::A1, 2);
   }
@@ -294,12 +294,12 @@ static void cardThumb(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t fram
 // ty = topo do título; w = largura; titleFont/metaFont = fontes (Shorts usam as menores).
 static float cardText(gfx::Gfx& g, i18n::Lang lang, const CardMeta& m, float x, float ty, float w, int titleFont, int metaFont, bool focused, bool shorts) {
   for (const auto& line : gfx::wrap(g, titleFont, m.title, w, 2)) {
-    if (ty + g.fonts[titleFont].lineH <= 646) gfx::textBox(g, titleFont, line, x, ty, w, focused ? ui::TEXT : rgb(0xe4e4e7));
+    if (ty + g.fonts[titleFont].lineH <= ui::bottom) gfx::textBox(g, titleFont, line, x, ty, w, focused ? ui::TEXT : rgb(0xe4e4e7));
     ty += ui::large ? (shorts ? 34 : 31) : shorts ? 27 : 23;
   }
   ty += 3;
   float lh = g.fonts[metaFont].lineH;
-  if (ty + lh <= 646) {
+  if (ty + lh <= ui::bottom) {
     const float markD = verifiedSize(g, metaFont), mark = m.verified ? markD + 6 : 0;
     std::string tail = m.views.empty() ? "" : m.views;
     if (!m.date.empty()) tail += (tail.empty() ? "" : "  \xC2\xB7  ") + m.date;
@@ -316,9 +316,9 @@ static float cardText(gfx::Gfx& g, i18n::Lang lang, const CardMeta& m, float x, 
       verifiedMark(g, mx, verifiedY(g, metaFont, ty, markD), markD, ui::MUTED, ui::BG);
     }
     ty += lh + 2;
-    if (!tail.empty() && ty + lh <= 646) { gfx::textBox(g, metaFont, gfx::ellipsize(g, metaFont, tail, w), x, ty, w, ui::MUTED); ty += lh + 2; }
+    if (!tail.empty() && ty + lh <= ui::bottom) { gfx::textBox(g, metaFont, gfx::ellipsize(g, metaFont, tail, w), x, ty, w, ui::MUTED); ty += lh + 2; }
   }
-  if (m.members != yt::Membership::None && ty + g.fonts[ui::F_TINY].lineH <= 646) { memberLine(g, m.members, lang, x, ty, w); ty += g.fonts[ui::F_TINY].lineH + 2; }
+  if (m.members != yt::Membership::None && ty + g.fonts[ui::F_TINY].lineH <= ui::bottom) { memberLine(g, m.members, lang, x, ty, w); ty += g.fonts[ui::F_TINY].lineH + 2; }
   return ty;
 }
 
@@ -340,10 +340,10 @@ static float navTextBlock(gfx::Gfx& g) {
 static void videoCard(gfx::Gfx& g, Thumbs& thumbs, Worker& worker, uint64_t frame, i18n::Lang lang, const std::string& id, const CardMeta& m, bool direct,
                       bool shorts, bool focused, float x, float y, float artW, float artH, float an) {
   float s=shorts ? 1 : 1+.045f*an, w=artW*s, h=artH*s, ix=x-(w-artW)/2, iy=y-(h-artH)/2;
-  if (shorts && focused && iy-5<646) gfx::rect(g,ix-5,iy-5,w+10,std::min(h+10,646-iy+5),ui::TEXT,12);
-  else if (!shorts && an>.02f && iy-4<646) {
-    if (iy-24>=140 && iy+h+32<=646) gfx::shadow(g,ix,iy+10,w,h,14,22,.6f*an);
-    gfx::rect(g,ix-4,iy-4,w+8,std::min(h+8,646-iy+4),ui::alpha(rgb(0xffffff),an),16);
+  if (shorts && focused && iy-5<ui::bottom) gfx::rect(g,ix-5,iy-5,w+10,std::min(h+10,ui::bottom-iy+5),ui::TEXT,12);
+  else if (!shorts && an>.02f && iy-4<ui::bottom) {
+    if (iy-24>=140 && iy+h+32<=ui::bottom) gfx::shadow(g,ix,iy+10,w,h,14,22,.6f*an);
+    gfx::rect(g,ix-4,iy-4,w+8,std::min(h+8,ui::bottom-iy+4),ui::alpha(rgb(0xffffff),an),16);
   }
   cardThumb(g, thumbs, worker, frame, lang, id, m, direct, shorts, ix, iy, w, h);
   cardText(g, lang, m, x, y+artH+(shorts ? 16 : 14), artW, shorts ? ui::F_SMALL : ui::F_CARD, shorts ? ui::F_TINY : ui::F_SMALL, focused, shorts);

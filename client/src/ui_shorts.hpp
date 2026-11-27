@@ -20,8 +20,17 @@ inline int UiContext::shortsIndex() const {
   return -1;
 }
 
+// Fim da fila: entram os Shorts relacionados ao que está tocando (o ↓ não para no último da lista de origem).
+inline void UiContext::shortsExtend() {
+  size_t before = shortsQueue.size();
+  for (const auto& r : related)
+    if (r.shortForm && std::none_of(shortsQueue.begin(), shortsQueue.end(), [&](const Video& s) { return s.id == r.id; })) shortsQueue.push_back(r);
+  if (shortsQueue.size() != before) LOG("shorts: fila %zu (+%zu relacionados)", shortsQueue.size(), shortsQueue.size() - before);
+}
+
 inline void UiContext::shortsStep(int direction) {
   int at = shortsIndex(), to = at + direction;
+  if (at >= 0 && to >= (int)shortsQueue.size()) shortsExtend();
   if (at >= 0 && to >= 0 && to < (int)shortsQueue.size()) { Video v = shortsQueue[(size_t)to]; shelf.shortsFocus = 0; shelf.shortOpenedAt = SDL_GetTicks(); startVideo(v, 0, false); }
 }
 
@@ -31,6 +40,7 @@ inline void UiContext::shortsEnded() {
   if (shelf.shortOpenedAt && now - shelf.shortOpenedAt < 1000) return;  // Short curtíssimo: espera 1 s para não virar laço de pedidos
   shelf.shortOpenedAt = now;
   int at = shortsIndex();
+  if (at >= 0 && at + 1 >= (int)shortsQueue.size()) shortsExtend();
   if (at >= 0 && at + 1 < (int)shortsQueue.size()) { Video v = shortsQueue[(size_t)at + 1]; shelf.shortsFocus = 0; startVideo(v, 0, false); }
   else { LOG("shorts: fim da fila, repetindo %s", playing.id.c_str()); startVideo(playing, 0, false); }
 }
