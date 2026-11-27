@@ -240,6 +240,7 @@ def finish_display_fix_v7(sdk,v4x):
     stamp=sdk/'tube360-video-policy-v7'
     if stamp.exists():
         if not (v4x/'tube360-video-policy-v7').exists():raise RuntimeError('SDK/V4X v7 copies do not match')
+        finish_display_fix_v8(sdk,v4x)
         return
     pending={}
     def replace(path,before,after):
@@ -276,6 +277,27 @@ int tube360_set_output(int height)
     for path,text in pending.items():path.write_text(text)
     stamp.write_text('5:4 stays 640x480; kernel viewport width not a multiple of 32 uses own SD scaler\n')
     (v4x/'tube360-video-policy-v7').write_text(stamp.read_text())
+    finish_display_fix_v8(sdk,v4x)
+
+def finish_display_fix_v8(sdk,v4x):
+    """Aspecto do VGA 1360x768 pela largura/altura; log display.raster só com dado de modo."""
+    stamp=sdk/'tube360-video-policy-v8'
+    if stamp.exists():
+        if not (v4x/'tube360-video-policy-v8').exists():raise RuntimeError('SDK/V4X v8 copies do not match')
+        return
+    pending={}
+    def replace(path,before,after):
+        text=pending.get(path,path.read_text())
+        if text.count(before)!=1:raise RuntimeError(f'Incompatible display fix v8 hook: {path}: {before[:70]!r}')
+        pending[path]=text.replace(before,after)
+    replace(v4x/'src/display.c','    float a=(float)v->display_width/(float)v->display_height;\n    return a>1.7f && a<1.85f ? 4.0f/3.0f : a;',
+            '    // Só os tamanhos de TV que o xsdk trata como tela 4:3 sem a flag wide; 1360x768 e afins são monitores e valem pelo raster.\n'
+            '    bool tv=(v->display_width==1280 && v->display_height==720) || (v->display_width==1920 && v->display_height==1080);\n'
+            '    return tv ? 4.0f/3.0f : (float)v->display_width/(float)v->display_height;')
+    replace(sdk/'src/display.c','; read-only, to compare the kernel raster with VdQueryVideoMode"','; mode registers only, nothing that identifies the screen"')
+    for path,text in pending.items():path.write_text(text)
+    stamp.write_text('VGA raster aspect outside the TV sizes; display.raster label carries mode data only\n')
+    (v4x/'tube360-video-policy-v8').write_text(stamp.read_text())
 
 def finish_sim_display_v5(sdk,v4x):
     stamp=sdk/'tube360-video-policy-v5'
