@@ -16,98 +16,120 @@ inline void UiContext::searchDraw(const char* const* keys, double t) {
   searchUI.draw(g,query,keys,settings.lang,searchMusic,railFocus,t);
 }
 
-// Nos resultados, LB abre o painel de filtros.
+// Nos resultados, LB/RB trocam o chip de tipo (Tudo, Vídeos, Canais, Playlists, Ao vivo); a pílula "Filtros" na fileira de
+// chips (A) abre o painel. O chip marcado acompanha o tipo do filtro, também quando ele muda pelo painel.
 inline void UiContext::searchFiltersPress(NavPage& p) {
-  if (in.hit(Input::LB)) searchUI.beginFilters(p.filters);
+  if (!(p.zone == 1 && p.tabSel == 5)) p.tabSel = p.filters.type;
+  if (p.loading || nav.busy) return;
+  int step = ctl::hit(in, ctl::Ctx::Search, ctl::Act::NextTab) ? 1 : ctl::hit(in, ctl::Ctx::Search, ctl::Act::PrevTab) ? 4 : 0;
+  if (!step) return;
+  p.tabSel = (p.filters.type + step) % 5;
+  searchChipSelected(p);
 }
 
-// Marca de verificado (círculo com o visto) ao lado do nome do canal; d = diâmetro.
-static void verifiedBadge(gfx::Gfx& g, float x, float y, float d, Color c, Color ink) {
-  gfx::rect(g, x, y, d, d, c, d / 2);
-  float k = d / 14;
-  gfx::triangle(g, x + 3.2f*k, y + 7.4f*k, x + 4.6f*k, y + 6.2f*k, x + 6.2f*k, y + 9.2f*k, ink);
-  gfx::triangle(g, x + 5.6f*k, y + 9.9f*k, x + 6.8f*k, y + 8.9f*k, x + 11.2f*k, y + 4.4f*k, ink);
-  gfx::triangle(g, x + 11.2f*k, y + 4.4f*k, x + 12.2f*k, y + 5.4f*k, x + 6.8f*k, y + 8.9f*k, ink);
+// Chip de tipo escolhido: troca o tipo do filtro e refaz a busca.
+inline void UiContext::searchChipSelected(NavPage& p) {
+  p.filters.type = std::clamp(p.tabSel, 0, 4); p.filters.normalize();
+  searchUI.filters = p.filters;
+  p.filterLabel.clear(); p.sel = 0; p.scroll = 0; nav.load(navWorker, settings.lang);
 }
 
-// Nome + marca de verificado na mesma linha; devolve o y logo abaixo.
+// Nome + marca de verificado na mesma linha, numa linha só (a marca segue o fim do texto, no lado certo em árabe).
+// Devolve o y logo abaixo.
 static float nameWithBadge(gfx::Gfx& g, int font, const std::string& name, bool verified, float x, float y, float w, Color c) {
   float mark = verified ? 14.f + 8 : 0;
   std::string shown = gfx::ellipsize(g, font, name, w - mark);
   gfx::textBox(g, font, shown, x, y, w, c);
-  if (verified) verifiedBadge(g, x + gfx::textWidth(g, font, shown) + 8, y + (g.fonts[font].lineH - 14) / 2, 14, ui::MUTED, ui::BG);
+  if (verified) {
+    float tw = gfx::textWidth(g, font, shown);
+    bool rtl = g.rtlText || gfx::visualLine(g, shown, font).rtl;
+    verifiedMark(g, rtl ? x + w - tw - 8 - 14 : x + tw + 8, y + (g.fonts[font].lineH - 14) / 2, 14, ui::MUTED, ui::BG);
+  }
   return y + g.fonts[font].lineH;
 }
 
-// Resultado rico: miniatura (ou avatar redondo no resultado de canal) à esquerda; título, visualizações · data, canal com
-// verificado e um trecho da descrição à direita. (x,y) = canto do resultado; rowH = altura da fileira.
-static void searchResult(NavDraw& d, const NavItem& it, bool focused, float y, float rowH) {
-  auto& g = d.g; auto& p = d.p;
-  const float x = 148, artW = 256, artH = 144;
-  bool channel = it.type == "channel";
-  if (focused) gfx::rect(g, 130, y - 8, ui::W - 130 - 58, rowH - 4, ui::SURFACE, 16);
-  if (channel) artwork(g, d.thumbs, d.worker, it.image, d.frame, x + (artW - 120) / 2, y + (artH - 120) / 2, 120, 120, true, true, p.direct, false, 646);
-  else {
-    artwork(g, d.thumbs, d.worker, it.image, d.frame, x, y, artW, artH, false, false, p.direct, false, 646);
-    if (it.type == "video" && it.duration >= 0 && y + artH <= 646) {
-      std::string t = it.duration ? fmtTime(it.duration) : d.tr(K::Live);
-      float dw = gfx::textWidth(g, ui::F_TINY, t) + 12, bh = ui::large ? 36 : 20, by = y + artH - bh - 7;
-      gfx::rect(g, x + artW - dw - 7, by, dw, bh, it.duration ? Color{0,0,0,.8f} : ui::A1, 5);
-      gfx::text(g, ui::F_TINY, t, x + artW - dw / 2 - 7, by + (bh - g.fonts[ui::F_TINY].size) / 2, rgb(0xffffff), 1);
-    }
+// Fileira de chips: a ativa em branco, as outras no cinza; `focus` = índice em foco na fileira (ou -1).
+static float chipRow(NavDraw& d, const std::vector<std::string>& labels, int active, int focus, float x, float y) {
+  auto& g = d.g;
+  for (size_t i = 0; i < labels.size(); i++) {
+    float w = gfx::textWidth(g, ui::F_SMALL, labels[i]) + 32;
+    bool on = int(i) == active, f = int(i) == focus;
+    gfx::rect(g, x, y, w, 36, f ? ui::TEXT : on ? ui::SURFACE2 : ui::SURFACE, 18);
+    if (on && !f) gfx::hgrad(g, x + 16, y + 34, w - 32, 2, ui::A1, ui::A2, 1);
+    gfx::text(g, ui::F_SMALL, labels[i], x + w / 2, y + (36 - g.fonts[ui::F_SMALL].size) / 2, f ? ui::INK : ui::TEXT, 1);
+    x += w + 10;
   }
-  const float tx = x + artW + 24, tw = ui::W - tx - 64;
-  float ty = y;
-  auto room = [&](int font) { return ty + g.fonts[font].lineH <= 646; };
-  for (const auto& line : gfx::wrap(g, ui::F_KEY, it.title, tw - (channel && it.verified ? 22 : 0), 2)) {
-    if (!room(ui::F_KEY)) break;
-    if (channel && it.verified) ty = nameWithBadge(g, ui::F_KEY, line, true, tx, ty, tw, ui::TEXT);
-    else { gfx::textBox(g, ui::F_KEY, line, tx, ty, tw, ui::TEXT); ty += g.fonts[ui::F_KEY].lineH + 2; }
-  }
-  ty += 4;
-  std::string meta = channel ? it.date : it.views;
-  auto join = [](std::string a, const std::string& b) { return b.empty() ? a : a + (a.empty() ? "" : "  \xC2\xB7  ") + b; };
-  meta = channel ? join(it.date, it.views) : join(it.views, it.date);
-  if (!meta.empty() && room(ui::F_CHAN)) { gfx::textBox(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, meta, tw), tx, ty, tw, ui::MUTED); ty += g.fonts[ui::F_CHAN].lineH + 4; }
-  if (!channel && !it.channel.empty() && room(ui::F_CHAN)) ty = nameWithBadge(g, ui::F_CHAN, it.channel, it.verified, tx, ty, tw, ui::MUTED) + 4;
-  if (!it.description.empty() && room(ui::F_SMALL))
-    for (const auto& line : gfx::wrap(g, ui::F_SMALL, it.description, tw, 2)) {
-      if (!room(ui::F_SMALL)) break;
-      gfx::textBox(g, ui::F_SMALL, line, tx, ty, tw, rgb(0xa1a1aa)); ty += g.fonts[ui::F_SMALL].lineH;
-    }
+  return x;
 }
 
-// Página de resultados da busca de vídeos: título, resumo dos filtros ativos (com a dica do LB) e a lista de resultados ricos.
-// Os Shorts continuam numa fileira horizontal própria, como nas outras grades.
+// Resultado de canal em destaque: cartão largo com avatar, nome + verificado, @handle · inscritos · vídeos, descrição e o estado
+// da inscrição. A abre o canal (zona 2).
+static void featuredChannel(NavDraw& d, const NavItem& it, bool focused, float y) {
+  auto& g = d.g; auto& p = d.p;
+  const float x = 136, w = ui::W - 136 - 64, h = 104;
+  if (focused) gfx::rect(g, x - 4, y - 4, w + 8, h + 8, ui::TEXT, 20);
+  gfx::rect(g, x, y, w, h, ui::SURFACE, 16);
+  artwork(g, d.thumbs, d.worker, it.image, d.frame, x + 22, y + 14, 76, 76, true, true, p.direct, false, 646);
+  const float tx = x + 122, btnW = 190, tw = w - 122 - btnW - 44;
+  float ty = nameWithBadge(g, ui::F_KEY, it.title, it.verified, tx, y + 12, tw, ui::TEXT) + 4;
+  std::string meta = it.date;
+  if (!it.views.empty()) meta += (meta.empty() ? "" : "  \xC2\xB7  ") + it.views;
+  if (!meta.empty()) { gfx::textBox(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, meta, tw), tx, ty, tw, ui::MUTED); ty += g.fonts[ui::F_CHAN].lineH + 2; }
+  if (!it.description.empty()) gfx::textBox(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, it.description, tw), tx, ty, tw, rgb(0xa1a1aa));
+  if (it.subscribed >= 0) {
+    gfx::rect(g, x + w - btnW - 22, y + (h - 46) / 2, btnW, 46, ui::SURFACE2, 23);
+    gfx::text(g, ui::F_KEY, d.tr(it.subscribed ? K::Subscribed : K::Subscribe), x + w - btnW / 2 - 22, y + (h - 46) / 2 + 9, ui::TEXT, 1);
+  }
+}
+
+// Cartão da grade de busca: vídeo e playlist com o cartão da F61 (canal + verificado, visualizações · data, "Só para membros");
+// canal avulso e Shorts seguem o cartão genérico.
+static void searchCard(NavDraw& d, const NavMetrics& m, const NavItem& it, bool shorts, bool focused, float x, float y, float artW, float artH) {
+  if (shorts || (it.type != "video" && it.type != "playlist")) { navCard(d, m, it, shorts, focused, x, y, artW, artH); return; }
+  CardMeta meta; meta.title = it.title; meta.channel = it.channel; meta.views = it.views; meta.date = it.date;
+  meta.duration = it.type == "video" ? it.duration : -1; meta.members = it.members; meta.verified = it.verified;
+  videoCard(d.g, d.thumbs, d.worker, d.frame, d.lang, it.image, meta, d.p.direct, false, focused, x, y, artW, artH, focused ? 1.f : 0.f);
+}
+
+// Página de resultados da busca (proposta A2): título, chips de tipo + "Filtros", resultado de canal em destaque, grade de
+// cartões ricos e os Shorts numa faixa própria.
 inline float Navigation::drawSearchPage(NavDraw& d) {
   auto& g = d.g; auto& p = d.p;
   float tx = 136;
   if (!p.image.empty()) { artwork(g, d.thumbs, d.worker, p.image, d.frame, tx, 28, 72, 72, true, false); tx += 96; }
-  gfx::textBox(g, ui::F_BIG, p.displayTitle.empty() ? d.tr(titleKey(p)) : p.displayTitle, tx, 28, ui::W-tx-64, ui::TEXT);
-  gfx::text(g, ui::F_CHAN, p.displaySub, tx, 82, ui::MUTED);
-  float hx=hint(g,136,126,"LB",XG,d.tr(K::SearchFilters));
-  for (size_t row=0;row<p.filterLines.size();++row) gfx::textBox(g,ui::F_CHAN,p.filterLines[row],hx,122+row*30,ui::W-hx-64,ui::A2);
-  float top = 210;
-  p.grid(1, d.hideShorts);
-  NavMetrics m{}; m.cols = 1; m.cw = std::floor((ui::W-200)/4.f); m.shortW = std::min(m.cw*.5f,112.f); m.shortH = m.shortW*16/9;
-  m.shortHeading = std::max(30.f,g.fonts[ui::F_KEY].lineH+8); m.shortRowH = m.shortHeading+m.shortH+(ui::large ? 124 : 100);
-  const float rowH = ui::large ? 196 : 168;
-  float want = 0;
-  if (p.zone == 3) for (int row=0; row<p.gridRow(); ++row) want += p.rows[row].shorts ? m.shortRowH : rowH;
-  p.scroll += (want - p.scroll) * 0.24f;
-  float rowY = top - p.scroll;
+  gfx::textBox(g, ui::F_BIG, p.displayTitle.empty() ? d.tr(titleKey(p)) : p.displayTitle, tx, 24, ui::W-tx-64, ui::TEXT);
+  const float chipsY = 84;
+  const std::vector<std::string> types = {d.tr(K::All), d.tr(K::Videos), d.tr(K::SearchTypeChannels), d.tr(K::Playlists), d.tr(K::ChannelLive)};
+  bool onRow = d.contentFocus && p.zone == 1;
+  float cx = chipRow(d, types, p.filters.type, onRow && p.tabSel < 5 ? p.tabSel : -1, 136, chipsY);
+  std::vector<std::string> filtersPill = {d.tr(K::SearchFilters)};
+  float endX = chipRow(d, filtersPill, -1, onRow && p.tabSel == 5 ? 0 : -1, cx + 10, chipsY);
+  for (size_t row = 0; row < p.filterLines.size(); ++row) gfx::textBox(g, ui::F_CHAN, p.filterLines[row], endX + 16, chipsY + 6 + row * 26, ui::W - endX - 80, ui::A2);
+  const float top = 140;
+  auto m = navMetrics(d);
+  const bool feat = !p.channels.empty();
+  const float cardH = 104 + 16;
+  const float f = std::min(1.f, p.scroll / std::max(1.f, m.rowH));
+  if (feat && f < 1) featuredChannel(d, p.channels[(size_t)std::min(p.channelSel, (int)p.channels.size()-1)], d.contentFocus && p.zone == 2, top - f * cardH);
+  float rowY = top + (feat ? cardH * (1 - f) : 0) - p.scroll;
   for (const auto& row : p.rows) {
-    float y = rowY; rowY += row.shorts ? m.shortRowH : rowH;
-    if (y < top-2 || y >= 646) continue;
-    if (!row.shorts) { int i = row.items[0]; searchResult(d, p.items[i], d.contentFocus && p.zone == 3 && i == p.sel, y, rowH); continue; }
-    if (y+g.fonts[ui::F_KEY].lineH <= 646) gfx::text(g,ui::F_KEY,d.tr(K::ChannelShorts),136,y,ui::TEXT);
-    y += m.shortHeading;
-    int visible = std::max(1,(int)((ui::W-200+24)/(m.shortW+24)));
-    int selected = p.gridRow()>=0 && p.rows[p.gridRow()].shorts ? p.gridPosition() : p.shortColumn;
-    int first = std::clamp(selected-visible+1,0,std::max(0,(int)row.items.size()-visible));
-    for (int col=first; col<std::min((int)row.items.size(),first+visible); ++col) {
+    float y = rowY, artW = row.shorts ? m.shortW : m.art, artH = row.shorts ? m.shortH : m.h;
+    rowY += navRowHeight(m, row);
+    if (y >= 646 && y < 646 + 2 * m.rowH && !row.shorts)
+      for (int i : row.items) if (!p.items[i].image.empty() && p.items[i].image.rfind("local:",0)) d.thumbs.get(d.worker, p.items[i].image, d.frame, p.direct);
+    if (y < top - 2 || y >= 646) continue;
+    int first = 0, visible = (int)row.items.size();
+    if (row.shorts) {
+      if (y + g.fonts[ui::F_KEY].lineH <= 646) gfx::text(g, ui::F_KEY, d.tr(K::ChannelShorts), 136, y, ui::TEXT);
+      y += m.shortHeading;
+      visible = std::max(1, (int)((ui::W-200+24)/(m.shortW+24)));
+      int selected = p.gridRow() >= 0 && p.rows[p.gridRow()].shorts ? p.gridPosition() : p.shortColumn;
+      first = std::clamp(selected-visible+1, 0, std::max(0, (int)row.items.size()-visible));
+    }
+    for (int col = first; col < std::min((int)row.items.size(), first+visible); ++col) {
       int i = row.items[col];
-      navCard(d, m, p.items[i], true, d.contentFocus && p.zone == 3 && i == p.sel, 136 + (col-first)*(m.shortW+24), y, m.shortW, m.shortH);
+      float x = 136 + (col-first) * ((row.shorts ? m.shortW : m.cw) + 24);
+      searchCard(d, m, p.items[i], row.shorts, d.contentFocus && p.zone == 3 && i == p.sel, x, y, artW, artH);
     }
   }
   return top;

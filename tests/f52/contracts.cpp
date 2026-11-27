@@ -105,13 +105,31 @@ static void drawContract() {
   nav.pages.push_back(p); nav.format(nav.page(),g,i18n::Lang::EN);
   auto artRows=[&]() {
     std::vector<float> ys;
-    for (const auto& cmd:g.cmds) if (cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-256)<.01 && std::abs(cmd.params[1]-144)<.01)
+    for (const auto& cmd:g.cmds) if (cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-252)<.01 && std::abs(cmd.params[1]-141.75)<.01)
       for (unsigned i=0;i<cmd.count;i+=6) { float y=g.verts[cmd.first+i].y; if(std::find(ys.begin(),ys.end(),y)==ys.end()) ys.push_back(y); }
     return ys;
   };
   nav.draw(g,thumbs,worker,1,1,i18n::Lang::EN,true);
-  auto rows=artRows(); require(rows==std::vector<float>({210,378}),"actual renderer draws one rich search row per result, 256x144 thumbnails, the third clipped by the footer");
-  std::cout<<"PASS draw: rich search rows at y="<<rows[0]<<", "<<rows[1]<<"\n";
+  auto rows=artRows(); require(rows==std::vector<float>({140,381.75}),"actual renderer draws second thumbnail row even when its text crosses footer (search grid now starts under the chips, y=140)");
+  std::cout<<"PASS draw: thumbnail rows at y="<<rows[0]<<", "<<rows[1]<<"; old whole-card cull suppressed row 2\n";
+  {  // a busca desenha nas mesmas colunas em que a entrada anda (BAIXO do 1º cartão vai ao 5º, logo abaixo dele)
+    std::vector<std::pair<float,float>> at;
+    for (const auto& cmd:g.cmds) if (cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-252)<.01 && std::abs(cmd.params[1]-141.75)<.01)
+      for (unsigned i=0;i<cmd.count;i+=6) at.push_back({g.verts[cmd.first+i].x,g.verts[cmd.first+i].y});
+    require(nav.page().gridCols==ui::columns(4),"search draws with the columns the input moves in");
+    // o cartão em foco (item 0) cresce e fica fora desta lista: at[0..2] = itens 1..3, at[3] = item 4
+    require(at.size()>=4 && at[0].second==at[2].second && at[3].second>at[0].second && at[3].first==136 && at[0].first>136,"cards sit in a 4-column grid: item 4 is back in the first column, one row below");
+    auto green=[&]() {
+      for (const auto& v:g.verts) if (std::abs(v.r-0x3d/255.f)<.01 && std::abs(v.g-0xdc/255.f)<.01 && std::abs(v.b-0x84/255.f)<.01) return true;
+      return false;
+    };
+    require(!green(),"no members line without members");
+    nav.page().items[0].members=yt::Membership::Only; g.verts.clear(); g.cmds.clear();
+    nav.draw(g,thumbs,worker,9,9,i18n::Lang::EN,true);
+    require(green(),"search result for members-only video carries the green members line");
+    nav.page().items[0].members=yt::Membership::None;
+    std::cout<<"PASS draw: search grid columns match the input, members line on search cards\n";
+  }
   nav.page().items={card(100,true),card(101,true)}; nav.page().gridSize=-1;
   nav.page().sel=0; nav.page().scroll=0; nav.format(nav.page(),g,i18n::Lang::EN);
   g.verts.clear(); g.cmds.clear(); nav.draw(g,thumbs,worker,2,2,i18n::Lang::EN,true);
@@ -137,7 +155,7 @@ static void drawContract() {
   nav.page().kind="library"; nav.page().items={card(100,true),card(101,true)};
   nav.format(nav.page(),g,i18n::Lang::EN);
   g.verts.clear(); g.cmds.clear(); nav.draw(g,thumbs,worker,5,5,i18n::Lang::EN,true);
-  require(std::none_of(g.cmds.begin(),g.cmds.end(),[](const auto& cmd){return cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-256)<.01 && std::abs(cmd.params[1]-144)<.01;}),"library Shorts do not receive a landscape playlist overlay");
+  require(std::none_of(g.cmds.begin(),g.cmds.end(),[](const auto& cmd){return cmd.pipe==gfx::SHAPE && std::abs(cmd.params[0]-252)<.01 && std::abs(cmd.params[1]-141.75)<.01;}),"library Shorts do not receive a landscape playlist overlay");
   std::cout<<"PASS draw: library Shorts retain compact portrait artwork and labels\n";
   SDL_DestroyCondition(worker.cv); SDL_DestroyMutex(worker.mu); SDL_Quit();
 }

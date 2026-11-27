@@ -7,6 +7,7 @@ struct NavItem {
   yt::Membership members = yt::Membership::None;
   std::vector<std::string> titleLines; std::string byline;
   bool shortForm = false, verified = false;
+  int subscribed = -1; // só no resultado de canal da busca: -1 desconhecido, 0/1
   std::string date, views, description;
   Video video() const { Video v; v.id = id; v.title = title; v.channel = channel; v.dur = duration; v.members = members; return v; }
 };
@@ -16,7 +17,7 @@ struct NavPage : ItemGrid {
   std::vector<std::string> filterLines;
   std::string description;
   int sort = 0;
-  bool verified = false;
+  bool verified = false, sortable = false;
   std::string kind, id, query, tab = "videos", title, subtitle, image, channelId, error, displayTitle, displaySub, banner, historyVideo, laterVideo;
   std::vector<NavItem> items, channels;
   bool music = false, direct = false, native = false, loading = true, more = false, subscribed = false;
@@ -26,7 +27,7 @@ struct NavPage : ItemGrid {
   std::vector<Shelf> shelves;
   int shelf = 0;
   bool musicHome() const { return kind == "music"; }
-  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,hide && !(kind == "channel" && tab == "shorts"),kind == "history" ? 1 : 0); }
+  void grid(int cols, bool hide) { ItemGrid::build(items,sel,cols,hide && !(kind == "channel" && tab == "shorts"),kind == "history" || (kind == "channel" && tab == "home") ? 1 : 0); }
   int gridRow() const { return ItemGrid::gridRow(sel); }
   int gridPosition() const { return ItemGrid::gridPosition(sel); }
   bool moveGrid(int horizontal, int vertical) { return ItemGrid::moveGrid(sel,horizontal,vertical); }
@@ -86,7 +87,7 @@ struct Navigation {
     if (h.empty() || h[0] != "ok" || h.size() < 7) { p.error = h.size() > 1 ? h[1] : ""; return false; }
     if (!append) { p.title = h[1]; p.subtitle = h[2]; p.image = h[3]; p.subscribed = h[4] == "1"; p.channelId = h[6];
       p.banner = h.size() > 7 ? h[7] : ""; p.historyVideo = h.size() > 8 ? h[8] : ""; p.laterVideo = h.size() > 9 ? h[9] : "";
-      p.musicSource = h.size() > 10 ? h[10] : ""; p.verified = h.size() > 11 && h[11] == "1"; p.description = h.size() > 12 ? h[12] : "";
+      p.musicSource = h.size() > 10 ? h[10] : ""; p.verified = h.size() > 11 && h[11] == "1"; p.description = h.size() > 12 ? h[12] : ""; p.sortable = h.size() > 13 && h[13] == "1";
     }
     if (p.kind == "channel" && p.id.empty()) p.id = p.channelId;
     p.more = h[5] == "1";
@@ -99,8 +100,9 @@ struct Navigation {
       if (f.size() > 11) item.verified = f[11] == "1";
       if (f.size() > 12) item.views = f[12];
       if (f.size() > 13) item.description = f[13];
+      if (f.size() > 14 && !f[14].empty()) item.subscribed = f[14] == "1" ? 1 : 0;
       p.offset++;
-      if (p.kind == "subscriptions" && item.type == "channel") p.channels.push_back(item);
+      if ((p.kind == "subscriptions" || (p.kind == "search" && !p.music && !append && p.channels.empty())) && item.type == "channel") p.channels.push_back(item);
       else p.items.push_back(item);
     }
     return true;

@@ -413,10 +413,9 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   /* ---- F62 Busca e canal */ \
   X(ChannelHome, "Home", "Início", "Inicio") \
   X(SortRecent, "Latest", "Mais recentes", "Más recientes") \
-  X(SortPopular, "Popular", "Populares", "Populares") \
+  X(SortPopular, "Trending", "Em alta", "En tendencia") \
   X(SortOldest, "Oldest", "Mais antigos", "Más antiguos") \
-  X(VerifiedChannel, "Verified", "Verificado", "Verificado") \
-  X(VideosCount, "videos", "vídeos", "videos") \
+  X(SearchTypeChannels, "Channels", "Canais", "Canales") \
   /* */ \
   /* ---- F63 Player e Shorts */ \
   /* */ \

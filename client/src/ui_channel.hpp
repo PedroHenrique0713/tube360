@@ -19,8 +19,8 @@ inline void UiContext::channelTabSelected(NavPage& p) {
 
 // LB/RB trocam a ordenação nas abas que a têm (Vídeos e Ao vivo): a lista recarrega no chip escolhido.
 inline void UiContext::channelSortInput(NavPage& p) {
-  if (p.kind != "channel" || (p.tab != "videos" && p.tab != "live") || p.loading || nav.busy) return;
-  int step = in.hit(Input::RB) ? 1 : in.hit(Input::LB) ? 2 : 0;
+  if (p.kind != "channel" || !p.sortable || (p.tab != "videos" && p.tab != "live") || p.loading || nav.busy) return;
+  int step = ctl::hit(in, ctl::Ctx::Channel, ctl::Act::NextTab) ? 1 : ctl::hit(in, ctl::Ctx::Channel, ctl::Act::PrevTab) ? 2 : 0;
   if (!step) return;
   p.sort = (p.sort + step) % 3; p.sel = 0; p.scroll = 0;
   nav.load(navWorker, settings.lang);
@@ -34,8 +34,12 @@ inline float Navigation::drawChannelPage(NavDraw& d) {
   std::string name = p.displayTitle.empty() ? d.tr(titleKey(p)) : p.displayTitle;
   float markW = p.verified ? 34.f : 0;
   std::string shown = gfx::ellipsize(g, ui::F_BIG, name, tw - markW);
-  gfx::text(g, ui::F_BIG, shown, tx, 24, ui::TEXT);
-  if (p.verified) verifiedBadge(g, tx + gfx::textWidth(g, ui::F_BIG, shown) + 12, 24 + (g.fonts[ui::F_BIG].lineH - 22) / 2, 22, ui::MUTED, ui::BG);
+  gfx::textBox(g, ui::F_BIG, shown, tx, 24, tw, ui::TEXT);
+  if (p.verified) {
+    float nameW = gfx::textWidth(g, ui::F_BIG, shown);
+    bool rtl = g.rtlText || gfx::visualLine(g, shown, ui::F_BIG).rtl;
+    verifiedMark(g, rtl ? tx + tw - nameW - 12 - 22 : tx + nameW + 12, 24 + (g.fonts[ui::F_BIG].lineH - 22) / 2, 22, ui::MUTED, ui::BG);
+  }
   gfx::text(g, ui::F_CHAN, gfx::ellipsize(g, ui::F_CHAN, p.displaySub, tw), tx, 78, ui::MUTED);
   if (!p.description.empty()) gfx::text(g, ui::F_SMALL, gfx::ellipsize(g, ui::F_SMALL, p.description, tw), tx, 78 + g.fonts[ui::F_CHAN].lineH + 4, rgb(0xa1a1aa));
   bool f = d.contentFocus && p.zone == 0;
@@ -45,16 +49,8 @@ inline float Navigation::drawChannelPage(NavDraw& d) {
   const float tabY = 148;
   navTabs(d, tabs, 5, 136, tabY);
   float top = tabY + 58;
-  if (p.tab == "videos" || p.tab == "live") {
-    const K sorts[] = {K::SortRecent,K::SortPopular,K::SortOldest};
-    float x = 136;
-    for (int i = 0; i < 3; i++) {
-      float w = gfx::textWidth(g, ui::F_SMALL, d.tr(sorts[i])) + 32;
-      bool on = i == p.sort;
-      gfx::rect(g, x, top - 4, w, 36, on ? ui::TEXT : ui::SURFACE2, 18);
-      gfx::text(g, ui::F_SMALL, d.tr(sorts[i]), x + w / 2, top - 4 + (36 - g.fonts[ui::F_SMALL].size) / 2, on ? ui::INK : ui::TEXT, 1);
-      x += w + 10;
-    }
+  if (p.sortable && (p.tab == "videos" || p.tab == "live")) {
+    chipRow(d, {d.tr(K::SortRecent), d.tr(K::SortPopular), d.tr(K::SortOldest)}, p.sort, -1, 136, top - 4);
     top += 48;
   }
   navGrid(d, top, navMetrics(d));
