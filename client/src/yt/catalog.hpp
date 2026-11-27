@@ -198,7 +198,8 @@ inline void lockupMeta(const J& lock, Item& out, bool course = false) {
   }
 }
 inline Item item(const J& v, const string& key, bool music, const string& section) {
-  Item out; out.section = section; out.members = membership(v);
+  auto blank = section.find_first_not_of(" \t\r\n");
+  Item out; out.section = blank == string::npos ? string{} : section; out.members = membership(v);
   out.shortForm = key == "reelItemRenderer" || key == "shortsLockupViewModel";
   out.listStyle = key == "musicResponsiveListItemRenderer";  // linha de lista (Escolhas rápidas), não cartão de carrossel
   const auto& cols = array(get(v,"flexColumns"));
@@ -265,7 +266,7 @@ inline Item item(const J& v, const string& key, bool music, const string& sectio
   if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailOverlayTimeStatusRenderer")) out.duration = seconds(text(get(*badge,"text")));
   if (out.type == "video" && !out.duration) if (const auto* badge = find(get(v,"thumbnailOverlays"),"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
   if (out.type == "video" && !out.duration) if (const auto* badge = find(v,"thumbnailBadgeViewModel")) out.duration = seconds(str(*badge,"text"));
-  if (out.type == "video" && !out.shortForm && !out.duration && !yt::liveMark(v)) out.duration = -1; // 0 = ao vivo; sem selo de tempo = desconhecida
+  if (out.type == "video" && !music && !out.shortForm && !out.duration && !yt::liveMark(v)) out.duration = -1; // 0 = ao vivo; sem selo de tempo = desconhecida
   if (!out.duration) for (const auto& c : array(get(v,"fixedColumns"))) out.duration = seconds(text(get(get(c,"musicResponsiveListItemFixedColumnRenderer"),"text")));
   if (!out.duration && cols.size() > 1) {
     for (const auto& c : cols) {
@@ -691,6 +692,10 @@ public:
     }
     if (!failed.error.empty()) return failed;
     Page p = decode(data,isMusic);
+    if (isMusic && p.items.empty() && p.error.empty()) if (const auto* promo = find(data,"genericPromoRenderer")) {  // lista vazia da conta: mostra o texto do YouTube em vez de tela em branco
+      auto note = clean(text(get(*promo,"bodyText")));
+      if (!note.empty()) { p.error = note; p.musicSource = list.source==MusicSource::TV ? "tv" : list.source==MusicSource::Web ? "web" : "public"; return p; }
+    }
     if (kind=="search") p.title=search;
     if (!offset && kind == "music_search" && (filter.empty() || filter == "0")) musicTopResult(data,p);
     if (!offset && ((kind == "music" && (search.empty() || search == "explore")) || kind == "chip")) musicHomeShape(data,p,kind == "chip" ? id : string{});

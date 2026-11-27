@@ -253,6 +253,110 @@
        }
       }
      }
+    },
+    {
+     "shelfRenderer": {
+      "shelfHeaderRenderer": {
+       "avatarLockup": {
+        "avatarLockupRenderer": {
+         "title": {
+          "simpleText": " "
+         }
+        }
+       }
+      },
+      "content": {
+       "horizontalListRenderer": {
+        "items": [
+         {
+          "lockupViewModel": {
+           "contentImage": {
+            "thumbnailViewModel": {
+             "image": {
+              "sources": [
+               {
+                "url": "https://i.ytimg.com/vi/VIDfix00001/hqdefault.jpg",
+                "width": 480,
+                "height": 360
+               }
+              ]
+             },
+             "overlays": [
+              {
+               "thumbnailBottomOverlayViewModel": {
+                "badges": [
+                 {
+                  "thumbnailBadgeViewModel": {
+                   "text": "4:21",
+                   "badgeStyle": "THUMBNAIL_OVERLAY_BADGE_STYLE_DEFAULT"
+                  }
+                 }
+                ]
+               }
+              }
+             ]
+            }
+           },
+           "metadata": {
+            "lockupMetadataViewModel": {
+             "title": {
+              "content": "Banda Ficticia - Cancao Um (Official Video)"
+             },
+             "metadata": {
+              "contentMetadataViewModel": {
+               "metadataRows": [
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "Banda Ficticia"
+                   }
+                  }
+                 ]
+                },
+                {
+                 "metadataParts": [
+                  {
+                   "text": {
+                    "content": "2,1 bi de visualizações"
+                   }
+                  },
+                  {
+                   "text": {
+                    "content": "há 15 anos"
+                   }
+                  }
+                 ]
+                }
+               ],
+               "delimiter": " • "
+              }
+             }
+            }
+           },
+           "contentId": "BLKfix00001",
+           "contentType": "LOCKUP_CONTENT_TYPE_MUSIC",
+           "styling": {
+            "contentImageAspectRatio": "LOCKUP_CONTENT_IMAGE_ASPECT_RATIO_WIDESCREEN"
+           },
+           "rendererContext": {
+            "commandContext": {
+             "onTap": {
+              "innertubeCommand": {
+               "watchEndpoint": {
+                "videoId": "BLKfix00001",
+                "playlistId": "RDVIDfix00001"
+               }
+              }
+             }
+            }
+           }
+          }
+         }
+        ]
+       }
+      }
+     }
     }
    ]
   }

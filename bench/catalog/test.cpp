@@ -193,6 +193,8 @@ int main(int argc, char** argv) {
     check(track && track->channel == "Banda Ficticia" && track->views.find("370") != string::npos && track->date.empty(),"TV search: a square track keeps the artist and drops the kind label");
     check(reel && reel->type == "video" && reel->shortForm,"TV search: a Short is a video (contentId), not the channel it taps to");
     check(std::none_of(found.items.begin(),found.items.end(),[](const Item& i) { return i.id.compare(0,2,"UC") == 0; }),"TV search: no Short turns into an artist card");
+    const Item* blank = nullptr; for (const auto& i : found.items) if (i.id == "BLKfix00001") blank = &i;
+    check(blank && blank->section.empty(),"a shelf titled with only spaces has no section title");
     h.add(music,browse,read(dir,"music-podcasts.json"),{{"browseId",J(string("FEmusic_non_music_audio"))}});
     auto pods = c.browse({{"kind","chip"},{"id","FEmusic_non_music_audio||Podcasts"},{"lang","pt"}});
     const Item *show = nullptr, *episode = nullptr;
@@ -228,8 +230,11 @@ int main(int argc, char** argv) {
     lib.add(web,browse+"&alt=json",read(dir,"tv-library-artists.json"),{{"browseId",J(string("FEmusic_library_corpus_artists"))}},true);
     auto artists = tv.browse({{"kind","chip"},{"id","FEmusic_library_corpus_track_artists||Artistas"},{"lang","pt"}});
     check(artists.items.size() == 2 && artists.items[0].type == "artist" && artists.musicSource == "tv","library Artistas asks the TV for the subscribed artists and lists them");
+    lib.add(web,browse+"&alt=json",read(dir,"tv-library-albums-empty.json"),{{"browseId",J(string("FEmusic_liked_albums"))}},true);
+    auto none = tv.browse({{"kind","chip"},{"id","FEmusic_liked_albums||Albuns"},{"lang","pt"}});
+    check(none.items.empty() && none.error.find("álbuns que você adicionar") != string::npos,"an empty library list shows the message YouTube sends, not a blank page");
     lib.add(web,browse+"&alt=json","{}",{},true,400);
-    auto albums = tv.browse({{"kind","chip"},{"id","FEmusic_liked_albums||Albuns"},{"lang","pt"}});
+    auto albums = tv.browse({{"kind","chip"},{"id","FEmusic_liked_playlists||Playlists"},{"lang","pt"}});
     check(albums.error == "account_music_unavailable" && lib.steps.empty(),"a library route that the TV refuses never falls back to the guest page");
   }
   for (int refusal : {400,401,403}) {
