@@ -420,7 +420,6 @@ inline const char* arabic(Key key) {
     case Key::SettingVolume: return "مستوى صوت التلفاز";
 
     // ---- F65 Música
-    case Key::MusicMembersOnly: return "للأعضاء فقط";
     case Key::MusicSeekBar: return "تقديم أو ترجيع";
     case Key::MusicExplore: return "استكشاف";
     case Key::MusicTopResult: return "أفضل نتيجة";

@@ -393,18 +393,6 @@ inline void UiContext::musicTabSelected(NavPage& p) {
   if (p.kind == "music") p.query = p.tabSel == 1 ? "explore" : p.tabSel == 2 ? "charts" : p.tabSel == 3 ? "mixes" : "";
 }
 
-// Linha verde "Só para membros" com estrela, na parte de baixo do cartão (decisão do Pedro: sem pílula na miniatura).
-static void musicMemberLine(gfx::Gfx& g, yt::Membership members, i18n::Lang lang, float x, float y, float w) {
-  if (members == yt::Membership::None) return;
-  const Color green = rgb(0x2ba640);
-  float r = g.fonts[ui::F_TINY].size * .62f, cx = x + r, cy = y + g.fonts[ui::F_TINY].lineH / 2;
-  float pts[10][2];
-  for (int i = 0; i < 10; i++) { float a = -1.5708f + i * 0.62832f, k = i % 2 ? r * .42f : r; pts[i][0] = cx + std::cos(a) * k; pts[i][1] = cy + std::sin(a) * k; }
-  for (int i = 0; i < 10; i++) gfx::triangle(g, cx, cy, pts[i][0], pts[i][1], pts[(i + 1) % 10][0], pts[(i + 1) % 10][1], green);
-  const char* label = i18n::get(lang, yt::Membership::Accessible == members ? K::Member : K::MusicMembersOnly);
-  gfx::text(g, ui::F_TINY, gfx::ellipsize(g, ui::F_TINY, label, w - 2 * r - 8), x + 2 * r + 6, y, green);
-}
-
 // Página de Música: fundo vermelho escuro, capa quadrada (redonda para artista), título grande, "Reproduzir tudo", abas e a
 // grade quadrada. O início troca a grade por prateleiras e põe as abas ao lado do título.
 inline float Navigation::drawMusicPage(NavDraw& d) {
@@ -479,7 +467,7 @@ inline float Navigation::drawMusicPage(NavDraw& d) {
         artwork(g, d.thumbs, d.worker, item.image, d.frame, x, y + 30, card, card, true, item.type == "artist");
         gfx::textBox(g, ui::F_SMALL, item.titleLines[0], x, y + 30 + card + 4, card + gapX - 6, ui::TEXT);
         gfx::textBox(g, ui::F_TINY, item.byline, x, y + 30 + card + 4 + titleH, card + gapX - 6, ui::MUTED);
-        musicMemberLine(g, item.members, d.lang, x, y + 30 + card + 4 + titleH + bylineH, card);
+        memberLine(g, item.members, d.lang, x, y + 30 + card + 4 + titleH + bylineH, card);
       }
       y += cardRow;
     }

@@ -440,7 +440,6 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   X(SettingVolume, "TV volume", "Volume na TV", "Volumen en la TV") \
   /* */ \
   /* ---- F65 Música */ \
-  X(MusicMembersOnly, "Members only", "Só para membros", "Solo para miembros") \
   X(MusicSeekBar, "Seek", "Avançar ou voltar", "Adelantar o retroceder") \
   X(MusicExplore, "Explore", "Explorar", "Explorar") \
   X(MusicTopResult, "Top result", "Melhor resultado", "Mejor resultado") \
