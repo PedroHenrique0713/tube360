@@ -793,15 +793,6 @@ public:
     return result;
   }
 
-  // ---- F61 Início e coleção: funções novas desta frente só aqui
-
-  // ---- F62 Busca e canal: funções novas desta frente só aqui
-
-  // ---- F63 Player e Shorts: funções novas desta frente só aqui
-
-  // ---- F64 Configurações e controle: funções novas desta frente só aqui
-
-  // ---- F65 Música: funções novas desta frente só aqui
   // Início da Música: o pessoal vem antes do genérico (Ouvir de novo, Escolhas rápidas, Clipes recomendados, mixes) e os chips de
   // clima do topo viram itens "chip" (id = params do chip) numa prateleira de seção "chips", antes de tudo.
   static bool personalShelf(string title) {
@@ -906,10 +897,6 @@ public:
     }
     if (shelves.empty()) for (auto& group : moods) for (auto& item : group) p.items.push_back(std::move(item));
   }
-
-  // ---- F66 controle pelo celular: funções novas desta frente só aqui
-
-  // ---- F67 membros tocando: funções novas desta frente só aqui
 
 };
 }

@@ -168,16 +168,13 @@ struct UiContext {
   i18n::Lang& manualNoticeLang;
   float& manualNoticeWidth;
 
-  // ---- F61 Início e coleção: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   void saveForLater(const NavItem& item, uint64_t now);  // ui_collection.hpp: X = Assistir mais tarde (conta) ou lista local (sem conta)
   uint64_t homeSeenAt = 0;  // ui_home.hpp: última vez que o Início esteve na tela; voltar depois de um tempo atualiza sozinho
   int homeShelves(const Shelf& cur) const;  // ui_home.hpp: 2 = prateleiras do YouTube da conta (Início), 0 = lista única
 
-  // ---- F62 Busca e canal: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   void channelSortInput(NavPage& p); // definido em ui_channel.hpp
   void searchChipSelected(NavPage& p); // definido em ui_search.hpp
 
-  // ---- F63 Player e Shorts: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   std::vector<Video>& related;
   PlayerShelf& shelf;
   std::vector<Video>& shortsQueue;
@@ -188,7 +185,6 @@ struct UiContext {
   i18n::Lang& shortLang;
   std::vector<std::string>& shortLines;
 
-  // ---- F64 Configurações e controle: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   bool settingsInside = false;      // Configurações: o foco está dentro da seção (true) ou na coluna de seções (false)
   void refreshPage(uint64_t now);   // ui_shell.hpp: o "Atualizar" do Menu (Início e páginas de navegação)
   void openPageMenu();              // Menu sem vídeo em foco: só as opções da página
@@ -196,9 +192,6 @@ struct UiContext {
   bool videoInFocus() const;        // o mesmo critério com que Início e coleções abrem o menu do vídeo
   bool sleepWarning = false;        // main.cpp copia aqui o aviso do timer de dormir (o Menu não abre por cima dele)
 
-  // ---- F65 Música: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
-
-  // ---- F66 controle pelo celular: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   phonectl::Core& remoteCore;       // pareamento, sessões e fila de ações (remote_control.hpp)
   phonectl::Net& remoteNet;         // a thread do servidor: porta em uso (remote_net.hpp)
   bool remotePanelOpen = false;     // painel com endereço e código; a linha das Configurações abre, A/B fecham
@@ -206,9 +199,6 @@ struct UiContext {
   uint64_t volumeSaveAt = 0;        // o volume grava o settings.txt 1 s depois do último ajuste (e na saída), não a cada passo
   void remoteDraw(uint64_t now);    // ui_remote.hpp
 
-  // ---- F67 membros tocando: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
-
-  // ---- F71 Rodada 3: campos novos desta frente só aqui
   bool togglePause();  // ui_player.hpp: A no play, Menu (Start), Shorts e Tocando agora pausam e retomam pela mesma regra
 
   // Métodos: declarados aqui, definidos no arquivo de cada tela (ui_*.hpp).
