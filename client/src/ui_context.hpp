@@ -177,6 +177,10 @@ struct UiContext {
   // ---- F63 Player e Shorts: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
   std::vector<Video>& related;
   PlayerShelf& shelf;
+  std::vector<Video>& shortsQueue;
+  std::string& shortTitle;
+  i18n::Lang& shortLang;
+  std::vector<std::string>& shortLines;
 
   // ---- F64 Configurações e controle: campos novos desta frente só aqui, na mesma ordem do `UiContext screens{...}` do main.cpp
 
@@ -235,6 +239,10 @@ struct UiContext {
   void playerInput(uint64_t now, int optionCount);
   void playerShelfInput(uint64_t now);
   void playerShelfDraw(uint64_t now);
+  int shortsIndex() const;
+  void shortsStep(int direction);
+  void shortsInput(uint64_t now);
+  void shortsDraw(uint64_t now, double t);
   void playerUpdate(uint64_t now);
   void playerDraw(uint64_t now, double t, int optionCount, bool behindLive, const display::CommentsPanel& commentPanel,
                   bool sleepWarning, double sleepLeft);

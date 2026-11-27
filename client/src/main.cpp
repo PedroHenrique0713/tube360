@@ -506,6 +506,7 @@ struct Input {
 #include "ui_collection.hpp"
 #include "ui_channel.hpp"
 #include "ui_player.hpp"
+#include "ui_shorts.hpp"
 #include "ui_music.hpp"
 #ifndef __XSDK__
 #include "../../bench/search/frame_probe.hpp"
@@ -750,7 +751,7 @@ int run(int argc, char** argv) {
   std::string captionVideo, captionInterface;
   // like da conta e o "a seguir" do vídeo aberto (/api/video/<id>/next); nextAt: contagem do próximo automático
   std::string likeState; Video upNext; bool ratePanel = false; int rateSel = 0; uint64_t nextAt = 0; bool endedSent = false; uint64_t nextDeadline = 0; bool nextPending = false;
-  std::vector<Video> related; PlayerShelf shelf;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
+  std::vector<Video> related, shortsQueue; PlayerShelf shelf; std::string shortTitle; i18n::Lang shortLang = i18n::Lang::EN; std::vector<std::string> shortLines;  // F63: fileira "a seguir" do player (declarados aqui porque o startVideo os usa)
   bool livePaused = false;
   int& quality = settings.quality;
   quality=720;
@@ -840,6 +841,15 @@ int run(int argc, char** argv) {
   };
   auto startVideo = [&](const Video& v, double t, bool fromRemote, std::string track = {}) {
     bool localOpening=v.id!=playing.id || screen!=PLAYER;
+    if (v.shortForm && std::none_of(shortsQueue.begin(), shortsQueue.end(), [&](const Video& s) { return s.id == v.id; })) {
+      // Fila do ↑ ↓ dos Shorts: os Shorts da lista de onde o Short foi aberto, na ordem dela.
+      shortsQueue.clear();
+      const Shelf* source = nullptr;
+      for (const Shelf* s : {inResults ? &results : (const Shelf*)nullptr, cat >= 0 && cat < (int)cats.size() ? &cats[(size_t)cat] : (const Shelf*)nullptr})
+        if (s && !source && std::any_of(s->feed.items.begin(), s->feed.items.end(), [&](const Video& i) { return i.id == v.id; })) source = s;
+      if (source) for (const auto& i : source->feed.items) if (i.shortForm) shortsQueue.push_back(i);
+      if (shortsQueue.empty()) shortsQueue.push_back(v);
+    }
     if(localOpening){recordLocal();localUI.checkpoint=SDL_GetTicks()+30000;}
     ++playerPositionRevision;
     offeredQualities.assign(1);
@@ -981,7 +991,7 @@ int run(int argc, char** argv) {
       gfx::image(g, slot->tex, ui::W-72, 26, 40, 40, 20, {1,1,1,1}, (float)thumbs.height / thumbs.width);
     }
   };
-  if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; requestVideo(v); }
+  if (const char* pv = std::getenv("XT_PLAY")) { Video v; v.id = pv; v.shortForm = std::getenv("XT_PLAY_SHORT") != nullptr; requestVideo(v); }
 #ifndef __XSDK__
   if (const char* q = std::getenv("XT_QUERY")) doSearch(q);
 #endif
@@ -1193,6 +1203,10 @@ int run(int argc, char** argv) {
     // ---- F63 Player e Shorts
     .related=related,
     .shelf=shelf,
+    .shortsQueue=shortsQueue,
+    .shortTitle=shortTitle,
+    .shortLang=shortLang,
+    .shortLines=shortLines,
 
     // ---- F64 Configurações e controle
 

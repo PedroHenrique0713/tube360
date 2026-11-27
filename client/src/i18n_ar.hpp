@@ -393,6 +393,7 @@ inline const char* arabic(Key key) {
 
     // ---- F63 Player e Shorts
     case Key::PlayerShelfTitle: return "التالي والمقترحات";
+    case Key::ShortsStep: return "المقطع السابق / التالي";
 
     // ---- F64 Configurações e controle
     case Key::CtlPlayPause: return "تشغيل / إيقاف مؤقت";

@@ -80,6 +80,7 @@ inline void UiContext::playerNextInput() {
 }
 
 inline void UiContext::playerInput(uint64_t now, int optionCount) {
+  if (playing.shortForm) { shortsInput(now); return; }
   if(seekHold.active)for(int b=0;b<Input::N;++b)if(b!=Input::B && b!=Input::BACK)in.fired[b]=false;
   bool any = false;
   if (shelf.open) { playerShelfInput(now); return; }
@@ -269,6 +270,7 @@ inline void UiContext::playerUpdate(uint64_t now) {
 
 inline void UiContext::playerDraw(uint64_t now, double t, int optionCount, bool behindLive, const display::CommentsPanel& commentPanel,
                                   bool sleepWarning, double sleepLeft) {
+  if (playing.shortForm && !(ratePanel || sleepPanel || playerUI.panel != PlayerUI::NONE || sleepWarning || shutdownAt || nextAt)) { shortsDraw(now, t); return; }
   gfx::rect(g, 0, 0, ui::W, ui::H, rgb(0x000000), 0);
   float scale=g.scale, scaleX=g.scaleX, insetX=g.insetX, insetY=g.insetY;
   g.scaleX=g.scale=1; g.insetX=g.insetY=0;

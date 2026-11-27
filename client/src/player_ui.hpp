@@ -42,4 +42,5 @@ struct PlayerShelf {
   int sel = 0;
   std::string video;  // vídeo ao qual a fileira pertence; ao trocar, fecha
   uint64_t volumeUntil = 0;
+  int shortsFocus = 0;  // Shorts: 0 vídeo, 1 curtir, 2 não gostei, 3 comentários, 4 canal
 };

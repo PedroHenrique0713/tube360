@@ -413,6 +413,7 @@ inline std::string shortDate(const std::string& iso, Lang lang) {
   /* */ \
   /* ---- F63 Player e Shorts */ \
   X(PlayerShelfTitle, "Up next and related", "A seguir e relacionados", "A continuación y relacionados") \
+  X(ShortsStep, "Previous / next Short", "Short anterior / seguinte", "Short anterior / siguiente") \
   /* */ \
   /* ---- F64 Configurações e controle */ \
   X(CtlPlayPause, "Play / pause", "Tocar / pausar", "Reproducir / pausar") \

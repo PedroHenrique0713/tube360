@@ -7,6 +7,7 @@
 
 #include <atomic>
 #include <cmath>
+#include "player_volume.hpp"
 #include <deque>
 #include <string>
 #include <vector>
@@ -170,20 +171,15 @@ struct Player {
   }
   // Volume do app em passos de 5 (0 a 100). Vale na TV (ganho do stream) e no Nest (SET_VOLUME absoluto no receptor).
   // Devolve o valor efetivo para a interface mostrar/gravar. Chamar de novo com o mesmo valor é inofensivo.
-  static constexpr int volumeStep = 5;
   int volumePercent() const { return (int)std::lround(userVolume * 100); }
   int setVolumePercent(int percent, bool toNest = true) {
-    percent = std::clamp(percent, 0, 100);
+    percent = volume::clampPercent(percent);
     userVolume = percent / 100.f;
     if (audio && audible) SDL_SetAudioStreamGain(audio, normalGain * fadeGain * userVolume);
     if (toNest && directSpeaker.configured()) directSpeaker.volume(userVolume, percent == 0);
     return percent;
   }
-  int stepVolume(int direction) {
-    int now = volumePercent();
-    int next = direction > 0 ? (now / volumeStep + 1) * volumeStep : ((now + volumeStep - 1) / volumeStep - 1) * volumeStep;
-    return setVolumePercent(next);
-  }
+  int stepVolume(int direction) { return setVolumePercent(volume::stepped(volumePercent(), direction)); }
   void tvSound(bool on) {
     if (audible == on) return;
     if (audio && !SDL_SetAudioStreamGain(audio, on ? normalGain * fadeGain * userVolume : 0.0f)) return;
