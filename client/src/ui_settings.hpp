@@ -7,7 +7,7 @@ namespace settings_ui {
 struct Section { K title; std::vector<int> rows; };
 inline const std::vector<Section>& sections() {
   static const std::vector<Section> all = {
-    {K::SecAccount, {0}}, {K::SecVideo, {2,9,12,10,15,7,19}}, {K::SecSound, {3,4,13,18}}, {K::SecScreen, {5,1,11}},
+    {K::SecAccount, {0}}, {K::SecVideo, {2,9,12,10,15,7}}, {K::SecSound, {3,4,13,18}}, {K::SecScreen, {5,1,11}},
     {K::SecTimer, {6}}, {K::SecPrivacy, {8,16,17,20}}, {K::SecSystem, {14}}};
   return all;
 }

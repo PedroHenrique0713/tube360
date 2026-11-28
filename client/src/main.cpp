@@ -890,7 +890,7 @@ int run(int argc, char** argv) {
     pl.audioOnly = nav.musicSession && nav.musicNow && !nav.videoMode;
     if (pl.audioOnly) { pl.speed=1; pl.loop=false; }
     if (pl.requestLanguage != i18n::code(settings.lang)) { pl.halt(); pl.requestLanguage=i18n::code(settings.lang); }
-    pl.liveLowLatency = settings.liveLowLatency;  // F67: só a TV (live de membros por segmentos)
+    pl.liveLowLatency = false;  // atraso mínimo fora da 0.4 (engasga ao alcançar o ao vivo no console); a linha 19 volta às Configurações quando acertar
     pl.start(v.id, t, v.title, v.dur, quality, nestOut && nestAvailable && !nestSkip, false, settings.videoMode, track, v.members != yt::Membership::None);
     if (pl.speakerMissing) { toast = tr(K::NoSpeaker); toastUntil = SDL_GetTicks() + 3000; }  // a caixa sumiu da configuração: toca na TV e avisa
     if (screen != PLAYER) { backTo = screen; nav.musicNow = nav.musicSession; }
